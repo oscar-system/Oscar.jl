@@ -1,0 +1,1 @@
+{"_id":"moae","POINTS":[["1","4","0","0"],["1","0","4","0"],["1","0","0","4"],["1","2","1","1"],["1","1","2","1"],["1","1","1","2"]],"WEIGHTS":null,"_type":"fan::SubdivisionOfPoints<Rational>","MAXIMAL_CELLS":[[3,4,5],[0,1,3],[1,3,4],[1,2,4],[2,4,5],[0,2,5],[0,3,5],{"cols":6}],"REGULAR":false,"_ns":{"polymake":["https://polymake.org","4.6"]},"VECTOR_AMBIENT_DIM":4}

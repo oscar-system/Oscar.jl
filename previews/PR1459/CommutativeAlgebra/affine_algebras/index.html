@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Affine Algebras · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to Oscar</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/serialization/">Saving and loading</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox" checked/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li><a class="tocitem" href="../rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../free_modules/">Free Modules Over Multivariate Rings</a></li><li><a class="tocitem" href="../modules/">Modules Over Multivariate Rings</a></li><li class="is-active"><a class="tocitem" href>Affine Algebras</a><ul class="internal"><li><a class="tocitem" href="#Types"><span>Types</span></a></li><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Data-Associated-to-Affine-Algebras"><span>Data Associated to Affine Algebras</span></a></li><li><a class="tocitem" href="#Elements-of-Affine-Algebras"><span>Elements of Affine Algebras</span></a></li><li><a class="tocitem" href="#Ideals-in-Affine-Algebras"><span>Ideals in Affine Algebras</span></a></li><li><a class="tocitem" href="#Homomorphisms-From-Affine-Algebras"><span>Homomorphisms From Affine Algebras</span></a></li><li><a class="tocitem" href="#Homomorphisms-of-Affine-Algebras"><span>Homomorphisms of Affine Algebras</span></a></li><li><a class="tocitem" href="#Subalgebras"><span>Subalgebras</span></a></li><li><a class="tocitem" href="#Noether-Normalization"><span>Noether Normalization</span></a></li><li><a class="tocitem" href="#Normalization"><span>Normalization</span></a></li><li><a class="tocitem" href="#Integral-Bases"><span>Integral Bases</span></a></li><li><a class="tocitem" href="#Tests-on-Affine-Algebras"><span>Tests on Affine Algebras</span></a></li><li><a class="tocitem" href="#Hilbert-Series-and-Hilbert-Polynomial"><span>Hilbert Series and Hilbert Polynomial</span></a></li></ul></li><li><a class="tocitem" href="../binomial_ideals/">Binomial Primary Decomposition</a></li><li><a class="tocitem" href="../localizations/">Localization</a></li><li><a class="tocitem" href="../module_localizations/">Localizations of modules over computable rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12-3" type="checkbox"/><label class="tocitem" for="menuitem-12-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">Algebraic Cycles</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12-4" type="checkbox"/><label class="tocitem" for="menuitem-12-4"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/AffineSchemes/">General schemes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12-5" type="checkbox"/><label class="tocitem" for="menuitem-12-5"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Curves</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-5" type="checkbox"/><label class="tocitem" for="menuitem-17-5"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Commutative Algebra</a></li><li class="is-active"><a href>Affine Algebras</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Affine Algebras</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/CommutativeAlgebra/affine_algebras.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Affine-Algebras">Affine Algebras</a></li><li class="no-marker"><ul><li><a href="#Types">Types</a></li><li><a href="#Constructors">Constructors</a></li><li><a href="#Data-Associated-to-Affine-Algebras">Data Associated to Affine Algebras</a></li><li><a href="#Elements-of-Affine-Algebras">Elements of Affine Algebras</a></li><li><a href="#Ideals-in-Affine-Algebras">Ideals in Affine Algebras</a></li><li><a href="#Homomorphisms-From-Affine-Algebras">Homomorphisms From Affine Algebras</a></li><li><a href="#Homomorphisms-of-Affine-Algebras">Homomorphisms of Affine Algebras</a></li><li><a href="#Subalgebras">Subalgebras</a></li><li><a href="#Noether-Normalization">Noether Normalization</a></li><li><a href="#Normalization">Normalization</a></li><li><a href="#Integral-Bases">Integral Bases</a></li><li><a href="#Tests-on-Affine-Algebras">Tests on Affine Algebras</a></li><li><a href="#Hilbert-Series-and-Hilbert-Polynomial">Hilbert Series and Hilbert Polynomial</a></li></ul></li></ul><h1 id="Affine-Algebras"><a class="docs-heading-anchor" href="#Affine-Algebras">Affine Algebras</a><a id="Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Affine-Algebras" title="Permalink"></a></h1><p>With regard to notation, we use <em>affine algebra</em> as a synonym for <em>quotient ring of a multivariate polynomial ring modulo an ideal</em>. More specifically, if <span>$R$</span> is a multivariate polynomial ring with coefficient ring <span>$C$</span>, and <span>$A=R/I$</span> is the quotient ring of <span>$R$</span> modulo an ideal <span>$I$</span> of <span>$R$</span>, we refer to <span>$A$</span> as an <em>affine algebra over <span>$C$</span></em>, or an <em>affine <span>$C$</span>-algebra</em>. In this section, we discuss functionality for handling such algebras in OSCAR.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring. Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions <code>simplify</code> and <code>simplify!</code> discussed in this section implements this.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Each grading on a multivariate polynomial ring <code>R</code>  in OSCAR  descends to a grading on the affine algebra <code>A = R/I</code> (recall that OSCAR ideals of graded polynomial rings are required to be homogeneous). Functionality for dealing with such gradings and our notation for describing this functionality descend accordingly. This applies, in particular, to the functions <code>ìs_graded</code>, <code>ìs_standard_graded</code>, <code>ìs_z_graded</code>, <code>ìs_zm_graded</code>, and <code>ìs_positively_graded</code> which will not be discussed again here. </p></div></div><h2 id="Types"><a class="docs-heading-anchor" href="#Types">Types</a><a id="Types-1"></a><a class="docs-heading-anchor-permalink" href="#Types" title="Permalink"></a></h2><p>The OSCAR type for quotient rings of  multivariate polynomial rings is of parametrized form <code>MPolyQuo{T}</code>, with elements of type <code>MPolyQuoElem{T}</code>. Here, <code>T</code> is the element type of the polynomial ring.</p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="quo-Tuple{MPolyRing, MPolyIdeal}" href="#quo-Tuple{MPolyRing, MPolyIdeal}"><code>quo</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">quo(R::MPolyRing, I::MPolyIdeal) -&gt; MPolyQuoRing, Map</code></pre><p>Create the quotient ring <span>$R/I$</span> and return the new ring as well as the projection map <span>$R\rightarrow R/I$</span>.</p><pre><code class="nohighlight hljs">quo(R::MPolyRing, V::Vector{MPolyElem}) -&gt; MPolyQuoRing, Map</code></pre><p>As above, where <span>$I\subset R$</span> is the ideal generated by the polynomials in <span>$V$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse)
+
+julia&gt; typeof(A)
+MPolyQuo{fmpq_mpoly}
+
+julia&gt; typeof(x)
+fmpq_mpoly
+
+julia&gt; typeof(A(x))
+MPolyQuoElem{fmpq_mpoly}
+
+julia&gt; A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
+
+julia&gt; p
+Map from
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
+
+julia&gt; p(x)
+x
+
+julia&gt; typeof(p(x))
+MPolyQuoElem{fmpq_mpoly}
+
+julia&gt; S, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] by ideal(x^2*z - y^3, x - y), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
+
+julia&gt; typeof(B)
+MPolyQuo{MPolyElem_dec{fmpq, fmpq_mpoly}}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L639">source</a></section></article><h2 id="Data-Associated-to-Affine-Algebras"><a class="docs-heading-anchor" href="#Data-Associated-to-Affine-Algebras">Data Associated to Affine Algebras</a><a id="Data-Associated-to-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Affine-Algebras" title="Permalink"></a></h2><h3 id="Basic-Data"><a class="docs-heading-anchor" href="#Basic-Data">Basic Data</a><a id="Basic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Data" title="Permalink"></a></h3><p>If <code>A=R/I</code> is the quotient ring of a multivariate polynomial ring <code>R</code> modulo an ideal <code>I</code> of <code>R</code>, then</p><ul><li><code>base_ring(A)</code> refers to <code>R</code>,</li><li><code>modulus(A)</code> to <code>I</code>,</li><li><code>gens(A)</code> to the generators of <code>A</code>,</li><li><code>ngens(A)</code> to the number of these generators, and</li><li><code>gen(A, i)</code> as well as <code>A[i]</code> to the <code>i</code>-th such generator.</li></ul><h6 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])</code><code class="nohighlight hljs ansi" style="display:block;">(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))</code><code class="nohighlight hljs ansi" style="display:block;">(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; base_ring(A)</code><code class="nohighlight hljs ansi" style="display:block;">Multivariate Polynomial Ring in x, y, z over Rational Field</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; modulus(A)</code><code class="nohighlight hljs ansi" style="display:block;">ideal(-x^2 + y, -x^3 + z)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; gens(A)</code><code class="nohighlight hljs ansi" style="display:block;">3-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ x
+ y
+ z</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; ngens(A)</code><code class="nohighlight hljs ansi" style="display:block;">3</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; gen(A, 2)</code><code class="nohighlight hljs ansi" style="display:block;">y</code></pre><p>In the graded case, we additionally have:</p><article class="docstring"><header><a class="docstring-binding" id="grading_group-Tuple{MPolyQuo{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}" href="#grading_group-Tuple{MPolyQuo{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}"><code>grading_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grading_group(A::MPolyQuo{&lt;:MPolyElem_dec})</code></pre><p>If <code>A</code> is, say, <code>G</code>-graded, return <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^2*z-y^3, x-y]));
+
+julia&gt; grading_group(A)
+GrpAb: Z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L1095">source</a></section></article><h3 id="Dimension"><a class="docs-heading-anchor" href="#Dimension">Dimension</a><a id="Dimension-1"></a><a class="docs-heading-anchor-permalink" href="#Dimension" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="dim-Tuple{MPolyQuo}" href="#dim-Tuple{MPolyQuo}"><code>dim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dim(A::MPolyQuo)</code></pre><p>Return the Krull dimension of <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+
+julia&gt; dim(A)
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L15">source</a></section></article><h2 id="Elements-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Elements-of-Affine-Algebras">Elements of Affine Algebras</a><a id="Elements-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Elements-of-Affine-Algebras" title="Permalink"></a></h2><h3 id="Types-2"><a class="docs-heading-anchor" href="#Types-2">Types</a><a class="docs-heading-anchor-permalink" href="#Types-2" title="Permalink"></a></h3><p>The OSCAR type for elements of quotient rings of  multivariate polynomial rings is of parametrized form <code>MPolyQuo{T}</code>, where <code>T</code> is the element type of the polynomial ring.</p><h3 id="Creating-Elements-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Creating-Elements-of-Affine-Algebras">Creating Elements of Affine Algebras</a><a id="Creating-Elements-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Elements-of-Affine-Algebras" title="Permalink"></a></h3><p>Elements of an affine algebra <span>$A = R/I$</span> are created as images of elements of <span>$R$</span> under the projection map or by directly coercing elements of <span>$R$</span> into <span>$A$</span>.</p><h6 id="Examples-2"><a class="docs-heading-anchor" href="#Examples-2">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-2" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))</code><code class="nohighlight hljs ansi" style="display:block;">(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2), Map from
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2) defined by a julia-function with inverse)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; f = p(x^3*y^2-y^3*x^2+x*y)</code><code class="nohighlight hljs ansi" style="display:block;">x^3*y^2 - x^2*y^3 + x*y</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; typeof(f)</code><code class="nohighlight hljs ansi" style="display:block;">MPolyQuoElem{fmpq_mpoly}</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; g = A(x^3*y^2-y^3*x^2+x*y)</code><code class="nohighlight hljs ansi" style="display:block;">x^3*y^2 - x^2*y^3 + x*y</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; f == g</code><code class="nohighlight hljs ansi" style="display:block;">true</code></pre><h3 id="Reducing-Elements-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Reducing-Elements-of-Affine-Algebras">Reducing Elements of Affine Algebras</a><a id="Reducing-Elements-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Reducing-Elements-of-Affine-Algebras" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="simplify-Tuple{MPolyQuoElem}" href="#simplify-Tuple{MPolyQuoElem}"><code>simplify</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">simplify(f::MPolyQuoElem)</code></pre><p>Reduce <code>f</code> with regard to the modulus of the quotient ring.</p><pre><code class="nohighlight hljs">simplify!(f::MPolyQuoElem)</code></pre><p>Reduce <code>f</code> with regard to the modulus of the quotient ring, and replace <code>f</code> by the reduction.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,) = PolynomialRing(QQ, [&quot;x&quot;]);
+
+julia&gt; A, p = quo(R, ideal(R, [x^4]));
+
+julia&gt; f = p(x-x^6)
+-x^6 + x
+
+julia&gt; simplify(f)
+x
+
+julia&gt; f
+-x^6 + x
+
+julia&gt; simplify!(f)
+x
+
+julia&gt; f
+x</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L558">source</a></section></article><h3 id="Tests-on-Elements-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Tests-on-Elements-of-Affine-Algebras">Tests on Elements of Affine Algebras</a><a id="Tests-on-Elements-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Elements-of-Affine-Algebras" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="==-Union{Tuple{T}, Tuple{MPolyQuoElem{T}, MPolyQuoElem{T}}} where T" href="#==-Union{Tuple{T}, Tuple{MPolyQuoElem{T}, MPolyQuoElem{T}}} where T"><code>==</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T</code></pre><p>Return <code>true</code> if <code>f</code> is equal to <code>g</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,) = PolynomialRing(QQ, [&quot;x&quot;]);
+
+julia&gt; A, p = quo(R, ideal(R, [x^4]));
+
+julia&gt; f = p(x-x^6)
+-x^6 + x
+
+julia&gt; g = p(x)
+x
+
+julia&gt; f == g
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L611">source</a></section></article><p>In the graded case, we additionally have:</p><article class="docstring"><header><a class="docstring-binding" id="is_homogeneous-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}" href="#is_homogeneous-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}"><code>is_homogeneous</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_homogeneous(f::MPolyQuoElem{&lt;:MPolyElem_dec})</code></pre><p>Given an element <code>f</code> of a graded affine algebra, return <code>true</code> if <code>f</code> is homogeneous, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
+
+julia&gt; f = p(y^2-x^2+z^4)
+-x^2 + y^2 + z^4
+
+julia&gt; is_homogeneous(f)
+true
+
+julia&gt; f
+z^4</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L1069">source</a></section></article><h3 id="Data-associated-to-Elements-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Data-associated-to-Elements-of-Affine-Algebras">Data associated to Elements of Affine Algebras</a><a id="Data-associated-to-Elements-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Data-associated-to-Elements-of-Affine-Algebras" title="Permalink"></a></h3><p>Given an element <code>f</code> of an affine algebra <code>A</code>, </p><ul><li><code>parent(f)</code> refers to <code>A</code>.</li></ul><p>In the graded case,  we also have:</p><article class="docstring"><header><a class="docstring-binding" id="homogeneous_components-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}" href="#homogeneous_components-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}"><code>homogeneous_components</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_components(f::MPolyQuoElem{&lt;:MPolyElem_dec})</code></pre><p>Given an element <code>f</code> of a graded affine algebra, return the homogeneous components of <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
+
+julia&gt; f = p(y^2-x^2+x*y*z+z^4)
+-x^2 + x*y*z + y^2 + z^4
+
+julia&gt; homogeneous_components(f)
+Dict{GrpAbFinGenElem, MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}} with 2 entries:
+  [4] =&gt; z^4
+  [3] =&gt; y^2*z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L1043">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(f::MPolyQuoElem{&lt;:MPolyElem_dec}, g::GrpAbFinGenElem)</code></pre><p>Given an element <code>f</code> of a graded affine algebra, and given an element <code>g</code> of the grading group of that algebra, return the homogeneous component of <code>f</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyQuoElem{&lt;:MPolyElem_dec}, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z^m$</span>-graded affine algebra <code>A</code>, say, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyQuoElem{&lt;:MPolyElem_dec}, g::IntegerUnion)</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z$</span>-graded affine algebra <code>A</code>, say, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>A</code>,  and return the homogeneous component of <code>f</code> whose degree is that element.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
+
+julia&gt; f = p(y^2-x^2+x*y*z+z^4)
+-x^2 + x*y*z + y^2 + z^4
+
+julia&gt; homogeneous_component(f, 4)
+z^4</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L997">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}" href="#degree-Tuple{MPolyQuoElem{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(f::MPolyQuoElem{&lt;:MPolyElem_dec})</code></pre><p>Given a homogeneous element <code>f</code> of a graded affine algebra, return the degree of <code>f</code>.</p><pre><code class="nohighlight hljs">degree(::Type{Vector{Int}}, f::MPolyQuoElem{&lt;:MPolyElem_dec})</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z^m$</span>-graded affine algebra, return the degree of <code>f</code>, converted to a vector of integer numbers.</p><pre><code class="nohighlight hljs">degree(::Type{Int}, f::MPolyQuoElem{&lt;:MPolyElem_dec})</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z$</span>-graded affine algebra, return the degree of <code>f</code>, converted to an integer number.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;] );
+
+julia&gt; A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] by ideal(-x + y, -x^3 + z^3), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] by ideal(-x + y, -x^3 + z^3) defined by a julia-function with inverse)
+
+julia&gt; f = p(y^2-x^2+z^4)
+-x^2 + y^2 + z^4
+
+julia&gt; degree(f)
+graded by [4]
+
+julia&gt; typeof(degree(f))
+GrpAbFinGenElem
+
+julia&gt; degree(Int, f)
+4
+
+julia&gt; typeof(degree(Int, f))
+Int64</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L931">source</a></section></article><h2 id="Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Ideals-in-Affine-Algebras">Ideals in Affine Algebras</a><a id="Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Ideals-in-Affine-Algebras" title="Permalink"></a></h2><h3 id="Constructors-2"><a class="docs-heading-anchor" href="#Constructors-2">Constructors</a><a class="docs-heading-anchor-permalink" href="#Constructors-2" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="ideal-Union{Tuple{T}, Tuple{MPolyQuo{T}, Vector{T}}} where T&lt;:MPolyElem" href="#ideal-Union{Tuple{T}, Tuple{MPolyQuo{T}, Vector{T}}} where T&lt;:MPolyElem"><code>ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ideal(A::MPolyQuo{T}, V::Vector{T}) where T &lt;: MPolyElem</code></pre><p>Given a (graded) quotient ring <code>A=R/I</code> and a vector <code>V</code> of (homogeneous) polynomials in <code>R</code>,  create the ideal of <code>A</code> which is generated by the images of the entries of <code>V</code>.</p><pre><code class="nohighlight hljs">ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T &lt;: MPolyElem</code></pre><p>Given a (graded) quotient ring <code>A</code> and a vector <code>V</code> of (homogeneous) elements of <code>A</code>,  create the ideal of <code>A</code> which is generated by the entries of <code>V</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^2-y^3, x-y]));
+
+julia&gt; I = ideal(A, [x^2-y])
+ideal(x^2 - y)
+
+julia&gt; S, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]));
+
+julia&gt; J = ideal(B, [x^2-y^2])
+ideal(x^2 - y^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L321">source</a></section></article><h3 id="Reducing-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Reducing-Ideals-in-Affine-Algebras">Reducing Ideals in Affine Algebras</a><a id="Reducing-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Reducing-Ideals-in-Affine-Algebras" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="simplify-Tuple{MPolyQuoIdeal}" href="#simplify-Tuple{MPolyQuoIdeal}"><code>simplify</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">simplify(a::MPolyQuoIdeal)</code></pre><p>Reduce <code>a</code> with regard to the modulus of the quotient ring.</p><pre><code class="nohighlight hljs">simplify!(a::MPolyQuoIdeal)</code></pre><p>Reduce <code>a</code> with regard to the modulus of the quotient ring, and replace <code>a</code> by the reduction.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
+
+julia&gt; a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
+ideal(x^3*y^4 - x + y, x*y^2 + x*y)
+
+julia&gt; simplify(a)
+ideal(x^2*y^3 - x + y, x*y^2 + x*y)
+
+julia&gt; a
+ideal(x^3*y^4 - x + y, x*y^2 + x*y)
+
+julia&gt; simplify!(a);
+
+julia&gt; a
+ideal(x^2*y^3 - x + y, x*y^2 + x*y)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L423">source</a></section></article><h3 id="Data-Associated-to-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Data-Associated-to-Ideals-in-Affine-Algebras">Data Associated to Ideals in Affine Algebras</a><a id="Data-Associated-to-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Ideals-in-Affine-Algebras" title="Permalink"></a></h3><h4 id="Basic-Data-2"><a class="docs-heading-anchor" href="#Basic-Data-2">Basic Data</a><a class="docs-heading-anchor-permalink" href="#Basic-Data-2" title="Permalink"></a></h4><p>If <code>a</code> is an ideal of the affine algebra <code>A</code>, then</p><ul><li><code>base_ring(a)</code> refers to <code>A</code>,</li><li><code>gens(a)</code> to the generators of <code>a</code>,</li><li><code>ngens(a)</code> to the number of these generators,  and</li><li><code>gen(a, i)</code> as well as <code>a[i]</code> to the <code>i</code>-th such generator.</li></ul><h6 id="Examples-3"><a class="docs-heading-anchor" href="#Examples-3">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-3" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; a = ideal(A, [x-y, z^4])</code><code class="nohighlight hljs ansi" style="display:block;">ideal(x - y, z^4)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; base_ring(a)</code><code class="nohighlight hljs ansi" style="display:block;">Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; gens(a)</code><code class="nohighlight hljs ansi" style="display:block;">2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ x - y
+ z^4</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; ngens(a)</code><code class="nohighlight hljs ansi" style="display:block;">2</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; gen(a, 2)</code><code class="nohighlight hljs ansi" style="display:block;">z^4</code></pre><h4 id="Dimension-of-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Dimension-of-Ideals-in-Affine-Algebras">Dimension of Ideals in Affine Algebras</a><a id="Dimension-of-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Dimension-of-Ideals-in-Affine-Algebras" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="dim-Tuple{MPolyQuoIdeal}" href="#dim-Tuple{MPolyQuoIdeal}"><code>dim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dim(a::MPolyQuoIdeal)</code></pre><p>Return the Krull dimension of <code>a</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
+
+julia&gt; a = ideal(A, [x-y])
+ideal(x - y)
+
+julia&gt; dim(a)
+0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L1142">source</a></section></article><h4 id="Minimal-Sets-of-Generators"><a class="docs-heading-anchor" href="#Minimal-Sets-of-Generators">Minimal Sets of Generators</a><a id="Minimal-Sets-of-Generators-1"></a><a class="docs-heading-anchor-permalink" href="#Minimal-Sets-of-Generators" title="Permalink"></a></h4><p>In the graded case, we have:</p><article class="docstring"><header><a class="docstring-binding" id="minimal_generating_set-Tuple{MPolyQuoIdeal{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}" href="#minimal_generating_set-Tuple{MPolyQuoIdeal{var&quot;#s271&quot;} where var&quot;#s271&quot;&lt;:MPolyElem_dec}"><code>minimal_generating_set</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minimal_generating_set(I::MPolyQuoIdeal{&lt;:MPolyElem_dec})</code></pre><p>Given a homogeneous ideal <code>I</code> in a graded affine algebra over a field, return an array containing a minimal set of generators of <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia&gt; I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia&gt; A, p = quo(R, ideal(R, [x-y]));
+
+julia&gt; J = ideal(A, [p(x) for x in V]);
+
+julia&gt; minimal_generating_set(J)
+2-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+ x
+ z^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L1193">source</a></section></article><h3 id="Operations-on-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Operations-on-Ideals-in-Affine-Algebras">Operations on Ideals in Affine Algebras</a><a id="Operations-on-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Operations-on-Ideals-in-Affine-Algebras" title="Permalink"></a></h3><h4 id="Simple-Ideal-Operations-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Simple-Ideal-Operations-in-Affine-Algebras">Simple Ideal Operations in Affine Algebras</a><a id="Simple-Ideal-Operations-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-Ideal-Operations-in-Affine-Algebras" title="Permalink"></a></h4><h5 id="Powers-of-Ideal"><a class="docs-heading-anchor" href="#Powers-of-Ideal">Powers of Ideal</a><a id="Powers-of-Ideal-1"></a><a class="docs-heading-anchor-permalink" href="#Powers-of-Ideal" title="Permalink"></a></h5><article class="docstring"><header><a class="docstring-binding" id="^-Tuple{MPolyQuoIdeal, Int64}" href="#^-Tuple{MPolyQuoIdeal, Int64}"><code>^</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">:^(a::MPolyQuoIdeal, m::Int)</code></pre><p>Return the <code>m</code>-th power of <code>a</code>.  </p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L204">source</a></section></article><h5 id="Sum-of-Ideals"><a class="docs-heading-anchor" href="#Sum-of-Ideals">Sum of Ideals</a><a id="Sum-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Sum-of-Ideals" title="Permalink"></a></h5><article class="docstring"><header><a class="docstring-binding" id="+-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T" href="#+-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T"><code>+</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T</code></pre><p>Return the sum of <code>a</code> and <code>b</code>.  </p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L217">source</a></section></article><h5 id="Product-of-Ideals"><a class="docs-heading-anchor" href="#Product-of-Ideals">Product of Ideals</a><a id="Product-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Product-of-Ideals" title="Permalink"></a></h5><article class="docstring"><header><a class="docstring-binding" id="*-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T" href="#*-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T"><code>*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T</code></pre><p>Return the product of <code>a</code> and <code>b</code>.  </p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L232">source</a></section></article><h4 id="Intersection-of-Ideals"><a class="docs-heading-anchor" href="#Intersection-of-Ideals">Intersection of Ideals</a><a id="Intersection-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Intersection-of-Ideals" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="intersect-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, Vararg{MPolyQuoIdeal{T}, N} where N}} where T" href="#intersect-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, Vararg{MPolyQuoIdeal{T}, N} where N}} where T"><code>intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T</code></pre><p>Return the intersection of two or more ideals.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^2-y^3, x-y]));
+
+julia&gt; a = ideal(A, [y^2])
+ideal(y^2)
+
+julia&gt; b = ideal(A, [x])
+ideal(x)
+
+julia&gt; intersect(a,b)
+ideal(x*y)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L247">source</a></section></article><h4 id="Ideal-Quotients"><a class="docs-heading-anchor" href="#Ideal-Quotients">Ideal Quotients</a><a id="Ideal-Quotients-1"></a><a class="docs-heading-anchor-permalink" href="#Ideal-Quotients" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="quotient-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T" href="#quotient-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T"><code>quotient</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T</code></pre><p>Return the ideal quotient of <code>a</code> by <code>b</code>. Alternatively, use <code>a:b</code>. </p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^2-y^3, x-y]));
+
+julia&gt; a = ideal(A, [y^2])
+ideal(y^2)
+
+julia&gt; b = ideal(A, [x])
+ideal(x)
+
+julia&gt; a:b
+ideal(y)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L281">source</a></section></article><h3 id="Tests-on-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Tests-on-Ideals-in-Affine-Algebras">Tests on Ideals in Affine Algebras</a><a id="Tests-on-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Ideals-in-Affine-Algebras" title="Permalink"></a></h3><h4 id="Basic-Tests"><a class="docs-heading-anchor" href="#Basic-Tests">Basic Tests</a><a id="Basic-Tests-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Tests" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="iszero-Tuple{MPolyQuoIdeal}" href="#iszero-Tuple{MPolyQuoIdeal}"><code>iszero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">iszero(a::MPolyQuoIdeal)</code></pre><p>Return <code>true</code> if <code>a</code> is the zero ideal, <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L310">source</a></section></article><h4 id="Equality-of-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Equality-of-Ideals-in-Affine-Algebras">Equality of Ideals in Affine Algebras</a><a id="Equality-of-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Equality-of-Ideals-in-Affine-Algebras" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="==-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T" href="#==-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T"><code>==</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T</code></pre><p>Return <code>true</code> if <code>a</code> is equal to <code>b</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
+
+julia&gt; a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
+ideal(x^3*y^4 - x + y, x*y^2 + x*y)
+
+julia&gt; b = ideal(A, [x^3*y^3-x+y, x^2*y+y^2*x])
+ideal(x^3*y^3 - x + y, x^2*y + x*y^2)
+
+julia&gt; a == b
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L533">source</a></section></article><h4 id="Containment-of-Ideals-in-Affine-Algebras"><a class="docs-heading-anchor" href="#Containment-of-Ideals-in-Affine-Algebras">Containment of Ideals in Affine Algebras</a><a id="Containment-of-Ideals-in-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Containment-of-Ideals-in-Affine-Algebras" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="issubset-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T" href="#issubset-Union{Tuple{T}, Tuple{MPolyQuoIdeal{T}, MPolyQuoIdeal{T}}} where T"><code>issubset</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T</code></pre><p>Return <code>true</code> if <code>a</code> is contained in <code>b</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
+
+julia&gt; a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
+ideal(x^3*y^4 - x + y, x*y^2 + x*y)
+
+julia&gt; b = ideal(A, [x^3*y^3-x+y, x^2*y+y^2*x])
+ideal(x^3*y^3 - x + y, x^2*y + x*y^2)
+
+julia&gt; issubset(a,b)
+false
+
+julia&gt; issubset(b,a)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyQuo.jl#L502">source</a></section></article><h2 id="Homomorphisms-From-Affine-Algebras"><a class="docs-heading-anchor" href="#Homomorphisms-From-Affine-Algebras">Homomorphisms From Affine Algebras</a><a id="Homomorphisms-From-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Homomorphisms-From-Affine-Algebras" title="Permalink"></a></h2><p>If <span>$A=R/I$</span> is an affine <span>$C$</span>-algebra, and <span>$S$</span> is any ring, then defining a ring homomorphism <span>$\overline{\phi}: A \rightarrow S$</span> means to define a ring homomorphism <span>$\phi: R \rightarrow S$</span> such that <span>$I\subset \ker(\phi)$</span>. Thus, <span>$\overline{\phi} $ is determined by specifying its restriction to $C$</span>, and by assigning an image to each generator of <span>$A$</span>. In OSCAR, such homomorphisms are created by using the following constructor:</p><article class="docstring"><header><a class="docstring-binding" id="hom-Tuple{MPolyQuo, AbstractAlgebra.NCRing, Any, Vector{T} where T}" href="#hom-Tuple{MPolyQuo, AbstractAlgebra.NCRing, Any, Vector{T} where T}"><code>hom</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+
+hom(A::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)</code></pre><p>Given a homomorphism <code>coeff_map</code> from <code>C</code> to <code>S</code>, where <code>C</code> is the  coefficient ring of the base ring of <code>A</code>, and given a vector <code>images</code> of <code>ngens(A)</code>  elements of <code>S</code>, return the homomorphism <code>A</code> <span>$\to$</span> <code>S</code> whose restriction  to <code>C</code> is <code>coeff_map</code>, and which sends the <code>i</code>-th generator of <code>A</code> to the  <code>i</code>-th entry of <code>images</code>.</p><p>If no coefficient map is entered, invoke a canonical homomorphism of <code>C</code> to <code>S</code>, if such a homomorphism exists, and throw an error, otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The function returns a well-defined homomorphism <code>A</code> <span>$\to$</span> <code>S</code> iff the given data defines a homomorphism from the base ring of <code>A</code> to <code>S</code> whose kernel contains the modulus of <code>A</code>. This condition is checked by the  function in case <code>check = true</code> (default).</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In case <code>check = true</code> (default), the function also checks the conditions below:</p><ul><li>If <code>S</code> is graded, the assigned images must be homogeneous with respect to the given grading.</li><li>If <code>S</code> is noncommutative, the assigned images must pairwise commute. </li></ul></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;] );
+
+julia&gt; A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
+
+julia&gt; S, (s, t) = PolynomialRing(QQ, [&quot;s&quot;, &quot;t&quot;]);
+
+julia&gt; F = hom(A, S, [s, s^2, s^3])
+Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Codomain:
+=========
+Multivariate Polynomial Ring in s, t over Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/MPolyQuo.jl#L27">source</a></section></article><p>Given a ring homomorphism <code>F</code> from <code>R</code> to <code>S</code> as above, <code>domain(F)</code> and <code>codomain(F)</code> refer to <code>R</code> and <code>S</code>, respectively. Given ring homomorphisms <code>F</code> from <code>R</code> to <code>S</code> and <code>G</code> from <code>S</code> to <code>T</code> as above, <code>compose(F, G)</code> refers to their composition.</p><h2 id="Homomorphisms-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Homomorphisms-of-Affine-Algebras">Homomorphisms of Affine Algebras</a><a id="Homomorphisms-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Homomorphisms-of-Affine-Algebras" title="Permalink"></a></h2><p>The OSCAR homomorphism type <code>AffAlgHom</code> models ring homomorphisms <code>R</code> <span>$\to$</span> <code>S</code> such that the type of both <code>R</code> and <code>S</code>  is a subtype of <code>Union{MPolyRing{T}, MPolyQuo{U}}</code>, where <code>T &lt;: FieldElem</code> and <code>U &lt;: MPolyElem{T}</code>. Functionality for these homomorphism is discussed in what follows.</p><h3 id="Data-Associated-to-Homomorphisms-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Data-Associated-to-Homomorphisms-of-Affine-Algebras">Data Associated to Homomorphisms of Affine Algebras</a><a id="Data-Associated-to-Homomorphisms-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Homomorphisms-of-Affine-Algebras" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="preimage-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}, MPolyIdeal}" href="#preimage-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}, MPolyIdeal}"><code>preimage</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">preimage(F::AffAlgHom, I::U) where U &lt;: Union{MPolyIdeal, MPolyQuoIdeal}</code></pre><p>Return the preimage of the ideal <code>I</code> under <code>F</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L240">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="kernel-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}" href="#kernel-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}"><code>kernel</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">kernel(F::AffAlgHom)</code></pre><p>Return the kernel of <code>F</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L44">source</a></section></article><h6 id="Examples-4"><a class="docs-heading-anchor" href="#Examples-4">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-4" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; D1, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; C1, (s,t) = GradedPolynomialRing(QQ, [&quot;s&quot;, &quot;t&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; V1 = [s^3, s^2*t, s*t^2, t^3];</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; para = hom(D1, C1, V1)</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -&gt; [1]
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1]
+Codomain:
+=========
+Multivariate Polynomial Ring in s, t over Rational Field graded by
+  s -&gt; [1]
+  t -&gt; [1]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; twistedCubic = kernel(para)</code><code class="nohighlight hljs ansi" style="display:block;">ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; C2, p2 = quo(D1, twistedCubic);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; D2, (a, b, c) = GradedPolynomialRing(QQ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; V2 = [p2(w-y), p2(x), p2(z)];</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; proj = hom(D2, C2, V2)</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in a, b, c over Rational Field graded by
+  a -&gt; [1]
+  b -&gt; [1]
+  c -&gt; [1]
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -&gt; [1]
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; nodalCubic = kernel(proj)</code><code class="nohighlight hljs ansi" style="display:block;">ideal(-a^2*c + b^3 - 2*b^2*c + b*c^2)</code></pre><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; D3,y = PolynomialRing(QQ, &quot;y&quot; =&gt; 1:3);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; C3, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:3);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; F3 = hom(D3, C3, V3)</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in y[1], y[2], y[3] over Rational Field
+Codomain:
+=========
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])</code><code class="nohighlight hljs ansi" style="display:block;">ideal(x[1]^3 + x[2]^3 + x[3]^3 - 1)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; steinerRomanSurface = preimage(F3, sphere)</code><code class="nohighlight hljs ansi" style="display:block;">ideal(y[1]^6*y[2]^6 + 2*y[1]^6*y[2]^3*y[3]^3 + y[1]^6*y[3]^6 + 2*y[1]^3*y[2]^6*y[3]^3 + 2*y[1]^3*y[2]^3*y[3]^6 - y[1]^3*y[2]^3*y[3]^3 + y[2]^6*y[3]^6)</code></pre><h3 id="Tests-on-Homomorphisms-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Tests-on-Homomorphisms-of-Affine-Algebras">Tests on Homomorphisms of Affine Algebras</a><a id="Tests-on-Homomorphisms-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Homomorphisms-of-Affine-Algebras" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_injective-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}" href="#is_injective-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}"><code>is_injective</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_injective(F::AffAlgHom)</code></pre><p>Return <code>true</code> if <code>F</code> is injective, <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L62">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_surjective-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}" href="#is_surjective-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}"><code>is_surjective</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_surjective(F::AffAlgHom)</code></pre><p>Return <code>true</code> if <code>F</code> is is_surjective, <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L97">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_bijective-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}" href="#is_bijective-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}"><code>is_bijective</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_bijective(F::AffAlgHom)</code></pre><p>Return <code>true</code> if <code>F</code> is bijective, <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L126">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isfinite-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}" href="#isfinite-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}"><code>isfinite</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isfinite(F::AffAlgHom)</code></pre><p>Return <code>true</code> if <code>F</code> is finite, <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L141">source</a></section></article><h6 id="Examples-5"><a class="docs-heading-anchor" href="#Examples-5">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-5" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; D, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; S, (a, b, c) = PolynomialRing(QQ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; C, p = quo(S, ideal(S, [c-b^3]));</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; F = hom(D, C, V)</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; is_surjective(F)</code><code class="nohighlight hljs ansi" style="display:block;">true</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; D1, _ = quo(D, kernel(F));</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; F1 = hom(D1, C, V);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; is_bijective(F1)</code><code class="nohighlight hljs ansi" style="display:block;">true</code></pre><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [ &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; C, (s, t) = PolynomialRing(QQ, [&quot;s&quot;, &quot;t&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; V = [s*t, t, s^2];</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; paraWhitneyUmbrella = hom(R, C, V)</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Multivariate Polynomial Ring in s, t over Rational Field</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; D, _ = quo(R, kernel(paraWhitneyUmbrella));</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; isfinite(hom(D, C, V))</code><code class="nohighlight hljs ansi" style="display:block;">true</code></pre><h3 id="Inverting-Homomorphisms-of-Affine-Algebras"><a class="docs-heading-anchor" href="#Inverting-Homomorphisms-of-Affine-Algebras">Inverting Homomorphisms of Affine Algebras</a><a id="Inverting-Homomorphisms-of-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Inverting-Homomorphisms-of-Affine-Algebras" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="inverse-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}" href="#inverse-Tuple{Oscar.MPolyAnyMap{DT, CT, Nothing, V} where {T&lt;:FieldElem, U&lt;:MPolyElem{T}, DT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, CT&lt;:Union{MPolyRing{T}, MPolyQuo{U}}, V}}"><code>inverse</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">inverse(F::AffAlgHom)</code></pre><p>If <code>F</code> is bijective, return its inverse.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; D1, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; D, _ = quo(D1, [y-x^2, z-x^3])
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+
+julia&gt; C, (t,) = PolynomialRing(QQ, [&quot;t&quot;]);
+
+julia&gt; F = hom(D, C, [t, t^2, t^3]);
+
+julia&gt; is_bijective(F)
+true
+
+julia&gt; G = inverse(F)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+
+julia&gt; G(t)
+x</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/MPolyMap/AffineAlgebras.jl#L172">source</a></section></article><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; D1, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; D, _ = quo(D1, [y-x^2, z-x^3])</code><code class="nohighlight hljs ansi" style="display:block;">(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; C, (t,) = PolynomialRing(QQ, [&quot;t&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; para = hom(D, C, [t, t^2, t^3]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; is_bijective(para)</code><code class="nohighlight hljs ansi" style="display:block;">true</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; inverse(para)</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)</code></pre><h2 id="Subalgebras"><a class="docs-heading-anchor" href="#Subalgebras">Subalgebras</a><a id="Subalgebras-1"></a><a class="docs-heading-anchor-permalink" href="#Subalgebras" title="Permalink"></a></h2><h3 id="Subalgebra-Membership"><a class="docs-heading-anchor" href="#Subalgebra-Membership">Subalgebra Membership</a><a id="Subalgebra-Membership-1"></a><a class="docs-heading-anchor-permalink" href="#Subalgebra-Membership" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="subalgebra_membership-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:Union{MPolyElem, MPolyQuoElem}" href="#subalgebra_membership-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:Union{MPolyElem, MPolyQuoElem}"><code>subalgebra_membership</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">subalgebra_membership(f::T, V::Vector{T}) where T &lt;: Union{MPolyElem, MPolyQuoElem}</code></pre><p>Given an element <code>f</code> of a graded multivariate polynomial ring over a field, or of a quotient ring of such a ring, and given a vector <code>V</code> of elements in the same ring, consider the subalgebra generated by the entries of <code>V</code> in that ring. If <code>f</code> is contained in the subalgebra, return <code>(true, h)</code>, where <code>h</code> is giving the polynomial relation. Return, <code>(false, 0)</code>, otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:3)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field, fmpq_mpoly[x[1], x[2], x[3]])
+
+julia&gt; f = x[1]^6*x[2]^6-x[1]^6*x[3]^6;
+
+julia&gt; V = [x[1]^3*x[2]^3-x[1]^3*x[3]^3, x[1]^3*x[2]^3+x[1]^3*x[3]^3]
+2-element Vector{fmpq_mpoly}:
+ x[1]^3*x[2]^3 - x[1]^3*x[3]^3
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3
+
+julia&gt; subalgebra_membership(f, V)
+(true, t_1*t_2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L863">source</a></section></article><h3 id="Minimal-Subalgebra-Generators"><a class="docs-heading-anchor" href="#Minimal-Subalgebra-Generators">Minimal Subalgebra Generators</a><a id="Minimal-Subalgebra-Generators-1"></a><a class="docs-heading-anchor-permalink" href="#Minimal-Subalgebra-Generators" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="minimal_subalgebra_generators-Union{Tuple{Vector{T}}, Tuple{T}} where T&lt;:Union{MPolyElem, MPolyQuoElem}" href="#minimal_subalgebra_generators-Union{Tuple{Vector{T}}, Tuple{T}} where T&lt;:Union{MPolyElem, MPolyQuoElem}"><code>minimal_subalgebra_generators</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minimal_subalgebra_generators(V::Vector{T}) where T &lt;: Union{MPolyElem, MPolyQuoElem}</code></pre><p>Given a vector <code>V</code> of homogeneous elements of a positively graded multivariate  polynomial ring, or of a quotient ring of such a ring, return a minimal subset of the elements in <code>V</code> which, in the given ring, generate the same subalgebra as all elements in <code>V</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The conditions on <code>V</code> and the given ring are automatically checked.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia&gt; V = [x, y, x^2+y^2]
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ y
+ x^2 + y^2
+
+julia&gt; minimal_subalgebra_generators(V)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ y</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L919">source</a></section></article><h2 id="Noether-Normalization"><a class="docs-heading-anchor" href="#Noether-Normalization">Noether Normalization</a><a id="Noether-Normalization-1"></a><a class="docs-heading-anchor-permalink" href="#Noether-Normalization" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="noether_normalization-Tuple{MPolyQuo}" href="#noether_normalization-Tuple{MPolyQuo}"><code>noether_normalization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">noether_normalization(A::MPolyQuo)</code></pre><p>Given an affine algebra <span>$A=R/I$</span> over a field <span>$K$</span>, return a triple <span>$(V,F,G)$</span> such that: <span>$V$</span> is a vector of <span>$d=\dim A$</span> elements of <span>$A$</span>, represented by linear forms <span>$l_i\in R$</span>, and such that <span>$K[V]\hookrightarrow A$</span> is a Noether normalization for <span>$A$</span>; <span>$F: A=R/I \rightarrow B = R/\phi(I)$</span>  is an isomorphism, induced by a linear change $ \phi $ of coordinates of <span>$R$</span> which maps the <span>$l_i$</span> to the the last <span>$d$</span> variables of <span>$R$</span>; and <span>$G = F^{-1}$</span>.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The algorithm may not terminate over a small finite field. If it terminates, the result is correct.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L1157">source</a></section></article><h6 id="Examples-6"><a class="docs-heading-anchor" href="#Examples-6">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-6" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; A, _ = quo(R, ideal(R, [x*y, x*z]));</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; L = noether_normalization(A);</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; L[1]</code><code class="nohighlight hljs ansi" style="display:block;">2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ -8*x + y
+ 21*x - 3*y + z</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; L[2]</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(8*x^2 + x*y, 3*x^2 + 3*x*y + x*z)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; L[3]</code><code class="nohighlight hljs ansi" style="display:block;">Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(8*x^2 + x*y, 3*x^2 + 3*x*y + x*z)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)</code></pre><h2 id="Normalization"><a class="docs-heading-anchor" href="#Normalization">Normalization</a><a id="Normalization-1"></a><a class="docs-heading-anchor-permalink" href="#Normalization" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="normalization-Tuple{MPolyQuo}" href="#normalization-Tuple{MPolyQuo}"><code>normalization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">normalization(A::MPolyQuo; alg = :equidimDec)</code></pre><p>Find the normalization of a reduced affine algebra over a perfect field <span>$K$</span>. That is, given the quotient <span>$A=R/I$</span> of a multivariate polynomial ring <span>$R$</span> over <span>$K$</span> modulo a radical ideal <span>$I$</span>, compute the integral closure <span>$\overline{A}$</span>  of <span>$A$</span> in its total ring of fractions <span>$Q(A)$</span>, together with the embedding  <span>$f: A \rightarrow \overline{A}$</span>. </p><p><strong>Implemented Algorithms and how to Read the Output</strong></p><p>The function relies on the algorithm  of Greuel, Laplagne, and Seelisch which proceeds by finding a suitable decomposition  <span>$I=I_1\cap\dots\cap I_r$</span> into radical ideals <span>$I_k$</span>, together with maps <span>$A = R/I \rightarrow A_k=\overline{R/I_k}$</span> which give rise to the normalization map of <span>$A$</span>:</p><p class="math-container">\[A\hookrightarrow A_1\times \dots\times A_r=\overline{A}\]</p><p>For each <span>$k$</span>, the function specifies two representations of <span>$A_k$</span>: It returns an array of triples <span>$(A_k, f_k, \mathfrak a_k)$</span>, where <span>$A_k$</span> is represented as an affine <span>$K$</span>-algebra, and <span>$f_k$</span> as a map of affine <span>$K$</span>-algebras. The third entry <span>$\mathfrak a_k$</span> is a tuple <span>$(d_k, J_k)$</span>, consisting of an element <span>$d_k\in A$</span> and an ideal <span>$J_k\subset A$</span>, such that <span>$\frac{1}{d_k}J_k = A_k$</span>  as <span>$A$</span>-submodules of the total ring of fractions of <span>$A$</span>.</p><p>By default (<code>alg = :equidimDec</code>), as a first step on its way to find the decomposition <span>$I=I_1\cap\dots\cap I_r$</span>,  the algorithm computes an equidimensional decomposition of the radical ideal <span>$I$</span>. Alternatively, if specified by <code>alg = :primeDec</code>, the algorithm computes <span>$I=I_1\cap\dots\cap I_r$</span> as the prime decomposition of the radical ideal <span>$I$</span>.</p><p>See <a href="../../references/#GLS10">Gert-Martin Greuel, Santiago Laplagne, Frank Seelisch (2010)</a>.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The function does not check whether <span>$A$</span> is reduced. Use <code>is_reduced(A)</code> in case you are unsure (this may take some time).</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]));
+
+julia&gt; L = normalization(A);
+
+julia&gt; size(L)
+(2,)
+
+julia&gt; LL = normalization(A, alg = :primeDec);
+
+julia&gt; size(LL)
+(3,)
+
+julia&gt; LL[1][1]
+Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+
+julia&gt; LL[1][2]
+Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+
+julia&gt; LL[1][3]
+(y, ideal(x, y))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L1002">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="normalization_with_delta-Tuple{MPolyQuo}" href="#normalization_with_delta-Tuple{MPolyQuo}"><code>normalization_with_delta</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">normalization_with_delta(A::MPolyQuo; alg = :equidimDec)</code></pre><p>Compute the normalization</p><p class="math-container">\[A\hookrightarrow A_1\times \dots\times A_r=\overline{A}\]</p><p>of <span>$A$</span> as does <code>normalize(A)</code>, but return additionally the <code>delta invariant</code> of <span>$A$</span>, that is, the dimension </p><p class="math-container">\[\dim_K(\overline{A}/A)\]</p><p>. </p><p><strong>How to Read the Output</strong></p><p>The return value is a tuple whose first element is <code>normalize(A)</code>, whose second element is an array containing the delta invariants of the <span>$A_k$</span>, and whose third element is the (total) delta invariant of <span>$A$</span>. The return value -1 in the third element indicates that the delta invariant is infinite.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]));
+
+julia&gt; L = normalization_with_delta(A);
+
+julia&gt; L[2]
+3-element Vector{Int64}:
+ 1
+ 1
+ 0
+
+julia&gt; L[3]
+13
+
+julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; A, _ = quo(R, ideal(R, [z^3-x*y^4]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y^4 + z^3), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y^4 + z^3) defined by a julia-function with inverse)
+
+julia&gt; L = normalization_with_delta(A)
+(Tuple{MPolyQuo{fmpq_mpoly}, Oscar.MPolyAnyMap{MPolyQuo{fmpq_mpoly}, MPolyQuo{fmpq_mpoly}, Nothing, MPolyQuoElem{fmpq_mpoly}}, Tuple{MPolyQuoElem{fmpq_mpoly}, MPolyQuoIdeal{fmpq_mpoly}}}[(Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Field by ideal(T(1)*y - T(2)*z, T(2)*y - z, -T(1)*z + x*y^2, T(1)^2 - x*z, T(1)*T(2) - x*y, -T(1) + T(2)^2, x*y^4 - z^3), Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y^4 + z^3)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Field by ideal(T(1)*y - T(2)*z, T(2)*y - z, -T(1)*z + x*y^2, T(1)^2 - x*z, T(1)*T(2) - x*y, -T(1) + T(2)^2, x*y^4 - z^3), (z^2, ideal(x*y^2*z, x*y^3, z^2)))], [-1], -1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L1083">source</a></section></article><h2 id="Integral-Bases"><a class="docs-heading-anchor" href="#Integral-Bases">Integral Bases</a><a id="Integral-Bases-1"></a><a class="docs-heading-anchor-permalink" href="#Integral-Bases" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="integral_basis-Tuple{MPolyElem, Int64}" href="#integral_basis-Tuple{MPolyElem, Int64}"><code>integral_basis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">integral_basis(f::MPolyElem, i::Int)</code></pre><p>Given a polynomial <span>$f$</span> in two variables with rational coefficients and an integer <span>$i\in\{1,2\}$</span> specifying one of the variables, <span>$f$</span> must be irreducible and monic in the specified variable: Say, <span>$f\in\mathbb Q[x,y]$</span> is monic in <span>$y$</span>. Then the normalization of <span>$A = Q[x,y]/\langle f \rangle$</span>, that is, the integral closure <span>$\overline{A}$</span> of <span>$A$</span> in its quotient field, is a free module over <span>$K[x]$</span> of finite rank, and any set of free generators for <span>$\overline{A}$</span> over <span>$K[x]$</span> is called an <em>integral basis</em> for <span>$\overline{A}$</span> over <span>$K[x]$</span>. Relying on the algorithm by <a href="../../references/#BDLP19">Janko Böhm, Wolfram Decker, Santiago Laplagne, Gerhard Pfister (2019)</a>, the function returns a pair <span>$(d, V)$</span>, where <span>$d$</span> is an element of <span>$A$</span>, and <span>$V$</span> is a vector of elements in <span>$A$</span>, such that the fractions <span>$v/d, v\in V$</span>, form an integral basis for <span>$\overline{A}$</span> over <span>$K[x]$</span>. </p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The conditions on <span>$f$</span> are automatically checked.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; f = (y^2-2)^2 + x^5
+x^5 + y^4 - 4*y^2 + 4
+
+julia&gt; integral_basis(f, 2)
+(x^2, MPolyQuoElem{fmpq_mpoly}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L1203">source</a></section></article><h2 id="Tests-on-Affine-Algebras"><a class="docs-heading-anchor" href="#Tests-on-Affine-Algebras">Tests on Affine Algebras</a><a id="Tests-on-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Affine-Algebras" title="Permalink"></a></h2><h3 id="Reducedness-Test"><a class="docs-heading-anchor" href="#Reducedness-Test">Reducedness Test</a><a id="Reducedness-Test-1"></a><a class="docs-heading-anchor-permalink" href="#Reducedness-Test" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_reduced-Tuple{MPolyQuo}" href="#is_reduced-Tuple{MPolyQuo}"><code>is_reduced</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_reduced(A::MPolyQuo)</code></pre><p>Given an affine algebra <code>A</code>, return <code>true</code> if <code>A</code> is reduced, <code>false</code> otherwise.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The function computes the radical of the modulus of <code>A</code>. This may take some time.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,) = PolynomialRing(QQ, [&quot;x&quot;])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia&gt; A, _ = quo(R, ideal(R, [x^4]))
+(Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4), Map from
+Multivariate Polynomial Ring in x over Rational Field to Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4) defined by a julia-function with inverse)
+
+julia&gt; is_reduced(A)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L750">source</a></section></article><h3 id="Normality-Test"><a class="docs-heading-anchor" href="#Normality-Test">Normality Test</a><a id="Normality-Test-1"></a><a class="docs-heading-anchor-permalink" href="#Normality-Test" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_normal-Tuple{MPolyQuo}" href="#is_normal-Tuple{MPolyQuo}"><code>is_normal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_normal(A::MPolyQuo)</code></pre><p>Given an affine algebra <code>A</code> over a perfect field, return <code>true</code> if <code>A</code> is normal, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>This function performs the first step of the normalization algorithm of Greuel, Laplagne, and Seelisch <a href="../../references/#GLS10">Gert-Martin Greuel, Santiago Laplagne, Frank Seelisch (2010)</a> and may, thus, be more efficient than computing the full normalization of <code>A</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; A, _ = quo(R, ideal(R, [z^2-x*y]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2) defined by a julia-function with inverse)
+
+julia&gt; is_normal(A)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L776">source</a></section></article><h3 id="Cohen-Macaulayness-Test"><a class="docs-heading-anchor" href="#Cohen-Macaulayness-Test">Cohen-Macaulayness Test</a><a id="Cohen-Macaulayness-Test-1"></a><a class="docs-heading-anchor-permalink" href="#Cohen-Macaulayness-Test" title="Permalink"></a></h3><p>iscohenmacaulay(R)</p><h6 id="Examples-7"><a class="docs-heading-anchor" href="#Examples-7">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-7" title="Permalink"></a></h6><h2 id="Hilbert-Series-and-Hilbert-Polynomial"><a class="docs-heading-anchor" href="#Hilbert-Series-and-Hilbert-Polynomial">Hilbert Series and Hilbert Polynomial</a><a id="Hilbert-Series-and-Hilbert-Polynomial-1"></a><a class="docs-heading-anchor-permalink" href="#Hilbert-Series-and-Hilbert-Polynomial" title="Permalink"></a></h2><p>Given a multivariate polynomial ring <span>$R$</span> over a field <span>$K$</span> together with a (multi)grading on <span>$R$</span> by a finitely generated abelian group <span>$G$</span>, let <span>$I$</span> be an ideal of <span>$R$</span> which is homogeneous with respect to this grading. Then the affine <span>$K-$</span>algebra <span>$A=R/I$</span> inherits the grading: <span>$A = \bigoplus_{g\in G} A_g$</span>. Suppose now that <span>$R$</span> is positively graded by <span>$G$</span>. That is, <span>$G$</span> is free and each graded piece <span>$R_g$</span> has finite dimension. Then also <span>$A_g$</span> is a finite dimensional <span>$K$</span>-vector space for each <span>$g$</span>, and we have the well-defined <em>Hilbert function</em> of <span>$A$</span>,</p><p class="math-container">\[H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).\]</p><p>The <em>Hilbert series</em> of <span>$A$</span> is the generating function </p><p class="math-container">\[H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g\]</p><p>(see  Section 8.2 in <a href="../../references/#MS05">Ezra Miller, Bernd Sturmfels (2005)</a> for a formal discussion extending the classical case of <span>$\mathbb Z$</span>-gradings with positive weights to the more general case of multigradings). As in the classical case, the infinitely many values of the Hilbert function can be expressed in finite terms by representing the Hilbert series as a rational function (see Theorem 8.20 in <a href="../../references/#MS05">Ezra Miller, Bernd Sturmfels (2005)</a> for a precise statement).</p><p>By a result of Macaulay, if <span>$A = R/I$</span> is an affine algebra, and <span>$L_{&gt;}(I)$</span> is the leading ideal of <span>$I$</span> with respect to a global monomial ordering <span>$&gt;$</span>, then the Hilbert function of <span>$A$</span> equals that of <span>$R/L_{&gt;}(I)$</span> (see Theorem 15.26 in <a href="../../references/#Eis95">David Eisenbud (1995)</a>). Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem  of combinatorial nature, and there are various strategies of how to proceed (see <a href="../../references/#KR05">Martin Kreuzer, Lorenzo Robbiano (2005)</a>). The functions <code>hilbert_series</code>, <code>hilbert_series_reduced</code>, <code>hilbert_series_expanded</code>, <code>hilbert_function</code>, <code>hilbert_polynomial</code>, and <code>degree</code> address the case of <span>$\mathbb Z$</span>-gradings with positive weights, relying on corresponding Singular functionality. The functions <code>multi_hilbert_series</code>, <code>multi_hilbert_series_reduced</code>, and <code>multi_hilbert_function</code> use different strategies and allow one to handle positive gradings in general.</p><h3 id="\\mathbb-Z-Gradings-With-Positive-Weights"><a class="docs-heading-anchor" href="#\\mathbb-Z-Gradings-With-Positive-Weights"><span>$\mathbb Z$</span>-Gradings With Positive Weights</a><a id="\\mathbb-Z-Gradings-With-Positive-Weights-1"></a><a class="docs-heading-anchor-permalink" href="#\\mathbb-Z-Gradings-With-Positive-Weights" title="Permalink"></a></h3><p>Let <span>$R=K[x_1, \dots x_n]$</span> be a polynomial ring in <span>$n$</span> variables over a field <span>$K$</span>. Assign positive integer weights <span>$w_i$</span> to the variables <span>$x_i$</span>, and grade <span>$R=\bigoplus_{d\in \mathbb Z} R_d=\bigoplus_{d\geq 0} R_d$</span> according to the corresponding weighted degree. Let <span>$I$</span> be an ideal of <span>$R$</span> which is homogeneous with respect to this grading. Then the affine <span>$K$</span>-algebra <span>$A=R/I$</span> inherits the grading: <span>$A = \bigoplus_{d\geq 0} A_d$</span>, where each graded piece <span>$A_d$</span> is a finite dimensional <span>$K$</span>-vector space. In this situation, the <em>Hilbert function</em> of <span>$A$</span> is of type</p><p class="math-container">\[H(A, \underline{\phantom{d}}): \N \to \N, \;d \mapsto \dim_K(d),\]</p><p>and the <em>Hilbert series</em> of <span>$A$</span> is the formal power series</p><p class="math-container">\[H_A(t)=\sum_{d\geq 0} H(A, d) t^d\in\mathbb Z[[t]].\]</p><p>The Hilbert series can be written as a rational function <span>$p(t)/q(t)$</span>, with denominator</p><p class="math-container">\[q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).\]</p><p>In the standard <span>$\mathbb Z$</span>-graded case, where the weights on the variables are all 1, the Hilbert function is of polynomial nature: There exists  a unique polynomial <span>$P_A(t)\in\mathbb{Q}[t]$</span>, the <em>Hilbert polynomial</em>, which satisfies <span>$H(M,d)=P_M(d)$</span> for all <span>$d \gg 0$</span>. Furthermore, the <em>degree</em> of <span>$A$</span> is defined as the dimension of <span>$A$</span> over <span>$K$</span> if this dimension is finite, and as the integer <span>$d$</span> such that the leading term of the Hilbert polynomial has the form <span>$d t^e/e!$</span>, otherwise.</p><article class="docstring"><header><a class="docstring-binding" id="hilbert_series-Tuple{MPolyQuo}" href="#hilbert_series-Tuple{MPolyQuo}"><code>hilbert_series</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hilbert_series(A::MPolyQuo)</code></pre><p>Given a <span>$\mathbb Z$</span>-graded affine algebra <span>$A = R/I$</span> over a field <span>$K$</span>, where the grading  is inherited from a <span>$\mathbb Z$</span>-grading on the polynomial ring <span>$R$</span> defined by assigning  positive integer weights to the variables, return a pair <span>$(p,q)$</span>, say, of univariate  polynomials <span>$p, q\in\mathbb Z[t]$</span> such that <span>$p/q$</span> represents the Hilbert series of <span>$A$</span> as  a rational function with denominator </p><p class="math-container">\[q = (1-t^{w_1})\cdots (1-t^{w_n}),\]</p><p>where <span>$n$</span> is the number of variables of <span>$R$</span>, and <span>$w_1, \dots, w_n$</span> are the assigned weights.</p><p>See also <code>hilbert_series_reduced</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; hilbert_series(A)
+(2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+
+julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia&gt; hilbert_series(A)
+(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L51">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="hilbert_series_reduced-Tuple{MPolyQuo}" href="#hilbert_series_reduced-Tuple{MPolyQuo}"><code>hilbert_series_reduced</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hilbert_series_reduced(A::MPolyQuo)</code></pre><p>Given a <span>$\mathbb Z$</span>-graded affine algebra <span>$A = R/I$</span> over a field <span>$K$</span>, where the grading  is inherited from a <span>$\mathbb Z$</span>-grading on the polynomial ring <span>$R$</span> defined by assigning  positive integer weights to the variables, return a pair <span>$(p,q)$</span>, say, of univariate  polynomials <span>$p, q\in\mathbb Z[t]$</span> such that <span>$p/q$</span> represents the Hilbert series of  <span>$A$</span> as a rational function written in lowest terms. </p><p>See also <code>hilbert_series</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; hilbert_series_reduced(A)
+(2*t + 1, t^2 - 2*t + 1)
+
+julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia&gt; hilbert_series(A)
+(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+
+julia&gt; hilbert_series_reduced(A)
+(t^2 - t + 1, t^2 - 2*t + 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L97">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="hilbert_series_expanded-Tuple{MPolyQuo, Int64}" href="#hilbert_series_expanded-Tuple{MPolyQuo, Int64}"><code>hilbert_series_expanded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hilbert_series_expanded(A::MPolyQuo, d::Int)</code></pre><p>Given a <span>$\mathbb Z$</span>-graded affine algebra <span>$A = R/I$</span> over a field <span>$K$</span>, where the grading  is inherited from a <span>$\mathbb Z$</span>-grading on the polynomial ring <span>$R$</span> defined by assigning  positive integer weights to the variables, return the Hilbert series of <span>$A$</span> to precision <span>$d$</span>. </p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; hilbert_series_expanded(A, 7)
+1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
+
+julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia&gt; hilbert_series_expanded(A, 5)
+1 + t + 2*t^2 + 3*t^3 + 4*t^4 + 5*t^5 + O(t^6)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L136">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="hilbert_function-Tuple{MPolyQuo, Int64}" href="#hilbert_function-Tuple{MPolyQuo, Int64}"><code>hilbert_function</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hilbert_function(A::MPolyQuo, d::Int)</code></pre><p>Given a <span>$\mathbb Z$</span>-graded affine algebra <span>$A = R/I$</span> over a field <span>$K$</span>, where the grading  is inherited from a <span>$\mathbb Z$</span>-grading on the polynomial ring <span>$R$</span> defined by assigning  positive integer weights to the variables, return the value <span>$H(A, d),$</span> where </p><p class="math-container">\[H(A, \underline{\phantom{d}}): \N \rightarrow \N, \; d  \mapsto \dim_K A_d,\]</p><p>is the Hilbert function of <span>$A$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; hilbert_function(A,7)
+22
+
+julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3]);
+
+julia&gt; A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia&gt; hilbert_function(A, 5)
+5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L165">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="hilbert_polynomial-Tuple{MPolyQuo}" href="#hilbert_polynomial-Tuple{MPolyQuo}"><code>hilbert_polynomial</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> hilbert_polynomial(A::MPolyQuo)</code></pre><p>Given a <span>$\mathbb Z$</span>-graded affine algebra <span>$A = R/I$</span> over a field <span>$K$</span>, where the grading  is inherited from the standard <span>$\mathbb Z$</span>-grading on the polynomial ring <span>$R$</span>, return the Hilbert polynomial of <span>$A$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; hilbert_polynomial(A)
+3*t + 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L202">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{MPolyQuo}" href="#degree-Tuple{MPolyQuo}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(A::MPolyQuo)</code></pre><p>Given a <span>$\mathbb Z$</span>-graded affine algebra <span>$A = R/I$</span> over a field <span>$K$</span>, where the grading  is inherited from the standard <span>$\mathbb Z$</span>-grading on the polynomial ring <span>$R$</span>, return the degree of <span>$A$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; degree(A)
+3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L234">source</a></section></article><h3 id="Positive-Gradings-in-General"><a class="docs-heading-anchor" href="#Positive-Gradings-in-General">Positive Gradings in General</a><a id="Positive-Gradings-in-General-1"></a><a class="docs-heading-anchor-permalink" href="#Positive-Gradings-in-General" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="multi_hilbert_series-Tuple{MPolyQuo}" href="#multi_hilbert_series-Tuple{MPolyQuo}"><code>multi_hilbert_series</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_series(A::MPolyQuo)</code></pre><p>Return the Hilbert series of the positively graded affine algebra <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
+
+julia&gt; R, x = GradedPolynomialRing(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  x[3] -&gt; [1 -1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+
+julia&gt; I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
+
+julia&gt; A, _ = quo(R, I);
+
+julia&gt; H = multi_hilbert_series(A);
+
+julia&gt; H[1][1]
+-t[1]^7*t[2]^-2 + t[1]^6*t[2]^-1 + t[1]^6*t[2]^-2 + t[1]^5*t[2]^-4 - t[1]^4 + t[1]^4*t[2]^-2 - t[1]^4*t[2]^-4 - t[1]^3*t[2]^-1 - t[1]^3*t[2]^-2 + 1
+
+julia&gt; H[1][2]
+-t[1]^3*t[2]^-1 + t[1]^2 + 2*t[1]^2*t[2]^-1 - 2*t[1] - t[1]*t[2]^-1 + 1
+
+julia&gt; H[2][1]
+GrpAb: Z^2
+
+julia&gt; H[2][2]
+Identity map with
+
+Domain:
+=======
+GrpAb: Z^2
+
+julia&gt; G = abelian_group(fmpz_mat([1 -1]));
+
+julia&gt; g = gen(G, 1)
+Element of
+(General) abelian group with relation matrix
+[1 -1]
+with components [0 1]
+
+julia&gt; W = [g, g, g, g];
+
+julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], W);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; H = multi_hilbert_series(A);
+
+julia&gt; H[1][1]
+2*t^3 - 3*t^2 + 1
+
+julia&gt; H[1][2]
+t^4 - 4*t^3 + 6*t^2 - 4*t + 1
+
+julia&gt; H[2][1]
+GrpAb: Z
+
+julia&gt; H[2][2]
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z
+Codomain:
+=========
+(General) abelian group with relation matrix
+[1 -1]
+with structure of Abelian group with structure: Z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L350">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multi_hilbert_series_reduced-Tuple{MPolyQuo}" href="#multi_hilbert_series_reduced-Tuple{MPolyQuo}"><code>multi_hilbert_series_reduced</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_series_reduced(A::MPolyQuo)</code></pre><p>Return the reduced Hilbert series of the positively graded affine algebra <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
+
+julia&gt; R, x = GradedPolynomialRing(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  x[3] -&gt; [1 -1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+
+julia&gt; I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
+
+julia&gt; A, _ = quo(R, I);
+
+julia&gt; H = multi_hilbert_series_reduced(A);
+
+julia&gt; H[1][1]
+-t[1]^5*t[2]^-1 + t[1]^3 + t[1]^3*t[2]^-3 + t[1]^2 + t[1]^2*t[2]^-1 + t[1]^2*t[2]^-2 + t[1] + t[1]*t[2]^-1 + 1
+
+julia&gt; H[1][2]
+-t[1] + 1
+
+julia&gt; H[2][1]
+GrpAb: Z^2
+
+julia&gt; H[2][2]
+Identity map with
+
+Domain:
+=======
+GrpAb: Z^2
+
+julia&gt; G = abelian_group(fmpz_mat([1 -1]));
+
+julia&gt; g = gen(G, 1)
+Element of
+(General) abelian group with relation matrix
+[1 -1]
+with components [0 1]
+
+julia&gt; W = [g, g, g, g];
+
+julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], W);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; H = multi_hilbert_series_reduced(A);
+
+julia&gt; H[1][1]
+2*t + 1
+
+julia&gt; H[1][2]
+t^2 - 2*t + 1
+
+julia&gt; H[2][1]
+GrpAb: Z
+
+julia&gt; H[2][2]
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z
+Codomain:
+=========
+(General) abelian group with relation matrix
+[1 -1]
+with structure of Abelian group with structure: Z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L551">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multi_hilbert_function-Tuple{MPolyQuo, GrpAbFinGenElem}" href="#multi_hilbert_function-Tuple{MPolyQuo, GrpAbFinGenElem}"><code>multi_hilbert_function</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)</code></pre><p>Given a positively graded affine algebra <span>$A$</span> over a field <span>$K$</span> with grading group <span>$G$</span>, say, and given an element <span>$g$</span> of <span>$G$</span>, return the value <span>$H(A, g)$</span> of the Hilbert function</p><p class="math-container">\[H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).\]</p><pre><code class="nohighlight hljs">multi_hilbert_function(A::MPolyQuo, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given a positively <span>$\mathbb  Z^m$</span>-graded affine algebra <span>$A$</span> over a field <span>$K$</span>, and given a vector <span>$g$</span> of <span>$m$</span> integers, convert <span>$g$</span> into an element  of the grading group of <span>$A$</span>, and return the value <span>$H(A, g)$</span> as above.</p><pre><code class="nohighlight hljs">multi_hilbert_function(A::MPolyQuo, g::IntegerUnion)</code></pre><p>Given a positively <span>$\mathbb  Z$</span>-graded affine algebra <span>$A$</span> over a field <span>$K$</span>, and given an integer <span>$g$</span>, convert <span>$g$</span> into an element of the grading group  of <span>$A$</span>, and return the value <span>$H(A, g)$</span> as above.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
+
+julia&gt; R, x = GradedPolynomialRing(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  x[3] -&gt; [1 -1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+
+julia&gt; I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
+
+julia&gt; A, _ = quo(R, I);
+
+julia&gt; multi_hilbert_function(A::MPolyQuo, [1, 0])
+2
+
+julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [-1, -1, -1, -1]);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; multi_hilbert_function(A, -7)
+22
+
+julia&gt; G = abelian_group(fmpz_mat([1 -1]));
+
+julia&gt; g = gen(G, 1);
+
+julia&gt; W = [g, g, g, g];
+
+julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], W);
+
+julia&gt; A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia&gt; multi_hilbert_function(A, 7*g)
+22</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/50305a5f5df5539ca27b8450fc24979382db9044/src/Rings/mpoly-affine-algebras.jl#L649">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modules/">« Modules Over Multivariate Rings</a><a class="docs-footer-nextpage" href="../binomial_ideals/">Binomial Primary Decomposition »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Wednesday 13 July 2022 12:40">Wednesday 13 July 2022</span>. Using Julia version 1.6.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

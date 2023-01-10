@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Plane Curves · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to Oscar</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-3-4" type="checkbox"/><label class="tocitem" for="menuitem-3-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-5" type="checkbox"/><label class="tocitem" for="menuitem-3-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-6" type="checkbox"/><label class="tocitem" for="menuitem-3-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-4-7" type="checkbox"/><label class="tocitem" for="menuitem-4-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-5-5" type="checkbox"/><label class="tocitem" for="menuitem-5-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5-6" type="checkbox"/><label class="tocitem" for="menuitem-5-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Basics</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Quadratic and hermitian lattices</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-6-2" type="checkbox"/><label class="tocitem" for="menuitem-6-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-3" type="checkbox"/><label class="tocitem" for="menuitem-6-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/pg/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/pg_polyhedra_intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/pg_polyhedra_constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/pg_polyhedra_polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/pg_polyhedra_serialization/">Saving and loading</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/pg_cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/pg_fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/pg_linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/pg_subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/ca/">Introduction</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ca_rings/">Creating Polynomial Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ca_ideals/">Ideals in Polynomial Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ca_modules/">Modules Over Polynomial Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ca_quotient_rings/">Quotient Rings of Polynomial Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ca_affine_algebras/">Affine Algebras</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ca_binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/it/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/it_fg/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/it_lrg/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Plane Curves</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Plane Curves</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/Experimental/exp_plane_curves.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Plane-Curves">Plane Curves</a></li><ul><li><a href="#Points">Points</a></li><li><a href="#Affine-and-Projective-Plane-Curves">Affine and Projective Plane Curves</a></li><li><a href="#Divisors">Divisors</a></li><li><a href="#Elliptic-Curves">Elliptic Curves</a></li><li><a href="#Primality-Proving">Primality Proving</a></li></ul></ul><h1 id="Plane-Curves"><a class="docs-heading-anchor" href="#Plane-Curves">Plane Curves</a><a id="Plane-Curves-1"></a><a class="docs-heading-anchor-permalink" href="#Plane-Curves" title="Permalink"></a></h1><p>Affine plane curves and projective plane curves are considered in this module. An affine plane curve is defined by a polynomial in two variables, whereas a projective plane curve is defined by an homogenous polynomial belonging to a graded polynomial ring in three variables.  </p><h2 id="Points"><a class="docs-heading-anchor" href="#Points">Points</a><a id="Points-1"></a><a class="docs-heading-anchor-permalink" href="#Points" title="Permalink"></a></h2><p>Several functions involve a point on a curve. We describe in this section how to deal with points, both in the affine and projective settings.</p><h3 id="Points-in-the-affine-space"><a class="docs-heading-anchor" href="#Points-in-the-affine-space">Points in the affine space</a><a id="Points-in-the-affine-space-1"></a><a class="docs-heading-anchor-permalink" href="#Points-in-the-affine-space" title="Permalink"></a></h3><p>A point in the affine space can be defined as follows:</p><article class="docstring"><header><a class="docstring-binding" id="Point" href="#Point"><code>Point</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">Point(coordinates::Vector{S}) where {S &lt;: FieldElem}</code></pre><p>Return the point with the given coordinates.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; P = Oscar.Point([QQ(1), QQ(2), QQ(2)])
+Point with coordinates fmpq[1, 2, 2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L20">source</a></section></article><p>We consider also the following function for points.</p><article class="docstring"><header><a class="docstring-binding" id="ideal_point-Union{Tuple{S}, Tuple{MPolyRing{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#ideal_point-Union{Tuple{S}, Tuple{MPolyRing{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>ideal_point</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ideal_point(R::MPolyRing{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the maximal ideal associated to the point <code>P</code> in the ring <code>R</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; P = Oscar.Point([QQ(2), QQ(1)])
+Point with coordinates fmpq[2, 1]
+
+julia&gt; Oscar.ideal_point(R, P)
+ideal(x - 2, y - 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L62">source</a></section></article><h3 id="Points-in-the-projective-space"><a class="docs-heading-anchor" href="#Points-in-the-projective-space">Points in the projective space</a><a id="Points-in-the-projective-space-1"></a><a class="docs-heading-anchor-permalink" href="#Points-in-the-projective-space" title="Permalink"></a></h3><p>In order to define a point in the projective plane, one needs first to define the projective plane as follows, where <code>K</code> is the base ring:</p><h4 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h4><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; K = QQ</code><code class="nohighlight hljs ansi" style="display:block;">Rational Field</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; PP = projective_space(K, 2)</code><code class="nohighlight hljs ansi" style="display:block;">(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])</code></pre><p>Then, one can define a projective point as follows:</p><h4 id="Example-2"><a class="docs-heading-anchor" href="#Example-2">Example</a><a class="docs-heading-anchor-permalink" href="#Example-2" title="Permalink"></a></h4><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(2), QQ(-5)])</code><code class="nohighlight hljs ansi" style="display:block;">(1 : 2 : -5)</code></pre><h2 id="Affine-and-Projective-Plane-Curves"><a class="docs-heading-anchor" href="#Affine-and-Projective-Plane-Curves">Affine and Projective Plane Curves</a><a id="Affine-and-Projective-Plane-Curves-1"></a><a class="docs-heading-anchor-permalink" href="#Affine-and-Projective-Plane-Curves" title="Permalink"></a></h2><p>We consider two kinds of plane curves : affine and projective.</p><h3 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h3><p>An affine plane curve is defined as the class of a two-variables polynomial <span>$C$</span> over a field <span>$K$</span>, modulo the equivalence relation <span>$C \sim D \iff \exists \lambda \in K\backslash \{0\}, C = \lambda \cdot D$</span>.  </p><h4 id="Example-3"><a class="docs-heading-anchor" href="#Example-3">Example</a><a class="docs-heading-anchor-permalink" href="#Example-3" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="AffinePlaneCurve" href="#AffinePlaneCurve"><code>AffinePlaneCurve</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">AffinePlaneCurve{S}(eq::Oscar.MPolyElem{S}) where S &lt;: FieldElem</code></pre><p>Return the Affine Plane Curve defined by the polynomial in two variables <code>eq</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; F = y^3*x^6 - y^6*x^2
+x^6*y^3 - x^2*y^6
+
+julia&gt; C = Oscar.AffinePlaneCurve(F)
+Affine plane curve defined by x^6*y^3 - x^2*y^6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L87">source</a></section></article><p>Similarly, a projective plane curve is defined as the class of a three-variables homogeneous polynomial <span>$C$</span> over a field <span>$K$</span>, modulo the equivalence relation <span>$C\sim D \iff \exists \lambda \in K\backslash \{0\}, C = \lambda \cdot D$</span>. The defining equation is supposed to belong to a graded ring.</p><article class="docstring"><header><a class="docstring-binding" id="ProjPlaneCurve" href="#ProjPlaneCurve"><code>ProjPlaneCurve</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">ProjPlaneCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S &lt;: FieldElem}</code></pre><p>Return the Projective Plane Curve defined by the homogeneous polynomial in three variables <code>eq</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,y,z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(R)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; F = T(y^3*x^6 - y^6*x^2*z)
+x^6*y^3 - x^2*y^6*z
+
+julia&gt; Oscar.ProjPlaneCurve(F)
+Projective plane curve defined by x^6*y^3 - x^2*y^6*z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L128">source</a></section></article><p>A particular kind of projective curves is the case of elliptic curves, see the corresponding section for more information.</p><h3 id="Methods"><a class="docs-heading-anchor" href="#Methods">Methods</a><a id="Methods-1"></a><a class="docs-heading-anchor-permalink" href="#Methods" title="Permalink"></a></h3><p>The following methods are implemented for both affine and projective plane curves.</p><article class="docstring"><header><a class="docstring-binding" id="in-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.Point{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}}} where S&lt;:FieldElem" href="#in-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.Point{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}}} where S&lt;:FieldElem"><code>in</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">in(P::Point{S}, C::AffinePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return <code>true</code> if the point <code>P</code> is on the curve <code>C</code>, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L210">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="in-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpcElem{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#in-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpcElem{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>in</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return <code>true</code> if the point <code>P</code> is on the curve <code>C</code>, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L219">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{Oscar.PlaneCurveModule.PlaneCurve}" href="#degree-Tuple{Oscar.PlaneCurveModule.PlaneCurve}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(C::PlaneCurve)</code></pre><p>Return the degree of the defining polynomial of <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L232">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="jacobi_ideal-Tuple{Oscar.PlaneCurveModule.PlaneCurve}" href="#jacobi_ideal-Tuple{Oscar.PlaneCurveModule.PlaneCurve}"><code>jacobi_ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">jacobi_ideal(C::PlaneCurve)</code></pre><p>Return the Jacobian ideal of the defining polynomial of <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+Affine plane curve defined by x^6*y^3 - x^2*y^6
+
+
+julia&gt; Oscar.jacobi_ideal(C)
+ideal(6*x^5*y^3 - 2*x*y^6, 3*x^6*y^2 - 6*x^2*y^5)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L246">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="union-Union{Tuple{T}, Tuple{T, T}} where T&lt;:Oscar.PlaneCurveModule.PlaneCurve" href="#union-Union{Tuple{T}, Tuple{T, T}} where T&lt;:Oscar.PlaneCurveModule.PlaneCurve"><code>union</code></a> — <span class="docstring-category">Method</span></header><section><div><p>union(C::T, D::T) where T &lt;: PlaneCurve</p><p>Return the union of <code>C</code> and <code>D</code> (with multiplicity).</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+Affine plane curve defined by -x^3 + x + y^2
+
+julia&gt; D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+Affine plane curve defined by x^6*y^3 - x^2*y^6
+
+julia&gt; union(C, D)
+Affine plane curve defined by -x^9*y^3 + x^7*y^3 + x^6*y^5 + x^5*y^6 - x^3*y^6 - x^2*y^8</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L415">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ring-Tuple{Oscar.PlaneCurveModule.PlaneCurve}" href="#ring-Tuple{Oscar.PlaneCurveModule.PlaneCurve}"><code>ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ring(C::PlaneCurve)</code></pre><p>Return the coordinate ring of the curve <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+Affine plane curve defined by -x^3 + x + y^2
+
+
+julia&gt; Oscar.ring(C)
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2), Map from
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2) defined by a julia-function with inverse
+)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L440">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_components" href="#curve_components"><code>curve_components</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">curve_components(C::PlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return a dictionary containing the irreducible components of <code>C</code> and their multiplicity.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+Affine plane curve defined by x^6*y^3 - x^2*y^6
+
+
+julia&gt; Oscar.curve_components(C)
+Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 3 entries:
+  x^4 - y^3… =&gt; 1
+  y…         =&gt; 3
+  x…         =&gt; 2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L271">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="reduction" href="#reduction"><code>reduction</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">reduction(C::PlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the plane curve defined by the squarefree part of the equation of <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+Affine plane curve defined by x^6*y^3 - x^2*y^6
+
+
+julia&gt; Oscar.reduction(C)
+Affine plane curve defined by x^5*y - x*y^4</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L372">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isirreducible-Union{Tuple{Oscar.PlaneCurveModule.PlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#isirreducible-Union{Tuple{Oscar.PlaneCurveModule.PlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>isirreducible</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isirreducible(C::PlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return <code>true</code> if <code>C</code> is irreducible, and <code>false</code> otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+Affine plane curve defined by -x^3 + x + y^2
+
+julia&gt; Oscar.isirreducible(C)
+true
+
+julia&gt; D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+Affine plane curve defined by x^6*y^3 - x^2*y^6
+
+julia&gt; Oscar.isirreducible(D)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L305">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isreduced-Union{Tuple{Oscar.PlaneCurveModule.PlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#isreduced-Union{Tuple{Oscar.PlaneCurveModule.PlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>isreduced</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isreduced(C::PlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return <code>true</code> if <code>C</code> is reduced, and <code>false</code> otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+Affine plane curve defined by -x^3 + x + y^2
+
+julia&gt; Oscar.isreduced(C)
+true
+
+julia&gt; D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+Affine plane curve defined by x^6*y^3 - x^2*y^6
+
+julia&gt; Oscar.isreduced(D)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/PlaneCurve.jl#L336">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="issmooth-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#issmooth-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>issmooth</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Throw an error if <code>P</code> is not a point of <code>C</code>, return <code>false</code> if <code>P</code> is a singular point of <code>C</code>, and <code>true</code> if <code>P</code> is a smooth point of <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+julia&gt; P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+julia&gt; Oscar.issmooth(C, P)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L17">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="issmooth-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#issmooth-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>issmooth</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Throw an error if <code>P</code> is not a point of <code>C</code>, return <code>false</code> if <code>P</code> is a singular point of <code>C</code>, and <code>true</code> if <code>P</code> is a smooth point of <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
+Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+(0 : 0 : 1)
+
+julia&gt; Oscar.issmooth(C, P)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="tangent-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#tangent-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>tangent</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the tangent of <code>C</code> at <code>P</code> when <code>P</code> is a smooth point of <code>C</code>, and throw an error otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia&gt; P2 = Oscar.Point([QQ(2), QQ(-2)])
+Point with coordinates fmpq[2, -2]
+
+
+julia&gt; Oscar.tangent(C, P2)
+Affine plane curve defined by -48*x - 48*y</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L51">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="tangent-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#tangent-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>tangent</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Return the tangent of <code>C</code> at <code>P</code> when <code>P</code> is a smooth point of <code>C</code>, and throw an error otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;,&quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
+Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
+
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
+(2 : -2 : 1)
+
+julia&gt; Oscar.tangent(C, P)
+Projective plane curve defined by -48*x - 48*y</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L61">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="common_components-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}}} where S&lt;:FieldElem" href="#common_components-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}}} where S&lt;:FieldElem"><code>common_components</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the affine plane curve consisting of the common component of <code>C</code> and <code>D</code>, or an empty vector if they do not have a common component.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x*(x+y)*(x^2 + x + 1))
+Affine plane curve defined by x^4 + x^3*y + x^3 + x^2*y + x^2 + x*y
+
+
+julia&gt; D = Oscar.AffinePlaneCurve(x*(x+y)*(x-y))
+Affine plane curve defined by x^3 - x*y^2
+
+
+julia&gt; Oscar.common_components(C, D)
+1-element Vector{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}}:
+ Affine plane curve defined by x^2 + x*y</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L92">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="common_components-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#common_components-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>common_components</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">common_components(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the projective plane curve consisting of the common component of <code>C</code> and <code>D</code>, or an empty vector if they do not have a common component.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L112">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_intersect-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}}} where S&lt;:FieldElem" href="#curve_intersect-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}}} where S&lt;:FieldElem"><code>curve_intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return a list whose first element is the affine plane curve defined by the gcd of <code>C.eq</code> and <code>D.eq</code>, the second element is the list of the remaining intersection points when the common components are removed from <code>C</code> and <code>D</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x*(x+y))
+Affine plane curve defined by x^2 + x*y
+
+
+julia&gt; D = Oscar.AffinePlaneCurve((x-y)*(x-2))
+Affine plane curve defined by x^2 - x*y - 2*x + 2*y
+
+
+julia&gt; Oscar.curve_intersect(C, D)
+2-element Vector{Vector{T} where T}:
+ Oscar.PlaneCurveModule.AffinePlaneCurve[]
+ Oscar.PlaneCurveModule.Point{fmpq}[Point with coordinates fmpq[0, 0]
+, Point with coordinates fmpq[2, -2]
+]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L130">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_intersect-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#curve_intersect-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>curve_intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return a list whose first element is the projective plane curve defined by the gcd of <code>C.eq</code> and <code>D.eq</code>, the second element is the list of the remaining intersection points when the common components are removed from <code>C</code> and <code>D</code> (the points are in <code>PP</code> if specified, or in a new projective space otherwise).</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;,&quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(x+y+z))
+Projective plane curve defined by x + y + z
+
+
+julia&gt; D = Oscar.ProjPlaneCurve(T(z))
+Projective plane curve defined by z
+
+
+julia&gt; Oscar.curve_intersect(PP[1], C, D)
+2-element Vector{Vector{Any}}:
+ []
+ [(-1 : 1 : 0)]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L143">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="intersection_multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#intersection_multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>intersection_multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the intersection multiplicity of <code>C</code> and <code>D</code> at <code>P</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
+Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
+
+
+julia&gt; D = Oscar.AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
+Affine plane curve defined by x^8*y^3 + x^6*y^5 - x^4*y^6 - x^2*y^8
+
+
+julia&gt; Q = Oscar.Point([QQ(0), QQ(-2)])
+Point with coordinates fmpq[0, -2]
+
+
+julia&gt; Oscar.intersection_multiplicity(C, D, Q)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L422">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="intersection_multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#intersection_multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>intersection_multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Returns the intersection multiplicity of <code>C</code> and <code>D</code> at <code>P</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L415">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="intersection_multiplicity" href="#intersection_multiplicity"><code>intersection_multiplicity</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the intersection multiplicity of <code>C</code> and <code>D</code> at <code>P</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
+Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
+
+
+julia&gt; D = Oscar.AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
+Affine plane curve defined by x^8*y^3 + x^6*y^5 - x^4*y^6 - x^2*y^8
+
+
+julia&gt; Q = Oscar.Point([QQ(0), QQ(-2)])
+Point with coordinates fmpq[0, -2]
+
+
+julia&gt; Oscar.intersection_multiplicity(C, D, Q)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L422">source</a></section><section><div><pre><code class="language-julia hljs"> intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Returns the intersection multiplicity of <code>C</code> and <code>D</code> at <code>P</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L415">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_singular_locus-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}" href="#curve_singular_locus-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}"><code>curve_singular_locus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_singular_locus(C::AffinePlaneCurve)</code></pre><p>Return the reduced singular locus of <code>C</code> as a list whose first element is the affine plane curve consisting of the singular components of <code>C</code> (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia&gt; Oscar.curve_singular_locus(C)
+2-element Vector{Vector{T} where T}:
+ Oscar.PlaneCurveModule.AffinePlaneCurve[Affine plane curve defined by x
+]
+ Oscar.PlaneCurveModule.Point[Point with coordinates fmpq[-1, 1]
+, Point with coordinates fmpq[0, 0]
+]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L227">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_singular_locus-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#curve_singular_locus-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>curve_singular_locus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_singular_locus([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the reduced singular locus of <code>C</code> as a list whose first element is the projective plane curve consisting of the singular components of <code>C</code> (if any), and the second element is the list of the singular points of the reduction of <code>C</code> (the points are in <code>PP</code> if specified, or in a new projective space otherwise). The singular component might not contain any point over the considered field.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L237">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the multiplicity of <code>C</code> at <code>P</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia&gt; P = Oscar.Point([QQ(2), QQ(-2)])
+Point with coordinates fmpq[2, -2]
+
+
+julia&gt; Oscar.multiplicity(C, P)
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L317">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Returns the multiplicity of <code>C</code> at <code>P</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L330">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="tangent_lines-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#tangent_lines-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>tangent_lines</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the tangent lines at <code>P</code> to <code>C</code> with their multiplicity.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia&gt; P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+
+julia&gt; Oscar.tangent_lines(C, P)
+Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 2 entries:
+  x…     =&gt; 4
+  x + y… =&gt; 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L355">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="tangent_lines-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#tangent_lines-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>tangent_lines</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">  tangent_lines(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Returns the tangent lines at <code>P</code> to <code>C</code> with their multiplicity.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L370">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="aretransverse-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#aretransverse-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.AffinePlaneCurve{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>aretransverse</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S&lt;:FieldElem</code></pre><p>Return <code>true</code> if <code>C</code> and <code>D</code> intersect transversally at <code>P</code> and <code>false</code> otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x*(x+y))
+Affine plane curve defined by x^2 + x*y
+
+
+julia&gt; D = Oscar.AffinePlaneCurve((x-y)*(x-2))
+Affine plane curve defined by x^2 - x*y - 2*x + 2*y
+
+
+julia&gt; P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+
+julia&gt; Q = Oscar.Point([QQ(2), QQ(-2)])
+Point with coordinates fmpq[2, -2]
+
+
+julia&gt; Oscar.aretransverse(C, D, P)
+false
+
+julia&gt; Oscar.aretransverse(C, D, Q)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L461">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="aretransverse-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#aretransverse-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>aretransverse</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S&lt;:FieldElem</code></pre><p>Returns <code>true</code> if <code>C</code> and <code>D</code> intersect transversally at <code>P</code> and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L440">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="issmooth_curve-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}" href="#issmooth_curve-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}"><code>issmooth_curve</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">issmooth_curve(C::AffinePlaneCurve)</code></pre><p>Return <code>true</code> if <code>C</code> has no singular point, and <code>false</code> otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(x*(x+y))
+Affine plane curve defined by x^2 + x*y
+
+julia&gt; Oscar.issmooth_curve(C)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L501">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="issmooth_curve-Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve}" href="#issmooth_curve-Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve}"><code>issmooth_curve</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">issmooth_curve(C::ProjectivePlaneCurve)</code></pre><p>Return <code>true</code> if <code>C</code> has no singular point, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L311">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="arithmetic_genus-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}" href="#arithmetic_genus-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}"><code>arithmetic_genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">arithmetic_genus(C::AffinePlaneCurve)</code></pre><p>Return the arithmetic genus of the projective closure of <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(GF(7), [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
+Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
+
+
+julia&gt; Oscar.arithmetic_genus(C)
+45</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L529">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="arithmetic_genus-Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve}" href="#arithmetic_genus-Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve}"><code>arithmetic_genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">arithmetic_genus(C::ProjectivePlaneCurve)</code></pre><p>Return the arithmetic genus of <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L451">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="geometric_genus-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}" href="#geometric_genus-Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve}"><code>geometric_genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">geometric_genus(C::AffinePlaneCurve)</code></pre><p>Return the geometric genus of the projective closure of <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(GF(7), [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
+Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
+
+
+julia&gt; Oscar.geometric_genus(C)
+0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/AffinePlaneCurve.jl#L559">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="geometric_genus-Union{Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#geometric_genus-Union{Tuple{Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>geometric_genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">geometric_genus(C::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the geometric genus of <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjPlaneCurve.jl#L467">source</a></section></article><h2 id="Divisors"><a class="docs-heading-anchor" href="#Divisors">Divisors</a><a id="Divisors-1"></a><a class="docs-heading-anchor-permalink" href="#Divisors" title="Permalink"></a></h2><p>In order to consider divisors on curves, we restrict our attention to smooth and irreducible curve_components.</p><p>Let <span>$C$</span> be an affine or projective plane curve defined by an equation <span>$F$</span>. Then any polynomial function <span>$G$</span> which is not divisible by <span>$F$</span> will vanish on <span>$C$</span> only at finitely many points. A way to encode these points together with their intersection multiplicities is to consider a divisor. A divisor on a curve is a formal finite sum of points of the curve with integer coefficients. A natural operation of addition can be defined on the set of divisors of a curve, which turns it into an Abelian group.</p><h3 id="Constructors-2"><a class="docs-heading-anchor" href="#Constructors-2">Constructors</a><a class="docs-heading-anchor-permalink" href="#Constructors-2" title="Permalink"></a></h3><p>Divisors on curves are here introduced as a dictionary associating a point on the curve to its multiplicity.</p><article class="docstring"><header><a class="docstring-binding" id="AffineCurveDivisor" href="#AffineCurveDivisor"><code>AffineCurveDivisor</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">AffineCurveDivisor(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S &lt;: FieldElem</code></pre><p>Given a curve <code>C</code> which is assumed to be smooth and irreducible, return the divisor on the curve <code>C</code> defined by <code>D</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
+Affine plane curve defined by x^2 + y^2 + y
+
+
+julia&gt; P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+
+julia&gt; Q = Oscar.Point([QQ(0), QQ(-1)])
+Point with coordinates fmpq[0, -1]
+
+
+julia&gt; Oscar.AffineCurveDivisor(C, Dict(P =&gt; 3, Q =&gt; -2))
+3*fmpq[0, 0] - 2*fmpq[0, -1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L12">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ProjCurveDivisor" href="#ProjCurveDivisor"><code>ProjCurveDivisor</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">ProjCurveDivisor(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S &lt;: FieldElem</code></pre><p>Given a curve <code>C</code> which is assumed to be smooth and irreducible, return the divisor on the curve <code>C</code> defined by <code>D</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x,y,z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
+Projective plane curve defined by x^2 + y^2 + y*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+(0 : 0 : 1)
+
+julia&gt; Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
+(0 : -1 : 1)
+
+julia&gt; D = Oscar.ProjCurveDivisor(C, Dict(P =&gt; 3, Q =&gt; -2))
+3*(0 : 0 : 1) - 2*(0 : 1 : -1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L67">source</a></section></article><h3 id="Methods-2"><a class="docs-heading-anchor" href="#Methods-2">Methods</a><a class="docs-heading-anchor-permalink" href="#Methods-2" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="curve-Tuple{Oscar.PlaneCurveModule.CurveDivisor}" href="#curve-Tuple{Oscar.PlaneCurveModule.CurveDivisor}"><code>curve</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve(D::CurveDivisor)</code></pre><p>Return the curve on which the divisor is considered.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L169">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{Oscar.PlaneCurveModule.CurveDivisor}" href="#degree-Tuple{Oscar.PlaneCurveModule.CurveDivisor}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(D::CurveDivisor)</code></pre><p>Return the degree of the divisor.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L178">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="iseffective-Tuple{Oscar.PlaneCurveModule.CurveDivisor}" href="#iseffective-Tuple{Oscar.PlaneCurveModule.CurveDivisor}"><code>iseffective</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">iseffective(D::CurveDivisor)</code></pre><p>Return <code>true</code> if <code>D</code> is an effective divisor, <code>false</code> otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
+Affine plane curve defined by x^2 + y^2 + y
+
+
+julia&gt; P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+
+julia&gt; Q = Oscar.Point([QQ(0), QQ(-1)])
+Point with coordinates fmpq[0, -1]
+
+
+julia&gt; D = Oscar.AffineCurveDivisor(C, Dict(P =&gt; 3, Q =&gt; -2))
+3*fmpq[0, 0] - 2*fmpq[0, -1]
+
+julia&gt; Oscar.iseffective(D)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L258">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_zero_divisor-Union{Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#curve_zero_divisor-Union{Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>curve_zero_divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_zero_divisor(C::ProjPlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the divisor <code>0</code> on the curve <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L188">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve_zero_divisor-Union{Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#curve_zero_divisor-Union{Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>curve_zero_divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_zero_divisor(C::AffinePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the divisor <code>0</code> on the curve <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L197">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multiplicity-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}, Oscar.PlaneCurveModule.Point{S}}} where {S&lt;:FieldElem, T&lt;:MPolyElem{S}}" href="#multiplicity-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}, Oscar.PlaneCurveModule.Point{S}}} where {S&lt;:FieldElem, T&lt;:MPolyElem{S}}"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S &lt;: FieldElem, T &lt;: MPolyElem{S}}</code></pre><p>Return the multiplicity of the rational function <code>phi</code> on the curve <code>C</code> at the point <code>P</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x,y,z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
+Projective plane curve defined by x^2 + y^2 + y*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+(0 : 0 : 1)
+
+julia&gt; phi = T(x)//T(y)
+x//y
+
+julia&gt; Oscar.multiplicity(C, phi, P)
+-1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L300">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, MPolyElem{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem" href="#multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, MPolyElem{S}, Oscar.PlaneCurveModule.Point{S}}} where S&lt;:FieldElem"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S &lt;: FieldElem</code></pre><p>Return the multiplicity of the polynomial <code>F</code> on the curve <code>C</code> at the point <code>P</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L343">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}, MPolyElem_dec{S, S1} where S1, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#multiplicity-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}, MPolyElem_dec{S, S1} where S1, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Return the multiplicity of the polynomial <code>F</code> on the curve <code>C</code> at the point <code>P</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L358">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="multiplicity-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}, Oscar.Geometry.ProjSpcElem{S}}} where {S&lt;:FieldElem, T&lt;:(MPolyElem_dec{S, S1} where S1)}" href="#multiplicity-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}, Oscar.Geometry.ProjSpcElem{S}}} where {S&lt;:FieldElem, T&lt;:(MPolyElem_dec{S, S1} where S1)}"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S &lt;: FieldElem, T &lt;: Oscar.MPolyElem_dec{S}}</code></pre><p>Return the multiplicity of the rational function <code>phi</code> on the curve <code>C</code> at the point <code>P</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L377">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="divisor-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, MPolyElem{S}}} where S&lt;:FieldElem" href="#divisor-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, MPolyElem{S}}} where S&lt;:FieldElem"><code>divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S &lt;: FieldElem</code></pre><p>Return the divisor defined by the polynomial <code>F</code> on the curve <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L394">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="divisor-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}}} where {S&lt;:FieldElem, T&lt;:MPolyElem{S}}" href="#divisor-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.PlaneCurveModule.AffinePlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}}} where {S&lt;:FieldElem, T&lt;:MPolyElem{S}}"><code>divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S &lt;: FieldElem, T &lt;: MPolyElem{S}}</code></pre><p>Return the divisor defined by the rational function <code>phi</code> on the curve <code>C</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L415">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="divisor-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjPlaneCurve{S}, MPolyElem_dec{S, S1} where S1}} where S&lt;:FieldElem" href="#divisor-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjPlaneCurve{S}, MPolyElem_dec{S, S1} where S1}} where S&lt;:FieldElem"><code>divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S &lt;: FieldElem</code></pre><p>Return the divisor defined by the polynomial <code>F</code> on the curve <code>C</code>. The points of the divisor are in the projective space <code>PP</code> if specified, or in a new projective space otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L430">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="divisor-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjPlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}}} where {S&lt;:FieldElem, T&lt;:(MPolyElem_dec{S, S1} where S1)}" href="#divisor-Union{Tuple{T}, Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, Oscar.PlaneCurveModule.ProjPlaneCurve{S}, AbstractAlgebra.Generic.Frac{T}}} where {S&lt;:FieldElem, T&lt;:(MPolyElem_dec{S, S1} where S1)}"><code>divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S &lt;: FieldElem, T &lt;: Oscar.MPolyElem_dec{S}}</code></pre><p>Return the divisor defined by the rational function <code>phi</code> on the curve <code>C</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x,y,z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
+Projective plane curve defined by x^2 + y^2 + y*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; phi = T(x)//T(y)
+x//y
+
+julia&gt; Oscar.divisor(PP[1], C, phi)
+-(0 : 0 : 1) + (0 : 1 : -1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L458">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="islinearly_equivalent-Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor, Oscar.PlaneCurveModule.ProjCurveDivisor}" href="#islinearly_equivalent-Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor, Oscar.PlaneCurveModule.ProjCurveDivisor}"><code>islinearly_equivalent</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">islinearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)</code></pre><p>Return <code>true</code> if the divisors <code>D</code> and <code>E</code> are linearly equivalent, and <code>false</code> otherwise</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
+Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
+(0 : 1 : 0)
+
+julia&gt; R = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+(0 : 0 : 1)
+
+julia&gt; E = Oscar.ProjCurveDivisor(C, P)
+(0 : 1 : 0)
+
+julia&gt; F = Oscar.ProjCurveDivisor(C, R)
+(0 : 0 : 1)
+
+julia&gt; Oscar.islinearly_equivalent(E, F)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L705">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isprincipal-Union{Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor{S}}, Tuple{S}} where S&lt;:FieldElem" href="#isprincipal-Union{Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor{S}}, Tuple{S}} where S&lt;:FieldElem"><code>isprincipal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isprincipal(D::ProjCurveDivisor{S}) where S &lt;: FieldElem</code></pre><p>Return <code>true</code> if the divisor <code>D</code> is principal, and <code>false</code> otherwise</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
+Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
+(0 : 1 : 0)
+
+julia&gt; E = Oscar.ProjCurveDivisor(C, P)
+(0 : 1 : 0)
+
+julia&gt; Oscar.isprincipal(E)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L751">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="principal_divisor-Union{Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor{S}}, Tuple{S}} where S&lt;:FieldElem" href="#principal_divisor-Union{Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor{S}}, Tuple{S}} where S&lt;:FieldElem"><code>principal_divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">principal_divisor(D::ProjCurveDivisor{S}) where S &lt;: FieldElem</code></pre><p>If the divisor <code>D</code> is principal, return a rational function <code>phi</code> such that <code>D</code> is linearly equivalent to the divisor defined by <code>phi</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
+Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
+(0 : 1 : 0)
+
+julia&gt; R = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+(0 : 0 : 1)
+
+julia&gt; E = Oscar.ProjCurveDivisor(C, P, 2)
+2*(0 : 1 : 0)
+
+julia&gt; F = Oscar.ProjCurveDivisor(C, R, 2)
+2*(0 : 0 : 1)
+
+julia&gt; G = 2*E - 2*F
+-4*(0 : 0 : 1) + 4*(0 : 1 : 0)
+
+julia&gt; Oscar.principal_divisor(G)
+x^2//z^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L793">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="global_sections-Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor}" href="#global_sections-Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor}"><code>global_sections</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">global_sections(D::ProjCurveDivisor)</code></pre><p>Return a set of generators of the global sections of the sheaf associated to the divisor <code>D</code> of a smooth and irreducible projective curve.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
+Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
+
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
+(0 : 1 : 0)
+
+julia&gt; D = Oscar.ProjCurveDivisor(C, P, 4)
+4*(0 : 1 : 0)
+
+julia&gt; Oscar.global_sections(D)
+4-element Vector{AbstractAlgebra.Generic.Frac{fmpq_mpoly}}:
+ 1
+ y//z
+ x//z
+ x^2//z^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L606">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="dimension_global_sections-Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor}" href="#dimension_global_sections-Tuple{Oscar.PlaneCurveModule.ProjCurveDivisor}"><code>dimension_global_sections</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dimension_global_sections(D::ProjCurveDivisor)</code></pre><p>Return the dimension of the global sections of the sheaf associated to the divisor <code>D</code> of a smooth and irreducible projective curve.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/DivisorCurve.jl#L651">source</a></section></article><h2 id="Elliptic-Curves"><a class="docs-heading-anchor" href="#Elliptic-Curves">Elliptic Curves</a><a id="Elliptic-Curves-1"></a><a class="docs-heading-anchor-permalink" href="#Elliptic-Curves" title="Permalink"></a></h2><p>An elliptic plane curve is a projective plane curve of degree 3 together with a point of the curve, called the base point. An operation of addition of points can be defined on elliptic curves.</p><h3 id="Constructors-3"><a class="docs-heading-anchor" href="#Constructors-3">Constructors</a><a class="docs-heading-anchor-permalink" href="#Constructors-3" title="Permalink"></a></h3><p>An elliptic curve is a subtype of the abstract type ProjectivePlaneCurve. To define an elliptic curve over a field, one can either give as input an equation and the point at infinity, or just an equation in Weierstrass form. In the latter case, the point at infinity is <span>$(0 : 1 : 0)$</span>.</p><p>Considering elliptic curves over a ring is helpful in some primality proving test. We introduce here a structure of elliptic curve over a ring. In that case, we always assume the equation to be in Weierstrass form, with infinity point <span>$(0 : 1 : 0)$</span>.</p><article class="docstring"><header><a class="docstring-binding" id="ProjEllipticCurve" href="#ProjEllipticCurve"><code>ProjEllipticCurve</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S &lt;: FieldElem}
+ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S &lt;: FieldElem}
+ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S &lt;: Nemo.fmpz_mod}</code></pre><p>Return the Projective Elliptic Curve defined by the equation <code>eq</code>, with <code>P</code> as infinity point. If no point is specified it is expected that <code>eq</code> is in Weierstrass form, and the infinity point is <code>(0:1:0)</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia&gt; E = Oscar.ProjEllipticCurve(F, P)
+Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+
+julia&gt; Oscar.ProjEllipticCurve(T(y^2*z - x^3 - x*z^2))
+Projective elliptic curve defined by -x^3 - x*z^2 + y^2*z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L135">source</a></section></article><p>We define a specific structure for the points on an elliptic curve, on which the operation of addition and multiplication by an integer are defined.</p><article class="docstring"><header><a class="docstring-binding" id="Point_EllCurve" href="#Point_EllCurve"><code>Point_EllCurve</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S &lt;: FieldElem}
+Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S &lt;: Nemo.fmpz_mod}</code></pre><p>Create the point <code>P</code> on the elliptic curve <code>E</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia&gt; E = Oscar.ProjEllipticCurve(F, P1)
+Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+
+julia&gt; P2 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-2), QQ(2), QQ(1)])
+(-2 : 2 : 1)
+
+julia&gt; Oscar.Point_EllCurve(E, P2)
+(-2 : 2 : 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L342">source</a></section></article><h3 id="Methods-3"><a class="docs-heading-anchor" href="#Methods-3">Methods</a><a class="docs-heading-anchor-permalink" href="#Methods-3" title="Permalink"></a></h3><p>Most of the functions described for projective plane curves are also available for elliptic curves over a field. We describe here the functions which are specific to elliptic curves.</p><article class="docstring"><header><a class="docstring-binding" id="weierstrass_form-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#weierstrass_form-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>weierstrass_form</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">weierstrass_form(E::ProjEllipticCurve{S}) where {S &lt;: FieldElem}</code></pre><p>Return the equation of a projective elliptic curve defined by an equation in Weierstrass form and which is linearly equivalent to <code>E</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia&gt; E = Oscar.ProjEllipticCurve(F, P)
+Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+
+julia&gt; Oscar.weierstrass_form(E)
+-x^3 - x*z^2 + y^2*z - 4*z^3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L258">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="toweierstrass-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#toweierstrass-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.ProjPlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>toweierstrass</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Given a smooth plane cubic projective curve <code>C</code> and a point <code>P</code> on the curve, return an elliptic curve birationally equivalent to <code>C</code> given by an equation in long Weierstrass form.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia&gt; Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia&gt; D = Oscar.ProjPlaneCurve(T(-x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3))
+Projective plane curve defined by -x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3
+
+
+julia&gt; Oscar.toweierstrass(D, Q)
+-x^3 - 2*x^2*z + x*y*z - 4*x*z^2 + y^2*z + 3*y*z^2 - 6*z^3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L556">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="discriminant-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#discriminant-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>discriminant</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">discriminant(E::ProjEllipticCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the discriminant of the projective elliptic curve <code>E</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L315">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="j_invariant-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#j_invariant-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>j_invariant</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">j_invariant(E::ProjEllipticCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the j-invariant of the projective elliptic curve <code>E</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L328">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="rand-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#rand-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>rand</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rand(E::ProjEllipticCurve{S}) where S &lt;: FieldElem</code></pre><p>Return a random point on the elliptic curve <code>E</code> defined over a finite field.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L667">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="curve-Union{Tuple{Oscar.PlaneCurveModule.Point_EllCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#curve-Union{Tuple{Oscar.PlaneCurveModule.Point_EllCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>curve</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve(P::Point_EllCurve{S}) where S &lt;: FieldElem</code></pre><p>Return the curve on which the point <code>P</code> is considered.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L460">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="order-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem" href="#order-Union{Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{S}}, Tuple{S}} where S&lt;:FieldElem"><code>order</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">order(E::ProjEllipticCurve{S}) where S &lt;: FieldElem</code></pre><p>Given an elliptic curve <code>E</code> over a finite field <span>$\mathbf F$</span>, computes <span>$\#E(\mathbf F)$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L655">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="istorsion_point-Tuple{Oscar.PlaneCurveModule.Point_EllCurve{fmpq}}" href="#istorsion_point-Tuple{Oscar.PlaneCurveModule.Point_EllCurve{fmpq}}"><code>istorsion_point</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">istorsion_point(P::Point_EllCurve{fmpq})</code></pre><p>Returns whether the point <code>P</code> is a torsion point.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L724">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="torsion_points_lutz_nagell-Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{fmpq}}" href="#torsion_points_lutz_nagell-Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{fmpq}}"><code>torsion_points_lutz_nagell</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})</code></pre><p>Computes the rational torsion points of the elliptic curve <code>E</code> using the Lutz-Nagell theorem.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L734">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="torsion_points_division_poly-Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{fmpq}}" href="#torsion_points_division_poly-Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve{fmpq}}"><code>torsion_points_division_poly</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">torsion_points_division_poly(E::ProjEllipticCurve{fmpq})</code></pre><p>Computes the rational torsion points of a rational elliptic curve <code>E</code> using division polynomials.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L749">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="order-Tuple{Oscar.PlaneCurveModule.Point_EllCurve{fmpq}}" href="#order-Tuple{Oscar.PlaneCurveModule.Point_EllCurve{fmpq}}"><code>order</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">order(P::Point_EllCurve{fmpq})</code></pre><p>Returns the order of the point <code>P</code> or <code>0</code> if the order is infinite.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L713">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="list_rand-Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve, Int64}" href="#list_rand-Tuple{Oscar.PlaneCurveModule.ProjEllipticCurve, Int64}"><code>list_rand</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">list_rand(E::ProjEllipticCurve, N::Int)</code></pre><p>Return a list of <code>N</code> random points on the elliptic curve <code>E</code> defined over a finite field.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/ProjEllipticCurve.jl#L687">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="sum_Point_EllCurveZnZ-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.Point_EllCurve{S}, Oscar.PlaneCurveModule.Point_EllCurve{S}}} where S&lt;:fmpz_mod" href="#sum_Point_EllCurveZnZ-Union{Tuple{S}, Tuple{Oscar.PlaneCurveModule.Point_EllCurve{S}, Oscar.PlaneCurveModule.Point_EllCurve{S}}} where S&lt;:fmpz_mod"><code>sum_Point_EllCurveZnZ</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S &lt;: Nemo.fmpz_mod</code></pre><p>Return, if possible, the sum of the points <code>P</code> and <code>Q</code>, and an error otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = ResidueRing(ZZ, ZZ(4453))
+Integers modulo 4453
+
+julia&gt; S, (x, y, z) = PolynomialRing(A, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453, AbstractAlgebra.Generic.MPoly{fmpz_mod}[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
+
+julia&gt; F = T(y^2*z - x^3 - 10*x*z^2 + 2*z^3)
+4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
+
+julia&gt; E = Oscar.ProjEllipticCurve(F)
+Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
+
+
+julia&gt; PP = projective_space(A, 2)
+(Projective space of dim 2 over Integers modulo 4453
+, MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
+(1 : 3 : 1)
+
+
+julia&gt; Oscar.sum_Point_EllCurveZnZ(P, P)
+(4332 : 3230 : 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L170">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="IntMult_Point_EllCurveZnZ-Union{Tuple{S}, Tuple{fmpz, Oscar.PlaneCurveModule.Point_EllCurve{S}}} where S&lt;:fmpz_mod" href="#IntMult_Point_EllCurveZnZ-Union{Tuple{S}, Tuple{fmpz, Oscar.PlaneCurveModule.Point_EllCurve{S}}} where S&lt;:fmpz_mod"><code>IntMult_Point_EllCurveZnZ</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S &lt;: Nemo.fmpz_mod</code></pre><p>Return, if possible, the point <code>mP</code>, and an error otherwise.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = ResidueRing(ZZ, ZZ(4453))
+Integers modulo 4453
+
+julia&gt; S, (x, y, z) = PolynomialRing(A, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453, AbstractAlgebra.Generic.MPoly{fmpz_mod}[x, y, z])
+
+julia&gt; T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
+
+julia&gt; F = T(y^2*z - x^3 - 10*x*z^2 + 2*z^3)
+4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
+
+julia&gt; E = Oscar.ProjEllipticCurve(F)
+Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
+
+
+julia&gt; PP = projective_space(A, 2)
+(Projective space of dim 2 over Integers modulo 4453
+, MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
+
+julia&gt; P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
+(1 : 3 : 1)
+
+
+julia&gt; Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P)
+(4332 : 3230 : 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L224">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="rand_pair_EllCurve_Point-Union{Tuple{S}, Tuple{MPolyRing_dec{S, S1} where S1, Oscar.Geometry.ProjSpc{S}}} where S&lt;:fmpz_mod" href="#rand_pair_EllCurve_Point-Union{Tuple{S}, Tuple{MPolyRing_dec{S, S1} where S1, Oscar.Geometry.ProjSpc{S}}} where S&lt;:fmpz_mod"><code>rand_pair_EllCurve_Point</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rand_pair_EllCurve_Point(R::Oscar.MPolyRing_dec{S}, PP::Oscar.Geometry.ProjSpc{S}) where S &lt;: Nemo.fmpz_mod</code></pre><p>Return a pair composed of an elliptic plane curve <code>E</code> with equation in <code>R</code>, and a point <code>P</code> on <code>E</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L274">source</a></section></article><h2 id="Primality-Proving"><a class="docs-heading-anchor" href="#Primality-Proving">Primality Proving</a><a id="Primality-Proving-1"></a><a class="docs-heading-anchor-permalink" href="#Primality-Proving" title="Permalink"></a></h2><p>The Elliptic Curve Method (ECM) and the Elliptic Curve Primality Proving (ECPP) are methods involving elliptic curves. We introduce here these two functions and some related functions.  </p><h3 id="Methods-4"><a class="docs-heading-anchor" href="#Methods-4">Methods</a><a class="docs-heading-anchor-permalink" href="#Methods-4" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="ECM-Tuple{fmpz}" href="#ECM-Tuple{fmpz}"><code>ECM</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))</code></pre><p>Return a factor of <code>n</code>, obtained with the Elliptic Curve Method.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L150">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ECPP-Tuple{fmpz}" href="#ECPP-Tuple{fmpz}"><code>ECPP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ECPP(n::fmpz)</code></pre><p>The algorithm returns true if the number is prime, false if not, and an error if it can&#39;t decide.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L752">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="cornacchia_algorithm-Tuple{fmpz, fmpz}" href="#cornacchia_algorithm-Tuple{fmpz, fmpz}"><code>cornacchia_algorithm</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">cornacchia_algorithm(d::fmpz, m::fmpz)</code></pre><p>Return <code>true</code> and a solution of <code>x^2 + d*y^2 = m</code> if it exists, and false and <code>(0, 0)</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L322">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Miller_Rabin_test" href="#Miller_Rabin_test"><code>Miller_Rabin_test</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">Miller_Rabin_test(N::fmpz, k::Int64 = 20)</code></pre><p>Given an odd number <code>N</code>, return <code>false</code> if the number is composite, and <code>true</code> if it is probably prime.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L440">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Pollard_rho" href="#Pollard_rho"><code>Pollard_rho</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">Pollard_rho(N::fmpz, bound::Int = 50000)</code></pre><p>The algorithm computes a factor of <code>N</code> using the Pollard rho algorithm and returns it.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L461">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Pollard_p_1" href="#Pollard_p_1"><code>Pollard_p_1</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)</code></pre><p>The algorithm computes a factor of <code>N</code> and returns it.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/054f3216b37218d24171954ce18ac850dbeeaa9a/experimental/PlaneCurve/EllCurveZnZ.jl#L485">source</a></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Friday 13 August 2021 11:11">Friday 13 August 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Invariants of Finite Groups · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to Oscar</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/serialization/">Saving and loading</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/free_modules/">Free Modules Over Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/modules/">Modules Over Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/affine_algebras/">Affine Algebras</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/binomial_ideals/">Binomial Primary Decomposition</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/localizations/">Localization</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/module_localizations/">Localizations of modules over computable rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox" checked/><label class="tocitem" for="menuitem-11"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li class="is-active"><a class="tocitem" href>Invariants of Finite Groups</a><ul class="internal"><li><a class="tocitem" href="#Creating-Invariant-Rings"><span>Creating Invariant Rings</span></a></li><li><a class="tocitem" href="#Basic-Data-Associated-to-Invariant-Rings"><span>Basic Data Associated to Invariant Rings</span></a></li><li><a class="tocitem" href="#The-Reynolds-Operator"><span>The Reynolds Operator</span></a></li><li><a class="tocitem" href="#Invariants-of-a-Given-Degree"><span>Invariants of a Given Degree</span></a></li><li><a class="tocitem" href="#The-Molien-Series"><span>The Molien Series</span></a></li><li><a class="tocitem" href="#Primary-Invariants"><span>Primary Invariants</span></a></li><li><a class="tocitem" href="#Secondary-Invariants"><span>Secondary Invariants</span></a></li><li><a class="tocitem" href="#Fundamental-Systems-of-Invariants"><span>Fundamental Systems of Invariants</span></a></li><li><a class="tocitem" href="#Invariant-Rings-as-Affine-Algebras"><span>Invariant Rings as Affine Algebras</span></a></li></ul></li><li><a class="tocitem" href="../reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12-3" type="checkbox"/><label class="tocitem" for="menuitem-12-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">Algebraic Cycles</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12-4" type="checkbox"/><label class="tocitem" for="menuitem-12-4"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/AffineSchemes/">General schemes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-12-5" type="checkbox"/><label class="tocitem" for="menuitem-12-5"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Curves</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-5" type="checkbox"/><label class="tocitem" for="menuitem-17-5"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Invariant Theory</a></li><li class="is-active"><a href>Invariants of Finite Groups</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Invariants of Finite Groups</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/InvariantTheory/finite_groups.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Invariants-of-Finite-Groups">Invariants of Finite Groups</a></li><li class="no-marker"><ul><li><a href="#Creating-Invariant-Rings">Creating Invariant Rings</a></li><li><a href="#Basic-Data-Associated-to-Invariant-Rings">Basic Data Associated to Invariant Rings</a></li><li><a href="#The-Reynolds-Operator">The Reynolds Operator</a></li><li><a href="#Invariants-of-a-Given-Degree">Invariants of a Given Degree</a></li><li><a href="#The-Molien-Series">The Molien Series</a></li><li><a href="#Primary-Invariants">Primary Invariants</a></li><li><a href="#Secondary-Invariants">Secondary Invariants</a></li><li><a href="#Fundamental-Systems-of-Invariants">Fundamental Systems of Invariants</a></li><li><a href="#Invariant-Rings-as-Affine-Algebras">Invariant Rings as Affine Algebras</a></li></ul></li></ul><h1 id="Invariants-of-Finite-Groups"><a class="docs-heading-anchor" href="#Invariants-of-Finite-Groups">Invariants of Finite Groups</a><a id="Invariants-of-Finite-Groups-1"></a><a class="docs-heading-anchor-permalink" href="#Invariants-of-Finite-Groups" title="Permalink"></a></h1><p>In this section, with notation as in the introduction to this chapter, <span>$G$</span> will be a <em>finite</em> group.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The ssumption that <span>$G$</span> is finite implies:</p><ul><li><p>By a result of Emmy Noether, <span>$K[V]$</span> is integral over <span>$K[V]^G$</span>. In particular,</p><p><span>$\; \; \; \; \; \dim K[V]^G = \dim K[V] = n.$</span></p><p>Moreover, <span>$K[V]^G$</span> is finitely generated as a <span>$K$</span>-algebra.</p></li></ul><ul><li><p>If the group order <span>$|G|$</span> is invertible in <span>$K$</span>, then we have the explicit Reynolds operator</p><p><span>$\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(f \;\!   . \;\! \pi).$</span></p></li></ul></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>We speak of <em>non-modular</em> invariant theory if <span>$|G|$</span> is invertible in <span>$K$</span>, and of <em>modular</em> invariant theory otherwise.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In the non-modular case, using  Emmy Noether&#39;s result and the Reynolds operator, it is not too difficult to show that <span>$K[V]^G$</span> is a free module over any of its graded Noether normalizations. That is, <span>$K[V]^G$</span> is Cohen-Macaulay. In the modular case, <span>$K[V]^G$</span> may not be Cohen-Macaulay.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In the non-modular case, the Hilbert series of <span>$K[V]^G$</span> can be precomputed as its Molien series. See <a href="../../references/#DK15">Harm Derksen, Gregor Kemper (2015)</a> and <a href="../../references/#DJ98">Wolfram Decker, Theo de Jong (1998)</a> for explicit formulas.</p></div></div><p>Knowing the Hilbert series means to know the dimension of each graded piece <span>$K[V]^G_d$</span>. This information can often be used to speed up algorithms for finding invariants. The most basic task here is to compute the invariants of  some given degree <span>$d$</span>, that is, to find  an explicit <span>$K$</span>-basis of <span>$K[V]^G_d$</span>. There are two different approaches:</p><ul><li>The <em>Reynolds Operator Method</em>, available in  the non-modular case, applies the Reynolds operator to sufficiently many monomials in <span>$K[x_1, \dots, x_n]_d\cong K[V]_d$</span>,  and extracts a <span>$K$</span>-basis from the resulting generating set.</li><li>The <em>Linear Algebra Method</em>, available in the non-modular and the modular case, finds the elements of a <span>$K$</span>-basis all at once by setting up and solving an appropriate <span>$K$</span>-linear system of equations.</li></ul><p>These methods are, in particular, crucial to the computation of primary and secondary invariants. Primary invariants and irreducible secondary invariants together generate <span>$K[V]^G$</span> as a <span>$K$</span>-algebra. Omitting redundant generators yields a system of fundamental invariants. In the non-modular case, an alternative and typically more effective way to compute generators of <span>$K[V]^G$</span> is King&#39;s algorithm which finds a system of fundamental invariants directly, without computing primary and secondary invariants. See <a href="../../references/#Kin13">Simon King (2013)</a>.</p><p>We discuss the relevant OSCAR functionality below.</p><h2 id="Creating-Invariant-Rings"><a class="docs-heading-anchor" href="#Creating-Invariant-Rings">Creating Invariant Rings</a><a id="Creating-Invariant-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Invariant-Rings" title="Permalink"></a></h2><h3 id="How-Groups-are-Given"><a class="docs-heading-anchor" href="#How-Groups-are-Given">How Groups are Given</a><a id="How-Groups-are-Given-1"></a><a class="docs-heading-anchor-permalink" href="#How-Groups-are-Given" title="Permalink"></a></h3><p>The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on <span>$K[x_1, \dots, x_n]\cong K[V]$</span> are specified:</p><h4 id="Matrix-Groups"><a class="docs-heading-anchor" href="#Matrix-Groups">Matrix Groups</a><a id="Matrix-Groups-1"></a><a class="docs-heading-anchor-permalink" href="#Matrix-Groups" title="Permalink"></a></h4><p>Here, <span>$G$</span> will be explicitly given as a matrix group <span>$G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$</span> by linear substitution:</p><p class="math-container">\[(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)) \text{ for all } \pi\in G.\]</p><h4 id="Permutation-Groups"><a class="docs-heading-anchor" href="#Permutation-Groups">Permutation Groups</a><a id="Permutation-Groups-1"></a><a class="docs-heading-anchor-permalink" href="#Permutation-Groups" title="Permalink"></a></h4><p>Here, <span>$G$</span> will be given as a permutation group, acting on <span>$K[x_1, \dots, x_n]\cong K[V]$</span> by permuting the variables.</p><h3 id="Constructors-for-Invariant-Rings"><a class="docs-heading-anchor" href="#Constructors-for-Invariant-Rings">Constructors for Invariant Rings</a><a id="Constructors-for-Invariant-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors-for-Invariant-Rings" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="invariant_ring-Tuple{MatrixGroup}" href="#invariant_ring-Tuple{MatrixGroup}"><code>invariant_ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">invariant_ring(G::MatrixGroup)
+invariant_ring(K::Field = QQ, G::PermGroup)</code></pre><p>Return the invariant ring of the finite matrix group or permutation group <code>G</code>.</p><p>In the latter case, use the specified field <code>K</code> as the coefficient field.  The default value for <code>K</code> is <code>QQ</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the <code>primary_invariants</code> function).</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;);
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia&gt; G = MatrixGroup(3, K, [M1, M2]);
+
+julia&gt; IRm = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; IRp = invariant_ring(symmetric_group(3))
+Invariant ring of
+Sym( [ 1 .. 3 ] )
+with generators
+PermGroupElem[(1,2,3), (1,2)]
+
+julia&gt; coefficient_ring(IRp)
+Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/invariant_rings.jl#L32">source</a></section></article><h2 id="Basic-Data-Associated-to-Invariant-Rings"><a class="docs-heading-anchor" href="#Basic-Data-Associated-to-Invariant-Rings">Basic Data Associated to Invariant Rings</a><a id="Basic-Data-Associated-to-Invariant-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Data-Associated-to-Invariant-Rings" title="Permalink"></a></h2><p>If <code>IR</code> is the invariant ring <span>$K[x_1,..., x_n]^G$</span> of a finite matrix group <span>$G$</span>, then</p><ul><li><code>group(IR)</code> refers to <span>$G$</span>,</li><li><code>coefficient_ring(IR)</code> to <span>$K$</span>, and</li><li><code>polynomial_ring(IR)</code> to <span>$K[x_1,..., x_n]$</span>.</li></ul><p>Moreover, <code>is_modular(IR)</code> returns <code>true</code> in the modular case, and <code>false</code> otherwise.</p><h6 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;)</code><code class="nohighlight hljs ansi" style="display:block;">(Cyclotomic field of order 3, a)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])</code><code class="nohighlight hljs ansi" style="display:block;">[0   0   1]
+[1   0   0]
+[0   1   0]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])</code><code class="nohighlight hljs ansi" style="display:block;">[1   0        0]
+[0   a        0]
+[0   0   -a - 1]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; G = MatrixGroup(3, K, [ M1, M2 ])</code><code class="nohighlight hljs ansi" style="display:block;">Matrix group of degree 3 over Cyclotomic field of order 3</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; IR = invariant_ring(G)</code><code class="nohighlight hljs ansi" style="display:block;">Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; group(IR)</code><code class="nohighlight hljs ansi" style="display:block;">Matrix group of degree 3 over Cyclotomic field of order 3</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; coefficient_ring(IR)</code><code class="nohighlight hljs ansi" style="display:block;">Cyclotomic field of order 3</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; R = polynomial_ring(IR)</code><code class="nohighlight hljs ansi" style="display:block;">Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+  x[1] -&gt; [1]
+  x[2] -&gt; [1]
+  x[3] -&gt; [1]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; x = gens(R)</code><code class="nohighlight hljs ansi" style="display:block;">3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]
+ x[2]
+ x[3]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; is_modular(IR)</code><code class="nohighlight hljs ansi" style="display:block;">false</code></pre><h2 id="The-Reynolds-Operator"><a class="docs-heading-anchor" href="#The-Reynolds-Operator">The Reynolds Operator</a><a id="The-Reynolds-Operator-1"></a><a class="docs-heading-anchor-permalink" href="#The-Reynolds-Operator" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="reynolds_operator-Union{Tuple{T}, Tuple{GrpT}, Tuple{FldT}, Tuple{Oscar.InvRing{FldT, GrpT, T, PolyRingT, ActionT} where {PolyRingT, ActionT}, T}} where {FldT, GrpT, T&lt;:MPolyElem}" href="#reynolds_operator-Union{Tuple{T}, Tuple{GrpT}, Tuple{FldT}, Tuple{Oscar.InvRing{FldT, GrpT, T, PolyRingT, ActionT} where {PolyRingT, ActionT}, T}} where {FldT, GrpT, T&lt;:MPolyElem}"><code>reynolds_operator</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T &lt;: MPolyElem}</code></pre><p>In the non-modular case, return the image of <code>f</code> under the Reynolds operator projecting onto <code>IR</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;)
+(Cyclotomic field of order 3, a)
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia&gt; G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; R = polynomial_ring(IR)
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+  x[1] -&gt; [1]
+  x[2] -&gt; [1]
+  x[3] -&gt; [1]
+
+julia&gt; x = gens(R)
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]
+ x[2]
+ x[3]
+
+julia&gt; f = x[1]^3
+x[1]^3
+
+julia&gt; reynolds_operator(IR, f)
+1//3*x[1]^3 + 1//3*x[2]^3 + 1//3*x[3]^3
+
+julia&gt; M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
+[0   1   0]
+[2   0   0]
+[0   0   2]
+
+julia&gt; G = MatrixGroup(3, GF(3), [M])
+Matrix group of degree 3 over Galois field with characteristic 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia&gt; R = polynomial_ring(IR)
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3 graded by
+  x[1] -&gt; [1]
+  x[2] -&gt; [1]
+  x[3] -&gt; [1]
+
+julia&gt; x = gens(R)
+3-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+ x[1]
+ x[2]
+ x[3]
+
+julia&gt; f = x[1]^2
+x[1]^2
+
+julia&gt; reynolds_operator(IR, f)
+2*x[1]^2 + 2*x[2]^2
+
+julia&gt; f = x[1]^3
+x[1]^3
+
+julia&gt; reynolds_operator(IR, f)
+0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/invariant_rings.jl#L148">source</a></section></article><h2 id="Invariants-of-a-Given-Degree"><a class="docs-heading-anchor" href="#Invariants-of-a-Given-Degree">Invariants of a Given Degree</a><a id="Invariants-of-a-Given-Degree-1"></a><a class="docs-heading-anchor-permalink" href="#Invariants-of-a-Given-Degree" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="basis" href="#basis"><code>basis</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs"> basis(IR::InvRing, d::Int, algo::Symbol = :default)</code></pre><p>Given an invariant ring <code>IR</code> and an integer <code>d</code>, return a basis for the invariants in degree <code>d</code>.</p><p>The optional argument <code>algo</code> specifies the algorithm to be used. If <code>algo = :reynolds</code>, the Reynolds operator is utilized (this method is only available in the non-modular case). Setting <code>algo = :linear_algebra</code> means that plain linear algebra is used. The default option <code>algo = :default</code> asks to select the heuristically best algorithm.</p><p>See also <a href="#iterate_basis"><code>iterate_basis</code></a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;)
+(Cyclotomic field of order 3, a)
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia&gt; G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; basis(IR, 6)
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]^2*x[2]^2*x[3]^2
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^6 + x[2]^6 + x[3]^6
+
+julia&gt; M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
+[0   1   0]
+[2   0   0]
+[0   0   2]
+
+julia&gt; G = MatrixGroup(3, GF(3), [M])
+Matrix group of degree 3 over Galois field with characteristic 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia&gt; basis(IR, 2)
+2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+ x[1]^2 + x[2]^2
+ x[3]^2
+
+julia&gt; basis(IR, 3)
+2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+ x[1]*x[2]*x[3]
+ x[1]^2*x[3] + 2*x[2]^2*x[3]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/invariant_rings.jl#L256">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="iterate_basis" href="#iterate_basis"><code>iterate_basis</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs"> iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)</code></pre><p>Given an invariant ring <code>IR</code> and an integer <code>d</code>, return an iterator over a basis for the invariants in degree <code>d</code>.</p><p>The optional argument <code>algo</code> specifies the algorithm to be used. If <code>algo = :reynolds</code>, the Reynolds operator is utilized (this method is only available in the non-modular case). Setting <code>algo = :linear_algebra</code> means that plain linear algebra is used. The default option <code>algo = :default</code> asks to select the heuristically best algorithm.</p><p>When using the Reynolds operator, the basis is constructed element-by-element. With linear algebra, this is not possible and the basis will be constructed all at once when calling the function.</p><p>See also <a href="../../Hecke/number_fields/fields/#basis-Tuple{SimpleNumField}"><code>basis</code></a>.</p><p><strong>Examples</strong></p><pre><code class="nohighlight hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;)
+(Cyclotomic field of order 3, a)
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia&gt; G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; B = iterate_basis(IR, 6)
+Iterator over a basis of the component of degree 6 of
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; collect(B)
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]^2*x[2]^2*x[3]^2
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^6 + x[2]^6 + x[3]^6
+
+julia&gt; M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
+[0   1   0]
+[2   0   0]
+[0   0   2]
+
+julia&gt; G = MatrixGroup(3, GF(3), [M])
+Matrix group of degree 3 over Galois field with characteristic 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia&gt; B = iterate_basis(IR, 2)
+Iterator over a basis of the component of degree 2 of
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia&gt; collect(B)
+2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+ x[1]^2 + x[2]^2
+ x[3]^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/iterators.jl#L96">source</a></section></article><h2 id="The-Molien-Series"><a class="docs-heading-anchor" href="#The-Molien-Series">The Molien Series</a><a id="The-Molien-Series-1"></a><a class="docs-heading-anchor-permalink" href="#The-Molien-Series" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="molien_series-Tuple{PolyRing, Oscar.InvRing}" href="#molien_series-Tuple{PolyRing, Oscar.InvRing}"><code>molien_series</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">molien_series([S::PolyRing], I::InvRing)</code></pre><p>In the non-modular case, return the Molien series of <code>I</code> as a rational function.</p><p>If a univariate polynomial ring with rational coefficients is specified by the optional argument <code>S::PolyRing</code>, then return the Molien series as an element of the fraction field of that ring.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;);
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia&gt; G = MatrixGroup(3, K, [M1, M2]);
+
+julia&gt; IR = invariant_ring(G);
+
+julia&gt; MS = molien_series(IR)
+(-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
+
+julia&gt; parent(MS)
+Fraction field of Univariate Polynomial Ring in t over Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/invariant_rings.jl#L398">source</a></section></article><h2 id="Primary-Invariants"><a class="docs-heading-anchor" href="#Primary-Invariants">Primary Invariants</a><a id="Primary-Invariants-1"></a><a class="docs-heading-anchor-permalink" href="#Primary-Invariants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="primary_invariants-Tuple{Oscar.InvRing}" href="#primary_invariants-Tuple{Oscar.InvRing}"><code>primary_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">primary_invariants(IR::InvRing;
+  ensure_minimality::Int = 0, degree_bound::Int = 1,
+  primary_degrees::Vector{Int} = Int[])</code></pre><p>Return a system of primary invariants for <code>IR</code> as a <code>Vector</code> sorted by increasing degree. The result is cached, so calling this function again with argument <code>IR</code> will be fast and give the same result.</p><p>The primary invariants are computed using the algorithm in <a href="../../references/#Kem99">Gregor Kemper (1999)</a>.</p><p>The product of the degrees <span>$d_1,\dots, d_n$</span> of the returned primary invariants is guaranteed to be minimal among all possible sets of primary invariants.</p><p>Expert users (or users happy to experiment) may enter the following keyword arguments to speed up the computation. Note that all of these options are ignored if there are already primary invariants cached. If admissible degrees <span>$d_1,\dots, d_n$</span> for a system of primary invariants are known a priori, these degrees can be specified by <code>primary_degrees = [d_1, ..., d_n]</code>. Note that an error is raised if in fact no primary invariants of the given degrees exist. An a priori known number <span>$k \geq 1$</span> with <span>$d_1\cdots d_n \geq k \cdot |G|$</span>, where <span>$G$</span> is the underlying group, can be specified by <code>degree_bound = k</code>. The default value is <code>degree_bound = 1</code>. In some situations, the runtime of the algorithm might be improved by assigning a positive integer to <code>ensure_minimality</code>. This leads to an early cancellation of loops in the algorithm and the described minimality of the degrees is not guaranteed anymore. A smaller (positive) value of <code>ensure_minimality</code> corresponds to an earlier cancellation. However, the default value <code>ensure_minimality = 0</code> corresponds to no cancellation.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;);
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia&gt; G = MatrixGroup(3, K, [M1, M2]);
+
+julia&gt; IR = invariant_ring(G);
+
+julia&gt; primary_invariants(IR)
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]*x[2]*x[3]
+ x[1]^3 + x[2]^3 + x[3]^3
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+
+julia&gt; IR = invariant_ring(G); # &quot;New&quot; ring to avoid caching
+
+julia&gt; primary_invariants(IR, primary_degrees = [ 3, 6, 6 ])
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]*x[2]*x[3]
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^6 + x[2]^6 + x[3]^6
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/primary_invariants.jl#L238">source</a></section></article><h2 id="Secondary-Invariants"><a class="docs-heading-anchor" href="#Secondary-Invariants">Secondary Invariants</a><a id="Secondary-Invariants-1"></a><a class="docs-heading-anchor-permalink" href="#Secondary-Invariants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="secondary_invariants-Tuple{Oscar.InvRing}" href="#secondary_invariants-Tuple{Oscar.InvRing}"><code>secondary_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">secondary_invariants(IR::InvRing)</code></pre><p>Return a system of secondary invariants for <code>IR</code> as a <code>Vector</code> sorted by increasing degree. The result is cached, so calling this function again  with argument <code>IR</code> will be fast and give the same result. Note that the secondary invariants are defined with respect to the currently cached system of primary invariants for <code>IR</code> (if no system of primary invariants for <code>IR</code> is cached, such a system is computed and cached first).</p><p><strong>Implemented Algorithms</strong></p><p>For the non-modular case, the function relies on Algorithm 3.7.2 in <a href="../../references/#DK15">Harm Derksen, Gregor Kemper (2015)</a>,  enhanced by ideas from <a href="../../references/#Kin07">Simon King (2007)</a>. In the modular case, Algorithm 3.7.5 in  <a href="../../references/#DK15">Harm Derksen, Gregor Kemper (2015)</a> is used.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;);
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia&gt; G = MatrixGroup(3, K, [M1, M2]);
+
+julia&gt; IR = invariant_ring(G);
+
+julia&gt; secondary_invariants(IR)
+2-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ 1
+ x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/secondary_invariants.jl#L290">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="irreducible_secondary_invariants-Tuple{Oscar.InvRing}" href="#irreducible_secondary_invariants-Tuple{Oscar.InvRing}"><code>irreducible_secondary_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">irreducible_secondary_invariants(IR::InvRing)</code></pre><p>Return a system of irreducible secondary invariants for <code>IR</code> as a <code>Vector</code> sorted by increasing degree. The result is cached, so calling this function again will be fast and give the same result. Here, a secondary invariant is called irreducible, if it cannot be written as a polynomial expression in the primary invariants and the other secondary invariants.</p><p>Note that the secondary invariants and hence the irreducible secondary invariants are defined with respect to the currently cached system of primary invariants for <code>IR</code> (if no system of primary invariants for <code>IR</code> is cached, such a system is  computed and cached first).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
+
+julia&gt; G = MatrixGroup(5, QQ, [M]);
+
+julia&gt; IR = invariant_ring(G);
+
+julia&gt; secondary_invariants(IR)
+12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ 1
+ x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
+ x[3]^2 + x[4]^2 + x[5]^2
+ x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[2]^2*x[4] + x[1]*x[2]*x[5]
+ x[1]*x[3]^2 - x[2]*x[3]^2 + x[2]*x[4]^2 - x[1]*x[5]^2
+ x[1]^2*x[3] + x[1]^2*x[4] - 2*x[1]*x[2]*x[4] + x[2]^2*x[4] + x[2]^2*x[5]
+ x[1]*x[3]*x[4] - x[2]*x[3]*x[4] - x[1]*x[3]*x[5] + x[2]*x[4]*x[5]
+ x[3]*x[4]^2 + x[3]^2*x[5] + x[4]*x[5]^2
+ x[1]*x[3]^3 - x[2]*x[3]^3 + x[2]*x[3]^2*x[4] + x[1]*x[3]*x[4]^2 - x[2]*x[3]*x[4]^2 + x[2]*x[4]^3 - x[1]*x[3]^2*x[5] - x[1]*x[4]^2*x[5] + x[1]*x[3]*x[5]^2 - x[2]*x[3]*x[5]^2 + x[2]*x[4]*x[5]^2 - x[1]*x[5]^3
+ x[3]^4 + 2*x[3]^2*x[4]^2 + x[4]^4 + 2*x[3]^2*x[5]^2 + 2*x[4]^2*x[5]^2 + x[5]^4
+ x[1]*x[3]^5 - x[2]*x[3]^5 + x[2]*x[3]^4*x[4] + 2*x[1]*x[3]^3*x[4]^2 - 2*x[2]*x[3]^3*x[4]^2 + 2*x[2]*x[3]^2*x[4]^3 + x[1]*x[3]*x[4]^4 - x[2]*x[3]*x[4]^4 + x[2]*x[4]^5 - x[1]*x[3]^4*x[5] - 2*x[1]*x[3]^2*x[4]^2*x[5] - x[1]*x[4]^4*x[5] + 2*x[1]*x[3]^3*x[5]^2 - 2*x[2]*x[3]^3*x[5]^2 + 2*x[2]*x[3]^2*x[4]*x[5]^2 + 2*x[1]*x[3]*x[4]^2*x[5]^2 - 2*x[2]*x[3]*x[4]^2*x[5]^2 + 2*x[2]*x[4]^3*x[5]^2 - 2*x[1]*x[3]^2*x[5]^3 - 2*x[1]*x[4]^2*x[5]^3 + x[1]*x[3]*x[5]^4 - x[2]*x[3]*x[5]^4 + x[2]*x[4]*x[5]^4 - x[1]*x[5]^5
+
+julia&gt; irreducible_secondary_invariants(IR)
+8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
+ x[3]^2 + x[4]^2 + x[5]^2
+ x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[2]^2*x[4] + x[1]*x[2]*x[5]
+ x[1]*x[3]^2 - x[2]*x[3]^2 + x[2]*x[4]^2 - x[1]*x[5]^2
+ x[1]^2*x[3] + x[1]^2*x[4] - 2*x[1]*x[2]*x[4] + x[2]^2*x[4] + x[2]^2*x[5]
+ x[1]*x[3]*x[4] - x[2]*x[3]*x[4] - x[1]*x[3]*x[5] + x[2]*x[4]*x[5]
+ x[3]*x[4]^2 + x[3]^2*x[5] + x[4]*x[5]^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/secondary_invariants.jl#L329">source</a></section></article><h2 id="Fundamental-Systems-of-Invariants"><a class="docs-heading-anchor" href="#Fundamental-Systems-of-Invariants">Fundamental Systems of Invariants</a><a id="Fundamental-Systems-of-Invariants-1"></a><a class="docs-heading-anchor-permalink" href="#Fundamental-Systems-of-Invariants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="fundamental_invariants" href="#fundamental_invariants"><code>fundamental_invariants</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)</code></pre><p>Return a system of fundamental invariants for <code>IR</code>.</p><p>The result is cached, so calling this function again with argument <code>IR</code>  will be fast and give the same result.</p><p><strong>Implemented Algorithms</strong></p><p>In the non-modular case the function relies on King&#39;s algorithm <a href="../../references/#Kin13">Simon King (2013)</a> which finds a system of fundamental invariants directly, without computing primary and secondary invariants. If an upper bound for the degrees of fundamental invariants is known, this can be supplied by the keyword argument <code>beta</code> and might result in an earlier termination of the algorithm. By default, the algorithm uses the bounds from <a href="../../references/#DH00">Mátyás Domokos, Pál Hegedűs (2000)</a> and <a href="../../references/#Sez02">Müfit Sezer (2002)</a>.</p><p>Alternatively, if specified by <code>algo = :primary_and_secondary</code>, the function computes fundamental invariants from a collection of primary and irreducible secondary invariants. The optional keyword argument <code>beta</code> is ignored for this algorithm.</p><p>In the modular case, only the second method is available for theoretical reasons.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;)
+(Cyclotomic field of order 3, a)
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia&gt; G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; fundamental_invariants(IR)
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]^3 + x[2]^3 + x[3]^3
+ x[1]*x[2]*x[3]
+ x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/fundamental_invariants.jl#L149">source</a></section></article><h2 id="Invariant-Rings-as-Affine-Algebras"><a class="docs-heading-anchor" href="#Invariant-Rings-as-Affine-Algebras">Invariant Rings as Affine Algebras</a><a id="Invariant-Rings-as-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Invariant-Rings-as-Affine-Algebras" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="affine_algebra-Tuple{Oscar.InvRing}" href="#affine_algebra-Tuple{Oscar.InvRing}"><code>affine_algebra</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">affine_algebra(IR::InvRing)</code></pre><p>Given an invariant ring <code>IR</code> with underlying graded polynomial ring, say <code>R</code>, return a graded affine algebra, say <code>A</code>, together with a graded algebra homomomorphism <code>A</code> <span>$\rightarrow$</span> <code>R</code> which maps <code>A</code> isomorphically onto <code>IR</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If a system of fundamental invariants for <code>IR</code> is already cached, the function makes use of that system. Otherwise, such a system is computed and cached first. The algebra <code>A</code> is graded according to the degrees of the fundamental invariants, the modulus of <code>A</code> is generated by the algebra relations on these invariants, and the algebra homomomorphism <code>A</code> <span>$\rightarrow$</span> <code>R</code> is defined by sending the <code>i</code>-th generator of <code>A</code> to the <code>i</code>-th fundamental invariant.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = CyclotomicField(3, &quot;a&quot;)
+(Cyclotomic field of order 3, a)
+
+julia&gt; M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia&gt; G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia&gt; IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia&gt; affine_algebra(IR)
+(Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
+  y[1] -&gt; [3]
+  y[2] -&gt; [3]
+  y[3] -&gt; [6]
+  y[4] -&gt; [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
+  y[1] -&gt; [3]
+  y[2] -&gt; [3]
+  y[3] -&gt; [6]
+  y[4] -&gt; [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2)
+Codomain:
+=========
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+  x[1] -&gt; [1]
+  x[2] -&gt; [1]
+  x[3] -&gt; [1])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/4c40ec522ff3cef39d6c4dcc5ce4c6650cc4455b/src/InvariantTheory/invariant_rings.jl#L474">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Wednesday 20 July 2022 23:27">Wednesday 20 July 2022</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

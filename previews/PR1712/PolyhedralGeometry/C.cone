@@ -1,0 +1,1 @@
+{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl",{"major":0,"minor":11,"patch":0,"prerelease":[],"build":[]}]},"id":"1","type":"Cone{fmpq}","data":{"pm_cone":{"id":"2","type":"Polymake.BigObject","data":{"CONE_AMBIENT_DIM":2,"_ns":{"polymake":["https://polymake.org","4.7"]},"INPUT_RAYS":[["1","0"],["0","1"]],"_type":"polytope::Cone<Rational>"}}}}

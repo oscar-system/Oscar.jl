@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Constructions · Oscar.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to Oscar</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../../Hecke/abelian/introduction/">Abelian Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-3-4" type="checkbox"/><label class="tocitem" for="menuitem-3-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-5" type="checkbox"/><label class="tocitem" for="menuitem-3-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-6" type="checkbox"/><label class="tocitem" for="menuitem-3-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-4-7" type="checkbox"/><label class="tocitem" for="menuitem-4-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-5-5" type="checkbox"/><label class="tocitem" for="menuitem-5-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5-6" type="checkbox"/><label class="tocitem" for="menuitem-5-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/basics/">Basics</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/lattices/">Quadratic and hermitian lattices</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-6-2" type="checkbox"/><label class="tocitem" for="menuitem-6-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-3" type="checkbox"/><label class="tocitem" for="menuitem-6-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox" checked/><label class="tocitem" for="menuitem-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox" checked/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li class="is-active"><a class="tocitem" href>Constructions</a><ul class="internal"><li><a class="tocitem" href="#H-and-V-representations"><span><span>$H$</span>- and <span>$V$</span>-representations</span></a></li><li><a class="tocitem" href="#Named-polyhedra"><span>Named polyhedra</span></a></li><li><a class="tocitem" href="#Operations-on-polyhedra"><span>Operations on polyhedra</span></a></li><li><a class="tocitem" href="#Polyhedra-from-other-mathematical-objects"><span>Polyhedra from other mathematical objects</span></a></li></ul></li><li><a class="tocitem" href="../polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../serialization/">Saving and loading</a></li><li><a class="tocitem" href="../visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../cones/">Cones</a></li><li><a class="tocitem" href="../../fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../graphs/">Graphs</a></li><li><a class="tocitem" href="../../linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/rings/">Creating Polynomial Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ideals/">Ideals in Polynomial Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/modules/">Modules Over Polynomial Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/affine_algebras/">Affine Algebras</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/binomial_ideals/">Binomial Primary Decomposition</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/localizations/">Localizations of commutative rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><input class="collapse-toggle" id="menuitem-10-1" type="checkbox"/><label class="tocitem" for="menuitem-10-1"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../ToricVarieties/intro/">Toric geometry in Julia</a></li><li><a class="tocitem" href="../../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Polyhedral Geometry</a></li><li><a class="is-disabled">Polyhedra</a></li><li class="is-active"><a href>Constructions</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Constructions</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/PolyhedralGeometry/Polyhedra/constructions.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Constructions">Constructions</a></li><li class="no-marker"><ul><li><a href="#H-and-V-representations"><span>$H$</span>- and <span>$V$</span>-representations</a></li><li><a href="#Named-polyhedra">Named polyhedra</a></li><li><a href="#Operations-on-polyhedra">Operations on polyhedra</a></li><li><a href="#Polyhedra-from-other-mathematical-objects">Polyhedra from other mathematical objects</a></li></ul></li></ul><h1 id="Constructions"><a class="docs-heading-anchor" href="#Constructions">Constructions</a><a id="Constructions-1"></a><a class="docs-heading-anchor-permalink" href="#Constructions" title="Permalink"></a></h1><p>The standard way to define a polyhedron is by either giving a <span>$V$</span>-representation or an <span>$H$</span>-representation.  But polyhedra may also be constructed through other means: by name, via operations on other polyhedra, or from other objects in Oscar.</p><h2 id="H-and-V-representations"><a class="docs-heading-anchor" href="#H-and-V-representations"><span>$H$</span>- and <span>$V$</span>-representations</a><a id="H-and-V-representations-1"></a><a class="docs-heading-anchor-permalink" href="#H-and-V-representations" title="Permalink"></a></h2><h3 id="Intersecting-halfspaces:-H-representation"><a class="docs-heading-anchor" href="#Intersecting-halfspaces:-H-representation">Intersecting halfspaces: <span>$H$</span>-representation</a><a id="Intersecting-halfspaces:-H-representation-1"></a><a class="docs-heading-anchor-permalink" href="#Intersecting-halfspaces:-H-representation" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="Polyhedron-Tuple{Union{MatElem, AbstractMatrix{T} where T}, Any}" href="#Polyhedron-Tuple{Union{MatElem, AbstractMatrix{T} where T}, Any}"><code>Polyhedron</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)</code></pre><p>The (convex) polyhedron defined by</p><p class="math-container">\[P(A,b) = \{ x |  Ax ≤ b \}.\]</p><p>see Def. 3.35 and Section 4.1. of <a href="../../../references/#JT13">Michael Joswig, Thorsten Theobald (2013)</a></p><p><strong>Examples</strong></p><p>The following lines define the square <span>$[0,1]^2 \subset \mathbb{R}^2$</span>:</p><pre><code class="language-julia-repl hljs">julia&gt; A = [1 0; 0 1; -1 0 ; 0 -1];
+
+julia&gt; b = [1, 1, 0, 0];
+
+julia&gt; Polyhedron(A,b)
+A polyhedron in ambient dimension 2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/constructors.jl#L17">source</a></section></article><h3 id="Computing-convex-hulls:-V-representation"><a class="docs-heading-anchor" href="#Computing-convex-hulls:-V-representation">Computing convex hulls: <span>$V$</span>-representation</a><a id="Computing-convex-hulls:-V-representation-1"></a><a class="docs-heading-anchor-permalink" href="#Computing-convex-hulls:-V-representation" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="convex_hull-Tuple{Union{MatElem, AbstractVecOrMat{T} where T}}" href="#convex_hull-Tuple{Union{MatElem, AbstractVecOrMat{T} where T}}"><code>convex_hull</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">convex_hull(V::Matrix [, R::Matrix [, L::Matrix]]; non_redundant::Bool = false)</code></pre><p>Construct the convex hull of the vertices <code>V</code>, rays <code>R</code>, and lineality <code>L</code>. If <code>R</code> or <code>L</code> are omitted, then they are assumed to be zero.</p><p><strong>Arguments</strong></p><ul><li><code>V::Matrix</code>: Points whose convex hull is to be computed; encoded as row vectors.</li><li><code>R::Matrix</code>: Rays completing the set of points; encoded row-wise as representative vectors.</li><li><code>L::Matrix</code>: Generators of the Lineality space; encoded as row vectors.</li></ul><p><code>R</code> can be given as an empty matrix or as <code>nothing</code> if the user wants to compute the convex hull only from <code>V</code> and <code>L</code>.</p><p>If it is known that <code>V</code> and <code>R</code> only contain extremal points and that the description of the lineality space is complete, set <code>non_redundant = true</code> to avoid unnecessary redundancy checks.</p><p>See Def. 2.11 and Def. 3.1  of <a href="../../../references/#JT13">Michael Joswig, Thorsten Theobald (2013)</a>.</p><p><strong>Examples</strong></p><p>The following lines define the square <span>$[0,1]^2 \subset \mathbb{R}^2$</span>:</p><pre><code class="language-julia-repl hljs">julia&gt; Square = convex_hull([0 0; 0 1; 1 0; 1 1])
+A polyhedron in ambient dimension 2</code></pre><p>To construct the positive orthant, rays have to be passed:</p><pre><code class="language-julia-repl hljs">julia&gt; V = [0 0];
+
+julia&gt; R = [1 0; 0 1];
+
+julia&gt; PO = convex_hull(V, R)
+A polyhedron in ambient dimension 2</code></pre><p>The closed-upper half plane can be constructed by passing rays and a lineality space:</p><pre><code class="language-julia-repl hljs">julia&gt; V = [0 0];
+
+julia&gt; R = [0 1];
+
+julia&gt; L = [1 0];
+
+julia&gt; UH = convex_hull(V, R, L)
+A polyhedron in ambient dimension 2</code></pre><p>To obtain the x-axis in <span>$\mathbb{R}^2$</span>:</p><pre><code class="language-julia-repl hljs">julia&gt; V = [0 0];
+
+julia&gt; R = nothing;
+
+julia&gt; L = [1 0];
+
+julia&gt; XA = convex_hull(V, R, L)
+A polyhedron in ambient dimension 2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/constructors.jl#L65">source</a></section></article><p>This is a standard triangle, defined via a (redundant) <span>$V$</span>-representation  and its unique minimal <span>$H$</span>-representation:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])</code><code class="nohighlight hljs ansi" style="display:block;">A polyhedron in ambient dimension 2</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; halfspace_matrix_pair(facets(T))</code><code class="nohighlight hljs ansi" style="display:block;">(A = [-1 0; 0 -1; 1 1], b = fmpq[0, 0, 1])</code></pre><h2 id="Named-polyhedra"><a class="docs-heading-anchor" href="#Named-polyhedra">Named polyhedra</a><a id="Named-polyhedra-1"></a><a class="docs-heading-anchor-permalink" href="#Named-polyhedra" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="archimedean_solid" href="#archimedean_solid"><code>archimedean_solid</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">archimedean_solid(s)</code></pre><p>Construct an Archimedean solid with the name given by String <code>s</code> from the list below.  The polytopes are realized with floating point numbers and thus not exact; Vertex-facet-incidences are correct in all cases.</p><p><strong>Arguments</strong></p><ul><li><code>s::String</code>: The name of the desired Archimedean solid.   Possible values:<ul><li>&quot;truncated_tetrahedron&quot; : Truncated tetrahedron.     Regular polytope with four triangular and four hexagonal facets.</li><li>&quot;cuboctahedron&quot; : Cuboctahedron.     Regular polytope with eight triangular and six square facets.</li><li>&quot;truncated_cube&quot; : Truncated cube.     Regular polytope with eight triangular and six octagonal facets.</li><li>&quot;truncated_octahedron&quot; : Truncated Octahedron.     Regular polytope with six square and eight hexagonal facets.</li><li>&quot;rhombicuboctahedron&quot; : Rhombicuboctahedron.     Regular polytope with eight triangular and 18 square facets.</li><li>&quot;truncated_cuboctahedron&quot; : Truncated Cuboctahedron.     Regular polytope with 12 square, eight hexagonal and six octagonal     facets.</li><li>&quot;snub_cube&quot; : Snub Cube.     Regular polytope with 32 triangular and six square facets.     The vertices are realized as floating point numbers.     This is a chiral polytope.</li><li>&quot;icosidodecahedron&quot; : Icosidodecahedon.     Regular polytope with 20 triangular and 12 pentagonal facets.</li><li>&quot;truncated_dodecahedron&quot; : Truncated Dodecahedron.     Regular polytope with 20 triangular and 12 decagonal facets.</li><li>&quot;truncated_icosahedron&quot; : Truncated Icosahedron.     Regular polytope with 12 pentagonal and 20 hexagonal facets.</li><li>&quot;rhombicosidodecahedron&quot; : Rhombicosidodecahedron.     Regular polytope with 20 triangular, 30 square and 12 pentagonal     facets.</li><li>&quot;truncated_icosidodecahedron&quot; : Truncated Icosidodecahedron.     Regular polytope with 30 square, 20 hexagonal and 12 decagonal     facets.</li><li>&quot;snub_dodecahedron&quot; : Snub Dodecahedron.     Regular polytope with 80 triangular and 12 pentagonal facets.     The vertices are realized as floating point numbers.     This is a chiral polytope.</li></ul></li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T = archimedean_solid(&quot;cuboctahedron&quot;)
+A polyhedron in ambient dimension 3
+
+julia&gt; sum([nvertices(F) for F in faces(T, 2)] .== 3)
+8
+
+julia&gt; sum([nvertices(F) for F in faces(T, 2)] .== 4)
+6
+
+julia&gt; nfacets(T)
+14</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L643">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="birkhoff" href="#birkhoff"><code>birkhoff</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">birkhoff(n::Integer, even::Bool = false)</code></pre><p>Construct the Birkhoff polytope of dimension <span>$n^2$</span>.</p><p>This is the polytope of <span>$n \times n$</span> stochastic matrices (encoded as row vectors of length <span>$n^2$</span>), i.e., the matrices with non-negative real entries whose row and column entries sum up to one. Its vertices are the permutation matrices.</p><p>Use <code>even = true</code> to get the vertices only for the even permutation matrices.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; b = birkhoff(3)
+A polyhedron in ambient dimension 9
+
+julia&gt; vertices(b)
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 0, 0, 0, 1, 0, 0, 0, 1]
+ [0, 1, 0, 1, 0, 0, 0, 0, 1]
+ [0, 0, 1, 1, 0, 0, 0, 1, 0]
+ [1, 0, 0, 0, 0, 1, 0, 1, 0]
+ [0, 1, 0, 0, 0, 1, 1, 0, 0]
+ [0, 0, 1, 0, 1, 0, 1, 0, 0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L6">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="cross" href="#cross"><code>cross</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">cross(d::Int [,n::Rational])</code></pre><p>Construct a <span>$d$</span>-dimensional cross polytope around origin with vertices located at <span>$\pm e_i$</span> for each unit vector <span>$e_i$</span> of <span>$R^d$</span>, scaled by <span>$n$</span>.</p><p><strong>Examples</strong></p><p>Here we print the facets of a non-scaled and a scaled 3-dimensional cross polytope:</p><pre><code class="language-julia-repl hljs">julia&gt; C = cross(3)
+A polyhedron in ambient dimension 3
+
+julia&gt; facets(C)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: x₁ + x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ + x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ - x₃ ≦ 1
+
+julia&gt; D = cross(3, 2)
+A polyhedron in ambient dimension 3
+
+julia&gt; facets(D)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: x₁ + x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ + x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ - x₃ ≦ 2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L570">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="cube" href="#cube"><code>cube</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">cube(d::Int , [l::Rational = -1, u::Rational = 1])</code></pre><p>Construct the <span>$[l,u]$</span>-cube in dimension <span>$d$</span>.</p><p><strong>Examples</strong></p><p>In this example the 5-dimensional unit cube is constructed to ask for one of its properties:</p><pre><code class="language-julia-repl hljs">julia&gt; C = cube(5,0,1);
+
+julia&gt; normalized_volume(C)
+120</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L181">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="simplex" href="#simplex"><code>simplex</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">simplex(d::Int [,n::Rational])</code></pre><p>Construct the simplex which is the convex hull of the standard basis vectors along with the origin in <span>$\mathbb{R}^d$</span>, scaled by <span>$n$</span>.</p><p><strong>Examples</strong></p><p>Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:</p><pre><code class="language-julia-repl hljs">julia&gt; s = simplex(7)
+A polyhedron in ambient dimension 7
+
+julia&gt; facets(s)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^7 described by
+1: -x₁ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₂ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₄ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₅ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₆ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₇ ≦ 0
+
+ The Halfspace of R^7 described by
+1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
+
+julia&gt; t = simplex(7, 5)
+A polyhedron in ambient dimension 7
+
+julia&gt; facets(t)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^7 described by
+1: -x₁ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₂ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₄ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₅ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₆ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₇ ≦ 0
+
+ The Halfspace of R^7 described by
+1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L497">source</a></section></article><h2 id="Operations-on-polyhedra"><a class="docs-heading-anchor" href="#Operations-on-polyhedra">Operations on polyhedra</a><a id="Operations-on-polyhedra-1"></a><a class="docs-heading-anchor-permalink" href="#Operations-on-polyhedra" title="Permalink"></a></h2><p>Polyhedra can be produced through operations on other polyhedra. For example, they can be added using Minkowski addition or scaled; each of which results in a new polyhedron.</p><article class="docstring"><header><a class="docstring-binding" id="+-Tuple{Polyhedron, Polyhedron}" href="#+-Tuple{Polyhedron, Polyhedron}"><code>+</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">+(P::Polyhedron, Q::Polyhedron)</code></pre><p>Return the Minkowski sum <span>$P + Q = \{ x+y\ |\ x∈P, y∈Q\}$</span> of <code>P</code> and <code>Q</code> (see also <code>minkowski_sum</code>).</p><p><strong>Examples</strong></p><p>The Minkowski sum of a square and the 2-dimensional cross-polytope is an octagon:</p><pre><code class="language-julia-repl hljs">julia&gt; P = cube(2);
+
+julia&gt; Q = cross(2);
+
+julia&gt; M = minkowski_sum(P, Q)
+A polyhedron in ambient dimension 2
+
+julia&gt; nvertices(M)
+8</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L361">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="*-Tuple{Int64, Polyhedron}" href="#*-Tuple{Int64, Polyhedron}"><code>*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">*(k::Int, Q::Polyhedron)</code></pre><p>Return the scaled polyhedron <span>$kQ = \{ kx\ |\ x∈Q\}$</span>.</p><p>Note that <code>k*Q = Q*k</code>.</p><p><strong>Examples</strong></p><p>Scaling an <span>$n$</span>-dimensional bounded polyhedron by the factor <span>$k$</span> results in the volume being scaled by <span>$k^n$</span>. This example confirms the statement for the 6-dimensional cube and <span>$k = 2$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; C = cube(6);
+
+julia&gt; SC = 2*C
+A polyhedron in ambient dimension 6
+
+julia&gt; volume(SC)//volume(C)
+64</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L386">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="*-Tuple{Polyhedron, Polyhedron}" href="#*-Tuple{Polyhedron, Polyhedron}"><code>*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">*(P::Polyhedron, Q::Polyhedron)</code></pre><p>Return the Cartesian product of <code>P</code> and <code>Q</code> (see also <code>product</code>).</p><p><strong>Examples</strong></p><p>The Cartesian product of a triangle and a line segment is a triangular prism.</p><pre><code class="language-julia-repl hljs">julia&gt; T=simplex(2)
+A polyhedron in ambient dimension 2
+
+julia&gt; S=cube(1)
+A polyhedron in ambient dimension 1
+
+julia&gt; length(vertices(T*S))
+6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L313">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="bipyramid" href="#bipyramid"><code>bipyramid</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">bipyramid(P::Polyhedron, z::Number = 1, z_prime::Number = -z)</code></pre><p>Make a bipyramid over a pointed polyhedron <code>P</code>.</p><p>The bipyramid is the convex hull of the input polyhedron <code>P</code> and two apexes (<code>v</code>, <code>z</code>), (<code>v</code>, <code>z_prime</code>) on both sides of the affine span of <code>P</code>. For bounded polyhedra, the projections of the apexes <code>v</code> to the affine span of <code>P</code> is the vertex barycenter of <code>P</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; c = cube(2)
+A polyhedron in ambient dimension 2
+
+julia&gt; vertices(bipyramid(c,2))
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1, 0]
+ [1, -1, 0]
+ [-1, 1, 0]
+ [1, 1, 0]
+ [0, 0, 2]
+ [0, 0, -2]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L69">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="intersect-Tuple{Polyhedron, Polyhedron}" href="#intersect-Tuple{Polyhedron, Polyhedron}"><code>intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">intersect(P::Polyhedron, Q::Polyhedron)</code></pre><p>Return the intersection <span>$P \cap Q$</span> of <code>P</code> and <code>Q</code>.</p><p><strong>Examples</strong></p><p>The positive orthant of the plane is the intersection of the two halfspaces with <span>$x≥0$</span> and <span>$y≥0$</span> respectively.</p><pre><code class="language-julia-repl hljs">julia&gt; UH1 = convex_hull([0 0],[1 0],[0 1]);
+
+julia&gt; UH2 = convex_hull([0 0],[0 1],[1 0]);
+
+julia&gt; PO = intersect(UH1, UH2)
+A polyhedron in ambient dimension 2
+
+julia&gt; rays(PO)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L232">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="pyramid" href="#pyramid"><code>pyramid</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">pyramid(P::Polyhedron, z::Number = 1)</code></pre><p>Make a pyramid over the given polyhedron <code>P</code>.</p><p>The pyramid is the convex hull of the input polyhedron <code>P</code> and a point <code>v</code> outside the affine span of <code>P</code>. For bounded polyhedra, the projection of <code>v</code> to the affine span of <code>P</code> coincides with the vertex barycenter of <code>P</code>. The scalar <code>z</code> is the distance between the vertex barycenter and <code>v</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; c = cube(2)
+A polyhedron in ambient dimension 2
+
+julia&gt; vertices(pyramid(c,5))
+5-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1, 0]
+ [1, -1, 0]
+ [-1, 1, 0]
+ [1, 1, 0]
+ [0, 0, 5]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L36">source</a></section></article><p>The convex hull of two polytopes can be computed via <code>convex_hull</code>.</p><article class="docstring"><header><a class="docstring-binding" id="convex_hull-Tuple{Polyhedron, Polyhedron}" href="#convex_hull-Tuple{Polyhedron, Polyhedron}"><code>convex_hull</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">convex_hull(P::Polyhedron, Q::Polyhedron)</code></pre><p>Return the convex_hull of <code>P</code> and <code>Q</code>.</p><p><strong>Examples</strong></p><p>The convex hull of the following two line segments in <span>$R^3$</span> is a tetrahedron.</p><pre><code class="language-julia-repl hljs">julia&gt; L₁ = convex_hull([-1 0 0; 1 0 0])
+A polyhedron in ambient dimension 3
+
+julia&gt; L₂ = convex_hull([0 -1 0; 0 1 0])
+A polyhedron in ambient dimension 3
+
+julia&gt; T=convex_hull(L₁,L₂);
+
+julia&gt; f_vector(T)
+2-element Vector{Int64}:
+ 4
+ 4</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L333">source</a></section></article><h2 id="Polyhedra-from-other-mathematical-objects"><a class="docs-heading-anchor" href="#Polyhedra-from-other-mathematical-objects">Polyhedra from other mathematical objects</a><a id="Polyhedra-from-other-mathematical-objects-1"></a><a class="docs-heading-anchor-permalink" href="#Polyhedra-from-other-mathematical-objects" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="orbit_polytope" href="#orbit_polytope"><code>orbit_polytope</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">orbit_polytope(V::AbstractVecOrMat, G::PermGroup)</code></pre><p>Construct the convex hull of the orbit of one or several points (given row-wise in <code>V</code>) under the action of <code>G</code>.</p><p><strong>Examples</strong></p><p>This will construct the <span>$3$</span>-dimensional permutahedron:</p><pre><code class="language-julia-repl hljs">julia&gt; V = [1 2 3];
+
+julia&gt; G = symmetric_group(3);
+
+julia&gt; P = orbit_polytope(V, G)
+A polyhedron in ambient dimension 3
+
+julia&gt; vertices(P)
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 2, 3]
+ [1, 3, 2]
+ [2, 1, 3]
+ [2, 3, 1]
+ [3, 1, 2]
+ [3, 2, 1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L142">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="newton_polytope" href="#newton_polytope"><code>newton_polytope</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">newton_polytope(poly::Polynomial)</code></pre><p>Compute the Newton polytope of the multivariate polynomial <code>poly</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y) = PolynomialRing(ZZ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Integer Ring, fmpz_mpoly[x, y])
+
+julia&gt; f = x^3*y + 3x*y^2 + 1
+x^3*y + 3*x*y^2 + 1
+
+julia&gt; NP = newton_polytope(f)
+A polyhedron in ambient dimension 2
+
+julia&gt; vertices(NP)
+3-element VectorIterator{PointVector{Polymake.Rational}}:
+ [3, 1]
+ [1, 2]
+ [0, 0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/b24cec64ed4cc885724202251db56eb7d38bd0cc/src/Polytopes/Polyhedron/standard_constructions.jl#L201-L223">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Friday 12 November 2021 22:10">Friday 12 November 2021</span>. Using Julia version 1.6.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

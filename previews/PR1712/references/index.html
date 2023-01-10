@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>References · Oscar.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Oscar.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../General/serialization/">Serialization</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../PolyhedralGeometry/Polyhedra/serialization/">Saving and loading</a></li><li><a class="tocitem" href="../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../CommutativeAlgebra/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../CommutativeAlgebra/groebner_bases/">Gröbner and Standard Bases Over Fields</a></li><li><a class="tocitem" href="../CommutativeAlgebra/groebner_bases_integers/">Gröbner and Standard Bases Over <span>$\mathbb Z$</span></a></li><li><a class="tocitem" href="../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox"/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Modules Over Multivariate Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotient Modules</a></li><li><a class="tocitem" href="../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li></ul></li><li><a class="tocitem" href="../CommutativeAlgebra/affine_algebras/">Affine Algebras</a></li><li><a class="tocitem" href="../CommutativeAlgebra/binomial_ideals/">Binomial Primary Decomposition</a></li><li><a class="tocitem" href="../CommutativeAlgebra/localizations/">Localization</a></li><li><a class="tocitem" href="../CommutativeAlgebra/module_localizations/">Localizations of modules over computable rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../AlgebraicGeometry/StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../NoncommutativeAlgebra/PBWAlgebras/quotients/">Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li class="is-active"><a class="tocitem" href>References</a></li><li><a class="tocitem" href="../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>References</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>References</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/references.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><style>
+dl {
+display: grid;
+grid-template-columns: max-content auto;
+}
+dt {
+grid-column-start: 1;
+}
+dd {
+grid-column-start: 2;
+margin-bottom: 0.75em;
+}
+</style><dl><dt>cohomCalg:Implementation</dt>
+<dd>
+  <div id="cohomCalg:Implementation">, <a href='https://github.com/BenjaminJurke/cohomCalg'>cohomCalg package</a>, 2010, High-performance line bundle cohomology computation based
+                  on \citeBJRR10.</div>
+</dd><dt>AL94</dt>
+<dd>
+  <div id="AL94">William W. Adams, Philippe Loustaunau, <a href='https://doi.org/10.1090/gsm/003'>An Introduction to Gröbner Bases</a>, American Mathematical Society, 1994.</div>
+</dd><dt>AHK18</dt>
+<dd>
+  <div id="AHK18">Karim Adiprasito, June Huh, Eric Katz, <a href='https://doi.org/10.4007/annals.2018.188.2.1'>Hodge theory for combinatorial geometries</a>, Ann. of Math. (2), 188(2), 381–452, 2018.</div>
+</dd><dt>BES19</dt>
+<dd>
+  <div id="BES19">Spencer Backman, Christopher Eur, Connor Simpson, <a href='https://doi.org/10.48550/ARXIV.1905.07114'>Simplicial generation of Chow rings of matroids</a>, 2019.</div>
+</dd><dt>BN07</dt>
+<dd>
+  <div id="BN07">Matthew Baker, Serguei Norine, <a href='https://doi.org/10.1016/j.aim.2007.04.012'>Riemann-Roch and Abel-Jacobi theory on a finite
+                  graph</a>, Adv. Math., 215(2), 766–788, 2007.</div>
+</dd><dt>BDEPS04</dt>
+<dd>
+  <div id="BDEPS04">Neil Berry, Artūras Dubickas, Noam D. Elkies, Bjorn Poonen, Chris Smyth, <a href='https://doi.org/10.1093/qjmath/55.3.237'>The conjugate dimension of algebraic numbers</a>, Q. J. Math., 55(3), 237–252, 2004.</div>
+</dd><dt>BES-E-D21</dt>
+<dd>
+  <div id="BES-E-D21">Jérémy Berthomieu, Christian Eder, Mohab Safey El Din, <a href='https://doi.org/10.1145/3452143.3465545'>Msolve: A Library for Solving Polynomial Systems</a>,  In Proceedings of the 2021 on International Symposium on
+                  Symbolic and Algebraic Computation, ISSAC '21, 51-–58, New York, NY, USA, 2021. Association for Computing Machinery.</div>
+</dd><dt>Bie18</dt>
+<dd>
+  <div id="Bie18">Martin Bies, <a href='https://doi.org/10.11588/heidok.00024045'>Cohomologies of coherent sheaves and massless spectra in
+                  F-theory</a>, PhD thesis, Heidelberg U., 2018.</div>
+</dd><dt>BJRR10</dt>
+<dd>
+  <div id="BJRR10">Ralph Blumenhagen, Benjamin Jurke, Thorsten Rahn, Helmut Roschy, <a href='https://doi.org/10.1063/1.3501132'>Cohomology of line bundles: A computational algorithm</a>, Journal of Mathematical Physics, 51(10), 103525, 2010.</div>
+</dd><dt>BJRR12</dt>
+<dd>
+  <div id="BJRR12">Ralph Blumenhagen, Benjamin Jurke, Thorsten Rahn, Helmut Roschy, <a href='https://doi.org/10.1063/1.3677646'>Cohomology of line bundles: Applications</a>, Journal of Mathematical Physics, 53(1), 012302, 2012.</div>
+</dd><dt>BHMPW20</dt>
+<dd>
+  <div id="BHMPW20">Tom Braden, June Huh, Jacob P. Matherne, Nicholas Proudfoot, Botong Wang, <a href='https://doi.org/10.48550/ARXIV.2002.03341'>A semi-small decomposition of the Chow ring of a matroid</a>, 2020.</div>
+</dd><dt>BH09</dt>
+<dd>
+  <div id="BH09">Winfried Bruns, Jürgen Herzog, Cohen-Macaulay rings, Cambridge University Press, Cambridge, 2009.</div>
+</dd><dt>BGV03</dt>
+<dd>
+  <div id="BGV03">José Bueso, José Gómez-Torrecillas, Alain Verschoren, Algorithmic methods in non-commutative algebra.
+                  Applications to quantum groups., Dordrecht: Kluwer Academic Publishers, 2003.</div>
+</dd><dt>Bhm99</dt>
+<dd>
+  <div id="Bhm99">Janko Böhm, Parametrisierung rationaler Kurven, Master's thesis, Universität Bayreuth, 1999.</div>
+</dd><dt>BDLP17</dt>
+<dd>
+  <div id="BDLP17">Janko Böhm, Wolfram Decker, Santiago Laplagne, Gerhard Pfister, <a href='https://doi.org/10.1007/978-3-319-70566-8_3'>Local to global algorithms for the Gorenstein adjoint
+                  ideal of a curve</a>, In Algorithmic and experimental methods in algebra, geometry,
+                  and number theory, editors, 51–96. Springer, Cham, 2017.</div>
+</dd><dt>BDLP19</dt>
+<dd>
+  <div id="BDLP19">Janko Böhm, Wolfram Decker, Santiago Laplagne, Gerhard Pfister, <a href='https://hal.inria.fr/hal-02912148'>Computing integral bases via localization and Hensel
+                  lifting</a>,  In MEGA 2019 - International Conference on Effective Methods
+                  in Algebraic Geometry, Madrid, Spain, 2019.</div>
+</dd><dt>BDLPSS13</dt>
+<dd>
+  <div id="BDLPSS13">Janko Böhm, Wolfram Decker, Santiago Laplagne, Gerhard Pfister, Andreas Steenpaß, Stefan Steidel, <a href='https://doi.org/10.1016/j.jsc.2012.07.002'>Parallel algorithms for normalization</a>, Journal of Symbolic Computation, 51, 99-114, 2013.</div>
+</dd><dt>BKR20</dt>
+<dd>
+  <div id="BKR20">Janko Böhm, Simon Keicher, Yue Ren, <a href='https://doi.org/10.1090/mcom/3546'>Computing GIT-fans with symmetry and the Mori chamber
+                  decomposition of {$\overlineM_{0,6}$}</a>, Math. Comp., 89(326), 3003–3021, 2020.</div>
+</dd><dt>Cam99</dt>
+<dd>
+  <div id="Cam99">Peter J. Cameron, <a href='https://doi.org/10.1017/CBO9780511623677'>Permutation groups</a>, Cambridge University Press, Cambridge, 1999.</div>
+</dd><dt>OMdCS00</dt>
+<dd>
+  <div id="OMdCS00">Ignacio Ojeda Martínez de Castilla, Ramón Peidra Sánchez, <a href='https://doi.org/10.1006/jsco.1999.0413'>Cellular binomial ideals. Primary decomposition of
+                  binomial ideals</a>, J. Symbolic Comput., 30(4), 383–400, 2000.</div>
+</dd><dt>Chr91</dt>
+<dd>
+  <div id="Chr91">Jan Arthur Christophersen, <a href='https://doi.org/10.1007/BFb0086376'>On the components and discriminant of the versal base
+                  space of cyclic quotient singularities</a>, In Singularity theory and its applications, Part I
+                  (Coventry, 1988/1989), editors, 81–92. Springer, Berlin, 1991.</div>
+</dd><dt>CLS20</dt>
+<dd>
+  <div id="CLS20">Jose Luis Cisneros Molina, Le Dung Trang, Jose Seade, <a href='https://doi.org/10.1007/978-3-030-53061-7'>Handbook of Geometry and Topology of Singularities I</a>, Springer-Verlag, Cham, 2020.</div>
+</dd><dt>CLS21</dt>
+<dd>
+  <div id="CLS21">Jose Luis Cisneros Molina, Le Dung Trang, Jose Seade, <a href='https://doi.org/10.1007/978-3-030-78024-1'>Handbook of Geometry and Topology of Singularities II</a>, Springer-Verlag, Cham, 2021.</div>
+</dd><dt>Coh93</dt>
+<dd>
+  <div id="Coh93">Henri Cohen, <a href='https://doi.org/10.1007/978-3-662-02945-9'>A course in computational algebraic number theory</a>, Springer-Verlag, Berlin, 1993.</div>
+</dd><dt>Coh00</dt>
+<dd>
+  <div id="Coh00">Henri Cohen, <a href='https://doi.org/10.1007/978-1-4419-8489-0'>Advanced topics in computational number theory</a>, Springer-Verlag, New York, 2000.</div>
+</dd><dt>CCNPW85</dt>
+<dd>
+  <div id="CCNPW85">J. H. Conway, R. T. Curtis, S. P. Norton, R. A. Parker, R. A. Wilson, Atlas of finite groups, Oxford University Press, Eynsham, 1985.</div>
+</dd><dt>ConwaySloane99</dt>
+<dd>
+  <div id="ConwaySloane99">J. H. Conway, N. J. A. Sloane, <a href='https://doi.org/10.1007/978-1-4757-6568-7'>Sphere packings, lattices and groups</a>, Springer-Verlag, New York, 1999.</div>
+</dd><dt>CHM98</dt>
+<dd>
+  <div id="CHM98">John H. Conway, Alexander Hulpke, John McKay, <a href='https://doi.org/10.1112/S1461157000000115'>On transitive permutation groups</a>, LMS J. Comput. Math., 1, 1–8, 1998.</div>
+</dd><dt>CLS11</dt>
+<dd>
+  <div id="CLS11">David A. Cox, John B. Little, Henry K. Schenck, <a href='https://doi.org/10.1090/gsm/124'>Toric varieties</a>, Providence, RI: American Mathematical Society (AMS), 2011.</div>
+</dd><dt>DF20</dt>
+<dd>
+  <div id="DF20">G. De Franceschi, <a href='https://doi.org/10.48550/ARXIV.2008.12651'>Centralizers and conjugacy classes in finite classical
+                  groups</a>, 2020.</div>
+</dd><dt>DLRS10</dt>
+<dd>
+  <div id="DLRS10">Jesús A. De Loera, Jörg Rambau, Francisco Santos, <a href='https://doi.org/10.1007/978-3-642-12971-1'>Triangulations. Structures for algorithms and
+                  applications</a>, Springer-Verlag, Berlin, 2010.</div>
+</dd><dt>DGP99</dt>
+<dd>
+  <div id="DGP99">Wolfram Decker, Gert-Martin Greuel, Gerhard Pfister, <a href='https://doi.org/10.1007/978-3-642-59932-3'>Primary decomposition: algorithms and comparisons</a>, In Algorithmic algebra and number theory. Selected papers
+                  from a conference, Heidelberg, Germany, October 1997, editors, 187–220. Springer, Berlin, 1999.</div>
+</dd><dt>DHS98</dt>
+<dd>
+  <div id="DHS98">Wolfram Decker, Agnes Eileen Heydtmann, Frank-Olaf Schreyer, <a href='https://doi.org/10.1006/jsco.1997.0196'>Generating a Noetherian normalization of the invariant
+                  ring of a finite group</a>, J. Symbolic Comput., 25(6), 727–731, 1998.</div>
+</dd><dt>DJ98</dt>
+<dd>
+  <div id="DJ98">Wolfram Decker, Theo de Jong, <a href='https://doi.org/10.1017/CBO9780511565847.005'>Gröbner bases and invariant theory</a>, In Gröbner bases and applications. Based on a course for
+                  young researchers, January 1998, and the conference "33
+                  years of Gröbner bases", Linz, Austria, February 2–4,
+                  1998, editors, 61–89. Cambridge Univ. Press, Cambridge, 1998.</div>
+</dd><dt>DL06</dt>
+<dd>
+  <div id="DL06">Wolfram Decker, Christoph Lossen, <a href='https://doi.org/10.1007/3-540-28993-3'>Computing in algebraic geometry. A quick start using
+                  SINGULAR</a>, Springer-Verlag, Berlin; Hindustan Book Agency, New
+                  Delhi, 2006.</div>
+</dd><dt>DP13</dt>
+<dd>
+  <div id="DP13">Wolfram Decker, Gerhard Pfister, <a href='https://doi.org/10.1017/CBO9781139565769'>A first course in computational algebraic geometry</a>, Cambridge University Press, Cambridge, 2013.</div>
+</dd><dt>Der99</dt>
+<dd>
+  <div id="Der99">Harm Derksen, <a href='https://doi.org/10.1006/aima.1998.1787'>Computation of invariants for reductive groups</a>, Adv. Math., 141(2), 366–384, 1999.</div>
+</dd><dt>DK15</dt>
+<dd>
+  <div id="DK15">Harm Derksen, Gregor Kemper, <a href='https://doi.org/10.1007/978-3-662-48422-7'>Computational invariant theory. With two appendices by
+                  Vladimir L. Popov, and an addendum by Norbert A'Campo and
+                  Popov, 2nd enlarged edition, Invariant Theory and Algebraic
+                  Transformation Groups, VIII</a>, Springer, Heidelberg, 2015.</div>
+</dd><dt>DFO13</dt>
+<dd>
+  <div id="DFO13">A. S. Detinko, D. L. Flannery, E. A. O'Brien, <a href='https://doi.org/10.1016/j.jsc.2012.04.002'>Recognizing finite matrix groups over infinite fields</a>, J. Symbolic Comput., 50, 100–109, 2013.</div>
+</dd><dt>DH00</dt>
+<dd>
+  <div id="DH00">Mátyás Domokos, Pál Hegedűs, <a href='https://doi.org/10.1007/s000130050426'>Noether's bound for polynomial invariants of finite
+                  groups</a>, Arch. Math. (Basel), 74(3), 161–167, 2000.</div>
+</dd><dt>EHV92</dt>
+<dd>
+  <div id="EHV92">David Eisenbud, Craig Huneke, Wolmer Vasconcelos, <a href='https://doi.org/10.1007/BF01231331'>Direct methods for primary decomposition</a>, Invent. Math., 110(2), 207–235, 1992.</div>
+</dd><dt>ES96</dt>
+<dd>
+  <div id="ES96">David Eisenbud, Bernd Sturmfels, <a href='https://doi.org/10.1215/S0012-7094-96-08401-X'>Binomial ideals</a>, Duke Math. J., 84(1), 1–45, 1996.</div>
+</dd><dt>EM16</dt>
+<dd>
+  <div id="EM16">Zekiye Sahin Eser, Laura Felicia Matusevich, <a href='https://doi.org/10.1112/jlms/jdw012'>Decompositions of cellular binomial ideals</a>, J. Lond. Math. Soc. (2), 94(2), 409–426, 2016.</div>
+</dd><dt>EM19</dt>
+<dd>
+  <div id="EM19">Zekiye Sahin Eser, Laura Felicia Matusevich, <a href='https://doi.org/10.1112/jlms.12232'>Corrigendum: Decompositions of cellular binomial ideals:
+                  (J. Lond. Math. Soc. 94 (2016) 409–426)</a>, J. Lond. Math. Soc. (2), 100(2), 717–719, 2019.</div>
+</dd><dt>FJR17</dt>
+<dd>
+  <div id="FJR17">Huijun Fan, Tyler Jarvis, Yongbin Ruan, <a href='https://doi.org/10.2140/gt.2018.22.235'>A mathematical theory of the gauged linear sigma model</a>, Geometry & Topology, 22(1), 235–303, 2017.</div>
+</dd><dt>Fau99</dt>
+<dd>
+  <div id="Fau99">Jean-Charles Faugère, <a href='https://doi.org/10.1016/S0022-4049(99)00005-5'>A new efficient algorithm for computing Gröbner bases
+                  (F4)</a>, Journal of Pure and Applied Algebra, 139(1–3), 61–88, 1999.</div>
+</dd><dt>Ful69</dt>
+<dd>
+  <div id="Ful69">William Fulton, Algebraic curves. An introduction to algebraic geometry, W. A. Benjamin, Inc., New York-Amsterdam, 1969.</div>
+</dd><dt>Gat18</dt>
+<dd>
+  <div id="Gat18">Andreas Gathmann, <a href='https://www.mathematik.uni-kl.de/~gathmann/en/curves.php'>Class notes „Plane Algebraic Curves” (SS 2018)</a>, 2018.</div>
+</dd><dt>GHJ16</dt>
+<dd>
+  <div id="GHJ16">Ewgenij Gawrilow, Simon Hampe, Michael Joswig, The polymake XML File Format,  In Mathematical Software – ICMS 2016, 403–410, Cham, 2016. Springer International Publishing.</div>
+</dd><dt>GJ00</dt>
+<dd>
+  <div id="GJ00">Ewgenij Gawrilow, Michael Joswig, <a href='https://doi.org/10.1007/978-3-0348-8438-9_2'>polymake: a Framework for Analyzing Convex Polytopes</a>, In Polytopes — Combinatorics and Computation, editors, Gil Kalai, Günter M. Ziegler, 43–74. Birkhäuser, 2000.</div>
+</dd><dt>GTZ88</dt>
+<dd>
+  <div id="GTZ88">Patrizia Gianni, Barry Trager, Gail Zacharias, <a href='https://doi.org/10.1016/S0747-7171(88)80040-3'>Gröbner bases and primary decomposition of polynomial
+                  ideals</a>, In Computational aspects of commutative algebra, editors, 149–167. Elsevier Ltd, Oxford, 1988.</div>
+</dd><dt>GLS07</dt>
+<dd>
+  <div id="GLS07">G.-M. Greuel, C. Lossen, E. Shustin, <a href='https://doi.org/10.1007/3-540-28419-2'>Introduction to Singularities and Deformations</a>, Springer-Verlag, Berlin, 2007.</div>
+</dd><dt>GLS10</dt>
+<dd>
+  <div id="GLS10">Gert-Martin Greuel, Santiago Laplagne, Frank Seelisch, <a href='https://doi.org/10.1016/j.jsc.2010.04.002'>Normalization of rings</a>, J. Symbolic Comput., 45(9), 887–901, 2010.</div>
+</dd><dt>GP08</dt>
+<dd>
+  <div id="GP08">Gert-Martin Greuel, Gerhard Pfister, <a href='https://doi.org/10.1007/978-3-540-73542-7'>A Singular introduction to commutative algebra. With
+                  contributions by Olaf Bachmann, Christoph Lossen and Hans
+                  Schönemann. 2nd extended ed.</a>, Springer, Berlin, 2008.</div>
+</dd><dt>Har77</dt>
+<dd>
+  <div id="Har77">Robin Hartshorne, <a href='https://doi.org/10.1007/978-1-4757-3849-0'>Algebraic Geometry</a>, Springer-Verlag, New York, 1977.</div>
+</dd><dt>HEO05</dt>
+<dd>
+  <div id="HEO05">Derek F. Holt, Bettina Eick, Eamonn A. O'Brien, <a href='https://doi.org/10.1201/9781420035216'>Handbook of computational group theory</a>, Chapman & Hall/CRC, Boca Raton, FL, 2005.</div>
+</dd><dt>HP89</dt>
+<dd>
+  <div id="HP89">Derek F. Holt, W. Plesken, Perfect groups, The Clarendon Press, Oxford University Press, New York, 1989.</div>
+</dd><dt>Hup67</dt>
+<dd>
+  <div id="Hup67">B. Huppert, <a href='https://doi.org/10.1007/978-3-642-64981-3'>Endliche Gruppen. I</a>, Springer-Verlag, Berlin-New York, 1967.</div>
+</dd><dt>JLPW95</dt>
+<dd>
+  <div id="JLPW95">C. Jansen, K. Lux, R. Parker, R. Wilson, An atlas of Brauer characters, The Clarendon Press Oxford University Press, New York, 1995.</div>
+</dd><dt>dJP00</dt>
+<dd>
+  <div id="dJP00">Theo de Jong, Gerhard Pfister, <a href='https://doi.org/10.1007/978-3-322-90159-0'>Local Analytic Geometry</a>, Vieweg+Teubner Verlag, Wiesbaden, 2000.</div>
+</dd><dt>JP00</dt>
+<dd>
+  <div id="JP00">Theo de Jong, Gerhard Pfister, <a href='https://doi.org/10.1007/978-3-322-90159-0'>Local Analytic Geometry</a>, Vieweg+Teubner Verlag, 2000.</div>
+</dd><dt>Jos21</dt>
+<dd>
+  <div id="Jos21">Michael Joswig, Essentials of tropical combinatorics, American Mathematical Society, Providence, RI, 2021.</div>
+</dd><dt>JT13</dt>
+<dd>
+  <div id="JT13">Michael Joswig, Thorsten Theobald, <a href='https://doi.org/10.1007/978-1-4471-4817-3'>Polyhedral and algebraic methods in computational
+                  geometry</a>, Springer, London, 2013.</div>
+</dd><dt>Jow11</dt>
+<dd>
+  <div id="Jow11">Shin-Yao Jow, <a href='https://doi.org/10.1063/1.3562523'>Cohomology of toric line bundles via simplicial Alexander
+                  duality</a>, Journal of Mathematical Physics, 52(3), 033506, 2011.</div>
+</dd><dt>Kah10</dt>
+<dd>
+  <div id="Kah10">Thomas Kahle, <a href='https://doi.org/10.1007/s10463-010-0290-9'>Decompositions of binomial ideals</a>, Ann. Inst. Statist. Math., 62(4), 727–745, 2010.</div>
+</dd><dt>KLT20</dt>
+<dd>
+  <div id="KLT20">Marek Kaluba, Benjamin Lorenz, Sascha Timme, <a href='https://doi.org/10.1007/978-3-030-52200-1_37'>Polymake.jl: A New Interface to polymake</a>,  In Mathematical Software – ICMS 2020, 377–385, Cham, 2020. Springer International Publishing.</div>
+</dd><dt>Kem99</dt>
+<dd>
+  <div id="Kem99">Gregor Kemper, <a href='https://doi.org/10.1006/jsco.1998.0247'>An algorithm to calculate optimal homogeneous systems of
+                  parameters</a>, J. Symbolic Comput., 27(2), 171–184, 1999.</div>
+</dd><dt>Kem02</dt>
+<dd>
+  <div id="Kem02">Gregor Kemper, <a href='https://doi.org/10.1006/jsco.2002.0560'>The calculation of radical ideals in positive
+                  characteristic</a>, J. Symbolic Comput., 34(3), 229–238, 2002.</div>
+</dd><dt>KS99</dt>
+<dd>
+  <div id="KS99">Gregor Kemper, Allan Steel, Some algorithms in invariant theory of finite groups, In Computational methods for representations of groups and
+                  algebras (Essen, 1997), editors, 267–285. Birkhäuser, Basel, 1999.</div>
+</dd><dt>Kin07</dt>
+<dd>
+  <div id="Kin07">Simon King, <a href='https://doi.org/10.48550/arXiv.math/0701270'>Fast computation of secondary invariants</a>, arXiv:math/0701270, 2007.</div>
+</dd><dt>Kin13</dt>
+<dd>
+  <div id="Kin13">Simon King, <a href='https://doi.org/10.1016/j.jsc.2012.05.002'>Minimal generating sets of non-modular invariant rings of
+                  finite groups</a>, J. Symb. Comput., 48, 101–109, 2013.</div>
+</dd><dt>Knu11</dt>
+<dd>
+  <div id="Knu11">Donald E. Knuth, The art of computer programming. Vol. 4A.
+                  Combinatorial algorithms. Part 1, Addison-Wesley, Upper Saddle River, NJ, 2011.</div>
+</dd><dt>Koz08</dt>
+<dd>
+  <div id="Koz08">Dmitry Kozlov, <a href='https://doi.org/10.1007/978-3-540-71962-5'>Combinatorial algebraic topology</a>, Springer, Berlin, 2008.</div>
+</dd><dt>KR05</dt>
+<dd>
+  <div id="KR05">Martin Kreuzer, Lorenzo Robbiano, Computational commutative algebra. II, Berlin: Springer, 2005.</div>
+</dd><dt>KL91</dt>
+<dd>
+  <div id="KL91">Teresa Krick, Alessandro Logar, <a href='https://doi.org/10.1007/3-540-54522-0_108'>An algorithm for the computation of the radical of an
+                  ideal in the ring of polynomials</a>, In Applied algebra, algebraic algorithms and error-correcting
+                  codes (New Orleans, LA, 1991), editors, 195–205. Springer, Berlin, 1991.</div>
+</dd><dt>Lev05</dt>
+<dd>
+  <div id="Lev05">Viktor Levandovskyy, <a href='http://nbn-resolving.de/urn:nbn:de:hbz:386-kluedo-18830'>Non-commutative Computer Algebra for polynomial algebras:
+                  Gr{\"o}bner bases, applications and implementation</a>, PhD thesis, Technische Universit{\"a}t Kaiserslautern, 2005.</div>
+</dd><dt>LS03</dt>
+<dd>
+  <div id="LS03">Viktor Levandovskyy, Hans Schönemann, Plural – a computer algebra system for noncommutative
+                  polynomial algebras, In Proceedings of the 2003 international symposium on
+                  symbolic and algebraic computation, ISSAC 2003,
+                  Philadelphia, PA, USA, August 3–6, 2003., editors, 176–183. New York, NY: ACM Press, 2003.</div>
+</dd><dt>LN97</dt>
+<dd>
+  <div id="LN97">Rudolf Lidl, Harald Niederreiter, Finite fields, Cambridge University Press, Cambridge, 1997.</div>
+</dd><dt>Loo84</dt>
+<dd>
+  <div id="Loo84">Eduard Looijenga, Isolated Singular Points on Complete Intersections, Cambridge University Press, Cambridge, 1984.</div>
+</dd><dt>Mar18</dt>
+<dd>
+  <div id="Mar18">Daniel A. Marcus, <a href='https://doi.org/10.1007/978-3-319-90233-3'>Number fields</a>, Springer, Cham, 2018.</div>
+</dd><dt>MS05</dt>
+<dd>
+  <div id="MS05">Ezra Miller, Bernd Sturmfels, <a href='https://doi.org/10.1007/b138602'>Combinatorial commutative algebra</a>, New York, NY: Springer, 2005.</div>
+</dd><dt>Nikulin79</dt>
+<dd>
+  <div id="Nikulin79">V. V. Nikulin, Integer symmetric bilinear forms and some of their geometric
+              applications, Izv. Akad. Nauk SSSR Ser. Mat., 43(1), 111–177, 238, 1979.</div>
+</dd><dt>Oxl11</dt>
+<dd>
+  <div id="Oxl11">James Oxley, <a href='https://doi.org/10.1093/acprof:oso/9780198566946.001.0001'>Matroid theory</a>, Oxford University Press, Oxford, 2011.</div>
+</dd><dt>PSS11</dt>
+<dd>
+  <div id="PSS11">Gerhard Pfister, Afshan Sadiq, Stefan Steidel, <a href='https://doi.org/10.2478/s11533-011-0037-8'>An algorithm for primary decomposition in polynomial rings
+                  over the integers</a>, Cent. Eur. J. Math., 9(4), 897–904, 2011.</div>
+</dd><dt>PZ97</dt>
+<dd>
+  <div id="PZ97">M. Pohst, H. Zassenhaus, Algorithmic algebraic number theory, Cambridge University Press, Cambridge, 1997.</div>
+</dd><dt>Pos18</dt>
+<dd>
+  <div id="Pos18">Sebastian Posur, <a href='https://doi.org/10.1007/s00013-018-1183-z'>Linear systems over localizations of rings</a>, Archiv der Mathematik, 111, 23–32, 2018.</div>
+</dd><dt>RR10</dt>
+<dd>
+  <div id="RR10">Helmut Roschy, Thorsten Rahn, <a href='https://doi.org/10.1063/1.3501135'>Cohomology of line bundles: Proof of the algorithm</a>, Journal of Mathematical Physics, 51(10), 103520, 2010.</div>
+</dd><dt>Sez02</dt>
+<dd>
+  <div id="Sez02">Müfit Sezer, <a href='https://doi.org/10.1016/S0021-8693(02)00018-2'>Sharpening the generalized Noether bound in the
+                  invariant theory of finite groups</a>, J. Algebra, 254(2), 252–263, 2002.</div>
+</dd><dt>Shi18</dt>
+<dd>
+  <div id="Shi18">Ichiro Shimada, <a href='https://doi.org/10.1307/mmj/1528941621'>{Connected Components of the Moduli of Elliptic $K3$
+                  Surfaces}</a>, Michigan Mathematical Journal, 67(3), 511 – 559, 2018.</div>
+</dd><dt>SY96</dt>
+<dd>
+  <div id="SY96">Takeshi Shimoyama, Kazuhiro Yokoyama, <a href='https://doi.org/10.1006/jsco.1996.0052'>Localization and primary decomposition of polynomial
+                  ideals</a>, J. Symbolic Comput., 22(3), 247–277, 1996.</div>
+</dd><dt>Ste91</dt>
+<dd>
+  <div id="Ste91">Jan Stevens, <a href='https://doi.org/10.1007/BFb0086390'>On the versal deformation of cyclic quotient
+                  singularities</a>, In Singularity theory and its applications, Part I
+                  (Coventry, 1988/1989), editors, 302–319. Springer, Berlin, 1991.</div>
+</dd><dt>Stu93</dt>
+<dd>
+  <div id="Stu93">Bernd Sturmfels, <a href='https://doi.org/10.1007/978-3-7091-4368-1'>Algorithms in invariant theory</a>, Springer-Verlag, Vienna, 1993.</div>
+</dd><dt>Sym11</dt>
+<dd>
+  <div id="Sym11">Peter Symonds, <a href='https://doi.org/10.4007/annals.2011.174.1.14'>On the Castelnuovo-Mumford regularity of rings of
+                  polynomial invariants</a>, Ann. of Math. (2), 174(1), 499–517, 2011.</div>
+</dd><dt>Tay87</dt>
+<dd>
+  <div id="Tay87">D. E. Taylor, <a href='https://arxiv.org/abs/2201.09155'>Pairs of Generators for Matrix Groups. I</a>, The Cayley Bulletin, 3, 76–85, 1987.</div>
+</dd><dt>Was08</dt>
+<dd>
+  <div id="Was08">Lawrence C. Washington, <a href='https://doi.org/10.1201/9781420071474'>Elliptic curves</a>, Chapman & Hall/CRC, Boca Raton, FL, 2008.</div>
+</dd><dt>Wil13</dt>
+<dd>
+  <div id="Wil13">James B. Wilson, <a href='https://doi.org/10.1016/j.laa.2013.02.026'>Optimal algorithms of Gram-Schmidt type</a>, Linear Algebra Appl., 438(12), 4573–4583, 2013.</div>
+</dd><dt>WWTSPNNLBA</dt>
+<dd>
+  <div id="WWTSPNNLBA">R. A. Wilson, P. Walsh, J. Tripp, I. Suleiman, R. A. Parker, S. P. Norton, S. Nickerson, S. Linton, J. Bray, R. Abbott, <a href='http://atlas.math.rwth-aachen.de/Atlas/v3'>ATLAS of Finite Group Representations</a>, </div>
+</dd><dt>Wit88</dt>
+<dd>
+  <div id="Wit88">Edward Witten, <a href='https://doi.org/10.1007/BF01466725'>Topological Sigma Models</a>, Commun. Math. Phys., 118, 411, 1988.</div>
+</dd><dt>Zie95</dt>
+<dd>
+  <div id="Zie95">Günter M. Ziegler, <a href='https://doi.org/10.1007/978-1-4613-8431-1'>Lectures on polytopes</a>, Springer-Verlag, New York, 1995.</div>
+</dd><dt>Eis95</dt>
+<dd>
+  <div id="Eis95">David Eisenbud, {Commutative algebra. With a view toward algebraic
+                  geometry}, Berlin: Springer-Verlag, 1995.</div>
+</dd><dt>MS15</dt>
+<dd>
+  <div id="MS15">Diane Maclagan, Bernd Sturmfels, {Introduction to tropical geometry}, Providence, RI: American Mathematical Society (AMS), 2015.</div>
+</dd>
+</dl></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../StraightLinePrograms/abstractalgebra/">« AbstractAlgebra&#39;s polynomial interface</a><a class="docs-footer-nextpage" href="../manualindex/">Index »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Friday 11 November 2022 13:38">Friday 11 November 2022</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

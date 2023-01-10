@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Creating Multivariate Rings · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox" checked/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li class="is-active"><a class="tocitem" href>Creating Multivariate Rings</a><ul class="internal"><li><a class="tocitem" href="#Types"><span>Types</span></a></li><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Coefficient-Rings"><span>Coefficient Rings</span></a></li><li><a class="tocitem" href="#Gradings"><span>Gradings</span></a></li><li><a class="tocitem" href="#Tests-on-Graded-Rings"><span>Tests on Graded Rings</span></a></li><li><a class="tocitem" href="#Data-Associated-to-Multivariate-Rings"><span>Data Associated to Multivariate Rings</span></a></li><li><a class="tocitem" href="#Elements-of-Multivariate-Rings"><span>Elements of Multivariate Rings</span></a></li><li><a class="tocitem" href="#Homomorphisms-From-Multivariate-Rings"><span>Homomorphisms From Multivariate Rings</span></a></li></ul></li><li><a class="tocitem" href="../orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li><li><a class="tocitem" href="../ideals/">Ideals in Multivariate Rings</a></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox"/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Modules Over Multivariate Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/subquotients/">Subquotient Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/homological_algebra/">Homological Algebra</a></li></ul></li><li><a class="tocitem" href="../affine_algebras/">Affine Algebras</a></li><li><a class="tocitem" href="../binomial_ideals/">Binomial Primary Decomposition</a></li><li><a class="tocitem" href="../localizations/">Localization</a></li><li><a class="tocitem" href="../module_localizations/">Localizations of modules over computable rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Surfaces/K3Surfaces/">Algebraic Surfaces</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Commutative Algebra</a></li><li class="is-active"><a href>Creating Multivariate Rings</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Creating Multivariate Rings</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/CommutativeAlgebra/rings.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Creating-Multivariate-Rings">Creating Multivariate Rings</a></li><li class="no-marker"><ul><li><a href="#Types">Types</a></li><li><a href="#Constructors">Constructors</a></li><li><a href="#Coefficient-Rings">Coefficient Rings</a></li><li><a href="#Gradings">Gradings</a></li><li><a href="#Tests-on-Graded-Rings">Tests on Graded Rings</a></li><li><a href="#Data-Associated-to-Multivariate-Rings">Data Associated to Multivariate Rings</a></li><li><a href="#Elements-of-Multivariate-Rings">Elements of Multivariate Rings</a></li><li><a href="#Homomorphisms-From-Multivariate-Rings">Homomorphisms From Multivariate Rings</a></li></ul></li></ul><h1 id="Creating-Multivariate-Rings"><a class="docs-heading-anchor" href="#Creating-Multivariate-Rings">Creating Multivariate Rings</a><a id="Creating-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Multivariate-Rings" title="Permalink"></a></h1><p>In this section, we illustrate by examples how to create multivariate polynomial rings and their elements, while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial rings with (multi)gradings. For more details on multivariate polynomial rings, their coefficient rings (fields), and their elements, we refer to the chapters on rings and fields. </p><h2 id="Types"><a class="docs-heading-anchor" href="#Types">Types</a><a id="Types-1"></a><a class="docs-heading-anchor-permalink" href="#Types" title="Permalink"></a></h2><p>OSCAR provides types for dense univariate and sparse multivariate polynomials. The univariate ring types belong to the abstract type <code>PolyRing{T}</code>, their elements have abstract type <code>PolyRingElem{T}</code>. The multivariate ring types belong to the abstract type <code>MPolyRing{T}</code>, their elements have abstract type <code>MPolyRingElem{T}</code>. Here, <code>T</code> is the element type of the coefficient ring of the polynomial ring.</p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><p>The basic constructor below allows one to build multivariate polynomial rings:</p><pre><code class="language- hljs">PolynomialRing(C::Ring, V::Vector{String}; ordering=:lex, cached = true)</code></pre><p>Its return value is a tuple, say <code>R, vars</code>, consisting of a polynomial ring <code>R</code> with coefficient ring <code>C</code> and a vector <code>vars</code> of generators (variables) which print according to the strings in the vector <code>V</code> . The input <code>ordering=:lex</code> refers to the lexicograpical monomial ordering which specifies the default way of storing and displaying polynomials in OSCAR  (terms are sorted in descending order). The other possible choices are <code>:deglex</code> and <code>:degrevlex</code>. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  <span>$\mathbb{Z}$</span> in the variables x, y, z with <code>ordering=:lex</code>.</p></div></div><h6 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(ZZ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Integer Ring, fmpz_mpoly[x, y, z])
+
+julia&gt; typeof(R)
+FmpzMPolyRing
+
+julia&gt; typeof(x)
+fmpz_mpoly
+
+julia&gt; S, (x, y, z) = PolynomialRing(ZZ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Integer Ring, fmpz_mpoly[x, y, z])
+
+julia&gt; R === S
+true
+</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R1, x = PolynomialRing(QQ, [&quot;x&quot;])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia&gt; typeof(x)
+Vector{fmpq_mpoly} (alias for Array{fmpq_mpoly, 1})
+
+julia&gt; R2, (x,) = PolynomialRing(QQ, [&quot;x&quot;])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia&gt; typeof(x)
+fmpq_mpoly
+
+julia&gt; R3, x = PolynomialRing(QQ, &quot;x&quot;)
+(Univariate Polynomial Ring in x over Rational Field, x)
+
+julia&gt; typeof(x)
+fmpq_poly
+</code></pre><pre><code class="language-julia-repl hljs">julia&gt; T, x = PolynomialRing(GF(3), [&quot;x[1]&quot;, &quot;x[2]&quot;]);
+
+julia&gt; x
+2-element Vector{gfp_mpoly}:
+ x[1]
+ x[2]
+</code></pre><p>The constructor illustrated below allows for the convenient handling of variables with multi-indices:</p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y, z = PolynomialRing(QQ, &quot;x&quot; =&gt; (1:3, 1:4), &quot;y&quot; =&gt; 1:2, &quot;z&quot; =&gt; (1:1, 1:1, 1:1));
+
+julia&gt; x
+3×4 Matrix{fmpq_mpoly}:
+ x[1, 1]  x[1, 2]  x[1, 3]  x[1, 4]
+ x[2, 1]  x[2, 2]  x[2, 3]  x[2, 4]
+ x[3, 1]  x[3, 2]  x[3, 3]  x[3, 4]
+
+julia&gt; y
+2-element Vector{fmpq_mpoly}:
+ y[1]
+ y[2]
+
+julia&gt; z
+1×1×1 Array{fmpq_mpoly, 3}:
+[:, :, 1] =
+ z[1, 1, 1]
+</code></pre><h2 id="Coefficient-Rings"><a class="docs-heading-anchor" href="#Coefficient-Rings">Coefficient Rings</a><a id="Coefficient-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Coefficient-Rings" title="Permalink"></a></h2><p>Gröbner and standard bases are implemented for multivariate polynomial rings over the fields and rings below:</p><h6 id="The-field-of-rational-numbers-\\mathbb{Q}"><a class="docs-heading-anchor" href="#The-field-of-rational-numbers-\\mathbb{Q}">The field of rational numbers <span>$\mathbb{Q}$</span></a><a id="The-field-of-rational-numbers-\\mathbb{Q}-1"></a><a class="docs-heading-anchor-permalink" href="#The-field-of-rational-numbers-\\mathbb{Q}" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; QQ
+Rational Field
+</code></pre><h6 id="Finite-fields-\\mathbb{F_p},-p-a-prime"><a class="docs-heading-anchor" href="#Finite-fields-\\mathbb{F_p},-p-a-prime">Finite fields <span>$\mathbb{F_p}$</span>, <span>$p$</span> a prime</a><a id="Finite-fields-\\mathbb{F_p},-p-a-prime-1"></a><a class="docs-heading-anchor-permalink" href="#Finite-fields-\\mathbb{F_p},-p-a-prime" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; GF(3)
+Galois field with characteristic 3
+
+julia&gt; GF(ZZ(2)^127 - 1)
+Galois field with characteristic 170141183460469231731687303715884105727
+</code></pre><h6 id="Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime"><a class="docs-heading-anchor" href="#Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime">Finite fields <span>$\mathbb{F}_{p^n}$</span> with <span>$p^n$</span> elements, <span>$p$</span> a prime</a><a id="Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime-1"></a><a class="docs-heading-anchor-permalink" href="#Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; FiniteField(2, 70, &quot;a&quot;)
+(Finite field of degree 70 over F_2, a)
+</code></pre><h6 id="Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p"><a class="docs-heading-anchor" href="#Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p">Simple algebraic extensions of <span>$\mathbb{Q}$</span> or <span>$\mathbb{F}_p$</span></a><a id="Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;)
+(Univariate Polynomial Ring in t over Rational Field, t)
+
+julia&gt; K, a = NumberField(t^2 + 1, &quot;a&quot;)
+(Number field over Rational Field with defining polynomial t^2 + 1, a)
+
+julia&gt; F = GF(3)
+Galois field with characteristic 3
+
+julia&gt; T, t = PolynomialRing(F, &quot;t&quot;)
+(Univariate Polynomial Ring in t over Galois field with characteristic 3, t)
+
+julia&gt; K, a = FiniteField(t^2 + 1, &quot;a&quot;)
+(Finite field of degree 2 over F_3, a)
+</code></pre><h6 id="Purely-transcendental-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p"><a class="docs-heading-anchor" href="#Purely-transcendental-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p">Purely transcendental extensions of <span>$\mathbb{Q}$</span> or <span>$\mathbb{F}_p$</span></a><a id="Purely-transcendental-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p-1"></a><a class="docs-heading-anchor-permalink" href="#Purely-transcendental-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;)
+(Univariate Polynomial Ring in t over Rational Field, t)
+
+julia&gt; QT = FractionField(T)
+Fraction field of Univariate Polynomial Ring in t over Rational Field
+
+julia&gt; parent(t)
+Univariate Polynomial Ring in t over Rational Field
+
+julia&gt; parent(1//t)
+Fraction field of Univariate Polynomial Ring in t over Rational Field
+
+julia&gt; T, (s, t) = PolynomialRing(GF(3), [&quot;s&quot;, &quot;t&quot;]);
+
+julia&gt; QT = FractionField(T)
+Fraction field of Multivariate Polynomial Ring in s, t over Galois field with characteristic 3
+</code></pre><h6 id="The-ring-of-integers-\\mathbb{Z}"><a class="docs-heading-anchor" href="#The-ring-of-integers-\\mathbb{Z}">The ring of integers <span>$\mathbb{Z}$</span></a><a id="The-ring-of-integers-\\mathbb{Z}-1"></a><a class="docs-heading-anchor-permalink" href="#The-ring-of-integers-\\mathbb{Z}" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; ZZ
+Integer Ring
+</code></pre><h2 id="Gradings"><a class="docs-heading-anchor" href="#Gradings">Gradings</a><a id="Gradings-1"></a><a class="docs-heading-anchor-permalink" href="#Gradings" title="Permalink"></a></h2><p>Given a polynomial ring <span>$R = C[x_1, \dots, x_n]$</span>, we may endow <span>$R$</span> with various gradings. The <em>standard <span>$\mathbb Z$</span>-grading</em>  on <span>$R$</span> is the decomposition <span>$R=\bigoplus_{d\in \mathbb Z} R_d=\bigoplus_{d\geq 0} R_d$</span> by the usual degree of polynomials. More general <span>$\mathbb Z$</span>-gradings are obtained by assigning integer weights to the variables and considering the corresponding weighted degrees. Even more generally, we may consider multigradings: Given a finitely generated abelian group <span>$G$</span>, a <em>multigrading</em> on <span>$R$</span> by <span>$G$</span>, or a <em><span>$G$</span>-grading</em>, or simply a <em>grading</em>, corresponds to a semigroup homomorphism <span>$\phi: \mathbb N^n \rightarrow G$</span>: Given <span>$\phi$</span>, the <em>degree</em> of a monomial <span>$x^\alpha$</span> is the image <span>$\deg(x^\alpha):=\phi(\alpha)\in G$</span>; the induced <span>$G$</span>-grading on <span>$R$</span> is the decomposition <span>$R = \bigoplus_{g\in G} R_g$</span> satisfying <span>$R_g\cdot R_h\subset R_{g+h}$</span>, where <span>$R_g$</span> is the free <span>$C$</span>-module generated by the monomials of degree <span>$g$</span>. This grading is determined by assigning the <em>weights</em> <span>$\deg(x_i)$</span> to the <span>$x_i$</span>. In other words, it is determined by  the <em>weight vector</em> <span>$W = (\deg(x_1), \dots, \deg(x_n))\in G^n.$</span> </p><p>We refer to the textbooks <a href="../../references/#MS05">Ezra Miller, Bernd Sturmfels (2005)</a> and <a href="../../references/#KR05">Martin Kreuzer, Lorenzo Robbiano (2005)</a> for details on multigradings. With respect to notation, we follow the former book.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Given a <span>$G$</span>-grading on <span>$R$</span>, we refer to <span>$G$</span> as the <em>grading group</em> of <span>$R$</span>. Moreover, we then say that <span>$R$</span> is <em><span>$G$</span>-graded</em>, or simply that <span>$R$</span> is <em>graded</em>. If <span>$R$</span> is a polynomial ring over a field, we say that a <span>$G$</span>-grading on <span>$R$</span> is <em>positive</em> if <span>$G$</span> is free and each graded part <span>$R_g$</span>, <span>$g\in G$</span>, has finite dimension. We then also say that <span>$R$</span> is <em>positively graded (by <span>$G$</span>)</em>. Note that the positivity condition can be equivalently expressed by asking that <span>$G$</span> is free and that the degree zero part consists of the constants only (see Theorem 8.6 in <a href="../../references/#MS05">Ezra Miller, Bernd Sturmfels (2005)</a>).</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Given a  <code>G</code>-grading on <code>R</code> in OSCAR, we say that <code>R</code> is <em><span>$\mathbb Z^m$</span>-graded</em> if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == m</code> evaluates to <code>true</code>. In this case, conversion routines allow one to switch back and forth between elements of <code>G</code> and integer vectors of length <code>m</code>. Specifically, if <code>R</code> is <em><span>$\mathbb Z$</span>-graded</em>, that is, <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == 1</code> evaluates to <code>true</code>,  elements of <code>G</code> may be converted to integers and vice versa.</p></div></div><h3 id="Types-2"><a class="docs-heading-anchor" href="#Types-2">Types</a><a class="docs-heading-anchor-permalink" href="#Types-2" title="Permalink"></a></h3><p>Multivariate rings with gradings are modelled by objects of type <code>MPolyRing_dec{T, S}  :&lt; MPolyRing{T}</code>, with elements of type <code>MPolyRingElem_dec{T, S}  :&lt; MPolyRingElem{T}</code>. Here, <code>S</code> is the element type of the multivariate ring, and  <code>T</code> is the element type of its coefficient ring as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The types <code>MPolyRing_dec{T, S}</code> and <code>MPolyRingElem_dec{T, S}</code> are also meant to eventually model multivariate rings with filtrations and their elements.</p></div></div><p>The following function allows one to distinguish between graded and filtered rings:</p><article class="docstring"><header><a class="docstring-binding" id="is_graded-Tuple{MPolyRing_dec}" href="#is_graded-Tuple{MPolyRing_dec}"><code>is_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_graded(R::MPolyRing_dec)</code></pre><p>Return <code>true</code> if <code>R</code> is graded, <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L50">source</a></section></article><h3 id="Constructors-for-Graded-Rings"><a class="docs-heading-anchor" href="#Constructors-for-Graded-Rings">Constructors for Graded Rings</a><a id="Constructors-for-Graded-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors-for-Graded-Rings" title="Permalink"></a></h3><p>There are two basic ways of creating multivariate rings with gradings: While the <code>grade</code> function allows one to assign a grading to a polynomial ring already constructed, the <code>GradedPolynomialRing</code> function is meant to create a graded polynomial ring all at once.</p><article class="docstring"><header><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{GrpAbFinGenElem}}" href="#grade-Tuple{MPolyRing, Vector{GrpAbFinGenElem}}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> elements of a group <code>G</code> of type <code>GrpAbFinGen</code>,   define a  <code>G</code>-grading on <code>R</code> by assigning weights to the variables according to the entries of <code>W</code>. Return the graded ring as an object of type <code>MPolyRing_dec</code>, together with the vector of variables.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (t, x, y) = PolynomialRing(QQ, [&quot;t&quot;, &quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in t, x, y over Rational Field, fmpq_mpoly[t, x, y])
+
+julia&gt; typeof(R)
+FmpqMPolyRing
+
+julia&gt;  typeof(x)
+fmpq_mpoly
+
+julia&gt; G = abelian_group([0])
+GrpAb: Z
+
+julia&gt; g = gen(G, 1)
+Element of
+GrpAb: Z
+with components [1]
+
+julia&gt; S, (t, x, y) = grade(R, [-g, g, g])
+(Multivariate Polynomial Ring in t, x, y over Rational Field graded by
+  t -&gt; [-1]
+  x -&gt; [1]
+  y -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[t, x, y])
+
+julia&gt; typeof(S)
+MPolyRing_dec{fmpq, FmpqMPolyRing}
+
+julia&gt; S isa MPolyRing
+true
+
+julia&gt; typeof(x)
+MPolyElem_dec{fmpq, fmpq_mpoly}
+
+julia&gt; R, x, y = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3)
+(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field, fmpq_mpoly[x[1], x[2]], fmpq_mpoly[y[1], y[2], y[3]])
+
+julia&gt; G = abelian_group([0, 0])
+GrpAb: Z^2
+
+julia&gt; g = gens(G)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
+
+julia&gt; W = [g[1], g[1], g[2], g[2], g[2]];
+
+julia&gt; S, _ = grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  y[1] -&gt; [0 1]
+  y[2] -&gt; [0 1]
+  y[3] -&gt; [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], y[1], y[2], y[3]])
+
+julia&gt; typeof(x[1])
+fmpq_mpoly
+
+julia&gt; x = map(S, x)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x[1]
+ x[2]
+
+julia&gt; y = map(S, y)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ y[1]
+ y[2]
+ y[3]
+
+julia&gt; typeof(x[1])
+MPolyElem_dec{fmpq, fmpq_mpoly}
+
+julia&gt; R, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:5)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; G = abelian_group([0, 0, 2, 2])
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+
+julia&gt; g = gens(G)
+4-element Vector{GrpAbFinGenElem}:
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 0 0 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 1 0 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 0 1 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 0 0 1]
+
+julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+
+julia&gt; S, x = grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
+  x[1] -&gt; [1 0 1 1]
+  x[2] -&gt; [0 1 0 1]
+  x[3] -&gt; [1 0 1 0]
+  x[4] -&gt; [0 1 0 0]
+  x[5] -&gt; [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L451">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:(Vector{var&quot;#s261&quot;} where var&quot;#s261&quot;&lt;:Union{Integer, fmpz})}" href="#grade-Tuple{MPolyRing, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:(Vector{var&quot;#s261&quot;} where var&quot;#s261&quot;&lt;:Union{Integer, fmpz})}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::Vector{&lt;:Vector{&lt;:IntegerUnion}})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> integer vectors of the same size <code>m</code>, say, define a <span>$\mathbb Z^m$</span>-grading on <code>R</code>  by creating a free abelian group of type <code>GrpAbFinGen</code> given by <code>m</code> free generators, converting the vectors in <code>W</code> to elements of that group, and assigning these elements as weights to the variables. Return the graded ring as an object of type <code>MPolyRing_dec</code>, together with the vector of variables.</p><pre><code class="nohighlight hljs">grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{&lt;:IntegerUnion}})</code></pre><p>As above, converting the columns of <code>W</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3)
+(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field, fmpq_mpoly[x[1], x[2]], fmpq_mpoly[y[1], y[2], y[3]])
+
+julia&gt; W = [1 1 0 0 0; 0 0 1 1 1]
+2×5 Matrix{Int64}:
+ 1  1  0  0  0
+ 0  0  1  1  1
+
+julia&gt; grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  y[1] -&gt; [0 1]
+  y[2] -&gt; [0 1]
+  y[3] -&gt; [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], y[1], y[2], y[3]])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L135">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:Union{Integer, fmpz}}" href="#grade-Tuple{MPolyRing, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:Union{Integer, fmpz}}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::Vector{&lt;:IntegerUnion})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> integers, define a <span>$\mathbb Z$</span>-grading on <code>R</code> by creating  a free abelian group of type <code>GrpAbFinGen</code> given by one free generator, converting the entries  of <code>W</code> to elements of that group, and assigning these elements as weights  to the variables. Return the graded ring as an object of type <code>MPolyRing_dec</code>,  together with the vector of variables.</p><pre><code class="nohighlight hljs">grade(R::MPolyRing)</code></pre><p>As above, where the grading is the standard <span>$\mathbb Z$</span>-grading on <code>R</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; W = [1, 2, 3];
+
+julia&gt; S, (x, y, z) = grade(R, W)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; T, (x, y, z) = grade(R)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L88">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="GradedPolynomialRing-Tuple{AbstractAlgebra.Ring, Vector{String}, Any}" href="#GradedPolynomialRing-Tuple{AbstractAlgebra.Ring, Vector{String}, Any}"><code>GradedPolynomialRing</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)</code></pre><p>Create a multivariate polynomial ring with coefficient ring <code>C</code> and variables which print according to the strings in <code>V</code>, and grade this ring according to the data provided by <code>W</code> (see the documentation of the <code>grade</code>-function for what is possible). Return the graded ring as an object of type <code>MPolyRing_dec</code>, together  with the vector of variables.</p><pre><code class="nohighlight hljs">GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)</code></pre><p>As above, where the grading is the standard <span>$\mathbb Z$</span>-grading. </p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
+4-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+ [1, 0]
+ [4, 1]
+
+julia&gt; R, x = GradedPolynomialRing(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;, &quot;x[4]&quot;], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [0 1]
+  x[3] -&gt; [1 0]
+  x[4] -&gt; [4 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4]])
+
+julia&gt; S, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; T, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L379">source</a></section></article><h2 id="Tests-on-Graded-Rings"><a class="docs-heading-anchor" href="#Tests-on-Graded-Rings">Tests on Graded Rings</a><a id="Tests-on-Graded-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Graded-Rings" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="is_standard_graded-Tuple{MPolyRing_dec}" href="#is_standard_graded-Tuple{MPolyRing_dec}"><code>is_standard_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_standard_graded(R::MPolyRing_dec)</code></pre><p>Return <code>true</code> if <code>R</code> is standard <span>$\mathbb Z$</span>-graded, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; W = [1, 2, 3];
+
+julia&gt; S, (x, y, z) = grade(R, W)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; is_standard_graded(S)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L188">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_z_graded-Tuple{MPolyRing_dec}" href="#is_z_graded-Tuple{MPolyRing_dec}"><code>is_z_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_z_graded(R::MPolyRing_dec)</code></pre><p>Return <code>true</code> if <code>R</code> is <span>$\mathbb Z$</span>-graded, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Writing <code>G = grading_group(R)</code>, we say that <code>R</code> is <span>$\mathbb Z$</span>-graded if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == 1</code> evaluates to <code>true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; W = [1, 2, 3];
+
+julia&gt; S, (x, y, z) = grade(R, W)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; is_z_graded(S)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L222">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_zm_graded-Tuple{MPolyRing_dec}" href="#is_zm_graded-Tuple{MPolyRing_dec}"><code>is_zm_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_zm_graded(R::MPolyRing_dec)</code></pre><p>Return <code>true</code> if <code>R</code> is <span>$\mathbb Z^m$</span>-graded for some <span>$m$</span>, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Writing <code>G = grading_group(R)</code>, we say that <code>R</code> is <span>$\mathbb Z^m$</span>-graded if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == m</code> evaluates to <code>true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:5)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; G = abelian_group([0, 0, 2, 2])
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+
+julia&gt; g = gens(G);
+
+julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+
+julia&gt; S, x = grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
+  x[1] -&gt; [1 0 1 1]
+  x[2] -&gt; [0 1 0 1]
+  x[3] -&gt; [1 0 1 0]
+  x[4] -&gt; [0 1 0 0]
+  x[5] -&gt; [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; is_zm_graded(S)
+false
+
+julia&gt; G = abelian_group(fmpz_mat([1 -1]));
+
+julia&gt; g = gen(G, 1)
+Element of
+(General) abelian group with relation matrix
+[1 -1]
+with components [0 1]
+
+julia&gt; W = [g, g, g, g];
+
+julia&gt; R, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], W);
+
+julia&gt; is_free(G)
+true
+
+julia&gt; is_zm_graded(R)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L253">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_positively_graded-Tuple{MPolyRing_dec}" href="#is_positively_graded-Tuple{MPolyRing_dec}"><code>is_positively_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_positively_graded(R::MPolyRing_dec)</code></pre><p>Return <code>true</code> if <code>R</code> is positively graded, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>We say that <code>R</code> is <em>positively graded</em> by a finitely generated abelian group <span>$G$</span> if the coefficient ring of <code>R</code> is a field,  <span>$G$</span> is free, and each graded part <span>$R_g$</span>, <span>$g\in G$</span>, has finite dimension.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (t, x, y) = PolynomialRing(QQ, [&quot;t&quot;, &quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in t, x, y over Rational Field, fmpq_mpoly[t, x, y])
+
+julia&gt; G = abelian_group([0])
+GrpAb: Z
+
+julia&gt; S, (t, x, y) = grade(R, [-1, 1, 1])
+(Multivariate Polynomial Ring in t, x, y over Rational Field graded by
+  t -&gt; [-1]
+  x -&gt; [1]
+  y -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[t, x, y])
+
+julia&gt; is_positively_graded(S)
+false
+
+julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; G = abelian_group([0, 2])
+(General) abelian group with relation matrix
+[0 0; 0 2]
+
+julia&gt; W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 0]
+
+julia&gt; S, (x, y) = grade(R, W)
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -&gt; [1 1]
+  y -&gt; [1 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia&gt; is_positively_graded(S)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L310">source</a></section></article><h2 id="Data-Associated-to-Multivariate-Rings"><a class="docs-heading-anchor" href="#Data-Associated-to-Multivariate-Rings">Data Associated to Multivariate Rings</a><a id="Data-Associated-to-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Multivariate-Rings" title="Permalink"></a></h2><p>Given  a multivariate polynomial ring <code>R</code> with coefficient ring <code>C</code>, </p><ul><li><code>coefficient_ring(R)</code> refers to <code>C</code>,</li><li><code>gens(R)</code> to the generators (variables) of <code>R</code>,</li><li><code>ngens(R)</code> to the number of these generators, and</li><li><code>gen(R, i)</code> as well as <code>R[i]</code> to the <code>i</code>-th such generator.</li></ul><h6 id="Examples-2"><a class="docs-heading-anchor" href="#Examples-2">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-2" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; coefficient_ring(R)
+Rational Field
+
+julia&gt; gens(R)
+3-element Vector{fmpq_mpoly}:
+ x
+ y
+ z
+
+julia&gt; gen(R, 2)
+y
+
+julia&gt; R[3]
+z 
+
+julia&gt; ngens(R)
+3
+</code></pre><p>In the graded case, we additionally have:</p><article class="docstring"><header><a class="docstring-binding" id="grading_group-Tuple{MPolyRing_dec}" href="#grading_group-Tuple{MPolyRing_dec}"><code>grading_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grading_group(R::MPolyRing_dec)</code></pre><p>If <code>R</code> is, say, <code>G</code>-graded, return <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; grading_group(R)
+GrpAb: Z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L31">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyRing_dec, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyRing_dec, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem)</code></pre><p>Given a polynomial ring <code>R</code> over a field which is graded by a free group of type <code>GrpAbFinGen</code>, and given an element <code>g</code> of that group, return the homogeneous component of <code>R</code> of degree <code>g</code>. Additionally, return the embedding of the component into <code>R</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(R::MPolyRing_dec, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded polynomial ring <code>R</code> over a field, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the homogeneous component of <code>R</code> whose degree  is that element. Additionally, return the embedding of the component into <code>R</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(R::MPolyRing_dec, g::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded polynomial ring <code>R</code> over a field, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>R</code>,  and return the homogeneous component of <code>R</code> whose degree is that element. Additionally, return the embedding of the component into <code>R</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3);
+
+julia&gt; W = [1 1 0 0 0; 0 0 1 1 1]
+2×5 Matrix{Int64}:
+ 1  1  0  0  0
+ 0  0  1  1  1
+
+julia&gt; S, _ = grade(R, W);
+
+julia&gt; G = grading_group(S)
+GrpAb: Z^2
+
+julia&gt; L = homogeneous_component(S, [1, 1]);
+
+julia&gt; L[1]
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  y[1] -&gt; [0 1]
+  y[2] -&gt; [0 1]
+  y[3] -&gt; [0 1] of degree graded by [1 1]
+
+julia&gt; FG = gens(L[1]);
+
+julia&gt; EMB = L[2]
+Map from
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  y[1] -&gt; [0 1]
+  y[2] -&gt; [0 1]
+  y[3] -&gt; [0 1] of degree graded by [1 1]
+ to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [1 0]
+  y[1] -&gt; [0 1]
+  y[2] -&gt; [0 1]
+  y[3] -&gt; [0 1] defined by a julia-function with inverse
+
+julia&gt; for i in 1:length(FG) println(EMB(FG[i])) end
+x[2]*y[3]
+x[2]*y[2]
+x[2]*y[1]
+x[1]*y[3]
+x[1]*y[2]
+x[1]*y[1]
+
+julia&gt; T, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; G = grading_group(T)
+GrpAb: Z
+
+julia&gt; L = homogeneous_component(T, 2)
+(homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] of degree graded by [2]
+, Map from
+homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] of degree graded by [2]
+ to Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1] defined by a julia-function with inverse)
+
+julia&gt; FG = gens(L[1]);
+
+julia&gt; EMB = L[2];
+
+julia&gt; for i in 1:length(FG) println(EMB(FG[i])) end
+z^2
+y*z
+y^2
+x*z
+x*y
+x^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L1242">source</a></section></article><h2 id="Elements-of-Multivariate-Rings"><a class="docs-heading-anchor" href="#Elements-of-Multivariate-Rings">Elements of Multivariate Rings</a><a id="Elements-of-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Elements-of-Multivariate-Rings" title="Permalink"></a></h2><h3 id="Constructors-2"><a class="docs-heading-anchor" href="#Constructors-2">Constructors</a><a class="docs-heading-anchor-permalink" href="#Constructors-2" title="Permalink"></a></h3><p>One way to create elements of a multivariate  polynomial ring is to build up polynomials from the generators (variables) of the ring using basic arithmetic as shown below:</p><h6 id="Examples-3"><a class="docs-heading-anchor" href="#Examples-3">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-3" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; f = 3*x^2+y*z
+3*x^2 + y*z
+
+julia&gt; typeof(f)
+fmpq_mpoly
+
+julia&gt; S, (x, y, z) = grade(R)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; g = 3*x^2+y*z
+3*x^2 + y*z
+
+julia&gt; typeof(g)
+MPolyElem_dec{fmpq, fmpq_mpoly}
+
+julia&gt; g == S(f)
+true
+</code></pre><p>Alternatively, there is the following constructor:</p><pre><code class="language- hljs">(R::MPolyRing{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T &lt;: RingElem</code></pre><p>Its return value is the element of  <code>R</code>  whose nonzero coefficients are specified by the elements of <code>c</code>, with exponent vectors given by the elements of <code>e</code>.</p><h6 id="Examples-4"><a class="docs-heading-anchor" href="#Examples-4">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-4" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; f = 3*x^2+y*z
+3*x^2 + y*z
+
+julia&gt; g = R(QQ.([3, 1]), [[2, 0, 0], [0, 1, 1]])
+3*x^2 + y*z
+
+julia&gt; f == g
+true
+</code></pre><p>An often more effective way to create polynomials is to use the <code>MPoly</code> build context as indicated below:</p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; B = MPolyBuildCtx(R)
+Builder for an element of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia&gt; for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
+
+julia&gt; finish(B)
+5*x^5*y^4 + 4*x^4*y^3 + 3*x^3*y^2 + 2*x^2*y + x
+</code></pre><h3 id="Special-Elements"><a class="docs-heading-anchor" href="#Special-Elements">Special Elements</a><a id="Special-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#Special-Elements" title="Permalink"></a></h3><p>Given a multivariate polynomial ring <code>R</code>, <code>zero(R)</code> and <code>one(R)</code> refer to the additive and multiplicative identity of <code>R</code>, respectively. Relevant test calls on an element <code>f</code> of <code>R</code> are  <code>iszero(f)</code> and <code>isone(f)</code>.</p><h3 id="Data-Associated-to-Elements-of-Multivariate-Rings"><a class="docs-heading-anchor" href="#Data-Associated-to-Elements-of-Multivariate-Rings">Data Associated to Elements of Multivariate Rings</a><a id="Data-Associated-to-Elements-of-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Elements-of-Multivariate-Rings" title="Permalink"></a></h3><p>Given an element <code>f</code> of a multivariate polynomial ring <code>R</code> or a graded version of such a ring, </p><ul><li><code>parent(f)</code> refers to <code>R</code>,</li><li><code>total_degree(f)</code> to the total degree of <code>f</code>,</li><li><code>monomial(f, i)</code> to the <code>i</code>-th monomial of <code>f</code>, </li><li><code>term(f, i)</code> to the <code>i</code>-th term of <code>f</code>,</li><li><code>coeff(f, i)</code> to the coefficient of the <code>i</code>-th term of <code>f</code>, and</li><li><code>exponent_vector(f, i)</code> to the exponent vector of the <code>i</code>-th term of <code>f</code>.</li></ul><h6 id="Examples-5"><a class="docs-heading-anchor" href="#Examples-5">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-5" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(GF(5), [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 5, gfp_mpoly[x, y])
+
+julia&gt; c = map(GF(5), [1, 2, 3])
+3-element Vector{gfp_elem}:
+ 1
+ 2
+ 3
+
+julia&gt; e = [[3, 2], [1, 0], [0, 1]]
+3-element Vector{Vector{Int64}}:
+ [3, 2]
+ [1, 0]
+ [0, 1]
+
+julia&gt; f = R(c, e)
+x^3*y^2 + 2*x + 3*y
+
+julia&gt; parent(f)
+Multivariate Polynomial Ring in x, y over Galois field with characteristic 5
+
+julia&gt; total_degree(f)
+5
+
+julia&gt; coeff(f, 2)
+2
+
+julia&gt; exponent_vector(f, 2)
+2-element Vector{Int64}:
+ 1
+ 0
+
+julia&gt; monomial(f, 2)
+x
+
+julia&gt; term(f, 2)
+2*x
+</code></pre><p>Further functionality is available in the graded case:</p><article class="docstring"><header><a class="docstring-binding" id="homogeneous_components-Union{Tuple{MPolyElem_dec{T, S}}, Tuple{S}, Tuple{T}} where {T, S}" href="#homogeneous_components-Union{Tuple{MPolyElem_dec{T, S}}, Tuple{S}, Tuple{T}} where {T, S}"><code>homogeneous_components</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_components(f::MPolyElem_dec{T, S}) where {T, S}</code></pre><p>Given an element <code>f</code> of a graded multivariate ring, return the homogeneous components of <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; f = x^2+y+z
+x^2 + y + z
+
+julia&gt; homogeneous_components(f)
+Dict{GrpAbFinGenElem, MPolyElem_dec{fmpq, fmpq_mpoly}} with 2 entries:
+  [2] =&gt; x^2 + y
+  [3] =&gt; z
+
+julia&gt; R, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:5)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; G = abelian_group([0, 0, 2, 2])
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+
+julia&gt; g = gens(G);
+
+julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+
+julia&gt; S, x = grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
+  x[1] -&gt; [1 0 1 1]
+  x[2] -&gt; [0 1 0 1]
+  x[3] -&gt; [1 0 1 0]
+  x[4] -&gt; [0 1 0 0]
+  x[5] -&gt; [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; f = x[1]^2+x[3]^2+x[5]^2
+x[1]^2 + x[3]^2 + x[5]^2
+
+julia&gt; homogeneous_components(f)
+Dict{GrpAbFinGenElem, MPolyElem_dec{fmpq, fmpq_mpoly}} with 2 entries:
+  [2 2 0 0] =&gt; x[5]^2
+  [2 0 0 0] =&gt; x[1]^2 + x[3]^2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L1025">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyElem_dec, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyElem_dec, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(f::MPolyElem_dec, g::GrpAbFinGenElem)</code></pre><p>Given an element <code>f</code> of a graded multivariate ring, and given an element  <code>g</code> of the grading group of that ring, return the homogeneous component of <code>f</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyElem_dec, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z^m$</span>-graded multivariate ring <code>R</code>, say, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyElem_dec, g::IntegerUnion)</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z$</span>-graded multivariate ring <code>R</code>, say, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the  homogeneous component of <code>f</code> whose degree is that element.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:5)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; G = abelian_group([0, 0, 2, 2])
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+
+julia&gt; g = gens(G);
+
+julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+
+julia&gt; S, x = grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
+  x[1] -&gt; [1 0 1 1]
+  x[2] -&gt; [0 1 0 1]
+  x[3] -&gt; [1 0 1 0]
+  x[4] -&gt; [0 1 0 0]
+  x[5] -&gt; [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; f = x[1]^2+x[3]^2+x[5]^2
+x[1]^2 + x[3]^2 + x[5]^2
+
+julia&gt; homogeneous_component(f, 2*g[1])
+x[1]^2 + x[3]^2
+
+julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
+4-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+ [1, 0]
+ [4, 1]
+
+julia&gt; R, x = GradedPolynomialRing(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;, &quot;x[4]&quot;], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [0 1]
+  x[3] -&gt; [1 0]
+  x[4] -&gt; [4 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4]])
+
+julia&gt; f = x[1]^2*x[2]+x[4]
+x[1]^2*x[2] + x[4]
+
+julia&gt; homogeneous_component(f, [2, 1])
+x[1]^2*x[2]
+
+julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; f = x^2+y+z
+x^2 + y + z
+
+julia&gt; homogeneous_component(f, 1)
+0
+
+julia&gt; homogeneous_component(f, 2)
+x^2 + y
+
+julia&gt; homogeneous_component(f, 3)
+z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L1113">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_homogeneous-Tuple{MPolyElem_dec}" href="#is_homogeneous-Tuple{MPolyElem_dec}"><code>is_homogeneous</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_homogeneous(f::MPolyElem_dec)</code></pre><p>Given an element <code>f</code> of a graded multivariate ring, return <code>true</code> if <code>f</code> is homogeneous, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; f = x^2+y*z
+x^2 + y*z
+
+julia&gt; is_homogeneous(f)
+false
+
+julia&gt; W = [1 2 1 0; 3 4 0 1]
+2×4 Matrix{Int64}:
+ 1  2  1  0
+ 3  4  0  1
+
+julia&gt; S, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], W)
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -&gt; [1 3]
+  x -&gt; [2 4]
+  y -&gt; [1 0]
+  z -&gt; [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[w, x, y, z])
+
+julia&gt; F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+
+julia&gt; is_homogeneous(F)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L970">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{MPolyElem_dec}" href="#degree-Tuple{MPolyElem_dec}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(f::MPolyElem_dec)</code></pre><p>Given a homogeneous element <code>f</code> of a graded multivariate ring, return the degree of <code>f</code>.</p><pre><code class="nohighlight hljs">degree(::Type{Vector{Int}}, f::MPolyElem_dec)</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z^m$</span>-graded multivariate ring, return the degree of <code>f</code>, converted to a vector of integer numbers.</p><pre><code class="nohighlight hljs">degree(::Type{Int}, f::MPolyElem_dec)</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z$</span>-graded multivariate ring, return the degree of <code>f</code>, converted to an integer number.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = PolynomialRing(QQ, &quot;x&quot; =&gt; 1:5)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; G = abelian_group([0, 0, 2, 2])
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+
+julia&gt; g = gens(G);
+
+julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+
+julia&gt; S, x = grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
+  x[1] -&gt; [1 0 1 1]
+  x[2] -&gt; [0 1 0 1]
+  x[3] -&gt; [1 0 1 0]
+  x[4] -&gt; [0 1 0 0]
+  x[5] -&gt; [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
+
+julia&gt; f = x[2]^2+2*x[4]^2
+x[2]^2 + 2*x[4]^2
+
+julia&gt; degree(f)
+Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 2 0 0]
+
+julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
+4-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+ [1, 0]
+ [4, 1]
+
+julia&gt; R, x = GradedPolynomialRing(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;, &quot;x[4]&quot;], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by
+  x[1] -&gt; [1 0]
+  x[2] -&gt; [0 1]
+  x[3] -&gt; [1 0]
+  x[4] -&gt; [4 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4]])
+
+julia&gt; f = x[1]^4*x[2]+x[4]
+x[1]^4*x[2] + x[4]
+
+julia&gt; degree(f)
+graded by [4 1]
+
+julia&gt; degree(Vector{Int}, f)
+2-element Vector{Int64}:
+ 4
+ 1
+
+julia&gt;  R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; f = x^6+y^3+z^2
+x^6 + y^3 + z^2
+
+julia&gt; degree(f)
+graded by [6]
+
+julia&gt; typeof(degree(f))
+GrpAbFinGenElem
+
+julia&gt; degree(Int, f)
+6
+
+julia&gt; typeof(degree(Int, f))
+Int64</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/mpoly-graded.jl#L846">source</a></section></article><h2 id="Homomorphisms-From-Multivariate-Rings"><a class="docs-heading-anchor" href="#Homomorphisms-From-Multivariate-Rings">Homomorphisms From Multivariate Rings</a><a id="Homomorphisms-From-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Homomorphisms-From-Multivariate-Rings" title="Permalink"></a></h2><p>If <span>$R$</span> is a multivariate polynomial ring, and <span>$S$</span> is any ring, then a ring homomorphism <span>$R \rightarrow S$</span> is determined by specifying its restriction to the coefficient ring of <span>$R$</span>, and by assigning an image to each variable of <span>$R$</span>. In OSCAR, such homomorphisms are created by using the following constructor:</p><article class="docstring"><header><a class="docstring-binding" id="hom-Tuple{MPolyRing, AbstractAlgebra.NCRing, Any, Vector{T} where T}" href="#hom-Tuple{MPolyRing, AbstractAlgebra.NCRing, Any, Vector{T} where T}"><code>hom</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+
+hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)</code></pre><p>Given a homomorphism <code>coeff_map</code> from <code>C</code> to <code>S</code>, where <code>C</code> is the  coefficient ring of <code>R</code>, and given a vector <code>images</code> of <code>nvars(R)</code>  elements of <code>S</code>, return the homomorphism <code>R</code> <span>$\to$</span> <code>S</code> whose restriction  to <code>C</code> is <code>coeff_map</code>, and which sends the <code>i</code>-th variable of <code>R</code> to the  <code>i</code>-th entry of <code>images</code>.</p><p>If no coefficient map is entered, invoke a canonical homomorphism of <code>C</code> to <code>S</code>, if such a homomorphism exists, and throw an error, otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In case <code>check = true</code> (default), the function checks the conditions below:</p><ul><li>If <code>S</code> is graded, the assigned images must be homogeneous with respect to the given grading.</li><li>If <code>S</code> is noncommutative, the assigned images must pairwise commute. </li></ul></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = FiniteField(2, 2, &quot;a&quot;);
+
+julia&gt; R, (x, y) = PolynomialRing(K, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; F = hom(R, R, z -&gt; z^2, [y, x])
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y over Finite field of degree 2 over F_2
+Codomain:
+=========
+Multivariate Polynomial Ring in x, y over Finite field of degree 2 over F_2
+
+julia&gt; F(a * y)
+(a + 1)*x
+
+julia&gt; Qi, i = quadratic_field(-1)
+(Imaginary quadratic field defined by x^2 + 1, sqrt(-1))
+
+julia&gt; S, (x, y) = PolynomialRing(Qi, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; G = hom(S, S, hom(Qi, Qi, -i), [x^2, y^2])
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y over Imaginary quadratic field defined by x^2 + 1
+Codomain:
+=========
+Multivariate Polynomial Ring in x, y over Imaginary quadratic field defined by x^2 + 1
+
+julia&gt; G(x+i*y)
+x^2 - sqrt(-1)*y^2
+
+julia&gt; R, (x, y) = PolynomialRing(ZZ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; f = 3*x^2+2*x+1;
+
+julia&gt; S, (x, y) = PolynomialRing(GF(2), [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; H = hom(R, S, gens(S))
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y over Integer Ring
+Codomain:
+=========
+Multivariate Polynomial Ring in x, y over Galois field with characteristic 2
+
+julia&gt; H(f)
+x^2 + 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d120727cd405bebc1fd1cb7045142c3432f74279/src/Rings/MPolyMap/MPolyRing.jl#L28">source</a></section></article><p>Given a ring homomorphism <code>F</code> from <code>R</code> to <code>S</code> as above, <code>domain(F)</code> and <code>codomain(F)</code> refer to <code>R</code> and <code>S</code>, respectively.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The OSCAR homomorphism type <code>AffAlgHom</code> models ring homomorphisms <code>R</code> <span>$\to$</span> <code>S</code> such that the type of both <code>R</code> and <code>S</code>  is a subtype of <code>Union{MPolyRing{T}, MPolyQuo{U}}</code>, where <code>T &lt;: FieldElem</code> and <code>U &lt;: MPolyElem{T}</code>. Functionality for these homomorphism is discussed in the section on affine algebras.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../orderings/">Monomial Orderings »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Wednesday 28 December 2022 12:51">Wednesday 28 December 2022</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
