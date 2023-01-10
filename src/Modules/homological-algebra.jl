@@ -12,7 +12,7 @@ export depth, fitting_ideal, is_flat, is_regular_sequence, koszul_homology, non_
 ##############################################################################
 
 @doc Markdown.doc"""
-     fitting_ideal(M::ModuleFP, i::Int) 
+     fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem 
 
 Return the `i`-th Fitting ideal of `M`.
 
@@ -54,11 +54,11 @@ julia> fitting_ideal(M, 2)
 ideal(1)
 ```
 """
-function fitting_ideal(M::ModuleFP, i::Int)
+function fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
  error("not implemented for the given type of module.")
 end
 
-function fitting_ideal(F:: FreeMod, i::Int)
+function fitting_ideal(F::FreeMod{T}, i::Int) where T <: MPolyElem
  R = base_ring(F)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -67,7 +67,7 @@ function fitting_ideal(F:: FreeMod, i::Int)
  return R
 end
 
-function fitting_ideal(M::SubQuo, i::Int)
+function fitting_ideal(M::SubQuo{T}, i::Int) where T <: MPolyElem
  R = base_ring(M)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -86,7 +86,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-     is_flat(M::ModuleFP) 
+     is_flat(M::ModuleFP{T}) where T <: MPolyElem 
 
 Return `true` if `M` is flat, `false` otherwise.
 
@@ -119,11 +119,11 @@ julia> is_flat(M)
 false
 ```
 """
-function is_flat(M::ModuleFP)
+function is_flat(M::ModuleFP{T}) where T <: MPolyElem
  error("not implemented for the given type of module.")
 end
 
-function is_flat(F:: FreeMod)
+function is_flat(F::FreeMod{T}) where T <: MPolyElem
  R = base_ring(F)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -131,7 +131,7 @@ function is_flat(F:: FreeMod)
  return true
 end
 
-function is_flat(M::SubQuo)
+function is_flat(M::SubQuo{T}) where T <: MPolyElem
  R = base_ring(M)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -145,7 +145,7 @@ function is_flat(M::SubQuo)
 end
 
 @doc Markdown.doc"""
-     non_flat_locus(M::ModuleFP) 
+     non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem 
 
 Return an ideal of `base_ring(M)` which defines the non-flat-locus of `M`
 in the sense that the localization of `M` at a prime ideal of `base_ring(M)`
@@ -180,11 +180,11 @@ julia> non_flat_locus(M)
 ideal(x^3 - y^2)
 ```
 """
-function non_flat_locus(M::ModuleFP)
+function non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
  error("not implemented for the given type of module.")
 end
 
-function non_flat_locus(F:: FreeMod)
+function non_flat_locus(F::FreeMod{T}) where T <: MPolyElem
  R = base_ring(F)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -192,7 +192,7 @@ function non_flat_locus(F:: FreeMod)
  return ideal(R, [one(R)])
 end
 
-function non_flat_locus(M::SubQuo)
+function non_flat_locus(M::SubQuo{T}) where T <: MPolyElem
  R = base_ring(M)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -244,7 +244,7 @@ function is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
  error("not implemented for the given type of module.")
 end
 
-function is_regular_sequence(V::Vector{T}, F:: FreeMod{T}) where T <: MPolyElem
+function is_regular_sequence(V::Vector{T}, F::FreeMod{T}) where T <: MPolyElem
  R = base_ring(F)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -356,7 +356,7 @@ function koszul_homology(V::Vector{T}, M::ModuleFP{T}, i::Int) where T <: MPolyE
  error("not implemented for the given type of module.")
 end
 
-function koszul_homology(V::Vector{T}, F:: FreeMod{T}, i::Int) where T <: MPolyElem
+function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyElem
  R = base_ring(F)
  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
    throw(ArgumentError("The coefficient ring must be a field."))
@@ -470,7 +470,7 @@ function depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
  error("not implemented for the given type of module.")
 end
 
-function depth(I::MPolyIdeal{T}, F:: FreeMod{T}) where T <: MPolyElem
+function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyElem
  if !(coefficient_ring(base_ring(I)) isa AbstractAlgebra.Field)
     throw(ArgumentError("The coefficient ring must be a field."))
  end
