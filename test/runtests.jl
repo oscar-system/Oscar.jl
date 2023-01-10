@@ -40,6 +40,7 @@ include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
 include("Modules/MPolyQuo.jl")
+icclude("Modules/homological-algebra_test.jl")
 
 include("InvariantTheory/runtests.jl")
 
