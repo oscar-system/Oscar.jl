@@ -76,7 +76,7 @@ tor(M::ModuleFP, N::ModuleFP, i::Int)
 ## Fitting Ideals
 
 ```@docs
-fitting_ideal(M::ModuleFP, i::Int)
+fitting_ideal(M::ModuleFP{T}, i::Int)  where T <: MPolyElem
 ```
 
 ## Flatness
@@ -84,11 +84,11 @@ fitting_ideal(M::ModuleFP, i::Int)
 Checking flatness in OSCAR relies on characterizing flatness in terms of Fitting ideals.
 
 ```@docs
-is_flat(M::ModuleFP)
+is_flat(M::ModuleFP{T})  where T <: MPolyElem
 ```
 
 ```@docs
-non_flat_locus(M::ModuleFP)
+non_flat_locus(M::ModuleFP{T})  where T <: MPolyElem
 ```
 
 ## Regular Sequence Test
