@@ -76,7 +76,7 @@ tor(M::ModuleFP, N::ModuleFP, i::Int)
 ## Fitting Ideals
 
 ```@docs
-fitting_ideal(M::ModuleFP{T}, i::Int)  where T <: MPolyElem
+fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
 ```
 
 ## Flatness
@@ -84,11 +84,11 @@ fitting_ideal(M::ModuleFP{T}, i::Int)  where T <: MPolyElem
 Checking flatness in OSCAR relies on characterizing flatness in terms of Fitting ideals.
 
 ```@docs
-is_flat(M::ModuleFP{T})  where T <: MPolyElem
+is_flat(M::ModuleFP{T}) where T <: MPolyElem
 ```
 
 ```@docs
-non_flat_locus(M::ModuleFP{T})  where T <: MPolyElem
+non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
 ```
 
 ## Regular Sequence Test
@@ -100,7 +100,7 @@ is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
 ## Koszul Homology
 
 ```@docs
-koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int)  where T <: MPolyElem
+koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyElem
 ```
 
 ## Depth
@@ -108,7 +108,7 @@ koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int)  where T <: MPolyElem
 The computation of depth in OSCAR relies on expressing depth in terms of  Koszul cohomology. 
 
 ```@docs
-depth(I::MPolyIdeal{T}, M::ModuleFP{T})  where T <: MPolyElem
+depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
 ```
 
 
