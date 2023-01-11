@@ -432,22 +432,26 @@ Base.iseven(n::PermGroup) = !isodd(n)
 ##
 # cycle-types and support
 ##
-mutable struct CycleType <: AbstractVector{Pair{Int64, Int64}}
+struct CycleType <: AbstractVector{Pair{Int64, Int64}}
+  # pairs 'cycle length => number of times it occurs'
+  # so 'n => 1' is a single n-cycle and  '1 => n' is the identity on n points
   s::Vector{Pair{Int, Int}}
+
+  # take a vector of cycle lengths
   function CycleType(c::Vector{Int})
-    ct = CycleType()
+    s = Vector{Pair{Int, Int}}()
     for i = c
-      _push!(ct, i)
+      _push_cycle!(s, i)
     end
-    sort!(ct.s, lt = (x,y) -> x[1] < y[1])
-    return ct
+    sort!(s, by = x -> x[1])
+    return new(s)
   end
   function CycleType()
     return new(Pair{Int, Int}[])
   end
   function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
     sorted && return new(v)
-    return new(sort(v, lt = (x,y) -> x[1] < y[1]))
+    return new(sort(v, by = x -> x[1]))
   end
 end
 
@@ -466,23 +470,25 @@ function Base.show(io::IO, C::CycleType)
   print(io, C.s)
 end
 
-function _push!(ct::CycleType, i::Int, j::Int = 1)
-  f = findfirst(x->x[1] == i, ct.s)
+function _push_cycle!(s::Vector{Pair{Int, Int}}, i::Int, j::Int = 1)
+  # TODO: rewrite this to use searchsortedfirst instead of findfirst,
+  # then avoid the sort! below
+  f = findfirst(x->x[1] == i, s)
   if f === nothing
-    push!(ct.s, i=>j)
-    sort!(ct.s, lt= (a,b) -> a[1] < b[1])
+    push!(s, i=>j)
+    sort!(s, by = x -> x[1])
   else
-    ct.s[f] = ct.s[f][1]=>ct.s[f][2] + j
+    s[f] = s[f][1]=>s[f][2] + j
   end
 end
 
 function ^(c::CycleType, e::Int)
-  t = CycleType()
-  for (i,j) = c.s
+  t = Vector{Pair{Int, Int}}()
+  for (i,j) in c.s
     g = gcd(i, e)
-    _push!(t, divexact(i, g), g*j)
+    _push_cycle!(t, divexact(i, g), g*j)
   end
-  return t
+  return CycleType(t; sorted=true)
 end
 
 function order(c::CycleType)
