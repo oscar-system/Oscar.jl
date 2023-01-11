@@ -523,7 +523,7 @@ julia> cycle_structure(ans)
 ```
 """
 function cycle_structure(g::PermGroupElem)
-    c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))
+    c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))::GAP.GapObj
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))
