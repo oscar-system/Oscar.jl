@@ -62,8 +62,8 @@ Return the degree of the parent of `g`. This value is always greater or equal nu
 degree(g::PermGroupElem) = degree(parent(g))
 
 """
-    moved_points(x::PermGroupElem)
-    moved_points(G::PermGroup)
+    moved_points(x::PermGroupElem) -> Vector{Int}
+    moved_points(G::PermGroup) -> Vector{Int}
 
 Return the vector of those points in `1:degree(x)` or `1:degree(G)`,
 respectively, that are not mapped to themselves under the action `^`.
@@ -360,7 +360,7 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
 
 """
-    sign(g::PermGroupElem)
+    sign(g::PermGroupElem) -> Int
 
 Return the sign of the permutation `g`.
 
@@ -497,7 +497,7 @@ degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
 
 
 """
-    cycle_structure(g::PermGroupElem)
+    cycle_structure(g::PermGroupElem) -> CycleType
 
 Return the cycle structure of the permutation `g` as a cycle type.
 A cycle type behaves similar to a vector of pairs `k => n`
