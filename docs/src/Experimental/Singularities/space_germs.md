@@ -13,7 +13,7 @@ Pages = ["space_germs.md"]
 # Space Germs
 
 ## [Generalities on Space germs](@id space_germ_generalities)
-
+ 
 The geometric notion of a space germ is a local concept. A space germ $(X,x)$ at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
 
 Depending on the kind of ringed space in question, space germs arise in
@@ -105,11 +105,14 @@ for convenience and consistence of functionality:
 
 ### internal data of a space germ  
 
- * Pass from the germ $(X,x)$ back to some affine scheme $X=Spec R$, where with the appropriate localization at $x$, where $R$ is a quotient of a multivariate polynomial ring, by
+ * Pass from the germ $(X,x)$ back to some affine scheme $X=Spec R$, where $R$ is a quotient of a multivariate polynomial ring and localizes to ${\mathcal O}_{X,x}$.
    ```julia
    representative(X::SpaceGerm)
    ```
    **Provides:** AffineScheme   
+
+!!! note
+    At first need or at the latest upon the first explicit call of representative, the respective affine scheme is cached and subsequently used for all further purposes requiring a representative.
 
  * Given the space germ $(X,x)$, the point $x$ is returned by:
 
@@ -117,10 +120,6 @@ for convenience and consistence of functionality:
    point(X:SpaceGerm)
    ```
    **Provides:** Vector describing of point coordinates
-
-!!! note
-    The returned ideal is a prime ideal in the ring of a representative of the germ. At first use of it or at the latest upon the first call of representative, the respective affine scheme is cached and subsequently used for all further purposes requiring a representative
-
  
  * Given a space germ $(X,x)$, the corresponding local ring ${\mathcal O}_{(X,x)}$ is returned by:
    ```julia
@@ -176,12 +175,12 @@ for convenience and consistence of functionality:
 
    **Provides:** Boolean Value
 
-   * intersection
-     ```julia
-     intersect(X::SpaceGerm,Y::SpaceGerm)
-     ```
-     Computes the intersection of two subgerms of a common larger germ.
+ * intersection
 
+   Compute the intersection of two subgerms of a common ambient germ
+   ```julia
+   intersect(X::SpaceGerm,Y::SpaceGerm)
+   ```
      **Provides**: SpaceGerm   
 
 ### singular locus
@@ -235,7 +234,7 @@ is_rigid(X::SpaceGerm)
     The properties isolated hypersurface singularity (IHS), isolated complete intersection singularity (ICIS) and isolated Cohen-Macaulay codimension 2 singularity (ICMC2) may each be deduced from the appropriate combinations of the aforelisted functions.
 
 !!! note "on planned implementation"
-Use minimal set of generators for hypersurface and complete intersection, use Hilbert-Burch structure for CMC2 -- store minimal set of generators or presentation matrix. For rigidity test use T1_module below
+    Use minimal set of generators for hypersurface and complete intersection, use Hilbert-Burch structure for CMC2 -- store minimal set of generators or presentation matrix. For rigidity test use T1_module below
 
 ## Further basic functionality for arbitrary space germs
 
@@ -282,7 +281,7 @@ may be computed (in favorable settings). We only mention this topic here to
 point out the pitfalls in interpreting the result in terms of complex space germs. These problems are only due to the fact that we work over computable OSCAR fields and in localizations of polynomial rings.  
 
 **Pitfall** **1:**  
-$x^2+y^2 = (x+iy)(x-iy)$ is obviously reducible over the complex numbers ir even $QQ[i]$, but irreducible over the rationals.
+$x^2+y^2 = (x+iy)(x-iy)$ is obviously reducible over the complex numbers ir even ${\mathbb Q}[i]$, but irreducible over the rationals.
 As outlined in [decomposition of ideals](@ref ideal_decomp) and explained in the literature cited there, this can be detected/avoided by using absolute primary decomposition.
 
 **Pitfall** **2:**  
@@ -348,24 +347,22 @@ versal_deformation(X::SpaceGerm,n::Integer)
 **Provides:** pair of morphims
 
 !!! note
-    For isolated [hypersurface singularities](@hypersurface_deform) and isolated complete intersection singularities 
-(HIER LINK SETZEN SOBALD SEITE EXISTIERT) the computation of versal deformations is straight forward and described in the respective sections.  
-    In the general case, the computation is based on an iteration, whose termination is not guaranteed. The standard precision of the computed approximate result (set to ???) may be overwritten by the additional argument. 
+    For isolated [hypersurface singularities](@hypersurface_deform) and isolated complete intersection singularities (HIER LINK SETZEN SOBALD SEITE EXISTIERT) the computation of versal deformations is straight forward and described in the respective sections.  In the general case, the computation is based on an iteration, whose termination is not guaranteed. The standard precision of the computed approximate result (set to ???) may be overwritten by the additional argument. 
 
-To help understand the meaning of the above mentioned precision, we very briefly sketch the key idea of the iteration: As a starting point, deformations over the smallest fat point, corresponding to $CC[\varepsilon]/\langle \varepsilon^2\rangle$, are considered (cf. also $T^1_{(X,0)}$ below) and then iteratively lifted to larger and larger fat points as base space. In good situations (such as hypersurfaces and ICIS) this iteration stops after finitely many steps; in unlucky situations it is indeed an infinite process. Hence this provides a formally versal deformation over a base space with local ring $CC[[\underline{t}]]/J$ for some ideal $J$, but in practice computations have to stop at some finite order to finish in finite time. 
+To help understand the meaning of the above mentioned precision $n$, we very briefly sketch the key idea of the iteration: As a starting point, deformations over the smallest fat point, corresponding to ${\mathbb C}[\varepsilon]/\langle \varepsilon^2\rangle$, are considered (cf. also $T^1_{(X,0)}$ below) and then iteratively lifted to larger and larger fat points as base space. In good situations (such as hypersurfaces and ICIS) this iteration stops after finitely many steps; in unlucky situations it is indeed an infinite process. Hence this provides a formally versal deformation over a base space with local ring ${\mathbb C}[[\underline{t}]]/J$ for some ideal $J$, but in practice computations have to stop at some finite order to finish in finite time. 
 
 ### First order deformations
 
 The module of first order deformations can be understood as the Zariski tangent space to the base of the versal deformation.
 
-Denote by $(T_{\varepsilon},0)$ the complex space germ consisting of a point and a local ring $CC[\varepsilon]/\langle \varepsilon^2\rangle$. For a space germ $(X,0) \subset (CC^n,0)$ the $CC$-vector space of isomorphism classes of deformations of $(X,0)$ over $T_{\varepsilon}$ is denoted by $T^1_{(X,0)}$ and its elements are usually referred to as first order infinitessimal deformations of $(X,0)$. Using the notation ${\mathcal O}_{X,0} = {\mathcal O}_{CC^n,0}/I$, it can be computed from the normal module ${\mathcal N}_{X/CC^n,0} \cong Hom_{{\mathcal O}_{CC^n,0}}(I,{\mathcal O}_{CC^n,0})$ via the following exact sequence:
+Denote by $(T_{\varepsilon},0)$ the complex space germ consisting of a point and a local ring ${\mathbb C}[\varepsilon]/\langle \varepsilon^2\rangle$. For a space germ $(X,0) \subset ({\mathbb C}^n,0)$ the ${\mathbb C}$-vector space of isomorphism classes of deformations of $(X,0)$ over $T_{\varepsilon}$ is denoted by $T^1_{(X,0)}$ and its elements are usually referred to as first order infinitessimal deformations of $(X,0)$. Using the notation ${\mathcal O}_{X,0} = {\mathcal O}_{{\mathbb C}^n,0}/I$, it can be computed from the normal module ${\mathcal N}_{X/{\mathbb C}^n,0} \cong Hom_{{\mathcal O}_{{\mathbb C}^n,0}}(I,{\mathcal O}_{{\mathbb C}^n,0})$ via the following exact sequence:
 ```math
 0 \longrightarrow \theta_{X,0}
-\longrightarrow \theta_{CC^n,0} \otimes_{{\mathcal O}_{CC^n,0}} {\mathcal O}_{X,0}
-\longrightarrow {\mathcal N}_{X/CC^n,0}
+\longrightarrow \theta_{{\mathbb C}^n,0} \otimes_{{\mathcal O}_{{\mathbb C}^n,0}} {\mathcal O}_{X,0}
+\longrightarrow {\mathcal N}_{X/{\mathbb C}^n,0}
 \longrightarrow T^1_{(X,0)} \longrightarrow 0
 ```
-where $\theta_{X,0}$ denotes the sheaf of $CC$-derivations of ${\mathcal O}_X$ with values in  ${\mathcal O}_X$ and $\theta_{CC^n,0}$ the one of ${\mathcal O}_{CC^n}$ with values in ${\mathcal O}_{CC^n}$, each locally at $0$.
+where $\theta_{X,0}$ denotes the sheaf of ${\mathbb C}$-derivations of ${\mathcal O}_X$ with values in  ${\mathcal O}_X$ and $\theta_{{\mathbb C}^n,0}$ the one of ${\mathcal O}_{{\mathbb C}^n}$ with values in ${\mathcal O}_{{\mathbb C}^n}$, each locally at $0$.
 
 ``` julia
 T1_module(X::SpaceGerm)
@@ -380,13 +377,13 @@ T1_basis(X::SpaceGerm)
 **Provides:** a pair consisting of a vector and a list of vectors
 
 !!! note
-    The desired object $T^1_{(X,0)}$ carries the structure of an an ${\mathcal O}_{(X,0)}$-module and of an $O_{(CC^n,0)}$-module. It is returned in the latter way by T1-module. It also carries the structure of a $CC$-vector space, which may or may not be finite-dimensional for a given singularity. If its dimension is not finite, T1-basis returns an error. 
+    The desired object $T^1_{(X,0)}$ carries the structure of an an ${\mathcal O}_{(X,0)}$-module and of an $O_{({\mathbb C}^n,0)}$-module. It is returned in the latter way by T1-module. It also carries the structure of a ${\mathbb C}$-vector space, which may or may not be finite-dimensional for a given singularity. If its dimension is not finite, T1-basis returns an error. 
 
 If the vector space dimension of $T^1_{(X,0)}$ is finite, T1-basis returns the following data:
-* entry 1: $\underline{f} = (f_1,\dots,f_k) \in {\mathcal O}_{(CC^n,0)}^k$ such that ${\mathcal O}_{(X,0)} =  {\mathcal O}_{(CC^n,0)}/ \langle f_1,\dots,f_k \rangle$ 
-* entry 2: vectors $g_1,\dots,g_{\tau}$ in ${\mathcal O}_{(CC^n,0)}^k$, each with a single monomial entry such that 
+* entry 1: $\underline{f} = (f_1,\dots,f_k) \in {\mathcal O}_{({\mathbb C}^n,0)}^k$ such that ${\mathcal O}_{(X,0)} =  {\mathcal O}_{({\mathbb C}^n,0)}/ \langle f_1,\dots,f_k \rangle$ 
+* entry 2: vectors $g_1,\dots,g_{\tau}$ in ${\mathcal O}_{({\mathbb C}^n,0)}^k$, each with a single monomial entry such that 
 ``` math
-T^1_{(X,0)} \cong \bigoplus_{i=1}^{\tau} CC g_i 
+T^1_{(X,0)} \cong \bigoplus_{i=1}^{\tau} {\mathbb C} g_i 
 ```
 via the identification of an element $\sum_{i=1}^{\tau} a_i g_i$ of the right hand side with the isomorphism class of the deformation $(X,0) \hookrightarrow ({\mathcal X},0) \longrightarrow (T_{\varepsilon},0)$ defined by $\langle F_1,\dots,F_k \rangle$ where
 
@@ -394,10 +391,10 @@ via the identification of an element $\sum_{i=1}^{\tau} a_i g_i$ of the right ha
 ``` math
 \underline{F} = (F_1,\dots,F_k) = \underline{f} + \varepsilon \sum_{i=1}^{\tau} a_ig_i
 ```
-(see [dJP00](@cite) for a detailed discussion including an example).
+(see [JP00](@cite) for a detailed discussion including an example).
 
 !!! note "on planned implementation"
-T1_module mimics the steps from sing.lib, T1-basis uses T1_module
+    T1_module mimics the steps from sing.lib, T1-basis uses T1_module
 
 ### Obstructions
 
@@ -409,15 +406,11 @@ e $(T',0)$.
 More precisely, $T^2_{(X,0)}$ is defined in the following way:
 Let
 ``` math
-{\mathcal O}_{(CC^n,0)}^\ell \longrightarrow 
-{\mathcal O}_{(CC^n,0)}^k \stackrel{\varphi_f}{\longrightarrow} 
-\langle I{(X,0)} \rangle
+{\mathcal O}_{({\mathbb C}^n,0)}^\ell \longrightarrow 
+{\mathcal O}_{({\mathbb C}^n,0)}^k \stackrel{\varphi_f}{\longrightarrow} 
+\langle I_{(X,0)} \rangle
 ```
-be a free presentation of $I_{(X,0)}=\langle f_1,\dots,f_k \rangle$. Denote by $M_R \subset {\mathcal O}_{(CC^n,0)}^k
-$ the kernel of $\varphi_f$ and by $M_K \subset {\mathcal O}_{(CC^n,0)}^k$ the module of Koszul-relations among the $
-f_1,\dots,f_k$. Then the inclusion $M_R \subset {\mathcal O}_{(CC^n,0)}^k$ and the fact that all Koszul-relations are
- zero modulo $I_{(X,0)}$ provide a ${\mathcal O}_{(X,0)}$-linear map $M_R/M_K \longrightarrow {\mathcal O}_{(X,0)}^k$
-. Taking the dual we obtain the exact sequence which defines $T^2_{(X,0)}$:
+be a free presentation of $I_{(X,0)}=\langle f_1,\dots,f_k \rangle$. Denote by $M_R \subset {\mathcal O}_{({\mathbb C}^n,0)}^k$ the kernel of $\varphi_f$ and by $M_K \subset {\mathcal O}_{({\mathbb C}^n,0)}^k$ the module of Koszul-relations among the $f_1,\dots,f_k$. Then the inclusion $M_R \subset {\mathcal O}_{({\mathbb C}^n,0)}^k$ and the fact that all Koszul-relations are zero modulo $I_{(X,0)}$ provide a ${\mathcal O}_{(X,0)}$-linear map $M_R/M_K \longrightarrow {\mathcal O}_{(X,0)}^k$. Taking the dual we obtain the exact sequence which defines $T^2_{(X,0)}$:
 ``` math
 Hom_{{\mathcal O}_{(X,0)}}({\mathcal O}_{(X,0)}^k, {\mathcal O}_{(X,0)})
 \longrightarrow
@@ -441,7 +434,7 @@ T1T2_modules(X::SpaceGerm)
 
 
 !!! note
-    If $T^2_{(X,0)} = 0$, like for hypersurfaces and complete intersections, any first order deformation can be lifted and the base of the semiuniversal deforation is smooth. An explicitly computed example with non-smooth base of the versal deformation can be found in [dJP00](@cite), Chapter 10.2.
+    If $T^2_{(X,0)} = 0$, like for hypersurfaces and complete intersections, any first order deformation can be lifted and the base of the semiuniversal deforation is smooth. An explicitly computed example with non-smooth base of the versal deformation can be found in [JP00](@cite), Chapter 10.2.
 
 !!! note
     If $T^1$ and $T^2$ are both needed, it is more efficient to compute them simultaneously via the function T1T2_modules. 
