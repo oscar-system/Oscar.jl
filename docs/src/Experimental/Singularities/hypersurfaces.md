@@ -327,7 +327,7 @@ the sum over the Tjurina numbers at all singular points is called the global Tju
 ### monodromy
 
 For a detailed introduction to the monodromy of a hypersurface singularity we
-refer the reader to [C-MLS20](@cite), chapter 8. Here we assume familiarity 
+refer the reader to [C-MTS20](@cite), chapter 8. Here we assume familiarity 
 with the notion and explain what data is provided by the respective functions
 in OSCAR.  
 
