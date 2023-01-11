@@ -210,9 +210,9 @@ Certain properties and invariants are only defined for one or several special
 classes, whereas some other properties and invariants make sense for arbitrary
 space germs, but may only be accesible to (efficient) computations in 
 particular classes. The information on the currently supported particular cases
-* [Hypersurface Singularities](@ref hypersurfaces.md)
-* [Complete Intersections Singularities](@ref ICIS.md)
-<!-- * Cohen-Macaulay Codimension 2 Singularities  LINK SETZEN -->
+* [Hypersurface Singularities](@ref hypersurface_sing)
+* [Complete Intersections Singularities](@ref ICIS)
+* Cohen-Macaulay Codimension 2 Singularities 
 can be found on the respective pages.
 
 ```julia
