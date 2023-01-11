@@ -11,10 +11,7 @@
     @test length(moved_points(G)) == n
     nmp = number_moved_points(G)
     @test nmp == n
-    @test nmp isa fmpz
-    nmp = number_moved_points(Int64, G)
-    @test nmp == n
-    @test nmp isa Int64
+    @test nmp isa Int
 
     @test isfinite(G)
 
