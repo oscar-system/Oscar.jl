@@ -448,9 +448,6 @@ struct CycleType <: AbstractVector{Pair{Int64, Int64}}
     sort!(s, by = x -> x[1])
     return new(s)
   end
-  function CycleType()
-    return new(Pair{Int, Int}[])
-  end
   function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
     sorted && return new(v)
     return new(sort(v, by = x -> x[1]))
