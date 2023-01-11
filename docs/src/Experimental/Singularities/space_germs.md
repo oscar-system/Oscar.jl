@@ -211,7 +211,7 @@ classes, whereas some other properties and invariants make sense for arbitrary
 space germs, but may only be accesible to (efficient) computations in 
 particular classes. The information on the currently supported particular cases
 * [Hypersurface Singularities](@ref hypersurface_sing)
-* [Complete Intersections Singularities](@ref ICIS)
+* [Complete Intersections Singularities](@ref ICIS_sing)
 * Cohen-Macaulay Codimension 2 Singularities 
 can be found on the respective pages.
 
