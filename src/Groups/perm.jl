@@ -75,12 +75,11 @@ julia> length(moved_points(gen(s, 1)))
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 
 """
-    number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: IntegerUnion
-    number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: IntegerUnion
+    number_moved_points(x::PermGroupElem) -> Int
+    number_moved_points(G::PermGroup) -> Int
 
 Return the number of those points in `1:degree(x)` or `1:degree(G)`,
-respectively, that are not mapped to themselves under the action `^`,
-as an instance of `T`.
+respectively, that are moved (i.e., not fixed) under the action `^`.
 
 # Examples
 ```jldoctest
@@ -89,17 +88,12 @@ julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
 julia> number_moved_points(s)
 3
 
-julia> number_moved_points(Int, s)
-3
-
 julia> number_moved_points(gen(s, 1))
 3
 
 ```
 """
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
-
-number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
+@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
 
 @doc Markdown.doc"""
     perm(L::AbstractVector{<:IntegerUnion})
