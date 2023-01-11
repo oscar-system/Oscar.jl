@@ -73,43 +73,43 @@ tensor_product(G::ModuleFP...; task::Symbol = :none)
 tor(M::ModuleFP, N::ModuleFP, i::Int)
 ```
 
+## Fitting Ideals
+
+```@docs
+fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
+```
+
 ## Flatness
 
-Fitting ideals provide one way of characterizing flatness.  The functions `is_flat` and
-`non_flat_locus`  discussed below are based on this characterization.
+Checking flatness in OSCAR relies on characterizing flatness in terms of Fitting ideals.
 
-```@julia
-fitting_ideal(M::ModuleFP, i::Int)
+```@docs
+is_flat(M::ModuleFP{T}) where T <: MPolyElem
 ```
 
-Return the `i`-th Fitting ideal of `M`.
-
-```@julia
-is_flat(M::ModuleFP)
+```@docs
+non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
 ```
 
-Return `true` if `M` is flat, `false` otherwise.
+## Regular Sequence Test
 
-```@julia
-non_flat_locus(M::ModuleFP)
+```@docs
+is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
+```
+
+## Koszul Homology
+
+```@docs
+koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyElem
 ```
 
 ## Depth
 
-The function `depth` discussed below relies on the computation of Koszul cohomology.
+The computation of depth in OSCAR relies on expressing depth in terms of  Koszul cohomology. 
 
-```@julia
-koszul_homology(V::Vector, M:ModuleFP, i::Int)
+```@docs
+depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
 ```
-
-```@julia
-depth(I::Ideal, M::ModuleFP)
-```
-
-Reurn the depth of `I` on `M`.
-
-
-
 
 
 
