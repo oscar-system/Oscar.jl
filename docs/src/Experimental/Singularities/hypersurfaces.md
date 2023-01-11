@@ -10,7 +10,7 @@ using Oscar
 Pages = ["hypersurfaces.md"]
 ```
 
-# Hypersurface Singularities
+# [Hypersurface Singularities] (@id hypersurface_sing)
 
 Hypersurface singularities are space germs of the form $(V(f),p)$ for some power series f at a point $p$. As explaind in section [Generalities on Space Germs](@ref space_germ_generalities), the need for exact computations forces OSCAR to restrict all considerations to the subring of those power series representable by means of an element of the localization of an affine scheme at a point. 
 
