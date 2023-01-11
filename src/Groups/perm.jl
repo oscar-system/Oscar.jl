@@ -493,9 +493,8 @@ function ^(c::CycleType, e::Int)
   return CycleType(t; sorted=true)
 end
 
-function order(c::CycleType)
-  return reduce(lcm, map(x->fmpz(x[1]), c.s), init = fmpz(1))
-end
+order(::Type{T}, c::CycleType) where T = mapreduce(x->T(x[1]), lcm, c.s, init = T(1))
+order(c::CycleType) = order(fmpz, c)
 
 degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
 
