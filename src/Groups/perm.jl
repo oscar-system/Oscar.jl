@@ -6,7 +6,7 @@ Base.isfinite(G::PermGroup) = true
 
 ==(x::PermGroup, y::PermGroup) = x.deg == y.deg && x.X == y.X
 
-==(x::PermGroupElem, y::PermGroupElem) = degree(parent(x)) == degree(parent(y)) && x.X == y.X
+==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && x.X == y.X
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 
@@ -52,6 +52,14 @@ julia> show(Vector(gen(symmetric_group(5), 2)))
 ```
 """
 degree(x::PermGroup) = x.deg
+
+"""
+    degree(g::PermGroupElem) -> Int
+
+Return the degree of the parent of `g`. This value is always greater or equal number_moved_points
+
+"""
+degree(g::PermGroupElem) = degree(parent(g))
 
 """
     moved_points(x::PermGroupElem)
@@ -206,7 +214,7 @@ julia> cperm([1,2],[2,3])
 julia> p = cperm([1,2,3],[7])
 (1,2,3)
 
-julia> degree(parent(p))
+julia> degree(p)
 7
 ```
 
@@ -520,9 +528,9 @@ function cycle_structure(g::PermGroupElem)
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
     s = mapreduce(x->x[1]*x[2], +, ct, init = Int(0))
-    if s < degree(parent(g))
+    if s < degree(g)
       @assert length(c) == 0 || ct[1][1] > 1
-      insert!(ct, 1, 1=>degree(parent(g))-s)
+      insert!(ct, 1, 1=>degree(g)-s)
     end
     return CycleType(ct, sorted = true)
 end
