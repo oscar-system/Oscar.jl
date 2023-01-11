@@ -597,12 +597,6 @@ julia> X = Spec(R,I)
 Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 
 julia> singular_locus_reduced(X)
-<<<<<<< HEAD
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
-
-julia> singular_locus(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, 4*x^3 - 4*x*y^2 + 4*x*z^2, -4*x^2*y + 4*y^3 - 4*y*z^2, 4*x^2*z - 4*y^2*z + 4*z^3)
-=======
 (Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), morphism from
 
 	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
@@ -627,7 +621,6 @@ to
 with coordinates
 
 	x, y, z)
->>>>>>> eeac093ad971b4bad18b7bd6e7e1bfa1a08e96b1
 
 ```
 """
