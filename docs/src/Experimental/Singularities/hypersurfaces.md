@@ -355,7 +355,7 @@ blocks can be determined using OSCAR:
 
 ### spectrum and spectral pairs
 
-For a detailed treatment of the spectrum of a singularity and of the spectral pairs, we refer the reader to the textbook [AGV](@cite), volume II. It is a powerful invariant, which permits to exclude equivalence or adjacency of given hypersurface germs in many practical cases.  
+For a detailed treatment of the spectrum of a singularity and of the spectral pairs, we refer the reader to the textbook [AGV85](@cite), volume II. It is a powerful invariant, which permits to exclude equivalence or adjacency of given hypersurface germs in many practical cases.  
 
 In OSCAR the singularity spectrum can be computed using two different methods:
 
@@ -402,7 +402,7 @@ In OSCAR the singularity spectrum can be computed using two different methods:
 
 ## Classification of Hypersurface Singularities
 
-Arnold's famous classifier, see textbook [AGV](@cite), volume I, provides an algorithm to determine the type of a given function germ with isolated singularity at the origin w.r.t. R-equivalence up to corank 3, Milnor number 16 and modality 2.  
+Arnold's famous classifier, see textbook [AGV85](@cite), volume I, provides an algorithm to determine the type of a given function germ with isolated singularity at the origin w.r.t. R-equivalence up to corank 3, Milnor number 16 and modality 2.  
 This classifier and a classifier for hypersurface germs of modality at most 2
 and corank at most 2 are available as well as several related classification
 tools.  
