@@ -44,3 +44,17 @@
 end
 
 
+@testset "CycleType" begin
+  @testset "degree and order" begin
+    g = cperm(1:3, 4:5, 6:7, 8:10, 11:15)
+    c = cycle_structure(g)
+    @test degree(g) == degree(c)
+    @test order(g) == order(c)
+
+    for g in symmetric_group(6)
+      c = cycle_structure(g)
+      @test degree(g) == degree(c)
+      @test order(g) == order(c)
+    end
+  end
+end

@@ -497,6 +497,9 @@ function order(c::CycleType)
   return reduce(lcm, map(x->fmpz(x[1]), c.s), init = fmpz(1))
 end
 
+degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
+
+
 """
     cycle_structure(g::PermGroupElem)
 
@@ -527,7 +530,7 @@ function cycle_structure(g::PermGroupElem)
     c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
-    s = mapreduce(x->x[1]*x[2], +, ct, init = Int(0))
+    s = degree(CycleType(ct, sorted = true))
     if s < degree(g)
       @assert length(c) == 0 || ct[1][1] > 1
       insert!(ct, 1, 1=>degree(g)-s)
