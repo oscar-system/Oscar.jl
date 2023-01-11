@@ -117,16 +117,23 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
     Et, t = E["t"]
     rt = roots(t^n-1)
     @req length(rt) == euler_phi(n) "E is not of cyclotomic type"
-    b = rt[1]
+    b = isone(rt[1]) ? rt[2] : rt[1]
   else
     b = gen(E)
   end
  
   mb = absolute_representation_matrix(b)
   m = divexact(rank(L), euler_phi(n))
-  bca = Hecke._basis_of_integral_commutator_algebra(f, mb)
+  bca = Hecke._basis_of_commutator_algebra(f, mb)
   @assert !is_empty(bca)
-  l = reduce(vcat, bca[1:m])
+  l = zero_matrix(QQ, 0, ncols(f))
+  while rank(l) != ncols(f)
+    _m = popfirst!(bca)
+    _l = vcat(l, _m)
+    if rank(_l) > rank(l)
+      l = _l
+    end
+  end
   @assert det(l) != 0
   l = inv(l)
   B = matrix(absolute_basis(E))

@@ -1,4 +1,11 @@
-export admissible_triples, is_admissible_triple, representatives_of_pure_type
+export admissible_triples,
+       is_admissible_triple,
+       prime_splitting,
+       prime_splitting_of_prime_power,
+       prime_splitting_of_pure_type_prime_power,
+       prime_splitting_of_semi_pure_type,
+       primitive_extensions,
+       representatives_of_pure_type
 
 ##################################################################################
 #
@@ -49,12 +56,12 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d::Hecke.RationalUnion, s::fmpz, l::fmpz, p::Int, even = true)
+function _find_L(r::Int, d::Hecke.RationalUnion, s::fmpz, l::fmpz, p::IntegerUnion, even = true)
   L = ZGenus[]
   for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
     gen = genera((s1,s2), d, even=even)
-    filter!(G -> divides(scale(G), s)[1], gen)
-    filter!(G -> divides(p*l, level(G))[1], gen)
+    filter!(G -> divides(numerator(scale(G)), s)[1], gen)
+    filter!(G -> divides(p*l, numerator(level(G)))[1], gen)
     append!(L, gen)
   end
   return L
@@ -81,7 +88,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   @req divides(rank(B), p-1)[1] "p-1 must divide the rank of B"
   AperpB = orthogonal_sum(A,B)
   # If A and B glue to C, the sum of their ranks must match the one of C
-  if rank(AperpB) != rank(C)
+  if signature_tuple(AperpB) != signature_tuple(C)
     return false
   end
 
@@ -210,8 +217,9 @@ $\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
 """
 function admissible_triples(G::ZGenus, p::Int64)
   @req is_prime(p) "p must be a prime number"
+  @req is_integral(G) "G must be a genus of integral lattices"
   n = rank(G)
-  d = det(G)
+  d = numerator(det(G))
   even = iseven(G)
   L = Tuple{ZGenus, ZGenus}[]
   for ep in 0:div(n, p-1)
@@ -220,8 +228,8 @@ function admissible_triples(G::ZGenus, p::Int64)
     m = min(ep, r1) 
     D = _find_D(d, m, p)
     for (d1, dp) in D
-      L1 = _find_L(r1, d1, scale(G), level(G), p, even)
-      Lp = _find_L(rp, dp, scale(G), level(G), p, even)
+      L1 = _find_L(r1, d1, numerator(scale(G)), numerator(level(G)), p, even)
+      Lp = _find_L(rp, dp, numerator(scale(G)), numerator(level(G)), p, even)
       for (A, B) in [(A, B) for A in L1 for B in Lp]
         if is_admissible_triple(A, B, G, p)
           push!(L, (A, B))
@@ -275,19 +283,34 @@ function _rho_functor(q::TorQuadMod, p, l::Union{Integer, fmpz})
   return sub(q, gene)[2]
 end
 
+@doc Markdown.doc"""
+    primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Int)
+                                          -> Vector{LatticeWithIsometry}
+
+Given a triple of lattices with isometry `(A, fa)`, `(B, fb)` and `(C, fc)` and a prime number
+`p`, such that `(A, B, C)` is `p`-admissible, return a set of representatives of the double coset
+$G_B\backslash S\slash/G_A$ where:
+
+  - $G_A$ and $G_B$ are the respective images of the morphisms $O(A, fa) -> O(q_A, \bar{fa})$
+    and $O(B, fb) -> O(q_B, \bar{fb})$;
+  - $S$ is the set of all primitive extensions $A \perp B \subseteq C'$ with isometry $fc'$ where
+    $p\cdot C' \subsetea A\perpB$ and the type of $(C', fc'^p)$ is equal to the type of $(C, fc)$.
+
+See Algorithm 2 of [BH22].
+"""
 function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
   # requirement for the algorithm of BH22
   @req is_prime(p) "p must be a prime number"  
   A, B, C = lattice.([Afa, Bfb, Cfc])
 
-  if ambient_space(Afa) === ambient_space(Bfb)
+  @req is_admissible_triple(Afa, Bfb, Cfc, p) "(A, B, C) must be p-admissble"
+  
+  if ambient_space(Afa) === ambient_space(Bfb) === ambient_space(Cfc)
     @req rank(intersect(A, B)) == 0 "Lattice in same ambient space must have empty intersection to glue"
     @req rank(A) + rank(B) <= dim(ambient_space(A)) "Lattice cannot glue in their ambient space"
   end
 
-  @req is_admissible_triple(Afa, Bfb, Cfc, p) "(A, B, C) must be p-admissble"
   # we need to compare the type of the output with the one of Cfc
-  #t = type(Cfc)
 
   results = LatticeWithIsometry[]
   # this is the glue valuation: it is well-defined because the triple in input is admissible
@@ -370,7 +393,6 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # now, for each pair of anti-isometric potential kernels, we need to see whether
   # it is (fA,fB)-equivariant, up to conjugacy. For each working pair, we compute the
   # corresponding overlattice and check whether it satisfies the type condition
-  return R
   for (H1, H2, phi) in R
     SAinqA, stabA = H1
     SA = domain(SAinqA)
@@ -406,7 +428,6 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     @assert is_trivial(domain(rBinSB).ab_grp) || is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
 
     # We compute the generators of O(SB, rho_l(qB))
-    return rBinSB
     OrBinOSB = embedding_orthogonal_group(rBinSB)
     OSBrB, _ = image(OrBinOSB)
     @assert fSB in OSBrB
@@ -463,12 +484,12 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
         _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
         C2 = lattice(ambient_space(cover(D)), _B[end-rank(S)-rank(R)+1:end, :])
         fC2 = block_diagonal_matrix([fA, fB])
-        __B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
+        __B = solve_left(block_diagonal_matrix(basis_matrix.([A,B])), basis_matrix(C2))
         fC2 = __B*fC2*inv(__B)
         @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
       end
 
-      if type(lattice_with_isometry(C2, fC2^p, ambient_representation=false)) != t
+      if type(lattice_with_isometry(C2, fC2^p, ambient_representation=false)) != type(Cfc)
         continue
       end
 
@@ -501,6 +522,8 @@ end
 # Representatives of lattices with isometry
 #
 ##################################################################################
+
+# we compute ideals of E/K whose absolute norm is equal to d
 
 function _ideals_of_norm(E, d::fmpq)
   if denominator(d) == 1
@@ -542,12 +565,17 @@ function _ideals_of_norm(E, d::fmpz)
   return ids
 end
 
-function _possible_signatures(s1, s2, E)
+# given a cyclotomic field (as cm extension) E/K, return all
+# the possible signatures dictionnaries of any hermitian lattice over
+# E/K of rank rk, whose trace lattice has signature (s1, s2).
+
+function _possible_signatures(s1, s2, E, rk)
   @assert E isa Hecke.NfRel
   ok, q = Hecke.is_cyclotomic_type(E)
   @assert ok
   @assert iseven(s2)
   @assert divides(2*(s1+s2), euler_phi(q))[1]
+  n = 
   l = divexact(s2, 2)
   K = base_field(E)
   inf = real_places(K)
@@ -556,6 +584,9 @@ function _possible_signatures(s1, s2, E)
   parts = Vector{Int}[]
   perm = AllPerms(s)
   for v in AllParts(l)
+    if any(i -> i > rk, v)
+      continue
+    end
     if length(v) > s
       continue
     end
@@ -573,6 +604,19 @@ function _possible_signatures(s1, s2, E)
   return signs
 end
 
+@doc Markdown.doc"""
+    representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
+                                            -> Vector{LatticeWithIsometry}
+
+Given a lattice with isometry $(L, f)$ of pure type (i.e. the minimal
+polynomial of `f` is irreducible cyclotomic), and a positive integer `m` (set to
+1 by default), return a set of representatives of isomorphism classes of lattices
+with isometry of pure type $(M, g)$ and such that the type of $(B, g^m)$ is equal
+to the type of $(L, f)$. Note that in this case, the isometries `g`'s are of order
+$nm$.
+
+See Algorithm 3 of [BH22].
+"""
 function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
   @req m >= 1 "m must be a positive integer"
   @req is_of_pure_type(Lf) "Minimal polyomial must be irreducible and cyclotomic"
@@ -614,7 +658,7 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
   detE = _ideals_of_norm(E, ndE)
   @info "All possible ideal dets: $(length(detE))"
-  signatures = _possible_signatures(s1, s2, E)
+  signatures = _possible_signatures(s1, s2, E, rk)
   @info "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
     append!(gene, genera_hermitian(E, rk, sign, dd))
@@ -629,7 +673,7 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
     end
     @info "$H"
     M = trace_lattice(H)
-    return M
+    println(det(lattice(M)), d)
     @assert det(lattice(M)) == d
     @assert is_cyclotomic_polynomial(minpoly(M))
     @assert order_of_isometry(M) == n*m
@@ -644,14 +688,28 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
   return reps
 end
 
+@doc Markdown.doc"""
+    representatives_of_pure_type(t::Dict, m::Int = 1; check::Bool = true)
+                                          -> Vector{LatticeWithIsometry}
+
+Given a type `t` for lattices with isometry of pure type (i.e. the minimal
+polymomial of the associated isometry is irreducible cyclotomic) and an intger
+`m` (set to 1 by default), return a set of representatives of isomorphism
+classes of lattices with isometry of pure type $(L, f)$ such that the
+type of $(L, f^m)$ is equal to `t`.
+
+If `check === true`, then `t` is checked to be pure. Note that `n` can be 1.
+
+See Algorithm 3 of [BH22].
+"""
 function representatives_of_pure_type(t::Dict, m::Integer = 1; check::Bool = true)
-  M = representative(t, check = check)
-  M isa String && return M
-  return type_representatives(M, m)
+  M = _representative(t, check = check)
+  M === nothing && return LatticeWithIsometry[]
+  return representatives_of_pure_type(M, m)
 end
 
-function representative(t::Dict; check::Bool = true)
-  @req m >= 1 "m must be a positive integer"
+
+function _representative(t::Dict; check::Bool = true)
   !check || is_pure(t) || error("t must be pure")
   
   ke = collect(keys(t))
@@ -687,7 +745,7 @@ function representative(t::Dict; check::Bool = true)
   signatures = _possible_signatures(s1, s2, E)
   @info "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
-    append!(gene, genera_hermitian(E, rk, sign, dd))
+    append!(gene, genera_hermitian(E, s1+s2, sign, dd))
   end
   gene = unique(gene)
   for g in gene
@@ -708,10 +766,24 @@ function representative(t::Dict; check::Bool = true)
     end
     return M
   end
-  return "Empty type"
+  return nothing
 end
 
-function prime_splitting_of_pure_type(Lf::LatticeWithIsometry, p::Int)
+@doc Markdown.doc"""
+    prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::Int)
+                                                  -> Vector{LatticeWithIsometry}
+
+Given a lattice with isometry $(L, f)$ of pure type (i.e. the minimal polynomial
+of `f` is irreducible cyclotomic) with `f` of order $q^d$ for some prime number `q`,
+and a prime number $p \neq q$, return a set of representatives of the isomorphisms
+classes of lattices with isometry $(M, g)$ such that the type of $(M, g^p)$ is equal
+to the type of $(L, f)$.
+
+Note that `d` can be 0.
+
+See Algorithm 4 of [BH22].
+"""
+function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::Int)
   rank(Lf) == 0 && return LatticeWithIsometry[Lf]
   @req is_prime(p) "p must be a prime number"
   @req is_of_pure_type(Lf) "Minimal polynomial must be irreducible and cyclotomic"
@@ -733,13 +805,42 @@ function prime_splitting_of_pure_type(Lf::LatticeWithIsometry, p::Int)
   return reps
 end
 
+
+@doc Markdown.doc"""
+    prime_splitting_of_pure_type_prime_power(t::Dict, p::Int)
+                                                  -> Vector{LatticeWithIsometry}
+
+Given a type `t` of lattice with isometry of pure type $(L, f)$ (i.e. the minimal
+polynomial of `f` is irreducible cyclotomic) with `f` of order $q^d$ for some
+prime number `q`, and a prime number $p \neq q$, return a set of representatives
+of the isomorphisms classes of lattices with isometry $(M, g)$ such that the type
+of $(M, g^p)$ is equal to `t`.
+
+Note that `d` can be 0.
+
+See Algorithm 4 of [BH22].
+"""
 function prime_splitting_of_pure_type_prime_power(t::Dict, p::Int)
   @req is_prime(p) "p must be a prime number"
   @req is_pure(t) "t must be pure"
-  Lf = representative(t)
-  return prime_root_of_pure_type(Lf, p)
+  Lf = _representative(t)
+  return prime_splitting_of_pure_type_prime_power(Lf, p)
 end
 
+@doc Markdown.doc"""
+    prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
+                                                     -> Vector{LatticeWithIsometry}
+
+Given a lattice with isometry $(L, f)$ with `f` of order $q^e$ for some prime number
+`q`, a prime number $p \neq q$ and an integer $b = 0, 1$, return a set of representatives
+of the isomorphism classes of lattices with isometry $(M, g)$ such that the type of
+$(M, g^p)$ is equal to the type of $(L, f)$. If `b == 1`, return only the lattices
+with isometry $(M, g)$ where `g` is of order $pq^e$.
+
+Note that `e` can be 0.
+
+See Algorithm 5 of [BH22].
+"""
 function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
   rank(Lf) == 0 && return LatticeWithIsometry[Lf]
   @req is_prime(p) "p must be a prime number"
@@ -765,13 +866,27 @@ function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int 
   return reps
 end
 
-function prime_splitting(Lf::LatticeWithIsometry, p::Int)
+@doc Markdown.doc"""
+    prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
+                                                 -> Vector{LatticeWithIsometry}
+
+Given a lattice with isometry $(L, f)$ and a prime number `p`, such that
+the minimal of `f` divides $\prod_{i=0}^e\Phi_{p^dq^i}(f)$ for some
+$d > 0$ and $e \geq 0$, return a set of representatives of the isomorphism classes
+of lattices with isometry $(M, g)$ such that the type of $(M, g^p)$ is equal to the type
+of $(L, f)$.
+
+Note that `e` can be 0, while `d` has to be positive.
+
+See Algorithm 6 of [BH22].
+"""
+function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
   rank(Lf) == 0 && return LatticeWithIsometry[Lf]
   @req is_prime(p) "p must be a prime number"
-  @req order_of_isometry(Lf) > 0 "Isometry must be of finite order"
+  @req is_finite(order_of_isometry(Lf)) "Isometry must be of finite order"
   n = order_of_isometry(Lf)
   pd = prime_divisors(n)
-  @req length(pd) <= 2 && p in pd "Order must be divisible by p and have at most 2 prime factors"
+  @req 1 <= length(pd) <= 2 && p in pd "Order must be divisible by p and have at most 2 prime factors"
   if length(pd) == 2
     q = pd[1] == p ? pd[2] : pd[1]
     d = valuation(n, p)
@@ -794,7 +909,7 @@ function prime_splitting(Lf::LatticeWithIsometry, p::Int)
   @assert bool
   B0 = kernel_lattice(Lf, r)
   A = representatives_of_pure_type(A0 ,p)
-  B = pure_up(B0, p)
+  B = prime_splitting(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = extensions(LA, LB, Lf, q)
     append!(reps, E)
@@ -802,14 +917,27 @@ function prime_splitting(Lf::LatticeWithIsometry, p::Int)
   return reps
 end
 
-function next_p(Lf::LatticeWithIsometry, p)
+@doc Markdown.doc"""
+    prime_splitting(Lf::LatticeWithIsometry, p::Int) -> Vector{LatticeWithIsometry}
+
+Given a lattice with isometry $(L, f)$ and a prime number `p` such that
+`f` is of order $p^dq^e$ for some prime number $q \neq p$, return a set
+of representatives of the isomorphism classes of lattices with isometry
+$(M, g)$ of order $p^{d+1}q^e$ such that the type of $(M, g^p)$ is equal
+to the type of $(L, f)$.
+
+Note that `d` and `e` can be both zero.
+
+See Algorithm 7 of [BH22].
+"""
+function prime_splitting(Lf::LatticeWithIsometry, p::Int)
   rank(Lf) == 0 && return LatticeWithIsometry[Lf]
   n = order_of_isometry(Lf)
-  @req n > 0 "Isometry must be of finite order"
+  @req is_finite(n) "Isometry must be of finite order"
   pd = prime_divisors(n)
   @req length(pd) <= 2 "Order must have at most 2 prime divisors"
   if !(p in pd)
-    return first_p(Lf, p, 1)
+    return prime_splitting_of_prime_power(Lf, p, 1)
   end
   d = valuation(n, p)
   if n != p^d
@@ -822,8 +950,8 @@ function next_p(Lf::LatticeWithIsometry, p)
   x = gen(parent(minpoly(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
   A0 = kernel_lattice(Lf, prod([cyclotomic_polynomial(p^d*q^i) for i in 0:e]))
-  A = pure_up(A0, p)
-  B = next_p(B0, p)
+  A = prime_splitting_of_semi_pure_type(A0, p)
+  B = prime_splitting(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = extensions(LA, LB, Lf, p)
     @assert all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)

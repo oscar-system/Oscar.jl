@@ -92,29 +92,26 @@ function embedding_orthogonal_group(i1, i2)
   D = codomain(i1)
   A = domain(i1)
   B = domain(i2)
-  gene = vcat(i1.(gens(A)), i2.(gens(B)))
-  n = ngens(A)
+  Dorth = direct_sum(A, B)[1]
+  ok, phi = is_isometric_with_isometry(Dorth, D)
+  @assert ok
   OD, OA, OB = orthogonal_group.([D, A, B])
 
-  geneOA = elem_type(OD)[]
+  geneOAinDorth = elem_type(OD)[]
   for f in gens(OA)
-    imgs = [i1(f(a)) for a in gens(A)]
-    imgs = vcat(imgs, gene[n+1:end])
-    _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
-    _f = hom(D.ab_grp, D.ab_grp, _f)
-    f = TorQuadModMor(D, D, _f)                                                                    
-    push!(geneOA, OD(f, check = false))
-  end
-  geneOB = elem_type(OD)[]
-  for f in gens(OB)
-    imgs = [i2(f(a)) for a in gens(B)]
-    imgs = vcat(gene[1:n], imgs)
-    _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
-    _f = hom(D.ab_grp, D.ab_grp, _f)
-    f = TorQuadModMor(D, D, _f)
-    push!(geneOB, OD(f, check = false))
+    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOAinDorth, m)
   end
 
+  geneOBinDorth = elem_type(OD)[]
+  for f in gens(OB)
+    m = block_diagonal_matrix([identity_matrix(ZZ, ngens(A)), matrix(f)])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOBinDorth, m)
+  end
+  geneOA = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
+  geneOB = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOBinDorth]
   OAtoOD = hom(OA, OD, gens(OA), geneOA, check = false)
   OBtoOD = hom(OB, OD, gens(OB), geneOB, check = false)
   return (OAtoOD, OBtoOD)::Tuple{GAPGroupHomomorphism, GAPGroupHomomorphism}
@@ -223,7 +220,7 @@ function _subgroups_representatives(Vinq::TorQuadModMor, G::AutomorphismGroup{To
     _V = codomain(i)
     for v in gens(orb)
       vv = _V(i(v)*fQp)
-      if !can_solve_with_solution(i.matrix, vv.v, side = :left)[1]
+      if !can_solve(i.matrix, vv.v, side = :left)
         @goto non_fixed
       end
     end

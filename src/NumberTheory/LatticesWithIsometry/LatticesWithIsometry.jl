@@ -1,6 +1,15 @@
-export hermitian_structure, isometry, lattice_with_isometry, order_of_isometry,
-       type, ambient_isometry, image_centralizer_in_Oq, coinvariant_lattice,
-       is_of_type, is_of_same_type, is_of_pure_type, is_pure
+export ambient_isometry,
+       coinvariant_lattice,
+       hermitian_structure,
+       image_centralizer_in_Oq,
+       isometry,
+       is_of_pure_type,
+       is_of_same_type,
+       is_of_type,
+       is_pure,
+       lattice_with_isometry,
+       order_of_isometry,
+       type
     
 ###############################################################################
 #
@@ -110,8 +119,7 @@ ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))::Hecke.QuadS
 				                                                                -> LatticeWithIsometry
 
 Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
-of `L` of finite order `n`, return the corresponding lattice with isometry
-pair $(L, f)$.
+of `L` of order `n`, return the corresponding lattice with isometry pair $(L, f)$.
 
 If `ambient_representation` is set to true, `f` is consider as an isometry of the
 ambient space of `L` and the induced isometry on `L` is automatically computed.
@@ -127,7 +135,6 @@ function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::IntExt; check::Bool = tr
   if check
     @req det(f) != 0 "f is not invertible"
     m = multiplicative_order(f)
-    @req m > 0 "f is not finite"
     @req n == m "The order of f is equal to $m, not $n"
   end
 
@@ -160,8 +167,7 @@ end
                                                                   -> LatticeWithIsometry
 
 Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
-of `L` of finite order, return the corresponding lattice with isometry
-pair $(L, f)$.
+of `L`, return the corresponding lattice with isometry pair $(L, f)$.
 
 If `ambient_representation` is set to true, `f` is consider as an isometry of the
 ambient space of `L` and the induced isometry on `L` is automatically computed.
@@ -211,10 +217,11 @@ If it exists, the hermitian structure is cached.
   @req rank(Lf) > 0 "Lf must be of positive rank"
   f = isometry(Lf)
   n = order_of_isometry(Lf)
-  
-  @req n >= 3 "No hermitian structures for n smaller than 3"
 
-  return Oscar._hermitian_structure(lattice(Lf), f, n = n, check = true,
+  @req n >= 3 "No hermitian structures for n smaller than 3"
+  @req is_cyclotomic_polynomial(minpoly(f)) "The minimal polynomial must be irreducible and cyclotomic"
+
+  return Oscar._hermitian_structure(lattice(Lf), f, n = n, check = false,
                                                      ambient_representation = false)
 end
 
@@ -240,6 +247,13 @@ function discriminant_group(Lf::LatticeWithIsometry)
   return (q, Oq(gens(matrix_group(f))[1], check = false))::Tuple{TorQuadMod, AutomorphismGroupElem{TorQuadMod}}
 end
 
+@doc Markdown.doc"""
+    image_centralizer_in_Oq(Lf::LatticeWithIsometry) -> AutomorphismGroup
+
+Given an integral lattice with isometry `(L, f)`, return the image $G_L$ in $O(q_L, \bar{f})$
+of the centralizer $O(L, f)$ of `f` in $O(L)$. Here $q_L$ denotes the discriminant
+group of `L` and $\bar{f}$ is the isometry of $q_L$ induced by `f`.
+"""
 @attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
@@ -250,13 +264,14 @@ end
   elseif is_definite(L)
     OL = orthogonal_group(L)
     f = OL(f)
-    UL = [OL(s) for s in gens(centralizer(OL, f)[1])]
-    OqL = orthogonal_group(discriminant_group(L))
-    GL, _ = sub(OqL, [OqL(g) for g in UL])
+    UL = fmpq_mat[matrix(OL(s)) for s in gens(centralizer(OL, f)[1])]
+    qL = discriminant_group(L)
+    UL = fmpz_mat[hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)]).map_ab.map for g in UL]
+    GL = Oscar._orthogonal_group(qL, UL)
   elseif rank(L) == euler_phi(n)
-    gene = matrix_group([-f^0, f])
-    OqL = orthogonal_group(discriminant_group(L))
-    GL, _ = sub(OqL, [OqL(g.X) for g in gens(gene)])
+    qL = discriminant_group(L)
+    UL = fmpz_mat[hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)]).map_ab.map for g in [-f^0, f]]
+    GL = Oscar._orthogonal_group(qL, UL)
   else
     qL, fqL = discriminant_group(Lf)
     OqL = orthogonal_group(qL)
@@ -293,6 +308,17 @@ function _real_kernel_signatures(L::ZLat, M)
   return (k1, k2)
 end
 
+@doc Markdown.doc"""
+    signatures(Lf::LatticeWithIsometry) -> Dict{Int, Tuple{Int, Int}}
+
+Given a lattice with isometry `(L, f)` where the minimal polynomial of `f`
+is irreducible cyclotomic, return the signatures of `(L, f)`.
+
+In this context, if we denote $z$ a primitive `n`-th root of unity, where `n`
+is the order of `f`, then for each $1 \leq i \leq n/2$ such that $(i, n) = 1$,
+the $i$-th signature of $(L, f)$ is given by the signatures of the real quadratic
+form $\Ker(f + f^{-1} - z^i - z^{-i})$.
+"""
 function signatures(Lf::LatticeWithIsometry)
   @req rank(Lf) != 0 "Signatures non available for the empty lattice"
   L = lattice(Lf)
@@ -323,12 +349,15 @@ end
 divides(k::PosInf, n::Int) = true
 
 @doc Markdown.doc"""
-    kernel_lattice(Lf::LatticeWithIsometry, p::fmpq_poly) -> LatticeWithIsometry
+    kernel_lattice(Lf::LatticeWithIsometry, p::Union{fmpz_poly, fmpq_poly})
+                                                         -> LatticeWithIsometry
 
-Given a lattice with isometry `Lf` and a polynomial `p` with rational
+Given a lattice with isometry `(L, f)` and a polynomial `p` with rational
 coefficients, return the sublattice $M := \ker(p(f))$ of the underlying lattice
 `L` with isometry `f`, together with the restriction $f_{\mid M}$.
 """
+kernel_lattice(Lf::LatticeWithIsometry, p::Union{fmpz_poly, fmpq_poly})
+
 function kernel_lattice(Lf::LatticeWithIsometry, p::fmpq_poly)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
@@ -348,14 +377,36 @@ end
 
 kernel_lattice(Lf::LatticeWithIsometry, p::fmpz_poly) = kernel_lattice(Lf, change_base_ring(QQ, p))
 
+@doc Markdown.doc"""
+    kernel_lattice(Lf::LatticeWithIsometry, l::Integer) -> LatticeWithIsometry
+
+Given a lattice with isometry `(L, f)` and an integer `l`, return the kernel
+lattice of `(L, f)` associated to the `l`-th cyclotomic polynomial.
+"""
 function kernel_lattice(Lf::LatticeWithIsometry, l::Integer)
   @req divides(order_of_isometry(Lf), l)[1] "l must divide the order of the underlying isometry"
   p = cyclotomic_polynomial(l)
   return kernel_lattice(Lf, p)
 end
 
+@doc Markdown.doc"""
+    invariant_lattice(Lf::LatticeWithIsometry) -> LatticeWithIsometry
+
+Given a lattice with isometry `(L, f)`, return the invariant lattice $L^f$ of
+`(L, f)` together with the restriction of `f` to $L^f$ (which is the identity
+in this case)
+"""
 invariant_lattice(Lf::LatticeWithIsometry) = kernel_lattice(Lf, 1)
 
+@doc Markdown.doc"""
+    coinvariant_lattice(Lf::LatticeWithIsometry) -> LatticeWithIsometry
+
+Given a lattice with isometry `(L, f)`, return the coinvariant lattice $L_f$ of
+`(L, f)` together with the restriction of `f` to $L_f$.
+
+The coinvariant lattice $L_f$ of `(L, f)` is the orthogonal complement in
+`L` of the invariant lattice $L_f$.
+"""
 function coinvariant_lattice(Lf::LatticeWithIsometry)
   chi = minpoly(Lf)
   if chi(1) == 0
@@ -372,6 +423,19 @@ end
 #
 ###############################################################################
 
+@doc Markdown.doc"""
+    type(Lf::LatticeWithIsometry)
+                      -> Dict{Int, Tuple{ <: Union{ZGenus, GenusHerm}, ZGenus}}
+
+Given a lattice with isometry `(L, f)` with `f` of finite order `n`, return the
+type of `(L, f)`.
+
+In this context, the type is defined as follows: for each divisor `k` of `n`,
+the `k`-type of `(L, f)` is the tuple $(H_k, A_K)$ consisting of the genus
+$H_k$ of the lattice $\Ker(\Phi_k(f))$ viewed as a hermitian $\mathbb{Z}[\zeta_k]$-
+lattice (so a $\mathbb{Z}$-lattice for k= 1, 2) and of the genus $A_k$ of the
+$\mathbb{Z}$-lattice $\Ker(f^k-1)$.
+"""
 @attr function type(Lf::LatticeWithIsometry)
   L = lattice(Lf)
   f = isometry(Lf)
@@ -392,7 +456,12 @@ end
   return t
 end
 
-function is_of_type(L::LatticeWithIsometry, t)
+@doc Markdown.doc"""
+    is_of_type(Lf::LatticeWithIsometry, t::Dict) -> Bool
+
+Given a lattice with isometry `(L, f)`, return whether `(L, f)` is of type `t`.
+"""
+function is_of_type(L::LatticeWithIsometry, t::Dict)
   @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
   divs = sort(collect(keys(t)))
   x = gen(Hecke.Globals.Qx)
@@ -409,6 +478,12 @@ function is_of_type(L::LatticeWithIsometry, t)
   return true
 end
 
+@doc Markdown.doc"""
+    is_of_same_type(Lf::LatticeWithIsometry, Mg::LatticeWithIsometry) -> Bool
+
+Given two lattices with isometry `(L, f)` and `(M, g)`, return whether they are
+of the same type.
+"""
 function is_of_same_type(L::LatticeWithIsometry, M::LatticeWithIsometry)
   @req is_finite(order_of_isometry(L)*order_of_isometry(M)) "Type is defined only for finite order isometries"
   order_of_isometry(L) != order_of_isometry(M) && return false
@@ -416,11 +491,24 @@ function is_of_same_type(L::LatticeWithIsometry, M::LatticeWithIsometry)
   return is_of_type(L, type(M))
 end
 
+@doc Markdown.doc"""
+    is_of_pure_type(Lf::LatticeWithIsometry) -> Bool
+
+Given a lattice with isometry `(L, f)`, return whether the minimal polynomial
+of `f` is irreducible cyclotomic.
+"""
 function is_of_pure_type(L::LatticeWithIsometry)
   @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
   return is_cyclotomic_polynomial(minpoly(L))
 end
 
+@doc Markdown.doc"""
+    is_pure(t::Dict) -> Bool
+
+Given a type `t` of lattices with isometry, return whether `t` is pure, i.e.
+whether it defines the type of lattice with isometry whose minimal polynomial
+is irreducible cyclotomic.
+"""
 function is_pure(t::Dict)
   ke = collect(keys(t))
   n = maximum(ke)
