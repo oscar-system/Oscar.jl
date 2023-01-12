@@ -46,6 +46,8 @@ function save_internal(s::SerializerState, q::fmpq)
 end
 
 function load_internal(s::DeserializerState, ::Type{fmpq}, q::String)
+    # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
+    # is merged and in a Nemo release
     fraction_parts = collect(map(String, split(q, "//")))
     fraction_parts = [fmpz(s) for s in fraction_parts]
 
