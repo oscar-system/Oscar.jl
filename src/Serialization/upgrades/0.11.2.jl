@@ -9,32 +9,37 @@
 # there types outside of the JSON array of entries
 
 push!(upgrade_scripts, UpgradeScript(
-    v"0.11.2",
-    function (s::DeserializerState, dict::Dict) 
+    v"0.11.2", # version this script upgrades to
+    function (s::DeserializerState, dict::Dict)
+        # file comes from polymake
         if haskey(dict, :_ns)
             haskey(dict[:_ns], :polymake) && return dict
         end
-    
+
+        # moves down tree to point where type exists in dict
+        # since we are only doing updates based on certain types
         if !haskey(dict, :type)
             upgraded_dict = Dict{Symbol, Any}()
             for (key, value) in dict
                 if value isa String
                     upgraded_dict[key] = value
                 else
-                    # recursive call
+                    # recursive call unnamed function with var"#self"
                     upgraded_dict[key] = var"#self#"(s, value)
                 end
             end
             return upgraded_dict
         end
 
+        # this is one of the base cases
         !haskey(dict, :data) && return dict
-        
+
+        # 
         if dict[:type] == string(backref_sym)
             backref = s.objs[UUID(dict[:id])]
             backref_type = decodeType(backref[:type])
 
-            # recursive call
+            # recursive call unnamed function with var"#self"
             backref_type <: OscarBasicType && return var"#self#"(s, backref)
             return dict
         end
@@ -45,7 +50,7 @@ push!(upgrade_scripts, UpgradeScript(
             
             for entry in dict[:data][:vector]
                 entry_type = entry[:type]
-                # recursive call
+                # recursive call unnamed function with var"#self"
                 push!(upgraded_vector, var"#self#"(s, entry))
             end
             

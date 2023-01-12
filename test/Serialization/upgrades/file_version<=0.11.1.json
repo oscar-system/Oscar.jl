@@ -14,7 +14,7 @@
   "id": "ef17af44-cc75-4e55-a8fc-707afdff9f96",
   "type": "fmpq_poly",
   "data": {
-    "parent": {
+     "parent": {
       "id": "4d26e2da-0298-4fbd-a874-7b9e18ad5e05",
       "type": "FmpqPolyRing",
       "data": {

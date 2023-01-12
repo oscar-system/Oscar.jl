@@ -1,5 +1,5 @@
 # Upgrade scripts contain code to upgrade files that were serialized with an older
-# format to the proceeding file format version. Thus to upgrade a file to
+# format to the next file format version. Thus to upgrade a file to
 # the latest format, one needs to apply all possible upgrade scripts in
 # successive order as determined by their version until finally the file has
 # been upgraded to the lastest format.
