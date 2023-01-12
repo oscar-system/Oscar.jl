@@ -257,7 +257,7 @@ export discriminant
     singular_loci(t::GlobalTateModel)
 
 Return the singular loci of the global Tate model, along with the order of
-vanishing of ``(f, g, \Delta)`` at each locus.
+vanishing of ``(f, g, \Delta)``` at each locus and the refined Tate fiber type.
 
 For the time being, we either explicitly or implicitly focus on toric varieties
 as base spaces. Explicitly, in case the user provides such a variety as base space,
@@ -314,8 +314,8 @@ julia> length(singular_loci(t))
 2
 
 julia> singular_loci(t)[2]
-(ideal(w), (1, 2, 3))
+(ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
+@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
 export singular_loci

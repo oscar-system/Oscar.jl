@@ -170,7 +170,7 @@ export discriminant
     singular_loci(w::GlobalWeierstrassModel)
 
 Return the singular loci of the global Weierstrass model, along with the order of
-vanishing of ``(f, g, \Delta)`` at each locus.
+vanishing of ``(f, g, \Delta)`` at each locus and the refined Tate fiber type.
 
 For the time being, we either explicitly or implicitly focus on toric varieties
 as base spaces. Explicitly, in case the user provides such a variety as base space,
@@ -233,10 +233,10 @@ julia> length(singular_loci(weier))
 2
 
 julia> singular_loci(weier)[2]
-(ideal(w), (1, 2, 3))
+(ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}}} function singular_loci(w::GlobalWeierstrassModel)
+@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
     B = irrelevant_ideal(toric_base_space(w))
 
     d_primes = primary_decomposition(ideal([discriminant(w)]))
@@ -247,10 +247,10 @@ julia> singular_loci(weier)[2]
         end
     end
 
-    f_primes = primary_decomposition(ideal([w.poly_f]))
-    g_primes = primary_decomposition(ideal([w.poly_g]))
+    f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
+    g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
 
-    kodaira_types = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}}[]
+    kodaira_types = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}[]
     for d_prime in nontrivial_d_primes
         f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
         g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)
@@ -258,8 +258,9 @@ julia> singular_loci(weier)[2]
         f_order = !isnothing(f_index) ? saturation_with_index(f_primes[f_index][1], d_prime[2])[2] : 0
         g_order = !isnothing(g_index) ? saturation_with_index(g_primes[g_index][1], d_prime[2])[2] : 0
         d_order = saturation_with_index(d_prime[1], d_prime[2])[2]
+        ords = (f_order, g_order, d_order)
 
-        push!(kodaira_types, (d_prime[2], (f_order, g_order, d_order)))
+        push!(kodaira_types, (d_prime[2], ords, _kodaira_type(d_prime[2], weierstrass_section_f(w), weierstrass_section_g(w), discriminant(w), ords)))
     end
     
     return kodaira_types

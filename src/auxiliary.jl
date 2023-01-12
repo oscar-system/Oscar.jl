@@ -1,4 +1,22 @@
 ################################################################
+# 1: Getter functions
+################################################################
+
+# These exist as wrappers to access fields that we aren't supposed to access
+function _forget_grading(graded_ring::MPolyRing_dec{fmpq, FmpqMPolyRing})
+    return graded_ring.R
+end
+
+function _forget_grading(graded_poly::MPolyElem_dec{fmpq, fmpq_mpoly})
+    return graded_poly.f
+end
+
+function _factors(poly::fmpq_mpoly)
+    factor(poly).fac
+end
+
+
+################################################################
 # 1: Construct auxiliary base space
 ################################################################
 
@@ -118,3 +136,94 @@ function TestBase()
     return NormalToricVariety(PolyhedralFan(rays, cones))
 end
 export TestBase
+
+################################################################
+# 6: Compute singularity Kodaira type and refined Tate type
+################################################################
+
+# TODO 1: The below assumes that the singular locus is given by
+#         a single coordinate
+# TODO 2: This code ignores the overall coefficient when checking for perfect squares,
+#         but can't properly factor cubics over the complexes, hence the ambiguity for I^*_0
+
+function _is_square_over_C(poly::fmpq_mpoly)
+   return all(map(x -> x % 2 == 0, values(_factors(poly))))
+end
+
+function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyElem_dec{fmpq, fmpq_mpoly}}
+    f_ord = ords[1]
+    g_ord = ords[2]
+    d_ord = ords[3]
+
+    poly_f = _forget_grading(f)
+    poly_g = _forget_grading(g)
+    poly_d = _forget_grading(d)
+    locus = _forget_grading(gens(id)[1])
+
+    if d_ord == 0
+        kod_type = "I_0"
+    elseif d_ord == 1 && f_ord == 0 && g_ord == 0
+        kod_type = "I_1"
+    elseif f_ord == 0 && g_ord == 0
+        monodromy_poly = divexact(evaluate(9 * poly_g, [locus], [0]), evaluate(2 * poly_f, [locus], [0]))
+        if _is_square_over_C(monodromy_poly)
+            kod_type = "Split I_$d_ord"
+        else
+            kod_type = "Non-split I_$d_ord"
+        end
+    elseif d_ord == 2 && g_ord == 1 && f_ord >= 1
+        kod_type = "II"
+    elseif d_ord == 3 && f_ord == 1 && g_ord >= 2
+        kod_type = "III"
+    elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
+        monodromy_poly = evaluate(divexact(poly_g, locus^2), [locus], [0])
+        if _is_square_over_C(monodromy_poly)
+            kod_type = "Split IV"
+        else
+            kod_type = "Non-split IV"
+        end
+    elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
+        # Using locus here is a trick to avoid defining a new polynomial ring
+        # It probably won't work once the issue of locus being a single coordinate is addressed
+        monodromy_poly =  locus^3 + locus * evaluate(divexact(poly_f, locus^2), [locus], [0]) + evaluate(divexact(poly_g, locus^3), [locus], [0])
+        num_facs = length(factor(monodromy_poly).fac)
+        if num_facs == 3
+            kod_type = "Split I^*_0"
+        elseif num_facs == 2
+            kod_type = "Semi-split or split I^*_0"
+        else
+            kod_type = "Non-split, semi-split, or split I^*_0"
+        end
+    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7 && d_ord % 2 == 1
+        monodromy_poly = divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^3, [locus], [0]), 4 * evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^3)
+        if _is_square_over_C(monodromy_poly)
+            kod_type = "Split I^*_$(d_ord - 6)"
+        else
+            kod_type = "Non-split I^*_$(d_ord - 6)"
+        end
+    elseif f_ord == 2 && g_ord == 3 && d_ord >= 8 && d_ord % 2 == 0
+        monodromy_poly = divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^2, [locus], [0]), evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^2)
+        if _is_square_over_C(monodromy_poly)
+            kod_type = "Split I^*_$(d_ord - 6)"
+        else
+            kod_type = "Non-split I^*_$(d_ord - 6)"
+        end
+    elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
+        monodromy_poly = evaluate(divexact(poly_g, locus^4), [locus], [0])
+        if _is_square_over_C(monodromy_poly)
+            kod_type = "Split IV^*"
+        else
+            kod_type = "Non-split IV^*"
+        end
+    elseif d_ord == 9 && f_ord == 3 && g_ord >= 5
+        kod_type = "III^*"
+    elseif d_ord == 10 && g_ord == 5 && f_ord >= 4
+        kod_type = "II^*"
+    elseif d_ord >= 12 && f_ord >= 4 && g_ord >= 6
+        kod_type = "Non-minimal"
+    else
+        kod_type = "Unrecognized"
+    end
+    
+    return kod_type
+end
