@@ -4793,8 +4793,8 @@ Compute a free resolution of `Q`.
 # Examples
 """
 function free_resolution(Q::MPolyQuo)
-  F = free_module(Q, 1)
-  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)], :module)
+  F = FreeMod(Q, 1)
+  q = quo(F, [Q(x) * gen(F, 1) for x = gens(Q.I)], :module)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
