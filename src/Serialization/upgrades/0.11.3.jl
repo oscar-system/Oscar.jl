@@ -31,27 +31,34 @@ push!(upgrade_scripts, UpgradeScript(
             return upgraded_dict
         end
 
-        # this is one of the base cases
-        !haskey(dict, :data) && return dict
-
-        # 
         if dict[:type] == string(backref_sym)
             backref = s.objs[UUID(dict[:id])]
             backref_type = decodeType(backref[:type])
 
             # recursive call unnamed function with var"#self"
-            backref_type <: OscarBasicType && return var"#self#"(s, backref)
+            # replace backrefs for types that no longer support backrefs
+            is_basic_serialization_type(backref_type) && return var"#self#"(s, backref)
             return dict
         end
+
+        # this is one of the base cases
+        !haskey(dict, :data) && return dict
 
         if dict[:type] == "Vector"
             upgraded_vector = []
             entry_type = nothing
-            
+
             for entry in dict[:data][:vector]
-                entry_type = entry[:type]
                 # recursive call unnamed function with var"#self"
-                push!(upgraded_vector, var"#self#"(s, entry))
+                result = var"#self#"(s, entry)
+
+                # store values that aren't backrefs in state
+                if entry[:type] != string(backref_sym)
+                    s.objs[UUID(entry[:id])] = entry
+                    entry_type = entry[:type]
+                end
+
+                push!(upgraded_vector, result)
             end
             
             upgraded_vector[1] isa Dict && return Dict(

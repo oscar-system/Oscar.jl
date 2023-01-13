@@ -23,7 +23,7 @@ end
 # The list of all available upgrade scripts
 const upgrade_scripts = Vector{UpgradeScript}()
 
-include("0.11.2.jl")
 include("0.11.3.jl")
+include("0.11.4.jl")
 
 sort!(upgrade_scripts; by=version)

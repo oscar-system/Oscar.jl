@@ -1,0 +1,108 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      {
+        "major": 0,
+        "minor": 11,
+        "patch": 2,
+        "prerelease": [
+          "DEV"
+        ],
+        "build": []
+      }
+    ]
+  },
+  "id": "94dc9802-17cf-43bb-a29d-071a638517ef",
+  "type": "Vector",
+  "data": {
+    "vector": [
+      {
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "fmpq",
+        "data": {
+          "num": {
+            "id": "409a9f06-c626-4563-acb2-19af1a3b183c",
+            "type": "fmpz",
+            "data": "1"
+          },
+          "den": {
+            "id": "6e67b524-4cdf-47bf-8e30-95c3002245b1",
+            "type": "fmpz",
+            "data": "1"
+          }
+        }
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      },
+      {
+        "version": 1,
+        "id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
+        "type": "#backref"
+      }
+    ]
+  }
+}
