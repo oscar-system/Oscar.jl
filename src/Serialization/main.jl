@@ -235,6 +235,8 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
         script_version = version(upgrade_script)
 
         if dict_version < script_version
+            # TODO: use a macro from Hecke that will allow user to surpress
+            # such a message
             println("upgrading serialized data to version $script_version")
             s = DeserializerState()
 

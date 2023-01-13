@@ -44,6 +44,11 @@ push!(upgrade_scripts, UpgradeScript(
         # this is one of the base cases
         !haskey(dict, :data) && return dict
 
+        # load any non backrefs into state
+        if (haskey(dict, :id))
+            s.objs[UUID(dict[:id])] = dict
+        end
+
         if dict[:type] == "Vector"
             upgraded_vector = []
             entry_type = nothing
@@ -54,7 +59,9 @@ push!(upgrade_scripts, UpgradeScript(
 
                 # store values that aren't backrefs in state
                 if entry[:type] != string(backref_sym)
-                    s.objs[UUID(entry[:id])] = entry
+                    if (haskey(entry, :id))
+                        s.objs[UUID(entry[:id])] = entry
+                    end
                     entry_type = entry[:type]
                 end
 
@@ -81,6 +88,7 @@ push!(upgrade_scripts, UpgradeScript(
 
         U = decodeType(dict[:type])
 
+        # Upgrades fmpq serialization
         if is_basic_serialization_type(U)
             if U == fmpq
                 num = dict[:data][:num][:data]
@@ -91,6 +99,7 @@ push!(upgrade_scripts, UpgradeScript(
             end
         end
 
+        # recursive call unnamed function with var"#self"
         upgraded_data = var"#self#"(s, dict[:data])
 
         return Dict(
