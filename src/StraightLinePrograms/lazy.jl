@@ -108,7 +108,7 @@ call(f, xs...) = Lazy(Call(f, [LazyRec(x) for x in xs]))
 
 Base.getindex(x::Lazy, is...) =
     getindex(x, map(f -> f isa Lazy ? f : Lazy(f), is)...)
-Base.getindex(x, y::Lazy) = Lazy(x[y.x], gens(y))
+#Base.getindex(x, y::Lazy) = Lazy(x[y.x], gens(y))  # disabled as this this causes many method invalidations
 
 # special case for integer literals
 
@@ -559,7 +559,7 @@ Base.getindex(x::LazyRec, i::LazyRec...) = Getindex(x, collect(i))
 -(x, y::LazyRec) = Const(x) - y
 -(x::LazyRec, y) = x - Const(y)
 
-Base.getindex(x, i::LazyRec) = Getindex(Const(x), [i])
+#Base.getindex(x, i::LazyRec) = Getindex(Const(x), [i])  # disabled as this this causes many method invalidations
 Base.getindex(x::LazyRec, is...) = Getindex(x, LazyRec[i isa LazyRec ? i : Const(i) for i in is])
 
 
