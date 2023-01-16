@@ -157,16 +157,11 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     if typeof(base_ring(I)) <: MPolyRing_dec
       J, target_ordering  = I, ordering
     else
-      if !all(p -> _is_homogeneous_weights(p, ones(Int, ngens(base_ring(I)))), gens(I))
-        gens_hom = homogenization(gens(I), "w")
-        J = ideal(parent(first(gens_hom)), gens_hom)
-        target_ordering = _extend_mon_order(ordering, base_ring(J))
-      else
-        J, target_ordering = I, ordering
-      end 
+      gens_hom = homogenization(gens(I), "w")
+      J = ideal(parent(first(gens_hom)), gens_hom)
+      target_ordering = _extend_mon_order(ordering, base_ring(J))
     end
     GB = groebner_basis_hilbert_driven(J, ordering = target_ordering,
-                                       weights=_extract_weights(base_ring(J)),
                                        complete_reduction=complete_reduction)
     if base_ring(I) == base_ring(J)
       I.gb[ordering] = GB
@@ -1251,10 +1246,9 @@ end
 
 
 @doc Markdown.doc"""
-    groebner_basis_hilbert_driven(I::MPolyIdeal;
+    groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                   ordering::MonomialOrdering,
-                                  weights::Vector{E} = ones(Int, ngens(base_ring(I))),
-                                  complete_reduction::Bool = false) where {E <: Integer}
+                                  complete_reduction::Bool = false) where {P <: MPolyElem_dec}
 
 
 Compute a Gröbner basis of `I` with respect to `ordering` using a
@@ -1271,26 +1265,25 @@ resulting Hilbert series to optimize the Gröbner basis computation for
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = grade(PolynomialRing(QQ, ["x", "y", "z"])[1]);
 
 julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
 
-julia> groebner_basis_hilbert_driven(I, ordering = lex(R), complete_reduction = true)
+julia> groebner_basis_hilbert_driven(I, ordering = deglex(R), complete_reduction = true)
 Gröbner basis with elements
-1 -> y^2*z + y*z^2
-2 -> x*y - y*z
-3 -> x^2 + y*z
+1 -> x*y - y*z
+2 -> x^2 + y*z
+3 -> y^2*z + y*z^2
 with respect to the ordering
-lex([x, y, z])
+deglex([x, y, z])
 ```
 """
 
-function groebner_basis_hilbert_driven(I::MPolyIdeal;
+function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        ordering::MonomialOrdering,
-                                       weights::Vector{E} = ones(Int, ngens(base_ring(I))),
-                                       complete_reduction::Bool = false) where {E <: Integer}
+                                       complete_reduction::Bool = false) where {P <: MPolyElem_dec}
   
-  all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
+  all(p -> is_homogeneous(p), gens(I)) || error("I must be given by generators homogeneous with respect to its underlying ring.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
   is_global(ordering) || error("Destination ordering must be global.")
 	haskey(I.gb, ordering) && return I.gb[ordering]
@@ -1300,19 +1293,20 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal;
       p = Hecke.next_prime(r)
         
       base_field = GF(p)
-      ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+      ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
+                      _extract_weights(base_ring(I)))
       I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
       try
-        # we have to coerce to ModP like this because the base ring of `I` might be
+        # we have to coerce to ModP like this because the base ring of `I` is
         # graded
-        ctx = MPolyBuildCtx(ModP)
         for (i, f) in enumerate(gens(I))
+          ctx = MPolyBuildCtx(ModP)
           for (c, m) in zip(coefficients(f), exponents(f))
             push_term!(ctx, base_field(c), m)
           end
           I_mod_p_gens[i] = finish(ctx)
         end
-        G = f4(ideal(ModP, I_mod_p_gens))
+        G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
         break
       catch e
         if e == ErrorException("Unable to coerce") 
@@ -1331,10 +1325,11 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal;
   end
 
   singular_assure(G)
-  h = Singular.hilbert_series(G.S, (Int32).(weights))
+  weights = _extract_weights(base_ring(G))
+  h = Singular.hilbert_series(G.S, weights)
 	singular_assure(I.gens, ordering)
-	R = I.gens.Sx
-	J  = Singular.Ideal(R, gens(I.gens.S)...)
+	singular_ring = I.gens.Sx
+	J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
 	i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
 	GB = IdealGens(I.gens.Ox, i, complete_reduction)
@@ -1357,15 +1352,6 @@ function _extract_weights(T::MPolyRing)
   else
     return ones(Int, nvars(T))
   end
-end
-
-function _is_homogeneous_weights(f::MPolyElem,
-                                 weights::Vector{I}) where {I <: Integer}
-  
-  iszero(f) && return true
-  weight_deg = e -> sum([weights[i] * e[i] for i in eachindex(e)])
-  f_weight_deg = weight_deg(first(exponent_vectors(f)))
-  return all(e -> weight_deg(e) == f_weight_deg, collect(exponent_vectors(f))[2:end])
 end
 
 function _extend_mon_order(ordering::MonomialOrdering,
