@@ -113,6 +113,8 @@ objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_typ
 solve_lp(LP::LinearProgram)
 optimal_value(lp::LinearProgram{T}) where T<:scalar_types
 optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
+load_lp(file::String)
+save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+load_mps(file::String)
+save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
 ```
-
-

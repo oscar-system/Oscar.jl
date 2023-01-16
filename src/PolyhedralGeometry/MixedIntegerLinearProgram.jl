@@ -18,13 +18,16 @@ end
 # no default = `fmpq` here; scalar type can be derived from the feasible region
 MixedIntegerLinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = MixedIntegerLinearProgram{T}(p, x...)
 
-function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max) where T<:scalar_types
+function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; integer_variables=Int64[], k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
    ambDim = ambient_dim(P)
+   if isnothing(integer_variables) || isempty(integer_variables)
+      integer_variables = 1:ambDim
+   end
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
-   milp = Polymake.polytope.MixedIntegerLinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=integer_variables)
+   milp = Polymake.polytope.MixedIntegerLinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=Vector(integer_variables))
    if convention == :max
       Polymake.attach(milp, "convention", "max")
    elseif convention == :min
@@ -41,6 +44,7 @@ MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::Abstr
 
 MixedIntegerLinearProgram(x...) = MixedIntegerLinearProgram{fmpq}(x...)
 
+pm_object(milp::MixedIntegerLinearProgram) = milp.polymake_milp
 
 ###############################################################################
 ###############################################################################
