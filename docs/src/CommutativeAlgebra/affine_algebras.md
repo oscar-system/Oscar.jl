@@ -292,7 +292,7 @@ issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
-### Ideal Membership
+#### Ideal Membership
 
 ```@docs
 ideal_membership(f::MPolyQuoElem{T}, a::MPolyQuoIdeal{T}) where T
