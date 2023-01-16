@@ -473,7 +473,6 @@ julia> a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
 ideal(x^3*y^4 - x + y, x*y^2 + x*y)
 
 julia> simplify_generators(a)
-
 ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 
 julia> a
