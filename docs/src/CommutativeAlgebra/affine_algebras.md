@@ -120,9 +120,7 @@ or by directly coercing elements of $R$ into $A$.
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2) defined by a julia-function with inverse)
+julia> A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 
 julia> f = p(x^3*y^2-y^3*x^2+x*y)
 x^3*y^2 - x^2*y^3 + x*y
@@ -184,10 +182,10 @@ degree(f::MPolyQuoElem{<:MPolyElem_dec})
 ideal(Q::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
 ```
 
-### Reducing Ideals in Affine Algebras
+### Reducing Generators of Ideals
 
 ```@docs
-simplify(a::MPolyQuoIdeal)
+simplify_generators(a::MPolyQuoIdeal)
 ```
 
 ### Data Associated to Ideals in Affine Algebras
@@ -282,16 +280,22 @@ quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 iszero(a::MPolyQuoIdeal)
 ```
 
+#### Containment of Ideals in Affine Algebras
+
+```@docs
+issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
+```
+
 #### Equality of Ideals in Affine Algebras
 
 ```@docs
 ==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
-#### Containment of Ideals in Affine Algebras
+### Ideal Membership
 
 ```@docs
-issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
+ideal_membership(f::MPolyQuoElem{T}, a::MPolyQuoIdeal{T}) where T
 ```
 
 ## Homomorphisms From Affine Algebras
