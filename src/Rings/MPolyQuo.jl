@@ -1,6 +1,6 @@
 export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!, default_ordering
-export simplify_generators,  simplify_generators!
+export simplify_generators, simplify_generators!
 export issubset
 export saturated_ideal
 ##############################################################################
