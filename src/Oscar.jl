@@ -168,6 +168,7 @@ function __init__()
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
+    GAP.Packages.load("repsn")
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()
