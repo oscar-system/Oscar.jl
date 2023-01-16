@@ -1684,6 +1684,71 @@ end
 
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
+function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+
+  U, mU = Hecke.one_unit_group(K)
+  G, mG = automorphism_group(PermGroup, K, k)
+
+  b = absolute_basis(K)
+  local o
+  while true
+    a = uniformizer(K)^30*sum(b[i]*rand(-5:5) for i=1:length(b))
+    o = [mG(g)(a) for g = G]
+    if length(Set(o)) == order(G)
+      break
+    end
+  end
+
+  S, mS = sub(U, [preimage(mU, 1+x) for x = o])
+  Q, mQ = quo(U, S)
+  hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
+  return gmodule(G, hh)
+end
+
+function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+
+  U, mU = unit_group(K)
+  G, mG = automorphism_group(PermGroup, K, k)
+  n = divexact(absolute_degree(K), absolute_degree(k))
+  @assert order(G) == n
+
+  b = absolute_basis(K)
+  # need a normal basis for K/k, so the elements need to be k-lin. indep
+  local o
+  while true
+    a = sum(b[i]*rand(-5:5) for i=1:length(b))
+    o = [mG(g)(a) for g = G]
+    m = matrix(k, n, n, vcat([coordinates(x, k) for x = o]...))
+    dm = det(m)
+    if iszero(dm) || valuation(dm) > 5
+      continue
+    else
+      break
+    end
+  end
+
+  global last_data = (o, k, mU, mG)
+  S, mS = sub(U, [preimage(mU, 1+prime(k)^3*x) for x = o])
+  Q, mQ = quo(U, S)
+  hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
+  return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
+end
+
+#=
+"""
+`p` has to be unramifed in the `base_ring` of `A`
+"""
+function local_cohomology_easy(A::ClassField, p::NfOrdIdl)
+  O = order(p)
+  @assert base_ring(A) == nf(O)
+  @assert isunramified(p) # && iseasy(p)
+  e, f, g = Hecke.prime_decomposition_type(A, p)
+  c, cinf = conductor(A)
+  @assert length(cinf) == 0 #for the time being, not sure why
+  #=
+    so, according to the theory:
+    p^f * U^val(c, p)) <= N(A_p) <= k_p
+
 #= not used
 
 function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
