@@ -109,7 +109,7 @@ function is_consistent(M::GModule)
     for i=2:length(w)
       a = a* action(M, mG(w[i]< 0 ? inv(gen(G, -w[i])) : gen(G, w[i])))
     end
-    all(x->a(x) == x, gens(V)) || return false
+    all(x->a(x) == x, gens(V)) || (@show r; return false)
   end
 
   return true
@@ -314,7 +314,7 @@ function (C::CoChain{2})(g::Oscar.BasicGAPGroupElem, h::Oscar.BasicGAPGroupElem)
 end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
 
-
+#TODO: re-write to get the maps! To support Q/Z as well
 """
   H^0(G, M)
 
@@ -941,6 +941,7 @@ function H_two(C::GModule)
   end
 
   set_attribute!(C, :H_two_symbolic_chain => (symbolic_chain, mH2))
+  set_attribute!(C, :H_two_maps => (CC, mm))
 
   function iscoboundary(cc::CoChain{2})
     t = TailFromCoChain(cc)
@@ -952,7 +953,7 @@ function H_two(C::GModule)
     # t gives, directly, the images of the generators (of FF)
     im_g = [B_pro[i](b) for i=1:ngens(FF)]
     # otherwise: sigma(g, h) + sigma(gh) = sigma(g)^h + sigma(h)
-    # this gives the images fir the inverses, and then for everything
+    # this gives the images for the inverses, and then for everything
     im_gi = [cc((mFF(gen(FF, i)), mFF(inv(gen(FF, i))))) - iac[i](im_g[i]) for i=1:ngens(FF)]
     @assert domain(mFF) == FF
     @assert codomain(mFF) == G == group(cc.C)
@@ -976,8 +977,13 @@ function H_two(C::GModule)
     return true, CoChain{1,elem_type(G),elem_type(M)}(C, d)
   end
 
-  z = (MapFromFunc(x->TailToCoChain(mE(x)), 
-                         y->preimage(mE, TailFromCoChain(y)), E, AllCoChains{2,elem_type(G),elem_type(M)}()),
+  z2 = function(y)
+    T = TailFromCoChain(y)
+    return mH2(preimage(mE, T))
+  end
+
+  z = (MapFromFunc(x->TailToCoChain(mE(preimage(mH2, x))), 
+                  z2, H2, AllCoChains{2,elem_type(G),elem_type(M)}()),
 #                         y->TailFromCoChain(y), D, AllCoChains{2,elem_type(G),elem_type(M)}()),
              iscoboundary)
   set_attribute!(C, :H_two => z)
@@ -1499,21 +1505,42 @@ function Oscar.automorphism_group(::Type{PermGroup}, k)
   G, mG = automorphism_group(k)
   H = symmetric_group(degree(k))
   gens(G) #to make sure gens are actually there...
-  H = sub(H, [H(G.mult_table[i, :]) for i=G.gens])[1]
+  H = sub(H, [H(G.mult_table[:, i]) for i=G.gens])[1]
 
   function HtoG(p::PermGroupElem)
     m = [i^p for i=1:degree(k)]
-    i = Base.findfirst(x->G.mult_table[x, :] == m, 1:degree(k))
+    i = Base.findfirst(x->G.mult_table[:, x] == m, 1:degree(k))
     return mG(GrpGenElem(G, i))
   end
 
   function GtoH(a::NfToNfMor)
     g = preimage(mG, a)
-    return H(G.mult_table[g.i, :])
+    return H(G.mult_table[:, g.i])
   end
 
   return H, MapFromFunc(HtoG, GtoH, H, codomain(mG))
 end
+
+function Oscar.automorphism_group(::Type{PermGroup}, K, k)
+  G, mG = automorphism_group(K, k)
+  H = symmetric_group(length(G))
+  gens(G) #to make sure gens are actually there...
+  H = sub(H, [H(G.mult_table[:, i]) for i=G.gens])[1]
+
+  function HtoG(p::PermGroupElem)
+    m = [i^p for i=1:length(G)]
+    i = Base.findfirst(x->G.mult_table[:, x] == m, 1:length(G))
+    return mG(GrpGenElem(G, i))
+  end
+
+  function GtoH(a::NfToNfMor)
+    g = preimage(mG, a)
+    return H(G.mult_table[:, g.i])
+  end
+
+  return H, MapFromFunc(HtoG, GtoH, H, codomain(mG))
+end
+
 
 """
 The natural `ZZ[H]` module where `H`, a subgroup of the
@@ -1652,6 +1679,58 @@ end
 
 function isunramified(p::NfOrdIdl)
   return ramification_index(p) == 1
+end
+
+parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
+
+function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+
+  U, mU = Hecke.one_unit_group(K)
+  G, mG = automorphism_group(PermGroup, K, k)
+
+  b = absolute_basis(K)
+  local o
+  while true
+    a = uniformizer(K)^30*sum(b[i]*rand(-5:5) for i=1:length(b))
+    o = [mG(g)(a) for g = G]
+    if length(Set(o)) == order(G)
+      break
+    end
+  end
+
+  S, mS = sub(U, [preimage(mU, 1+x) for x = o])
+  Q, mQ = quo(U, S)
+  hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
+  return gmodule(G, hh)
+end
+
+function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+
+  U, mU = unit_group(K)
+  G, mG = automorphism_group(PermGroup, K, k)
+  n = divexact(absolute_degree(K), absolute_degree(k))
+  @assert order(G) == n
+
+  b = absolute_basis(K)
+  # need a normal basis for K/k, so the elements need to be k-lin. indep
+  local o
+  while true
+    a = sum(b[i]*rand(-5:5) for i=1:length(b))
+    o = [mG(g)(a) for g = G]
+    m = matrix(k, n, n, vcat([coordinates(x, k) for x = o]...))
+    dm = det(m)
+    if iszero(dm) || valuation(dm) > 5
+      continue
+    else
+      break
+    end
+  end
+
+  global last_data = (o, k, mU, mG)
+  S, mS = sub(U, [preimage(mU, 1+prime(k)^3*x) for x = o])
+  Q, mQ = quo(U, S)
+  hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
+  return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
 
 #=
