@@ -15,9 +15,11 @@ Pages = ["intro.md"]
 The commutative algebra part of OSCAR provides functionality for dealing with
 
 - multivariate polynomial rings and their ideals,
-- quotients of multivariate polynomial rings by ideals, as well as ideals of such quotients,
-- localizations of the above rings and their ideals, and 
+- quotients of multivariate polynomial rings modulo ideals and ideals of such quotients,
+- localizations of the above rings and ideals of such localizations, and 
 - modules over all rings above.
+
+We use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
 
 !!! note
     Fundamental to most functions described below is the concept of *standard bases*. Each such basis
