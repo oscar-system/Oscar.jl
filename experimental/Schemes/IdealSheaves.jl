@@ -300,6 +300,7 @@ function Base.show(io::IO, I::IdealSheaf)
 end
 
 function ==(I::IdealSheaf, J::IdealSheaf)
+  I === J && return true
   X = space(I)
   X == space(J) || return false
   for U in basic_patches(default_covering(X))

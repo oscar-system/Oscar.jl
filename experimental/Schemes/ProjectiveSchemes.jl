@@ -907,7 +907,7 @@ function dehomogenize(
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = ambient_coordinate_ring(X)
-  C = standard_covering(X)
+  C = default_covering(covered_scheme(X))
   U = C[i+1]
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
   return hom(S, OO(U), s)
