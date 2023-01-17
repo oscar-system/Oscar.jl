@@ -1346,10 +1346,6 @@ function _extract_weights(T::MPolyRing_dec)
   return [Int(first(gr_elem.coeff)) for gr_elem in T.d]
 end
 
-function _extract_weights(T::MPolyRing)
-  return ones(Int, nvars(T))
-end
-
 function _extend_mon_order(ordering::MonomialOrdering,
                            homogenized_ring::MPolyRing_dec)
 
