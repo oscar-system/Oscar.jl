@@ -79,7 +79,7 @@ end
   @test b == ideal(Q, gens(b))
 
   I = ideal(Q, [x^2*y-x+y,y+1])
-  simplify!(I)
+  simplify_generators!(I)
   SQ = singular_poly_ring(Q)
   @test I.SI[1] == SQ(-x+y) && I.SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
