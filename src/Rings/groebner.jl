@@ -154,7 +154,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    if typeof(base_ring(I)) <: MPolyRing_dec
+    if base_ring(I) isa MPolyRing_dec
       J, target_ordering  = I, ordering
     else
       gens_hom = homogenization(gens(I), "w")
