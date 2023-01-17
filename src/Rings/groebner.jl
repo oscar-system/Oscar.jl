@@ -1297,15 +1297,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                       _extract_weights(base_ring(I)))
       I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
       try
-        # we have to coerce to ModP like this because the base ring of `I` is
-        # graded
-        for (i, f) in enumerate(gens(I))
-          ctx = MPolyBuildCtx(ModP)
-          for (c, m) in zip(coefficients(f), exponents(f))
-            push_term!(ctx, base_field(c), m)
-          end
-          I_mod_p_gens[i] = finish(ctx)
-        end
+        I_mod_p_gens = [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
       catch e
         # this precise error is thrown if the chosen prime p divides
         # one of the denominators of the coefficients of the generators
