@@ -1347,15 +1347,15 @@ end
 
 # Helper functions for groebner_basis_with_hilbert
 
-function _extract_weights(T::MPolyRing)
-  if typeof(T) <: MPolyRing_dec
-    if !is_z_graded(T)
-      error("Ring must be graded by the Integers.")
-    end
-    return [Int(first(gr_elem.coeff)) for gr_elem in T.d]
-  else
-    return ones(Int, nvars(T))
+function _extract_weights(T::MPolyRing_dec)
+  if !is_z_graded(T)
+    error("Ring must be graded by the Integers.")
   end
+  return [Int(first(gr_elem.coeff)) for gr_elem in T.d]
+end
+
+function _extract_weights(T::MPolyRing)
+  return ones(Int, nvars(T))
 end
 
 function _extend_mon_order(ordering::MonomialOrdering,
