@@ -13,7 +13,7 @@ using Oscar
 Pages = ["affine_algebras.md"]
 ```
 
-# Affine Algebras
+# Affine Algebras and Their Ideals
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient ring of $R$
