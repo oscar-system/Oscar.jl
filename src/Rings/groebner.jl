@@ -1288,9 +1288,9 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   is_global(ordering) || error("Destination ordering must be global.")
 	haskey(I.gb, ordering) && return I.gb[ordering]
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
+    p = 32771
     while true
-      r = rand(2^15:2^16)
-      p = Hecke.next_prime(r)
+      p = Hecke.next_prime(p)
         
       base_field = GF(p)
       ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
