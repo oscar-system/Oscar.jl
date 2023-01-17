@@ -478,9 +478,10 @@ julia> order(Oq)
     return kernel(f)
   end
   # we can compute the orthogonal group of L
-  Oq = orthogonal_group(discriminant_group(L))
+  qL = discriminant_group(L)
   G = orthogonal_group(L)
-  return sub(Oq, [Oq(g, check=false) for g in gens(G)])
+  gensGL = fmpz_mat[hom(qL, qL, elem_type(qL)[qL(lift(t)*matrix(g)) for t in gens(qL)]).map_ab.map for g in gens(G)]
+  return Oscar._orthogonal_group(qL, gens(GL), check=false)
 end
 
 @attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}

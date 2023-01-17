@@ -1048,7 +1048,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadMod)
     card = prod([order(S[k]) for k in 1:(i+1)], init = ZZ(1))
     for b in s_cand[i+1]
       if all(k -> b*f[k] == a*S[k], 1:i)
-        fnew = TorQuadModElem[i for i in f]
+        fnew = copy(f)
         union!(fnew, [b])
         if order(sub(S, fnew)[1]) == card
           push!(waiting, fnew)

@@ -692,13 +692,19 @@ The transformations are represented with respect to the ambient space of `L`.
 end
 
 @attr MatrixGroup{fmpq,fmpq_mat} function isometry_group(L::ZLat)
-   # corner case
-   if rank(L) == 0
-      return matrix_group(identity_matrix(QQ,degree(L)))
-   end
-   @req is_definite(L) "lattice must be definite"
-   G, _ = _isometry_group_via_decomposition(L)
-   return G
+  # corner case
+  if rank(L) == 0
+     return matrix_group(identity_matrix(QQ,degree(L)))
+  end
+
+  if !is_definite(L) && (rank(L) == 2)
+    gene = automorphism_group_generators(L)
+    return matrix_group([change_base_ring(QQ, m) for m in gene])
+  end
+
+  @req is_definite(L) "Lattice must be definite or of rank at most 2"
+  G, _ = _isometry_group_via_decomposition(L)
+  return G
 end
 
 """
