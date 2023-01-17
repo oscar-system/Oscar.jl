@@ -1704,10 +1704,50 @@ function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, Fli
   return gmodule(G, hh)
 end
 
-function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0)
 
-  U, mU = unit_group(K)
+  #if K/k is unramified, then the units are cohomological trivial,
+  #   so Z (with trivial action) is correct for the gmodule
+  #if K/k is tame, then the 1-units are cohomologycal trivial, hence
+  #   Z time k^* is enough...
+
   G, mG = automorphism_group(PermGroup, K, k)
+
+
+  e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
+  if e == 1
+    @show :unram
+    A = abelian_group([0])
+    pi = uniformizer(K)
+    return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
+      mG,
+      MapFromFunc(x->pi^x[1], y->Int(e*valuation(y)), A, K)
+  end
+
+  if e % prime(K) != 0 #tame!
+    @show :tame
+    k, mk = ResidueField(K)
+    u, mu = unit_group(k)
+    pi = uniformizer(K)
+    gk = preimage(mk, mu(u[1]))^(4^10)
+    A = abelian_group([0, order(u)])
+    h = Map[]
+    for g = gens(G)
+      im = [A[1]+preimage(mu, mk(mG(g)(pi)*inv(pi)))[1]*A[2], preimage(mu, mk(mG(g)(gk)))[1]*A[2]]
+      push!(h, hom(A, A, im))
+    end
+    return gmodule(G, h),
+      mG,
+      MapFromFunc(x->pi^x[1] * gk^x[2],
+        function(y)
+          v = Int(e*valuation(y))
+          y *= y^-v
+          return v*A[1] + preimage(mu, mk(y))[1]*A[2]
+        end, A, K)
+  end
+ 
+  @show :wild
+  U, mU = unit_group(K)
   n = divexact(absolute_degree(K), absolute_degree(k))
   @assert order(G) == n
 
@@ -1726,33 +1766,31 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     end
   end
 
-  global last_data = (o, k, mU, mG)
-  S, mS = sub(U, [preimage(mU, 1+prime(k)^3*x) for x = o])
-  Q, mQ = quo(U, S)
+  #o needs to be expanded to be an absolute basis
+  b = absolute_basis(k)
+  o = [x*y for x = b for y = o]
+
+  Q, mQ = quo(U, [preimage(mU, 1+prime(k)^4*x) for x = o])
+  S, mS = snf(Q)
+  Q = S
+  mQ = mQ*inv(mS)
+
+  if Sylow > 0
+    @assert isprime(Sylow)
+    G, mS = sylow_subgroup(G, Sylow)
+    mG = mS*mG
+  end
+
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
 
-#=
-"""
-`p` has to be unramifed in the `base_ring` of `A`
-"""
-function local_cohomology_easy(A::ClassField, p::NfOrdIdl)
-  O = order(p)
-  @assert base_ring(A) == nf(O)
-  @assert isunramified(p) # && iseasy(p)
-  e, f, g = Hecke.prime_decomposition_type(A, p)
-  c, cinf = conductor(A)
-  @assert length(cinf) == 0 #for the time being, not sure why
-  #=
-    so, according to the theory:
-    p^f * U^val(c, p)) <= N(A_p) <= k_p
-
-    we're unramified, so k_p = <p> * F_q * U^1
-    and
-    U^1 = Z_q via log (in general this is wrong)
-  =#
-end
+#= TODO
+ - induce a gmodule into a larger group
+ - direct sum/prod of gmodules
+ - quotient?
+ - the local/ global fund class, ie. normalize the cochain
+ - map a local chain into a ray class group
 =#
 
 export GModule, gmodule, word, fp_group, confluent_fp_group
@@ -1777,9 +1815,11 @@ Sort:
  - move the additional GrpAbFinGenMap stuff elsewhere
  - move (and fix) the ModuleHom stuff
  - add proper quo for Modules
+ - split generic coho/ gmodule and number theory  
 
   features   
    - inflation, restriction, long exact sequence  
+   - induction/ coinduction ...
 
   dreams
    - we we extend to H^-1, ^-2?
@@ -1794,7 +1834,7 @@ Sort:
   GModule for 
     - local field (add (trivial) and mult)
     - (S-)units
-    - Ali's stuff....
+    - Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
 =#    
 
 end # module GrpCoh
