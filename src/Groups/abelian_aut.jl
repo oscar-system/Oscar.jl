@@ -1,7 +1,5 @@
 export defines_automorphism
 
-@attributes TorQuadMod   # TODO: remove as soon as Hecke is patched
-
 AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadMod}}
 AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadMod}}
 AbTorElem = Union{GrpAbFinGenElem,TorQuadModElem}
@@ -12,7 +10,7 @@ function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   return codomain(iso), iso, iso2
 end
 
-"""
+@doc Markdown.doc"""
     automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{GrpAbFinGen} 
 
 Return the automorphism group of `G`.
@@ -56,7 +54,7 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
   return subgrp1, hom(subgrp1, aut, img)
 end
 
-"""
+@doc Markdown.doc"""
     hom(f::AutomorphismGroupElem{GrpAbFinGen}) -> GrpAbFinGenMap 
 
 Return the element `f` of type `GrpAbFinGenMap`.
@@ -102,7 +100,8 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{fmpq, fmpq_mat}; check::Bool=true
   g = hom(T, T, elem_type(T)[T(lift(t)*matrix(g)) for t in gens(T)])
   return aut(g)
 end
-"""
+
+@doc Markdown.doc"""
     matrix(f::AutomorphismGroupElem{GrpAbFinGen}) -> fmpz_mat
 
 Return the underlying matrix of `f` as a module homomorphism.
@@ -110,22 +109,18 @@ Return the underlying matrix of `f` as a module homomorphism.
 matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
 
 
-"""
+@doc Markdown.doc"""
     defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
 """ 
 defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) = is_bijective(hom(G,G,M))
 
-
-
-
 ################################################################################
 #
 #   Special functions for orthogonal groups of torsion quadratic modules
 #
 ################################################################################
-
 
 """
     _orthogonal_group(T::TorQuadMod, gensOT::Vector{fmpz_mat}) -> AutomorphismGroup{TorQuadMod}
@@ -166,14 +161,14 @@ function Base.show(io::IO, aut::AutomorphismGroup{TorQuadMod})
 end
 
 
-"""
+@doc Markdown.doc"""
     matrix(f::AutomorphismGroupElem{TorQuadMod}) -> fmpz_mat
 
 Return a matrix inducing `f`.
 """
 matrix(f::AutomorphismGroupElem{TorQuadMod}) = hom(f).map_ab.map
 
-"""
+@doc Markdown.doc"""
     defines_automorphism(G::TorQuadMod, M::fmpz_mat) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
@@ -210,7 +205,7 @@ function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadMod
 end
 
 
-"""
+@doc Markdown.doc"""
     orthogonal_group(T::TorQuadMod)  -> AutomorphismGroup{TorQuadMod}
 
 Return the full orthogonal group of this torsion quadratic module.
@@ -230,12 +225,10 @@ Return the full orthogonal group of this torsion quadratic module.
     # from the underlying abelian group
     gensOT = [matrix(g) for g in gens(automorphism_group(abelian_group(T)))]
   else
-    # if T is not semi-regular, we want to be able to split its radical
-    # quadratic. If it is not the case, we return an error since we don't
-    # support this particular case.
+    # if T is not semi-regular, we distinghuish the cases whether or not
+    # it splits its radical quadratic
     i = radical_quadratic(T)[2]
-    @req has_complement(i)[1] "The radical quadratic must split"
-    gensOT = _compute_gens_split_degenerate(T)
+    gensOT = has_complement(i)[1] ? _compute_gens_split_degenerate(T) : _compute_gens_non_split_degenerate(T)
   end
   return _orthogonal_group(T, gensOT, check=false)
 end

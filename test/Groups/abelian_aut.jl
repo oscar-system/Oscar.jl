@@ -98,7 +98,12 @@ end
 
   T = TorQuadMod(matrix(QQ, 1, 1, [1//27]))
   Tsub, _ = sub(T, 3*gens(T))
-  @test_throws ArgumentError orthogonal_group(Tsub)
+  @test order(orthogonal_group(Tsub)) == 6
+  T2 = TorQuadMod(matrix(QQ, 1, 1, [21//25]))
+  Tsub2, _ = sub(T2, 5*gens(T2))
+  @test order(orthogonal_group(Tsub2)) == 4
+  TT = direct_sum(Tsub, Tsub2)[1]
+  @test order(orthogonal_group(TT)) == 24
 
   L = direct_sum(L, root_lattice(:A, 6))[1]
   T = discriminant_group(L)
