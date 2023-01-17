@@ -1,4 +1,3 @@
-using Test: Error
 @testset "groebner" begin
     R, (x, y) = PolynomialRing(QQ, ["x", "y"])
     I = ideal(R,[x*y^2 - x, x^3 - 2*y^5])
