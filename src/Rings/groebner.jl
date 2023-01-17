@@ -1244,7 +1244,6 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end
 
-
 @doc Markdown.doc"""
     groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                   ordering::MonomialOrdering,
