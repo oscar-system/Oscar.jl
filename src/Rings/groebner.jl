@@ -1306,15 +1306,19 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
           end
           I_mod_p_gens[i] = finish(ctx)
         end
-        G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
-        break
       catch e
+        # this precise error is thrown if the chosen prime p divides
+        # one of the denominators of the coefficients of the generators
+        # of I. In this case we simply choose the next prime and try
+        # again.
         if e == ErrorException("Unable to coerce") 
           continue
         else
           rethrow(e)
         end
       end
+      G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
+      break
     end
   else
     G = groebner_assure(I)
