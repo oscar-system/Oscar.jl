@@ -90,48 +90,16 @@ end
 # construction of the singular quotient ring until the user does an operation
 # that actually requires it.
 
-mutable struct IdealGensQuo{T}
-  Ox::NCRing #Oscar Poly Ring or Algebra
-  O::Vector{T}
-  Sx # Singular Poly Ring or Algebra
-  S::Singular.sideal
-  isGB::Bool
-  isReduced::Bool
-  ordering::MonomialOrdering
-
-  function IdealGensQuo(Ox::MPolyQuo{T}, O::Vector{T}, isGB::Bool=false,
-          isReduced::Bool=false) where T <: MPolyElem
-      gens = new{T}()
-      gens.Ox        = Ox
-      gens.O         = O
-      gens.isGB      = isGB
-      gens.isReduced = isReduced
-      gens.ordering  = Ox.ordering
-
-      return gens
-  end
-  function IdealGensQuo(Ox::MPolyQuo{T}, S::Singular.sideal, isGB::Bool=false,
-          isReduced::Bool=false) where T <: MPolyElem
-      gens = new{T}()
-      gens.Ox        = Ox
-      gens.Sx        = base_ring(S)
-      gens.S         = S
-      gens.isGB      = isGB
-      gens.isReduced = isReduced
-      gens.ordering  = Ox.ordering
-
-      return gens
-  end
-end
-
 @attributes mutable struct MPolyQuoIdeal{T} <: Ideal{T}
-    gens::IdealGensQuo{T}
+    gens::IdealGens{T}
     dim::Int
+    gb::IdealGens{T}
 
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
         singular_qring(Ox) == base_ring(si) || error("base rings must match")
         r = new{T}()
-        r.gens = IdealGensQuo(Ox, si)
+        r.gens = IdealGens(Ox, si)
+        r.gens.gens.Ox = Ox
         r.dim = -1
         return r
     end
@@ -139,14 +107,14 @@ end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, I::MPolyIdeal{T}) where T <: MPolyElem
         base_ring(Ox) === base_ring(I) || error("base rings must match")
         r = new{T}()
-        r.gens = IdealGensQuo(Ox, gens(I))
+        r.gens = IdealGens(Ox, gens(I))
         r.dim = -1
         return r
     end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
         base_ring(Ox) === parent(V[1]) || error("base rings must match")
         r = new{T}()
-        r.gens = IdealGensQuo(Ox, V)
+        r.gens = IdealGens(Ox, V)
         r.dim = -1
         return r
     end
@@ -181,15 +149,15 @@ function base_ring(a::MPolyQuoIdeal)
 end
 
 function oscar_assure!(a::MPolyQuoIdeal)
-  if isdefined(a.gens, :O)
+  if isdefined(a.gens.gens, :O)
       return a.gens.O
   end
-  r = base_ring(a)
+  r = base_ring(base_ring(a))
   a.gens.O = [r(g) for g = gens(a.gens.S)]
 end
 
 function singular_assure!(a::MPolyQuoIdeal)
-  if isdefined(a.gens, :S)
+  if isdefined(a.gens.gens, :S)
       return a.gens.S
   end
   a.gens.Sx = singular_qring(base_ring(a))
@@ -260,10 +228,7 @@ end
 Return the `m`-th power of `a`.  
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
-    if !isdefined(a.gens, :S)
-        R = base_ring(base_ring(a))
-        return MPolyQuoIdeal(base_ring(a),ideal(R, a.gens.O)^m)
-    end
+    singular_assure!(a)
     return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
 end
 
@@ -274,11 +239,6 @@ Return the sum of `a` and `b`.
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
-    if !isdefined(a.gens, :S) && !isdefined(b.gens, :S)
-        aI = ideal(base_ring(base_ring(a)), a.gens.O)
-        bI = ideal(base_ring(base_ring(a)), b.gens.O)
-        return MPolyQuoIdeal(base_ring(a), aI + bI)
-    end
     singular_assure!(a)
     singular_assure!(b)
     return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
@@ -291,11 +251,6 @@ Return the product of `a` and `b`.
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
-    if !isdefined(a.gens, :S) && !isdefined(b.gens, :S)
-        aI = ideal(base_ring(base_ring(a)), a.gens.O)
-        bI = ideal(base_ring(base_ring(a)), b.gens.O)
-        return MPolyQuoIdeal(base_ring(a), aI * bI)
-    end
     singular_assure!(a)
     singular_assure!(b)
     return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
@@ -322,15 +277,16 @@ julia> intersect(a,b)
 ideal(x*y)
 ```
 """
-function intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
-  singular_assure(a)
-  si = a.SI
-  for b in bs
-    base_ring(b) == base_ring(a) || error("base rings must match")
-    singular_assure(b)
-    si = Singular.intersection(si, b.SI)
-  end
-  return MPolyQuoIdeal(base_ring(a), si)
+function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
+    singular_assure!(a)
+    as = a.gens.S
+    for g in b
+        base_ring(g) == base_ring(a) || error("base rings must match")
+        singular_assure!(g)
+        gs = g.gens.S
+        as = Singular.intersection(as, gs)
+    end
+    return MPolyQuoIdeal(base_ring(a), as)
 end
 
 #######################################################
@@ -543,7 +499,6 @@ ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 """
 function simplify_generators(a::MPolyQuoIdeal)
     R = base_ring(a)
-    @show R
     singular_assure!(a)
     red  = reduce(a.gens.S, R.I.gens.gens.S)
     SR   = singular_qring(R)
@@ -660,7 +615,7 @@ false
 ```
 """
 function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  return issubset(a, b) && issubset(b, a)
+    return issubset(a, b) && issubset(b, a)
 end
 
 @doc Markdown.doc"""
@@ -847,8 +802,6 @@ end
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
-   @show Q, singular_qring(Q)
-   @show S
    @assert singular_qring(Q) == S
    return S(a.f)
 end
