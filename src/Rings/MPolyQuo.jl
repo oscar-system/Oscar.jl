@@ -321,7 +321,7 @@ end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
 # TODO: replace by a more efficient method!
-@attr function is_prime(I::MPolyQuoIdeal)
+@attr function isprime(I::MPolyQuoIdeal)
     return is_prime(saturated_ideal(I))
 end
 
