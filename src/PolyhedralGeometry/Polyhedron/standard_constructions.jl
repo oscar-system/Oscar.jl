@@ -636,6 +636,38 @@ cross_polytope(x...) = cross_polytope(fmpq, x...)
 
 @doc Markdown.doc"""
 
+    platonic_solid(s)
+
+Construct a Platonic solid with the name given by String `s` from the list
+below.
+
+# Arguments
+- `s::String`: The name of the desired Archimedean solid.
+    Possible values:
+    - "tetrahedron" : Tetrahedron.
+          Regular polytope with four triangular facets.
+    - "cube" : Cube.
+          Regular polytope with six square facets.
+    - "octahedron" : Octahedron.
+          Regular polytope with eight triangular facets.
+    - "dodecahedron" : Dodecahedron.
+          Regular polytope with 12 pentagonal facets.
+    - "icosahedron" : Icosahedron.
+          Regular polytope with 20 triangular facets.
+
+# Examples
+```jldoctest
+julia> T = platonic_solid("icosahedron")
+A polyhedron in ambient dimension 3 with nf_elem type coefficients
+
+julia> nfacets(T)
+20
+```
+"""
+platonic_solid(s::String) = Polyhedron(Polymake.polytope.platonic_solid(s))
+
+@doc Markdown.doc"""
+
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
@@ -695,7 +727,6 @@ julia> nfacets(T)
 ```
 """
 archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
-
 
 @doc Markdown.doc"""
 

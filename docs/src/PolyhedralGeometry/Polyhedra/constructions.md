@@ -121,6 +121,7 @@ cube
 tetrahedron
 dodecahedron
 icosahedron
+platonic_solid
 archimedean_solid
 johnson_solid
 catalan_solid
