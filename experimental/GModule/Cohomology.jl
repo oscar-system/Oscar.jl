@@ -1730,7 +1730,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     k, mk = ResidueField(K)
     u, mu = unit_group(k)
     pi = uniformizer(K)
-    gk = preimage(mk, mu(u[1]))^(4^10)
+    gk = preimage(mk, mu(u[1]))^(order(k)^10)  #proper bound, loop until done?
     A = abelian_group([0, order(u)])
     h = Map[]
     for g = gens(G)
