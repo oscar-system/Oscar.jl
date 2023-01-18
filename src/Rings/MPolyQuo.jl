@@ -322,7 +322,7 @@ end
 
 # TODO: replace by a more efficient method!
 @attr function is_prime(I::MPolyQuoIdeal)
-  return is_prime(saturated_ideal(I))
+    return is_prime(saturated_ideal(I))
 end
 
 # The following is to streamline the programmer's 
@@ -332,9 +332,9 @@ end
 # We return the preimage of the given ideal under the 
 # canonical map from the underlying free polynomial ring.
 @attr function saturated_ideal(I::MPolyQuoIdeal)
-  R = base_ring(base_ring(I))
-  J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
-  return J
+    R = base_ring(base_ring(I))
+    J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
+    return J
 end
 
 @doc Markdown.doc"""
