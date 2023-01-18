@@ -39,8 +39,8 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuo) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuo) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuo) = Q.I
-qring_gb(Q::MPolyQuo) = Q.I.gb[Q.ordering]
-singular_qring_gb(Q::MPolyQuo) = Q.I.gb[Q.ordering].S
+groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering]
+singular_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].S
 
 function singular_qring(Q::MPolyQuo)
     if !isdefined(Q.I.gens.gens, :Sx)
@@ -343,9 +343,9 @@ end
 Return `true` if `a` is the zero ideal, `false` otherwise.
 """
 function iszero(a::MPolyQuoIdeal)
-  singular_assure(a)
-  zero_ideal = Singular.Ideal(base_ring(a.SI), )
-  return contains(zero_ideal, a.SI)
+  singular_assure!(a)
+  R = base_ring(a)
+  return Singular.iszero(Singular.reduce(a.gens.S, singular_groebner_basis(R)))
 end
 
 @doc Markdown.doc"""    
