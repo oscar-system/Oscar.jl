@@ -26,14 +26,28 @@ function pullback(f::CoveredSchemeMorphism)
     phi = covering_morphism(f)
     triv_dict = IdDict{AbsSpec, RingElem}()
     OOX = OO(X)
+    # We need to do the following:
+    # The divisor D := f^* C needs to be trivialized on some refinement. 
+    # The one we're using consists of the preimages of the patches of 
+    # the `trivializing_covering` of `C`. These must be intersected 
+    # with each and every affine chart of X first. 
     for U in patches(domain(phi))
       V = codomain(phi[U])
       for W in patches(trivializing_covering(C))
+        # In case V and W do not happen to lay in the same affine 
+        # chart, the preimage of W in U will be empty. So we can 
+        # skip the computation in that case.
         success, par = _have_common_ancestor(V, W)
         if success
+          # Reconstruct W as a PrincipalOpenSubset of the affine chart directly
+          # (Note that we might have gone through some calls to `simplify(...)`, 
+          # so this really is a non-trivial step)
           inc_W_flat = _flatten_open_subscheme(W, par)
+          # To cheaply construct the preimage of W in U, just pull back the 
+          # complement equation.
           h = complement_equation(codomain(inc_W_flat))
           UW = PrincipalOpenSubset(U, pullback(phi[U])(OOX(par, V)(h)))
+          # Finally, we can add the trivialization on U ∩ f⁻¹(W) to our list.
           triv_dict[UW] = pullback(phi[U])(first(C(V)))
         end
       end
