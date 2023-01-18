@@ -572,9 +572,9 @@ true
 """
 function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
-  simplify_generators!(a)
+  as = simplify_generators(a)
   groebner_assure!(b)
-  return Singular.iszero(Singular.reduce(a.gens.S, b.gens.S))
+  return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
 end
 
 @doc Markdown.doc"""
@@ -634,24 +634,20 @@ x
 ```
 """
 function simplify(f::MPolyQuoElem)
-  R = parent(f)
-  I = R.I
-  G = groebner_assure(I)
-  singular_assure(G)
-  Sx = base_ring(G.S)
-  g = f.f
-return R(I.gens.Ox(reduce(Sx(g), G.S)))::elem_type(R)
+  R  = parent(f)
+  G  = singular_groebner_basis(R)
+  Sx = singular_quotient_ring(R)
+  g  = f.f
+return R(reduce(Sx(g), G))
 end
 
 function simplify!(f::MPolyQuoElem)
-  R = parent(f)
-  I = R.I
-  G = groebner_assure(I)
-  singular_assure(G)
-  Sx = base_ring(G.S)
-  g = f.f
-  f.f = I.gens.Ox(reduce(Sx(g), G.S))
-  return f::elem_type(R)
+  R   = parent(f)
+  G   = singular_groebner_basis(R)
+  Sx  = singular_quotient_ring(R)
+  g   = f.f
+  f.f = (base_ring(R))(reduce(Sx(g), G))
+  return f
 end
 
 
