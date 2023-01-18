@@ -1,4 +1,4 @@
-export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
+export singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!, default_ordering
 export simplify_generators, simplify_generators!
 export issubset
@@ -42,9 +42,9 @@ modulus(Q::MPolyQuo) = Q.I
 groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering]
 singular_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].S
 
-function singular_qring(Q::MPolyQuo)
+function singular_quotient_ring(Q::MPolyQuo)
     if !isdefined(Q.I.gens.gens, :Sx)
-        SG = singular_qring_gb(Q)
+        SG = singular_quotient_ring_gb(Q)
         Q.I.gens.gens.Sx = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
     end
     return Q.I.gens.gens.Sx
@@ -96,7 +96,7 @@ end
     gb::IdealGens{T}
 
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
-        singular_qring(Ox) == base_ring(si) || error("base rings must match")
+        singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
         r = new{T}()
         r.gens = IdealGens(Ox, si)
         r.gens.gens.Ox = Ox
@@ -160,9 +160,18 @@ function singular_assure!(a::MPolyQuoIdeal)
   if isdefined(a.gens.gens, :S)
       return a.gens.S
   end
-  a.gens.Sx = singular_qring(base_ring(a))
+  a.gens.Sx = singular_quotient_ring(base_ring(a))
   a.gens.S = Singular.Ideal(a.gens.Sx, (a.gens.Sx).(gens(a)))
 end
+
+function groebner_assure!(a::MPolyQuoIdeal)
+    if !isdefined(a, :gb)
+        b = simplify_generators(a)
+        a.gb = IdealGens(base_ring(a), Singular.std(b.gens.S))
+        a.gb.gens.S.isGB = a.gb.isGB = true
+    end
+end
+
 
 @doc Markdown.doc"""
     gens(a::MPolyQuoIdeal)
@@ -406,17 +415,6 @@ function ideal(A::MPolyQuo{T}, x::MPolyQuoElem{T}) where T <: MPolyElem
 end
 ##################################################################
 
-function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = default_ordering(Rx); keep_ordering::Bool = true)
-  if !isdefined(Rx, :SQR)
-    groebner_assure(Rx.I, ordering)
-    singular_assure(Rx.I.gb[ordering], ordering)
-    Rx.SQR = Singular.create_ring_from_singular_ring(
-                Singular.libSingular.rQuotientRing(Rx.I.gb[ordering].S.ptr,
-                base_ring(Rx.I.gb[ordering].S).ptr))
-  end
-  return Rx.SQR
-end
-
 parent_type(::MPolyQuoElem{S}) where S = MPolyQuo{S}
 parent_type(::Type{MPolyQuoElem{S}}) where S = MPolyQuo{S}
 elem_type(::MPolyQuo{S})  where S= MPolyQuoElem{S}
@@ -500,8 +498,8 @@ ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 function simplify_generators(a::MPolyQuoIdeal)
     R = base_ring(a)
     singular_assure!(a)
-    red  = reduce(a.gens.S, R.I.gens.gens.S)
-    SR   = singular_qring(R)
+    red  = reduce(a.gens.S, singular_groebner_basis(R))
+    SR   = singular_quotient_ring(R)
     si   = Singular.Ideal(SR, unique!(gens(red)))
     return MPolyQuoIdeal(R, si)
 end
@@ -512,16 +510,6 @@ function simplify_generators!(a::MPolyQuoIdeal)
     Q = base_ring(a.gens.Ox)
     a.gens.O = [Q(g) for g = gens(a.gens.S)]
     return a
-end
-
-function singular_groebner_assure!(a::MPolyQuoIdeal)
-  if !isdefined(a.gens, :S)
-    simplify_generators!(a)
-  end
-  if !a.gens.S.isGB
-    a.gens.S = Singular.std(a.gens.S)
-    a.gens.S.isGB = true
-  end
 end
 
 #######################################################
@@ -554,7 +542,7 @@ function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
     if Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
       return true
     end
-    singular_groebner_assure!(b)
+    groebner_assure!(b)
   end
   return Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
 end
@@ -589,7 +577,7 @@ true
 function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   simplify_generators!(a)
-  singular_groebner_assure!(b)
+  groebner_assure!(b)
   return Singular.iszero(Singular.reduce(a.gens.S, b.gens.S))
 end
 
@@ -796,13 +784,13 @@ function (Q::MPolyQuo)(a::MPolyElem)
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
-   @assert singular_qring(Q) == parent(a)
+   @assert singular_quotient_ring(Q) == parent(a)
    return MPolyQuoElem(base_ring(Q)(a), Q)
 end
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
-   @assert singular_qring(Q) == S
+   @assert singular_quotient_ring(Q) == S
    return S(a.f)
 end
 
@@ -1301,7 +1289,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
        throw(ArgumentError("The coefficient ring must be a field."))
   end
   
-  QS = singular_qring(Q)
+  QS = singular_quotient_ring(Q)
   singular_assure!(I)
 
   IS = I.SI

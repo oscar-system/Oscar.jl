@@ -251,6 +251,7 @@ mutable struct IdealGens{S}
   function IdealGens(Ox::T, S::Singular.sideal, isReduced::Bool = false) where {T <: NCRing}
       if T <: MPolyQuo
           r = new{typeof(Ox).parameters[1]}()
+          r.ord = Ox.ordering
       else
           r = new{elem_type(T)}()
       end
