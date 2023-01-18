@@ -536,15 +536,11 @@ true
 ```
 """
 function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
-  parent(a) == base_ring(b) || error("base rings must match")
-  singular_assure(b)
-  if !b.SI.isGB
-    if Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
-      return true
-    end
+    parent(a) == base_ring(b) || error("base rings must match")
     groebner_assure!(b)
-  end
-  return Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
+    SR = singular_quotient_ring(base_ring(b))
+    as = simplify(a)
+    return Singular.iszero(Singular.reduce(SR(as), b.gb.gens.S))
 end
 
 Base.:in(a::MPolyQuoElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
