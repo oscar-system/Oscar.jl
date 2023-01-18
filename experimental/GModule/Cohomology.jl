@@ -1754,7 +1754,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     k, mk = ResidueField(K)
     u, mu = unit_group(k)
     pi = uniformizer(K)
-    gk = preimage(mk, mu(u[1]))^(4^10)
+    gk = preimage(mk, mu(u[1]))^(order(k)^10)  #proper bound, loop until done?
     A = abelian_group([0, order(u)])
     h = Map[]
     for g = gens(G)
@@ -1810,7 +1810,6 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
 
-<<<<<<< HEAD
 function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
 
   U, mU = Hecke.one_unit_group(K)
@@ -2382,7 +2381,6 @@ Sort:
    - think about Debeerst: if P, Q are above the some prime then
      Ind_G_P^G L_P = Ing_G_Q^G L_Q??? (no - aprently yes)
    - use prod_Q|P L_Q rather than prod Ind...  
-   - induction/ coinduction ...
 
   dreams
    - we we extend to H^-1, ^-2?
@@ -2400,7 +2398,6 @@ Sort:
     - (done) Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
     - local field (add (trivial) and mult)
     - (S-)units
-    - Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
 =#    
 
 #TODO: what do we need to return?
