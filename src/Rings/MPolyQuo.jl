@@ -313,10 +313,10 @@ ideal(y)
 ```
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.SI, b.SI))
+    base_ring(a) == base_ring(b) || error("base rings must match")
+    singular_assure!(a)
+    singular_assure!(b)
+    return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.gens.S, b.gens.S))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
