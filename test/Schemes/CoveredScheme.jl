@@ -197,4 +197,13 @@ end
   g_cov = covered_scheme_morphism(g)
 
   @test domain(g_cov) === codomain(g_cov) === covered_scheme(P)
+
+  # Test the LazyGlueings:
+  X = covered_scheme(P)
+
+  gg = covering_morphism(g_cov)
+  dom_cov = domain(gg)
+  for k in keys(glueings(dom_cov))
+      @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
+  end
 end
