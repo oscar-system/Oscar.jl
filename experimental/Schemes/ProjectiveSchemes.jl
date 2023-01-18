@@ -981,6 +981,7 @@ of ``X`` and ``Y``, respectively.
   # We skip the glueings for the time being.
   # Eventually, they should be made lazy.
   CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
+  inherit_glueings!(CC, default_covering(X))
   phi = CoveringMorphism(CC, default_covering(Y), mor_dict)
   push!(coverings(X), CC)
 
