@@ -201,11 +201,15 @@ mutable struct BiPolyArray{S}
   end
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
-    Sx = base_ring(S)
-    r = new{elem_type(T)}(Ox)
-    r.Sx = Sx
-    r.S = S
-    return r
+      Sx = base_ring(S)
+      if T <: MPolyQuo
+          r = new{typeof(Ox).parameters[1]}()
+      else
+          r = new{elem_type(T)}()
+      end
+      r.Sx = Sx
+      r.S = S
+      return r
   end
 end
 
@@ -245,15 +249,19 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::T, S::Singular.sideal, isReduced::Bool = false) where {T <: NCRing}
-    r = new{elem_type(T)}()
-    r.gens		= BiPolyArray(Ox, S)
-    r.isGB		= S.isGB
-	r.isReduced = isReduced
-    if T <: Union{MPolyRing, MPolyRingLoc, MPolyQuo}
-      r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
-    end
-    r.keep_ordering = true
-    return r
+      if T <: MPolyQuo
+          r = new{typeof(Ox).parameters[1]}()
+      else
+          r = new{elem_type(T)}()
+      end
+      r.gens		= BiPolyArray(Ox, S)
+      r.isGB		= S.isGB
+      r.isReduced = isReduced
+      if T <: Union{MPolyRing, MPolyRingLoc}
+          r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+      end
+      r.keep_ordering = true
+      return r
   end
 end
 
