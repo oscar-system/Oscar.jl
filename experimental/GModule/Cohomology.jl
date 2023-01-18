@@ -1729,7 +1729,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     k, mk = ResidueField(K)
     u, mu = unit_group(k)
     pi = uniformizer(K)
-    gk = preimage(mk, mu(u[1]))^(4^10)
+    gk = preimage(mk, mu(u[1]))^(order(k)^10)  #proper bound, loop until done?
     A = abelian_group([0, order(u)])
     h = Map[]
     for g = gens(G)
@@ -1820,6 +1820,9 @@ Sort:
   features   
    - inflation, restriction, long exact sequence  
    - induction/ coinduction ...
+   - restriction (of gmodules to Sylow subgroups)
+   - think about Debeerst: if P, Q are above the some prime then
+     Ind_G_P^G L_P = Ing_G_Q^G L_Q???
 
   dreams
    - we we extend to H^-1, ^-2?
