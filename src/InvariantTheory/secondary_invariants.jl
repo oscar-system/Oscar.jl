@@ -405,7 +405,7 @@ by primary invariants for `IR`.
 See also [Gat96](@cite) and [Sta79](@cite).
 
 !!! note
-    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+    If `coefficient_ring(IR)` does not contain all character values of `chi`, an error is raised.
 
 This function is so far only implemented in the case of characteristic zero.
 

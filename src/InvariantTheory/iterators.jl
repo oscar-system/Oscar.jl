@@ -222,7 +222,7 @@ in degree `d` with respect to `chi`.
 This function is only implemented in the case of characteristic zero.
 
 !!! note
-    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+    If `coefficient_ring(IR)` does not contain all character values of `chi`, an error is raised.
 
 See also [`basis`](@ref).
 

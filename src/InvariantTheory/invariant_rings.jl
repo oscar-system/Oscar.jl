@@ -285,7 +285,7 @@ In case `chi` is a linear character, the returned polynomial, say `h`, fulfils
 `h^g = chi(g)h` for all `g` in `group(IR)` (possibly `h` is zero).
 
 !!! note
-    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+    If `coefficient_ring(IR)` does not contain all character values of `chi`, an error is raised.
 
 # Examples
 ```jldoctest
@@ -421,7 +421,7 @@ with respect to `chi`.
 This function is only implemented in the case of characteristic zero.
 
 !!! note
-    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+    If `coefficient_ring(IR)` does not contain all character values of `chi`, an error is raised.
 
 See also [`iterate_basis`](@ref).
 
