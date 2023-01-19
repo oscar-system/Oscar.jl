@@ -1,4 +1,5 @@
-export defines_automorphism
+export defines_automorphism,
+       embedding_orthogonal_group
 
 AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadMod}}
 AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadMod}}
@@ -219,6 +220,8 @@ Return the full orthogonal group of this torsion quadratic module.
     gensOT = _compute_gens(N)
     gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
     gensOT = fmpz_mat[compose(compose(i,g),j).map_ab.map for g in gensOT]
+    unique!(gensOT)
+    length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   elseif iszero(gram_matrix_quadratic(T))
     # in that case, we don't have any conditions regarding the
     # quadratic form, so we have all automorphisms coming
@@ -231,5 +234,37 @@ Return the full orthogonal group of this torsion quadratic module.
     gensOT = has_complement(i)[1] ? _compute_gens_split_degenerate(T) : _compute_gens_non_split_degenerate(T)
   end
   return _orthogonal_group(T, gensOT, check=false)
+end
+
+@doc Markdown.doc"""
+    embedding_orthogonal_group(i::TorQuadModMor) -> GAPGroupHomomorphism
+
+Given an embedding $i\colon A \to D$ between two torsion quadratic modules,
+such that `A` admits a complement `B` in $D \cong A \oplus B$, return the
+embedding $O(A) \to O(D)$ obtained by extending the isometries of `A` by
+the identity on `B`.
+"""
+function embedding_orthogonal_group(i::TorQuadModMor)
+  @req is_injective(i) "i must be injective"
+  ok, j = has_complement(i)
+  @req ok "The domain of i must have a complement in the codomain"
+  A = domain(i)
+  B = domain(j)
+  D = codomain(i)
+  Dorth = direct_sum(A, B)[1]
+  ok, phi = is_isometric_with_isometry(Dorth, D)
+  @assert ok
+  OD = orthogonal_group(D)
+  OA = orthogonal_group(A)
+
+  geneOAinDorth = TorQuadModMor[]
+  for f in gens(OA)
+    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOAinDorth, m)
+  end
+  geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
+  OAtoOD = hom(OA, OD, geneOAinOD, check = false)
+  return OAtoOD::GAPGroupHomomorphism
 end
 

@@ -113,3 +113,23 @@ end
                                             # and the discriminant group is 7-elementary
 end
 
+@testset "Embedding of orthogonal groups" begin
+  L = Zlattice(gram=matrix(ZZ, 2, 2, [ 2 -1  0  0  0  0;
+                                      -1  2 -1 -1  0  0;
+                                       0 -1  2  0  0  0;
+                                       0 -1  0  2  0  0;
+                                       0  0  0  0  6  3;
+                                       0  0  0  0  3  6]))
+  T = discriminant_group(L)
+  i = id_hom(T)
+  f = @inferred embedding_orthogonal_group(i)
+  @test is_bijective(f)
+  @test order(sub(T, f.(gens(T)))[1]) == order(T)
+
+  _, i = primary_part(T, 3)
+  f = @inferred embedding_orthogonal_group(i)
+  @test is_injective(f) && !is_surjective(f)
+  @test order(domain(f)) == 12
+  @test all(g -> order(f(g)) == order(g), domain(f))
+end
+

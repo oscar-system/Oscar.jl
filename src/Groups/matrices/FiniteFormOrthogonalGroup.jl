@@ -866,6 +866,7 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
   gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
+  length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
 
@@ -878,6 +879,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
     gensOT = _compute_gens(N)
     gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
     gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
+    unique!(gensOT)
     return gensOT
   end
 
@@ -998,6 +1000,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadMod)
   gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
+  length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
 
@@ -1008,6 +1011,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadMod)
     gensOT = _compute_gens(N)
     gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
     gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
+    unique!(gensOT)
     return gensOT
   end
 
