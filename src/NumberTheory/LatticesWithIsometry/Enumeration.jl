@@ -127,10 +127,10 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   end
 
   l = valuation(level(C), p)
-  Ap = symbol(local_symbol(A, p))
-  Bp = symbol(local_symbol(B, p))
-  a_max = sum(Int[s[2] for s in Ap if s[1] == l+1])
-  b_max = sum(Int[s[2] for s in Bp if s[1] == l+1])
+  Ap = local_symbol(A, p)
+  Bp = local_symbol(B, p)
+  a_max = symbol(Ap, l+1)[2]
+  b_max = symbol(Bp, l+1)[2]
   # For the glueing, rho_{l+1}(A_p) and rho_{l+1}(B_p) are anti-isometric, so they must have the
   # same order
   if a_max != b_max
@@ -142,22 +142,22 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
     return false
   end
 
-  a1 = sum(Int[s[2] for s in Ap if s[1] == 1])
-  a2 = sum(Int[s[2] for s in Ap if s[1] >= 2])
-  b1 = sum(Int[s[2] for s in Bp if s[1] == 1])
-  b2 = sum(Int[s[2] for s in Bp if s[1] >= 2])
+  a1 = symbol(Ap, 1)[2]
+  a2 = rank(Ap) - a1 - symbol(Ap, 0)[2]
+  b1 = symbol(Bp, 1)[2]
+  b2 = rank(Bp) - b1 - symbol(Bp, 0)[2]
 
   ABp = symbol(local_symbol(AperpB, p))
-  Cp = symbol(local_symbol(C, p))
+  Cp = local_symbol(C, p)
 
   if a_max == g
-    if length(Ap) > 1
+    if length(symbol(Ap)) > 1
       Ar = ZpGenus(p, Ap[1:end-1])
     else
       Ar = genus(matrix(ZZ,0,0,[]), p)
     end
    
-    if length(Bp) > 1
+    if length(symbol(Bp)) > 1
       Br = ZpGenus(p, Bp[1:end-1])
     else
       Br = genus(matrix(ZZ, 0, 0, []), p)
@@ -166,8 +166,8 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
     ABr = orthogonal_sum(Ar, Br)
     
     for i = 1:l
-      s1 = symbol(ABr)[i]
-      s2 = Cp[i]
+      s1 = symbol(ABr, i)
+      s2 = symbol(Cp, i)
       if s1[2] != s2[2]
         return false
       end
@@ -181,13 +181,13 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
 
   s3 = symbol(local_symbol(C, 2))[end]
   if p == 2
-    s1 = Ap[s3[1]+1]
-    s2 = Bp[s3[1]+1]
-    if s1[3] != s2[3]
+    s1 = symbol(Ap, s3[1]+1)
+    s2 = symbol(Bp, s3[1]+1)
+    if s1[4] != s2[4]
       return false
     end
   end
-
+  Cp = symbol(Cp)
   for s in Cp
     s[1] += 2
   end
@@ -315,7 +315,6 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   results = LatticeWithIsometry[]
   # this is the glue valuation: it is well-defined because the triple in input is admissible
   g = div(valuation(divexact(det(A)*det(B), det(C)), p), 2)
-
   fA, fB = isometry.([Afa, Bfb])
   qA, fqA = discriminant_group(Afa)
   qB, fqB = discriminant_group(Bfb)
@@ -330,7 +329,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   end
 
   OD = orthogonal_group(D)
-  OqAinOD, OqBinOD = embedding_orthogonal_group(qAinD, qBinD)
+  OqAinOD = embedding_orthogonal_group(qAinD)
+  OqBinOD = embedding_orthogonal_group(qBinD)
   OqA = domain(OqAinOD)
   OqB = domain(OqBinOD)
 
@@ -353,10 +353,10 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
       C2 = orthogonal_sum(A, B)[1]
       fC2 = block_diagonal_matrix(fA, fB)
     end
-    if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), t)
-      C2fC2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
-      set_attribute!(C2fC2, :image_centralizer_in_Oq, GC2)
-      push!(results, C2fC2)
+    if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), type(Cfc))
+      C2fc2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
+      set_attribute!(C2fc2, :image_centralizer_in_Oq, GC2)
+      push!(results, C2fc2)
     end
     return results
   end
@@ -380,7 +380,6 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # are fA-stable (resp. fB-stable)
   subsA = _subgroups_representatives(VAinqA, GA, g, fVA, ZZ(l))
   subsB = _subgroups_representatives(VBinqB, GB, g, fVB, ZZ(l))
-
   # once we have the potential kernels, we create pairs of anti-isometric groups since glue
   # maps are anti-isometry
   R = Tuple{eltype(subsA), eltype(subsB), TorQuadModMor}[]
@@ -389,7 +388,6 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     !ok && continue
     push!(R, (H1, H2, phi))
   end
-
   # now, for each pair of anti-isometric potential kernels, we need to see whether
   # it is (fA,fB)-equivariant, up to conjugacy. For each working pair, we compute the
   # corresponding overlattice and check whether it satisfies the type condition
@@ -422,12 +420,13 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # we get all the elements of qB of order exactly p^{l+1}, which are not mutiple of an
     # element of order p^{l+2}. In theory, glue maps are classified by the orbit of phi
     # under the action of O(SB, rho_{l+1}(qB), fB)
-    rBinqB = _rho_functor(qB, p, valuation(l, p)+1)
+    rB, rBinqB = sub(qB, Int(l)*gens(qB))
     @assert Oscar._is_invariant(stabB, rBinqB)
     rBinSB = hom(domain(rBinqB), SB, TorQuadModElem[SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
     @assert is_trivial(domain(rBinSB).ab_grp) || is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
 
-    # We compute the generators of O(SB, rho_l(qB))
+    # We compute the generators of O(SB, rho_{l+1}(qB))
+    return rBinSB
     OrBinOSB = embedding_orthogonal_group(rBinSB)
     OSBrB, _ = image(OrBinOSB)
     @assert fSB in OSBrB

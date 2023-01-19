@@ -85,7 +85,7 @@ function embedding_orthogonal_group(i::TorQuadModMor)
   end
   geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
   OAtoOD = hom(OA, OD, gens(OA), geneOAinOD, check = false)
-  return OAtoOD::GAPGroupHomomorphism
+  return OAtoOD
 end
 
 function embedding_orthogonal_group(i1, i2)
