@@ -265,6 +265,6 @@ function embedding_orthogonal_group(i::TorQuadModMor)
   end
   geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
   OAtoOD = hom(OA, OD, geneOAinOD, check = false)
-  return OAtoOD::GAPGroupHomomorphism
+  return OAtoOD::GAPGroupHomomorphism{AutomorphismGroup{TorQuadMod}, AutomorphismGroup{TorQuadMod}}
 end
 
