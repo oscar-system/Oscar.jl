@@ -792,7 +792,7 @@ end
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function is_invertible_with_inverse(a::MPolyQuoElem)
+function isinvertible_with_inverse(a::MPolyQuoElem)
  # TODO:
  # Eventually, the code below should be replaced 
  # by a call to `coordinates` over the ring `parent(a)`. 
@@ -801,14 +801,7 @@ function is_invertible_with_inverse(a::MPolyQuoElem)
  # of the modulus of `parent(a)`. 
 
   Q = parent(a)
-  I = Q.I
-  if !isempty(I.gb)
-    G = first(values(I.gb))
-    oscar_assure(G)
-    J = G.O
-  else
-    J = gens(I)
-  end
+  J = groebner_basis(Q).gens.O
   J = vcat(J, [a.f])
   j, T = standard_basis_with_transformation_matrix(ideal(J))
   if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
@@ -818,10 +811,10 @@ function is_invertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
+isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
 
 function inv(a::MPolyQuoElem)
-  fl, b = is_invertible_with_inverse(a)
+  fl, b = isinvertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
