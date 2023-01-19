@@ -103,11 +103,15 @@ struct AllMonomials{PolyRingT}
   end
 end
 
-struct InvRingBasisIterator{InvRingT, IteratorT, PolyElemT, MatrixT}
+struct InvRingBasisIterator{InvRingT, ReynoldsT, IteratorT, PolyElemT, MatrixT}
   R::InvRingT
   degree::Int
   dim::Int
   reynolds::Bool
+
+  # If we compute the basis twisted by a character, we cache the operator here
+  # instead of in the invariant ring. Otherwise this is `nothing`.
+  reynolds_operator::ReynoldsT
 
   monomials::IteratorT
   monomials_collected::Vector{PolyElemT}
