@@ -41,7 +41,6 @@ function (C::EffectiveCartierDivisor)(U::AbsSpec)
   return gens(C.I(U))
 end
 
-variety(C::EffectiveCartierDivisor) = C.X
 scheme(C::EffectiveCartierDivisor) = C.X
 trivializing_covering(C::EffectiveCartierDivisor) = C.C
 
