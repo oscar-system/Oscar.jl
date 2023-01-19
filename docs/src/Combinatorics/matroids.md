@@ -132,7 +132,7 @@ its *matroid realization space* ``\mathsf{Gr}(M)`` is the locally closed subsche
 ``\mathsf{Gr}(d,K^n)`` of ``d``-dimensional subspaces of ``K^n`` realizing ``M``. Precisely, 
 
 ```math
-    \mathsf{Gr}(M) = \{F \in \mathsf{Gr}(d,K^n) \, : \, p_{I}(F) \neq 0 \text{ iff } I \in \mathcal(B)(M)\}
+    \mathsf{Gr}(M) = \{F \in \mathsf{Gr}(d,K^n) \, : \, p_{I}(F) \neq 0 \text{ iff } I \in \mathcal{B}(M)\}
 ```
 
 where ``\mathcal{B}(M)`` denotes the set of bases of ``M`` and  ``p_{I}(F)`` denotes the ``I``th Pl\"ucker 

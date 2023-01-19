@@ -23,7 +23,6 @@ function matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int},
     return matroid_stratum_matrix_coordinates_given_ring(d, n, M, F, B, R, x, xdict)
 end
 
-
 @doc Markdown.doc"""
     matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
 
@@ -160,14 +159,14 @@ end
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
 
-function bases_determinants(X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:MPolyElem}
+function bases_determinants(d::Int, n::Int, Bs::Vector{Vector{Int}},
+                            MC::Vector{Vector{Int}},
+                            B::Vector{Int},
+                            R::MPolyRing, x::Vector{T},
+                            xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+    #X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:MPolyElem}
 
-    #d::Int, n::Int, Bs::Vector{Vector{Int}},
-    #MC::Vector{Vector{Int}},
-    #B::Vector{Int}, R::MPolyRing, x::Vector{T},
-    #xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
-    
-    #X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
+    X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
     
     return unique!([det(X[:, b]) for b in Bs ])
 end
@@ -181,6 +180,8 @@ function localizing_semigroup(d::Int, n::Int, Bs::Vector{Vector{Int}},
                               xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     basesX = bases_determinants(d, n, Bs, MC, B, R, x, xdict)
+    #X = make_coordinate_matrix(d, n, MC, B, R, x, xdict) 
+    #basesX = bases_determinants(X, Bs)
     
     sTotal = MPolyPowersOfElement(basesX[1])
     
@@ -218,7 +219,11 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
 
     
     X =  make_coordinate_matrix(d, n, MC, B, R, x, xdict)                        
-    basesX = bases_determinants(X, Bs)
+
+    basesX = bases_determinants(d, n, Bs, MC, B, R, x, xdict)
+
+
+#   basesX =  bases_determinants(X, Bs)
 
     #S = localizing_semigroup(d, n, Bs, MC, B, R, x, xdict)
     
@@ -227,13 +232,16 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
     # X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
 
     Igens = unique!([det(X[:, nb]) for nb in NBs ])
-    Iloc = ideal(SinvR, Igens)
-    if iszero(Iloc)
-      return (X, SinvR)
-    else
-      W, _ = quo(SinvR, Iloc)
-      return (X, W)
-    end
+
+    return (X, ideal(R, Igens))
+    
+#    Iloc = ideal(SinvR, Igens)
+#    if iszero(Iloc)
+#      return (X, SinvR)
+#    else
+#      W, _ = quo(SinvR, Iloc)
+#      return (X, W)
+#    end
 
 end
 
@@ -331,7 +339,7 @@ end
 
 
 
-function realization_bases_determinants(X, Bs)
+function realization_bases_determinants(X, Bs::Vector{Vector{Int}})
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
