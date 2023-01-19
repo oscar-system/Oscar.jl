@@ -1294,14 +1294,13 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
       base_field = GF(p)
       ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
                       _extract_weights(base_ring(I)))
-      I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
+      I_mod_p_gens =
       try
-        I_mod_p_gens = [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
+        [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
       catch e
-        # this precise error is thrown if the chosen prime p divides
-        # one of the denominators of the coefficients of the generators
-        # of I. In this case we simply choose the next prime and try
-        # again.
+        # this precise error is thrown if the chosen prime p divides one
+        # of the denominators of the coefficients of the generators of I.
+        # In this case we simply choose the next prime and try again.
         if e == ErrorException("Unable to coerce") 
           continue
         else
