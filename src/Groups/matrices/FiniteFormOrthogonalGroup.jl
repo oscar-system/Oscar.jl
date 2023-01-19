@@ -848,20 +848,13 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
   # We have nothing to add since we can't map different primary parts to each other.
   orth_blocks = _compute_gens_split_degenerate_primary.(domain.(blocks))
   gensOTorth = fmpz_mat[]
-  if sum(length.(orth_blocks)) <= prod(length.(orth_blocks))
-    for i in 1:length(ni)
-      nb = sum(ni[1:i-1])
-      na = sum(ni[(i+1):end])
-      @assert na+nb+ni[i] == sum(ni)
-      Inb = identity_matrix(ZZ, nb)
-      Ina = identity_matrix(ZZ, na)
-      append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
-    end
-  else
-    for x in Hecke.cartesian_product_iterator(orth_blocks, inplace=false)
-      m = block_diagonal_matrix([f for f in x])
-      push!(gensOTorth, m)
-    end
+  for i in 1:length(ni)
+    nb = sum(ni[1:i-1])
+    na = sum(ni[(i+1):end])
+    @assert na+nb+ni[i] == sum(ni)
+    Inb = identity_matrix(ZZ, nb)
+    Ina = identity_matrix(ZZ, na)
+    append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
   gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
@@ -982,20 +975,13 @@ function _compute_gens_non_split_degenerate(T::TorQuadMod)
 
   orth_blocks = _compute_gens_non_split_degenerate_primary.(domain.(blocks))
   gensOTorth = fmpz_mat[]
-  if sum(length.(orth_blocks)) <= prod(length.(orth_blocks))
-    for i in 1:length(ni)
-      nb = sum(ni[1:i-1])
-      na = sum(ni[(i+1):end])
-      @assert na+nb+ni[i] == sum(ni)
-      Inb = identity_matrix(ZZ, nb)
-      Ina = identity_matrix(ZZ, na)
-      append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
-    end
-  else
-    for x in Hecke.cartesian_product_iterator(orth_blocks, inplace=false)
-      m = block_diagonal_matrix([f for f in x])
-      push!(gensOTorth, m)
-    end
+  for i in 1:length(ni)
+    nb = sum(ni[1:i-1])
+    na = sum(ni[(i+1):end])
+    @assert na+nb+ni[i] == sum(ni)
+    Inb = identity_matrix(ZZ, nb)
+    Ina = identity_matrix(ZZ, na)
+    append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
   gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
