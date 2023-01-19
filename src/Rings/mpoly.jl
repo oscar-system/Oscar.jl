@@ -209,6 +209,7 @@ mutable struct BiPolyArray{S}
       end
       r.Sx = Sx
       r.S = S
+      r.Ox = Ox
       return r
   end
 end

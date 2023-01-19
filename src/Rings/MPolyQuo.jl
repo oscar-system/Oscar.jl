@@ -21,6 +21,7 @@ export saturated_ideal
     r.ordering = ordering
     groebner_assure(r.I, ordering)
     singular_assure(r.I.gb[ordering])
+    oscar_assure(r.I.gb[ordering])
     return r
   end
 end
