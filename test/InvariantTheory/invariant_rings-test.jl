@@ -32,6 +32,9 @@
   @test reynolds_operator(RG0, gens(R0)[3]^3) == gens(R0)[3]^3
   @test reynolds_operator(RG0, gens(R0)[1]) == zero(R0)
 
+  @test reynolds_operator(RG0, gens(R0)[3]^3) == reynolds_operator(RG0, gens(R0)[3]^3, trivial_character(group(RG0)))
+  @test reynolds_operator(RG0, gens(R0)[1]) == reynolds_operator(RG0, gens(R0)[1], trivial_character(group(RG0)))
+
   @test reynolds_operator(RGp, gens(Rp)[3]^2) == gens(Rp)[3]^2
   @test reynolds_operator(RGp, gens(Rp)[1]) == zero(Rp)
 
@@ -40,9 +43,11 @@
   @test length(basis(RG0, 1)) == 0
   @test length(basis(RG0, 1, :reynolds)) == 0
   @test length(basis(RG0, 1, :linear_algebra)) == 0
+  @test length(basis(RG0, 1, trivial_character(group(RG0)))) == 0
   @test length(basis(RG0, 3)) == 3
   @test length(basis(RG0, 3, :reynolds)) == 3
   @test length(basis(RG0, 3, :linear_algebra)) == 3
+  @test length(basis(RG0, 3, trivial_character(group(RG0)))) == 3
 
   @test length(basis(RGp, 1)) == 0
   @test length(basis(RGp, 1, :reynolds)) == 0
@@ -59,6 +64,7 @@
   F = parent(mol)
   t = gens(base_ring(F))[1]
   @test mol == (-t^6 - t^3 - 1)//(t^12 - 2t^9 + 2t^3 - 1)
+  @test molien_series(base_ring(F), RG0, trivial_character(group(RG0))) == mol
 
   mol = molien_series(RGp)
   F = parent(mol)
@@ -164,4 +170,21 @@ end
   I = invariant_ring(GF(5), s4)
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t)*(1 - t^2)*(1 - t^3)*(1 - t^4))
+
+  S2 = symmetric_group(2)
+  RS2 = invariant_ring(S2)
+  R = polynomial_ring(RS2)
+  x = gens(R)
+  F = abelian_closure(QQ)[1]
+  chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+  @test reynolds_operator(RS2, x[1] - x[2], chi) == x[1] - x[2]
+  @test reynolds_operator(RS2, x[1] + x[2], chi) == zero(R)
+
+  mol = molien_series(RS2)
+  F = parent(mol)
+  t = gens(base_ring(F))[1]
+  @test mol == 1//(t^3 - t^2 - t + 1)
+  @test molien_series(base_ring(F), RS2, chi) == t*mol
+
+  @test length(basis(RS2, 1, chi)) == 1
 end
