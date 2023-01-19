@@ -90,7 +90,7 @@ x//1*f[1]
 julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
 
 julia> FRQ =  free_module(RQ, 2, "g")
-Free module of rank 2 over RQ
+Free module of rank 2 over Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5)
 
 julia> RQ(x)*FRQ[1]
 x*g[1]

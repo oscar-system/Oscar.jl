@@ -72,13 +72,13 @@ julia> rank(F)
 
 ## Elements of Free Modules
 
-All OSCAR types for elements of finitely presented modules considered in this chapter belong
-to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
-For elements of free modules, there are the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}` and its concrete
-descendant `FreeModElem{T}` which implements an element $f$ of a free module $F$ as a sparse row,
-that is, as an object of type `SRow{T}`. This object specifies the coordinates of $f$ with respect to
-the basis of standard unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
-
+All OSCAR types for elements of finitely presented modules considered here belong
+to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
+The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
+They are modelled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
+which implements an element $f$ of a free module $F$ as a sparse row, that is, as an object of
+type `SRow{T}`. This object specifies the coordinates of $f$ with respect to the basis of standard
+unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
 
 ```@julia
 (F::FreeMod{T})(c::SRow{T}) where T
@@ -157,7 +157,7 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms from Free Modules
 
-All OSCAR types for homomorphisms of finitely presented modules considered in this chapter belong
+All OSCAR types for homomorphisms of finitely presented modules considered here belong
 to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
