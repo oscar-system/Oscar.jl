@@ -55,26 +55,59 @@ end
 @doc Markdown.doc"""
     free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
 
+    free_module(R::MPolyQuo, p::Int, name::String = "e"; cached::Bool = false)
+
+    free_module(R::MPolyLocalizedRing, p::Int, name::String = "e"; cached::Bool = false)
+
+    free_module(R::MPolyQuoLocalizedRing, p::Int, name::String = "e"; cached::Bool = false)
+
 Return the free $R$-module $R^p$, created with its basis of standard unit vectors.
 
 The string `name` specifies how the basis vectors are printed. 
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+julia> FR = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
-julia> F[2]
-e[2]
+julia> x*FR[1]
+x*e[1]
 
-julia> typeof(F)
-FreeMod{fmpq_mpoly}
+julia> P = ideal(R, [x, y, z]);
+
+julia> U = complement_of_ideal(P);
+
+julia> RL, _ = Localization(R, U);
+
+julia> FRL = free_module(RL, 2, "f")
+Free module of rank 2 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
+
+julia> RL(x)*FRL[1]
+x//1*f[1]
+
+julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
+
+julia> FRQ =  free_module(RQ, 2, "g")
+Free module of rank 2 over RQ
+
+julia> RQ(x)*FRQ[1]
+x*g[1]
+
+julia> RQL, _ = Localization(RQ, U);
+
+julia> FRQL =  free_module(RQL, 2, "h")
+Free module of rank 2 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+
+julia> RQL(x)*FRQL[1]
+x//1*h[1]
 ```
 """
 free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuo, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyLocalizedRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuoLocalizedRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
@@ -94,7 +127,7 @@ function show(io::IO, F::FreeMod)
   @show_special(io, F)
 
   print(io, "Free module of rank $(F.n) over ")
-  print(IOContext(io, :compact =>true), F.R)
+  print(IOContext(io, :compact =>false), F.R)
 end
 
 @doc Markdown.doc"""

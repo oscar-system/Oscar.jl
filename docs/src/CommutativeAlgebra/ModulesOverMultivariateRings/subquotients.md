@@ -50,10 +50,10 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 
 ## Types
 
-All OSCAR types for finitely presented modules over multivariate polynomial rings
-belong to the abstract type `ModuleFP{T}`, where `T` is the element type of the polynomial ring.
-For subquotients, OSCAR provides the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}` and
-its concrete descendant `SubQuo{T}`.
+All OSCAR types for the finitely presented modules considered here belong to the
+abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
+The subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
+they are modelled as objects of the concrete type `SubQuo{T} <: AbstractSubQuo{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 

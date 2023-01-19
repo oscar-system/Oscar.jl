@@ -15,11 +15,11 @@ Pages = ["free_modules.md"]
 
 # Free Modules
 
-In what follows, the expression *free module*  refers to a free module of finite rank
-over a multivariate polynomial ring. More concretely, given a multivariate polynomial ring $R$, 
-the free $R$-modules considered are of type $R^p$, where we think of $R^p$ as a
-free module with a given basis, namely the basis of standard unit vectors.
-Accordingly, elements of free modules are represented by coordinate vectors,
+In this section, the expression *free module*  refers to a free module of finite rank
+over a ring of type `MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`, or `MPolyQuoLocalizedRing`.
+More concretely, given a ring $R$ of one of these types, the free $R$-modules considered are of
+type $R^p$, where we think of $R^p$ as a free module with a given basis, namely the basis of
+standard unit vectors. Accordingly, elements of free modules are represented by coordinate vectors,
 and homomorphisms between free modules by matrices.
 
 !!! note
@@ -27,10 +27,10 @@ and homomorphisms between free modules by matrices.
 
 ## Types
 
-All OSCAR types for finitely presented modules over multivariate polynomial rings belong to
-the abstract type `ModuleFP{T}`, where `T` is the element type of the polynomial ring.
-For free modules, OSCAR provides the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`
-and its concrete descendant `FreeMod{T <: RingElem}`.
+All OSCAR types for the finitely presented modules considered here belong to the
+abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
+The free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
+they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -56,11 +56,9 @@ If `F` is a free `R`-module, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+julia> F = free_module(R, 3);
 
 julia> basis(F)
 3-element Vector{FreeModElem{fmpq_mpoly}}:
@@ -70,12 +68,11 @@ julia> basis(F)
 
 julia> rank(F)
 3
-
 ```
 
 ## Elements of Free Modules
 
-All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong
+All OSCAR types for elements of finitely presented modules considered in this chapter belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
 For elements of free modules, there are the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}` and its concrete
 descendant `FreeModElem{T}` which implements an element $f$ of a free module $F$ as a sparse row,
@@ -96,16 +93,14 @@ Alternatively, directly write the element as a linear combination of basis vecto
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+julia> F = free_module(R, 3);
 
 julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
 
-julia> g = F( [x, zero(R), y])
+julia> g = F([x, zero(R), y])
 x*e[1] + y*e[3]
 
 julia> h = x*F[1] + y*F[3]
@@ -123,11 +118,9 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+julia> F = free_module(R, 3);
 
 julia> f = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
@@ -164,7 +157,7 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms from Free Modules
 
-All OSCAR types for homomorphisms of finitely presented modules over multivariate polynomial rings belong
+All OSCAR types for homomorphisms of finitely presented modules considered in this chapter belong
 to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
