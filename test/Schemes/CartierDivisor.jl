@@ -40,3 +40,18 @@
     @test D(U) == D2(U) # In particular, this will do a parent check
   end
 end
+
+@testset "Arithmetic of CartierDivisors" begin
+  IP = projective_space(QQ, 3)
+  (x,y,z,w) = gens(ambient_coordinate_ring(IP))
+  f = x^4 + y^4 + z^4 + w^4
+  IPX = subscheme(IP, f)
+  X = covered_scheme(IPX)
+  h = (x+y+z+w)^3
+  u = (x-y+4*w)
+  C = oscar.cartier_divisor(IPX, h)
+  D = oscar.cartier_divisor(IPX, u)
+  @test 2*C == C+C
+  @test iszero(D-D)
+  @test 3*(C + D) == 3*C + 3*D
+end
