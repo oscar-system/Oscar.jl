@@ -17,9 +17,26 @@
     D[U] = dehomogenize(P, U)(H)
   end
 
-  C = CartierDivisor(X, D)
+  C = oscar.EffectiveCartierDivisor(X, D)
   D = pullback(g_cov)(C)
   for U in patches(trivializing_covering(D))
     @test length(D(U)) == 1
+  end
+
+  # Test pullbacks of coverings and restrictions of morphisms to them
+  phi = restrict(g_cov, default_covering(X))
+  @test phi === restrict(g_cov, default_covering(X)) # test caching
+  ref = domain(phi)
+  double_ref = restrict(g_cov, ref)
+  @test double_ref === restrict(g_cov, ref)
+  K = keys(glueings(domain(double_ref)))
+  for k in K
+      @test underlying_glueing(glueings(domain(double_ref))[k]) isa SimpleGlueing
+  end
+
+  D2 = pullback(g_cov)(C) # The same thing
+  @test trivializing_covering(D) === trivializing_covering(D2)
+  for U in patches(trivializing_covering(D))
+    @test D(U) == D2(U) # In particular, this will do a parent check
   end
 end

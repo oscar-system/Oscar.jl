@@ -19,44 +19,109 @@ function pullback(f::CoveredSchemeMorphism)
       pbf = pullback(f_U)
       ID[U] = ideal(OO(U), pbf.(gens(II(V))))
     end
-    return IdealSheaf(X, ID, check=false) # TODO: Set to false eventually.
+    return IdealSheaf(X, ID, check=false)
   end
 
-  function pullback_func(C::CartierDivisor)
+  function pullback_func(C::EffectiveCartierDivisor)
     phi = covering_morphism(f)
     triv_dict = IdDict{AbsSpec, RingElem}()
-    OOX = OO(X)
-    # We need to do the following:
-    # The divisor D := f^* C needs to be trivialized on some refinement. 
-    # The one we're using consists of the preimages of the patches of 
-    # the `trivializing_covering` of `C`. These must be intersected 
-    # with each and every affine chart of X first. 
-    for U in patches(domain(phi))
-      V = codomain(phi[U])
-      for W in patches(trivializing_covering(C))
-        # In case V and W do not happen to lay in the same affine 
-        # chart, the preimage of W in U will be empty. So we can 
-        # skip the computation in that case.
-        success, par = _have_common_ancestor(V, W)
-        if success
-          # Reconstruct W as a PrincipalOpenSubset of the affine chart directly
-          # (Note that we might have gone through some calls to `simplify(...)`, 
-          # so this really is a non-trivial step)
-          inc_W_flat = _flatten_open_subscheme(W, par)
-          # To cheaply construct the preimage of W in U, just pull back the 
-          # complement equation.
-          h = complement_equation(codomain(inc_W_flat))
-          UW = PrincipalOpenSubset(U, pullback(phi[U])(OOX(par, V)(h)))
-          # Finally, we can add the trivialization on U ∩ f⁻¹(W) to our list.
-          triv_dict[UW] = pullback(phi[U])(first(C(V)))
-        end
-      end
+    psi = restrict(f, trivializing_covering(C))
+    triv_cov = domain(psi)
+    for U in patches(triv_cov)
+      V = codomain(psi[U])
+      pbgens = pullback(psi[U]).(C(V))
+
+      # Do the sanity checks
+      length(pbgens) == 1 || error("cartier divisor is not principal on this patch")
+      g = first(pbgens)
+      # See the Stacks project on cartier divisors
+      is_zero_divisor(g) && error("pullback of the local equation is a zero divisor; pullback of the cartier divisor is not defined")
+      triv_dict[U] = g
     end
-    return CartierDivisor(X, triv_dict) # We have to leave the checks back on, because local 
-                                        # equations might pull back to zero or zero divisors.
+    
+    return EffectiveCartierDivisor(X, triv_dict, trivializing_covering=triv_cov, check=false)
+  end
+
+  function pullback_func(CC::Covering)
+    psi = restrict(f, CC)
+    return domain(psi)
   end
 
   return pullback_func
+end
+
+@Markdown.doc """
+    restrict(f::CoveredSchemeMorphism, DD::Covering)
+
+Given a morphism of `CoveredScheme`s ``f : X → Y``, described via ``φ : C → D`` 
+on `Covering`s `C` of ``X`` and `D` of ``Y``, and a refinement `DD ≤ D`, 
+compute the preimages ``Uᵢ ∩ f⁻¹(Vⱼ)`` for ``Uᵢ`` the `patches` in `C` and 
+``Vⱼ`` those of `DD` and restrictions of ``f`` to these new patches. 
+Return the resulting `CoveringMorphism` ``ψ : C ∩ f⁻¹(DD) → DD``.
+"""
+function restrict(f::CoveredSchemeMorphism, DD::Covering)
+  X = domain(f)
+  Y = codomain(f)
+  phi = covering_morphism(f)
+  C = domain(phi)
+  D = codomain(phi)
+  # DD needs to be a refinement of D; otherwise quit.
+  all(x->some_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
+
+  res_cache = restriction_cache(f)
+  haskey(res_cache, DD) && return res_cache[DD]
+
+  OOX = OO(X)
+  # We need to do the following:
+  # The covering CC has patches Vⱼ in the codomain Y of f.
+  # Their preimages must be taken in every patch Uᵢ of X in 
+  # the domain's covering for phi. 
+  res_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(domain(phi))
+    V = codomain(phi[U])
+    for W in patches(DD)
+      # In case V and W do not happen to lay in the same affine 
+      # chart, the preimage of W in U will be empty. So we can 
+      # skip the computation in that case.
+      success, par = _have_common_ancestor(V, W)
+      if success
+        # Reconstruct W as a PrincipalOpenSubset of the affine chart directly
+        # (Note that we might have gone through some calls to `simplify(...)`, 
+        # so this really is a non-trivial step)
+        iso_W_flat = _flatten_open_subscheme(W, par)
+        W_flat = codomain(iso_W_flat)
+        # To cheaply construct the preimage of W in U, just pull back the 
+        # complement equation.
+        h = complement_equation(codomain(iso_W_flat))
+        UW = PrincipalOpenSubset(U, pullback(phi[U])(OOX(par, V)(h)))
+        # Manually assemble the restriction of phi to this new patch
+        ff = SpecMor(UW, W_flat, 
+                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(gens(OO(V)))), check=false),
+                     check=false
+                    )
+        f_res = compose(ff, inverse(iso_W_flat))
+        res_dict[UW] = f_res
+      end
+    end
+  end
+  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
+  inherit_glueings!(new_domain, domain(phi))
+
+  psi = CoveringMorphism(new_domain, DD, res_dict, check=true)
+  restriction_cache(f)[DD] = psi
+  return psi
+end
+
+# Several objects on the codomain of f : X → Y might use the same covering 
+# in their internals. Now when pulling them back, we do not want to recreate 
+# the necessary refinement on X again and again. In particular, because 
+# we do not want the pulled back modules/ideals/functions... to live on different 
+# affine patches in X while their originals were defined on the same patches in Y.
+@attr IdDict{<:Covering, <:CoveringMorphism} function restriction_cache(f::CoveredSchemeMorphism)
+  res_dict = IdDict{Covering, CoveringMorphism}()
+  phi = covering_morphism(f)
+  res_dict[codomain(phi)] = phi
+  return res_dict
 end
 
 struct InheritGlueingData
