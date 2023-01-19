@@ -21,14 +21,14 @@ function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int
   return true
 end
 
-function reduce_hilbert_series_by_primary_degrees(R::InvRing)
-  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(f.f) for f in primary_invariants(R) ])
+function reduce_hilbert_series_by_primary_degrees(R::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(f.f) for f in primary_invariants(R) ], chi)
   @assert fl
   return h
 end
 
-function _reduce_hilbert_series_by_primary_degrees(R::InvRing, degrees::Vector{Int})
-  mol = molien_series(R)
+function _reduce_hilbert_series_by_primary_degrees(R::InvRing, degrees::Vector{Int}, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+  mol = molien_series(R, chi)
   f = numerator(mol)
   g = denominator(mol)
   for d in degrees
