@@ -1,8 +1,8 @@
-export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
-		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
-		groebner_basis_with_transformation_matrix,
-		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
-		groebner_basis_hilbert_driven
+export reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
+       standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
+       groebner_basis_with_transformation_matrix,
+       leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
+       groebner_basis_hilbert_driven
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -141,18 +141,18 @@ negdegrevlex([x, y])
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
                         complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
-	complete_reduction && @assert is_global(ordering)
-	if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
-		return I.gb[ordering]
-	end
-	if algorithm == :buchberger
-		if !haskey(I.gb, ordering)
-			I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
-		elseif complete_reduction == true
-			I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
-		end
-	elseif algorithm == :fglm
-		_compute_groebner_basis_using_fglm(I, ordering)
+  complete_reduction && @assert is_global(ordering)
+  if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
+    return I.gb[ordering]
+  end
+  if algorithm == :buchberger
+    if !haskey(I.gb, ordering)
+      I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
+    elseif complete_reduction == true
+      I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
+    end
+  elseif algorithm == :fglm
+    _compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
     if base_ring(I) isa MPolyRing_dec
       J, target_ordering  = I, ordering
@@ -169,10 +169,10 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       GB_dehom_gens = [dehomogenization(p, base_ring(I), 1) for p in gens(GB)]
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
-	elseif algorithm == :f4
-		f4(I, complete_reduction=complete_reduction)
-	end
-	return I.gb[ordering]
+  elseif algorithm == :f4
+    f4(I, complete_reduction=complete_reduction)
+  end
+  return I.gb[ordering]
 end
 
 @doc Markdown.doc"""
@@ -337,12 +337,10 @@ function f4(
     ord = degrevlex(vars)
     I.gb[ord] =
         IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
-	I.gb[ord].isReduced = complete_reduction
+    I.gb[ord].isReduced = complete_reduction
 
     return I.gb[ord]
 end
-
-  
 
 @doc Markdown.doc"""
     _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -387,7 +385,7 @@ function _compute_standard_basis_with_transform(B::IdealGens, ordering::Monomial
 
    i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
    return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
- end
+end
 
 @doc Markdown.doc"""
     standard_basis_with_transformation_matrix(I::MPolyIdeal;
@@ -422,7 +420,7 @@ function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 	G.isGB = true
 	I.gb[ordering]  = G
 	return G, m
- end
+end
 
 @doc Markdown.doc"""
     groebner_basis_with_transformation_matrix(I::MPolyIdeal;
@@ -456,7 +454,7 @@ true
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
     is_global(ordering) || error("Ordering must be global")
 	return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
- end
+end
 
 # syzygies #######################################################
 @doc Markdown.doc"""
@@ -1283,7 +1281,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        complete_reduction::Bool = false) where {P <: MPolyElem_dec}
   
   all(is_homogeneous, gens(I)) || error("I must be given by generators homogeneous with respect to its underlying ring")
-	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
+  isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
   is_global(ordering) || error("Destination ordering must be global.")
   haskey(I.gb, ordering) && return I.gb[ordering]
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
@@ -1321,18 +1319,18 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   singular_assure(G)
   weights = _extract_weights(base_ring(G))
   h = Singular.hilbert_series(G.S, weights)
-	singular_assure(I.gens, ordering)
-	singular_ring = I.gens.Sx
-	J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
-	i  = Singular.std_hilbert(J, h, (Int32).(weights),
+  singular_assure(I.gens, ordering)
+  singular_ring = I.gens.Sx
+  J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
+  i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
-	GB = IdealGens(I.gens.Ox, i, complete_reduction)
-	GB.isGB = true
-	GB.ord = ordering
+  GB = IdealGens(I.gens.Ox, i, complete_reduction)
+  GB.isGB = true
+  GB.ord = ordering
   if isdefined(GB, :S)
-	   GB.S.isGB  = true
-	end
-	return GB
+    GB.S.isGB  = true
+  end
+  return GB
 end
 
 # Helper functions for groebner_basis_with_hilbert

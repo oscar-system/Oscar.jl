@@ -177,7 +177,7 @@ end
 end
 
 @testset "groebner hilbert driven" begin
-	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
@@ -185,7 +185,7 @@ end
   I = ideal([x*(x+y), x^2 - y^2 + (x-2*y) * y])
   gb = standard_basis(I, ordering = deglex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = deglex(R))
-	R, (x, y) = PolynomialRing(GF(65521), ["x", "y"])
+  R, (x, y) = PolynomialRing(GF(65521), ["x", "y"])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
