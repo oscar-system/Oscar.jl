@@ -1,53 +1,99 @@
+# This struct associates to a morphism f of type `MorphismType` 
+# the mathematical symbol f^* which, in one way or the other, 
+# denotes some pullback functor. 
+#
+# Which functor exactly this should be, is determined only from 
+# the context in which this symbol appears. Hence, it is no 
+# rigorous mathematical object, but really only a symbol. 
+#
+# It is introduced to facilitate writing 
+#
+#   pbf = pullback(f) # f some morphism f : X → Y
+#   N = pbf(M) # M some object on Y
+# 
+# rather than 
+# 
+#   N = pullback(f, M)
+#
+# In particular, this makes the pullback a univariate 
+# function which might come in handy when passing it as an argument 
+# to other functions. For instance, for a collection of objects 
+# A = [M₁, M₂, … ] on Y you can now write 
+#
+#   B = pbf.(A)
+#
+# rather than
+#
+#   B = (a->pullback(f, a).(A)
+#
+# or
+#
+#   B = [pullback(f, a) for a in A]
+struct UniversalPullbackSymbol{MorphismType}
+  f::MorphismType
+end
+
+# The following refers a call of f_star(M) to a bivariate pullback-method.
+# The latter is what really needs to be implemented by the programmer. 
+# Also, all parent checks, etc. are expected to happen there.
+function (f_star::UniversalPullbackSymbol)(M::Any)
+  return pullback(f_star.f, M)
+end
+
 @Markdown.doc """
     pullback(f::CoveredSchemeMorphism)
 
 Return a function `phi` which takes any reasonable 
-argument `v` associated to the `codomain` of `f` and 
-produces ``f*(v)``.
+argument `M` associated to the `codomain` of `f` and 
+produces ``f*(M)``.
+
+**Note:** Internally, this simply calls `pullback(f, M)`. 
+Hence, that method needs to be implemented.
 """
 function pullback(f::CoveredSchemeMorphism)
+  return UniversalPullbackSymbol{typeof(f)}(f)
+end
+
+function pullback(f::CoveredSchemeMorphism, II::IdealSheaf)
   X = domain(f)
   Y = codomain(f)
+  scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
+  phi = covering_morphism(f)
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in patches(domain(phi))
+    f_U = phi[U]
+    V = codomain(f_U)
+    pbf = pullback(f_U)
+    ID[U] = ideal(OO(U), pbf.(gens(II(V))))
+  end
+  return IdealSheaf(X, ID, check=false)
+end
 
-  function pullback_func(II::IdealSheaf)
-    scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
-    phi = covering_morphism(f)
-    ID = IdDict{AbsSpec, Ideal}()
-    for U in patches(domain(phi))
-      f_U = phi[U]
-      V = codomain(f_U)
-      pbf = pullback(f_U)
-      ID[U] = ideal(OO(U), pbf.(gens(II(V))))
-    end
-    return IdealSheaf(X, ID, check=false)
+function pullback(f::CoveredSchemeMorphism, C::EffectiveCartierDivisor)
+  X = domain(f)
+  Y = codomain(f)
+  phi = covering_morphism(f)
+  triv_dict = IdDict{AbsSpec, RingElem}()
+  psi = restrict(f, trivializing_covering(C))
+  triv_cov = domain(psi)
+  for U in patches(triv_cov)
+    V = codomain(psi[U])
+    pbgens = pullback(psi[U]).(C(V))
+
+    # Do the sanity checks
+    length(pbgens) == 1 || error("cartier divisor is not principal on this patch")
+    g = first(pbgens)
+    # See the Stacks project on cartier divisors
+    is_zero_divisor(g) && error("pullback of the local equation is a zero divisor; pullback of the cartier divisor is not defined")
+    triv_dict[U] = g
   end
 
-  function pullback_func(C::EffectiveCartierDivisor)
-    phi = covering_morphism(f)
-    triv_dict = IdDict{AbsSpec, RingElem}()
-    psi = restrict(f, trivializing_covering(C))
-    triv_cov = domain(psi)
-    for U in patches(triv_cov)
-      V = codomain(psi[U])
-      pbgens = pullback(psi[U]).(C(V))
+  return EffectiveCartierDivisor(X, triv_dict, trivializing_covering=triv_cov, check=false)
+end
 
-      # Do the sanity checks
-      length(pbgens) == 1 || error("cartier divisor is not principal on this patch")
-      g = first(pbgens)
-      # See the Stacks project on cartier divisors
-      is_zero_divisor(g) && error("pullback of the local equation is a zero divisor; pullback of the cartier divisor is not defined")
-      triv_dict[U] = g
-    end
-    
-    return EffectiveCartierDivisor(X, triv_dict, trivializing_covering=triv_cov, check=false)
-  end
-
-  function pullback_func(CC::Covering)
-    psi = restrict(f, CC)
-    return domain(psi)
-  end
-
-  return pullback_func
+function pullback(f::CoveredSchemeMorphism, CC::Covering)
+  psi = restrict(f, CC)
+  return domain(psi)
 end
 
 @Markdown.doc """
