@@ -6,7 +6,7 @@ Base.isfinite(G::PermGroup) = true
 
 ==(x::PermGroup, y::PermGroup) = x.deg == y.deg && x.X == y.X
 
-==(x::PermGroupElem, y::PermGroupElem) = degree(parent(x)) == degree(parent(y)) && x.X == y.X
+==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && x.X == y.X
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 
@@ -54,8 +54,16 @@ julia> show(Vector(gen(symmetric_group(5), 2)))
 degree(x::PermGroup) = x.deg
 
 """
-    moved_points(x::PermGroupElem)
-    moved_points(G::PermGroup)
+    degree(g::PermGroupElem) -> Int
+
+Return the degree of the parent of `g`. This value is always greater or equal number_moved_points
+
+"""
+degree(g::PermGroupElem) = degree(parent(g))
+
+"""
+    moved_points(x::PermGroupElem) -> Vector{Int}
+    moved_points(G::PermGroup) -> Vector{Int}
 
 Return the vector of those points in `1:degree(x)` or `1:degree(G)`,
 respectively, that are not mapped to themselves under the action `^`.
@@ -75,12 +83,11 @@ julia> length(moved_points(gen(s, 1)))
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 
 """
-    number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: IntegerUnion
-    number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: IntegerUnion
+    number_moved_points(x::PermGroupElem) -> Int
+    number_moved_points(G::PermGroup) -> Int
 
 Return the number of those points in `1:degree(x)` or `1:degree(G)`,
-respectively, that are not mapped to themselves under the action `^`,
-as an instance of `T`.
+respectively, that are moved (i.e., not fixed) under the action `^`.
 
 # Examples
 ```jldoctest
@@ -89,17 +96,12 @@ julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
 julia> number_moved_points(s)
 3
 
-julia> number_moved_points(Int, s)
-3
-
 julia> number_moved_points(gen(s, 1))
 3
 
 ```
 """
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
-
-number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
+@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
 
 @doc Markdown.doc"""
     perm(L::AbstractVector{<:IntegerUnion})
@@ -212,7 +214,7 @@ julia> cperm([1,2],[2,3])
 julia> p = cperm([1,2,3],[7])
 (1,2,3)
 
-julia> degree(parent(p))
+julia> degree(p)
 7
 ```
 
@@ -358,7 +360,7 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
 
 """
-    sign(g::PermGroupElem)
+    sign(g::PermGroupElem) -> Int
 
 Return the sign of the permutation `g`.
 
@@ -432,22 +434,23 @@ Base.iseven(n::PermGroup) = !isodd(n)
 ##
 # cycle-types and support
 ##
-mutable struct CycleType <: AbstractVector{Pair{Int64, Int64}}
+struct CycleType <: AbstractVector{Pair{Int64, Int64}}
+  # pairs 'cycle length => number of times it occurs'
+  # so 'n => 1' is a single n-cycle and  '1 => n' is the identity on n points
   s::Vector{Pair{Int, Int}}
+
+  # take a vector of cycle lengths
   function CycleType(c::Vector{Int})
-    ct = CycleType()
+    s = Vector{Pair{Int, Int}}()
     for i = c
-      _push!(ct, i)
+      _push_cycle!(s, i)
     end
-    sort!(ct.s, lt = (x,y) -> x[1] < y[1])
-    return ct
-  end
-  function CycleType()
-    return new(Pair{Int, Int}[])
+    sort!(s, by = x -> x[1])
+    return new(s)
   end
   function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
     sorted && return new(v)
-    return new(sort(v, lt = (x,y) -> x[1] < y[1]))
+    return new(sort(v, by = x -> x[1]))
   end
 end
 
@@ -466,31 +469,35 @@ function Base.show(io::IO, C::CycleType)
   print(io, C.s)
 end
 
-function _push!(ct::CycleType, i::Int, j::Int = 1)
-  f = findfirst(x->x[1] == i, ct.s)
+function _push_cycle!(s::Vector{Pair{Int, Int}}, i::Int, j::Int = 1)
+  # TODO: rewrite this to use searchsortedfirst instead of findfirst,
+  # then avoid the sort! below
+  f = findfirst(x->x[1] == i, s)
   if f === nothing
-    push!(ct.s, i=>j)
-    sort!(ct.s, lt= (a,b) -> a[1] < b[1])
+    push!(s, i=>j)
+    sort!(s, by = x -> x[1])
   else
-    ct.s[f] = ct.s[f][1]=>ct.s[f][2] + j
+    s[f] = s[f][1]=>s[f][2] + j
   end
 end
 
 function ^(c::CycleType, e::Int)
-  t = CycleType()
-  for (i,j) = c.s
+  t = Vector{Pair{Int, Int}}()
+  for (i,j) in c.s
     g = gcd(i, e)
-    _push!(t, divexact(i, g), g*j)
+    _push_cycle!(t, divexact(i, g), g*j)
   end
-  return t
+  return CycleType(t; sorted=true)
 end
 
-function order(c::CycleType)
-  return reduce(lcm, map(x->fmpz(x[1]), c.s), init = fmpz(1))
-end
+order(::Type{T}, c::CycleType) where T = mapreduce(x->T(x[1]), lcm, c.s, init = T(1))
+order(c::CycleType) = order(fmpz, c)
+
+degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
+
 
 """
-    cycle_structure(g::PermGroupElem)
+    cycle_structure(g::PermGroupElem) -> CycleType
 
 Return the cycle structure of the permutation `g` as a cycle type.
 A cycle type behaves similar to a vector of pairs `k => n`
@@ -516,13 +523,13 @@ julia> cycle_structure(ans)
 ```
 """
 function cycle_structure(g::PermGroupElem)
-    c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))
+    c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))::GAP.GapObj
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
-    s = mapreduce(x->x[1]*x[2], +, ct, init = Int(0))
-    if s < degree(parent(g))
+    s = degree(CycleType(ct, sorted = true))
+    if s < degree(g)
       @assert length(c) == 0 || ct[1][1] > 1
-      insert!(ct, 1, 1=>degree(parent(g))-s)
+      insert!(ct, 1, 1=>degree(g)-s)
     end
     return CycleType(ct, sorted = true)
 end

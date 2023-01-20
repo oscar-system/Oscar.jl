@@ -82,3 +82,32 @@ end
 
   @test issubset(IdealSheaf(X), I) # Whether the zero ideal sheaf is a subset of I
 end
+
+@testset "pullbacks of ideal sheaves" begin
+  P = projective_space(QQ, 2)
+  SP = ambient_coordinate_ring(P)
+  (x, y, z) = gens(SP)
+  m = ideal(SP, gens(SP))
+  m3 = m^3
+  n = ngens(m3)
+  Q = projective_space(QQ, n-1)
+  SQ = ambient_coordinate_ring(Q)
+  phi = hom(SQ, SP, gens(m3))
+  f = ProjectiveSchemeMor(P, Q, phi)
+  f_cov = covered_scheme_morphism(f)
+
+  A = [1 2 4; 1 3 9; 1 5 25]
+  v = A*[x, y, z]
+  psi = hom(SP, SP, v)
+  g = ProjectiveSchemeMor(P, P, psi)
+  g_cov = covered_scheme_morphism(g)
+
+  II = IdealSheaf(Q, [gens(SQ)[1]+gens(SQ)[2]])
+  pbII = pullback(f_cov)(II)
+  X = covered_scheme(P)
+  U = affine_charts(X)
+  @test pbII(U[1]) isa Ideal
+  @test !haskey(pbII.I.obj_cache, U[2])
+  @test pbII(U[2]) isa Ideal
+  @test haskey(pbII.I.obj_cache, U[2])
+end

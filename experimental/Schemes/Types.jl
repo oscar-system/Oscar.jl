@@ -420,12 +420,17 @@ identifications given by the glueings in the `default_covering`.
       )
       OV = F(V)
       OU = F(U) 
-      incV, dV = _find_chart(V, default_covering(X))
-      W = codomain(incV)
-      V_direct = PrincipalOpenSubset(W, dV)
+      incV = _flatten_open_subscheme(V, default_covering(X))
+      W = ambient_scheme(codomain(incV))
+      V_direct = domain(incV)
       if W === U
-        return pullback(inverse(incV))
-        ### deprecated code below
+        # By virtue of the checks in _is_open_func we must have V isomorphic to U.
+        phi = pullback(inverse(incV))
+        psi = hom(OO(V_direct), OU, gens(OU))
+        return hom(OV, OU, psi.(phi.(gens(OV))))
+        ### deprecated code below;
+        # kept for the moment because of possible incompatibilities with glueings 
+        # along SpecOpens.
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           # We may assume that all denominators admissible in V are
@@ -438,9 +443,8 @@ identifications given by the glueings in the `default_covering`.
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
         g_res = restrict(g, U, V_direct)
-        inc_res = restrict(incV, V, V_direct, check=false)
-        return pullback(compose(g_res, inverse(inc_res)))
-        ### deprecated code below
+        return pullback(compose(g_res, inverse(incV)))
+        ### deprecated code below; see comment above
         function rho_func2(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(W1)(a)), U)
@@ -460,14 +464,6 @@ identifications given by the glueings in the `default_covering`.
       B = ambient_scheme(codomain(inc_V_flat))
       U_flat = codomain(inc_U_flat)
       V_flat = codomain(inc_V_flat)
-      # incV, dV = _find_chart(V, default_covering(X))
-      # incU, dU = _find_chart(U, default_covering(X))
-      # A = codomain(incV)
-      # B = codomain(incU)
-      # V_direct = PrincipalOpenSubset(A, dV)
-      # incV_res = restrict(incV, V, V_direct)
-      # U_direct = PrincipalOpenSubset(B, dU)
-      # incU_res = restrict(incU, U, U_direct)
 
       if A === B
         return hom(OV, OU, 
@@ -512,6 +508,8 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### cleaned up until here ###
+    # We do not make SpecOpen compatible with the tree structures, yet. 
+    # All SpecOpen's are hence required to have an ambient_scheme on the top level. 
 
     function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, W::SpecOpen)
       error("method not implemented at the moment")
@@ -597,67 +595,12 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = StructureSheafOfRings(X)
 
-    ### Checks for open containment.
-    #
-    # We allow the following cases:
-    #
-    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-    #    and U and V contained in the glueing domains of their ambient schemes
-    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
-    #  * U::AbsSpec ⊂ X for U in the basic charts
-    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
-    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-      C = default_covering(X)
-      A = ambient_scheme(U)
-      A in C || return false
-      B = ambient_scheme(V)
-      B in C || return false
-      if A === B
-        is_subset(U, V) || return false
-      else
-        G = C[A, B] # Get the glueing
-        f, g = glueing_morphisms(G)
-        is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
-        gU = preimage(g, U)
-        is_subset(gU, V) || return false
-      end
-      return true
-    end
-    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(U) in default_covering(X)
-    end
-    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && U in default_covering(X)
-    end
-    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
-      return X === Y === Z
-    end
-    function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in default_covering(X) || return false
-      V in default_covering(X) || return false
-      G = default_covering(X)[U, V]
-      return issubset(U, glueing_domains(G)[1])
-    end
-    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(U) === V && return true
-      W = ambient_scheme(U)
-      W in default_covering(X) || return false
-      G = default_covering(X)[W, V]
-      return is_subset(U, glueing_domains(G)[1])
-    end
-
     ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
       # The ideal sheaf has to be provided on at least one dense
       # open subset of every connected component.
-      # Otherwise, the ideal sheaf is given by the unit
-      # ideals.
       for G in values(glueings(default_covering(space(F))))
         A, B = patches(G)
         Asub, Bsub = glueing_domains(G)
@@ -670,10 +613,31 @@ identifications given by the glueings in the `default_covering`.
           return ID[U]
         end
       end
-      return ideal(OO(U), one(OO(U)))
+      # Transfering from another chart did not work. That means 
+      # I(U) is already prescribed on some refinement of U. We 
+      # need to gather that information from all the patches involved
+      # and assemble the ideal from there.
+      V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+      length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+                                                        # Just return the unit ideal so that the 
+                                                        # associated subscheme is empty.
+      result = ideal(OO(U), zero(OO(U)))
+      for VV in V
+        result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+      end
+      return result
     end
     function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
+      haskey(ID, U) && return ID[U]
       V = ambient_scheme(U)
+      IV = F(V)::Ideal
+      rho = OOX(V, U)
+      IU = ideal(OO(U), rho.(gens(IV)))
+      return IU
+    end
+    function production_func(F::AbsPreSheaf, U::SimplifiedSpec)
+      haskey(ID, U) && return ID[U]
+      V = original(U)
       IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
@@ -690,7 +654,7 @@ identifications given by the glueings in the `default_covering`.
     Ipre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=Ideal,
                       RestrictionType=Hecke.Map,
-                      is_open_func=is_open_func
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
     I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
     if check

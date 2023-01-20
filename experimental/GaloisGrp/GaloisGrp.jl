@@ -1783,35 +1783,91 @@ function order_from_shape(ct::Set{CycleType}, n)
 end
 
 
-#https://mathoverflow.net/questions/286316/recognition-of-symmetric-groups-in-gap
-#show primitivity by finding a permutation which has a p cycle for n/2<p<n−1
+@doc Markdown.doc"""
+  primitive_by_shape(ct::Set{CycleType}, n::Int)
+
+Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
+matching the cycle types in `ct` must be primitive, otherwise return `false`.
+"""
 function primitive_by_shape(ct::Set{CycleType}, n::Int)
-  for p = PrimesSet(div(n, 2)+1, n-2)
-    if any(y->any(x->x[1] % p == 0, y), ct)
+
+  # degree <= 3: always A_n or S_n
+  n <= 3 && return true
+
+  # if n is a prime then any transitive action is primitive
+  is_prime(n) && return true
+
+  # Now use the following observation:
+  #
+  # Lemma: Let G \leq Sym(n) be transitive. If there is \pi \in G with a
+  # non-trivial cycle whose length p is prime and satisfies n/2 < p < n,
+  # then G is primitive.
+  #
+  # Proof: If B is a block of length b, and n = bk, then G is a subgroup of
+  # S_b \wr S_k, which has size (b!)^k * k!. Suppose 1<b<n holds, then this
+  # order is not divisible by p, as p > n/2. But the order of \pi is a
+  # multiple of p. Contradiction!
+  for p in PrimesSet(div(n, 2)+1, n-1)
+    if any(y->any(x->x[1] == p, y), ct)
       return true
     end
   end
+
+  # degree 9: also primitive if it contains a double-4-cycle
+  # (as the only possible non-trivial block size is 3, and it is easy
+  # to see that this is impossible when there is a double-4-cycle.
+  n == 9 && return any(x -> (4 => 2) in x, ct)
+
+  # degree 10: also primitive if it contains a triple-3-cycle
+  # (as the only possible non-trivial block size are 2 and 5, and it is easy
+  # to see that this is impossible when there is a triple-3-cycle.
+  n == 10 && return any(x -> (3 => 3) in x, ct)
+
+  # degree 15: also primitive if it contains a double-7-cycle
+  # (but this still doesn't catch all cases)
+  n == 15 && return any(x -> (7 => 2) in x, ct)
+
+  # TODO: if desired, we could add more degrees here if we wanted, possibly
+  # even in a semi-generic way. One could also write a program which uses the
+  # databases of transitive and primitive groups to identify additional
+  # sufficient conditions.
+
   return false
 end
 
+
+@doc Markdown.doc"""
+    an_sn_by_shape(ct::Set{CycleType}, n::Int)
+
+Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
+matching the cycle types in `ct` must contain $Alt(n)$, otherwise return `false`.
+"""
 function an_sn_by_shape(ct::Set{CycleType}, n::Int)
+  # handle small degrees first
+
+  # degree <= 3: always A_n or S_n
   n <= 3 && return true
 
-  ub = n > 8 ? n-3 : n-2
-  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))), init = fmpz(1))
+  # degree 4 and 5: must contain a 3 cycle
+  (n == 4 || n == 5) && return any(x -> (3 => 1) in x, ct)
 
-  if any(x->any(y ->gcd(y[1], lp) > 1, x.s), ct)
-    n != 6 && return true
-    #from Elsenhans (ask Max???) need the 5-cycle and 
-    #    [1,1,1,3] or [1,2,3] ie. not [3,3]
-    # Elsenhans also tries to separate Sn/An but there I am not certain
-    # I think if there is a type proving odd, then we have Sn, hower
-    # not finding one does not prove anything
-    if any(x->(3=>2) in x, ct)
-      return true
-    end
-  end
-  return false
+  # degree 6: must contain a 3 cycle and a 5 cycle
+  n == 6 && return any(x -> (3 => 1) in x, ct) && any(x -> (5 => 1) in x, ct)
+
+  # degree 7: must contain a 5 cycle OR contain "many" cycle types
+  n == 7 && return length(ct) > 5 || any(x -> (5 => 1) in x, ct)
+
+  # In general, we use a result due to Jordan: Let G <= S_n be transitive, and let
+  # p be a prime satisfying n/2 < p < n − 2. If G contains an element that has
+  # a cycle of length p then G is a giant (i.e., is A_n or S_n).
+  #
+  # See e.g. Corollary 10.2.2 on page 225 in [Ser03].
+  #
+  # Note that this condition is sufficient but not necessary. Indeed for n <= 7
+  # no such p exists, which is why we have to treat these degrees separately above.
+  lo = div(n, 2)+1
+  hi = n-3
+  return any(x->any(y -> lo <= y[1] <= hi && isodd(y[1]) && is_prime(y[1]), x.s), ct)
 end
 
 function Oscar.cycle_structure(x::GroupConjClass{PermGroup, PermGroupElem})
