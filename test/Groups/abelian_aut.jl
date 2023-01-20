@@ -81,6 +81,9 @@ end
   f = matrix(ZZ, 2, 2, [1 1;0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
   @test_throws ErrorException OT(fT) # this should not because fT does not preserve the bilinear form
+  T = discriminant_group(root_lattice(:D, 13))
+  Tsub, _ = sub(T, 4*gens(T))
+  @test order(orthogonal_group(Tsub)) == 1
 end
 
 @testset "Orthogonal groups of non-semiregular torquadmod" begin
@@ -98,7 +101,12 @@ end
 
   T = TorQuadMod(matrix(QQ, 1, 1, [1//27]))
   Tsub, _ = sub(T, 3*gens(T))
-  @test_throws ArgumentError orthogonal_group(Tsub)
+  @test order(orthogonal_group(Tsub)) == 6
+  T2 = TorQuadMod(matrix(QQ, 1, 1, [21//25]))
+  Tsub2, _ = sub(T2, 5*gens(T2))
+  @test order(orthogonal_group(Tsub2)) == 4
+  TT = direct_sum(Tsub, Tsub2)[1]
+  @test order(orthogonal_group(TT)) == 24
 
   L = direct_sum(L, root_lattice(:A, 6))[1]
   T = discriminant_group(L)
@@ -106,5 +114,24 @@ end
   @assert !is_semi_regular(Tsub)
   @test order(orthogonal_group(Tsub)) == 24 # expected because for A_6, we have order 2
                                             # and the discriminant group is 7-elementary
+end
+
+@testset "Embedding of orthogonal groups" begin
+  L = Zlattice(gram=matrix(ZZ, 6, 6, [ 2 -1  0  0  0  0;
+                                      -1  2 -1 -1  0  0;
+                                       0 -1  2  0  0  0;
+                                       0 -1  0  2  0  0;
+                                       0  0  0  0  6  3;
+                                       0  0  0  0  3  6]))
+  T = discriminant_group(L)
+  i = id_hom(T)
+  f = @inferred embedding_orthogonal_group(i)
+  @test is_bijective(f)
+
+  _, i = primary_part(T, 3)
+  f = @inferred embedding_orthogonal_group(i)
+  @test is_injective(f) && !is_surjective(f)
+  @test order(domain(f)) == 12
+  @test all(g -> order(f(g)) == order(g), domain(f))
 end
 
