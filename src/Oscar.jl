@@ -23,6 +23,7 @@ using Preferences
 using LazyArtifacts
 
 include("imports.jl")
+include("DataStructures/weakkeyid_dict.jl")
 
 include("utils/utils.jl")
 

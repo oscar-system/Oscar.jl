@@ -112,6 +112,8 @@ testlist = [
 
   "printing.jl",
 
+  "DataStructures/weakkeyid_dict-test.jl",
+
   "PolyhedralGeometry/runtests.jl",
   "Combinatorics/runtests.jl",
 
