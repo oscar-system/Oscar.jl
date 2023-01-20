@@ -1365,32 +1365,6 @@ function reps(K, G::Oscar.GAPGroup)
   return R
 end
 
-#TODO: do this properly, eventually...
-#      hnf is a rref. maybe we could use a ref s.w.?
-#      in this file, all(?) hnf are actually over GF(p), so 
-#      maybe use this as well?
-function Nemo._hnf(x::fmpz_mat)
-  if nrows(x) * ncols(x) > 100
-    s = sparse_matrix(x)
-    if sparsity(s) > 0.7
-      return matrix(Hecke.hnf(s))
-    end
-  end
-  return Nemo.__hnf(x) # use original Nemo flint hnf
-end
-
-function Nemo._hnf_with_transform(x::fmpz_mat)
-  if nrows(x) * ncols(x) > 100
-    s = sparse_matrix(x)
-    if sparsity(s) > 0.7
-      s = hcat(s, identity_matrix(SMat, ZZ, nrows(x)))
-      m = matrix(Hecke.hnf(s))
-      return m[:, 1:ncols(x)], m[:, ncols(x)+1:end]
-    end
-  end
-  return Nemo.__hnf_with_transform(x) # use original Nemo flint hnf
-end
-
 
 """
 Brueckner Chap 1.3.1
