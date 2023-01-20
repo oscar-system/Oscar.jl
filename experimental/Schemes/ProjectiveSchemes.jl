@@ -7,6 +7,8 @@ export fiber_product, inclusion_morphism, identity_map
 
 export ==
 
+export covered_scheme_morphism
+
 ########################################################################
 # Interface for abstract projective schemes                            #
 ########################################################################
@@ -726,6 +728,21 @@ end
 
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
+    U::AbsSpec
+  ) where {
+    CRT<:Ring
+  }
+  charts = affine_charts(covered_scheme(X))
+  any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
+  i = findfirst(k->(charts[k] === U), 1:fiber_dimension(X)+1) - 1
+  S = ambient_coordinate_ring(X)
+  C = default_covering(covered_scheme(X))
+  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
+  return hom(S, OO(U), s)
+end
+
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
     i::Int
   ) where {
     CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
@@ -890,7 +907,7 @@ function dehomogenize(
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = ambient_coordinate_ring(X)
-  C = standard_covering(X)
+  C = default_covering(covered_scheme(X))
   U = C[i+1]
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
   return hom(S, OO(U), s)
@@ -922,4 +939,52 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:MPolyQuoL
   end
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
+end
+
+gens(A::MPolyRing_dec, i::Int) = A[i]
+
+@Markdown.doc """
+    covered_scheme_morphism(f::ProjectiveSchemeMor)
+
+Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
+return the same morphism as a `CoveredSchemeMorphism` of the `covered_scheme`s 
+of ``X`` and ``Y``, respectively.
+"""
+@attr function covered_scheme_morphism(f::ProjectiveSchemeMor)
+  PX = domain(f)
+  PY = codomain(f)
+  SX = ambient_coordinate_ring(PX)
+  SY = ambient_coordinate_ring(PY)
+  pbf = pullback(f) # The pullback on the free polynomial rings, not the quotients
+
+  X = covered_scheme(PX)
+  Y = covered_scheme(PY)
+
+  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  U = affine_charts(X)
+  for i in 1:ngens(SX)
+    U_i = U[i]
+    dehom = dehomogenize(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
+    for j in 1:ngens(SY)
+      y = gens(SY, j)
+      denom = dehom(pbf(y))
+      V_j = affine_charts(Y)[j]
+      U_ij = PrincipalOpenSubset(U_i, denom)
+      u = inv(OO(U_ij)(denom))
+      mor_dict[U_ij] = SpecMor(U_ij, V_j, 
+                               hom(OO(V_j), OO(U_ij), 
+                                   [OO(U_ij)(dehom(pbf(gens(SY, k))))*u for k in 1:ngens(SY) if k != j]
+                                  )
+                              )
+    end
+  end
+  # We skip the glueings for the time being.
+  # Eventually, they should be made lazy.
+  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
+  inherit_glueings!(CC, default_covering(X))
+  phi = CoveringMorphism(CC, default_covering(Y), mor_dict)
+  push!(coverings(X), CC)
+
+  ff = CoveredSchemeMorphism(X, Y, phi)
+  return ff
 end

@@ -81,13 +81,13 @@ end
 # Return the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
-function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion
+function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing) where T <: IntegerUnion
   if !is_molien_series_implemented(R)
     return -1
   end
 
   Qt, t = PowerSeriesRing(QQ, d + 1, "t")
-  F = molien_series(R)
+  F = molien_series(R, chi)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
   @assert is_integral(k)
   return T(numerator(k))::T
@@ -212,17 +212,93 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   end
 end
 
-function iterate_basis_reynolds(R::InvRing, d::Int)
+@doc Markdown.doc"""
+    iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+
+Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
+return an iterator over a basis for the semi-invariants (or relative invariants)
+in degree `d` with respect to `chi`.
+
+This function is only implemented in the case of characteristic zero.
+
+!!! note
+    If `coefficient_ring(IR)` does not contain all character values of `chi`, an error is raised.
+
+See also [`basis`](@ref).
+
+# Examples
+```
+julia> K, a = CyclotomicField(3, "a");
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+
+julia> IR = invariant_ring(G);
+
+julia> B = iterate_basis(IR, 6, trivial_character(G))
+Iterator over a basis of the component of degree 6 of
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+relative to a character
+
+julia> collect(B)
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^2*x[2]^2*x[3]^2
+
+julia> S2 = symmetric_group(2);
+
+julia> R = invariant_ring(QQ, S2);
+
+julia> F = abelian_closure(QQ)[1];
+
+julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+
+julia> B = iterate_basis(R, 3, chi)
+Iterator over a basis of the component of degree 3 of
+Invariant ring of
+Sym( [ 1 .. 2 ] )
+with generators
+PermGroupElem[(1,2)]
+relative to a character
+
+julia> collect(B)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x[1]^3 - x[2]^3
+ x[1]^2*x[2] - x[1]*x[2]^2
+
+```
+"""
+iterate_basis(R::InvRing, d::Int, chi::GAPGroupClassFunction) = iterate_basis_reynolds(R, d, chi)
+
+function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   @assert !is_modular(R)
   @assert d >= 0 "Degree must be non-negative"
+  if chi !== nothing
+    @assert is_zero(characteristic(coefficient_ring(R)))
+    @assert is_irreducible(chi)
+
+    reynolds = reynolds_operator(R, chi)
+  else
+    reynolds = nothing
+  end
 
   monomials = all_monomials(polynomial_ring(R), d)
 
-  k = dimension_via_molien_series(Int, R, d)
+  k = dimension_via_molien_series(Int, R, d, chi)
   @assert k != -1
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
-  return InvRingBasisIterator{typeof(R), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, monomials, Vector{eltype(monomials)}(), N)
+
+  return InvRingBasisIterator{typeof(R), typeof(reynolds), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N)
 end
 
 # Sadly, we can't really do much iteratively here.
@@ -236,7 +312,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
     dummy_mons = all_monomials(R, 0)
-    return InvRingBasisIterator{typeof(IR), typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, dummy_mons, mons, N)
+    return InvRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
   end
 
   mons_iterator = all_monomials(R, d)
@@ -244,7 +320,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if d == 0
     N = identity_matrix(base_ring(R), 1)
     dummy_mons = all_monomials(R, 0)
-    return InvRingBasisIterator{typeof(IR), typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, mons_iterator, mons, N)
+    return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
   end
 
   mons_to_rows = Dict{elem_type(R), Int}(mons .=> 1:length(mons))
@@ -276,7 +352,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   end
   n, N = right_kernel(M)
 
-  return InvRingBasisIterator{typeof(IR), typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, mons_iterator, mons, N)
+  return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, nothing, mons_iterator, mons, N)
 end
 
 Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
@@ -286,6 +362,10 @@ Base.length(BI::InvRingBasisIterator) = BI.dim
 function Base.show(io::IO, BI::InvRingBasisIterator)
   println(io, "Iterator over a basis of the component of degree $(BI.degree) of")
   print(io, BI.R)
+  if BI.reynolds_operator !== nothing
+    # We don't save the character in the iterator unfortunately
+    print(io, "\nrelative to a character")
+  end
 end
 
 function Base.iterate(BI::InvRingBasisIterator)
@@ -317,7 +397,11 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     f = fstate[1]
     state = fstate[2]
 
-    g = reynolds_operator(BI.R, f)
+    if !isnothing(BI.reynolds_operator)
+      g = BI.reynolds_operator(f)
+    else
+      g = reynolds_operator(BI.R, f)
+    end
     if iszero(g)
       continue
     end
@@ -344,7 +428,11 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
     f = fmonomial_state[1]
     monomial_state = fmonomial_state[2]
 
-    g = reynolds_operator(BI.R, f)
+    if !isnothing(BI.reynolds_operator)
+      g = BI.reynolds_operator(f)
+    else
+      g = reynolds_operator(BI.R, f)
+    end
     if iszero(g)
       continue
     end
