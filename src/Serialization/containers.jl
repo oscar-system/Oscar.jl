@@ -3,6 +3,23 @@
 
 @registerSerializationType(Vector)
 
+"""
+    is_basic_serialization_type(::Type)
+
+During the serialization of types of the form `Vector{T}`, entries
+of type `T` will either be serialized as strings if `is_basic_serialization_type`
+returns `true`, or serialized as a dict provided the serialization for such a `T`
+exists. If `Vector{T}` is serialized with `is_basic_serialization_type(T) = true`
+then the `entry_type` keyword is used to store the type `T` as a property of
+the vector.
+
+# Examples
+
+```jldoctest
+julia> Oscar.is_basic_serialization_type(fmpz)
+true
+```
+"""
 is_basic_serialization_type(::Type) = false
 is_basic_serialization_type(::Type{fmpz}) = true
 is_basic_serialization_type(::Type{fmpq}) = true
