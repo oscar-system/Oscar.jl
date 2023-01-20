@@ -58,6 +58,9 @@ end
 # the subgenus, d its determinant, s and l the scale and level of C
 function _find_L(r::Int, d::Hecke.RationalUnion, s::fmpz, l::fmpz, p::IntegerUnion, even = true)
   L = ZGenus[]
+  if r == 0 && d == 1
+    return ZGenus[genus(Zlattice(gram = matrix(QQ, 0, 0, [])))]
+  end
   for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
     gen = genera((s1,s2), d, even=even)
     filter!(G -> divides(numerator(scale(G)), s)[1], gen)
@@ -280,7 +283,50 @@ function _rho_functor(q::TorQuadMod, p, l::Union{Integer, fmpz})
   Gm = intersect(1//p^m*N, dual(N))
   rholN = torsion_quadratic_module(Gl, Gk+p*Gm, modulus = QQ(1), modulus_qf = QQ(2))
   gene = [q(lift(g)) for g in gens(rholN)]
-  return sub(q, gene)[2]
+  return sub(q, gene)
+end
+
+function _stabilizer(i::TorQuadModMor)
+  r = domain(i)
+  S = codomain(i)
+  OS = orthogonal_group(S)
+  if is_trivial(r.ab_grp) || is_zero(Hecke.gram_matrix_quadratic(r))
+    return sub(OS, gens(OS))
+  end
+  @assert is_injective(i)
+  if is_bijective(i)
+    return sub(OS, gens(OS))
+  end
+  ok, j = has_complement(i)
+  @assert ok
+  t = domain(j)
+  rt = direct_sum(r,t)[1]
+  ok, rttoS = is_isometric_with_isometry(rt, S)
+  @assert ok
+  gensr = fmpz_mat[matrix(f) for f in gens(orthogonal_group(r))]
+  genst = fmpz_mat[matrix(f) for f in gens(orthogonal_group(t))]
+  R, phi = hom(abelian_group(t), abelian_group(r))
+  c = [hom(t, r, f.map) for f in phi.(collect(R))]
+  filter!(f -> all(a -> all(b -> f(a)*f(b) == a*b, gens(t)), gens(t)), c)
+  filter!(f -> all(a -> Hecke.quadratic_product(f(a)) == Hecke.quadratic_product(a), gens(t)), c)
+  c = fmpz_mat[f.map_ab.map for f in c]
+  gene = fmpz_mat[]
+  for x in gensr
+    m = block_diagonal_matrix([identity_matrix(ZZ, ngens(t)), x])
+    push!(gene, m)
+  end
+  for x in genst
+    m = block_diagonal_matrix([x, identity_matrix(ZZ, ngens(r))])
+    push!(gene, m)
+  end
+  for x in c
+    m = identity_matrix(ZZ, ngens(rt))
+    m[(ngens(t)+1):end, 1:ngens(t)] = x
+    push!(gene, m)
+  end
+  gene = TorQuadModMor[hom(rt, rt, m) for m in gene]
+  gene = fmpz_mat[compose(compose(inv(rttoS), g), rttoS).map_ab.map for g in gene]
+  return sub(OS, gene)
 end
 
 @doc Markdown.doc"""
@@ -328,6 +374,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     D, qAinD, qBinD = orthogonal_sum(qA, qB)
   end
 
+  return qAinD
   OD = orthogonal_group(D)
   OqAinOD = embedding_orthogonal_group(qAinD)
   OqBinOD = embedding_orthogonal_group(qBinD)
@@ -420,15 +467,13 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # we get all the elements of qB of order exactly p^{l+1}, which are not mutiple of an
     # element of order p^{l+2}. In theory, glue maps are classified by the orbit of phi
     # under the action of O(SB, rho_{l+1}(qB), fB)
-    rB, rBinqB = sub(qB, Int(l)*gens(qB))
+    rB, rBinqB = _rho_functor(qB, p, valuation(l, p)+1)
     @assert Oscar._is_invariant(stabB, rBinqB)
     rBinSB = hom(domain(rBinqB), SB, TorQuadModElem[SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
     @assert is_trivial(domain(rBinSB).ab_grp) || is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
 
     # We compute the generators of O(SB, rho_{l+1}(qB))
-    return rBinSB
-    OrBinOSB = embedding_orthogonal_group(rBinSB)
-    OSBrB, _ = image(OrBinOSB)
+    OSBrB, OSBrbinOSB = _stabilizer(rBinSB)
     @assert fSB in OSBrB
 
     # phi might not "send" the restriction of fA to this of fB, but at least phi(fA)phi^-1
@@ -617,6 +662,7 @@ $nm$.
 See Algorithm 3 of [BH22].
 """
 function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
+  rank(Lf) == 0 && return LatticeWithIsometry[Lf]
   @req m >= 1 "m must be a positive integer"
   @req is_of_pure_type(Lf) "Minimal polyomial must be irreducible and cyclotomic"
   L = lattice(Lf)
@@ -672,7 +718,6 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
     end
     @info "$H"
     M = trace_lattice(H)
-    println(det(lattice(M)), d)
     @assert det(lattice(M)) == d
     @assert is_cyclotomic_polynomial(minpoly(M))
     @assert order_of_isometry(M) == n*m

@@ -65,58 +65,6 @@ end
 #
 ##############################################################################
 
-function embedding_orthogonal_group(i::TorQuadModMor)
-  ok, j = has_complement(i)
-  @req ok "domain(i) needs to have a complement in codomain(i)"
-  A = domain(i)
-  B = domain(j)
-  D = codomain(i)
-  Dorth = direct_sum(A, B)[1]
-  ok, phi = is_isometric_with_isometry(Dorth, D)
-  @assert ok
-  OD = orthogonal_group(D)
-  OA = orthogonal_group(A)
-
-  geneOAinDorth = TorQuadModMor[]
-  for f in gens(OA)
-    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
-    m = hom(Dorth, Dorth, m)
-    push!(geneOAinDorth, m)
-  end
-  geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
-  OAtoOD = hom(OA, OD, gens(OA), geneOAinOD, check = false)
-  return OAtoOD
-end
-
-function embedding_orthogonal_group(i1, i2)
-  D = codomain(i1)
-  A = domain(i1)
-  B = domain(i2)
-  Dorth = direct_sum(A, B)[1]
-  ok, phi = is_isometric_with_isometry(Dorth, D)
-  @assert ok
-  OD, OA, OB = orthogonal_group.([D, A, B])
-
-  geneOAinDorth = elem_type(OD)[]
-  for f in gens(OA)
-    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
-    m = hom(Dorth, Dorth, m)
-    push!(geneOAinDorth, m)
-  end
-
-  geneOBinDorth = elem_type(OD)[]
-  for f in gens(OB)
-    m = block_diagonal_matrix([identity_matrix(ZZ, ngens(A)), matrix(f)])
-    m = hom(Dorth, Dorth, m)
-    push!(geneOBinDorth, m)
-  end
-  geneOA = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
-  geneOB = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOBinDorth]
-  OAtoOD = hom(OA, OD, gens(OA), geneOA, check = false)
-  OBtoOD = hom(OB, OD, gens(OB), geneOB, check = false)
-  return (OAtoOD, OBtoOD)::Tuple{GAPGroupHomomorphism, GAPGroupHomomorphism}
-end
-
 #function _small_Fp_stabilizer(i::TorquadModMor)
 #  ok, j = has_complement(i)
 #  @assert ok
