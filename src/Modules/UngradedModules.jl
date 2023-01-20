@@ -760,11 +760,11 @@ base_ring_map(f::SubQuoHom) = f.ring_map
 end
 
 @doc Markdown.doc"""
-    matrix(f::FreeModuleHom)
+    matrix(a::FreeModuleHom)
 
-Given a homomorphism `f : F → M` of type  `FreeModuleHom`, 
+Given a homomorphism `a : F → M` of type  `FreeModuleHom`, 
 return a matrix `A` over `base_ring(M)` with `rank(F)` rows and 
-`ngens(M)` columns such that `f(F[i]) = ∑ⱼ aᵢⱼ ⋅ M[j]`.
+`ngens(M)` columns such that $a(F[i]) = \sum_j A[i,j]*M[j]$.
 
 # Examples
 ```jldoctest
@@ -833,7 +833,7 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{fmpq_mpoly}}:
  y*e[1]
- x*e[1] + y*e[2]
+ x*e[1] + y*e[2] 
  z*e[2]
 
 julia> a = hom(F, G, V)
@@ -848,12 +848,12 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> a(F[2])
 x*e[1] + y*e[2]
 
-julia> W = matrix(R, [y 0; x y; 0 z])
+julia> B = matrix(R, [y 0; x y; 0 z])
 [y   0]
 [x   y]
 [0   z]
 
-julia> b = hom(F, G, W)
+julia> b = hom(F, G, B)
 Map with following data
 Domain:
 =======

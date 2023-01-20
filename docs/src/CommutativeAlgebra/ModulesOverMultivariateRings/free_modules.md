@@ -27,7 +27,7 @@ and homomorphisms between free modules by matrices.
 
 ## Types
 
-All OSCAR types for the finitely presented modules considered here belong to the
+All OSCAR types for the modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 The free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
 they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
@@ -38,7 +38,7 @@ they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod
     for the caching of such maps when executing functions. The `direct_sum` function discussed
     in this section provides an example.
 
-## Constructor
+## Constructors
 
 ```@docs
 free_module(R::MPolyRing, n::Int, name::String = "e"; cached::Bool = false)
@@ -72,7 +72,7 @@ julia> rank(F)
 
 ## Elements of Free Modules
 
-All OSCAR types for elements of finitely presented modules considered here belong
+All OSCAR types for elements of the modules considered here belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
 The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
 They are modelled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
@@ -157,7 +157,7 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms from Free Modules
 
-All OSCAR types for homomorphisms of finitely presented modules considered here belong
+All OSCAR types for homomorphisms of the modules considered here belong
 to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
@@ -167,7 +167,7 @@ of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the c
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
 ```
 
-Given a homomorphism of type `FreeModuleHom`, a matrix `A` representing it
+Given a homomorphism of type `FreeModuleHom`, a matrix representing it
 is recovered by the following function:
 
 ```@docs
