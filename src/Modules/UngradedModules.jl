@@ -833,7 +833,7 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{fmpq_mpoly}}:
  y*e[1]
- x*e[1] + y*e[2] 
+ x*e[1] + y*e[2]
  z*e[2]
 
 julia> a = hom(F, G, V)
