@@ -601,8 +601,6 @@ identifications given by the glueings in the `default_covering`.
       haskey(ID, U) && return ID[U]
       # The ideal sheaf has to be provided on at least one dense
       # open subset of every connected component.
-      # Otherwise, the ideal sheaf is given by the unit
-      # ideals.
       for G in values(glueings(default_covering(space(F))))
         A, B = patches(G)
         Asub, Bsub = glueing_domains(G)
@@ -615,7 +613,19 @@ identifications given by the glueings in the `default_covering`.
           return ID[U]
         end
       end
-      return ideal(OO(U), one(OO(U)))
+      # Transfering from another chart did not work. That means 
+      # I(U) is already prescribed on some refinement of U. We 
+      # need to gather that information from all the patches involved
+      # and assemble the ideal from there.
+      V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+      length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+                                                        # Just return the unit ideal so that the 
+                                                        # associated subscheme is empty.
+      result = ideal(OO(U), zero(OO(U)))
+      for VV in V
+        result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+      end
+      return result
     end
     function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
       haskey(ID, U) && return ID[U]
