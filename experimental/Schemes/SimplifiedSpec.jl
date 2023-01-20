@@ -182,6 +182,8 @@ function _flatten_open_subscheme(
       f
     end
   )
+  U === P && return iso
+
   some_ancestor(W->W===P, U) || error("ancestor not found")
   W = ambient_scheme(U)
   V = domain(iso)
@@ -211,6 +213,8 @@ function _flatten_open_subscheme(
       f
     end
   )
+  U === P && return iso
+
   some_ancestor(W->W===P, U) || error("ancestor not found")
   W = original(U)
   V = domain(iso)
@@ -256,7 +260,7 @@ end
 # to the two input schemes.                                            #
 ########################################################################
 function _have_common_ancestor(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-  U === V && return true
+  U === V && return true, V
   if ambient_scheme(U) === V
     return true, V
   elseif ambient_scheme(V) === U

@@ -52,4 +52,3 @@ function maps_with_given_codomain(f::AbsCoveredSchemeMorphism, V::AbsSpec)
   return result
 end
 
-
