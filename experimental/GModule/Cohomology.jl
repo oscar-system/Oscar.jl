@@ -1831,6 +1831,73 @@ function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, Fli
   return gmodule(G, hh)
 end
 
+"""
+For a completion C of a number field K, implicitly given as the map
+    mK:  K -> C
+And the automorphism group G of K given via
+    mG:  G -> aut(K)
+and the automorphism group Gp of Kp, given via
+    mGp: Gp -> Aut(Kp)
+Find the embedding of Gp -> G, realizing the local automorphism group
+as a subgroup of the global one.
+"""
+function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))))
+  Kp = codomain(mK)
+  @assert domain(mK) == K
+
+  Gp = domain(mGp)
+  G = domain(mG)
+
+  im = elem_type(G)[]
+  elG = [g for g = G]
+  imK = [mK(mG(g)(gen(K))) for g = elG]
+  for s = gens(Gp)
+    h = mGp(s)(mK(gen(K)))
+    z = findall(isequal(h), imK)
+    @assert length(z) == 1
+    push!(im, elG[z[1]])
+  end
+  return hom(Gp, G, im)
+end
+
+"""
+For a Z[U]-Module C and a map U->G, compute the induced module:
+    ind_U^G(C) = C otimes Z[G]
+where the tensor product is over Z[U].
+The induced module is returned as a product of copies of C. it also returns
+  - the transversal used
+  - the projections
+  - the injections
+"""
+function induce(C::GModule, h::Map)
+  U = domain(h)
+  G = codomain(h)
+  @assert U == C.G
+  iU = image(h)[1]
+
+#  ra = right_coset_action(G, image(h)[1]) # will not always match 
+# the transversal, so cannot use. There is a PR in Gapp to return "both"
+  g = right_transversal(G, iU)
+  S = symmetric_group(length(g))
+  ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
+
+  indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
+  ac = []
+  for s = gens(G)
+    sigma = ra(s)
+    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    @assert all(x->x in iU, u)
+    im_q = []
+    sigma = sigma^-1
+    for q = gens(indC)
+      push!(im_q, sum(inj[i](action(C, preimage(h, u[i^sigma]), pro[i^sigma](q))) for i=1:length(g)))
+    end
+    push!(ac, hom(indC, indC, [x for x = im_q]))
+  end
+  return GModule(G, [x for x = ac]), g, pro, inj
+end
+
+
 #= TODO
  - induce a gmodule into a larger group
  - direct sum/prod of gmodules
