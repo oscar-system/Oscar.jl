@@ -1902,6 +1902,7 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
     @assert all(x->x in iU, u)
     im_q = []
+    sigma = inv(sigma)
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
@@ -2184,7 +2185,3 @@ using .GrpCoh
 export gmodule, GModule, fp_group, pc_group, induce, cohomology_group
 
 
-#=
-x^4 - 60*x^2 + 16
-
-=#
