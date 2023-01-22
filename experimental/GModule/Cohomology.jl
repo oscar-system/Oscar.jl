@@ -1621,7 +1621,7 @@ function gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd})
   zk = codomain(mu)
   k = nf(zk)
   G, mG = automorphism_group(PermGroup, k)
-  ac = [hom(u, u, [preimage(mu, zk(mG(g)(k(x)))) for x = U]) for g = gens(H)]
+  ac = [hom(u, u, [preimage(mu, zk(mG(G(g))(k(x)))) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
 end
 
@@ -1721,7 +1721,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
       mG,
-      MapFromFunc(x->pi^x[1], y->Int(e*valuation(y)), A, K)
+      MapFromFunc(x->pi^x[1], y->Int(e*valuation(y))*A[1], A, K)
   end
 
   if e % prime(K) != 0 #tame!
@@ -1823,10 +1823,13 @@ The induced module is returned as a product of copies of C. it also returns
   - the projections
   - the injections
 """
-function induce(C::GModule, h::Map)
+function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
   U = domain(h)
   G = codomain(h)
   @assert U == C.G
+  @assert D === nothing || mDC !== nothing
+  @assert D === nothing || (domain(mDC) == D.M && codomain(mDC) == C.M &&
+                            D.G == codomain(h))
   iU = image(h)[1]
 
 #  ra = right_coset_action(G, image(h)[1]) # will not always match 
@@ -1842,19 +1845,49 @@ function induce(C::GModule, h::Map)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
     @assert all(x->x in iU, u)
     im_q = []
-    sigma = sigma^-1
+    sigma = inv(sigma)
     for q = gens(indC)
-      push!(im_q, sum(inj[i](action(C, preimage(h, u[i^sigma]), pro[i^sigma](q))) for i=1:length(g)))
+      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(ac, hom(indC, indC, [x for x = im_q]))
   end
-  return GModule(G, [x for x = ac]), g, pro, inj
+  iC = GModule(G, [x for x = ac])
+  if D === nothing
+    return iC, g, pro, inj
+  end
+  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
+  return iC, h    
+end
+
+function Oscar.direct_product(C::GModule...; task::Symbol = :none)
+  @assert task in [:sum, :prod, :both, :none]
+  G = C[1].G
+  @assert all(x->x.G == G, C)
+  mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
+
+  mC = gmodule(G, [hom(mM, mM, [sum(inj[i](action(C[i], g, pro[i](h))) for i=1:length(C)) for h = gens(mM)]) for g = gens(G)])
+
+  if task == :none
+    return mC
+  elseif task == :sum
+    return mC, inj
+  elseif task == :prod
+    return mC, pro
+  else
+    return mC, pro, inj
+  end
+end
+
+function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
+  q, mq = quo(C.M, image(mDC)[1])
+  return GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac]), mq
 end
 
 
 #= TODO
- - induce a gmodule into a larger group
- - direct sum/prod of gmodules
+ - (DONE) induce a gmodule into a larger group
+ - (DONE) direct sum/prod of gmodules
+ - maps (a pair of G->H and N -> M or so)?
  - quotient?
  - the local/ global fund class, ie. normalize the cochain
  - map a local chain into a ray class group
@@ -1889,7 +1922,8 @@ Sort:
    - induction/ coinduction ...
    - restriction (of gmodules to Sylow subgroups)
    - think about Debeerst: if P, Q are above the some prime then
-     Ind_G_P^G L_P = Ing_G_Q^G L_Q???
+     Ind_G_P^G L_P = Ing_G_Q^G L_Q??? (no)
+   - use prod_Q|P L_Q rather than prod Ind...  
 
   dreams
    - we we extend to H^-1, ^-2?
@@ -1912,3 +1946,21 @@ end # module GrpCoh
 using .GrpCoh
 export gmodule, GModule, fp_group, pc_group
 
+
+#=
+x^4 - 60*x^2 + 16
+
+factor(5*discriminant(maximal_order(k))*maximal_order(k))
+S = collect(keys(ans))
+L = [completion(k, x) for x = S]
+C = [gmodule(x[1], prime_field(x[1])) for x = L];
+U, mU = sunit_group_fac_elem(S);
+E = gmodule(G, mU)
+z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
+D = [Oscar.GrpCoh.induce(C[i][1], decomposition_group(k, L[i][2], mG, C[i][2]), E, mU*z*L[i][2]*pseudo_inv(C[i][3])) for i=1:length(S)];
+F = direct_product(E, [x[1] for x = D]..., task = :sum)
+h = id_hom(U)*F[2][1]+sum(D[i][2]*F[2][i+1] for i=1:length(S));
+q = quo(F[1], h);
+Oscar.GrpCoh.cohomology_group(q[1], 2)[1]
+
+=#
