@@ -146,6 +146,7 @@ identifications given by the glueings in the `default_covering`.
   ID::IdDict{AbsSpec, ModuleFP} # the modules on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
   M::PreSheafOnScheme # the underlying presheaf of modules for caching
+  C::Covering # The covering of X on which the modules had first been described
 
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme, 
@@ -158,46 +159,104 @@ identifications given by the glueings in the `default_covering`.
                                                        # and fⱼ the restrictions of the generators 
                                                        # of MD[V]. The aᵢⱼ are elements of 𝒪(U ∩ V)
                                                        # represented as a subset of V.
-      check::Bool=true
+      check::Bool=true,
+      default_cov::Covering=begin
+        patch_list = collect(keys(MD))
+        glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+        C = Covering(patch_list, glueing_dict)
+        inherit_glueings!(C, default_covering(X))
+        C
+      end
     )
     OOX = OO(X)
-    #OOX = StructureSheafOfRings(X)
+    # Make sure that all patches and glueings of the 
+    # given default_cov are compatible with the data in 
+    # the dictionaries.
+    all(x->haskey(MD, x), patches(default_cov)) || error("all patches in the default covering must have a prescribed module")
+    all(x->any(y->(x===y), patches(default_cov)), keys(MD)) || error("all prescribed modules must appear in the default covering")
+    all(x->haskey(MG, x), keys(glueings(default_cov))) || error("all glueings in the default covering must have a prescribed transition")
+    all(x->any(y->(x===y), keys(glueings(default_cov))), keys(MG)) || error("all prescribed transitions must correspond to glueings in the default covering")
+
+    ### Lookup and production pattern for sheaves of modules
+    #
+    # When asked to produce a module on an open affine U, the functions 
+    # below lead to the following behaviour.
+    #
+    # 1) Look up whether U is in the list of patches of default_cov.
+    #    If yes, return the value of the dictionary.
+    #
+    # 2) See whether U hangs below some V in the ancestry tree with V 
+    #    in the default_cov; if yes, restrict from V.
+    #
+    # 3) Otherwise, U is covered by patches {Vᵢ} from default_cov and 
+    #    contained in one affine chart W of X 
+    #      W ⊃ U ⊃ Vᵢ.
+    #    Build the module MW on W and restrict from W.
+    #
+    # The point 3) is not implemented, yet. Instead, the current code 
+    # requires to take refinements hanging under nodes in default_cov. 
 
     ### Production of the modules on open sets; to be cached
     function production_func(
         F::AbsPreSheaf,
         U::AbsSpec
       )
+      # Since the other cases are caught by the methods below, 
+      # U can only be an affine_chart of X. 
+      #
+      # See whether we have anything cached for U
       haskey(MD, U) && return MD[U]
-      error("module on $U was not found")
+
+      # If not, we are in case 3) above.
+      error("production of modules not implemented in this case")
     end
 
     function production_func(
         F::AbsPreSheaf,
         U::PrincipalOpenSubset
       )
-      V = ambient_scheme(U)
-      MV = F(V)
-      rho = OOX(V, U)
-      MU, phi = change_base_ring(rho, MV)
-      add_incoming_restriction!(F, V, MU, phi)
-      return MU
+      # Check whether we can directly produce the module
+      haskey(MD, U) && return MD[U]
+
+      # If not: See whether we are below a prescribed module in the 
+      # refinement tree
+      if some_ancestor(x->haskey(MD, x), U)
+        V = ambient_scheme(U)
+        MV = F(V)
+        rho = OOX(V, U)
+        MU, phi = change_base_ring(rho, MV)
+        add_incoming_restriction!(F, V, MU, phi)
+        return MU
+      end
+      # We are in case 3) above
+      error("production of modules not implemented in this case")
     end
 
     function production_func(
         F::AbsPreSheaf,
         U::SimplifiedSpec
       )
-      V = original(U)
-      MV = F(V)
-      rho = OOX(V, U)
-      MU, phi = change_base_ring(rho, MV)
-      add_incoming_restriction!(F, V, MU, phi)
-      return MU
+      # Check whether we can directly produce the module
+      haskey(MD, U) && return MD[U]
+
+      # If not: See whether we are below a prescribed module in the 
+      # refinement tree
+      if some_ancestor(x->haskey(MD, x), U)
+        V = original(U)
+        MV = F(V)
+        rho = OOX(V, U)
+        MU, phi = change_base_ring(rho, MV)
+        add_incoming_restriction!(F, V, MU, phi)
+        return MU
+      end
+      # We are in case 3) above
+      error("production of modules not implemented in this case")
     end
 
     ### Production of the restriction maps; to be cached
     function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      # Since the other cases are caught by the methods below, both U and V 
+      # must be `affine_chart`s of X with U contained in V along some glueing.
       if any(W->(W === U), affine_charts(X)) && any(W->(W === V), affine_charts(X))
         MV = F(V)
         MU = F(U)
@@ -551,7 +610,7 @@ identifications given by the glueings in the `default_covering`.
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                       #is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(MD, OOX, Mpre)
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(MD, OOX, Mpre, default_cov)
     if check
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
@@ -565,6 +624,9 @@ end
 ### forwarding and implementing the required getters
 underlying_presheaf(M::SheafOfModules) = M.M
 sheaf_of_rings(M::SheafOfModules) = M.OOX
+
+### Implementing the additional getters
+default_covering(M::SheafOfModules) = M.C
 
 
 @Markdown.doc """
