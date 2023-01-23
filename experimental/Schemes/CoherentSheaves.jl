@@ -188,10 +188,18 @@ identifications given by the glueings in the `default_covering`.
     # 2) See whether U hangs below some V in the ancestry tree with V 
     #    in the default_cov; if yes, restrict from V.
     #
-    # 3) Otherwise, U is covered by patches {Vᵢ} from default_cov and 
+    # 3) Otherwise, U is covered by patches {Vᵢ}, i ∈ I, from default_cov and 
     #    contained in one affine chart W of X 
     #      W ⊃ U ⊃ Vᵢ.
-    #    Build the module MW on W and restrict from W.
+    #    We distinguish to sub-cases. 
+    #
+    #    3.1) U appears in the refinement tree T of W whose leafs consist 
+    #    entirely of the Vᵢs. Let T' be the subtree starting from U and 
+    #    let {Vⱼ}, j ∈ J be the leafs of this subtree. We then recursively 
+    #    build up the modules on the nodes in T'.
+    #
+    #    3.2) U does not appear in the refinement tree T above. Then we 
+    #    first have to build the module on W and restrict from there. 
     #
     # The point 3) is not implemented, yet. Instead, the current code 
     # requires to take refinements hanging under nodes in default_cov. 
@@ -1007,6 +1015,208 @@ map(M::PushforwardSheaf) = M.inc
 
 function Base.show(io::IO, M::PushforwardSheaf)
   print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
+end
+
+########################################################################
+# Pullback of sheaves along morphisms                                  #
+########################################################################
+
+#=
+# Let f : X ↪ Y be a closed embedding with ideal sheaf ℐ on Y and ℳ 
+# a sheaf of modules on Y. For an open set U ⊂ X we have 
+# f^* ℳ (U) to be the 𝒪_X(U)-module 
+#
+#   𝒪_X ⊗_{f⁻¹𝒪_Y} f⁻¹ℳ
+#
+# where f⁻¹(ℱ) denotes the sheaf associated to U ↦ lim_{V ⊃ f(U)} ℱ(V).
+# On the algebraic side, this merely means carrying out a change of bases 
+# for the module ℳ (V) where V is some affine open containing f(U). 
+# To find the latter might be a subtle task for general morphisms of 
+# schemes. In fact, f will in general only be given with respect to 
+# fixed coverings CX of X and CY of Y. Since the pullback of sheaves 
+# is a local question on X, we need to restrict to sufficiently small 
+# neighborhoods such that 
+# 
+#   fᵢ : Uᵢ → Vᵢ 
+#
+# is a local affine representative of the map f. But then the Uᵢ might 
+# not be `affine_charts` of X, anymore. Thus, we can a priori only 
+# construct the modules locally on X and the `production_func` has 
+# to take care of extending them to the `affine_charts` if necessary.
+#
+# Again, it is clear that this can and should be made lazy.
+#                                                                     =#
+#
+# TODO: PullbackSheaf is currently broken!!!
+
+@attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
+                                         RestrictionType
+                                        } <: AbsCoherentSheaf{
+                                                              SpaceType, OpenType,
+                                                              OutputType, RestrictionType
+                                                             }
+  f::AbsCoveredSchemeMorphism
+  OOX::StructureSheafOfRings # the sheaf of rings in the domain
+  OOY::StructureSheafOfRings # the sheaf of rings in the codomain
+  M::AbsCoherentSheaf        # the sheaf of modules on Y
+  pullback_of_sections::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the natural 
+                                                                   # pullback maps of local representatives
+                                                                   # of sections in M.
+  F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
+
+  function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+    X = domain(f)
+    Y = codomain(f)
+    Y === scheme(M) || error("sheaf must be defined over the domain of the embedding")
+    OOY = sheaf_of_rings(M)
+    OOX = OO(X)
+    fcov = covering_morphism(f)::CoveringMorphism
+    CX = domain(fcov)::Covering
+    CY = codomain(fcov)::Covering
+
+    ### Production of the modules on open sets.
+    #
+    # Since the morphism f might have an underlying CoveringMorphism ϕ with 
+    # a non-trivial refinement of the `default_covering` of X as a domain, 
+    # we can not expect to easily produce f^*(M) on the `affine_charts` of X. 
+    # Instead, we can produce it on affine opens U ⊂ X which are hanging 
+    # below the patches in `domain(ϕ)`.
+    #
+    # For everything else, we proceed as in case 3) of the general 
+    # SheafOfModules, see above. 
+    #
+    # Again, this case is not implemented for the time being. 
+
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+      # See whether U is a patch of the domain covering and pull back directly
+      if haskey(morphisms(fcov), U)
+        floc = morphisms(fcov)[U]
+        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
+        #TODO: Cache the map.
+        return MU
+      end
+
+      # We are in case 3).
+      error("case not implemented")
+    end
+
+    function production_func(FF::AbsPreSheaf, 
+        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      )
+      # See whether U is a patch of the domain covering and pull back directly
+      if haskey(morphisms(fcov), U)
+        floc = morphisms(fcov)[U]
+        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
+        #TODO: Cache the map.
+        return MU
+      end
+
+      # If not, check whether we are hanging below such a patch in the 
+      # refinement tree.
+      if some_ancestor(any(x->(x===U), patches(domain(fcov))), U)
+        V = __find_chart(U, domain(fcov))
+        MU, res = change_base_ring(OOX(V, U), FF(V))
+        add_incoming_restriction!(FF, V, MU, res)
+        return MU
+      end
+
+      # We are in case 3)
+      error("case not implemented")
+    end
+
+    ### Restriction for pulled back sheaves of modules
+    #
+    # For U ⊂ V ⊂ X, f : X → Y, M on Y and F = f^*M we do the following. 
+    # Let ϕ be the `covering_morphism` behind f. 
+    #
+    # 1) If both U and V are in `domain(ϕ)` induce the restriction from 
+    #    the one on Y. 
+    # 2) If V is in `domain(ϕ)` and U is a node hanging below V in 
+    #    the refinement tree, restrict from V. 
+    # 3) If V is in `domain(ϕ)` and U is a subset of V, restrict as usual.
+    # 4) If V is a node hanging below some patch in `domain(ϕ)` and 
+    #    U is a subset, restrict as usual. 
+
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      if haskey(morphisms(fcov), V)
+        if haskey(morphisms(fcov), U)
+          # case 1)
+          f_V = morphisms(fcov)[V]
+          f_U = morphisms(fcov)[U]
+          MYV = M(codomain(f_V))
+          MYU = M(codomain(f_U))
+          res_Y = M(codomain(f_V), codomain(f_U))
+          result = hom(F(V), F(U), 
+                       (pullbacks_on_patches(F)[U]).(res_Y.(gens(MYV))), 
+                       OOX(V, U))
+          return result
+        end
+
+        # case 2)
+        error("restriction map should have been cached by production")
+      end
+      error("case not implemented")
+    end
+    
+    ident = IdDict{AbsSpec, Union{Hecke.Map, Nothing}}()
+
+    Blubber = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=_is_open_for_modules(X)
+                     )
+    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(f, OOX, OOY, M, ident, Blubber)
+    return MY
+  end
+end
+
+underlying_presheaf(M::PullbackSheaf) = M.F
+sheaf_of_rings(M::PullbackSheaf) = M.OOX
+original_sheaf(M::PullbackSheaf) = M.M
+map(M::PullbackSheaf) = M.f
+pullbacks_on_patches(M::PullbackSheaf) = M.pullback_of_sections
+
+function Base.show(io::IO, M::PullbackSheaf)
+  print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
+end
+
+########################################################################
+# Auxiliary helper functions for PullbackSheaves                       #
+########################################################################
+#=
+# For an 𝒪(U)-module M this constructs an 𝒪(V)-module N where V is 
+# the `ambient_scheme` of U, together with a map ϕ : N → M 
+# over the canonical map 𝒪(V) → 𝒪(U) such that M ≅ image(ϕ).        =#
+
+function _lift_module(M::SubQuo, U::PrincipalOpenSubset)
+  V = ambient_scheme(U)
+  base_ring(M) === OO(U) || error("module not defined over the correct ring")
+  R = base_ring(OO(U))
+  F = ambient_free_module(M)
+  FR = base_ring_module(F)
+  FV, FRtoFV = change_base_ring(FR, OO(V))
+  gens_lift = [clear_denominators(g) for g in ambient_representatives_gens(M)]
+  rels_lift = [clear_denominators(g) for g in relations(M)]
+  MV = SubQuo(FV, [FRtoFV(g[1]) for g in gens_lift], [FRtoFV(g[1]) for g in rels_lift])
+  MVtoM = hom(MV, M, [OO(U)(one(R), gens_lift[i][2], check=false)*MV[i] for i in 1:ngens(MV)],
+              MapFromFunc(
+                          x->OO(U)(lifted_numerator(x), lifted_denominator(x), check=false),
+                          OO(V), OO(U)
+                         )
+             )
+  return MV, MVtoM
+end
+
+function _lift_module(F::FreeMod, U::PrincipalOpenSubset)
+  V = ambient_scheme(U)
+  base_ring(M) === OO(U) || error("module not defined over the correct ring")
+  FV = FreeMod(OO(V), ngens(F))
+  FVtoF = hom(FV, F, gens(F), 
+              MapFromFunc(x->OO(U)(lifted_numerator(x), lifted_denominator(x), check=false),
+                          OO(V), OO(U)
+                         )
+             )
+  return FV, FVtoF
 end
 
 ########################################################################
