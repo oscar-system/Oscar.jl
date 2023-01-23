@@ -1632,7 +1632,7 @@ function gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorphism_gr
   U = [mu(g) for g = gens(u)]
   zk = codomain(mu)
   k = nf(zk)
-  G, mG = automorphism_group(PermGroup, k)
+  G = domain(mG)
   ac = [hom(u, u, [preimage(mu, zk(mG(G(g))(k(x)))) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
 end
@@ -1766,7 +1766,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
       MapFromFunc(x->pi^x[1] * gk^x[2],
         function(y)
           v = Int(e*valuation(y))
-          y *= y^-v
+          y *= pi^-v
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
         end, A, K)
   end
@@ -1878,11 +1878,23 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
                             D.G == codomain(h))
   iU = image(h)[1]
 
-#  ra = right_coset_action(G, image(h)[1]) # will not always match 
+# ra = right_coset_action(G, image(h)[1]) # will not always match 
 # the transversal, so cannot use. There is a PR in Gapp to return "both"
   g = right_transversal(G, iU)
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
+
+  #= C is Z[U] module, we needd
+    C otimes Z[G]
+
+    any pure tensor c otimes g can be "normlised" g = u*g_i for one of the 
+    reps fixed above, so c otimes g = c otimes u g_i == cu otimes g_i
+
+    For the G-action we thus get
+    (c otimes g_i)g = c otimes g_i g = c otimes u_i g_j (where the j comes
+                                                         from the coset action)
+                    = cu_i otimes g_j
+  =#                  
 
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
   ac = []
@@ -1901,6 +1913,11 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
   if D === nothing
     return iC, g, pro, inj
   end
+  #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
+    compute the Z[G]-lin embedding into the induced module.
+    a -> sum a g_i^-1 otimes g_i
+    works (direct computation withh reps and cosets)
+  =#
   h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
   return iC, h    
 end
@@ -1939,7 +1956,6 @@ end
  - map a local chain into a ray class group
 =#
 
-<<<<<<< HEAD
 """
 For a local field extension K/k, return a gmodule for the multiplicative
 group of K as a Gal(K/k) module.
@@ -2501,7 +2517,6 @@ Sort:
     - (S-)units
 =#    
 
-<<<<<<< HEAD
 #TODO: what do we need to return?
 # - mG (if we cache this in the field, not neccessary)
 # - the local stuff?
@@ -2525,6 +2540,12 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @vprint :GaloisCohomology 1 "Ideal class group cohomology for $k\n"
   G, mG = automorphism_group(PermGroup, k)
   zk = maximal_order(k)
+
+  sf = subfields(k)
+  sf = [x[1] for x = sf if degree(x[1]) > 1]
+  zf = map(maximal_order, sf)
+  cf = map(class_group, zf)
+  cf = Tuple{GrpAbFinGen, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
   s = push!(Set{fmpz}(s), Set{fmpz}(keys(factor(discriminant(zk)).fac))...)
@@ -2553,7 +2574,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     end
   end
 
-<<<<<<< HEAD
   S = collect(keys(factor(prod(s)*zk)))
   @vprint :GaloisCohomology 2 " .. need $(length(S)) prime ideals ..\n"
 
@@ -2666,7 +2686,8 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     return true
   end
   @hassert :GaloisCohomology 1 is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
-
+  @hassert :GaloisCohomolgy 1 is_consistent(iEt[1])
+  
   S = S[s]
 
   #TODO: precision: for some examples the default is too small
