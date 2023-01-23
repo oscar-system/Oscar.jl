@@ -2023,6 +2023,9 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   G, mG = automorphism_group(PermGroup, k)
   zk = maximal_order(k)
 
+function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
+  G, mG = automorphism_group(PermGroup, k)
+  zk = maximal_order(k)
   sf = subfields(k)
   sf = [x[1] for x = sf if degree(x[1]) > 1]
   zf = map(maximal_order, sf)
@@ -2185,3 +2188,7 @@ using .GrpCoh
 export gmodule, GModule, fp_group, pc_group, induce, cohomology_group
 
 
+#=
+x^4 - 60*x^2 + 16
+
+=#
