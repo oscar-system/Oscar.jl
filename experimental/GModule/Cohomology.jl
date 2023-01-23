@@ -800,6 +800,7 @@ function H_two(C::GModule)
   i, mi = image(CC)
 #  @show intersect(i, E)
   H2, mH2 = quo(E, i)
+  #we know |G| is an exponent - this might help
 
   function TailFromCoChain(cc::CoChain{2})
     #for all tails, ie. rules with pos[r]>0, we need to use
@@ -1546,9 +1547,9 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
-function gmodule(H::PermGroup, mR::MapRayClassGrp)
+function gmodule(H::PermGroup, mR::MapRayClassGrp, mG = autmorphism_group(PermGroup, k)[2])
   k = nf(order(codomain(mR)))
-  G, mG = automorphism_group(PermGroup, k)
+  G = domain(mG)
 
   ac = Hecke.induce_action(mR, [image(mG, G(g)) for g = gens(H)])
   return GModule(H, ac)
@@ -1572,9 +1573,9 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the 
   automorphism group, acts on the ideal group defining the class field.
 """
-function gmodule(H::PermGroup, R::ClassField)
+function gmodule(H::PermGroup, R::ClassField, mG = automorphism_group(PermGroup, k))
   k = base_field(R)
-  G, mG = automorphism_group(PermGroup, k)
+  G = domain(mG)
   mR = R.rayclassgroupmap
   mq = R.quotientmap
 
@@ -1600,19 +1601,19 @@ function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
 end
 
 #TODO: think: this should probably all use MultGrpElem???
-function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}})
+function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}}, mG = automorphism_group(PermGroup, k)[2])
   u = domain(mu)
   U = [mu(g) for g = gens(u)]
-  G, mG = automorphism_group(PermGroup, k)
+  G = domain(mG)
   ac = [hom(u, u, [preimage(mu, mG(G(g))(x)) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
 end
 
-function gmodule(H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}})
-  return _gmodule(base_ring(codomain(mu)), H, mu)
+function gmodule(H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}}, mG = automorphism_group(PermGroup, base_ring(codomain(mu)))[2])
+  return _gmodule(base_ring(codomain(mu)), H, mu, mG)
 end
 
-function gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd})
+function gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorphism_group(PermGroup, k)[2])
   #TODO: preimage for sunits can fail (inf. loop) if
   # (experimentally) the ideals in S are not coprime or include 1
   # or if the s-unit is not in the image (eg. action and not closed set S)
@@ -1620,7 +1621,7 @@ function gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd})
   U = [mu(g) for g = gens(u)]
   zk = codomain(mu)
   k = nf(zk)
-  G, mG = automorphism_group(PermGroup, k)
+  G = domain(mG)
   ac = [hom(u, u, [preimage(mu, zk(mG(G(g))(k(x)))) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
 end
@@ -1741,7 +1742,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
       MapFromFunc(x->pi^x[1] * gk^x[2],
         function(y)
           v = Int(e*valuation(y))
-          y *= y^-v
+          y *= pi^-v
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
         end, A, K)
   end
@@ -1832,11 +1833,23 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
                             D.G == codomain(h))
   iU = image(h)[1]
 
-#  ra = right_coset_action(G, image(h)[1]) # will not always match 
+# ra = right_coset_action(G, image(h)[1]) # will not always match 
 # the transversal, so cannot use. There is a PR in Gapp to return "both"
   g = right_transversal(G, iU)
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
+
+  #= C is Z[U] module, we needd
+    C otimes Z[G]
+
+    any pure tensor c otimes g can be "normlised" g = u*g_i for one of the 
+    reps fixed above, so c otimes g = c otimes u g_i == cu otimes g_i
+
+    For the G-action we thus get
+    (c otimes g_i)g = c otimes g_i g = c otimes u_i g_j (where the j comes
+                                                         from the coset action)
+                    = cu_i otimes g_j
+  =#                  
 
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
   ac = []
@@ -1855,6 +1868,11 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
   if D === nothing
     return iC, g, pro, inj
   end
+  #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
+    compute the Z[G]-lin embedding into the induced module.
+    a -> sum a g_i^-1 otimes g_i
+    works (direct computation withh reps and cosets)
+  =#
   h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
   return iC, h    
 end
@@ -1919,10 +1937,10 @@ Sort:
 
   features   
    - inflation, restriction, long exact sequence  
-   - induction/ coinduction ...
+   - induction (done)/ coinduction ...
    - restriction (of gmodules to Sylow subgroups)
    - think about Debeerst: if P, Q are above the some prime then
-     Ind_G_P^G L_P = Ing_G_Q^G L_Q??? (no)
+     Ind_G_P^G L_P = Ing_G_Q^G L_Q??? (no - aprently yes)
    - use prod_Q|P L_Q rather than prod Ind...  
 
   dreams
@@ -1941,9 +1959,12 @@ Sort:
     - Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
 =#    
 
-function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
+function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
+  @assert istotally_real(k)  #for now..
+
   G, mG = automorphism_group(PermGroup, k)
   zk = maximal_order(k)
+
   sf = subfields(k)
   sf = [x[1] for x = sf if degree(x[1]) > 1]
   zf = map(maximal_order, sf)
@@ -1956,6 +1977,8 @@ function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
     cf[i] = (q, pseudo_inv(mq)*cf[i][2])
   end
+
+  #think: does the quotient have to be trivial - or coprime to |G|?
 
   for p = PrimesSet(2, -1)
     p in s && continue
@@ -1974,38 +1997,46 @@ function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
     end
   end
 
-  @show s
-
   S = collect(keys(factor(prod(s)*zk)))
 
-  @show s = [findfirst(x->minimum(x) == t, S) for t = s]
+  s = [findfirst(x->minimum(x) == t, S) for t = s]
     
   U, mU = sunit_group_fac_elem(S)
   z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
-  E = gmodule(G, mU)
+  E = gmodule(G, mU, mG)
   @assert is_consistent(E)
 
   G_inf, mG_inf = sub(G, [one(G)])
 
-  Et = gmodule(G_inf, mU)
+  Et = gmodule(G_inf, mU, mG)
   @assert is_consistent(Et)
   iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, id_hom(U))
   @assert is_consistent(iEt[1])
-  for g = gens(G)
-    for u = gens(E.M)
-      a = iEt[2](u)
-      b = iEt[2](preimage(mU*z, (mG(g)((mU*z)(u)))))
-      @assert b == action(iEt[1], g, a)
+  #test if the G-action is the same:
+  # induce returns a map U -> E that should be a Z[G]-hom
+  function is_G_lin(U, E, mUE, acU)
+    G = E.G
+    for g = gens(G)
+      for u = gens(U)
+        a = mUE(u)
+        b = mUE(acU(g)(u))
+        @assert b == action(E, g, a)
+      end
     end
+    return true
   end
+  @assert is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
 
+  @show map(mU*z, gens(U))
+  @show  s
   S = S[s]
 
   L = [completion(k, x) for x = S]
   C = [gmodule(x[1], prime_field(x[1])) for x = L];
   @assert all(x->is_consistent(x[1]), C)
-  D = [Oscar.GrpCoh.induce(C[i][1], decomposition_group(k, L[i][2], mG, C[i][2]), E, mU*z*L[i][2]*pseudo_inv(C[i][3])) for i=1:length(S)]
+  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, mU*z*L[i][2]*pseudo_inv(C[i][3])) for i=1:length(S)]
   @assert all(x->is_consistent(x[1]), D)
+  @assert all(x->is_G_lin(U, D[x][1], D[x][2], g->action(E, g)), 1:length(D))
 
   F = direct_product(iEt[1], [x[1] for x = D]..., task = :sum)
   @assert is_consistent(F[1])
