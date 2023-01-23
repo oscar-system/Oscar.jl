@@ -390,8 +390,8 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
    } <: AbsCoveredSchemeMorphism{
                                  DomainType,
                                  CodomainType,
-                                 CoveredSchemeMorphism,
-                                 BaseMorphismType
+                                 BaseMorphismType,
+                                 CoveredSchemeMorphism
                                 }
   f::CoveredSchemeMorphism
   I::IdealSheaf
