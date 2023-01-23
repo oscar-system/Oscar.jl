@@ -1939,6 +1939,7 @@ end
  - map a local chain into a ray class group
 =#
 
+<<<<<<< HEAD
 """
 For a local field extension K/k, return a gmodule for the multiplicative
 group of K as a Gal(K/k) module.
@@ -2500,6 +2501,7 @@ Sort:
     - (S-)units
 =#    
 
+<<<<<<< HEAD
 #TODO: what do we need to return?
 # - mG (if we cache this in the field, not neccessary)
 # - the local stuff?
@@ -2523,12 +2525,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @vprint :GaloisCohomology 1 "Ideal class group cohomology for $k\n"
   G, mG = automorphism_group(PermGroup, k)
   zk = maximal_order(k)
-
-  sf = subfields(k)
-  sf = [x[1] for x = sf if degree(x[1]) > 1]
-  zf = map(maximal_order, sf)
-  cf = map(class_group, zf)
-  cf = Tuple{GrpAbFinGen, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
   s = push!(Set{fmpz}(s), Set{fmpz}(keys(factor(discriminant(zk)).fac))...)
@@ -2557,6 +2553,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     end
   end
 
+<<<<<<< HEAD
   S = collect(keys(factor(prod(s)*zk)))
   @vprint :GaloisCohomology 2 " .. need $(length(S)) prime ideals ..\n"
 
