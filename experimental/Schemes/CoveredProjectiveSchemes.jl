@@ -426,7 +426,7 @@ function blow_up(
     # to construct the identifications of PUV with QVU we need to 
     # express the generators of I(U) in terms of the generators of I(V)
     # on the overlap U ∩ V. 
-    G isa SimpleGlueing || error("method not implemented for this type of glueing")
+    !(G isa Glueing) || error("method not implemented for this type of glueing")
 
     # The problem is that on a SpecOpen U ∩ V
     # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
@@ -520,6 +520,90 @@ function blow_up(
 #  return projective_version, covered_version, projection_map, exc_div
 end
 
+struct ProjectiveGlueingData
+  down_left::AbsSpec
+  down_right::AbsSpec
+  up_left::AbsSpec
+  up_right::AbsSpec
+  down_covering::Covering
+  projective_scheme::CoveredProjectiveScheme
+end
+
+function _compute_glueing(gd::ProjectiveGlueingData)
+  U = gd.down_left
+  V = gd.down_right
+  UD = gd.up_left
+  VD = gd.up_right
+  C = gd.down_covering
+  # Now we have the following diagram 
+  #
+  #               fup, gup
+  # P[U] ⊃ UW ⇢  UD ↔ VD ⇠ VW ⊂ P[V]
+  #         ↓    ↓    ↓    ↓
+  #         U ⊃  A  ↔  B ⊂ V
+  #                f,g
+  #
+  # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}. 
+  P = gd.projective_scheme
+  (A, B) = glueing_domains(C[U, V])
+  (f, g) = glueing_morphisms(C[U, V])
+  (UD, VD) = glueing_domains(P[U, V])
+  (fup, gup) = glueing_morphisms(P[U, V])
+  (incU, incV) = inclusion_maps(P[U, V])
+  S = ambient_coordinate_ring(P[U])
+  T = ambient_coordinate_ring(P[V])
+  i = P[U][UW][2]
+  j = P[V][VW][2]
+  s_i = gens(S)[i]
+  t_j = gens(T)[j]
+  AW = affine_charts(Oscar.covered_scheme(UD))[i]
+  BW = affine_charts(Oscar.covered_scheme(VD))[j]
+  hU = dehomogenize(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
+  hV = dehomogenize(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
+
+  # We need to construct the glueing 
+  #
+  #          f', g'
+  #   UW ↩ AAW ↔ BBW ↪ VW
+  #   
+  # as follows. 
+  # From the base glueing we already have that UW differs 
+  # from AAW by the pullback of the equation `complement_equation(A)`.
+  # But then, also `hU` cuts out another locus which needs to be 
+  # removed before glueing. 
+  #
+  # The same applies to the other side. Finally, we need to track the 
+  # coordinates through the homogenization-glueing-pullback-dehomogenization 
+  # machinery to provide the glueing morphisms. 
+
+  ptbUD = covered_projection_to_base(UD)
+  ptbVD = covered_projection_to_base(VD)
+  hhU = lifted_numerator(pullback(ptbUD[AW])(complement_equation(A)))
+  hhU = hhU * lifted_numerator(hU)
+  AAW = PrincipalOpenSubset(UW, OO(UW)(hhU))
+  hhV = lifted_numerator(pullback(ptbVD[BW])(complement_equation(B)))
+  hhV = hhV * lifted_numerator(hV)
+  BBW = PrincipalOpenSubset(VW, OO(VW)(hhV))
+
+  x = gens(ambient_coordinate_ring(AAW))
+  y = gens(ambient_coordinate_ring(BBW))
+
+  xh = homogenize(UD, AW).(OO(AW).(x))
+  yh = homogenize(VD, BW).(OO(BW).(y))
+
+  xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
+  yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
+
+  phi = dehomogenize(VD, BW)
+  psi = dehomogenize(UD, AW) 
+  yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
+  ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
+  ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs))
+  gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs))
+
+  return SimpleGlueing(UW, VW, ff, gg)
+end
+
 @attr function covered_scheme(P::CoveredProjectiveScheme)
   X = base_scheme(P)
   C = default_covering(X)
@@ -548,72 +632,9 @@ end
       U === V && continue
       for UW in affine_charts(parts[U])
         for VW in affine_charts(parts[V])
-          # Now we have the following diagram 
-          #
-          #               fup, gup
-          # P[U] ⊃ UW ⇢  UD ↔ VD ⇠ VW ⊂ P[V]
-          #         ↓    ↓    ↓    ↓
-          #         U ⊃  A  ↔  B ⊂ V
-          #                f,g
-          #
-          # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}. 
-          (A, B) = glueing_domains(C[U, V])
-          (f, g) = glueing_morphisms(C[U, V])
-          (UD, VD) = glueing_domains(P[U, V])
-          (fup, gup) = glueing_morphisms(P[U, V])
-          (incU, incV) = inclusion_maps(P[U, V])
-          S = ambient_coordinate_ring(P[U])
-          T = ambient_coordinate_ring(P[V])
-          i = P[U][UW][2]
-          j = P[V][VW][2]
-          s_i = gens(S)[i]
-          t_j = gens(T)[j]
-          AW = affine_charts(Oscar.covered_scheme(UD))[i]
-          BW = affine_charts(Oscar.covered_scheme(VD))[j]
-          hU = dehomogenize(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
-          hV = dehomogenize(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
-
-          # We need to construct the glueing 
-          #
-          #          f', g'
-          #   UW ↩ AAW ↔ BBW ↪ VW
-          #   
-          # as follows. 
-          # From the base glueing we already have that UW differs 
-          # from AAW by the pullback of the equation `complement_equation(A)`.
-          # But then, also `hU` cuts out another locus which needs to be 
-          # removed before glueing. 
-          #
-          # The same applies to the other side. Finally, we need to track the 
-          # coordinates through the homogenization-glueing-pullback-dehomogenization 
-          # machinery to provide the glueing morphisms. 
-
-          ptbUD = covered_projection_to_base(UD)
-          ptbVD = covered_projection_to_base(VD)
-          hhU = lifted_numerator(pullback(ptbUD[AW])(complement_equation(A)))
-          hhU = hhU * lifted_numerator(hU)
-          AAW = PrincipalOpenSubset(UW, OO(UW)(hhU))
-          hhV = lifted_numerator(pullback(ptbVD[BW])(complement_equation(B)))
-          hhV = hhV * lifted_numerator(hV)
-          BBW = PrincipalOpenSubset(VW, OO(VW)(hhV))
-
-          x = gens(ambient_coordinate_ring(AAW))
-          y = gens(ambient_coordinate_ring(BBW))
-          
-          xh = homogenize(UD, AW).(OO(AW).(x))
-          yh = homogenize(VD, BW).(OO(BW).(y))
-
-          xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
-          yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
-
-          phi = dehomogenize(VD, BW)
-          psi = dehomogenize(UD, AW) 
-          yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
-          ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
-          ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs))
-          gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs))
-
-          GGG = SimpleGlueing(UW, VW, ff, gg)
+          GGG = LazyGlueing(UW, VW, _compute_glueing, 
+                            ProjectiveGlueingData(U, V, UW, VW, C, P)
+                           )
           result_glueings[(UW, VW)] = GGG
         end
       end
