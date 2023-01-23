@@ -8,7 +8,7 @@ export dual
 export LineBundle
 export PushforwardSheaf
 export is_locally_free
-#export PullbackSheaf
+export PullbackSheaf
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -1047,7 +1047,7 @@ end
 # Again, it is clear that this can and should be made lazy.
 #                                                                     =#
 #
-# TODO: PullbackSheaf is currently broken!!!
+# TODO: PullbackSheaf is not yet fully functional.
 
 @attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
                                          RestrictionType
@@ -1060,8 +1060,7 @@ end
   OOY::StructureSheafOfRings # the sheaf of rings in the codomain
   M::AbsCoherentSheaf        # the sheaf of modules on Y
   pullback_of_sections::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the natural 
-                                                                   # pullback maps of local representatives
-                                                                   # of sections in M.
+                                                                   # pullback maps along the maps in the `covering_morphism` of f 
   F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
 
   function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
@@ -1073,6 +1072,7 @@ end
     fcov = covering_morphism(f)::CoveringMorphism
     CX = domain(fcov)::Covering
     CY = codomain(fcov)::Covering
+    pullbacks = IdDict{AbsSpec, Hecke.Map}()
 
     ### Production of the modules on open sets.
     #
@@ -1092,7 +1092,7 @@ end
       if haskey(morphisms(fcov), U)
         floc = morphisms(fcov)[U]
         MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-        #TODO: Cache the map.
+        pullbacks[U] = map
         return MU
       end
 
@@ -1107,13 +1107,13 @@ end
       if haskey(morphisms(fcov), U)
         floc = morphisms(fcov)[U]
         MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-        #TODO: Cache the map.
+        pullbacks[U] = map
         return MU
       end
 
       # If not, check whether we are hanging below such a patch in the 
       # refinement tree.
-      if some_ancestor(any(x->(x===U), patches(domain(fcov))), U)
+      if some_ancestor(y->any(x->(x===y), patches(domain(fcov))), U)
         V = __find_chart(U, domain(fcov))
         MU, res = change_base_ring(OOX(V, U), FF(V))
         add_incoming_restriction!(FF, V, MU, res)
@@ -1147,7 +1147,7 @@ end
           MYU = M(codomain(f_U))
           res_Y = M(codomain(f_V), codomain(f_U))
           result = hom(F(V), F(U), 
-                       (pullbacks_on_patches(F)[U]).(res_Y.(gens(MYV))), 
+                       (pullbacks[U]).(res_Y.(gens(MYV))), 
                        OOX(V, U))
           return result
         end
@@ -1163,9 +1163,9 @@ end
     Blubber = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=_is_open_for_modules(X)
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
-    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(f, OOX, OOY, M, ident, Blubber)
+    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(f, OOX, OOY, M, pullbacks, Blubber)
     return MY
   end
 end

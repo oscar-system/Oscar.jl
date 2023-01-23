@@ -70,3 +70,48 @@ end
   U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
 end
+
+@testset "pullbacks of modules" begin
+  # Note: The PullbackSheafs are not yet fully functional!!!
+  IP = projective_space(QQ, 2)
+  S = ambient_coordinate_ring(IP)
+  X = covered_scheme(IP)
+  (x,y,z) = gens(S)
+  f = x^3 + y^3 + z^3
+  I = ideal(S, f)
+  II = IdealSheaf(IP, I)
+  inc = oscar.CoveredClosedEmbedding(X, II)
+  C = domain(inc)
+  L = twisting_sheaf(IP, 2)
+  LC = oscar.PullbackSheaf(inc, L)
+  U = affine_charts(C)
+  @test LC(U[1]) isa FreeMod
+  V = PrincipalOpenSubset(U[1], one(OO(U[1])))
+  @test LC(V) isa FreeMod
+  rho = LC(U[1], V)
+  @test rho isa ModuleFPHom
+  VV = simplify(V)
+  rho = LC(U[1], VV)
+  @test rho isa ModuleFPHom
+
+  # Test pullbacks along blowup maps.
+  # This is particularly simple, because the underlying CoveringMorphism 
+  # of the projection map is given on the default_covering of its domain.
+  J = ideal(S, [x-z, y])
+  JJ = IdealSheaf(IP, J)
+  JJC = pullback(inc, JJ)
+  IP_Bl_C = blow_up(JJC)
+  Bl_C = covered_scheme(IP_Bl_C)
+  p = covered_projection_to_base(IP_Bl_C)
+  p_star = pullback(p)
+  p_star_LC = p_star(LC)
+
+  for U in affine_charts(Bl_C)
+    @test p_star_LC(U) isa FreeMod
+  end
+
+  U = first(affine_charts(Bl_C))
+  V = simplify(U)
+  @test p_star_LC(V) isa FreeMod
+  @test p_star_LC(U, V) isa ModuleFPHom
+end
