@@ -309,20 +309,6 @@ end
 
 gmodule(k::Nemo.GaloisField, C::GModule{<:Any, Generic.FreeModule{gfp_elem}}) = C
 
-function Oscar.representation_matrix(a::fq_nmod)
-  K = parent(a)
-  k = GF(Int(characteristic(K)))
-  m = zero_matrix(k, degree(K), degree(K))
-  b = basis(K)
-  for i=1:degree(K)
-    c = a*b[i]
-    for j=1:degree(K)
-      m[i,j] = coeff(c, j-1)
-    end
-  end
-  return m
-end
-
 function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, fmpq}}})
   G = group(C)
   phi = epimorphism_from_free_group(G)
