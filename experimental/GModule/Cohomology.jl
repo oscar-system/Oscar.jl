@@ -1893,7 +1893,7 @@ end
  - map a local chain into a ray class group
 =#
 
-export GModule, gmodule, word, fp_group, confluent_fp_group
+export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
        action, cohomology_group, extension, iscoboundary, pc_group
 
 Oscar.dim(C::GModule) = rank(C.M)
@@ -1941,26 +1941,93 @@ Sort:
     - Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
 =#    
 
+function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
+  G, mG = automorphism_group(PermGroup, k)
+  zk = maximal_order(k)
+  sf = subfields(k)
+  sf = [x[1] for x = sf if degree(x[1]) > 1]
+  zf = map(maximal_order, sf)
+  cf = map(class_group, zf)
+  cf = Tuple{GrpAbFinGen, <:Map}[x for x = cf]
+
+  s = push!(Set{fmpz}(s), Set{fmpz}(keys(factor(discriminant(zk)).fac))...)
+  for i=1:length(sf)
+    l = factor(prod(s)*zf[i])
+    q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
+    cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+  end
+
+  for p = PrimesSet(2, -1)
+    p in s && continue
+    all(x->order(x[1]) == 1, cf) && break
+    new = false
+    for i=1:length(sf)
+      l = factor(p*zf[i])
+      q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
+      if order(q) != order(cf[i][1])
+        new = true
+      end
+      cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+    end
+    if new
+      push!(s, p)
+    end
+  end
+
+  @show s
+
+  S = collect(keys(factor(prod(s)*zk)))
+
+  @show s = [findfirst(x->minimum(x) == t, S) for t = s]
+    
+  U, mU = sunit_group_fac_elem(S)
+  z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
+  E = gmodule(G, mU)
+  @assert is_consistent(E)
+
+  G_inf, mG_inf = sub(G, [one(G)])
+
+  Et = gmodule(G_inf, mU)
+  @assert is_consistent(Et)
+  iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, id_hom(U))
+  @assert is_consistent(iEt[1])
+  for g = gens(G)
+    for u = gens(E.M)
+      a = iEt[2](u)
+      b = iEt[2](preimage(mU*z, (mG(g)((mU*z)(u)))))
+      @assert b == action(iEt[1], g, a)
+    end
+  end
+
+  S = S[s]
+
+  L = [completion(k, x) for x = S]
+  C = [gmodule(x[1], prime_field(x[1])) for x = L];
+  @assert all(x->is_consistent(x[1]), C)
+  D = [Oscar.GrpCoh.induce(C[i][1], decomposition_group(k, L[i][2], mG, C[i][2]), E, mU*z*L[i][2]*pseudo_inv(C[i][3])) for i=1:length(S)]
+  @assert all(x->is_consistent(x[1]), D)
+
+  F = direct_product(iEt[1], [x[1] for x = D]..., task = :sum)
+  @assert is_consistent(F[1])
+
+  h = iEt[2]*F[2][1]+sum(D[i][2]*F[2][i+1] for i=1:length(S));
+  q = quo(F[1], h);
+  @assert is_consistent(q[1])
+  return q
+end
+
+function Oscar.simplify(C::GModule{PermGroup, GrpAbFinGen})
+  s, ms = snf(C.M)
+  return GModule(s, C.G, [GrpAbFinGenMap(ms*x*pseudo_inv(ms)) for x = C.ac])
+end
+
 end # module GrpCoh
 
 using .GrpCoh
-export gmodule, GModule, fp_group, pc_group
+export gmodule, GModule, fp_group, pc_group, induce, cohomology_group
 
 
 #=
 x^4 - 60*x^2 + 16
-
-factor(5*discriminant(maximal_order(k))*maximal_order(k))
-S = collect(keys(ans))
-L = [completion(k, x) for x = S]
-C = [gmodule(x[1], prime_field(x[1])) for x = L];
-U, mU = sunit_group_fac_elem(S);
-E = gmodule(G, mU)
-z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
-D = [Oscar.GrpCoh.induce(C[i][1], decomposition_group(k, L[i][2], mG, C[i][2]), E, mU*z*L[i][2]*pseudo_inv(C[i][3])) for i=1:length(S)];
-F = direct_product(E, [x[1] for x = D]..., task = :sum)
-h = id_hom(U)*F[2][1]+sum(D[i][2]*F[2][i+1] for i=1:length(S));
-q = quo(F[1], h);
-Oscar.GrpCoh.cohomology_group(q[1], 2)[1]
 
 =#
