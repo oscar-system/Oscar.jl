@@ -4,19 +4,23 @@ export action_in_submodule,
        affording_representation,
        all_characters,
        all_irreducible_representations,
+       associated_schur_cover,
        basis_exterior_power,
        basis_isotypical_component,
+       center_of_character,
        character_decomposition,
        character_linear_lift,
        character_representation,
        character_table_underlying_group,
        complement_submodule,
        constituents,
+       determinant,
        dimension_linear_lift,
        dimension_representation,
        direct_sum_representation,
        dual_representation,
        exterior_power_representation,
+       faithful_projective_representations,
        generators_underlying_group,
        homogeneous_polynomial_representation,
        irreducible_characters_underlying_group,
@@ -27,6 +31,7 @@ export action_in_submodule,
        is_faithful,
        is_isotypical,
        is_isotypical_component,
+       is_projective,
        is_similar,
        is_submodule,
        is_subrepresentation,
@@ -36,7 +41,6 @@ export action_in_submodule,
        matrix_representation,
        matrix_representation_linear_lift,
        projective_representation,
-       projectively_faithful_representations,
        quotient_representation,
        representation,
        representation_mapping,
@@ -166,7 +170,15 @@ linear_lift(PR::ProjRep) = PR.LR
 
 Return the underlying group of `PR`.
 """
-underlying_group(PR::ProjRep) = PR.G
+underlying_group(PR::ProjRep) = domain(PR.p)
+
+@doc Markdown.doc"""
+    associated_schur_cover(PR::ProjRep) -> GAPGroupHomomorphism
+
+Return the Schur cover along which the projective representation is
+lifted.
+"""
+associated_schur_cover(PR::ProjRep) = PR.p
 
 @doc Markdown.doc"""
     representation_ring_linear_lift(PR::ProjRep{S, T, U, V}) where {S, T, U, V}
@@ -213,12 +225,13 @@ character afforded by `f`.
 function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism) where {S, T}
   @req domain(f) === underlying_group(RR) "f does not define a representation in the given representation ring"
   @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
-  coll = elem_type(base_ring(codomain(f)))[]
+  Q = abelian_closure(QQ)[1]
+  coll = elem_type(Q)[]
   H = conjugacy_classes(underlying_group(RR))
   # Any representation rho affords the character e -> trace(rho(e)) 
   for h in H
     b = f(representative(h))
-    push!(coll, trace(b))
+    push!(coll, Q(trace(b)))
   end
   c = Oscar.group_class_function(character_table_underlying_group(RR), coll)
   return c
@@ -329,6 +342,7 @@ function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
   # on their of time we can take each index (otherwise the resulting
   # character won't be a constituent of chi
   el = elevator(L, _deg, t, ubs = ubs)
+  (number_of_elevations(el) == 0) && return Oscar.GAPGroupClassFunction[]
   return Oscar.GAPGroupClassFunction[sum(L[l]) for l in el]
 end
 
@@ -342,6 +356,30 @@ function all_characters(RR::RepRing, t::Int)
   chis = irreducible_characters_underlying_group(RR)
   el = elevator(chis, x -> ZZ(degree(x)), t)
   return [sum(chis[l]) for l in el]
+end
+
+@doc Markdown.doc"""
+    determinant(chi::Oscar.GAPGroupClassFunction) -> Oscar.GAPGroupClassFunction
+
+Given a character `chi` of degree `n`, return its determinant character,
+which corresponds to the `n`-th antisymmetric parts of `chi`.
+"""
+determinant(chi::Oscar.GAPGroupClassFunction) = exterior_power(chi, Int(degree(chi)))
+
+@doc Markdown.doc"""
+    center_of_character(chi::Oscar.GAPGroupClassFunction) -> GAPGroup, GAPGroupHomomorphism
+
+Return the center of the character `chi` which corresponds to the subgroup
+of the underlying group `E` of `chi` consisting on the elements `e` of `E`
+such that $chi(e)$ is a primitive root of unity times the degree of `chi`.
+"""
+function center_of_character(chi::Oscar.GAPGroupClassFunction)
+  E = chi.table.GAPGroup
+  H = GG.CenterOfCharacter(chi.values)
+  H = typeof(E)(H)
+  ok, j = is_subgroup(E, H)
+  @assert ok
+  return H, j
 end
 
 ###########################################################################
@@ -436,14 +474,14 @@ function _linear_representation(RR::RepRing{S, T}, mr::Vector{V}, chi::Oscar.GAP
   @req chi.table === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   G = underlying_group(RR)
   mg = matrix_group(mr)
-  f = hom(G, mg, generators_underlying_group(RR), gens(mg))
+  f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
   return linear_representation(RR, f, chi)
 end
 
 function _linear_representation(RR::RepRing{S ,T}, mr::Vector{V}) where {S ,T ,U, V <: MatElem{U}}
   G = underlying_group(RR)
   mg = matrix_group(mr)
-  f = hom(G, mg, generators_underlying_group(RR), gens(mg))
+  f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
   return linear_representation(RR, f)
 end
 
@@ -473,27 +511,38 @@ function linear_representation(RR::RepRing{S ,T}, f::GAPGroupHomomorphism) where
 end
 
 @doc Markdown.doc"""
-    projective_representation(RR::RepRing, f::GAPGroupHomomorphism};
-                                           G::V = nothing) -> ProjRep
+    is_projective(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
+    is_projective(chi::GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
-Return a linear lift in `RR` associated to the matrix representation `mr`
-of a projective representation of `G`. If `G` is not provided, it is computed
-as the group generated by `mr`, modulo scalar multiples of the identity. Note
-that the underlying group of `RR` should be a Schur cover of `G` for this to
-make sense.
+Given a linear representation `rep` of the domain `E` of the cover `p` affording the
+character `chi`, return whether `rep` is `p`-projective, i.e. `rep` reduces to a
+projective representation of the codomain of `p`.
+
+This is equivalent to ask that the center of `chi` contains the kernel of `p`.
 """
-function projective_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism; G = nothing) where {S, T}
+function is_projective(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
+  @req chi.table.GAPGroup === domain(p) "Incompatible representation ring of rep and domain of the cover p"
+  return is_subgroup(center_of_character(chi)[1], kernel(p)[1])[1]
+end
+
+is_projective(rep::LinRep, p::GAPGroupHomomorphism) = is_projective(character_representation(rep), p)
+
+@doc Markdown.doc"""
+    projective_representation(RR::RepRing, f::GAPGroupHomomorphism,
+                                           p::GAPGroupHomomorphism) -> ProjRep
+
+Return a linear representation in `RR` and associating mapping `f` representation
+a lift along the cover `p` of a projective representation of $codomain(p)$.
+
+If `check=true`, `f` is check to be `p`-projective.
+"""
+function projective_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism, p::GAPGroupHomomorphism; check::Bool = true) where {S, T}
   lr = linear_representation(RR, f)
-  if G === nothing
-    M = image(f)[1]
-    @assert is_finite(M)
-    z, inj = center(M)
-    el = elements(z)
-    coll = filter(m -> is_diagonal(m) && length(unique(diagonal(m))) == 1, el)
-    zF, _ = sub(mg, inj.(coll))
-    G, _ = quo(mg, zF)
+  if check
+    @req underlying_group(RR) === domain(p) "Incompatible representation ring and cover"
+    @req is_projective(rep, p) "f is not p-projective"
   end
-  return ProjRep(lr, G)
+  return ProjRep(lr, p)
 end
 
 @doc Markdown.doc"""
@@ -684,70 +733,34 @@ function is_faithful(rep::LinRep)
   return is_injective(f)
 end
 
-"""
-This finds the small group id of `mg` modulo scalar multiple, for
-projective representations mainly.
-"""
-function _id_matrix_group_modulo_scalar(mg::MatrixGroup)
-  @req is_finite(mg) "Only available for finite matrix groups"
-  z, inj = center(mg)
-  el = elements(z)
-  coll = filter(m -> is_diagonal(matrix(m)) && length(unique(diagonal(matrix(m)))) == 1, el)
-  zF, _ = sub(mg, inj.(coll))
-  q, _ = quo(mg, zF)
-  @assert is_finite(q)
-  n, m = try
-           small_group_identification(q)
-         catch
-            return (order(q),)
-         end
-  return (n, m)
-end
+@doc Markdown.doc"""
+    is_projectively_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
+    is_projectively_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
-"""
-If `mg` represents a linear representation which is a lift of a projective
-representation of a group of id `id`, return whether the associated projective
-representation is faithful.
-"""
-function _is_projectively_faithful(mg::MatrixGroup, id::Tuple{T, T}) where T <: Union{Int, fmpz}
-  return _id_matrix_group_modulo_scalar(mg) == id
-end
+Given a linear representation `rep` of the domain `E` of the cover `p` affording the
+character `chi`, return whether `rep` is `p`-faithful, i.e. `rep` reduces to a faithful
+projective representation of the codomain of `p`.
 
-# Here we do a translation of the center of character from the group given from GAP.
-# maybe this would deserve a proper function `center_of_character` directly
-# available on Oscar (which does basically what I do here)
+This is equivalent to ask that the center of `chi` coincides with the kernel of `p`.
 """
-chi is the character of a projectively faithful representation iff E/Z(chi)
-is of id `id`, where `E` is the underlying group of `chi`, `Z(chi)` is the center
-of the character `chi` and `id` the id of the underlying group of the reduction of
-a linear representation affording `chi`.
-"""
-function _is_projectively_faithful(chi::Oscar.GAPGroupClassFunction, id::Tuple{T, T}) where T <: Union{Int, fmpz}
+function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) where T <: Union{Int, fmpz}
   E = chi.table.GAPGroup
-  z_gap = GG.CenterOfCharacter(chi.values)
-  U = Oscar._get_type(z_gap)
-  z = U(z_gap)
-  @assert is_subgroup(E, z)[1] && is_normal(E, z)
-  G, _ = quo(E, z)
-  if order(G) != id[1]
-    return false
-  end
-  return small_group_identification(G) == id
+  @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
+  @req is_projective(chi, p) "chi is not afforded by a p-projective representation"
+  Z = center_of_character(chi)[1]
+  Q = kernel(p)[1]
+  return Q.X == Z.X
 end
+
+is_faithful(rep::LinRep, p::GAPGroupHomomorphism) = is_faithful(character_representation(rep), p)
 
 @doc Markdown.doc"""
     is_faithful(prep::ProjRep) -> Bool
 
-Given a projective representation `prep` of a finite group, return whether
-`prep` is faithful.
-
-A projective representation $\rho$ of a finite group $G$ is faithful if and
-only if for any linear lift $\mu$ of $\rho$ to a Schur cover $E$ of $G$, $E$
-modulo the center of the character afforded by $\mu$ is isomorphic to $G$.
+Given a projective representation `prep` lifting to a linear representation `rep` along
+a cover `p`, return whether `rep` is `p`-faithful.
 """
-function is_faithful(pr::ProjRep)
-    return _is_projectively_faithful(character_linear_lift(pr), small_group_identification(underlying_group(pr)))
-end
+is_faithful(pr::ProjRep) = is_faithful(character_linear_lift(pr), associated_schur_cover(pr))
 
 ###############################################################################
 
@@ -861,9 +874,8 @@ function dual_representation(rep::LinRep{S, T, U}) where {S, T, U}
 end
 
 function dual_representation(prep::ProjRep)
-  G = underlying_group(prep)
   rep = dual_representation(linear_lift(prep))
-  return ProjRep(rep, G)
+  return ProjRep(rep, associated_schur_cover(prep))
 end
 
 ###############################################################################
@@ -892,9 +904,9 @@ end
 
 function direct_sum_representation(prep1::T, prep2::T) where T <: ProjRep
   @req representation_ring_linear_lift(prep1) === representation_ring_linear_lift(prep2) "Linear lifts must be in the same representation ring"
-  @req underlying_group(prep1) === underlying_group(prep2) "Underlying groups mismatch"
+  @req associated_schur_cover(prep1) === associated_schur_cover(prep2) "Associated covers mismatch"
   lin = direct_sum_representation(linear_lift(prep1), linear_lift(prep2))
-  return ProjRep(lin, underlying_group(prep1))
+  return ProjRep(lin, associated_schur_cover(prep1))
 end
 
 Base.:(+)(rep1::T, rep2::T) where T <: Union{LinRep, ProjRep} = direct_sum_representation(rep1, rep2)
@@ -1036,9 +1048,8 @@ function symmetric_power_representation(rep::LinRep{S, T, U}, d::Int) where {S, 
 end
 
 function symmetric_power_representation(prep::ProjRep, d::Int)
-  G = underlying_group(prep)
   lin = symmetric_power_representation(linear_lift(prep), d)
-  return ProjRep(lin, G)
+  return ProjRep(lin, associated_schur_cover(prep))
 end
 
 @doc Markdown.doc"""
@@ -1060,8 +1071,7 @@ homogeneous_polynomial_representation(rep::LinRep, d::Integer) =
 
 function homogeneous_polynomial_representation(prep::ProjRep, d::Integer)
   lin = homogeneous_polynomial_representation(linear_lift(prep), d)
-  G = underlying_group(prep)
-  return ProjRep(lin, G)
+  return ProjRep(lin, associated_schur_cover(prep))
 end
 
 ###############################################################################
@@ -1148,8 +1158,7 @@ end
 function exterior_power_representation(prep::ProjRep, t::Int)
   @req 1 <= t <= dimension_linear_lift(prep) "t must be an integer between 1 and the dimension of the linear lift"
   lin = exterior_power_representation(linear_lift(prep), t)
-  G = underlying_group(prep)
-  return ProjRep(lin, G)
+  return ProjRep(lin, associated_schur_cover(prep))
 end
 
 ###############################################################################
@@ -1173,14 +1182,18 @@ function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
   if isprime(p)
     fff = GG.EpimorphismPGroup(H, p)
     E = fff(H)
-    MG = fff(GG.Kernel(f))
   else
     fff = GG.IsomorphismPermGroup(H)
     E = fff(H)
-    MG = fff(GG.Kernel(f))
   end
   E = Oscar._get_type(E)(E)
-  
+  H = Oscar._get_type(H)(H)
+  fff = GAPGroupHomomorphism(H, E, fff)
+  fff = inv(fff)
+  f = GAPGroupHomomorphism(H, G, f)
+  p = compose(fff, f)
+  @assert is_surjective(f)
+
   # now we need to enumerate of characters of E of degree dim, modulo
   # multiplication by a linear character and up to the bounds
   # fixed by `setup`
@@ -1198,16 +1211,13 @@ function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
   chars = Oscar.GAPGroupClassFunction[]
   local El::ElevCtx
   El = elevator(L, dim)
-  @info "Classify $(number_of_elevations(El)) projective representations."
+  @info "Classify $(number_of_elevations(El)) possible linear representations."
   for l in El
     chi = sum(Irr[l])
-    if GG.Size(GG.CenterOfCharacter(GG.RestrictedClassFunction(chi.values, MG))) != GG.Size(MG)
+    if !is_projective(chi, p) || !is_faithful(chi, p)
       continue
     end
     if any(lin -> lin*chi in chars, lins) # afforded by representations with similar reductions
-      continue
-    end
-    if !_is_projectively_faithful(chi, small_group_identification(G)) # not good for us
       continue
     end
     push!(chars, chi)
@@ -1215,39 +1225,39 @@ function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
     push!(sum_index, l)
   end
   bool = length(keep_index) > 0
-  return bool, RR, keep_index, sum_index
+  return bool, RR, sum_index, p
 end
 
 @doc Markdown.doc"""
-    projectively_faithful_representations(o::Int, n::Int, dim::Int)
-    projectively_faithful_representations(G::Oscar.GAPGroup, dim::Int)
+    faithful_projective_representations(o::Int, n::Int, dim::Int)
+    faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
                                                              -> Vector{ProjRep}
 
-Given a small group `G` of ID `[o,n]`, return representatives of all
-classes of complex projectively faithful representations of a Schur cover `E` of
-`G` of dimension `dim`.
+Given a small group `G` of ID `[o,n]`, return a set of representatives
+of equivalences classes of projective representations of `G` of complex
+dimension `dim`.
 """
-function projectively_faithful_representations(G::Oscar.GAPGroup, dim::Int)
-  bool, RR, keep_index, sum_index = _has_pfr(G, dim)
+function faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
+  bool, RR, sum_index, p = _has_pfr(G, dim)
   if bool == false
     return ProjRep[]
   end
   F = splitting_field(RR)
   E = underlying_group(RR)
   Irr = irreducible_characters_underlying_group(RR)
-  @info "Construct and compare $(length(sum_index)) projectively faithful representations."
-  pfr = ProjRep{typeof(F), typeof(E), elem_type(F), typeof(G)}[]
+  @info "Construct and compare $(length(sum_index)) p-faithful representations."
+  pfr = ProjRep{typeof(F), typeof(E), elem_type(F), typeof(p)}[]
   for l in sum_index
     chara = sum(Irr[l])
     @assert chara[1] == dim
     lr = affording_representation(RR, chara)
-    pr = ProjRep(lr, G)
+    pr = ProjRep(lr, p)
     push!(pfr, pr)
   end
   return pfr
 end
 
-projectively_faithful_representations(o::Int, n::Int, d::Int; setup = nothing) = projectively_faithful_representations(small_group(o, n), d)
+faithful_projective_representations(o::Int, n::Int, d::Int) = faithful_projective_representations(small_group(o, n), d)
 
 ###############################################################################
 #
@@ -1320,8 +1330,7 @@ end
 
 function to_equivalent_block_representation(prep::ProjRep)
   lin, B = to_equivalent_block_representation(linear_lift(prep))
-  G = underlying_group(prep)
-  return ProjRep(lin,  G), B
+  return ProjRep(lin,  associated_schur_cover(prep)), B
 end
 
 @doc Markdown.doc"""

@@ -5,7 +5,7 @@ zero.
 """
 
 export CharacterGrassmannian,
-       DeterminantalGrassmannian,
+       DeterminantGrassmannian,
        ElevCtx,
        InvariantGrassmannian,
        IsotypicalGrassmannian,
@@ -113,12 +113,12 @@ Schur cover of the group. We store the underlying group and the linear lift.
 """
 @attributes mutable struct ProjRep{S, T, U, V}
   LR::LinRep{S, T, U}
-  G::V
+  p::V
 
-  function ProjRep(LR::LinRep{S, T, U}, G::V) where {S, T, U, V}
+  function ProjRep(LR::LinRep{S, T, U}, p::V) where {S, T, U, V}
     z = new{S, T, U, V}()
     z.LR = LR
-    z.G = G
+    z.p = p
     return z
   end
 end
@@ -161,13 +161,13 @@ end
   end
 end
 
-@attributes mutable struct DeterminantalGrassmannian{S, T, U} <: SymmetricGrassmannian{S, T, U}
+@attributes mutable struct DeterminantGrassmannian{S, T, U} <: SymmetricGrassmannian{S, T, U}
   rep::LinRep{S, T, U}
   det_char::Oscar.GAPGroupClassFunction
   irr_comp::Vector{CharacterGrassmannian{S, T, U}}
   d::Int
 
-  function DeterminantalGrassmannian(rep::LinRep{S, T, U}, dc::Oscar.GAPGroupClassFunction, ic::Vector{CharacterGrassmannian{S, T, U}}, d::Int) where {S, T, U}
+  function DeterminantGrassmannian(rep::LinRep{S, T, U}, dc::Oscar.GAPGroupClassFunction, ic::Vector{CharacterGrassmannian{S, T, U}}, d::Int) where {S, T, U}
     return new{S, T, U}(rep, dc, ic, d)
   end
 end

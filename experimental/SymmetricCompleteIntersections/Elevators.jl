@@ -281,7 +281,7 @@ function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   return sort(s)
 end
 
-_first(EC::ElevCtx) = _first(EC, _possible_sums(EC)[1])
+@attr _first(EC::ElevCtx) = _first(EC, _possible_sums(EC)[1])
 
 function _last(EC::ElevCtx, sumtype::Vector{<: IntegerUnion})
   @assert sum(sumtype) == degree_of_elevations(EC)
@@ -328,7 +328,7 @@ function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   return sort(s)
 end
 
-_last(EC::ElevCtx) = _last(EC, _possible_sums(EC)[end])
+@attr _last(EC::ElevCtx) = _last(EC, _possible_sums(EC)[end])
 
 function _next(EC::ElevCtx, elev::Vector{Int})
   lbs, ubs  = associated_bounds(EC)

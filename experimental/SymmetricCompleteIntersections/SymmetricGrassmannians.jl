@@ -4,14 +4,14 @@ import Oscar: defining_ideal, describe
 
 import Base: parent
 
-export irreducible_components,
+export character_grassmannian,
+       determinant_grassmannian,
+       invariant_grassmannian,
+       irreducible_components,
        isotypical_factor,
        isotypical_factors,
+       isotypical_grassmannian,
        module_representation,
-       moduli_space_of_submodules,
-       moduli_space_of_submodules_with_character,
-       moduli_space_of_submodules_with_determinantal_character,
-       moduli_space_of_submodules_with_isotypical_character,
        parametrization_data,
        projective_dimension,
        standard_element,
@@ -299,42 +299,42 @@ standard_element(M::CharacterGrassmannian) = standard_element.(isotypical_factor
 
 ### Determinantal Grassmannians
 
-submodule_dimension(M::DeterminantalGrassmannian) = M.d
+submodule_dimension(M::DeterminantGrassmannian) = M.d
 
-module_representation(M::DeterminantalGrassmannian) = M.rep
+module_representation(M::DeterminantGrassmannian) = M.rep
 
 @doc Markdown.doc"""
-    submodule_determinantal_character(M::DeterminantalGrassmannian)
+    submodule_determinant_character(M::DeterminantGrassmannian)
                                                  -> Oscar.GAPGroupClassFunction
 
-Given the determinantal Grassmannian `M` parametrizing `d`-dimensional submodule
-of a module `V` with determinantal character `chi`, return `chi`.
+Given the determinant Grassmannian `M` parametrizing `d`-dimensional submodule
+of a module `V` with determinant character `chi`, return `chi`.
 """
-submodule_determinantal_character(M::DeterminantalGrassmannian) = M.det_char
+submodule_determinant_character(M::DeterminantGrassmannian) = M.det_char
 
 @doc Markdown.doc"""
-    irreducible_components(M::DeterminantalGrassmannian{S, T, U}) where {S, T, U}
+    irreducible_components(M::DeterminantGrassmannian{S, T, U}) where {S, T, U}
                                         -> Vector{CharacterGrassmannian{S, T, U}}
 
-Given the determinantal Grassmannian `M` parametrizing `d`-dimensional submodule
+Given the determinant Grassmannian `M` parametrizing `d`-dimensional submodule
 of a module `V` with determinantal character `chi`, return the irreducible
 components of `M`. These are the character Grassmannians parametrizing submodules
 of `V` with a given character `mu` such that `mu` has dimension `d` and determinant `chi`.
 """
-irreducible_components(M::DeterminantalGrassmannian) = M.irr_comp
+irreducible_components(M::DeterminantGrassmannian) = M.irr_comp
 
-is_irreducible(M::DeterminantalGrassmannian) = length(M.irr_comp) == 1
+is_irreducible(M::DeterminantGrassmannian) = length(M.irr_comp) == 1
 
-is_empty(M::DeterminantalGrassmannian) = length(M.irr_comp) == 0
+is_empty(M::DeterminantGrassmannian) = length(M.irr_comp) == 0
 
-projective_dimension(M::DeterminantalGrassmannian) = maximum(projective_dimension.(M.irr_comp); init = -1)
+projective_dimension(M::DeterminantGrassmannian) = maximum(projective_dimension.(M.irr_comp); init = -1)
 
-function defining_ideal(M::DeterminantalGrassmannian)
+function defining_ideal(M::DeterminantGrassmannian)
   @req !is_empty(M) "M is empty"
   r = module_representation(M)
-  chi = submodule_determinantal_character(M)
+  chi = submodule_determinant_character(M)
   t = submodule_dimension(M)
-  return _defining_ideal_moduli_determinantal_character(r, chi, t)
+  return _defining_ideal_determinant_grassmannian(r, chi, t)
 end
 
 ###############################################################################
@@ -374,7 +374,7 @@ function defining_ideal(M::InvariantGrassmannian)
   @req !is_empty(M) "M is empty"
   r = module_representation(M)
   t = submodule_dimension(M)
-  return _defining_ideal_moduli_submodules(r, t)
+  return _defining_ideal_invariant_grassmannian(r, t)
 end
 
 ###############################################################################
@@ -417,16 +417,16 @@ end
 
 ### Determinantal Grassmannian
 
-function Base.show(io::IO, ::MIME"text/plain", M::DeterminantalGrassmannian)
-  chi = submodule_determinantal_character(M)
+function Base.show(io::IO, ::MIME"text/plain", M::DeterminantGrassmannian)
+  chi = submodule_determinant_character(M)
   println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules of")
   println(io, module_representation(M))
-  println(io, "with determinantal character")
+  println(io, "with determinant character")
   print(io, chi)
 end
 
-function Base.show(io::IO, M::DeterminantalGrassmannian)
-  print(io, "Determinantal Grassmannian of dimension $(projective_dimension(M))")
+function Base.show(io::IO, M::DeterminantGrassmannian)
+  print(io, "Determinant Grassmannian of dimension $(projective_dimension(M))")
 end
 
 ###############################################################################
@@ -469,8 +469,8 @@ function _submodules_space_isotypical_as_vs(rep::LinRep{S, T, U},
 end
 
 @doc Markdown.doc"""
-    moduli_space_of_submodules_with_isotypical_character(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
-    moduli_space_of_submodules_with_isotypical_character(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
+    isotypical_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
+    isotypical_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
                                                                                                           -> IsotypicalGrassmannian{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
@@ -481,7 +481,7 @@ parametrizing isotypical $FE$-submodules of $(V, rep)$ affording the character `
 In the case of we are given a projective representation `prep`, it is constructed
 with respect to a stored linear lift `prep`.
 """
-function moduli_space_of_submodules_with_isotypical_character(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
+function isotypical_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
   nu = character_representation(rep)
   @req is_isotypical(chi) "chi is not isotypical"
   @req is_constituent(nu, chi) "chi is not a constituent of the character of rep"
@@ -490,11 +490,11 @@ function moduli_space_of_submodules_with_isotypical_character(rep::LinRep{S, T, 
   return IsotypicalGrassmannian(chi, rep, d, f)
 end
 
-moduli_space_of_submodules_with_isotypical_character(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = moduli_space_of_submodules_with_isotypical_character(linear_lift(prep), chi)
+isotypical_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = isotypical_grassmannian(linear_lift(prep), chi)
 
 @doc Markdown.doc"""
-    moduli_space_of_submodules_with_character(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
-    moduli_space_of_submodules_with_character(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
+    character_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
+    character_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
                                                                                             -> CharacterGrassmannian{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
@@ -505,13 +505,13 @@ $FE$-submodules of $(V, rep)$ affording the character `chi`.
 In the case of we are given a projective representation `prep`, it is constructed
 with respect to a stored linear lift `prep`.
 """
-function moduli_space_of_submodules_with_character(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
+function character_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
   nu = character_representation(rep)
   @req is_constituent(nu, chi) "chi is not a constituent of the character of prep"
   dec = character_decomposition(chi)
   constituents = IsotypicalGrassmannian{S, T, U}[]
   for d in  dec
-    M = moduli_space_of_submodules_with_isotypical_character(rep, d[1]*d[2])
+    M = isotypical_grassmannian(rep, d[1]*d[2])
     push!(constituents, M)
   end
 
@@ -520,11 +520,11 @@ function moduli_space_of_submodules_with_character(rep::LinRep{S, T, U}, chi::Os
   return modi
 end
 
-moduli_space_of_submodules_with_character(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = moduli_space_of_submodules_with_character(linear_lift(prep), chi)
+character_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = character_grassmannian(linear_lift(prep), chi)
 
 @doc Markdown.doc"""
-    moduli_space_of_submodules(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
-    moduli_space_of_submodules(prep::ProjRep{S, T, U, V}, t::Int) where {S, T, U, V}
+    invariant_grassmannian(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
+    invariant_grassmannian(prep::ProjRep{S, T, U, V}, t::Int) where {S, T, U, V}
                                                                      -> InvariantGrassmannian{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
@@ -535,46 +535,46 @@ $FE$-submodules of $(V, rep)$.
 In the case of we are given a projective representation `prep`, it is constructed
 with respect to a stored linear lift `prep`.
 """
-function moduli_space_of_submodules(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
+function invariant_grassmannian(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
   @req 1 <= t < dimension_representation(rep) "t must be positive and (strictly) smaller than the dimension of rep"
   chis = constituents(character_representation(rep), t)
   M = CharacterGrassmannian{S, T, U}[]
   @info "Construct $(length(chis)) irreducible component(s)"
   for chi in chis
-    N = moduli_space_of_submodules_with_character(rep, chi)
+    N = character_grassmannian(rep, chi)
     push!(M, N)
   end
 
   return InvariantGrassmannian(rep, M, t)
 end
 
-moduli_space_of_submodules(prep::ProjRep, t::Int) = moduli_space_of_submodules(linear_lift(prep), t)
+invariant_grassmannian(prep::ProjRep, t::Int) = invariant_grassmannian(linear_lift(prep), t)
 
 @doc Markdown.doc"""
-    moduli_space_of_submodules_with_determinantal_character(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U}
-    moduli_space_of_submodules_with_determinantal_character(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U, V}
+    determinant_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U}
+    determinant_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U, V}
                                                                                                                       -> DeterminantalGrassmannian{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
 `F`-vector space `V`, a `F`-character `chi` of `E` where `F` is a splitting field
 of `E` of characteristic zero, return the symmetric Grassmannian parametrizing
-`t`-dimensional $FE$-submodules of $(V, rep)$ with determinantal character `chi`.
+`t`-dimensional $FE$-submodules of $(V, rep)$ with determinant character `chi`.
 
 In the case of we are given a projective representation `prep`, it is constructed
 with respect to a stored linear lift `prep`.
 """
-function moduli_space_of_submodules_with_determinantal_character(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U}
+function determinant_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U}
   @req Int(degree(chi)) == 1 "chi must be a degree 1 character"
   chis = constituents(character_representation(rep), t)
-  filter!(nu -> exterior_power(nu, t) == chi, chis)
+  filter!(nu -> determinant(nu) == chi, chis)
   irr_comp = CharacterGrassmannian{S, T, U}[]
   for nu in chis
-    push!(irr_comp, moduli_space_of_submodules_with_character(rep, nu))
+    push!(irr_comp, character_grassmannian(rep, nu))
   end
-  return DeterminantalGrassmannian(rep, chi, irr_comp, t)
+  return DeterminantGrassmannian(rep, chi, irr_comp, t)
 end
 
-moduli_space_of_submodules_with_determinantal_character(prep::ProjRep, t::Int, chi::Oscar.GAPGroupClassFunction) = moduli_space_of_submodules_with_determinantal_character(linear_lift(prep), t, chi)
+determinant_grassmannian(prep::ProjRep, t::Int, chi::Oscar.GAPGroupClassFunction) = determinant_grassmannian(linear_lift(prep), t, chi)
 
 ###############################################################################
 #
@@ -611,7 +611,7 @@ end
 
 ### For invariant and determinantal grassmannians
 
-function _defining_ideal_moduli_determinantal_character(r::LinRep, chi::Oscar.GAPGroupClassFunction, t::Int)
+function _defining_ideal_determinant_grassmannian(r::LinRep, chi::Oscar.GAPGroupClassFunction, t::Int)
   @req degree(chi) == 1 "chi must be a linear character"
   @req chi in irreducible_characters_underlying_group(representation_ring(r)) "chi is not a character of the undrlying group of r"
   rt = t == 1 ? r : exterior_power_representation(r, t)
@@ -627,7 +627,7 @@ function _defining_ideal_moduli_determinantal_character(r::LinRep, chi::Oscar.GA
   return _intersection_with_grassmannian(bas, dimension_representation(r), t, S = S)
 end
 
-function _defining_ideal_moduli_submodules(r::LinRep, t::Int)
+function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   rt = t == 1 ? r : exterior_power_representation(r, t)
   e = Int(exponent(underlying_group(r)))
   F, _ = cyclotomic_field(e, cached=false)
