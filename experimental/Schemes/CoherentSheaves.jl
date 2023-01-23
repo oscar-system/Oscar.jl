@@ -1159,7 +1159,8 @@ end
   OOY::StructureSheafOfRings # the sheaf of rings in the codomain
   M::AbsCoherentSheaf        # the sheaf of modules on Y
   pullback_of_sections::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the natural 
-                                                                   # pullback maps along the maps in the `covering_morphism` of f 
+                                                                   # pullback maps of local representatives
+                                                                   # of sections in M.
   F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
 
   function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
