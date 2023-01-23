@@ -2023,9 +2023,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   G, mG = automorphism_group(PermGroup, k)
   zk = maximal_order(k)
 
-function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
-  G, mG = automorphism_group(PermGroup, k)
-  zk = maximal_order(k)
   sf = subfields(k)
   sf = [x[1] for x = sf if degree(x[1]) > 1]
   zf = map(maximal_order, sf)
@@ -2158,6 +2155,8 @@ function gfc(k::AnticNumberField, s::Vector{Int} = Int[])
   end
   @assert is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
 
+  @show map(mU*z, gens(U))
+  @show  s
   S = S[s]
 
   #TODO: precision: for some examples the default is too small
