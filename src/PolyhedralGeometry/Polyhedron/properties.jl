@@ -914,6 +914,13 @@ is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
 
 @doc Markdown.doc"""
+    is_simplicial(P::Polyhedron)
+
+Check whether `P` is simplicial.
+"""
+is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
+
+@doc Markdown.doc"""
     is_fulldimensional(P::Polyhedron)
 
 Check whether `P` is full-dimensional.

@@ -163,8 +163,14 @@ convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
 
 ## Polyhedra from other mathematical objects
 
-
 ```@docs
 orbit_polytope
 newton_polytope
 ```
+
+## Random constructions
+
+```@docs
+random_spherical_polytope
+```
+

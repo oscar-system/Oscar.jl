@@ -950,3 +950,23 @@ julia> nvertices(cp)
 ```
 """
 cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))
+
+# random constructions
+
+@doc Markdown.doc"""
+    random_spherical_polytope(d::Int, n::Int)
+
+Construct the convex hull of $n$ points on the unit sphere in $\mathbb{R}^d$.
+Almost surely this is a simplicial polytope.
+
+
+# Examples
+```jldoctest
+julia> rsph = random_spherical_polytope(3, 20)
+A polyhedron in ambient dimension 3
+
+julia> simplicial(rsph)
+true
+```
+"""
+random_spherical_polytope(d::Int, n::Int) = Polyhedron{fmpq}(Polymake.polytope.rand_sphere(d,n))
