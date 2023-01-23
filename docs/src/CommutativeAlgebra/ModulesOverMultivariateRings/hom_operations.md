@@ -12,7 +12,7 @@ Pages = ["hom_operations.md"]
 
 # Operations on Module Maps
 
-If module homomorphism `a` and `b` with `codomain(a) === domain(b)` are given,
+If module homomorphisms `a` and `b` with `codomain(a) === domain(b)` are given,
 then `compose(a, b)` refers to the composition `b` $\circ$ `a`. If an isomorphism of modules
 `a` is given, then `inv(a)` refers to its inverse.
 
