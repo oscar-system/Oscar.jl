@@ -107,13 +107,18 @@ true
 ```
 
 ## Regular polytopes
-A polytope is regular, in the strict sense, if it admits a flag-transtive group of (linear) automorphisms.
-There are three infinite families of regular polytopes which exist in each dimension: the (regular) simplices, cubes and cross polytopes.
-In addition there are two exceptional regular 3-polytopes (dodecahedron and icosahedron) plus three exceptional regular 4-polytopes (24-cell, 120-cell and 600-cell).
+A polytope is regular, in the strict sense, if it admits a flag-transtive group
+of (linear) automorphisms. There are three infinite families of regular
+polytopes which exist in each dimension: the (regular) simplices, cubes and
+cross polytopes. In addition there are two exceptional regular 3-polytopes
+(dodecahedron and icosahedron) plus three exceptional regular 4-polytopes
+(24-cell, 120-cell and 600-cell).
 
-The regular 3-polytopes are also known as the Platonic solids.
-Here we also list the Archimedean, Catalan and Johnson solids, which form various generalizations of the Platonic solids.
-However, here we implement "disjoint families", i.e., the proper Archimedean solids exclude the Platonic solids; similarly, the proper Johnson solids exclude the Archmidean solids.
+The regular 3-polytopes are also known as the Platonic solids. Here we also
+list the Archimedean, Catalan and Johnson solids, which form various
+generalizations of the Platonic solids. However, here we implement "disjoint
+families", i.e., the proper Archimedean solids exclude the Platonic solids;
+similarly, the proper Johnson solids exclude the Archmidean solids.
 ```@docs
 simplex
 cross_polytope
@@ -130,7 +135,7 @@ regular_120_cell
 regular_600_cell
 ```
 
-## Other named polyhedra
+## Other polytope constructions
 
 ```@docs
 birkhoff_polytope
@@ -140,6 +145,9 @@ fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+newton_polytope
+orbit_polytope
+rand_spherical_polytope
 ```
 
 ## Operations on polyhedra
@@ -160,17 +168,3 @@ The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
 convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
 ```
-
-## Polyhedra from other mathematical objects
-
-```@docs
-orbit_polytope
-newton_polytope
-```
-
-## Random constructions
-
-```@docs
-random_spherical_polytope
-```
-
