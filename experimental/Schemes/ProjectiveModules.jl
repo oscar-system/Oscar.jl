@@ -47,7 +47,7 @@ function is_projective(M::SubQuo; check::Bool=true)
   A = matrix(a)
 
   success, P, k = _is_projective_without_denominators(A)
-  !success && return false, zero_map(Rr, M), zero_map(M, Rr)
+  !success && return false, hom(Rr, M, [zero(M) for x in gens(Rr)]), hom(M, Rr, [zero(Rr) for x in gens(M)])
   k == 0 || error("invalid numerator required")
   return true, hom(Rr, M, gens(M)), hom(M, Rr, [sum([P[i, j]*Rr[i] for i in 1:ngens(Rr)]) for j in 1:ncols(P)])
 end
