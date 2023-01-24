@@ -32,7 +32,7 @@ export GlobalTateModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
+    global_tate_model(base::Oscar.AbstractNormalToricVariety)
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
@@ -41,14 +41,14 @@ This method constructs a global Tate model over a given toric base
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-function GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
+function global_tate_model(base::Oscar.AbstractNormalToricVariety)
     toric_ambient_space = _ambient_space_from_base(base)
     (a1, a2, a3, a4, a6) = _tate_sections(base)
     pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(toric_ambient_space))
@@ -57,11 +57,11 @@ function GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
     set_attribute!(model, :base_fully_specified, true)
     return model
 end
-export GlobalTateModel
+export global_tate_model
 
 
 @doc Markdown.doc"""
-    GlobalTateModelOverProjectiveSpace()
+    global_tate_model_over_projective_space()
 
 This method constructs a global Tate model over the 3-dimensional projective space.
 
@@ -69,25 +69,25 @@ This method constructs a global Tate model over the 3-dimensional projective spa
 ```jldoctest
 julia> using Oscar
 
-julia> GlobalTateModelOverProjectiveSpace()
+julia> global_tate_model_over_projective_space()
 A global Tate model over a concrete base
 ```
 """
-GlobalTateModelOverProjectiveSpace() = GlobalTateModel(projective_space(NormalToricVariety,3))
-export GlobalTateModelOverProjectiveSpace
+global_tate_model_over_projective_space() = global_tate_model(projective_space(NormalToricVariety,3))
+export global_tate_model_over_projective_space
 
 
 @doc Markdown.doc"""
-    GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
+    global_tate_model(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
 
-This method operates analogously to `GlobalTateModel(base::Oscar.AbstractNormalToricVariety)`.
+This method operates analogously to `global_tate_model(base::Oscar.AbstractNormalToricVariety)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
 
 # Examples
 ```jldoctest
 julia> using Oscar
 
-julia> base = TestBase()
+julia> base = test_base()
 A normal toric variety
 
 julia> a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base))]);
@@ -100,14 +100,14 @@ julia> a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_b
 
 julia> a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
 
-julia> t = GlobalTateModel([a1, a2, a3, a4, a6], base)
+julia> t = global_tate_model([a1, a2, a3, a4, a6], base)
 A global Tate model over a concrete base
 
 julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-function GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
+function global_tate_model(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
     if length(ais) != 5
         throw(ArgumentError("We require exactly 5 Tate sections"))
     end
@@ -121,7 +121,7 @@ function GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety)
     set_attribute!(model, :base_fully_specified, true)
     return model
 end
-export GlobalTateModel
+export global_tate_model
 
 
 ################################################
@@ -129,7 +129,7 @@ export GlobalTateModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
+    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -152,7 +152,7 @@ julia> a6 = a65 * w^5;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = GlobalTateModel(ais, auxiliary_base_ring, 3)
+julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
 A global Tate model over a not fully specified base
 
 julia> tate_polynomial(t)
@@ -170,7 +170,7 @@ julia> dim(toric_ambient_space(t))
 5
 ```
 """
-function GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
+function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
     if length(ais) != 5
         throw(ArgumentError("We expect exactly 5 Tate sections"))
     end
@@ -198,7 +198,7 @@ function GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int)
     set_attribute!(model, :base_fully_specified, false)
     return model
 end
-export GlobalTateModel
+export global_tate_model
 
 
 ################################################

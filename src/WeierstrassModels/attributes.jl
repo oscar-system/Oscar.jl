@@ -11,7 +11,7 @@ construction of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
@@ -30,7 +30,7 @@ construction of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
@@ -52,7 +52,7 @@ Return the Weierstrass polynomial of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w);
@@ -74,7 +74,7 @@ Return the toric base space of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_base_space(w))
@@ -96,7 +96,7 @@ Return the toric base space of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
@@ -123,7 +123,7 @@ which defines the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> cy_hypersurface(w)
@@ -156,7 +156,7 @@ Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> discriminant(w);
@@ -220,7 +220,7 @@ julia> a6 = a62 * w^2;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = GlobalTateModel(ais, auxiliary_base_ring, 3)
+julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
 A global Tate model over a not fully specified base
 
 julia> weier = global_weierstrass_model(t)

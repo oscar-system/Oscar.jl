@@ -6,7 +6,7 @@ Return `true` is the Tate model has a concrete base space and `false` otherwise.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> base_fully_specified(t)

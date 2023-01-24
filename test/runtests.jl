@@ -8,7 +8,7 @@ using Oscar
 #############################################################
 
 # test base
-base = TestBase()
+base = test_base()
 
 # sections, used to test error messages
 sec_f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)])
@@ -21,48 +21,48 @@ sec_a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bund
 
 # specific Tate models, over arbitrary base
 istar0_s_auxiliary_base_ring, (a1pp, a2pp, a3pp, a4pp, a6pp, vp, mp) = QQ["a1pp", "a2pp", "a3pp", "a4pp", "a6pp", "vp", "mp"];
-t_istar0_s = GlobalTateModel([a1pp * vp^1, mp * vp^1 + a2pp * vp^2, a3pp * vp^2, mp^2 * vp^2 + a4pp * vp^3, a6pp * vp^4], istar0_s_auxiliary_base_ring, 3);
+t_istar0_s = global_tate_model([a1pp * vp^1, mp * vp^1 + a2pp * vp^2, a3pp * vp^2, mp^2 * vp^2 + a4pp * vp^3, a6pp * vp^4], istar0_s_auxiliary_base_ring, 3);
 tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v) = QQ["a1p", "a2p", "a3p", "a4p", "a6p", "v"];
-t_i1 = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^1, a4p * v^1, a6p * v^1], tate_auxiliary_base_ring, 3);
-t_i2_ns = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^1, a4p * v^1, a6p * v^2], tate_auxiliary_base_ring, 3);
-t_i2_s = GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^2], tate_auxiliary_base_ring, 3);
-t_i3_ns = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^2, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
-t_i3_s = GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
-t_i4_ns = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^2, a4p * v^2, a6p * v^4], tate_auxiliary_base_ring, 3);
-t_i4_s = GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^4], tate_auxiliary_base_ring, 3);
-t_i5_ns = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^3, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_i5_s = GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_i6_ns = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^3, a4p * v^3, a6p * v^6], tate_auxiliary_base_ring, 3);
-t_i6_s = GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^6], tate_auxiliary_base_ring, 3);
-t_i7_ns = GlobalTateModel([a1p * v^0, a2p * v^0, a3p * v^4, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
-t_i7_s = GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
-t_ii = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^1], tate_auxiliary_base_ring, 3);
-t_iii = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^2], tate_auxiliary_base_ring, 3);
-t_iv_ns = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^2], tate_auxiliary_base_ring, 3);
-t_iv_s = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
-t_istar0_ns = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
-t_istar0_ss = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^4], tate_auxiliary_base_ring, 3);
-t_istar1_ns = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^4], tate_auxiliary_base_ring, 3);
-t_istar1_s = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_istar2_ns = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_istar2_s = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^6], tate_auxiliary_base_ring, 3);
-t_istar3_ns = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^6], tate_auxiliary_base_ring, 3);
-t_istar3_s = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
-t_istar4_ns = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^4, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
-t_istar4_s = GlobalTateModel([a1p * v^1, a2p * v^1, a3p * v^4, a4p * v^4, a6p * v^8], tate_auxiliary_base_ring, 3);
-t_ivstar_ns = GlobalTateModel([a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^4], tate_auxiliary_base_ring, 3);
-t_ivstar_s = GlobalTateModel([a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_iiistar = GlobalTateModel([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_iistar = GlobalTateModel([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^5], tate_auxiliary_base_ring, 3);
-t_nm = GlobalTateModel([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6], tate_auxiliary_base_ring, 3);
+t_i1 = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^1, a4p * v^1, a6p * v^1], tate_auxiliary_base_ring, 3);
+t_i2_ns = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^1, a4p * v^1, a6p * v^2], tate_auxiliary_base_ring, 3);
+t_i2_s = global_tate_model([a1p * v^0, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^2], tate_auxiliary_base_ring, 3);
+t_i3_ns = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^2, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
+t_i3_s = global_tate_model([a1p * v^0, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
+t_i4_ns = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^2, a4p * v^2, a6p * v^4], tate_auxiliary_base_ring, 3);
+t_i4_s = global_tate_model([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^4], tate_auxiliary_base_ring, 3);
+t_i5_ns = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^3, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_i5_s = global_tate_model([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_i6_ns = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^3, a4p * v^3, a6p * v^6], tate_auxiliary_base_ring, 3);
+t_i6_s = global_tate_model([a1p * v^0, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^6], tate_auxiliary_base_ring, 3);
+t_i7_ns = global_tate_model([a1p * v^0, a2p * v^0, a3p * v^4, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
+t_i7_s = global_tate_model([a1p * v^0, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
+t_ii = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^1], tate_auxiliary_base_ring, 3);
+t_iii = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^2], tate_auxiliary_base_ring, 3);
+t_iv_ns = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^2], tate_auxiliary_base_ring, 3);
+t_iv_s = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
+t_istar0_ns = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^3], tate_auxiliary_base_ring, 3);
+t_istar0_ss = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^4], tate_auxiliary_base_ring, 3);
+t_istar1_ns = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^4], tate_auxiliary_base_ring, 3);
+t_istar1_s = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_istar2_ns = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_istar2_s = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^6], tate_auxiliary_base_ring, 3);
+t_istar3_ns = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^6], tate_auxiliary_base_ring, 3);
+t_istar3_s = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
+t_istar4_ns = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^4, a4p * v^4, a6p * v^7], tate_auxiliary_base_ring, 3);
+t_istar4_s = global_tate_model([a1p * v^1, a2p * v^1, a3p * v^4, a4p * v^4, a6p * v^8], tate_auxiliary_base_ring, 3);
+t_ivstar_ns = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^4], tate_auxiliary_base_ring, 3);
+t_ivstar_s = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_iiistar = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_iistar = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^5], tate_auxiliary_base_ring, 3);
+t_nm = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6], tate_auxiliary_base_ring, 3);
 
 
 #############################################################
 # 1: Global Weierstrass models over concrete base space
 #############################################################
 
-w = GlobalWeierstrassModel(TestBase())
-# Base.show(w)
+w = global_weierstrass_model(test_base())
+Base.show(w)
 
 @testset "Attributes of global Weierstrass models over concrete base spaces" begin
     @test parent(weierstrass_section_f(w)) == cox_ring(toric_base_space(w))
@@ -76,7 +76,7 @@ w = GlobalWeierstrassModel(TestBase())
 end
 
 @testset "Error messages in global Weierstrass models over concrete base spaces" begin
-    @test_throws ArgumentError GlobalWeierstrassModel(sec_f, sec_g, base)
+    @test_throws ArgumentError global_weierstrass_model(sec_f, sec_g, base)
 end
 
 
@@ -85,7 +85,7 @@ end
 #############################################################
 
 auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"]
-w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring, 3)
+w2 = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 
 @testset "Attributes of global Weierstrass models over generic base space" begin
     @test parent(weierstrass_section_f(w2)) == cox_ring(toric_base_space(w2))
@@ -100,9 +100,9 @@ w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring, 3)
 end
 
 @testset "Error messages in global Weierstrass models over generic base space" begin
-    @test_throws ArgumentError GlobalWeierstrassModel(f, sec_f, auxiliary_base_ring, 3)
-    @test_throws ArgumentError GlobalWeierstrassModel(f, g, auxiliary_base_ring, 0)
-    @test_throws ArgumentError GlobalWeierstrassModel(f, g, auxiliary_base_ring, 4)
+    @test_throws ArgumentError global_weierstrass_model(f, sec_f, auxiliary_base_ring, 3)
+    @test_throws ArgumentError global_weierstrass_model(f, g, auxiliary_base_ring, 0)
+    @test_throws ArgumentError global_weierstrass_model(f, g, auxiliary_base_ring, 4)
 end
 
 
@@ -110,8 +110,8 @@ end
 # 3: Global Tate models over concrete base space
 #############################################################
 
-t = GlobalTateModel(TestBase())
-# Base.show(t)
+t = global_tate_model(test_base())
+Base.show(t)
 
 @testset "Attributes of global Tate models over concrete base space" begin
     @test parent(tate_section_a1(t)) == cox_ring(toric_base_space(t))
@@ -130,8 +130,8 @@ t = GlobalTateModel(TestBase())
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
-    @test_throws ArgumentError GlobalTateModel([sec_a2, sec_a3, sec_a4, sec_a6], base)
-    @test_throws ArgumentError GlobalTateModel([sec_a1, sec_a2, sec_a3, sec_a4, sec_a6], base)
+    @test_throws ArgumentError global_tate_model([sec_a2, sec_a3, sec_a4, sec_a6], base)
+    @test_throws ArgumentError global_tate_model([sec_a1, sec_a2, sec_a3, sec_a4, sec_a6], base)
 end
 
 
@@ -156,10 +156,10 @@ end
 end
 
 @testset "Error messages in global Tate models over generic base space" begin
-    @test_throws ArgumentError GlobalTateModel([a1p], tate_auxiliary_base_ring, 3)
-    @test_throws ArgumentError GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, sec_a6], tate_auxiliary_base_ring, 3)
-    @test_throws ArgumentError GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, -1)
-    @test_throws ArgumentError GlobalTateModel([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 7)
+    @test_throws ArgumentError global_tate_model([a1p], tate_auxiliary_base_ring, 3)
+    @test_throws ArgumentError global_tate_model([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, sec_a6], tate_auxiliary_base_ring, 3)
+    @test_throws ArgumentError global_tate_model([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, -1)
+    @test_throws ArgumentError global_tate_model([a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5], tate_auxiliary_base_ring, 7)
 end
 
 @testset "Singular loci of global Tate models over generic base space" begin

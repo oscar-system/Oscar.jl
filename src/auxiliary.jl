@@ -125,17 +125,17 @@ end
 ################################################################
 
 @doc Markdown.doc"""
-    TestBase()
+    test_base()
 
 This method constructs a 3-dimensional toric variety, which we
 use for efficient testing of the provided functionality.
 """
-function TestBase()
+function test_base()
     rays = [-1 -1 -1; -1 -1 0; -1 -1 1; -1 -1 2; -1 -1 3; -1 -1 4; -1 -1 5; -1 0 -1; -1 0 0; -1 0 1; -1 0 2; -1 0 3; -1 0 4; -1 1 -1; -1 1 0; -1 1 1; -1 1 2; -1 1 3; -1 2 -1; -1 2 0; -1 2 1; -1 2 2; -1 3 -1; -1 3 0; -1 3 1; -1 4 -1; -1 4 0; -1 5 -1; 0 -1 -1; 0 -1 0; 0 -1 1; 0 -1 2; 0 0 -1; 0 0 1; 0 1 -1; 0 1 0; 0 2 -1; 1 -1 -1]
     cones = IncidenceMatrix([[36, 37, 38], [35, 37, 38], [34, 36, 38], [33, 35, 38], [32, 34, 38], [31, 32, 38], [30, 31, 38], [29, 33, 38], [29, 30, 38], [27, 28, 37], [26, 28, 37], [26, 27, 28], [25, 36, 37], [25, 27, 37], [24, 26, 27], [24, 25, 27], [23, 26, 37], [23, 24, 26], [22, 34, 36], [22, 25, 36], [21, 24, 25], [21, 22, 25], [20, 23, 24], [20, 21, 24], [19, 35, 37], [19, 23, 37], [19, 20, 23], [18, 32, 34], [18, 22, 34], [17, 21, 22], [17, 18, 22], [16, 20, 21], [16, 17, 21], [15, 19, 20], [15, 16, 20], [14, 33, 35], [14, 19, 35], [14, 15, 19], [13, 18, 32], [12, 17, 18], [12, 13, 18], [11, 16, 17], [11, 12, 17], [10, 15, 16], [10, 11, 16], [9, 14, 15], [9, 10, 15], [8, 29, 33], [8, 14, 33], [8, 9, 14], [7, 13, 32], [6, 12, 13], [6, 7, 32], [6, 7, 13], [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32], [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30], [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
     return NormalToricVariety(PolyhedralFan(rays, cones))
 end
-export TestBase
+export test_base
 
 ################################################################
 # 6: Compute singularity Kodaira type and refined Tate type
@@ -186,7 +186,7 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
         # Using locus here is a trick to avoid defining a new polynomial ring
         # It probably won't work once the issue of locus being a single coordinate is addressed
         monodromy_poly =  locus^3 + locus * evaluate(divexact(poly_f, locus^2), [locus], [0]) + evaluate(divexact(poly_g, locus^3), [locus], [0])
-        num_facs = length(factor(monodromy_poly).fac)
+        num_facs = length(_factors(monodromy_poly))
         if num_facs == 3
             kod_type = "Split I^*_0"
         elseif num_facs == 2

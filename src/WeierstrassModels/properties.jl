@@ -6,7 +6,7 @@ Return `true` is the Weierstrass model has a concrete base space and `false` oth
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> base_fully_specified(w)

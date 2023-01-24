@@ -26,7 +26,7 @@ export GlobalWeierstrassModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)
+    global_weierstrass_model(base::Oscar.AbstractNormalToricVariety)
 
 This method constructs a global Weierstrass model over a given toric base
 3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
@@ -36,14 +36,14 @@ coefficients.
 ```jldoctest
 julia> using Oscar
 
-julia> w = GlobalWeierstrassModel(TestBase())
+julia> w = global_weierstrass_model(test_base())
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
 false
 ```
 """
-function GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)
+function global_weierstrass_model(base::Oscar.AbstractNormalToricVariety)
     toric_ambient_space = _ambient_space_from_base(base)
     (f,g) = _weierstrass_sections(base)
     pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
@@ -52,11 +52,11 @@ function GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)
     set_attribute!(model, :base_fully_specified, true)
     return model
 end
-export GlobalWeierstrassModel
+export global_weierstrass_model
 
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModelOverProjectiveSpace()
+    global_weierstrass_model_over_projective_space()
 
 This method constructs a global Weierstrass model over the 3-dimensional projective space.
 
@@ -64,40 +64,40 @@ This method constructs a global Weierstrass model over the 3-dimensional project
 ```jldoctest
 julia> using Oscar
 
-julia> GlobalWeierstrassModelOverProjectiveSpace()
+julia> global_weierstrass_model_over_projective_space()
 A global Weierstrass model over a concrete base
 ```
 """
-GlobalWeierstrassModelOverProjectiveSpace() = GlobalWeierstrassModel(projective_space(NormalToricVariety,3))
-export GlobalWeierstrassModelOverProjectiveSpace
+global_weierstrass_model_over_projective_space() = global_weierstrass_model(projective_space(NormalToricVariety,3))
+export global_weierstrass_model_over_projective_space
 
 
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
+    global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
 
-This method operates analogously to `GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)`.
+This method operates analogously to `global_weierstrass_model(base::Oscar.AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
 
 # Examples
 ```jldoctest
 julia> using Oscar
 
-julia> base = TestBase()
+julia> base = test_base()
 A normal toric variety
 
 julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)]);
 
 julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
 
-julia> w = GlobalWeierstrassModel(f, g, base)
+julia> w = global_weierstrass_model(f, g, base)
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
 false
 ```
 """
-function GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
+function global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
     if (parent(f) != cox_ring(base)) || (parent(g) != cox_ring(base))
         throw(ArgumentError("All Weierstrass sections must reside in the Cox ring of the base toric variety"))
     end
@@ -108,7 +108,7 @@ function GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Os
     set_attribute!(model, :base_fully_specified, true)
     return model
 end
-export GlobalWeierstrassModel
+export global_weierstrass_model
 
 
 ################################################
@@ -116,7 +116,7 @@ export GlobalWeierstrassModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
+    global_weierstrass_model(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
 
 This method constructs a global Weierstrass model over a base space that is not
 fully specified. The following example illustrates this approach.
@@ -127,7 +127,7 @@ julia> using Oscar
 
 julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 
-julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring, 3)
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 A global Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w)
@@ -145,7 +145,7 @@ julia> dim(toric_ambient_space(w))
 5
 ```
 """
-function GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
+function global_weierstrass_model(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
     if (parent(poly_f) != auxiliary_base_ring) || (parent(poly_g) != auxiliary_base_ring)
         throw(ArgumentError("All Weierstrass sections must reside in the provided auxiliary base ring"))
     end
@@ -173,7 +173,7 @@ function GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}
     set_attribute!(model, :base_fully_specified, false)
     return model
 end
-export GlobalWeierstrassModel
+export global_weierstrass_model
 
 
 #######################################

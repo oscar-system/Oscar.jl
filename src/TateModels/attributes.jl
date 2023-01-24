@@ -10,7 +10,7 @@ Return the Tate section ``a_1``.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> tate_section_a1(t);
@@ -28,7 +28,7 @@ Return the Tate section ``a_2``.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> tate_section_a2(t);
@@ -46,7 +46,7 @@ Return the Tate section ``a_3``.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> tate_section_a3(t);
@@ -64,7 +64,7 @@ Return the Tate section ``a_4``.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> tate_section_a4(t);
@@ -82,7 +82,7 @@ Return the Tate section ``a_6``.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> tate_section_a6(t);
@@ -104,7 +104,7 @@ Return the Tate polynomial of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> tate_polynomial(t);
@@ -126,7 +126,7 @@ Return the toric base space of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> toric_base_space(t)
@@ -148,7 +148,7 @@ Return the toric ambient space of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> toric_ambient_space(t)
@@ -178,7 +178,7 @@ which defines the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> cy_hypersurface(t)
@@ -204,7 +204,7 @@ Return the global Weierstrass model which is equivalent to the given Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> global_weierstrass_model(t)
@@ -243,7 +243,7 @@ Return the discriminant of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> t = GlobalTateModel(TestBase())
+julia> t = global_tate_model(test_base())
 A global Tate model over a concrete base
 
 julia> discriminant(t);
@@ -304,7 +304,7 @@ julia> a6 = a62 * w^2;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = GlobalTateModel(ais, auxiliary_base_ring, 3)
+julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
 A global Tate model over a not fully specified base
 
 julia> length(singular_loci(t))
