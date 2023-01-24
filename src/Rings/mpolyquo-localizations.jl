@@ -1556,3 +1556,4 @@ function _is_integral_domain(R::Ring)
   is_domain_type(typeof(R)) && return true
   error("method not implemented for rings of type $(typeof(R))")
 end
+

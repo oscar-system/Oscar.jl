@@ -566,7 +566,6 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   set_attribute!(X, :is_smooth,true)
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
-  return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
 
 # TODO: Covered schemes, projective schemes
@@ -635,14 +634,12 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = radical(I)
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
-  return subscheme(X,I)
 end
 
 # make singular_locus_reduced agnostic to quotient
 function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
-  return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
 
 # internal workhorse, not user-facing

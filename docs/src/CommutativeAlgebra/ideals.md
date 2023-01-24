@@ -188,7 +188,7 @@ is_prime(I::MPolyIdeal)
 is_primary(I::MPolyIdeal)
 ```
 
-## Decomposition of Ideals
+## [Decomposition of Ideals] (@id ideal_decomp)
 
 We discuss various decomposition techniques. They are implemented for
 polynomial rings over fields and, if explicitly mentioned, also for

@@ -30,8 +30,8 @@ and isolated complete intersection singularities
 Textbooks offering details on theory (and some algorithms) include:
 - [GLS07] (@cite)   
 - [JP00] (@cite)
-- [C-MLS20] (@cite)
-- [C-MLS21] (@cite)
+- [C-MTS20] (@cite)
+- [C-MTS21] (@cite)
 
     
 

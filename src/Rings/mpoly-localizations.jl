@@ -2480,3 +2480,4 @@ end
 function lift(a::MPolyLocalizedRingElem)
   return a
 end
+
