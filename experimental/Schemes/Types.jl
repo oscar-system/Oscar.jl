@@ -54,10 +54,10 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 
   function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     S = base_ring(Q)
+    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
-    I = gens(modulus(Q))
+    I = modulus(Q)
     r = ngens(S)-1
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
   end
