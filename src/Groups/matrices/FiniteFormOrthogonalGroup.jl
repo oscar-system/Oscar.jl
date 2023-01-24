@@ -845,8 +845,7 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
 
   # We compute the orthoognal group of each (primary) block. Since Torth is made
   # diagonally, we can generate its orthogonal group by taking some diagonal matrices
-  # from taking the cartesian product on the generators of the blocks. We have nothing
-  # to add since we can't map different primary parts to each other.
+  # We have nothing to add since we can't map different primary parts to each other.
   orth_blocks = _compute_gens_split_degenerate_primary.(domain.(blocks))
   gensOTorth = fmpz_mat[]
   for i in 1:length(ni)
@@ -857,10 +856,10 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-
   gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
+  length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
 
@@ -873,6 +872,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
     gensOT = _compute_gens(N)
     gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
     gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
+    unique!(gensOT)
     return gensOT
   end
 
@@ -940,5 +940,116 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
   gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   return gensOT
+end
+
+# we carry the final remaining case, where T is non semiregular and does
+# not split its radical quadratic. This should work for any module though.
+# We construct isometries by constructing iteratively partial isometries.
+function _compute_gens_non_split_degenerate(T::TorQuadMod)
+  _, i = radical_quadratic(T)
+  ok, _ = has_complement(i)
+  @assert !ok
+
+  if is_prime_power_with_data(elementary_divisors(T)[end])[1]
+    return _compute_gens_non_split_degenerate_primary(T)
+  end
+
+  gensOT = fmpz_mat[]
+  pd = sort(prime_divisors(order(T)))
+  blocks = TorQuadModMor[primary_part(T, pd[1])[2]]
+  ni = Int[ngens(domain(blocks[1]))]
+  popfirst!(pd)
+  while !isempty(pd)
+    f = blocks[end]
+    ok, j = has_complement(f)
+    @assert ok
+    _T = domain(j)
+    _f = primary_part(_T, pd[1])[2]
+    push!(blocks, compose(_f, j))
+    push!(ni, ngens(domain(_f)))
+    popfirst!(pd)
+  end
+  Torth, _, _ = Hecke._orthogonal_sum_with_injections_and_projections(domain.(blocks))
+  ok, phi = is_isometric_with_isometry(Torth, T)
+  @assert ok
+
+  orth_blocks = _compute_gens_non_split_degenerate_primary.(domain.(blocks))
+  gensOTorth = fmpz_mat[]
+  for i in 1:length(ni)
+    nb = sum(ni[1:i-1])
+    na = sum(ni[(i+1):end])
+    @assert na+nb+ni[i] == sum(ni)
+    Inb = identity_matrix(ZZ, nb)
+    Ina = identity_matrix(ZZ, na)
+    append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
+  end
+  gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
+  unique!(gensOT)
+  length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
+  return gensOT
+end
+
+function _compute_gens_non_split_degenerate_primary(T::TorQuadMod)
+  if is_semi_regular(T)
+    N, i = normal_form(T)
+    j = inv(i)
+    gensOT = _compute_gens(N)
+    gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
+    gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
+    unique!(gensOT)
+    return gensOT
+  end
+
+  if iszero(gram_matrix_quadratic(T))
+    gensOT = Hecke.gens(automorphism_group(abelian_group(T)))
+    return matrix.(gensOT)
+  end
+
+  @assert is_prime_power_with_data(elementary_divisors(T)[end])[1]
+  _, i = radical_quadratic(T)
+  ok, _ = has_complement(i)
+  if ok
+    return _compute_gens_split_degenerate_primary(T)
+  end
+
+  S, StoT = snf(T)
+  n = ngens(S)
+  G = Oscar._orthogonal_group(S, fmpz_mat[])
+  s_cand = [[b for b in S if Hecke.quadratic_product(b) == Hecke.quadratic_product(a) && order(b) == order(a)] for a in Hecke.gens(S)]
+  waiting = Vector{TorQuadModElem}[[]]
+  while length(waiting) > 0
+    # f is an i-partial isometry
+    f = pop!(waiting)
+    i = length(f)
+    if i == n
+      # f is a full isometry
+      g = G(hom(S, S, f), check = false)
+      if !(g in G.X)
+        G = Oscar._orthogonal_group(S, [matrix(s) for s in union(Hecke.gens(G), [g])], check=false)
+        if !isempty(waiting)
+          waiting = [g[1] for g in orbits(gset(G, on_tuples, waiting))]
+        end
+        continue
+      end
+    end
+    # extend f to an (i+1)-partial isometry in all possible ways
+    a = S[i+1]
+    card = prod([order(S[k]) for k in 1:(i+1)], init = ZZ(1))
+    for b in s_cand[i+1]
+      if all(k -> b*f[k] == a*S[k], 1:i)
+        fnew = copy(f)
+        union!(fnew, [b])
+        if order(sub(S, fnew)[1]) == card
+          push!(waiting, fnew)
+        end
+      end
+    end
+  end
+  gene = small_generating_set(G)
+  gene = TorQuadModMor[hom(S, S, matrix(g)) for g in gene]
+  gene = fmpz_mat[compose(inv(StoT), compose(g, StoT)).map_ab.map for g in gene]
+  unique!(gene)
+  return gene
 end
 

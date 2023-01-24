@@ -1,7 +1,8 @@
-export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
-		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
-		groebner_basis_with_transformation_matrix,
-		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
+export reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
+       standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
+       groebner_basis_with_transformation_matrix,
+       leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
+       groebner_basis_hilbert_driven
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -107,12 +108,14 @@ end
 @doc Markdown.doc"""
     standard_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+      complete_reduction::Bool = false, algorithm::Symbol = :buchberger,
+      weights::Vector{E} = ones(ngens(base_ring(I)))) where {E <: Integer}
 
-Return a standard basis of `I` with respect to `ordering`. 
+Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
@@ -137,23 +140,39 @@ negdegrevlex([x, y])
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
-	complete_reduction && @assert is_global(ordering)
-	if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
-		return I.gb[ordering]
-	end
-	if algorithm == :buchberger
-		if !haskey(I.gb, ordering)
-			I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
-		elseif complete_reduction == true
-			I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
-		end
-	elseif algorithm == :fglm
-		_compute_groebner_basis_using_fglm(I, ordering)
-	elseif algorithm == :f4
-		f4(I, complete_reduction=complete_reduction)
-	end
-	return I.gb[ordering]
+                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
+  complete_reduction && @assert is_global(ordering)
+  if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
+    return I.gb[ordering]
+  end
+  if algorithm == :buchberger
+    if !haskey(I.gb, ordering)
+      I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
+    elseif complete_reduction == true
+      I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
+    end
+  elseif algorithm == :fglm
+    _compute_groebner_basis_using_fglm(I, ordering)
+  elseif algorithm == :hilbert
+    if base_ring(I) isa MPolyRing_dec
+      J, target_ordering  = I, ordering
+    else
+      gens_hom = homogenization(gens(I), "w")
+      J = ideal(parent(first(gens_hom)), gens_hom)
+      target_ordering = _extend_mon_order(ordering, base_ring(J))
+    end
+    GB = groebner_basis_hilbert_driven(J, ordering = target_ordering,
+                                       complete_reduction=complete_reduction)
+    if base_ring(I) == base_ring(J)
+      I.gb[ordering] = GB
+    else
+      GB_dehom_gens = [dehomogenization(p, base_ring(I), 1) for p in gens(GB)]
+      I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
+    end
+  elseif algorithm == :f4
+    f4(I, complete_reduction=complete_reduction)
+  end
+  return I.gb[ordering]
 end
 
 @doc Markdown.doc"""
@@ -165,6 +184,7 @@ If `ordering` is global, return a Gröbner basis of `I` with respect to `orderin
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
@@ -249,7 +269,7 @@ julia> leading_coefficient(G[8])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-	algorithm::Symbol = :buchberger)
+                        algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
@@ -317,7 +337,7 @@ function f4(
     ord = degrevlex(vars)
     I.gb[ord] =
         IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
-	I.gb[ord].isReduced = complete_reduction
+    I.gb[ord].isReduced = complete_reduction
 
     return I.gb[ord]
 end
@@ -365,7 +385,7 @@ function _compute_standard_basis_with_transform(B::IdealGens, ordering::Monomial
 
    i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
    return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
- end
+end
 
 @doc Markdown.doc"""
     standard_basis_with_transformation_matrix(I::MPolyIdeal;
@@ -400,7 +420,7 @@ function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 	G.isGB = true
 	I.gb[ordering]  = G
 	return G, m
- end
+end
 
 @doc Markdown.doc"""
     groebner_basis_with_transformation_matrix(I::MPolyIdeal;
@@ -434,7 +454,7 @@ true
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
     is_global(ordering) || error("Ordering must be global")
 	return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
- end
+end
 
 # syzygies #######################################################
 @doc Markdown.doc"""
@@ -1220,4 +1240,115 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	start_ordering = G.ord
 	dim(I) == 0 || error("Dimension of ideal must be zero.")
 	I.gb[destination_ordering] = _fglm(G, destination_ordering)
+end
+
+@doc Markdown.doc"""
+    groebner_basis_hilbert_driven(I::MPolyIdeal{P};
+                                  ordering::MonomialOrdering,
+                                  complete_reduction::Bool = false) where {P <: MPolyElem_dec}
+
+
+Compute a Gröbner basis of `I` with respect to `ordering` using a
+Hilbert Series driven method as follows: If a Gröbner basis for `I` is
+present, compute the Hilbert series of `I` and use it to optimize the
+Gröbner basis computation for `I` w.r.t. `ordering`. If no Gröbner
+basis for `I` is present compute the Hilbert series for `I` if the
+base field of `I` has positive characteristic, otherwise compute the
+Hilbert series for `I` modulo a randomly chosen prime. Use the
+resulting Hilbert series to optimize the Gröbner basis computation for
+`I` w.r.t. `ordering`.
+
+`I` must be given by generators homogeneous w.r.t. `weights`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = grade(PolynomialRing(QQ, ["x", "y", "z"])[1]);
+
+julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
+
+julia> groebner_basis_hilbert_driven(I, ordering = deglex(R), complete_reduction = true)
+Gröbner basis with elements
+1 -> x*y - y*z
+2 -> x^2 + y*z
+3 -> y^2*z + y*z^2
+with respect to the ordering
+deglex([x, y, z])
+```
+"""
+
+function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
+                                       ordering::MonomialOrdering,
+                                       complete_reduction::Bool = false) where {P <: MPolyElem_dec}
+  
+  all(is_homogeneous, gens(I)) || error("I must be given by generators homogeneous with respect to its underlying ring")
+  isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
+  is_global(ordering) || error("Destination ordering must be global.")
+  haskey(I.gb, ordering) && return I.gb[ordering]
+  if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
+    p = 32771
+    while true
+      p = Hecke.next_prime(p)
+        
+      base_field = GF(p)
+      ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
+                      _extract_weights(base_ring(I)))
+      I_mod_p_gens =
+      try
+        [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
+      catch e
+        # this precise error is thrown if the chosen prime p divides one
+        # of the denominators of the coefficients of the generators of I.
+        # In this case we simply choose the next prime and try again.
+        if e == ErrorException("Unable to coerce") 
+          continue
+        else
+          rethrow(e)
+        end
+      end
+      G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
+      break
+    end
+  else
+    G = groebner_assure(I)
+  end
+
+  if characteristic(base_ring(I)) > 0 && ordering == default_ordering(base_ring(I))
+    return G
+  end
+
+  singular_assure(G)
+  weights = _extract_weights(base_ring(G))
+  h = Singular.hilbert_series(G.S, weights)
+  singular_assure(I.gens, ordering)
+  singular_ring = I.gens.Sx
+  J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
+  i  = Singular.std_hilbert(J, h, (Int32).(weights),
+                            complete_reduction = complete_reduction)
+  GB = IdealGens(I.gens.Ox, i, complete_reduction)
+  GB.isGB = true
+  GB.ord = ordering
+  if isdefined(GB, :S)
+    GB.S.isGB  = true
+  end
+  return GB
+end
+
+# Helper functions for groebner_basis_with_hilbert
+
+function _extract_weights(T::MPolyRing_dec)
+  if !is_z_graded(T)
+    error("Ring must be graded by the Integers.")
+  end
+  return [Int(first(gr_elem.coeff)) for gr_elem in T.d]
+end
+
+function _extend_mon_order(ordering::MonomialOrdering,
+                           homogenized_ring::MPolyRing_dec)
+
+  nvars = ngens(ordering.R)
+  m = canonical_matrix(ordering)
+  m_hom = similar(m, nvars + 1, nvars + 1)
+  m_hom[1, :] = ones(Int, nvars + 1)
+  m_hom[2:end, 2:end] = m
+  return matrix_ordering(homogenized_ring, m_hom)
 end
