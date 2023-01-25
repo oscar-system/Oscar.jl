@@ -135,9 +135,9 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
     S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)])
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
 
-    return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
+    return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
                                                      S_to_S_flat, S_flat_to_S,
-                                                     R_to_S_flat
+                                                     L_to_S_flat
                                                     )
   end
 end

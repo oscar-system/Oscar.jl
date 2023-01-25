@@ -1433,7 +1433,7 @@ function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
 end
 
 ### Basic functionality
-function Base.in(a::RingElem, I::MPolyQuoLocalizedIdeal)
+function ideal_membership(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   return lift(a) in pre_image_ideal(I)
