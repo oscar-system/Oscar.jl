@@ -265,7 +265,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(psi).(y_img)
   ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
 
-  return SimpleGlueing(X, Y, ff, gg)
+  return SimpleGlueing(X, Y, ff, gg, check=false)
 end
 
 @Markdown.doc """

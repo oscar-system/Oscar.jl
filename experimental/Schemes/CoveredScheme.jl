@@ -440,7 +440,7 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
     G = default_covering(X)[U, V]
     (U in keys(rev_dict) && V in keys(rev_dict)) || continue # No need to glue empty sets
     (isempty(intersect(rev_dict[U], glueing_domains(G)[1])) || isempty(intersect(rev_dict[V], glueing_domains(G)[2]))) && continue # No need to glue stuff trivially
-    GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V])
+    GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V], check=false)
     glueing_dict[(rev_dict[U], rev_dict[V])] = GG
   end
   Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict))

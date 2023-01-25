@@ -10,6 +10,7 @@ export PushforwardSheaf
 export is_locally_free
 export PullbackSheaf
 export DirectSumSheaf
+export projectivization
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -872,7 +873,10 @@ codomain(M::HomSheaf) = M.codomain
       
       parts = [] # TODO: Can we do better with type annotation?
       for i in 1:length(inc_V)
-        push!(parts, hom(MV, MU, inc_U[i].(summands[i](V, U).(pr_V[i].(gens(MV))))))
+        push!(parts, hom(MV, MU, 
+                         inc_U[i].(summands[i](V, U).(pr_V[i].(gens(MV)))),
+                         OOX(V, U)
+                        ))
       end
       return sum(parts)
     end
@@ -895,7 +899,7 @@ summands(M::DirectSumSheaf) = M.summands
 
 ### user facing constructors
 function direct_sum(summands::Vector{<:AbsCoherentSheaf})
-  length(summands) == 0 || error("list of summands must not be empty")
+  length(summands) == 0 && error("list of summands must not be empty")
   X = scheme(first(summands))
   return DirectSumSheaf(X, summands)
 end
@@ -1339,7 +1343,7 @@ end
     patch_list = vcat(patch_list, _trivializing_covering(M, U))
   end
   C = Covering(patch_list)
-  fill_with_lazy_glueings!(C, X)
+  inherit_glueings!(C, default_covering(X))
   push!(coverings(X), C)
   return C
 end
@@ -1535,13 +1539,6 @@ end
   return matrix(map(presentation(M), 1))
 end
 
-function fill_with_lazy_glueings!(C::Covering, X::AbsCoveredScheme)
-  # TODO: Fill in all the implicit and restricted glueings from X.
-  # We assume that all patches in C are in a tree structure eventually 
-  # leading to affine charts of X.
-  return C
-end
-
 ########################################################################
 # Projectivization of vector bundles                                   #
 #
@@ -1550,14 +1547,24 @@ end
 # AbsCoherentSheaf.
 ########################################################################
 
-function projectivization(E::AbsCoherentSheaf; check::Bool=true)
+function projectivization(E::AbsCoherentSheaf; 
+    var_names::Vector{String}=Vector{String}(),
+    check::Bool=true
+  )
   X = scheme(E)
   check && (is_locally_free(E) || error("coherent sheaf must be locally free"))
   C = trivializing_covering(E)
   algebras = IdDict{AbsSpec, Union{MPolyQuo, MPolyRing}}()
   on_patches = IdDict{AbsSpec, AbsProjectiveScheme}()
   for U in patches(C)
-    RU = rees_algebra(E(U))
+    F = E(U)
+    F isa FreeMod || error("modules must locally be free")
+    r = rank(F)
+    if length(var_names) == 0
+      var_names = ["s$i" for i in 0:r-1]
+    end
+    length(var_names) == r || error("number of names for the variables does not coincide with the local rank of the module")
+    RU = rees_algebra(E(U), var_names=var_names)
     algebras[U] = RU
     SU, _ = grade(RU)
     PU = ProjectiveScheme(SU)

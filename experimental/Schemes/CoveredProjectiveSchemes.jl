@@ -50,8 +50,8 @@ mutable struct ProjectiveGlueing{
       # check the commutativity of the pullbacks
       all(y->(pullback(f)(SQV(OO(V)(y))) == SPU(pullback(fb)(OO(V)(y)))), gens(base_ring(OO(Y)))) || error("maps do not commute")
       all(x->(pullback(g)(SPU(OO(U)(x))) == SQV(pullback(gb)(OO(U)(x)))), gens(base_ring(OO(X)))) || error("maps do not commute")
-      fc = map_on_affine_cones(f)
-      gc = map_on_affine_cones(g)
+      fc = map_on_affine_cones(f, check=false)
+      gc = map_on_affine_cones(g, check=false)
       idCPU = compose(fc, gc)
       idCPU == identity_map(domain(fc)) || error("composition of maps is not the identity")
       idCQV = compose(gc, fc)
@@ -451,10 +451,10 @@ function blow_up(
     SPUV = ambient_coordinate_ring(PUV)
     # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
     # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
-    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))
-    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)]))
+    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)], check=false), check=false)
+    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)], check=false), check=false)
 
-    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup)
+    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
   end
   return CoveredProjectiveScheme(X, default_covering(X), local_blowups, projective_glueings)
 
@@ -532,8 +532,8 @@ end
 function _compute_glueing(gd::ProjectiveGlueingData)
   U = gd.down_left
   V = gd.down_right
-  UD = gd.up_left
-  VD = gd.up_right
+  UW = gd.up_left
+  VW = gd.up_right
   C = gd.down_covering
   # Now we have the following diagram 
   #
@@ -598,10 +598,10 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   psi = dehomogenize(UD, AW) 
   yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
   ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
-  ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs))
-  gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs))
+  ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
+  gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
-  return SimpleGlueing(UW, VW, ff, gg)
+  return SimpleGlueing(UW, VW, ff, gg, check=false)
 end
 
 @attr function covered_scheme(P::CoveredProjectiveScheme)
