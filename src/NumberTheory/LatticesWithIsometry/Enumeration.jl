@@ -80,6 +80,8 @@ Definition 4.13. [BH22]
 """
 function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   zg = genus(Zlattice(gram = matrix(QQ, 0, 0, [])))
+  AperpB = orthogonal_sum(A, B)
+  (signature_tuple(AperpB) == signature_tuple(C)) || (return false)
   if ((A == zg) && (B == C)) || ((B == zg) && (A == C))
     # C can be always glued with the empty genus to obtain C
     return true
@@ -89,11 +91,6 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   end
 
   @req divides(rank(B), p-1)[1] "p-1 must divide the rank of B"
-  AperpB = orthogonal_sum(A,B)
-  # If A and B glue to C, the sum of their ranks must match the one of C
-  if signature_tuple(AperpB) != signature_tuple(C)
-    return false
-  end
 
   lA = ngens(discriminant_group(A))
   lB = ngens(discriminant_group(B))
@@ -155,13 +152,13 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
 
   if a_max == g
     if length(symbol(Ap)) > 1
-      Ar = ZpGenus(p, Ap[1:end-1])
+      Ar = ZpGenus(p, symbol(Ap)[1:end-1])
     else
       Ar = genus(matrix(ZZ,0,0,[]), p)
     end
    
     if length(symbol(Bp)) > 1
-      Br = ZpGenus(p, Bp[1:end-1])
+      Br = ZpGenus(p, symbol(Bp)[1:end-1])
     else
       Br = genus(matrix(ZZ, 0, 0, []), p)
     end
@@ -344,23 +341,25 @@ $G_B\backslash S\slash/G_A$ where:
 
 See Algorithm 2 of [BH22].
 """
-function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
+function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer; check=true)
   # requirement for the algorithm of BH22
   @req is_prime(p) "p must be a prime number"  
   A, B, C = lattice.([Afa, Bfb, Cfc])
 
-  @req is_admissible_triple(Afa, Bfb, Cfc, p) "(A, B, C) must be p-admissble"
-  
-  if ambient_space(Afa) === ambient_space(Bfb) === ambient_space(Cfc)
-    @req rank(intersect(A, B)) == 0 "Lattice in same ambient space must have empty intersection to glue"
-    @req rank(A) + rank(B) <= dim(ambient_space(A)) "Lattice cannot glue in their ambient space"
+  if check 
+    @req all(L -> is_integral(L), [A, B, C]) "Underlying lattices must be integral"
+    @req is_admissible_triple(A, B, C, p) "Entries, in this order, do not define an admissible triple"
+    if ambient_space(A) === ambient_space(B) === ambient_space(C)
+      G = gram_matrix(ambient_space(C))
+      @req iszero(basis_matrix(A)*G*transpose(basis_matrix(B))) "Lattice in same ambient space must be orthogonal"
+    end
   end
 
-  # we need to compare the type of the output with the one of Cfc
-
   results = LatticeWithIsometry[]
+
   # this is the glue valuation: it is well-defined because the triple in input is admissible
   g = div(valuation(divexact(det(A)*det(B), det(C)), p), 2)
+
   fA, fB = isometry.([Afa, Bfb])
   qA, fqA = discriminant_group(Afa)
   qB, fqB = discriminant_group(Bfb)
@@ -374,7 +373,6 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     D, qAinD, qBinD = orthogonal_sum(qA, qB)
   end
 
-  return qAinD
   OD = orthogonal_group(D)
   OqAinOD = embedding_orthogonal_group(qAinD)
   OqBinOD = embedding_orthogonal_group(qBinD)
@@ -390,7 +388,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     geneB = AutomorphismGroupElem{TorQuadMod}[OqBinOD(b) for b in geneB]
     gene = vcat(geneA, geneB)
     GC2, _ = sub(OD, gene)
-    if ambient_space(Afa) === ambient_space(Bfb)
+    if ambient_space(A) === ambient_space(B) === ambient_space(C)
       C2 = A+B
       fC2 = block_diagonal_matrix([fA, fB])
       _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
@@ -398,7 +396,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
       @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
     else
       C2 = orthogonal_sum(A, B)[1]
-      fC2 = block_diagonal_matrix(fA, fB)
+      fC2 = block_diagonal_matrix([fA, fB])
     end
     if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), type(Cfc))
       C2fc2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
@@ -427,6 +425,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # are fA-stable (resp. fB-stable)
   subsA = _subgroups_representatives(VAinqA, GA, g, fVA, ZZ(l))
   subsB = _subgroups_representatives(VBinqB, GB, g, fVB, ZZ(l))
+
   # once we have the potential kernels, we create pairs of anti-isometric groups since glue
   # maps are anti-isometry
   R = Tuple{eltype(subsA), eltype(subsB), TorQuadModMor}[]
@@ -435,6 +434,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     !ok && continue
     push!(R, (H1, H2, phi))
   end
+
   # now, for each pair of anti-isometric potential kernels, we need to see whether
   # it is (fA,fB)-equivariant, up to conjugacy. For each working pair, we compute the
   # corresponding overlattice and check whether it satisfies the type condition
@@ -452,8 +452,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     OSBinOD = compose(OSBinOqB, OqBinOD)
 
     # we compute the image of the stabalizers in the respective OS* and we keep track
-    # of the elements of the stabilizers action trivially in the respective S*
-
+    # of the elements of the stabilizers acting trivially in the respective S*
     actA = hom(stabA, OSA, [OSA(Oscar._restrict(x, SAinqA)) for x in gens(stabA)])
     imA, _ = image(actA)
     kerA = AutomorphismGroupElem{TorQuadMod}[OqAinOD(x) for x in gens(kernel(actA)[1])]
@@ -473,10 +472,10 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     @assert is_trivial(domain(rBinSB).ab_grp) || is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
 
     # We compute the generators of O(SB, rho_{l+1}(qB))
-    OSBrB, OSBrbinOSB = _stabilizer(rBinSB)
+    OSBrB, _ = _stabilizer(rBinSB)
     @assert fSB in OSBrB
 
-    # phi might not "send" the restriction of fA to this of fB, but at least phi(fA)phi^-1
+    # phi might not "send" the restriction of fA to this of fB, but at least phi*fA*phi^-1
     # should be conjugate to fB inside O(SB, rho_l(qB)) for the glueing.
     # If not, we try the next potential pair.
     fSAinOSBrB = OSBrB(compose(inv(phi), compose(hom(fSA), phi)))
@@ -499,7 +498,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
 
     # now we iterate over all double cosets and for each representative, we compute the
     # corresponding overlattice in the glueing. If it has the wanted type, we compute
-    # the image of the centralizer in OD from the stabA ans stabB.
+    # the image of the centralizer in OD from the stabA and stabB.
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
@@ -508,7 +507,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
 
       if ambient_space(R) === ambient_space(S)
         _glue = Vector{fmpq}[lift(g) + lift(phig(g)) for g in gens(domain(phig))]
-        z = zero_matrix(QQ,0, degree(S))
+        z = zero_matrix(QQ, 0, degree(S))
         glue = reduce(vcat, [matrix(QQ, 1, degree(S), g) for g in _glue], init=z)
         glue = vcat(basis_matrix(S+R), glue)
         glue = FakeFmpqMat(glue)
@@ -533,14 +532,14 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
         @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
       end
 
-      if type(lattice_with_isometry(C2, fC2^p, ambient_representation=false)) != type(Cfc)
+      if !is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation=false), type(Cfc))
         continue
       end
 
       ext, _ = sub(D, D.(_glue))
-      perp, _ = orthogonal_submodule(D, ext)
+      perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp), modulus_qf = modulus_quadratic_form(perp))
-      disc, discinD = sub(D, gens(disc))
+
       qC2 = discriminant_group(C2)
       ok, phi2 = is_isometric_with_isometry(qC2, disc)
       @assert ok
@@ -552,7 +551,9 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
       stab = AutomorphismGroupElem{TorQuadMod}[OSAinOD(x[1])*OSBinOD(x[2]) for x in stab]
       stab = union(stab, kerA)
       stab = union(stab, kerB)
-      stab = Oscar._orthogonal_group(discriminant_group(C2), [compose(phi2, compose(_restrict(g, discinD), inv(phi2))).map_ab.map for g in stab])
+      stab = TorQuadModMor[_restrict(g, j) for g in stab]
+      stab = TorQuadModMor[hom(disc, disc, [disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
+      stab = Oscar._orthogonal_group(discriminant_group(C2), [compose(phi2, compose(g, inv(phi2))).map_ab.map for g in stab])
       set_attribute!(C2fC2, :image_centralizer_in_Oq, stab)
       push!(results, C2fC2)
     end
@@ -580,6 +581,7 @@ function _ideals_of_norm(E, d::fmpq)
 end
 
 function _ideals_of_norm(E, d::fmpz)
+  isone(d) && return [1*maximal_order(E)]
   @assert E isa Hecke.NfRel
   K = base_field(E)
   OK = maximal_order(K)
@@ -597,7 +599,7 @@ function _ideals_of_norm(E, d::fmpz)
         P = ideal(OE, pd[i])
       end
       nv = valuation(norm(P), pd[i])
-      push!(primes, [P^e for e in 1:divrem(v, nv)[1]])
+      push!(primes, [P^e for e in 0:divrem(v, nv)[1]])
     end
   end
   for I in Hecke.cartesian_product_iterator(primes)
@@ -662,54 +664,60 @@ $nm$.
 See Algorithm 3 of [BH22].
 """
 function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
-  rank(Lf) == 0 && return LatticeWithIsometry[Lf]
+  rank(Lf) == 0 && return LatticeWithIsometry[]
+
   @req m >= 1 "m must be a positive integer"
   @req is_of_pure_type(Lf) "Minimal polyomial must be irreducible and cyclotomic"
+
   L = lattice(Lf)
   rk = rank(L)
   d = det(L)
   n = order_of_isometry(Lf)
   s1, _, s2 = signature_tuple(L)
+
   reps = LatticeWithIsometry[]
 
   if n*m < 3
     @info "Order smaller than 3"
-    gene = genera((s1, s2), ZZ(d), even=iseven(L))
-    @info "All possible genera: $(length(gene))"
     f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
-    for G in gene
-      repre = representatives(G)
-      @info "$(length(repre)) representatives"
-      for LL in repre
-        is_of_same_type(Lf, lattice_with_isometry(LL, f^m, check=false)) && push!(reps, lattice_with_isometry(LL, f, check=false))
-      end
+    G = genus(Lf)
+    repre = representatives(G)
+    @info "$(length(repre)) representatives"
+    for LL in repre
+      is_of_same_type(Lf, lattice_with_isometry(LL, f^m, check=false)) && push!(reps, lattice_with_isometry(LL, f, check=false))
     end
     return reps
   end
+
   @info "Order bigger than 3"
+
   ok, rk = divides(rk, euler_phi(n*m))
 
-  if !ok
-    return reps
-  end
+  ok || return reps
 
-  t = type(Lf)
   gene = []
   E, b = cyclotomic_field_as_cm_extension(n*m)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
+
   @info "We have the different"
-  K = base_field(E)
+
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
   detE = _ideals_of_norm(E, ndE)
+
   @info "All possible ideal dets: $(length(detE))"
+
   signatures = _possible_signatures(s1, s2, E, rk)
+
   @info "All possible signatures: $(length(signatures))"
+
   for dd in detE, sign in signatures
-    append!(gene, genera_hermitian(E, rk, sign, dd))
+    append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(DE*dd)))
   end
   gene = unique(gene)
+
   @info "All possible genera: $(length(gene))"
+
   for g in gene
     @info "g = $g"
     H = representative(g)
@@ -724,7 +732,7 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
     if iseven(lattice(M)) != iseven(L)
       continue
     end
-    if !is_of_type(lattice_with_isometry(lattice(M), ambient_isometry(M)^m), t)
+    if !is_of_same_type(Lf, lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
       continue
     end
     append!(reps, [trace_lattice(HH) for HH in genus_representatives(H)])
@@ -765,33 +773,33 @@ function _representative(t::Dict; check::Bool = true)
   d = det(G)
 
   if n < 3
-    gene = genera((s1, s2), ZZ(d), max_scale=scale(G), even=iseven(G))
-    f = (-1)^(n+1)*identity_matrix(QQ, rk)
-    for g in gene
-      repre = representatives(g)
-      append!(reps, [lattice_with_isometry(LL, f, check=false) for LL in repre])
-    end
-    return reps
+    L = representative(G)
+    return trace_lattice(L, order = n)
   end
 
   ok, rk = divides(rk, euler_phi(n))
-  if !ok
-    return reps
-  end
+
+  ok || reps
   
   gene = []
   E, b = cyclotomic_field_as_cm_extension(n, cached=false)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
+
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
   detE = _ideals_of_norm(E, ndE)
+
   @info "All possible ideal dets: $(length(detE))"
+
   signatures = _possible_signatures(s1, s2, E)
+
   @info "All possible signatures: $(length(signatures))"
+
   for dd in detE, sign in signatures
-    append!(gene, genera_hermitian(E, s1+s2, sign, dd))
+    append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(DE*dd)))
   end
   gene = unique(gene)
+
   for g in gene
     H = representative(g)
     if !is_integral(DE*scale(H))
@@ -828,19 +836,25 @@ Note that `d` can be 0.
 See Algorithm 4 of [BH22].
 """
 function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::Int)
-  rank(Lf) == 0 && return LatticeWithIsometry[Lf]
+  rank(Lf) == 0 && return LatticeWithIsometry[]
+
   @req is_prime(p) "p must be a prime number"
   @req is_of_pure_type(Lf) "Minimal polynomial must be irreducible and cyclotomic"
+
   ok, q, d = is_prime_power_with_data(order_of_isometry(Lf))
+
   @req ok || d == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
+
   reps = LatticeWithIsometry[]
+
   atp = admissible_triples(Lf, p)
   for (A, B) in atp
-    LA = lattice_with_isometry(representative(A))
-    RA = representatives_of_pure_type(LA, p*q^d)
     LB = lattice_with_isometry(representative(B))
-    RB = representatives_of_pure_type(LB, q^d)
+    RB = representatives_of_pure_type(LB, p*q^d)
+    isempty(RB) && continue
+    LA = lattice_with_isometry(representative(A))
+    RA = representatives_of_pure_type(LA, q^d)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
       E = primitive_extensions(L1, L2, Lf, p)
       append!(reps, E)
@@ -886,20 +900,29 @@ Note that `e` can be 0.
 See Algorithm 5 of [BH22].
 """
 function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
-  rank(Lf) == 0 && return LatticeWithIsometry[Lf]
+  rank(Lf) == 0 && return LatticeWithIsometry[]
+
   @req is_prime(p) "p must be a prime number"
   @req b in [0, 1] "b must be an integer equal to 0 or 1"
+
   ok, q, e = is_prime_power_with_data(order_of_isometry(Lf))
+
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
+
   reps = LatticeWithIsometry[]
+
   if e == 0
-    return prime_splitting_of_pure_type_prime_power(Lf, p)
+    reps = prime_splitting_of_pure_type_prime_power(Lf, p)
+    (b == 1) && filter!(M -> order_of_isometry(M) == p, reps)
+    return reps
   end
+
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, q^e)
   B0 = kernel_lattice(Lf, x^(q^e-1)-1)
   A = prime_splitting_of_pure_type_prime_power(A0, p)
+  is_empty(A) && return reps
   B = prime_splitting_of_prime_power(B0, p)
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B])
     b == 1 && !divides(order_of_isometry(L1), p)[1] && !divides(order_of_isometry(L2), p)[1] && continue
@@ -925,12 +948,16 @@ Note that `e` can be 0, while `d` has to be positive.
 See Algorithm 6 of [BH22].
 """
 function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
-  rank(Lf) == 0 && return LatticeWithIsometry[Lf]
+  rank(Lf) == 0 && return LatticeWithIsometry[]
+
   @req is_prime(p) "p must be a prime number"
   @req is_finite(order_of_isometry(Lf)) "Isometry must be of finite order"
+
   n = order_of_isometry(Lf)
   pd = prime_divisors(n)
+
   @req 1 <= length(pd) <= 2 && p in pd "Order must be divisible by p and have at most 2 prime factors"
+
   if length(pd) == 2
     q = pd[1] == p ? pd[2] : pd[1]
     d = valuation(n, p)
@@ -940,20 +967,27 @@ function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
     d = valuation(n, p)
     e = 0
   end
+
   phi = minpoly(Lf)
   x = gen(parent(phi))
   chi = prod([cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e])
+
   @req divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
+
   reps = LatticeWithIsometry[]
+
   if e == 0
     return representatives_of_pure_type(Lf, p)
   end
+
   A0 = kernel_lattice(Lf, p^d*q^e)
   bool, r = divides(phi, cyclotomic_polynomial(p^d*q^e, parent(phi)))
   @assert bool
+
   B0 = kernel_lattice(Lf, r)
-  A = representatives_of_pure_type(A0 ,p)
-  B = prime_splitting(B0, p)
+  A = representatives_of_pure_type(A0, p)
+  is_empty(A) && return reps
+  B = prime_splitting_of_semi_pure_type(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = extensions(LA, LB, Lf, q)
     append!(reps, E)
@@ -975,14 +1009,20 @@ Note that `d` and `e` can be both zero.
 See Algorithm 7 of [BH22].
 """
 function prime_splitting(Lf::LatticeWithIsometry, p::Int)
-  rank(Lf) == 0 && return LatticeWithIsometry[Lf]
+  rank(Lf) == 0 && return LatticeWithIsometry[]
+
   n = order_of_isometry(Lf)
+
   @req is_finite(n) "Isometry must be of finite order"
+
   pd = prime_divisors(n)
+
   @req length(pd) <= 2 "Order must have at most 2 prime divisors"
+
   if !(p in pd)
     return prime_splitting_of_prime_power(Lf, p, 1)
   end
+
   d = valuation(n, p)
   if n != p^d
     _, q, e = is_prime_power_with_data(divexact(n, p^d))
@@ -990,11 +1030,14 @@ function prime_splitting(Lf::LatticeWithIsometry, p::Int)
     q = 1
     e = 0
   end
+
   reps = LatticeWithIsometry[]
+
   x = gen(parent(minpoly(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
   A0 = kernel_lattice(Lf, prod([cyclotomic_polynomial(p^d*q^i) for i in 0:e]))
   A = prime_splitting_of_semi_pure_type(A0, p)
+  isempty(A) && return reps
   B = prime_splitting(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = extensions(LA, LB, Lf, p)

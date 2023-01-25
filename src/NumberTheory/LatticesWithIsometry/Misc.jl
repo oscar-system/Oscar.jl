@@ -65,18 +65,6 @@ end
 #
 ##############################################################################
 
-#function _small_Fp_stabilizer(i::TorquadModMor)
-#  ok, j = has_complement(i)
-#  @assert ok
-#  A = domain(i)
-#  B = domain(j)
-#  C = codomain(i)
-#  Corth = direct_sum(A, B)[1]
-#  R, phi = hom(abelian_group(B), abelian_group(A))
-#  geneBtoA = filter(r -> matrix(phi(r))*Hecke.gram_matrix_quadratic(A)*transpose(matrix(phi(r))) == Hecke.gram_matrix_quadratic(B), R)
-  
-
-
 function _as_Fp_vector_space_quotient(HinV, p, f)
   i = HinV.map_ab
   H = domain(HinV)

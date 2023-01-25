@@ -43,7 +43,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
     beta = beta//s(beta)
   end
 
-  if E == QQ || E == ZZ
+  if E == QQ
     if order == 1
       f = identity_matrix(E, n)
     elseif order == 2
@@ -70,7 +70,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
     v[i] = zero(QQ)
   end
 
-  return lattice_with_isometry(Lres, iso, ambient_representation=true, check = true)
+  return lattice_with_isometry(Lres, iso, ambient_representation=true)
 end
 
 function absolute_representation_matrix(b::Hecke.NfRelElem)
@@ -94,7 +94,7 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
     n = multiplicative_order(f)
   end
   
-  @req n > 0 "f is not of finite exponent"
+  @req is_finite(n) && n > 0 "Isometry must be non-trivial and of finite exponent"
 
   if ambient_representation
     ok, f = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*f, side =:left)

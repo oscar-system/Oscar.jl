@@ -140,7 +140,7 @@ function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::IntExt; check::Bool = tr
     f_ambient = f
     B = basis_matrix(L)
     ok, f = can_solve_with_solution(B, B*f_ambient, side = :left)
-    @req ok "Isometry does not restrict to f"
+    @req ok "Isometry does not restrict to L"
   else
     V = ambient_space(L)
     B = basis_matrix(L)
@@ -253,7 +253,7 @@ $O(q_L, \bar{f})$ of the centralizer $O(L, f)$ of `f` in $O(L)$. Here $q_L$
 denotes the discriminant group of `L` and $\bar{f}$ is the isometry of
 $q_L$ induced by `f`.
 """
-@attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
+@attr AutomorphismGroup{TorQuadMod} function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
