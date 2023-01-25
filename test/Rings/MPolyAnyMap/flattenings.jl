@@ -64,3 +64,19 @@
   K = kernel(f)
   @test S(gens(R)[1]) in K
 end
+
+@testset "cross kernel computations" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+
+  S, (s, t) = PolynomialRing(R, ["s", "t"])
+
+  f = hom(R, S, [s, s, t])
+  @test x-y in kernel(f)
+
+  g = hom(S, R, u->u, [x, y])
+  @test s-x in kernel(g)
+
+  h = hom(S, R, hom(R, R, [R[2], R[1], R[2]]), [x, y])
+  @test s-y in kernel(h)
+  @test S(x-z) in kernel(h)
+end

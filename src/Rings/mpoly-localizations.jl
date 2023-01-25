@@ -869,6 +869,26 @@ function preimage(f::Oscar.AffAlgHom, U::MST) where {MST<:AbsMPolyMultSet}
   error("not implemented")
 end
 
+### Transfer of multiplicative sets along ring homomorphisms 
+function (phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing, Nothing})(U::MPolyPowersOfElement;
+                                                               check::Bool=true
+                                                              )
+  ambient_ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
+  S = codomain(phi) 
+  SU = MPolyPowersOfElement(S, phi.(denominators(U)))
+  return SU
+end
+
+function (phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing, Nothing})(U::MPolyComplementOfPrimeIdeal;
+                                                               check::Bool=true
+                                                              )
+  ambient_ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
+  S = codomain(phi) 
+  Q = ideal(S, phi.(gens(prime_ideal(U))))
+  SU = MPolyComplementOfPrimeIdeal(S, Q, check=check)
+  return SU
+end
+
 ########################################################################
 # Localizations of polynomial rings over admissible fields             #
 ########################################################################
