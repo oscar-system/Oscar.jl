@@ -56,8 +56,8 @@ end
 function rees_algebra(M::FreeMod; var_name::String="s")
   R = base_ring(M)
   r = rank(M)
-  S_tmp, s = PolynomialRing(R, [Symbol(var_name*"$i") for i in 0:r-1])
-  S, _ = grade(S_tmp)
+  S, s = PolynomialRing(R, [Symbol(var_name*"$i") for i in 0:r-1])
+  #S, _ = grade(S_tmp)
   return S
 end
 
@@ -107,13 +107,13 @@ function proj(Q::MPolyQuo{<:MPolyElem_dec})
   return ProjectiveScheme(Q)
 end
 
-function is_injective(f::ModuleFPHom) 
-  return iszero(kernel(f)[1])
-end
-
-function is_surjective(f::ModuleFPHom)
-  return iszero(cokernel(f))
-end
+#function is_injective(f::ModuleFPHom) 
+#  return iszero(kernel(f)[1])
+#end
+#
+#function is_surjective(f::ModuleFPHom)
+#  return iszero(cokernel(f))
+#end
 
 function is_isomorphism(f::ModuleFPHom)
   return is_injective(f) && is_surjective(f)

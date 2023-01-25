@@ -52,6 +52,9 @@ function is_projective(M::SubQuo; check::Bool=true)
   return true, hom(Rr, M, gens(M)), hom(M, Rr, [sum([P[i, j]*Rr[i] for i in 1:ngens(Rr)]) for j in 1:ncols(P)])
 end
 
+function is_projective(M::FreeMod; check::Bool=true)
+  return true, identity_map(M), identity_map(M)
+end
 ###
 # Given a presentation matrix A for a module M over a ring R, 
 # this procedure checks whether M is projective and in the affirmative 

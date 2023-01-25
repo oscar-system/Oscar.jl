@@ -115,3 +115,22 @@ end
   @test p_star_LC(V) isa FreeMod
   @test p_star_LC(U, V) isa ModuleFPHom
 end
+
+@testset "projectivization of vector bundles" begin
+  IP = projective_space(QQ, ["x", "y", "z", "w"])
+  S = ambient_coordinate_ring(IP)
+  (x,y,z,w) = gens(S)
+  f = x^4 + y^4 + z^4 + w^4
+  IPC = subscheme(IP, f)
+  C = covered_scheme(IPC)
+  TC = tangent_sheaf(C)
+  IPTC = oscar.projectivization(TC)
+  Y = covered_scheme(IPTC)
+  @test is_smooth(Y)
+
+  L = twisting_sheaf(IPC, 2)
+
+  PL = oscar.projectivization(L)
+  p = covered_projection_to_base(PL)
+  @test patches(codomain(covering_morphism(p))) == patches(default_covering(C))
+end

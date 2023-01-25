@@ -606,19 +606,19 @@ end
 
 @attr function covered_scheme(P::CoveredProjectiveScheme)
   X = base_scheme(P)
-  C = default_covering(X)
+  C = base_covering(P)
   new_patches = Vector{AbsSpec}()
   new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   projection_dict = IdDict{AbsSpec, AbsSpecMor}()
   parts = IdDict{AbsSpec, AbsCoveredScheme}() 
-  for U in affine_charts(X)
+  for U in patches(C)
     parts[U] = Oscar.covered_scheme(P[U])
   end
   # We first assemble a Covering where the preimage of every base 
   # patch appears as one connected component
-  result_patches = vcat([affine_charts(parts[U]) for U in affine_charts(X)]...)
+  result_patches = vcat([affine_charts(parts[U]) for U in patches(C)]...)
   result_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
-  for U in affine_charts(X)
+  for U in patches(C)
     GG = glueings(parts[U])
     for (A, B) in keys(GG)
       result_glueings[(A, B)] = GG[(A, B)]
@@ -627,8 +627,8 @@ end
   result_covering = Covering(result_patches, result_glueings, check=false)
 
   # Now we need to add glueings
-  for U in affine_charts(X)
-    for V in affine_charts(X)
+  for U in patches(C)
+    for V in patches(C)
       U === V && continue
       for UW in affine_charts(parts[U])
         for VW in affine_charts(parts[V])
@@ -644,7 +644,7 @@ end
   result = CoveredScheme(result_covering)
 
   projection_dict = IdDict{AbsSpec, AbsSpecMor}()
-  for U in affine_charts(X)
+  for U in patches(C)
     PP = P[U]
     p = covered_projection_to_base(PP)
     cov_mor = covering_morphism(p)
