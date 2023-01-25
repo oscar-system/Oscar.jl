@@ -4,7 +4,7 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coor
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
        leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
-       leading_monomial, leading_term, tail
+       leading_monomial, leading_term, singular_poly_ring, tail
 
 ##############################################################################
 #
@@ -204,10 +204,11 @@ mutable struct BiPolyArray{S}
       Sx = base_ring(S)
       if T <: MPolyQuo
           r = new{typeof(Ox).parameters[1]}()
+          r.Sx = r.I.gens.gens.Sx
       else
           r = new{elem_type(T)}()
+          r.Sx = Sx
       end
-      r.Sx = Sx
       r.S = S
       r.Ox = Ox
       return r

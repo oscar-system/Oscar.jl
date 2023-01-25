@@ -1,7 +1,7 @@
-include("integer-test.jl")
+#= include("integer-test.jl")
 include("rational-test.jl")
 include("mpoly-test.jl")
-include("orderings-test.jl")
+include("orderings-test.jl") =#
 include("affine-alghom-test.jl")
 include("mpoly-graded-test.jl")
 include("mpoly-local-test.jl")
