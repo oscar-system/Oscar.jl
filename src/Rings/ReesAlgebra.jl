@@ -25,7 +25,7 @@ free module ``F'`` factors through ``f``.
 """
 function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
     check::Bool=true,
-    var_name::String="s"
+    var_names::Vector{String}=["s$i" for i in 0:ngens(domain(f))-1]
   )
   if check
     f_dual = dual(f)
@@ -40,7 +40,7 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   p = map(P, 0)
   FM = P[0]
   r = rank(FM)
-  sym_FM, s = PolynomialRing(R, [Symbol(var_name*"$i") for i in 0:r-1])
+  sym_FM, s = PolynomialRing(R, Symbol.(var_names))
   sym_F, t = PolynomialRing(R, [Symbol("t$i") for i in 1:rank(F)])
   imgs = Vector{elem_type(sym_F)}()
   for v in gens(FM)
@@ -53,22 +53,27 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   return rees
 end
 
-function rees_algebra(M::FreeMod; var_name::String="s")
+function rees_algebra(M::FreeMod; 
+    var_names::Vector{String}=["s$i" for i in 0:ngens(M)-1]
+  )
   R = base_ring(M)
   r = rank(M)
-  S, s = PolynomialRing(R, [Symbol(var_name*"$i") for i in 0:r-1])
+  S, s = PolynomialRing(R, Symbol.(var_names))
   #S, _ = grade(S_tmp)
   return S
 end
 
-function rees_algebra(M::SubQuo; var_name::String="s", check::Bool=true)
+function rees_algebra(M::SubQuo; 
+    var_names::Vector{String}=["s$i" for i in 0:ngens(M)-1],
+    check::Bool=true
+  )
   success, p, sigma = is_projective(M)
   if success
     # The easy case: The Rees algebra is simply a polynomial ring 
     # modulo linear equations in the variables parametrized by the base.
     R = base_ring(M)
     r = ngens(M)
-    S_tmp, s = PolynomialRing(R, [Symbol(var_name*"$i") for i in 0:r-1])
+    S_tmp, s = PolynomialRing(R, Symbol.(var_names))
     S, sg = grade(S_tmp)
     A = matrix(p) # The presentation matrix
     I = ideal(S, [sum(A[i, j]*sg[j] for j in 1:length(s)) for i in 1:nrows(A)])
