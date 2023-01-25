@@ -1,4 +1,4 @@
-#@testset "kernels via flattenings" begin
+@testset "kernels via flattenings" begin
   R, (x,y,z) = QQ["x", "y", "z"]
 
   S, _ = PolynomialRing(R, ["s", "t"])
@@ -63,4 +63,4 @@
   f = hom(S, S, hom(R, R, [zero(R), first(gens(R)) + gens(R)[2], last(gens(R))]), gens(S))
   K = kernel(f)
   @test S(gens(R)[1]) in K
-#end
+end
