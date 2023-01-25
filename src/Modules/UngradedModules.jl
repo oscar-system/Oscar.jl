@@ -5280,21 +5280,43 @@ end
 
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
-# TODO: We need to also make all of the code below sensitive to base changes!
--(h::ModuleFPHom) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
-function -(h::ModuleFPHom, g::ModuleFPHom)
+-(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+-(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], base_ring_map(h))
+
+function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]))
 end
-function +(h::ModuleFPHom, g::ModuleFPHom)
+
+function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
 end
-function *(a::RingElem, g::ModuleFPHom)
+
+function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
+end
+
+function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), base_ring_map(g))
 end
 
 
