@@ -178,7 +178,7 @@ end
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   for U in covering
     _, inc_sing = singular_locus(U)
-    D[U] = radical(image_ideal(inc_sing))
+    D[U] = image_ideal(inc_sing)
   end
   Ising = IdealSheaf(X, D, check=false)
   return Ising
