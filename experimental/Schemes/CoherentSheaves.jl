@@ -9,6 +9,7 @@ export LineBundle
 export PushforwardSheaf
 export is_locally_free
 export PullbackSheaf
+export DirectSumSheaf
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -833,8 +834,74 @@ domain(M::HomSheaf) = M.domain
 codomain(M::HomSheaf) = M.codomain
 #default_covering(M::HomSheaf) = default_covering(domain(M)) # TODO: This is only a temporary fix!
 
-function Base.show(io::IO, M::HomSheaf)
-  print(io, "sheaf of homomorphisms from $(domain(M)) to $(codomain(M))")
+########################################################################
+# Sheaves of direct sums                                               #
+########################################################################
+@attributes mutable struct DirectSumSheaf{SpaceType, OpenType, OutputType,
+                                          RestrictionType
+                                         } <: AbsCoherentSheaf{
+                                                               SpaceType, OpenType,
+                                                               OutputType, RestrictionType
+                                                              }
+  summands::Vector{AbsCoherentSheaf{SpaceType, OpenType, OutputType, RestrictionType}}
+  #projections::Vector #TODO: Realize as sections in HomSheafs
+  #inclusions::Vector # TODO: same.
+  OOX::StructureSheafOfRings
+  M::PreSheafOnScheme
+
+  function DirectSumSheaf(X::AbsCoveredScheme, summands::Vector{<:AbsCoherentSheaf})
+    all(x->(scheme(x)===X), summands) || error("summands must be defined over the same scheme")
+    OOX = OO(X)
+    all(x->(sheaf_of_rings(x)===OOX), summands) || error("summands must be defined over the same sheaves of rings")
+
+    ### Production of the modules on open sets; to be cached
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+      result, inc, pr = direct_sum([F(U) for F in summands]..., task=:both)
+      set_attribute!(result, :inclusions, inc) # TODO: Workaround as long as the maps are not cached.
+      set_attribute!(result, :projections, pr) 
+      return result
+    end
+
+    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MV = FF(V)
+      MU = FF(U)
+      inc_V = get_attribute(MV, :inclusions)::Vector
+      pr_V = get_attribute(MV, :projections)::Vector
+      inc_U = get_attribute(MU, :inclusions)::Vector
+      pr_U = get_attribute(MU, :projections)::Vector
+      
+      parts = [] # TODO: Can we do better with type annotation?
+      for i in 1:length(inc_V)
+        push!(parts, hom(MV, MU, inc_U[i].(summands[i](V, U).(pr_V[i].(gens(MV))))))
+      end
+      return sum(parts)
+    end
+      
+    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                     )
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(summands, OOX, Mpre)
+
+    return M
+  end
+end
+
+### forwarding and implementation of the essential getters
+underlying_presheaf(M::DirectSumSheaf) = M.M
+sheaf_of_rings(M::DirectSumSheaf) = M.OOX
+summands(M::DirectSumSheaf) = M.summands
+
+### user facing constructors
+function direct_sum(summands::Vector{<:AbsCoherentSheaf})
+  length(summands) == 0 || error("list of summands must not be empty")
+  X = scheme(first(summands))
+  return DirectSumSheaf(X, summands)
+end
+
+function Base.show(io::IO, M::DirectSumSheaf)
+  print(io, "direct sum of $(summands(M))")
 end
 
 @Markdown.doc """

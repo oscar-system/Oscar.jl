@@ -134,3 +134,22 @@ end
   p = covered_projection_to_base(PL)
   @test patches(codomain(covering_morphism(p))) == patches(default_covering(C))
 end
+
+@testset "direct sums of sheaves" begin
+  IP = projective_space(QQ, ["x", "y", "z", "w"])
+  S = ambient_coordinate_ring(IP)
+  (x, y, z, w) = gens(S)
+  f = x^4 + y^4 + z^4 + w^4
+  IPX = subscheme(IP, f)
+  X = covered_scheme(IPX)
+  L1 = twisting_sheaf(IPX, 1)
+  L2 = twisting_sheaf(IPX, 2)
+
+  E = DirectSumSheaf(X, [L1, L2])
+
+  for U in affine_charts(X)
+    @test E(U) isa FreeMod
+    V = PrincipalOpenSubset(U, one(OO(U)))
+    @test E(U, V).(gens(E(U))) == gens(E(V))
+  end
+end
