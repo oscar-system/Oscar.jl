@@ -487,7 +487,14 @@ function Base.in(
     f::RingElem,
     I::AbsLocalizedIdeal
   )
-  error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
+  return ideal_membership(f, I)
+end
+
+function ideal_membership(
+    f::RingElem,
+    I::AbsLocalizedIdeal
+  )
+  error("`ideal_membership(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
 
 function issubset(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
