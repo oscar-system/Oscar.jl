@@ -58,7 +58,6 @@ function rees_algebra(M::FreeMod;
   R = base_ring(M)
   r = rank(M)
   S, s = PolynomialRing(R, Symbol.(var_names))
-  #S, _ = grade(S_tmp)
   return S
 end
 
