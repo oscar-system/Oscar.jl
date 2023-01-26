@@ -53,7 +53,7 @@
         @test cones(F2, 2) isa SubObjectIterator{Cone{T}}
         @test size(cones(F2, 2)) == (2,)
         @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
-        @test rays.(cones(F2, 2)) == [[[1, 0, 0]], [[0, 0, 1]]]
+        @test rays.(cones(F2, 2)) == [[], []]
         @test isnothing(cones(F2, 1))
         @test ray_indices(cones(F1, 2)) == incidence1
 

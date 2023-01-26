@@ -5,6 +5,7 @@
 ###############################################################################
 
 rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
+_rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(view(C.RAYS, i, :))
 
@@ -13,6 +14,7 @@ _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = hom
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
 rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
+_rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
 @doc Markdown.doc"""
     rays(C::Cone)
@@ -55,6 +57,7 @@ julia> matrix(ZZ, rays(P))
 ```
 """
 rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
+_rays(C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
 @doc Markdown.doc"""
     faces(C::Cone, face_dim::Int)
@@ -140,7 +143,8 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
+nrays(C::Cone) = lineality_dim(C) == 0 ? _nrays(C) : 0
+_nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)

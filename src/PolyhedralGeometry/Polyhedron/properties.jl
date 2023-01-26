@@ -31,7 +31,7 @@ function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
     n < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
     nfaces = length(pfaces)
-    rfaces = Vector{Int64}(undef, nfaces - binomial(nrays(P), n + 1))
+    rfaces = Vector{Int64}(undef, nfaces - binomial(_nrays(P), n + 1))
     nfarf = 0
     farf = Polymake.to_one_based_indexing(pm_object(P).FAR_FACE)
     for index in 1:nfaces
@@ -121,7 +121,8 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
+vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, nvertices(P))
+_vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
 _vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
 
@@ -130,6 +131,7 @@ _point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=fals
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
 vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
+_vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
 
 @doc Markdown.doc"""
     vertices(P::Polyhedron)
@@ -152,6 +154,7 @@ julia> vertices(P)
 ```
 """
 vertices(P::Polyhedron) = vertices(PointVector, P)
+_vertices(P::Polyhedron) = _vertices(PointVector, P)
 
 
 @doc Markdown.doc"""
@@ -168,7 +171,8 @@ julia> nrays(UH)
 1
 ```
 """
-nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+nrays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nrays(P) : 0
+_nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc Markdown.doc"""
     nvertices(P::Polyhedron)
@@ -184,7 +188,8 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - nrays(P)
+nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
+_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _nrays(P)
 
 
 @doc Markdown.doc"""
@@ -208,7 +213,8 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
+rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, nrays(P))
+_rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
 _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
 
@@ -217,6 +223,7 @@ _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false)
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
 rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = rays(RayVector{T}, P)
+_rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = _rays(RayVector{T}, P)
 
 @doc Markdown.doc"""
     rays(P::Polyhedron)
@@ -245,6 +252,7 @@ julia> matrix(ZZ, rays(PO))
 ```
 """
 rays(P::Polyhedron) = rays(RayVector, P)
+_rays(P::Polyhedron) = _rays(RayVector, P)
 
 @doc Markdown.doc"""
     nfacets(P::Polyhedron)
