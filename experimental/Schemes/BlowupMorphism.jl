@@ -1,15 +1,17 @@
+export BlowupMorphism
+
 mutable struct BlowupMorphism{
                               CodomainType<:AbsCoveredScheme
                              }
-  projective_bundle::AbsCoveredProjectiveScheme 
+  projective_bundle::CoveredProjectiveScheme 
   codomain::CodomainType   # i.A. ein CoveredScheme
   center::IdealSheaf      # on codomain
-  projection::AbsCoveredSchemeMor
+  projection::AbsCoveredSchemeMorphism
   domain::AbsCoveredScheme # i.A. ein CoveredScheme
   exceptional_divisor::WeilDivisor
 
   function BlowupMorphism(
-      IP::AbsCoveredProjectiveScheme,
+      IP::CoveredProjectiveScheme,
       I::IdealSheaf
     )
     X = base_scheme(IP)
