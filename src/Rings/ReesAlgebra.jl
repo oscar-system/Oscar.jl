@@ -34,11 +34,18 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   R = base_ring(M)
   F = codomain(f)
   R === base_ring(F) || error("modules must be defined over the same ring")
+<<<<<<< HEAD
   P = presentation(M)::ComplexOfMorphisms
   p = map(P, 0)
   FM = P[0]
   r = rank(FM)
   r == length(var_names) || error("wrong number of variable names given")
+=======
+  P = presentation(M)::ChainComplex
+  p = map(P, 0)
+  FM = P[0]
+  r = rank(FM)
+>>>>>>> Import and extend tests.
   sym_FM, s = PolynomialRing(R, Symbol.(var_names))
   sym_F, t = PolynomialRing(R, [Symbol("t$i") for i in 1:rank(F)])
   imgs = Vector{elem_type(sym_F)}()
@@ -58,6 +65,10 @@ function rees_algebra(M::FreeMod;
   R = base_ring(M)
   r = rank(M)
   S, s = PolynomialRing(R, Symbol.(var_names))
+<<<<<<< HEAD
+=======
+  #S, _ = grade(S_tmp)
+>>>>>>> Import and extend tests.
   return S
 end
 
@@ -107,7 +118,11 @@ function _versal_morphism_to_free_module(M::SubQuo)
   R1 = FreeMod(R, 1)
   M_double_dual, psi = double_dual(M, cod=R1)
   M_dual = domain(element_to_homomorphism(zero(M_double_dual)))
+<<<<<<< HEAD
   pres_M_dual = presentation(M_dual)::ComplexOfMorphisms
+=======
+  pres_M_dual = presentation(M_dual)::ChainComplex
+>>>>>>> Import and extend tests.
   g = map(pres_M_dual, 0) # The projection of a free module onto M_dual
   g_dual = dual(g, cod=R1, codomain_dual=M_double_dual)
   return compose(psi, g_dual)
@@ -124,6 +139,17 @@ function proj(Q::MPolyQuo{<:MPolyElem_dec})
   return ProjectiveScheme(Q)
 end
 
+<<<<<<< HEAD
+=======
+#function is_injective(f::ModuleFPHom) 
+#  return iszero(kernel(f)[1])
+#end
+#
+#function is_surjective(f::ModuleFPHom)
+#  return iszero(cokernel(f))
+#end
+
+>>>>>>> Import and extend tests.
 function is_isomorphism(f::ModuleFPHom)
   return is_injective(f) && is_surjective(f)
 end
