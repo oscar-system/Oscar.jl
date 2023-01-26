@@ -54,8 +54,8 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 
   function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    S = base_ring(Q)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
+    S = base_ring(Q)
     A = coefficient_ring(S)
     I = modulus(Q)
     r = ngens(S)-1
@@ -595,6 +595,7 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = StructureSheafOfRings(X)
 
+    ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
