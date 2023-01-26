@@ -1,4 +1,4 @@
-@testset "OscarPolytope" begin
+@testset "Conformance tests" begin
 
     pts = [1 0 0; 0 0 1]'
     lin = [0 1 0]
