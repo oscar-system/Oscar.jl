@@ -126,9 +126,9 @@ end
         return r
     end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
-        base_ring(Ox) === parent(V[1]) || error("base rings must match")
+        v = elem_type(Ox)[Ox(f) for f = V]
         r = new{T}()
-        r.gens = IdealGens(Ox, V)
+        r.gens = IdealGens(Ox, v)
         r.qRing = Ox
         r.dim = -1
         return r
@@ -181,8 +181,8 @@ end
 
 function groebner_assure!(a::MPolyQuoIdeal)
     if !isdefined(a, :gb)
-        b = simplify(a)
-        a.gb = IdealGens(base_ring(a), Singular.std(b.gens.S))
+        simplify(a)
+        a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
         a.gb.gens.S.isGB = a.gb.isGB = true
     end
 end
@@ -505,7 +505,7 @@ function simplify(a::MPolyQuoIdeal)
     R = base_ring(Q)
     singular_assure!(a)
     red  = reduce(a.gens.S, singular_groebner_basis(Q))
-    SQ   = singular_origin_ring(Q)
+    SQ   = singular_poly_ring(Q)
     si   = Singular.Ideal(SQ, unique!(gens(red)))
     a.gens.S = si
     a.gens.O = [R(g) for g = gens(a.gens.S)]
@@ -891,7 +891,7 @@ end
 
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuo)
-  G = singular_groebner_basis(Q)
+    G = Q.I.gb[Q.ordering].gens.S
   s = Singular.kbase(G)
   if iszero(s)
     error("ideal was no zero-dimensional")
