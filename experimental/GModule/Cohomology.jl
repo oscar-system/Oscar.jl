@@ -1684,6 +1684,8 @@ end
 
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
+#= not used
+
 function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
 
   U, mU = Hecke.one_unit_group(K)
@@ -1902,7 +1904,6 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
     @assert all(x->x in iU, u)
     im_q = []
-    sigma = inv(sigma)
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
@@ -1944,16 +1945,6 @@ function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
   q, mq = quo(C.M, image(mDC)[1])
   return GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac]), mq
 end
-
-
-#= TODO
- - (DONE) induce a gmodule into a larger group
- - (DONE) direct sum/prod of gmodules
- - maps (a pair of G->H and N -> M or so)?
- - quotient?
- - the local/ global fund class, ie. normalize the cochain
- - map a local chain into a ray class group
-=#
 
 export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
        action, cohomology_group, extension, iscoboundary, pc_group
@@ -2155,8 +2146,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   end
   @assert is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
 
-  @show map(mU*z, gens(U))
-  @show  s
   S = S[s]
 
   #TODO: precision: for some examples the default is too small
