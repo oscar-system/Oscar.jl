@@ -237,7 +237,9 @@ identifications given by the glueings in the `default_covering`.
       #
       # See whether we have anything cached for U
       haskey(MD, U) && return MD[U]
-      error("module on $U was not found")
+
+      # If not, we are in case 3) above.
+      error("production of modules not implemented in this case")
     end
 
     function production_func(
