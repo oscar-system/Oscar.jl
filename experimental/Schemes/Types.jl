@@ -54,10 +54,10 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 
   function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     S = base_ring(Q)
+    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
-    I = gens(modulus(Q))
+    I = modulus(Q)
     r = ngens(S)-1
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
   end
@@ -595,7 +595,6 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = StructureSheafOfRings(X)
 
-    ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
@@ -618,6 +617,15 @@ identifications given by the glueings in the `default_covering`.
       # need to gather that information from all the patches involved
       # and assemble the ideal from there.
       V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+
+      # Check for some SimplifiedSpec lurking around
+      if any(x->(x isa SimplifiedSpec), V)
+        i = findfirst(x->(x isa SimplifiedSpec), V)
+        W = V[i]
+        _, g = identification_maps(W)
+        return ideal(OO(U), pullback(g).(gens(ID[W])))
+      end
+
       length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
                                                         # Just return the unit ideal so that the 
                                                         # associated subscheme is empty.
