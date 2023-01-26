@@ -51,13 +51,18 @@ end
 
 function save_internal(s::SerializerState, milp::MixedIntegerLinearProgram)
     milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
-    coeffs_serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, milp_coeffs)
+    int_vars = milp.polymake_milp.INTEGER_VARIABLES
+    coeffs_serialized = Polymake.call_function(
+        Symbol("Core::Serializer"), :serialize, milp_coeffs)
+    int_vars_serialized = Polymake.call_function(
+        Symbol("Core::Serializer"), :serialize, int_vars)
     coeffs_jsonstr = Polymake.call_function(:common, :encode_json, coeffs_serialized)
-
+    int_vars_jsonstr = Polymake.call_function(:common, :encode_json, int_vars_serialized)
     return Dict(
         :feasible_region => save_type_dispatch(s, milp.feasible_region),
         :convention => milp.convention,
-        :milp_coeffs => JSON.parse(coeffs_jsonstr)
+        :milp_coeffs => JSON.parse(coeffs_jsonstr),
+        :int_vars => JSON.parse(int_vars_jsonstr)
     )
 end
 
@@ -69,10 +74,16 @@ function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}
         :deserialize_json_string,
         json(dict[:milp_coeffs])
     )
+    int_vars = Polymake.call_function(
+        :common,
+        :deserialize_json_string,
+        json(dict[:int_vars])
+    )
+
     all = Polymake._lookup_multi(pm_object(fr), "MILP")
     index = 0
     for i in 1:length(all)
-        if all[i].LINEAR_OBJECTIVE == milp_coeffs
+        if all[i].LINEAR_OBJECTIVE == milp_coeffs && all[i].INTEGER_VARIABLES == int_vars
             index = i
             break
         end
