@@ -1026,7 +1026,9 @@ end
   Mvv, psi = oscar.double_dual(M, cod=F1)
   @test matrix(psi) == R[x; y]
   
-  ### Quotient rings
+end 
+
+@testset "duals over quotient rings" begin
 
   A = R[x y; z x-1]
   Q, _ = quo(R, ideal(R, det(A)))
