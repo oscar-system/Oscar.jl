@@ -583,7 +583,8 @@ function blow_up(
 
     projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
   end
-  return CoveredProjectiveScheme(X, C, local_blowups, projective_glueings)
+  IPBl_X = CoveredProjectiveScheme(X, default_covering(X), local_blowups, projective_glueings)
+  return BlowupMorphism(IPBl_X, I)
 
 
 #    # set up the maps on the patches of the overlap in U
