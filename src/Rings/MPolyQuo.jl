@@ -126,9 +126,8 @@ end
         return r
     end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
-        v = elem_type(Ox)[Ox(f) for f = V]
         r = new{T}()
-        r.gens = IdealGens(Ox, v)
+        r.gens = IdealGens(Ox, V)
         r.qRing = Ox
         r.dim = -1
         return r
@@ -626,8 +625,8 @@ x
 """
 function simplify(f::MPolyQuoElem)
   R   = parent(f)
-  SQR = R.SQR
-  G   = R.SQRGB
+  SQR = singular_quotient_ring(R)
+  G   = singular_groebner_basis(R)
   g   = f.f
   f.f = (base_ring(R))(reduce(SQR(g), G))
   return f
