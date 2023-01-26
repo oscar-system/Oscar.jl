@@ -5,4 +5,10 @@ U = X[1][1] # the first chart
 
 IZ = IdealSheaf(X, U, OO(U).([x, y, z]))
 
-Y = blow_up(IZ)
+bl = blow_up(IZ)
+
+Y = domain(bl)
+@test codomain(bl) === X
+@test Y isa AbsCoveredScheme
+
+E = exceptional_divisor(bl)
