@@ -109,10 +109,10 @@ end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
         singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
         r = new{T}()
-        r.gens = IdealGens(base_ring(Ox), si)
-        r.gens.gens.Sx = singular_quotient_ring(Ox)
-        r.gens.gens.Ox = base_ring(Ox)
+        r.gens = IdealGens(Ox, si)
         r.qRing = Ox
+        br = base_ring(Ox)
+        r.gens.gens.O = [br(g) for g = gens(r.gens.gens.S)]
         r.dim = -1
         return r
     end
@@ -120,7 +120,7 @@ end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, I::MPolyIdeal{T}) where T <: MPolyElem
         base_ring(Ox) === base_ring(I) || error("base rings must match")
         r = new{T}()
-        r.gens = IdealGens(base_ring(Ox), gens(I))
+        r.gens = IdealGens(Ox, gens(I))
         r.qRing = Ox
         r.dim = -1
         return r
@@ -128,7 +128,7 @@ end
     function MPolyQuoIdeal(Ox::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
         base_ring(Ox) === parent(V[1]) || error("base rings must match")
         r = new{T}()
-        r.gens = IdealGens(base_ring(Ox), V)
+        r.gens = IdealGens(Ox, V)
         r.qRing = Ox
         r.dim = -1
         return r
@@ -165,7 +165,7 @@ end
 
 function oscar_assure!(a::MPolyQuoIdeal)
   if isdefined(a.gens.gens, :O)
-      return a.gens.O
+      return a.gens.gens.O
   end
   r = base_ring(base_ring(a))
   a.gens.O = [r(g) for g = gens(a.gens.S)]
@@ -368,10 +368,9 @@ end
 Return `true` if `a` is the zero ideal, `false` otherwise.
 """
 function iszero(a::MPolyQuoIdeal)
-  SR = singular_origin_ring(base_ring(a))
-  SI = Singular.Ideal(SR, SR.(gens(a)))
-  R = base_ring(a)
-  return Singular.iszero(Singular.reduce(SI, singular_groebner_basis(R)))
+    R = base_ring(a)
+    singular_assure!(a)
+    return Singular.iszero(Singular.reduce(a.gens.S, singular_groebner_basis(R)))
 end
 
 @doc Markdown.doc"""    
@@ -627,10 +626,10 @@ x
 """
 function simplify(f::MPolyQuoElem)
   R   = parent(f)
-  G   = singular_groebner_basis(R)
-  Sx  = singular_origin_ring(R)
+  SQR = R.SQR
+  G   = R.SQRGB
   g   = f.f
-  f.f = (base_ring(R))(reduce(Sx(g), G))
+  f.f = (base_ring(R))(reduce(SQR(g), G))
   return f
 end
 

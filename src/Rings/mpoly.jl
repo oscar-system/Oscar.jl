@@ -204,11 +204,10 @@ mutable struct BiPolyArray{S}
       Sx = base_ring(S)
       if T <: MPolyQuo
           r = new{typeof(Ox).parameters[1]}()
-          r.Sx = r.I.gens.gens.Sx
       else
           r = new{elem_type(T)}()
-          r.Sx = Sx
       end
+      r.Sx = Sx
       r.S = S
       r.Ox = Ox
       return r
