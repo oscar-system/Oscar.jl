@@ -1426,7 +1426,7 @@ end
     end
   end
   C = Covering(patch_list)
-  fill_with_lazy_glueings!(C, scheme(M))
+  inherit_glueings!(C, default_covering(scheme(M)))
   push!(coverings(X), C)
   return C
 end
