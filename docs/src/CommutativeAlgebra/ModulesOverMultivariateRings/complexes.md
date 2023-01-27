@@ -15,7 +15,7 @@ Pages = ["complexes.md"]
 
 # Chain and Cochain Complexes
 
-The general OSCAR type `ChainComplex{T}` allows one to model both chain complexes and cochain complexes
+The general OSCAR type `ComplexOfMorphisms{T}` allows one to model both chain complexes and cochain complexes
 (the `T` refers to the type of the differentials of the complex). In the context of commutative algebra, we handle
 complexes of modules and module homomorphisms over multivariate polynomial rings.
 In this section, we first show how to create such complexes. Then we discuss functionality for dealing with the constructed
@@ -83,7 +83,7 @@ by Submodule with 1 generator
 ## Operations on Complexes
 
 ```@julia
-shift(C::ChainComplex{T}, d::Int) where T
+shift(C::ComplexOfMorphisms{T}, d::Int) where T
 ```
 
 Return the complex obtained from `C` by shifting the homological degrees `d` steps,
@@ -116,23 +116,23 @@ julia> range(D)
 ```
 
 ```@docs
-hom(C::ChainComplex{ModuleFP}, M::ModuleFP)
+hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 ```
 
 ```@docs
-hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
+hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 ```
 
 ```@docs
-hom(M::ModuleFP, C::ChainComplex{ModuleFP})
+hom(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 ```
 
 ```@docs
-tensor_product(C::ChainComplex{ModuleFP}, M::ModuleFP)
+tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 ```
 
 ```@docs
-tensor_product(M::ModuleFP, C::ChainComplex{ModuleFP})
+tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 ```
 
 ## Tests on Complexes
@@ -142,15 +142,15 @@ tensor_product(M::ModuleFP, C::ChainComplex{ModuleFP})
 The functions below check properties of complexes:
 
 ```@julia
-is_chain_complex(C::ChainComplex{ModuleFP})
+is_chain_complex(C::ComplexOfMorphisms{ModuleFP})
 ```
 
 ```@julia
-is_cochain_complex(C::ChainComplex{ModuleFP})
+is_cochain_complex(C::ComplexOfMorphisms{ModuleFP})
 ```
 
 ```@julia
-is_exact(C::ChainComplex{ModuleFP})
+is_exact(C::ComplexOfMorphisms{ModuleFP})
 ```
 
 ##### Examples

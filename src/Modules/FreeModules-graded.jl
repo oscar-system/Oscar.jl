@@ -771,13 +771,13 @@ function presentation(SQ::SubQuo_dec)
   Z = FreeModule(F.R, GrpAbFinGenElem[])
   set_attribute!(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
-  return Hecke.ChainComplex(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
+  return Hecke.ComplexOfMorphisms(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
 function presentation(F::FreeModule_dec)
   Z = FreeModule(F.R, GrpAbFinGenElem[])
   set_attribute!(Z, :name => "Zero")
-  return Hecke.ChainComplex(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
+  return Hecke.ComplexOfMorphisms(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
 mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
@@ -1071,7 +1071,7 @@ function free_resolution(S::SubQuo_dec, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub)[nz])
     insert!(mp, 1, g)
   end
-  return Hecke.ChainComplex(ModuleFP_dec, mp, check = false, direction = :right)
+  return Hecke.ComplexOfMorphisms(ModuleFP_dec, mp, check = false, direction = :right)
 end
 
 function iszero(f::Map_dec)
