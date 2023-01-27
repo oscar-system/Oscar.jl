@@ -1,9 +1,10 @@
+export is_basic_serialization_type
 ################################################################################
 # Saving and loading vectors
 
 @registerSerializationType(Vector)
 
-"""
+@doc Markdown.doc"""
     is_basic_serialization_type(::Type)
 
 During the serialization of types of the form `Vector{T}`, entries
@@ -16,7 +17,7 @@ the vector.
 # Examples
 
 ```jldoctest
-julia> Oscar.is_basic_serialization_type(fmpz)
+julia> is_basic_serialization_type(fmpz)
 true
 ```
 """
