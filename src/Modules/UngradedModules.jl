@@ -7033,7 +7033,7 @@ end
 For a morphism of modules ``f : M → N`` this returns the morphism 
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
 
-The optional argument allows to specify a free module over the 
+The optional argument allows to specify a free module of rank one over the 
 base ring of ``f`` for building the duals of ``M`` and ``N``.
 """
 function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
