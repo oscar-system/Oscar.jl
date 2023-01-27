@@ -279,6 +279,7 @@
         @test independent_sets(N) == [[],[1],[2],['i'],['j'],[1,'j'], [2,'j'], [1,'i'], [2,'i'], [1,2]]
         @test independent_sets(O) == [[]]
         @test independent_sets(uniform_matroid(0,2)) == [[]]
+        @test independent_sets(cycle_matroid(complete_graph(2))) == [[],[1]]
 
         @test spanning_sets(N) == [[1,'j'], [2,'j'], [1,2], [1,'i'], [2,'i'], [1,2,'i'], [1,2,'j'], [1,'i','j'], [2,'i','j'], [1,2,'i','j']]
         @test spanning_sets(O) == [[]]

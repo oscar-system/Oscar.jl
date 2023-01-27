@@ -35,7 +35,7 @@ end
 create_gs2num(E::GroundsetType) = Dict{Any,IntegerUnion}(E[i] => i for i in 1:length(E))
 
 @doc Markdown.doc"""
-    Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType)
+    Matroid(pm_matroid::Polymake.BigObjectAllocated, [E::GroundsetType])
 
 Construct a `matroid` from a `polymake` matroid `M` on the default ground set `{1,...,n}`.
 """

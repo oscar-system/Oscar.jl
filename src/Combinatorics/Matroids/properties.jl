@@ -20,7 +20,7 @@ export
 
 
 @doc Markdown.doc"""
-    isomorphic_matroid(M::matroid, gs::AbstractVector)
+    isomorphic_matroid(M::Matroid, gs::GroundsetType)
 
 Return a matroid isomorphic to `M` on the groundset `gs`.
 
@@ -54,7 +54,7 @@ length(M::Matroid) = length(M.groundset)
 
 
 @doc Markdown.doc"""
-    bases(M::matroid)
+    bases(M::Matroid)
 
 Return the list of bases of the matroid `M`.
 
@@ -70,7 +70,7 @@ julia> bases(uniform_matroid(2, 3))
 bases(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.BASES)]
 
 @doc Markdown.doc"""
-    nonbases(M::matroid)
+    nonbases(M::Matroid)
 
 Return the list of nonbases of the matroid `M`.
 
@@ -91,7 +91,7 @@ nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_
 
 
 @doc Markdown.doc"""
-    circuits(M::matroid)
+    circuits(M::Matroid)
 
 Return the list of circuits of the matroid `M`.
 
@@ -108,7 +108,7 @@ julia> circuits(uniform_matroid(2, 4))
 circuits(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.CIRCUITS)]
 
 @doc Markdown.doc"""
-    hyperplanes(M::matroid)
+    hyperplanes(M::Matroid)
 
 Return the list of hyperplanes of the matroid `M`.
 
@@ -128,8 +128,7 @@ julia> hyperplanes(fano_matroid())
 hyperplanes(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.MATROID_HYPERPLANES)]
 
 @doc Markdown.doc"""
-    flats(M::matroid)
-    flats(M::matroid, r::Int)
+    flats(M::Matroid, [r::Int])
 
 Return the list of flats of the matroid `M`.
 By default all flats are returned.
@@ -188,8 +187,7 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
 end
 
 @doc Markdown.doc"""
-    cyclic_flats(M::matroid)
-    cyclic_flats(M::matroid, r::Int)
+    cyclic_flats(M::Matroid, [r::Int])
 
 Return the list of cyclic flats of the matroid `M`.
 These are the flats that are the union of cycles.
@@ -227,10 +225,10 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc Markdown.doc"""
-    closure(M::matroid, set::Vector)
+    closure(M::Matroid, set::GroundsetType)
 
 Return the closure of `set` in the matroid `M`.
 
@@ -254,7 +252,7 @@ function closure(M::Matroid, set::GroundsetType)
 end
 
 @doc Markdown.doc"""
-    rank(M::matroid)
+    rank(M::Matroid)
 
 Return the rank of the matroid `M`.
 
@@ -267,7 +265,7 @@ julia> rank(fano_matroid())
 rank(M::Matroid) = M.pm_matroid.RANK::Int
 
 @doc Markdown.doc"""
-    rank(M::matroid, set::Vector)
+    rank(M::Matroid, set::GroundsetType)
 
 Return the rank of `set` in the matroid `M`.
 
@@ -288,7 +286,7 @@ function rank(M::Matroid, set::GroundsetType)
 end
 
 @doc Markdown.doc"""
-    nullity(M::matroid, set::Vector)
+    nullity(M::Matroid, set::GroundsetType)
 
 Return the nullity of `set` in the matroid `M`.
 This is defined to be `|set| - rk(set)`.
@@ -305,7 +303,7 @@ nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank(M.pm
 
 
 @doc Markdown.doc"""
-    fundamental_circuit(M::matroid, basis::Vector, elem::ElementType)
+    fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType)
 
 Return the unique circuit contained in the union of `basis` and `elem` of the matroid `M`.
 See Section 1.2 of [Oxl11](@cite).
@@ -344,7 +342,7 @@ function fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType
 end
 
 @doc Markdown.doc"""
-    fundamental_cocircuit(M::matroid, cobasis::Vector, elem::ElementType)
+    fundamental_cocircuit(M::Matroid, cobasis::GroundsetType, elem::ElementType)
 
 Return the unique circuit of the dual matroid of `M` in the union of the complement of `basis` and `elem`.
 See Section 2.1 of [Oxl11](@cite).
@@ -364,7 +362,7 @@ julia> fundamental_cocircuit(fano_matroid(), [1,2,4], 4)
 fundamental_cocircuit(M::Matroid, basis::GroundsetType, elem::ElementType) = fundamental_circuit(dual_matroid(M), setdiff(M.groundset, basis), elem)
 
 @doc Markdown.doc"""
-    independet_sets(M::matroid)
+    independent_sets(M::Matroid)
 
 Return the list of independent sets of the matroid `M`.
 These are all subsets of the bases.
@@ -384,10 +382,11 @@ julia> independent_sets(uniform_matroid(2, 3))
 """
 function independent_sets(M::Matroid)
     pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
-    n = length(M.groundset)
-    gs = M.groundset
-    sets = Vector{typeof(matroid_groundset(M))}()
-    push!(sets,[])
+    gs = matroid_groundset(M)
+    elt = eltype(gs)
+    n = length(gs)
+    sets = Vector{Vector{elt}}()
+    push!(sets,elt[])
     for k in 1:rank(M)
         for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
             for B in pm_bases
@@ -402,7 +401,7 @@ function independent_sets(M::Matroid)
 end
 
 @doc Markdown.doc"""
-    spanning_sets(M::matroid)
+    spanning_sets(M::Matroid)
 
 Return the list of spanning sets of the matroid `M`.
 These are all sets containing a basis.
@@ -425,7 +424,7 @@ function spanning_sets(M::Matroid)
 end
 
 @doc Markdown.doc"""
-    cobases(M::matroid)
+    cobases(M::Matroid)
 
 Return the bases of the dual matroid of `M`.
 See Section 2 in [Oxl11](@cite).
@@ -442,7 +441,7 @@ julia> cobases(uniform_matroid(2, 3))
 cobases(M::Matroid) = bases(dual_matroid(M))
 
 @doc Markdown.doc"""
-    cocircuits(M::matroid)
+    cocircuits(M::Matroid)
 
 Return the circuits of the dual matroid of `M`.
 See Section 2 in [Oxl11](@cite).
@@ -461,7 +460,7 @@ julia> cocircuits(uniform_matroid(2, 5))
 cocircuits(M::Matroid) = circuits(dual_matroid(M))
 
 @doc Markdown.doc"""
-    cohyperplanes(M::matroid)
+    cohyperplanes(M::Matroid)
 
 Return the hyperplanes of the dual matroid of `M`.
 See Section 2 in [Oxl11](@cite).
@@ -489,7 +488,7 @@ julia> cohyperplanes(fano_matroid())
 cohyperplanes(M::Matroid) = hyperplanes(dual_matroid(M))
 
 @doc Markdown.doc"""
-    corank(M::matroid, set::Vector)
+    corank(M::Matroid, set::GroundsetType)
 
 Return the rank of `set` in the dual matroid of `M`.
 
@@ -502,7 +501,7 @@ julia> corank(fano_matroid(), [1,2,3])
 corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, M.groundset) + rank(M, setdiff(M.groundset, set))
 
 @doc Markdown.doc"""
-    is_clutter(sets)
+    is_clutter(sets::AbstractVector{T}) where T <: GroundsetType
 
 Checks if the collection of subsets `sets` is a clutter.
 A collection of subsets is a clutter if none of the sets is a proper subset of another.
@@ -548,7 +547,7 @@ function is_regular(M::Matroid)
     if rank(M)==length(M)
         return true
     end
-    return M.pm_matroid.REGULAR
+    return M.pm_matroid.REGULAR::Bool
 end
 
 @doc Markdown.doc"""
@@ -566,7 +565,7 @@ julia> is_binary(fano_matroid())
 true
 ```
 """
-is_binary(M::Matroid) = M.pm_matroid.BINARY
+is_binary(M::Matroid) = M.pm_matroid.BINARY::Bool
 
 @doc Markdown.doc"""
     is_ternary(M::Matroid)
@@ -588,7 +587,7 @@ function is_ternary(M::Matroid)
     if rank(M)==length(M)
         return true
     end
-    return M.pm_matroid.TERNARY
+    return M.pm_matroid.TERNARY::Bool
 end
 
 @doc Markdown.doc"""
@@ -644,7 +643,7 @@ julia> is_connected(uniform_matroid(3, 3))
 false
 ```
 """
-is_connected(M::Matroid) = M.pm_matroid.CONNECTED
+is_connected(M::Matroid) = M.pm_matroid.CONNECTED::Bool
 
 @doc Markdown.doc"""
     loops(M::Matroid)
@@ -732,7 +731,7 @@ julia> is_simple(fano_matroid())
 true
 ```
 """
-is_simple(M::Matroid) = M.pm_matroid.SIMPLE
+is_simple(M::Matroid) = M.pm_matroid.SIMPLE::Bool
 
 @doc Markdown.doc"""
     direct_sum_components(M::Matroid)
@@ -762,7 +761,7 @@ function direct_sum_components(M::Matroid)
 end
 
 @doc Markdown.doc"""
-    connectivity_function(M::Matroid, set::Vector)
+    connectivity_function(M::Matroid, set::GroundsetType)
 
 Return the value of the connectivity function of `set` in the matroid `M`.
 See Section 8.1 in [Oxl11](@cite).
@@ -779,7 +778,7 @@ function connectivity_function(M::Matroid, set::GroundsetType)
 end
 
 @doc Markdown.doc"""
-    is_vertical_k_separation(M::Matroid, k::Int, set::Vector)
+    is_vertical_k_separation(M::Matroid, k::IntegerUnion, set::GroundsetType)
 
 Check if `set` together with its complement defines a `k` separation in `M`
 See Section 8.6 in [Oxl11](@cite).
@@ -796,7 +795,7 @@ function is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType
 end
 
 @doc Markdown.doc"""
-    is_k_separation(M::Matroid, k::Int, set::Vector)
+    is_k_separation(M::Matroid, k::IntegerUnion, set::GroundsetType)
 
 Check if `set` together with its complement defines a `k` separation in `M`
 See Section 8.1 in [Oxl11](@cite).
@@ -844,7 +843,7 @@ function vertical_connectivity(M::Matroid)
 end
 
 @doc Markdown.doc"""
-    girth(M::Matroid, set::Vector)
+    girth(M::Matroid, set::GroundsetType)
 
 Return the girth of `set` in the matroid `M`.
 This is the size of the smallest circuit contained in `set` and infintie otherwise.
@@ -1039,7 +1038,7 @@ function is_isomorphic(M1::Matroid, M2::Matroid)
     if length(M1) != length(M2)
         return false
     end
-    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)
+    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)::Bool
 end
 
 @doc Markdown.doc"""
