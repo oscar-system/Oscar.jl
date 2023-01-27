@@ -3230,11 +3230,11 @@ return the chain complex defined by these homomorphisms.
     The function checks whether successive homomorphisms indeed compose to zero.
 """
 function chain_complex(V::ModuleFPHom...; seed::Int = 0)
-  return ChainComplex(ModuleFP, collect(V); typ = :chain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, collect(V); typ = :chain, seed = seed)
 end
 
 function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ChainComplex(ModuleFP, V; typ = :chain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed)
 end
 
 ####################
@@ -3261,11 +3261,11 @@ return the cochain complex defined by these homomorphisms.
     The function checks whether successive homomorphisms indeed compose to zero.
 """
 function cochain_complex(V::ModuleFPHom...; seed::Int = 0)
-  return ChainComplex(ModuleFP, collect(V); typ = :cochain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, collect(V); typ = :cochain, seed = seed)
 end
 
 function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ChainComplex(ModuleFP, V; typ = :cochain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, V; typ = :cochain, seed = seed)
 end
 
 ####################
@@ -3324,7 +3324,7 @@ function presentation(SQ::SubQuo)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
+  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
 end
 
 @doc Markdown.doc"""
@@ -3335,7 +3335,7 @@ Return a free presentation of $F$.
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
-  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
 end
 
 @doc Markdown.doc"""
@@ -4646,12 +4646,12 @@ true
 """
 is_complete(FR::FreeResolution) = FR.C.complete
 
-#= Fill functions (and helpers) for Hecke ChainComplexes in terms of free resolutions =#
-function _get_last_map_key(cc::Hecke.ChainComplex)
+#= Fill functions (and helpers) for Hecke ComplexOfMorphismses in terms of free resolutions =#
+function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
 end
 
-function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
+function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorithm::Symbol=:fres)
 # assuming a free res is a chain_complex, then it will be
 # M_1 -> M_0 -> S -> 0
 #the range is 1:-1:-2 or so
@@ -4835,7 +4835,7 @@ function free_resolution(M::SubQuo{<:MPolyElem};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
   end
 
-  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
 
@@ -4849,7 +4849,7 @@ function free_resolution(M::SubQuo{T}) where {T<:RingElem}
   # on request.
   R = base_ring(M)
   p = presentation(M)
-  p.fill = function(C::Hecke.ChainComplex, k::Int)
+  p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
     # TODO: Use official getter and setter methods instead 
     # of messing manually with the internals of the complex.
     for i in first(range(C)):k-1
@@ -4904,7 +4904,7 @@ function free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  C = Hecke.ChainComplex(ModuleFP, mp, check = false)
+  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
   return C
 end
@@ -5850,11 +5850,11 @@ end
 # Tor
 #############################
 @doc Markdown.doc"""
-    tensor_product(M::ModuleFP, C::ChainComplex{ModuleFP})
+    tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 
 Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 """
-function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
@@ -5868,15 +5868,15 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
   end
 
-  return Hecke.ChainComplex(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
 @doc Markdown.doc"""
-    tensor_product(C::ChainComplex{ModuleFP}, M::ModuleFP)
+    tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
-function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+function tensor_product(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_chain = Map[]
@@ -5892,7 +5892,7 @@ function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
   end
 
-  return Hecke.ChainComplex(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
 @doc Markdown.doc"""
@@ -6004,11 +6004,11 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
 end
 
 @doc Markdown.doc"""
-    hom(M::ModuleFP, C::ChainComplex{ModuleFP})
+    hom(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 
 Return the complex obtained by applying $\text{Hom}($`M`, $-)$ to `C`.
 """
-function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   chain_range = Hecke.map_range(C)
@@ -6023,11 +6023,11 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,j)))
   end
 
-  return Hecke.ChainComplex(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
 end
 
 @doc Markdown.doc"""
-    hom(C::ChainComplex{ModuleFP}, M::ModuleFP)
+    hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 
@@ -6059,7 +6059,7 @@ julia> range(D)
 3:5
 ```
 """
-function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+function hom(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   hom_chain = Map[]
@@ -6077,11 +6077,11 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
 
   typ = Hecke.is_chain_complex(C) ? :cochain : :chain
   seed = C.seed
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
 end
 
 @doc Markdown.doc"""
-    hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
+    hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 
@@ -6113,7 +6113,7 @@ julia> range(D)
 -3:-1:-5
 ```
 """
-function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   #up to seed/ typ identical to the one above. Should be
   #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
@@ -6130,12 +6130,12 @@ function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::Mod
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
 end
 
 #############################
 @doc Markdown.doc"""
-    homology(C::ChainComplex{<:ModuleFP})
+    homology(C::ComplexOfMorphisms{<:ModuleFP})
 
 Return the homology of `C`.
 
@@ -6153,7 +6153,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = ChainComplex(ModuleFP, [a, b]);
+julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C)
 3-element Vector{SubQuo{fmpq_mpoly}}:
@@ -6173,12 +6173,12 @@ by Submodule with 2 generators
 2 -> x^2*e[1]
 ```
 """
-function homology(C::Hecke.ChainComplex{<:ModuleFP})
+function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
   return [homology(C,i) for i in Hecke.range(C)]
 end
 
 @doc Markdown.doc"""
-    homology(C::ChainComplex{<:ModuleFP}, i::Int)
+    homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 
 Return the `i`-th homology module of `C`.
 
@@ -6196,7 +6196,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = ChainComplex(ModuleFP, [a, b]);
+julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C, 1)
 Subquotient of Submodule with 1 generator
@@ -6206,7 +6206,7 @@ by Submodule with 2 generators
 2 -> x^2*e[1]
 ```
 """
-function homology(C::Hecke.ChainComplex{<:ModuleFP}, i::Int)
+function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
   chain_range = Hecke.range(C)
   map_range = Hecke.map_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
