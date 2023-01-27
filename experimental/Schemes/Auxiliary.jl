@@ -50,11 +50,11 @@ produces ``f*(M)``.
 **Note:** Internally, this simply calls `pullback(f, M)`. 
 Hence, that method needs to be implemented.
 """
-function pullback(f::CoveredSchemeMorphism)
+function pullback(f::AbsCoveredSchemeMorphism)
   return UniversalPullbackSymbol{typeof(f)}(f)
 end
 
-function pullback(f::CoveredSchemeMorphism, II::IdealSheaf)
+function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   X = domain(f)
   Y = codomain(f)
   scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
@@ -69,7 +69,7 @@ function pullback(f::CoveredSchemeMorphism, II::IdealSheaf)
   return IdealSheaf(X, ID, check=false)
 end
 
-function pullback(f::CoveredSchemeMorphism, C::EffectiveCartierDivisor)
+function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
   phi = covering_morphism(f)
@@ -91,9 +91,13 @@ function pullback(f::CoveredSchemeMorphism, C::EffectiveCartierDivisor)
   return EffectiveCartierDivisor(X, triv_dict, trivializing_covering=triv_cov, check=false)
 end
 
-function pullback(f::CoveredSchemeMorphism, CC::Covering)
+function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)
   psi = restrict(f, CC)
   return domain(psi)
+end
+
+function pullback(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+  return PullbackSheaf(f, M)
 end
 
 @Markdown.doc """
@@ -105,7 +109,7 @@ compute the preimages ``Uᵢ ∩ f⁻¹(Vⱼ)`` for ``Uᵢ`` the `patches` in `C
 ``Vⱼ`` those of `DD` and restrictions of ``f`` to these new patches. 
 Return the resulting `CoveringMorphism` ``ψ : C ∩ f⁻¹(DD) → DD``.
 """
-function restrict(f::CoveredSchemeMorphism, DD::Covering)
+function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   X = domain(f)
   Y = codomain(f)
   phi = covering_morphism(f)
@@ -261,7 +265,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(psi).(y_img)
   ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
 
-  return SimpleGlueing(X, Y, ff, gg)
+  return SimpleGlueing(X, Y, ff, gg, check=false)
 end
 
 @Markdown.doc """

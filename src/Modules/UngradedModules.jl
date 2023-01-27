@@ -5280,21 +5280,43 @@ end
 
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
-# TODO: We need to also make all of the code below sensitive to base changes!
--(h::ModuleFPHom) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
-function -(h::ModuleFPHom, g::ModuleFPHom)
+-(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+-(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], base_ring_map(h))
+
+function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]))
 end
-function +(h::ModuleFPHom, g::ModuleFPHom)
+
+function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
 end
-function *(a::RingElem, g::ModuleFPHom)
+
+function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
+end
+
+function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), base_ring_map(g))
 end
 
 
@@ -6966,3 +6988,73 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubQuo) where {DomT
   map = SubQuoHom(M, MS, gens(MS), f)
   return MS, map
 end
+
+### Duals of modules
+@Markdown.doc """
+    dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+
+Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
+interpretation map ``i``, turning an element ``φ`` of ``M*`` into 
+a homomorphism ``M → R``. 
+
+The optional argument allows to specify a free module of rank ``1`` 
+for the codomain of the dualizing functor.
+"""
+function dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+  base_ring(cod) === base_ring(M) && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
+  return hom(M, cod)
+end
+
+@Markdown.doc """
+    double_dual(M::ModuleFP)
+
+For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
+its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
+map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
+"""
+function double_dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+  M_dual, _ = dual(M, cod=cod)
+  M_double_dual, _ = dual(M_dual, cod=cod)
+  psi = hom(M, M_double_dual, 
+            [homomorphism_to_element(M_double_dual, 
+                                     hom(M_dual, cod,
+                                         [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]
+                                        )
+                                    )
+             for x in gens(M)
+            ]
+           )
+  return M_double_dual, psi
+end
+
+@Markdown.doc """
+    dual(f::ModuleFPHom; cod::FreeMod)
+
+For a morphism of modules ``f : M → N`` this returns the morphism 
+``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
+
+The optional argument allows to specify a free module of rank one over the 
+base ring of ``f`` for building the duals of ``M`` and ``N``.
+"""
+function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
+    cod::FreeMod=FreeMod(base_ring(domain(f)), 1), 
+    domain_dual::ModuleFP=dual(domain(f), cod=cod)[1],
+    codomain_dual::ModuleFP=dual(codomain(f), cod=cod)[1]
+  )
+  M = domain(f)
+  N = codomain(f)
+  R = base_ring(domain(f))
+  R === base_ring(N) || error("modules must be defined over the same rings")
+
+  M_dual = domain_dual
+  N_dual = codomain_dual
+
+  return hom(N_dual, M_dual, 
+             [homomorphism_to_element(M_dual, 
+                                      hom(M, cod, 
+                                          [element_to_homomorphism(phi)(f(v)) for v in gens(M)]
+                                         )
+                                     )
+              for phi in gens(N_dual)])
+end
+
