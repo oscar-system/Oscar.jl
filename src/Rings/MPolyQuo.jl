@@ -44,11 +44,13 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuo) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuo) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuo) = Q.I
-groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering]
-singular_groebner_basis(Q::MPolyQuo) = Q.SQRGB
+oscar_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering]
+singular_quotient_groebner_basis(Q::MPolyQuo) = Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].gens.S
 singular_quotient_ring(Q::MPolyQuo) = Q.SQR
 singular_poly_ring(Q::MPolyQuo) = singular_quotient_ring(Q)
-singular_origin_ring(Q::MPolyQuo) = base_ring(Q.I.gb[Q.ordering].gens.S)
+singular_origin_ring(Q::MPolyQuo) = base_ring(singular_origin_groebner_basis(Q))
+oscar_origin_ring(Q::MPolyQuo) = base_ring(Q)
 #=
 function singular_poly_ring(Q::MPolyQuo)
     @show isdefined(Q.I.gens.gens, :Sx)
@@ -369,7 +371,7 @@ Return `true` if `a` is the zero ideal, `false` otherwise.
 function iszero(a::MPolyQuoIdeal)
     R = base_ring(a)
     singular_assure!(a)
-    return Singular.iszero(Singular.reduce(a.gens.S, singular_groebner_basis(R)))
+    return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
 end
 
 @doc Markdown.doc"""    
@@ -503,7 +505,7 @@ function simplify(a::MPolyQuoIdeal)
     Q = base_ring(a)
     R = base_ring(Q)
     singular_assure!(a)
-    red  = reduce(a.gens.S, singular_groebner_basis(Q))
+    red  = reduce(a.gens.S, singular_quotient_groebner_basis(Q))
     SQ   = singular_poly_ring(Q)
     si   = Singular.Ideal(SQ, unique!(gens(red)))
     a.gens.S = si
@@ -624,12 +626,13 @@ x
 ```
 """
 function simplify(f::MPolyQuoElem)
-  R   = parent(f)
-  SQR = singular_quotient_ring(R)
-  G   = singular_groebner_basis(R)
-  g   = f.f
-  f.f = (base_ring(R))(reduce(SQR(g), G))
-  return f
+  R  = parent(f)
+  OR = oscar_origin_ring(R)
+  SR = singular_origin_ring(R)
+  G  = singular_origin_groebner_basis(R)
+  g  = f.f
+  f.f = OR(reduce(SR(g), G))
+  return f::elem_type(R)
 end
 
 
