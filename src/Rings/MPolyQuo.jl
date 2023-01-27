@@ -164,7 +164,7 @@ function base_ring(a::MPolyQuoIdeal)
   return a.qRing
 end
 
-function oscar_assure!(a::MPolyQuoIdeal)
+function oscar_assure(a::MPolyQuoIdeal)
   if isdefined(a.gens.gens, :O)
       return a.gens.gens.O
   end
@@ -172,7 +172,7 @@ function oscar_assure!(a::MPolyQuoIdeal)
   a.gens.O = [r(g) for g = gens(a.gens.S)]
 end
 
-function singular_assure!(a::MPolyQuoIdeal)
+function singular_assure(a::MPolyQuoIdeal)
   if isdefined(a.gens.gens, :S)
       return a.gens.S
   end
@@ -180,7 +180,7 @@ function singular_assure!(a::MPolyQuoIdeal)
   a.gens.S  = Singular.Ideal(a.gens.Sx, (a.gens.Sx).(gens(a)))
 end
 
-function groebner_assure!(a::MPolyQuoIdeal)
+function groebner_assure(a::MPolyQuoIdeal)
     if !isdefined(a, :gb)
         simplify(a)
         a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
@@ -212,7 +212,7 @@ julia> gens(a)
 ```
 """
 function gens(a::MPolyQuoIdeal)
-  oscar_assure!(a)
+  oscar_assure(a)
   return map(a.gens.Ox, a.gens.O)
 end
 
@@ -253,7 +253,7 @@ end
 Return the `m`-th power of `a`.  
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
-    singular_assure!(a)
+    singular_assure(a)
     return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
 end
 
@@ -264,8 +264,8 @@ Return the sum of `a` and `b`.
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
-    singular_assure!(a)
-    singular_assure!(b)
+    singular_assure(a)
+    singular_assure(b)
     return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
 end
 
@@ -276,8 +276,8 @@ Return the product of `a` and `b`.
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
-    singular_assure!(a)
-    singular_assure!(b)
+    singular_assure(a)
+    singular_assure(b)
     return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
 end
 
@@ -303,11 +303,11 @@ ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
-    singular_assure!(a)
+    singular_assure(a)
     as = a.gens.S
     for g in b
         base_ring(g) == base_ring(a) || error("base rings must match")
-        singular_assure!(g)
+        singular_assure(g)
         gs = g.gens.S
         as = Singular.intersection(as, gs)
     end
@@ -340,8 +340,8 @@ ideal(y)
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
 
-    singular_assure!(a)
-    singular_assure!(b)
+    singular_assure(a)
+    singular_assure(b)
     return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.gens.S, b.gens.S))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
@@ -370,7 +370,7 @@ Return `true` if `a` is the zero ideal, `false` otherwise.
 """
 function iszero(a::MPolyQuoIdeal)
     R = base_ring(a)
-    singular_assure!(a)
+    singular_assure(a)
     return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
 end
 
@@ -504,7 +504,7 @@ ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 function simplify(a::MPolyQuoIdeal)
     Q = base_ring(a)
     R = base_ring(Q)
-    singular_assure!(a)
+    singular_assure(a)
     red  = reduce(a.gens.S, singular_quotient_groebner_basis(Q))
     SQ   = singular_poly_ring(Q)
     si   = Singular.Ideal(SQ, unique!(gens(red)))
@@ -539,7 +539,7 @@ true
 """
 function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
     parent(a) == base_ring(b) || error("base rings must match")
-    groebner_assure!(b)
+    groebner_assure(b)
     SR = singular_poly_ring(base_ring(b))
     as = simplify(a)
     return Singular.iszero(Singular.reduce(SR(as), b.gb.gens.S))
@@ -575,7 +575,7 @@ true
 function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   as = simplify(a)
-  groebner_assure!(b)
+  groebner_assure(b)
   return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
 end
 
@@ -1181,7 +1181,7 @@ function dim(a::MPolyQuoIdeal)
     if a.dim > -1
         return a.dim
     end
-    groebner_assure!(a)
+    groebner_assure(a)
     a.dim = Singular.dimension(a.gb.S)
     return a.dim
 end
@@ -1246,7 +1246,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
   end
   
   QS = singular_poly_ring(Q)
-  singular_assure!(I)
+  singular_assure(I)
 
   IS = I.gens.S
   GC.@preserve IS QS begin
