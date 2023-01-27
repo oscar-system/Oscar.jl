@@ -21,11 +21,19 @@ push!(upgrade_scripts, UpgradeScript(
         if !haskey(dict, :type)
             upgraded_dict = Dict{Symbol, Any}()
             for (key, value) in dict
-                if value isa String
+                if value isa String || value isa Vector{String} || key == :field_types
                     upgraded_dict[key] = value
                 else
-                    # recursive call unnamed function with var"#self"
-                    upgraded_dict[key] = var"#self#"(s, value)
+                    if typeof(value) <: Dict{Symbol, Any}
+                        # recursive call unnamed function with var"#self"
+                        upgraded_dict[key] = var"#self#"(s, value)
+                    else
+                        values = []
+                        for v in value
+                            push!(values, var"#self#"(s, v))
+                        end
+                        upgraded_dict[key] = values
+                    end
                 end
             end
             return upgraded_dict

@@ -1,0 +1,187 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      {
+        "major": 0,
+        "minor": 11,
+        "patch": 1,
+        "prerelease": [
+          "DEV"
+        ],
+        "build": []
+      }
+    ]
+  },
+  "id": "bcb011ee-66ef-4fd1-973d-c1238f3c9cd7",
+  "type": "NamedTuple",
+  "data": {
+    "keys": {
+      "id": "2c57f95d-2478-425e-b465-1db4ce6be37e",
+      "type": "Tuple",
+      "data": {
+        "field_types": [
+          "Symbol",
+          "Symbol",
+          "Symbol"
+        ],
+        "content": [
+          {
+            "type": "Symbol",
+            "data": "r"
+          },
+          {
+            "type": "Symbol",
+            "data": "m"
+          },
+          {
+            "type": "Symbol",
+            "data": "t"
+          }
+        ]
+      }
+    },
+    "content": {
+      "id": "8105fa6c-593c-4ed4-b6bd-a96d5fe3f0f1",
+      "type": "Tuple",
+      "data": {
+        "field_types": [
+          "fmpq",
+          "Matrix",
+          "Tuple"
+        ],
+        "content": [
+          {
+            "id": "73ee3109-23f2-4cc9-9f68-3666dfb02a18",
+            "type": "fmpq",
+            "data": {
+              "num": {
+                "id": "17808bbf-fa7d-46e4-abc4-75eb8ecf2c79",
+                "type": "fmpz",
+                "data": "1"
+              },
+              "den": {
+                "id": "972c2df7-1155-46ed-b3e0-deee9c79d645",
+                "type": "fmpz",
+                "data": "2"
+              }
+            }
+          },
+          {
+            "id": "6bf9418a-5c26-48c8-8418-95c0ad73f953",
+            "type": "Matrix",
+            "data": {
+              "matrix": [
+                {
+                  "id": "80b43dde-af90-4964-8a08-46d30c8ff736",
+                  "type": "Vector",
+                  "data": {
+                    "vector": [
+                      {
+                        "id": "29f2e701-9914-4c26-afd4-61cfc8a2a023",
+                        "type": "fmpq",
+                        "data": {
+                          "num": {
+                            "id": "750d541c-ac21-413e-b053-606c93ed52ef",
+                            "type": "fmpz",
+                            "data": "1"
+                          },
+                          "den": {
+                            "id": "482d2413-8aff-46e4-96d2-baf7d444e593",
+                            "type": "fmpz",
+                            "data": "2"
+                          }
+                        }
+                      },
+                      {
+                        "id": "42a8e83e-0b7d-4521-9ddb-b611cf606214",
+                        "type": "fmpq",
+                        "data": {
+                          "num": {
+                            "id": "6be48013-fd4a-4063-aac4-c4cc45cfefe3",
+                            "type": "fmpz",
+                            "data": "1"
+                          },
+                          "den": {
+                            "id": "726e8437-52ea-47cb-8aee-3f5caa757eb0",
+                            "type": "fmpz",
+                            "data": "1"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "99c64507-562a-4486-bb3d-415a88e75563",
+                  "type": "Vector",
+                  "data": {
+                    "vector": [
+                      {
+                        "id": "0b857782-3cee-491a-ab31-d0fec48f1b61",
+                        "type": "fmpq",
+                        "data": {
+                          "num": {
+                            "id": "a60b47b4-7f43-4997-8b35-f8d7ebb69230",
+                            "type": "fmpz",
+                            "data": "0"
+                          },
+                          "den": {
+                            "id": "9e0e280a-4345-421a-8ef4-5dff4c123661",
+                            "type": "fmpz",
+                            "data": "1"
+                          }
+                        }
+                      },
+                      {
+                        "id": "eee1e9a5-9850-4bf8-ac70-7b617ee52c2e",
+                        "type": "fmpq",
+                        "data": {
+                          "num": {
+                            "id": "4bfc0fad-f591-4790-b195-bc1cd9a94f3b",
+                            "type": "fmpz",
+                            "data": "1"
+                          },
+                          "den": {
+                            "id": "6edc0c12-d19e-4b84-a91f-30cac32bc9e0",
+                            "type": "fmpz",
+                            "data": "1"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "id": "fd2b92b9-08ae-4bbe-b5cc-00c1fcf5ec2b",
+            "type": "Tuple",
+            "data": {
+              "field_types": [
+                "Base.Int",
+                "Base.Int",
+                "Base.Int"
+              ],
+              "content": [
+                {
+                  "type": "Base.Int",
+                  "data": "1"
+                },
+                {
+                  "type": "Base.Int",
+                  "data": "2"
+                },
+                {
+                  "type": "Base.Int",
+                  "data": "3"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
