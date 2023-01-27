@@ -1,3 +1,4 @@
+using Oscar: _integer_variables
 @testset "PolyhedralGeometry" begin
     
     mktempdir() do path
@@ -68,6 +69,24 @@
             end
         end
         
+        @testset "MixedIntegerLinearProgram" begin
+            P = cube(3)
+            MILP = MixedIntegerLinearProgram(
+                P,
+                [3,-2,4];
+                k=2,
+                convention = :min,
+                integer_variables=[1, 2]
+            )
+            test_save_load_roundtrip(path, MILP) do loaded
+              @test loaded isa MixedIntegerLinearProgram
+              @test Base.propertynames(MILP) == Base.propertynames(loaded)
+              @test objective_function(MILP) == objective_function(loaded)
+              @test feasible_region(MILP) == feasible_region(loaded)
+              @test OSCAR._integer_variables(MILP) == OSCAR._integer_variables(loaded)
+            end
+        end
+
         @testset "SubdivisionOfPoints" begin
             moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
             moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
