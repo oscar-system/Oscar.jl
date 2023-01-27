@@ -189,7 +189,7 @@ end
 @doc Markdown.doc"""
     symmetric_complete_intersections(prep::ProjRep{S, T, U, V}, d::Int, t::Int;
                                      j::MapFromFunc = nothing,
-                                     check::Bool = true) -> SymmetricCompleteIntersections{S, T, U, V}
+                                     check::Bool = true) -> Vector{SymmetricCompleteIntersections{S, T, U, V}}
 
 Given a projective representation `prep` of a finite group `G` on a `F`-vector space `V`, where `F`
 is a field of characteristic zero, and two integers `d` and `t`, return the parametrizing space
@@ -223,13 +223,13 @@ function symmetric_complete_intersections(prep::ProjRep, d::Int, t::Int; j = not
   rd = homogeneous_polynomial_representation(prep, d)
   M = invariant_grassmannian(rd, t)
   chis = submodule_character.(irreducible_components(M))
-  D = Dict{Oscar.GAPGroupClassFunction, SymmetricCompleteIntersections}()
+  reps = SymmetricCompleteIntersections[]
   for chi in chis
     N = irreducible_component(M, chi)
     symci = SymmetricCompleteIntersections(prep, N, j)
-    D[chi] = symci
+    push!(reps, symci)
   end
-  return D
+  return reps
 end
 
 function Base.show(io::IO, ::MIME"text/plain", symci::SymmetricCompleteIntersections)
@@ -251,7 +251,7 @@ function Base.show(io::IO, ::MIME"text/plain", symci::SymmetricCompleteIntersect
   println(io, "in the $(n-1)-dimensional projective space over")
   println(io, F)
   println(io, "and invariant under the action of")
-  print(io, describe(G))
+  print(io, G)
 end
 
 function Base.show(io::IO, symci::SymmetricCompleteIntersections)
@@ -261,7 +261,7 @@ end
 @doc Markdown.doc"""
     symmetric_complete_intersections(id::Tuple{Int, Int}, n::Int, d::Int, t::Int)
     symmetric_complete_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
-                              -> Dict{ProjRep, SymmetricCompleteIntersections}
+                              -> Vector{Tuple{ProjRep, Vector{SymmetricCompleteIntersections}}}
                               
 Given a small group `G` of ID `id` and three integers `n`, `d` and `t`, return a
 parametrisation for the ideals defining complete intersections of `t` hypersurfaces
@@ -277,10 +277,10 @@ function symmetric_complete_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::
   F = splitting_field(representation_ring_linear_lift(pfr[1]))
   S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
-  res = Dict{Oscar.GAPGroupClassFunction, SymmetricCompleteIntersections}[]
+  res = Tuple{ProjRep, Vector{SymmetricCompleteIntersections}}[]
   for prep in pfr
     D = symmetric_complete_intersections(prep, d, t, j = j, check = false)
-    push!(res, D)
+    push!(res, (prep, D))
   end
   return res
 end
@@ -307,7 +307,7 @@ return the push-forward of `f` along the map `pr` in the polynomial algebra
 associated to `Q`.
 """
 function push_forward(f::V, pr::W; R = nothing) where {U, V <: MPolyElem_dec, W <: MatElem{U}}
-  @req is_homogenous(f) "f must be a homogeneous polynomial"
+  @req is_homogeneous(f) "f must be a homogeneous polynomial"
   @req ngens(parent(f)) == nrows(pr) "Incompatible dimensions"
   if R === nothing
     R, xR = grade(PolynomialRing(base_ring(parent(f)), "xR" => 1:ncols(pr))[1])

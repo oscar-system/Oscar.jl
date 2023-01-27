@@ -473,14 +473,14 @@ generators of the underlying group of `RR` (order matters.)
 function _linear_representation(RR::RepRing{S, T}, mr::Vector{V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V <: MatElem{U}}
   @req chi.table === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   G = underlying_group(RR)
-  mg = matrix_group(mr)
+  mg = MatrixGroup(nrows(mr[1]), base_ring(mr[1]), mr)
   f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
   return linear_representation(RR, f, chi)
 end
 
 function _linear_representation(RR::RepRing{S ,T}, mr::Vector{V}) where {S ,T ,U, V <: MatElem{U}}
   G = underlying_group(RR)
-  mg = matrix_group(mr)
+  mg = MatrixGroup(nrows(mr[1]), base_ring(mr[1]), mr)
   f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
   return linear_representation(RR, f)
 end
@@ -707,7 +707,7 @@ cached list of generators of the underlying group of `LR`.
 """
 function matrix_representation(LR::LinRep)
   f = representation_mapping(LR)
-  return [matrix(image(f, a)) for a in generators_underlying_group(representation_ring(LR))]
+  return matrix.(gens(codomain(f)))
 end
 
 @doc Markdown.doc"""
@@ -1234,7 +1234,7 @@ end
                                                              -> Vector{ProjRep}
 
 Given a small group `G` of ID `[o,n]`, return a set of representatives
-of equivalences classes of projective representations of `G` of complex
+of equivalences classes of faithful projective representations of `G` of complex
 dimension `dim`.
 """
 function faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
@@ -1454,9 +1454,9 @@ end
 Given a linear representation `rep` in the representation ring `RR` associated
 to a finite group `E` over a field `F`, return a dictionnary whose keys are the
 irreducible `F`-characters of `E` which are components of the `F`-character of `E`
-afforded by `rep`. To each key character `chi` is associated two matrices representing
-the injection and the projection map corresponding to the isotypical component of `rep`
-associated to the character `chi`. The matrices are given in the standard bases of the
+afforded by `rep`. To each key character `chi` is associated a matrix representing
+the projection map corresponding to the isotypical component of `rep` associated
+to the character `chi`. The matrices are given in the standard bases of the
 underlying vector spaces of `rep` and of the corresponding isotypical component.
 """
 function isotypical_components(rep::LinRep{S, T, U}) where {S, T, U}

@@ -2,27 +2,13 @@ export possible_ideals_for_cubics,
        possible_ideals_for_k3_models
 
 function _subgroup_trivial_action_on_H20(RR::RepRing, chi1::Oscar.GAPGroupClassFunction, chi2::Oscar.GAPGroupClassFunction)
-  h =  conjugacy_classes(underlying_group(RR))
+  h =  conjugacy_classes(chi1.table)
   dchi1 = determinant(chi1)
   dchi2 = determinant(chi2)
   ker = elem_type(underlying_group(RR))[]
-  for e in h
-    if dchi1(representative(e)) == dchi2(representative(e))
-      append!(ker, collect(e))
-    end
-  end
-  ker, _ = sub(underlying_group(RR), ker)
-  return ker
-end
-
-function _subgroup_trivial_action_on_H31(RR::RepRing, chi1::Oscar.GAPGroupClassFunction, chi2::Oscar.GAPGroupClassFunction)
-  h = conjugacy_classes(underlying_group(RR))
-  dchi1 = determinant(chi1)
-  dchi2 = determinant(chi2)
-  ker = elem_type(underlying_group(RR))[]
-  for e in h
-    if dchi1(representative(e)) == dchi2(representative(e))^2
-      append!(ker, collect(e))
+  for i in 1:length(h)
+    if dchi1[i] == dchi2[i]
+        append!(ker, collect(h[i]))
     end
   end
   ker, _ = sub(underlying_group(RR), ker)
@@ -31,12 +17,7 @@ end
 
 function _id_symplectic_subgroup_k3(RR::RepRing, chi1::Oscar.GAPGroupClassFunction, chi2::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
   ker = _subgroup_trivial_action_on_H20(RR, chi1, chi2)
-  return small_group_identification(p(ker)[1])
-end
-
-function _id_symplectic_subgroup_cubics(RR::RepRing, chi1::Oscar.GAPGroupClassFunction, chi2::GAPGroupClassFunction, p::GAPGroupHomomorphism)
-  ker = _subgroup_trivial_action_on_H31(RR, chi1, chi2)
-  return small_group_identification(p(ker)[1])
+  return p(ker)[1].X == codomain(p).X
 end
 
 function possible_ideals_for_k3_models(G::Tuple{Int, Int}, Gs::Tuple{Int, Int}, n::Int, d::Int, t::Int)
@@ -54,12 +35,14 @@ function possible_ideals_for_k3_models(G::Tuple{Int, Int}, Gs::Tuple{Int, Int}, 
   for l in sum_index
     @info "Test a character"
     chi = sum(Irr[l])
+    detchi = determinant(chi)
     chid = symmetric_power(conj(chi), d)
     ct = constituents(chid, t)
     chis = Oscar.GAPGroupClassFunction[]
     for chi2 in ct
-      if _id_symplectic_subgroup_k3(RR, chi, chi2, p) == Gs
-          push!(chis, chi2)
+      detchi2 = determinant(chi2)
+      if detchi == detchi2
+        push!(chis, chi2)
       end
     end
     length(chis) == 0 ? continue : nothing
@@ -73,8 +56,8 @@ function possible_ideals_for_k3_models(G::Tuple{Int, Int}, Gs::Tuple{Int, Int}, 
   return res
 end
 
-function possible_ideals_for_cubics(G::Tuple{Int, Int})
-  bool, RR, sum_index, p = _has_pfr(small_group(G[1], G[2]), 6)
+function possible_ideals_for_cubics(G)
+  bool, RR, sum_index, p = _has_pfr(G, 6)
   !bool && return Tuple{ProjRep, Vector{SymmetricCompleteIntersections}}[]
   @info "$(length(sum_index)) possible actions to consider"
   F = splitting_field(RR)
@@ -86,11 +69,13 @@ function possible_ideals_for_cubics(G::Tuple{Int, Int})
   for l in sum_index
     @info "Test a character"
     chi = sum(Irr[l])
+    detchi = determinant(chi)
     chid = symmetric_power(conj(chi), 3)
     ct = constituents(chid, 1)
     chis = Oscar.GAPGroupClassFunction[]
     for chi2 in ct
-      if _id_symplectic_subgroup_cubics(RR, chi, chi2, p) == G
+      detchi2 = determinant(chi2)
+      if detchi == detchi2*detchi2
         push!(chis, chi2)
       end
     end
