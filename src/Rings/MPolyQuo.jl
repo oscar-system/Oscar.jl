@@ -44,7 +44,7 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuo) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuo) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuo) = Q.I
-oscar_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering]
+oscar_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].O
 singular_quotient_groebner_basis(Q::MPolyQuo) = Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].gens.S
 singular_quotient_ring(Q::MPolyQuo) = Q.SQR
@@ -785,7 +785,7 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
  # of the modulus of `parent(a)`. 
 
   Q = parent(a)
-  J = groebner_basis(Q).O
+  J = oscar_groebner_basis(Q)
   J = vcat(J, [a.f])
   j, T = standard_basis_with_transformation_matrix(ideal(J))
   if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
@@ -875,7 +875,7 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   iszero(b) && error("cannot divide by zero")
 
   Q = parent(a)
-  J = groebner_basis(Q).O
+  J = oscar_groebner_basis(Q)
 
   BS = IdealGens([a.f], keep_ordering = false)
   singular_assure(BS)
