@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Ideals in Multivariate Rings · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox" checked/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li><a class="tocitem" href="../rings/">Creating Multivariate Rings</a></li><li class="is-active"><a class="tocitem" href>Ideals in Multivariate Rings</a><ul class="internal"><li><a class="tocitem" href="#Types"><span>Types</span></a></li><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Data-Associated-to-Ideals"><span>Data Associated to Ideals</span></a></li><li><a class="tocitem" href="#Operations-on-Ideals"><span>Operations on Ideals</span></a></li><li><a class="tocitem" href="#Tests-on-Ideals"><span>Tests on Ideals</span></a></li><li><a class="tocitem" href="#Decomposition-of-Ideals"><span>Decomposition of Ideals</span></a></li><li><a class="tocitem" href="#Homogenization-and-Dehomogenization"><span>Homogenization and Dehomogenization</span></a></li><li><a class="tocitem" href="#Generating-Special-Ideals"><span>Generating Special Ideals</span></a></li></ul></li><li><a class="tocitem" href="../affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/homological_algebra/">Homological Algebra</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox"/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Gröbner Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Surfaces/K3Surfaces/">Algebraic Surfaces</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Commutative Algebra</a></li><li class="is-active"><a href>Ideals in Multivariate Rings</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Ideals in Multivariate Rings</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/CommutativeAlgebra/ideals.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Ideals-in-Multivariate-Rings">Ideals in Multivariate Rings</a></li><li class="no-marker"><ul><li><a href="#Types">Types</a></li><li><a href="#Constructors">Constructors</a></li><li><a href="#Data-Associated-to-Ideals">Data Associated to Ideals</a></li><li><a href="#Operations-on-Ideals">Operations on Ideals</a></li><li><a href="#Tests-on-Ideals">Tests on Ideals</a></li><li><a href="#Decomposition-of-Ideals">Decomposition of Ideals</a></li><li><a href="#Homogenization-and-Dehomogenization">Homogenization and Dehomogenization</a></li><li><a href="#Generating-Special-Ideals">Generating Special Ideals</a></li></ul></li></ul><h1 id="Ideals-in-Multivariate-Rings"><a class="docs-heading-anchor" href="#Ideals-in-Multivariate-Rings">Ideals in Multivariate Rings</a><a id="Ideals-in-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Ideals-in-Multivariate-Rings" title="Permalink"></a></h1><h2 id="Types"><a class="docs-heading-anchor" href="#Types">Types</a><a id="Types-1"></a><a class="docs-heading-anchor-permalink" href="#Types" title="Permalink"></a></h2><p>The OSCAR type for ideals in multivariate polynomial rings is of parametrized form <code>MPolyIdeal{T}</code>, where <code>T</code> is the element type of the polynomial ring.</p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="ideal-Tuple{MPolyRing, Vector{T} where T}" href="#ideal-Tuple{MPolyRing, Vector{T} where T}"><code>ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ideal(g::Vector{T}) where {T &lt;: MPolyElem}
+
+ideal(g::Vector{T}) where {T &lt;: MPolyElem_dec}</code></pre><p>Given a vector <code>g</code> of polynomials in a polynomial ring <code>R</code>, say, return the ideal of <code>R</code> generated by these polynomials.</p><p>In the graded case, assure that the entries of <code>g</code> are homogeneous.</p><pre><code class="nohighlight hljs">ideal(R::MPolyRing, g::Vector)</code></pre><p>Given a vector <code>g</code> of polynomials in <code>R</code>, return the ideal of <code>R</code> generated by these polynomials.</p><p>In the graded case, assure that the entries of <code>g</code> are homogeneous.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x*y-3*x,y^3-2*x^2*y])
+ideal(x*y - 3*x, -2*x^2*y + y^3)
+
+julia&gt; typeof(I)
+MPolyIdeal{fmpq_mpoly}
+
+julia&gt; S, (x, y) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;],  [1, 2])
+(Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [2], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia&gt; J = ideal(S, [(x^2+y)^2])
+ideal(x^4 + 2*x^2*y + y^2)
+
+julia&gt; typeof(J)
+MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L13">source</a></section></article><h2 id="Data-Associated-to-Ideals"><a class="docs-heading-anchor" href="#Data-Associated-to-Ideals">Data Associated to Ideals</a><a id="Data-Associated-to-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Ideals" title="Permalink"></a></h2><h3 id="Basic-Data"><a class="docs-heading-anchor" href="#Basic-Data">Basic Data</a><a id="Basic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Data" title="Permalink"></a></h3><p>If <code>I</code> is an ideal of a multivariate polynomial ring  <code>R</code>, then</p><ul><li><code>base_ring(I)</code> refers to <code>R</code>,</li><li><code>gens(I)</code> to the generators of <code>I</code>,</li><li><code>ngens(I)</code> to the number of these generators, and</li><li><code>gen(I, k)</code> as well as <code>I[k]</code> to the <code>k</code>-th such generator.</li></ul><h6 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; base_ring(I)
+Multivariate Polynomial Ring in x, y over Rational Field
+
+julia&gt; gens(I)
+3-element Vector{fmpq_mpoly}:
+ x^2
+ x*y
+ y^2
+
+julia&gt; ngens(I)
+3
+
+julia&gt; gen(I, 2)
+x*y
+</code></pre><h3 id="Dimension"><a class="docs-heading-anchor" href="#Dimension">Dimension</a><a id="Dimension-1"></a><a class="docs-heading-anchor-permalink" href="#Dimension" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="dim-Tuple{MPolyIdeal}" href="#dim-Tuple{MPolyIdeal}"><code>dim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dim(I::MPolyIdeal)</code></pre><p>Return the Krull dimension of <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia&gt; dim(I)
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1117">source</a></section></article><h3 id="Codimension"><a class="docs-heading-anchor" href="#Codimension">Codimension</a><a id="Codimension-1"></a><a class="docs-heading-anchor-permalink" href="#Codimension" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="codim-Tuple{MPolyIdeal}" href="#codim-Tuple{MPolyIdeal}"><code>codim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">codim(I::MPolyIdeal)</code></pre><p>Return the codimension of <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia&gt; codim(I)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1146">source</a></section></article><h3 id="Minimal-Sets-of-Generators"><a class="docs-heading-anchor" href="#Minimal-Sets-of-Generators">Minimal Sets of Generators</a><a id="Minimal-Sets-of-Generators-1"></a><a class="docs-heading-anchor-permalink" href="#Minimal-Sets-of-Generators" title="Permalink"></a></h3><p>In the graded case, we have:</p><article class="docstring"><header><a class="docstring-binding" id="minimal_generating_set-Tuple{MPolyIdeal{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:MPolyElem_dec}" href="#minimal_generating_set-Tuple{MPolyIdeal{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:MPolyElem_dec}"><code>minimal_generating_set</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minimal_generating_set(I::MPolyIdeal{&lt;:MPolyElem_dec})</code></pre><p>Given a homogeneous ideal <code>I</code> in a graded multivariate polynomial ring over a field, return an array containing a minimal set of generators of <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia&gt; I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia&gt; minimal_generating_set(I)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ z^2
+ x^3 + y^3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1285">source</a></section></article><h2 id="Operations-on-Ideals"><a class="docs-heading-anchor" href="#Operations-on-Ideals">Operations on Ideals</a><a id="Operations-on-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Operations-on-Ideals" title="Permalink"></a></h2><h3 id="Simple-Ideal-Operations"><a class="docs-heading-anchor" href="#Simple-Ideal-Operations">Simple Ideal Operations</a><a id="Simple-Ideal-Operations-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-Ideal-Operations" title="Permalink"></a></h3><h4 id="Powers-of-Ideal"><a class="docs-heading-anchor" href="#Powers-of-Ideal">Powers of Ideal</a><a id="Powers-of-Ideal-1"></a><a class="docs-heading-anchor-permalink" href="#Powers-of-Ideal" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="^-Tuple{MPolyIdeal, Int64}" href="#^-Tuple{MPolyIdeal, Int64}"><code>^</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">^(I::MPolyIdeal, m::Int)</code></pre><p>Return the <code>m</code>-th power of <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [x, y])
+ideal(x, y)
+
+julia&gt; I^3
+ideal(x^3, x^2*y, x*y^2, y^3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L89">source</a></section></article><h4 id="Sum-of-Ideals"><a class="docs-heading-anchor" href="#Sum-of-Ideals">Sum of Ideals</a><a id="Sum-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Sum-of-Ideals" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="+-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#+-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>+</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return the sum of <code>I</code> and <code>J</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [x, y])
+ideal(x, y)
+
+julia&gt; J = ideal(R, [z^2])
+ideal(z^2)
+
+julia&gt; I+J
+ideal(x, y, z^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L111">source</a></section></article><h4 id="Product-of-Ideals"><a class="docs-heading-anchor" href="#Product-of-Ideals">Product of Ideals</a><a id="Product-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Product-of-Ideals" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="*-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#*-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return the product of <code>I</code> and <code>J</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [x, y])
+ideal(x, y)
+
+julia&gt; J = ideal(R, [z^2])
+ideal(z^2)
+
+julia&gt; I*J
+ideal(x*z^2, y*z^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L140">source</a></section></article><h3 id="Intersection-of-Ideals"><a class="docs-heading-anchor" href="#Intersection-of-Ideals">Intersection of Ideals</a><a id="Intersection-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Intersection-of-Ideals" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="intersect-Union{Tuple{T}, Tuple{MPolyIdeal{T}, Vararg{MPolyIdeal{T}, N} where N}} where T" href="#intersect-Union{Tuple{T}, Tuple{MPolyIdeal{T}, Vararg{MPolyIdeal{T}, N} where N}} where T"><code>intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T</code></pre><p>Return the intersection of two or more ideals.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L179">source</a></section></article><h3 id="Ideal-Quotients"><a class="docs-heading-anchor" href="#Ideal-Quotients">Ideal Quotients</a><a id="Ideal-Quotients-1"></a><a class="docs-heading-anchor-permalink" href="#Ideal-Quotients" title="Permalink"></a></h3><p>Given two ideals <span>$I, J$</span> of a ring <span>$R$</span>, the ideal quotient of <span>$I$</span> by <span>$J$</span> is the ideal</p><p class="math-container">\[I:J= \bigl\{f \in R\:\big|\: f J \subset I\bigr\}\subset R.\]</p><article class="docstring"><header><a class="docstring-binding" id="quotient-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#quotient-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>quotient</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">quotient(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return the ideal quotient of <code>I</code> by <code>J</code>. Alternatively, use <code>I:J</code>.</p><pre><code class="nohighlight hljs">quotient(I::MPolyIdeal{T}, f::MPolyElem{T}) where T</code></pre><p>Return the ideal quotient of <code>I</code> by the ideal generated by <code>f</code>. Alternatively, use <code>I:f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [x^4+x^2*y*z+y^3*z, y^4+x^3*z+x*y^2*z, x^3*y+x*y^3])
+ideal(x^4 + x^2*y*z + y^3*z, x^3*z + x*y^2*z + y^4, x^3*y + x*y^3)
+
+julia&gt; J = ideal(R, [x, y, z])^2
+ideal(x^2, x*y, x*z, y^2, y*z, z^2)
+
+julia&gt; L = quotient(I, J)
+ideal(x^3*z + x*y^2*z + y^4, x^3*y + x*y^3, x^4 + x^2*y*z + y^3*z, x^3*z^2 - x^2*y*z^2 + x*y^2*z^2 - y^3*z^2, x^2*y^2*z - x^2*y*z^2 - y^3*z^2, x^3*z^2 + x^2*y^3 - x^2*y^2*z + x*y^2*z^2)
+
+julia&gt; I:J
+ideal(x^3*z + x*y^2*z + y^4, x^3*y + x*y^3, x^4 + x^2*y*z + y^3*z, x^3*z^2 - x^2*y*z^2 + x*y^2*z^2 - y^3*z^2, x^2*y^2*z - x^2*y*z^2 - y^3*z^2, x^3*z^2 + x^2*y^3 - x^2*y^2*z + x*y^2*z^2)
+
+julia&gt; I:x
+ideal(x^2*y + y^3, x^3*z + x*y^2*z + y^4, x^2*z^2 + x*y^3 - x*y^2*z + y^2*z^2, x^4, x^3*z^2 - x^2*z^3 + 2*x*y^2*z^2 - y^2*z^3, -x^2*z^4 + x*y^2*z^3 - y^2*z^4)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L205">source</a></section></article><h3 id="Saturation"><a class="docs-heading-anchor" href="#Saturation">Saturation</a><a id="Saturation-1"></a><a class="docs-heading-anchor-permalink" href="#Saturation" title="Permalink"></a></h3><p>Given two ideals <span>$I, J$</span> of a ring <span>$R$</span>, the saturation of <span>$I$</span> with respect to <span>$J$</span> is the ideal</p><p class="math-container">\[I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.\]</p><article class="docstring"><header><a class="docstring-binding" id="saturation-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#saturation-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>saturation</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return the saturation of <code>I</code> with respect to <code>J</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y])
+ideal(z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y)
+
+julia&gt; J = ideal(R, [x, y, z])
+ideal(x, y, z)
+
+julia&gt; K = saturation(I, J)
+ideal(z, x*y)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L253">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="saturation_with_index-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#saturation_with_index-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>saturation_with_index</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return <span>$I:J^{\infty}$</span> together with the smallest integer <span>$m$</span> such that <span>$I:J^m = I:J^{\infty}$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y])
+ideal(z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y)
+
+julia&gt; J = ideal(R, [x, y, z])
+ideal(x, y, z)
+
+julia&gt; K, m = saturation_with_index(I, J)
+(ideal(z, x*y), 2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L280">source</a></section></article><h3 id="Elimination"><a class="docs-heading-anchor" href="#Elimination">Elimination</a><a id="Elimination-1"></a><a class="docs-heading-anchor-permalink" href="#Elimination" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="eliminate-Union{Tuple{T}, Tuple{MPolyIdeal{T}, Vector{T}}} where T&lt;:MPolyElem" href="#eliminate-Union{Tuple{T}, Tuple{MPolyIdeal{T}, Vector{T}}} where T&lt;:MPolyElem"><code>eliminate</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T &lt;: MPolyElem</code></pre><p>Given a vector <code>V</code> of polynomials which are variables, these variables are eliminated from <code>I</code>. That is, return the ideal generated by all polynomials in <code>I</code> which only involve the remaining variables.</p><pre><code class="nohighlight hljs">eliminate(I::MPolyIdeal, V::AbstractVector{Int})</code></pre><p>Given a vector <code>V</code> of indices which specify variables, these variables are eliminated from <code>I</code>. That is, return the ideal generated by all polynomials in <code>I</code> which only involve the remaining variables.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The return value is an ideal of the original ring.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (t, x, y, z) = PolynomialRing(QQ, [&quot;t&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in t, x, y, z over Rational Field, fmpq_mpoly[t, x, y, z])
+
+julia&gt; I = ideal(R, [t-x, t^2-y, t^3-z])
+ideal(t - x, t^2 - y, t^3 - z)
+
+julia&gt; A = [t]
+1-element Vector{fmpq_mpoly}:
+ t
+
+julia&gt; TC = eliminate(I, A)
+ideal(-x*z + y^2, x*y - z, x^2 - y)
+
+julia&gt; A = [1]
+1-element Vector{Int64}:
+ 1
+
+julia&gt; TC = eliminate(I, A)
+ideal(-x*z + y^2, x*y - z, x^2 - y)
+
+julia&gt; base_ring(TC)
+Multivariate Polynomial Ring in t, x, y, z over Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L308">source</a></section></article><h2 id="Tests-on-Ideals"><a class="docs-heading-anchor" href="#Tests-on-Ideals">Tests on Ideals</a><a id="Tests-on-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Ideals" title="Permalink"></a></h2><h3 id="Basic-Tests"><a class="docs-heading-anchor" href="#Basic-Tests">Basic Tests</a><a id="Basic-Tests-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Tests" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="iszero-Tuple{MPolyIdeal}" href="#iszero-Tuple{MPolyIdeal}"><code>iszero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">iszero(I::MPolyIdeal)</code></pre><p>Return <code>true</code> if <code>I</code> is the zero ideal, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, y-x^2)
+ideal(-x^2 + y)
+
+julia&gt; iszero(I)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1171">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isone-Tuple{MPolyIdeal}" href="#isone-Tuple{MPolyIdeal}"><code>isone</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isone(I::MPolyIdeal)</code></pre><p>Return <code>true</code> if <code>I</code> is generated by <code>1</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x, x + y, y - 1])
+ideal(x, x + y, y - 1)
+
+julia&gt; isone(I)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1192">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_monomial-Tuple{MPolyElem}" href="#is_monomial-Tuple{MPolyElem}"><code>is_monomial</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_monomial(f::MPolyElem)</code></pre><p>Return <code>true</code> if <code>f</code> is a monomial, <code>false</code> otherwise.</p><pre><code class="nohighlight hljs">is_monomial(I::MPolyIdeal)</code></pre><p>Return <code>true</code> if <code>I</code> can be generated by monomials, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; f = 2*x+y
+2*x + y
+
+julia&gt; g = y
+y
+
+julia&gt; is_monomial(f)
+false
+
+julia&gt; is_monomial(g)
+true
+
+julia&gt; is_monomial(ideal(R, [f, g]))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1226">source</a></section></article><h3 id="Containment-of-Ideals"><a class="docs-heading-anchor" href="#Containment-of-Ideals">Containment of Ideals</a><a id="Containment-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Containment-of-Ideals" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="issubset-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#issubset-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>issubset</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return <code>true</code> if <code>I</code> is contained in <code>J</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x^2])
+ideal(x^2)
+
+julia&gt; J = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; issubset(I, J)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L894">source</a></section></article><h3 id="Equality-of-Ideals"><a class="docs-heading-anchor" href="#Equality-of-Ideals">Equality of Ideals</a><a id="Equality-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Equality-of-Ideals" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="==-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T" href="#==-Union{Tuple{T}, Tuple{MPolyIdeal{T}, MPolyIdeal{T}}} where T"><code>==</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T</code></pre><p>Return <code>true</code> if <code>I</code> is equal to <code>J</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x^2])
+ideal(x^2)
+
+julia&gt; J = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; I == J
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L865">source</a></section></article><h3 id="Ideal-Membership"><a class="docs-heading-anchor" href="#Ideal-Membership">Ideal Membership</a><a id="Ideal-Membership-1"></a><a class="docs-heading-anchor-permalink" href="#Ideal-Membership" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="ideal_membership-Union{Tuple{T}, Tuple{T, MPolyIdeal{T}}} where T" href="#ideal_membership-Union{Tuple{T}, Tuple{T, MPolyIdeal{T}}} where T"><code>ideal_membership</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ideal_membership(f::T, I::MPolyIdeal{T}) where T</code></pre><p>Return <code>true</code> if <code>f</code> is contained in <code>I</code>, <code>false</code> otherwise. Alternatively, use <code>f in I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; f = x^2
+x^2
+
+julia&gt; I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; ideal_membership(f, I)
+true
+
+julia&gt; g = x
+x
+
+julia&gt; g in I
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L925">source</a></section></article><h3 id="Radical-Membership"><a class="docs-heading-anchor" href="#Radical-Membership">Radical Membership</a><a id="Radical-Membership-1"></a><a class="docs-heading-anchor-permalink" href="#Radical-Membership" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="radical_membership-Union{Tuple{T}, Tuple{T, MPolyIdeal{T}}} where T" href="#radical_membership-Union{Tuple{T}, Tuple{T, MPolyIdeal{T}}} where T"><code>radical_membership</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">radical_membership(f::T, I::MPolyIdeal{T}) where T</code></pre><p>Return <code>true</code> if <code>f</code> is contained in the radical of <code>I</code>, <code>false</code> otherwise. Alternatively, use <code>inradical(f, I)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,) = PolynomialRing(QQ, [&quot;x&quot;])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia&gt; f = x
+x
+
+julia&gt; I = ideal(R,  [x^2])
+ideal(x^2)
+
+julia&gt; radical_membership(f, I)
+true
+
+julia&gt; g = x+1
+x + 1
+
+julia&gt; inradical(g, I)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L959">source</a></section></article><h3 id="Primality-Test"><a class="docs-heading-anchor" href="#Primality-Test">Primality Test</a><a id="Primality-Test-1"></a><a class="docs-heading-anchor-permalink" href="#Primality-Test" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_prime-Tuple{MPolyIdeal}" href="#is_prime-Tuple{MPolyIdeal}"><code>is_prime</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_prime(I::MPolyIdeal)</code></pre><p>Return <code>true</code> if <code>I</code> is prime, <code>false</code> otherwise.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The function computes the minimal associated primes of <code>I</code>. This may take some time.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; is_prime(I)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L993">source</a></section></article><h3 id="Primary-Test"><a class="docs-heading-anchor" href="#Primary-Test">Primary Test</a><a id="Primary-Test-1"></a><a class="docs-heading-anchor-permalink" href="#Primary-Test" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_primary-Tuple{MPolyIdeal}" href="#is_primary-Tuple{MPolyIdeal}"><code>is_primary</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_primary(I::MPolyIdeal)</code></pre><p>Return <code>true</code> if <code>I</code> is primary, <code>false</code> otherwise.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The function computes a primary decomposition of <code>I</code>. This may take some time.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; is_primary(I)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L1019">source</a></section></article><h2 id="Decomposition-of-Ideals"><a class="docs-heading-anchor" href="#Decomposition-of-Ideals">Decomposition of Ideals</a><a id="Decomposition-of-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Decomposition-of-Ideals" title="Permalink"></a></h2><p>We discuss various decomposition techniques. They are implemented for polynomial rings over fields and, if explicitly mentioned, also for polynomial rings over the integers. See <a href="../../references/#DGP99">Wolfram Decker, Gert-Martin Greuel, Gerhard Pfister (1999)</a> for a survey.</p><h3 id="Radical"><a class="docs-heading-anchor" href="#Radical">Radical</a><a id="Radical-1"></a><a class="docs-heading-anchor-permalink" href="#Radical" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="radical-Tuple{MPolyIdeal}" href="#radical-Tuple{MPolyIdeal}"><code>radical</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">radical(I::MPolyIdeal)</code></pre><p>Return the radical of <code>I</code>.</p><p><strong>Implemented Algorithms</strong></p><p>If the base ring of <code>I</code> is a polynomial ring over a field, a combination of the algorithms of Krick and Logar (with modifications by Laplagne) and Kemper is used. For polynomial rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel. See <a href="../../references/#KL91">Teresa Krick, Alessandro Logar (1991)</a>, <a href="../../references/#Kem02">Gregor Kemper (2002)</a>, and <a href="../../references/#PSS11">Gerhard Pfister, Afshan Sadiq, Stefan Steidel (2011)</a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; RI = radical(I)
+ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c, d) = PolynomialRing(ZZ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;])
+(Multivariate Polynomial Ring in a, b, c, d over Integer Ring, fmpz_mpoly[a, b, c, d])
+
+julia&gt; I = intersect(ideal(R, [9,a,b]), ideal(R, [3,c]))
+ideal(9, 3*b, 3*a, b*c, a*c)
+
+julia&gt; I = intersect(I, ideal(R, [11,2a,7b]))
+ideal(99, 3*b, 3*a, b*c, a*c)
+
+julia&gt; I = intersect(I, ideal(R, [13a^2,17b^4]))
+ideal(39*a^2, 13*a^2*c, 51*b^4, 17*b^4*c, 3*a^2*b^4, a^2*b^4*c)
+
+julia&gt; I = intersect(I, ideal(R, [9c^5,6d^5]))
+ideal(78*a^2*d^5, 117*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 6*a^2*b^4*d^5, 9*a^2*b^4*c^5, 39*a^2*c^5*d^5, 51*b^4*c^5*d^5, 3*a^2*b^4*c^5*d^5)
+
+julia&gt; I = intersect(I, ideal(R, [17,a^15,b^15,c^15,d^15]))
+ideal(1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15, 78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15, 39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5, 6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15, 3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5)
+
+julia&gt; RI = radical(I)
+ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L367">source</a></section></article><h3 id="Primary-Decomposition"><a class="docs-heading-anchor" href="#Primary-Decomposition">Primary Decomposition</a><a id="Primary-Decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Primary-Decomposition" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="primary_decomposition-Tuple{MPolyIdeal}" href="#primary_decomposition-Tuple{MPolyIdeal}"><code>primary_decomposition</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">primary_decomposition(I::MPolyIdeal; alg = :GTZ)</code></pre><p>Return a minimal primary decomposition of <code>I</code>. If <code>I</code> is the unit ideal, return <code>[ideal(1)]</code>.</p><p>The decomposition is returned as a vector of tuples <span>$(Q_1, P_1), \dots, (Q_t, P_t)$</span>, say, where each <span>$Q_i$</span> is a primary ideal with associated prime <span>$P_i$</span>, and where the intersection of the <span>$Q_i$</span> is <code>I</code>.</p><p><strong>Implemented Algorithms</strong></p><p>If the base ring of <code>I</code> is a polynomial ring over a field, the algorithm of Gianni, Trager, and Zacharias is used by default (<code>alg = :GTZ</code>). Alternatively, the algorithm by Shimoyama and Yokoyama can be used by specifying <code>alg = :SY</code>.  For polynomial rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel. See <a href="../../references/#GTZ88">Patrizia Gianni, Barry Trager, Gail Zacharias (1988)</a>, <a href="../../references/#SY96">Takeshi Shimoyama, Kazuhiro Yokoyama (1996)</a>, and <a href="../../references/#PSS11">Gerhard Pfister, Afshan Sadiq, Stefan Steidel (2011)</a>.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The algorithm of Gianni, Trager, and Zacharias may not terminate over a small finite field. If it terminates, the result is correct.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; L = primary_decomposition(I)
+3-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}}}:
+ (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
+ (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
+ (ideal(y, x^2), ideal(x, y))
+
+julia&gt; L = primary_decomposition(I, alg = :SY)
+3-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}}}:
+ (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
+ (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
+ (ideal(y, x^2), ideal(y, x))</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c, d) = PolynomialRing(ZZ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;])
+(Multivariate Polynomial Ring in a, b, c, d over Integer Ring, fmpz_mpoly[a, b, c, d])
+
+julia&gt; I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
+       663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
+       78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
+       39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
+       6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
+       3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
+ideal(1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15, 78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15, 39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5, 6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15, 3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5)
+
+julia&gt; L = primary_decomposition(I)
+8-element Vector{Tuple{MPolyIdeal{fmpz_mpoly}, MPolyIdeal{fmpz_mpoly}}}:
+ (ideal(d^5, c^5), ideal(d, c))
+ (ideal(a^2, b^4), ideal(b, a))
+ (ideal(2, c^5), ideal(2, c))
+ (ideal(3), ideal(3))
+ (ideal(13, b^4), ideal(13, b))
+ (ideal(17, a^2), ideal(17, a))
+ (ideal(17, d^15, c^15, b^15, a^15), ideal(17, d, c, b, a))
+ (ideal(9, 3*d^5, d^10), ideal(3, d))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L431">source</a></section></article><h3 id="Absolute-Primary-Decomposition"><a class="docs-heading-anchor" href="#Absolute-Primary-Decomposition">Absolute Primary Decomposition</a><a id="Absolute-Primary-Decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Absolute-Primary-Decomposition" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="absolute_primary_decomposition-Tuple{MPolyIdeal{fmpq_mpoly}}" href="#absolute_primary_decomposition-Tuple{MPolyIdeal{fmpq_mpoly}}"><code>absolute_primary_decomposition</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">absolute_primary_decomposition(I::MPolyIdeal{&lt;:MPolyElem{fmpq}})</code></pre><p>If <code>I</code> is an ideal in a multivariate polynomial ring over the rationals, return an absolute minimal primary decomposition of <code>I</code>.</p><p>Return the decomposition as a vector of tuples <span>$(Q_i, P_i, P_{ij}, d_{ij})$</span>, say, where <span>$(Q_i, P_i)$</span> is a (primary, prime) tuple as returned by <code>primary_decomposition(I)</code>, and <span>$P_{ij}$</span> represents a corresponding class of conjugated absolute associated primes defined over a number field of degree <span>$d_{ij}$</span> whose generator prints as <code>_a</code>.</p><p><strong>Implemented Algorithms</strong></p><p>The implementation combines the algorithm of Gianni, Trager, and Zacharias for primary decomposition with absolute polynomial factorization.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (y, z) = PolynomialRing(QQ, [&quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in y, z over Rational Field, fmpq_mpoly[y, z])
+
+julia&gt; p = z^2+1
+z^2 + 1
+
+julia&gt; q = z^3+2
+z^3 + 2
+
+julia&gt; I = ideal(R, [p*q^2, y-z^2])
+ideal(z^8 + z^6 + 4*z^5 + 4*z^3 + 4*z^2 + 4, y - z^2)
+
+julia&gt; L = primary_decomposition(I)
+2-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}}}:
+ (ideal(z^2 + 1, y - z^2), ideal(z^2 + 1, y - z^2))
+ (ideal(z^6 + 4*z^3 + 4, y - z^2), ideal(z^3 + 2, y - z^2))
+
+julia&gt; AL = absolute_primary_decomposition(I)
+2-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}, Int64}}:
+ (ideal(z^2 + 1, y + 1), ideal(z^2 + 1, y + 1), ideal(z - _a, y + 1), 2)
+ (ideal(z^6 + 4*z^3 + 4, y - z^2), ideal(z^3 + 2, y - z^2), ideal(z - _a, y - _a*z), 3)
+
+julia&gt; AP = AL[1][3]
+ideal(z - _a, y + 1)
+
+julia&gt; RAP = base_ring(AP)
+Multivariate Polynomial Ring in y, z over Number field over Rational Field with defining polynomial x^2 + 1
+
+julia&gt; NF = coefficient_ring(RAP)
+Number field over Rational Field with defining polynomial x^2 + 1
+
+julia&gt; a = gen(NF)
+_a
+
+julia&gt; minpoly(a)
+x^2 + 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L516">source</a></section></article><h3 id="Minimal-Associated-Primes"><a class="docs-heading-anchor" href="#Minimal-Associated-Primes">Minimal Associated Primes</a><a id="Minimal-Associated-Primes-1"></a><a class="docs-heading-anchor-permalink" href="#Minimal-Associated-Primes" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="minimal_primes-Tuple{MPolyIdeal}" href="#minimal_primes-Tuple{MPolyIdeal}"><code>minimal_primes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minimal_primes(I::MPolyIdeal; alg = :GTZ)</code></pre><p>Return a vector containing the minimal associated prime ideals of <code>I</code>. If <code>I</code> is the unit ideal, return <code>[ideal(1)]</code>.</p><p><strong>Implemented Algorithms</strong></p><p>If the base ring of <code>I</code> is a polynomial ring over a field, the algorithm of Gianni, Trager, and Zacharias is used by default (<code>alg = :GTZ</code>). Alternatively, characteristic sets can be used by specifying <code>alg = :charSets</code>. For polynomial rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel. See <a href="../../references/#GTZ88">Patrizia Gianni, Barry Trager, Gail Zacharias (1988)</a> and <a href="../../references/#PSS11">Gerhard Pfister, Afshan Sadiq, Stefan Steidel (2011)</a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; L = minimal_primes(I)
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
+ ideal(x - y - 1)
+ ideal(x^3 - x - y^2)
+
+julia&gt; L = minimal_primes(I, alg = :charSets)
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
+ ideal(x - y - 1)
+ ideal(x^3 - x - y^2)</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c, d) = PolynomialRing(ZZ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;])
+(Multivariate Polynomial Ring in a, b, c, d over Integer Ring, fmpz_mpoly[a, b, c, d])
+
+julia&gt; I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
+       663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
+       78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
+       39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
+       6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
+       3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
+ideal(1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15, 78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15, 39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5, 6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15, 3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5)
+
+julia&gt; L = minimal_primes(I)
+6-element Vector{MPolyIdeal{fmpz_mpoly}}:
+ ideal(d, c)
+ ideal(b, a)
+ ideal(2, c)
+ ideal(3)
+ ideal(13, b)
+ ideal(17, a)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L616">source</a></section></article><h3 id="Weak-Equidimensional-Decomposition"><a class="docs-heading-anchor" href="#Weak-Equidimensional-Decomposition">Weak Equidimensional Decomposition</a><a id="Weak-Equidimensional-Decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Weak-Equidimensional-Decomposition" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="equidimensional_decomposition_weak-Tuple{MPolyIdeal}" href="#equidimensional_decomposition_weak-Tuple{MPolyIdeal}"><code>equidimensional_decomposition_weak</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">equidimensional_decomposition_weak(I::MPolyIdeal)</code></pre><p>Return a vector of equidimensional ideals where the last entry is the equidimensional hull of <code>I</code>, that is, the intersection of the primary components of <code>I</code> of maximal dimension. Each of the previous entries is an ideal of lower dimension whose associated primes are exactly the associated primes of <code>I</code> of that dimension. If <code>I</code> is the unit ideal, return <code>[ideal(1)]</code>.</p><p><strong>Implemented Algorithms</strong></p><p>The implementation relies on ideas of Eisenbud, Huneke, and Vasconcelos. See <a href="../../references/#EHV92">David Eisenbud, Craig Huneke, Wolmer Vasconcelos (1992)</a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; L = equidimensional_decomposition_weak(I)
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
+ ideal(y, x)
+ ideal(x^5 - 2*x^4*y - 2*x^4 + x^3*y^2 + 2*x^3*y - x^2*y^2 + 2*x^2*y + 2*x^2 + 2*x*y^3 + x*y^2 - 2*x*y - x - y^4 - 2*y^3 - y^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L692">source</a></section></article><h3 id="Equidimensional-Decomposition-of-radical"><a class="docs-heading-anchor" href="#Equidimensional-Decomposition-of-radical">Equidimensional Decomposition of radical</a><a id="Equidimensional-Decomposition-of-radical-1"></a><a class="docs-heading-anchor-permalink" href="#Equidimensional-Decomposition-of-radical" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="equidimensional_decomposition_radical-Tuple{MPolyIdeal}" href="#equidimensional_decomposition_radical-Tuple{MPolyIdeal}"><code>equidimensional_decomposition_radical</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">equidimensional_decomposition_radical(I::MPolyIdeal)</code></pre><p>Return a vector of equidimensional radical ideals increasingly ordered by dimension. For each dimension, the returned radical ideal is the intersection of the associated primes of <code>I</code> of that dimension. If <code>I</code> is the unit ideal, return <code>[ideal(1)]</code>.</p><p><strong>Implemented Algorithms</strong></p><p>The implementation combines the algorithms of Krick and Logar (with modifications by Laplagne) and Kemper. See <a href="../../references/#KL91">Teresa Krick, Alessandro Logar (1991)</a> and <a href="../../references/#Kem02">Gregor Kemper (2002)</a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; L = equidimensional_decomposition_radical(I)
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
+ ideal(y, x)
+ ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L732">source</a></section></article><h3 id="Equidimensional-Hull"><a class="docs-heading-anchor" href="#Equidimensional-Hull">Equidimensional Hull</a><a id="Equidimensional-Hull-1"></a><a class="docs-heading-anchor-permalink" href="#Equidimensional-Hull" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="equidimensional_hull-Tuple{MPolyIdeal}" href="#equidimensional_hull-Tuple{MPolyIdeal}"><code>equidimensional_hull</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">equidimensional_hull(I::MPolyIdeal)</code></pre><p>If the base ring of <code>I</code> is a polynomial ring over a field, return the intersection of the primary components of <code>I</code> of maximal dimension. In the case of polynomials over the integers, return the intersection of the primary components of I of minimal height.  If <code>I</code> is the unit ideal, return <code>[ideal(1)]</code>.</p><p><strong>Implemented Algorithms</strong></p><p>For polynomial rings over a field, the implementation relies on ideas as used by Gianni, Trager, and Zacharias or Krick and Logar. For polynomial rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel. See <a href="../../references/#GTZ88">Patrizia Gianni, Barry Trager, Gail Zacharias (1988)</a>, <a href="../../references/#KL91">Teresa Krick, Alessandro Logar (1991)</a>,  and <a href="../../references/#PSS11">Gerhard Pfister, Afshan Sadiq, Stefan Steidel (2011)</a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; L = equidimensional_hull(I)
+ideal(x^5 - 2*x^4*y - 2*x^4 + x^3*y^2 + 2*x^3*y - x^2*y^2 + 2*x^2*y + 2*x^2 + 2*x*y^3 + x*y^2 - 2*x*y - x - y^4 - 2*y^3 - y^2)</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c, d) = PolynomialRing(ZZ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;])
+(Multivariate Polynomial Ring in a, b, c, d over Integer Ring, fmpz_mpoly[a, b, c, d])
+
+julia&gt; I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
+       663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
+       78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
+       39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
+       6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
+       3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
+ideal(1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15, 78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15, 39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5, 6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15, 3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5)
+
+julia&gt; L = equidimensional_hull(I)
+ideal(3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L770">source</a></section></article><h3 id="Radical-of-the-Equidimensional-Hull"><a class="docs-heading-anchor" href="#Radical-of-the-Equidimensional-Hull">Radical of the Equidimensional Hull</a><a id="Radical-of-the-Equidimensional-Hull-1"></a><a class="docs-heading-anchor-permalink" href="#Radical-of-the-Equidimensional-Hull" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="equidimensional_hull_radical-Tuple{MPolyIdeal}" href="#equidimensional_hull_radical-Tuple{MPolyIdeal}"><code>equidimensional_hull_radical</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">equidimensional_hull_radical(I::MPolyIdeal)</code></pre><p>Return the intersection of the associated primes of <code>I</code> of maximal dimension. If <code>I</code> is the unit ideal, return <code>[ideal(1)]</code>.</p><p><strong>Implemented Algorithms</strong></p><p>The implementation relies on a combination of the algorithms of Krick and Logar (with modifications by Laplagne) and Kemper. See <a href="../../references/#KL91">Teresa Krick, Alessandro Logar (1991)</a> and <a href="../../references/#Kem02">Gregor Kemper (2002)</a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia&gt; I = intersect(I, ideal(R, [x-y-1])^2)
+ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
+
+julia&gt; L = equidimensional_hull_radical(I)
+ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-ideals.jl#L828">source</a></section></article><h2 id="Homogenization-and-Dehomogenization"><a class="docs-heading-anchor" href="#Homogenization-and-Dehomogenization">Homogenization and Dehomogenization</a><a id="Homogenization-and-Dehomogenization-1"></a><a class="docs-heading-anchor-permalink" href="#Homogenization-and-Dehomogenization" title="Permalink"></a></h2><p>Referring to <a href="../../references/#KR05">Martin Kreuzer, Lorenzo Robbiano (2005)</a> for definitions and technical details, we discuss homogenization and dehomogenization in the context of <span>$\mathbb Z^m$</span>-gradings. </p><article class="docstring"><header><a class="docstring-binding" id="homogenization" href="#homogenization"><code>homogenization</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">homogenization(f::MPolyElem, W::Union{fmpz_mat, Matrix{&lt;:IntegerUnion}}, var::String, pos::Int = 1)</code></pre><p>If <span>$m$</span> is the number of rows of <code>W</code>, extend the parent polynomial ring of <code>f</code> by inserting <span>$m$</span> extra variables, starting at position <code>pos</code>. Correspondingly, extend the integer matrix <code>W</code> by inserting the standard unit vectors of size <span>$m$</span> as new columns, starting at column <code>pos</code>. Grade the extended ring by converting the columns of the extended matrix to elements of the group <span>$\mathbb Z^m$</span> and assigning these as weights to the variables. Homogenize <code>f</code> with respect to the induced <span>$\mathbb Z^m$</span>-grading on the original ring, using the extra variables as homogenizing variables. Return the result as an element of the extended ring with its <span>$\mathbb Z^m$</span>-grading. If <span>$m=1$</span>, the extra variable prints as <code>var</code>. Otherwise, the extra variables print as <code>var[</code><span>$i$</span><code>]</code>, for <span>$i = 1 \dots m$</span>.</p><pre><code class="nohighlight hljs">homogenization(V::Vector{T},  W::Union{fmpz_mat, Matrix{&lt;:IntegerUnion}}, var::String, pos::Int = 1) where {T &lt;: MPolyElem}</code></pre><p>Given a vector <code>V</code> of elements in a common polynomial ring, create an extended ring with <span>$\mathbb Z^m$</span>-grading as above. Homogenize the elements of <code>V</code> correspondingly,  and return the vector of homogenized elements.</p><pre><code class="nohighlight hljs">homogenization(I::MPolyIdeal{T},  W::Union{fmpz_mat, Matrix{&lt;:IntegerUnion}}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T &lt;: MPolyElem}</code></pre><p>Return the homogenization of <code>I</code> in an extended ring with <span>$\mathbb Z^m$</span>-grading as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Applied to an ideal <code>I</code>, the function first homogenizes the generators of <code>I</code> in the extended ring. It then creates the ideal generated by these homogenizations, and saturates this ideal with respect to the ideal which is generated by the homogenizing variables.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; f = x^3+x^2*y+x*y^2+y^3
+x^3 + x^2*y + x*y^2 + y^3
+
+julia&gt; W = [1 2; 3 4]
+2×2 Matrix{Int64}:
+ 1  2
+ 3  4
+
+julia&gt; F = homogenization(f, W, &quot;z&quot;, 3)
+x^3*z[1]^3*z[2]^3 + x^2*y*z[1]^2*z[2]^2 + x*y^2*z[1]*z[2] + y^3
+
+julia&gt; parent(F)
+Multivariate Polynomial Ring in x, y, z[1], z[2] over Rational Field graded by
+  x -&gt; [1 3]
+  y -&gt; [2 4]
+  z[1] -&gt; [1 0]
+  z[2] -&gt; [0 1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-graded.jl#L2123">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="homogenization" href="#homogenization"><code>homogenization</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">homogenization(f::MPolyElem, var::String, pos::Int = 1)
+
+homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T &lt;: MPolyElem}
+
+homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T &lt;: MPolyElem}</code></pre><p>Homogenize <code>f</code>, <code>V</code>, or <code>I</code> with respect to the standard <span>$\mathbb Z$</span>-grading using a homogenizing variable printing as <code>var</code>. Return the result as an element of a graded polynomial ring with the homogenizing variable at position <code>pos</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Applied to an ideal <code>I</code>, the function proceeds by homogenizing the elements of a Gröbner basis of <code>I</code> with respect to a degree compatible monomial ordering such as <code>degrevlex</code> (default).  If a Gröbner basis with respect to the specified ordering has not yet been computed and, thus, not yet been cached, executing the <code>homogenization</code> function with argument <code>I</code> may take some time. The degree compatibility of the specified ordering is not checked by the function.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; f = x^3-y^2-z
+x^3 - y^2 - z
+
+julia&gt; F = homogenization(f, &quot;w&quot;, 4)
+x^3 - y^2*w - z*w^2
+
+julia&gt; parent(F)
+Multivariate Polynomial Ring in x, y, z, w over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1]
+  w -&gt; [1]
+
+julia&gt; V = [y-x^2, z-x^3]
+2-element Vector{fmpq_mpoly}:
+ -x^2 + y
+ -x^3 + z
+
+julia&gt; homogenization(V, &quot;w&quot;)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ w*y - x^2
+ w^2*z - x^3
+
+julia&gt; I = ideal(R, V)
+ideal(-x^2 + y, -x^3 + z)
+
+julia&gt; PTC = homogenization(I, &quot;w&quot;)
+ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+
+julia&gt; parent(PTC[1])
+Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -&gt; [1]
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1]
+
+julia&gt; homogenization(I, &quot;w&quot;, ordering = deglex(gens(base_ring(I))))
+ideal(x*z - y^2, -w*z + x*y, -w*y + x^2, -w*z^2 + y^3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-graded.jl#L2205">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="dehomogenization-Tuple{MPolyElem_dec, Int64}" href="#dehomogenization-Tuple{MPolyElem_dec, Int64}"><code>dehomogenization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dehomogenization(F::MPolyElem_dec, pos::Int)</code></pre><p>Given an element <code>F</code> of a <span>$\mathbb Z^m$</span>-graded ring, where the generators of <span>$\mathbb Z^m$</span> are the assigned weights to the variables at positions <code>pos</code>, <span>$\dots$</span>, <code>pos</code> <span>$-1+m$</span>, dehomogenize <code>F</code> using the variables at these positions. Return the result as an element of a polynomial ring not depending on the variables at these positions.</p><pre><code class="nohighlight hljs">dehomogenization(V::Vector{T}, pos::Int) where {T &lt;: MPolyElem_dec}</code></pre><p>Given a vector <code>V</code> of elements in a common graded polynomial ring, create a polynomial ring not depending on the variables at positions <code>pos</code>, <span>$\dots$</span>, <code>pos</code> <span>$-1+m$</span>. Dehomogenize the elements  of <code>V</code> correspondingly,  and return the vector of dehomogenized elements.  </p><pre><code class="nohighlight hljs">dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T &lt;: MPolyElem_dec}</code></pre><p>Return the dehomogenization of <code>I</code> in a polynomial ring as above.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -&gt; [1]
+  y -&gt; [1]
+  z -&gt; [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; F = x^3-x^2*y-x*z^2
+x^3 - x^2*y - x*z^2
+
+julia&gt; f = dehomogenization(F, 1)
+-y - z^2 + 1
+
+julia&gt; parent(f)
+Multivariate Polynomial Ring in y, z over Rational Field
+
+julia&gt; V = [x*y-z^2, x^2*z-x^3]
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x*y - z^2
+ -x^3 + x^2*z
+
+julia&gt; dehomogenization(V, 3)
+2-element Vector{fmpq_mpoly}:
+ x*y - 1
+ -x^3 + x^2
+
+julia&gt; I = ideal(S, V)
+ideal(x*y - z^2, -x^3 + x^2*z)
+
+julia&gt; dehomogenization(I, 3)
+ideal(x*y - 1, -x^3 + x^2)
+
+julia&gt; W = [1 2 1 0; 3 4 0 1]
+2×4 Matrix{Int64}:
+ 1  2  1  0
+ 3  4  0  1
+
+julia&gt; S, (w, x, y, z) = GradedPolynomialRing(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;], W)
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -&gt; [1 3]
+  x -&gt; [2 4]
+  y -&gt; [1 0]
+  z -&gt; [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[w, x, y, z])
+
+julia&gt; F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+
+julia&gt; dehomogenization(F, 3)
+w^3 + w^2*x + w*x^2 + x^3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/mpoly-graded.jl#L2316">source</a></section></article><h2 id="Generating-Special-Ideals"><a class="docs-heading-anchor" href="#Generating-Special-Ideals">Generating Special Ideals</a><a id="Generating-Special-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Generating-Special-Ideals" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="katsura-Tuple{Int64}" href="#katsura-Tuple{Int64}"><code>katsura</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">katsura(n::Int)</code></pre><p>Given a natural number <code>n</code> returns the Katsura ideal generated by <span>$u_m - \sum_{l=n}^n u_{l-m} u_l$</span>, <span>$1 - \sum_{l = -n}^n u_l$</span> where <span>$u_{-i} = u_i$</span>, and <span>$u_i = 0$</span> for <span>$i &gt; n$</span> and <span>$m \in \{-n, \ldots, n\}$</span>. Also note that indices have been shifted to start from 1.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; katsura(2)
+ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/special_ideals.jl#L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="katsura-Tuple{MPolyRing}" href="#katsura-Tuple{MPolyRing}"><code>katsura</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">katsura(R::MPolyRing)</code></pre><p>Returns the Katsura ideal in the given polynomial ring <code>R</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, _ = QQ[&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; katsura(R)
+ideal(x + 2*y + 2*z - 1, x^2 - x + 2*y^2 + 2*z^2, 2*x*y + 2*y*z - y)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/7147fb28f91718f3b0afe28e9ab287a401e6040a/src/Rings/special_ideals.jl#L34">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../rings/">« Creating Multivariate Rings</a><a class="docs-footer-nextpage" href="../affine_algebras/">Affine Algebras and Their Ideals »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Friday 27 January 2023 12:04">Friday 27 January 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
