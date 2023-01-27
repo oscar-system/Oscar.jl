@@ -16,8 +16,10 @@ function simplify!(X::AbsCoveredScheme)
   push!(coverings(X), Csimp)
   refinements(X)[(C, Csimp)] = j
   refinements(X)[(Csimp, C)] = i
-  return (X, Csimp)
+  set_attribute!(X, :simplified_covering, Csimp)
+  return X
 end
+
 
 ########################################################################
 # Auxiliary methods for compatibility                                  #
