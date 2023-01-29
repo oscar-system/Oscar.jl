@@ -570,7 +570,7 @@ Fields:
   * `gb::IdealGens{S}`, a field used for caching of Groebner basis computations;
   * `dim::Int`, a field used for caching the dimension of the ideal.
 """
-mutable struct MPolyIdeal{S} <: Ideal{S}
+@attributes mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::IdealGens{S}
   gb::Dict{MonomialOrdering, IdealGens{S}}
   dim::Int

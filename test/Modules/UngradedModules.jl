@@ -1007,4 +1007,43 @@ end
   @test iszero(mapM(M[1]))
 end
 
+@testset "duals" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  F1 = FreeMod(R, 1)
+  F2 = FreeMod(R, 2)
+  F2v, ev = oscar.dual(F2, cod=F1)
+  @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
+
+  FF, psi = oscar.double_dual(F2)
+  @test is_injective(psi) 
+  @test_broken is_surjective(psi) # fails! Why?
+  
+  M, inc = sub(F2, [x*F2[1], y*F2[1]])
+  F1 = FreeMod(R, 1)
+  Mv, ev = dual(M, cod=F1)
+  @test ev(Mv[1])(M[1]) == x*F1[1]
+
+  Mvv, psi = oscar.double_dual(M, cod=F1)
+  @test matrix(psi) == R[x; y]
+  
+  ### Quotient rings
+
+  A = R[x y; z x-1]
+  Q, _ = quo(R, ideal(R, det(A)))
+
+  F1 = FreeMod(Q, 1)
+  F2 = FreeMod(Q, 2)
+  F2v, ev = oscar.dual(F2, cod=F1)
+  @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
+  
+  FF, psi = oscar.double_dual(F2)
+  @test is_injective(psi) 
+  @test_broken is_surjective(psi) # fails! Why?
+
+  M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
+  Mv, ev = oscar.dual(M, cod=F1)
+  Mvv, psi = oscar.double_dual(M, cod=F1)
+  @test is_injective(psi) 
+  @test is_surjective(psi) # works correctly!
+end
 

@@ -41,5 +41,3 @@ direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where T
 ```@docs
 direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
 ```
-
-
