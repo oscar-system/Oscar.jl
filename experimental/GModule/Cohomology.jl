@@ -2,7 +2,7 @@ module GrpCoh
 
 using Oscar
 import Oscar:action
-import Oscar:GAPWrap
+import Oscar:GAPWrap, pc_group
 import AbstractAlgebra: Group, Module
 import Base: parent
 
@@ -2080,9 +2080,14 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     _k, mk = kernel(id_hom(q) - ss)
     @assert ngens(_k) > 0
     lk = [preimage(mq, mk(g)) for g = gens(_k)]
-    lf  = findall(g->sigma(g) != g, lk)
+
+    lf  = findall(g->isodd((sigma(g) - g)[1]), lk)
+    #we need to find a unit that will give a non-trivial extension of Z
+    #by Debeerst, this is linked to the torsion coming in from sigma(x)/x
+    #must not be a square.. hence the coeff odd
     @assert length(lf) > 0
     W, mW = sub(U, [U[1], lk[lf[1]]])
+    @assert all(g->haspreimage(mW, sigma(mW(g)))[1], gens(W))
     #W here is (Z; U_tor) in Debeerst, next we need an invariant complement
     fl, C = has_complement(W, U)
     #... but it needs to be sigma invariant.
@@ -2091,6 +2096,10 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     @assert is_bijective(hW)
     hW = GrpAbFinGenMap(mq*pseudo_inv(hW))
     hC = (id_hom(U) - hW*mW)
+    fl, mC = is_subgroup(C, U)
+    @assert fl
+    @assert all(g->haspreimage(mC, hC(g))[1], gens(U))
+    @assert all(g->preimage(mC, hC(g)) + mW(hW(g)) == g, gens(U))
     #the gens of C can be changed by elements of U
     # C[i] -> C[i] + u[i]
     # under sigma this is 
@@ -2099,8 +2108,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     #                     = sum mu_ij (C[j] + u[j]) 
     #                                 - sum mu_ij u[j] + sigma(u[i]) + v[i]
     # this is a "linear" equation in u
-    fl, mC = is_subgroup(C, U)
-    @assert fl
     c = map(mC, gens(C))
     c = map(sigma, c)
     v = map(hW, c)
@@ -2129,6 +2136,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     #one looses the embedding into R^*/ C^* which hopefully is not used
     @assert all(g->mq(sigma(g)) == action(Et, G_inf[1])(mq(g)), gens(E.M))
     iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mq)
+    #seems I need the full monty...
   end
   @assert is_consistent(iEt[1])
   #test if the G-action is the same:
@@ -2146,7 +2154,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   end
   @assert is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
 
-  S = S[s]
+  @show S = S[s]
 
   #TODO: precision: for some examples the default is too small
   L = [completion(k, x) for x = S]
