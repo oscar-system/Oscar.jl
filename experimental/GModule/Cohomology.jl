@@ -1729,10 +1729,50 @@ function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, Fli
   return gmodule(G, hh)
 end
 
-function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0)
 
-  U, mU = unit_group(K)
+  #if K/k is unramified, then the units are cohomological trivial,
+  #   so Z (with trivial action) is correct for the gmodule
+  #if K/k is tame, then the 1-units are cohomologycal trivial, hence
+  #   Z time k^* is enough...
+
   G, mG = automorphism_group(PermGroup, K, k)
+
+
+  e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
+  if e == 1
+    @show :unram
+    A = abelian_group([0])
+    pi = uniformizer(K)
+    return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
+      mG,
+      MapFromFunc(x->pi^x[1], y->Int(e*valuation(y)), A, K)
+  end
+
+  if e % prime(K) != 0 #tame!
+    @show :tame
+    k, mk = ResidueField(K)
+    u, mu = unit_group(k)
+    pi = uniformizer(K)
+    gk = preimage(mk, mu(u[1]))^(4^10)
+    A = abelian_group([0, order(u)])
+    h = Map[]
+    for g = gens(G)
+      im = [A[1]+preimage(mu, mk(mG(g)(pi)*inv(pi)))[1]*A[2], preimage(mu, mk(mG(g)(gk)))[1]*A[2]]
+      push!(h, hom(A, A, im))
+    end
+    return gmodule(G, h),
+      mG,
+      MapFromFunc(x->pi^x[1] * gk^x[2],
+        function(y)
+          v = Int(e*valuation(y))
+          y *= y^-v
+          return v*A[1] + preimage(mu, mk(y))[1]*A[2]
+        end, A, K)
+  end
+ 
+  @show :wild
+  U, mU = unit_group(K)
   n = divexact(absolute_degree(K), absolute_degree(k))
   @assert order(G) == n
 
@@ -1751,13 +1791,26 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     end
   end
 
-  global last_data = (o, k, mU, mG)
-  S, mS = sub(U, [preimage(mU, 1+prime(k)^3*x) for x = o])
-  Q, mQ = quo(U, S)
+  #o needs to be expanded to be an absolute basis
+  b = absolute_basis(k)
+  o = [x*y for x = b for y = o]
+
+  Q, mQ = quo(U, [preimage(mU, 1+prime(k)^4*x) for x = o])
+  S, mS = snf(Q)
+  Q = S
+  mQ = mQ*inv(mS)
+
+  if Sylow > 0
+    @assert isprime(Sylow)
+    G, mS = sylow_subgroup(G, Sylow)
+    mG = mS*mG
+  end
+
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
 
+<<<<<<< HEAD
 function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
 
   U, mU = Hecke.one_unit_group(K)
@@ -1778,7 +1831,6 @@ function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, Fli
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
   return gmodule(G, hh)
 end
-
 
 #= TODO
  - induce a gmodule into a larger group
@@ -2330,7 +2382,7 @@ Sort:
    - think about Debeerst: if P, Q are above the some prime then
      Ind_G_P^G L_P = Ing_G_Q^G L_Q??? (no - aprently yes)
    - use prod_Q|P L_Q rather than prod Ind...  
-   - use prod_Q|P L_Q rather than prod Ind...  
+   - induction/ coinduction ...
 
   dreams
    - we we extend to H^-1, ^-2?
@@ -2346,6 +2398,9 @@ Sort:
     - (done for mult grp) local field (add (trivial) and mult)
     - (done) (S-)units
     - (done) Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
+    - local field (add (trivial) and mult)
+    - (S-)units
+    - Ali's stuff.... (in progress: see Hecke/src/LocalField/neq.jl)
 =#    
 
 #TODO: what do we need to return?
@@ -2518,7 +2573,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   end
   @hassert :GaloisCohomology 1 is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
 
->>>>>>> acd6bb29b6 (hassert and vprint)
   S = S[s]
 
   #TODO: precision: for some examples the default is too small
