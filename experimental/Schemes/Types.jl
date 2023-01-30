@@ -601,6 +601,7 @@ identifications given by the glueings in the `default_covering`.
       haskey(ID, U) && return ID[U]
       # The ideal sheaf has to be provided on at least one dense
       # open subset of every connected component.
+      @show "NOOOOOO!"
       for G in values(glueings(default_covering(space(F))))
         A, B = patches(G)
         Asub, Bsub = glueing_domains(G)
@@ -639,6 +640,29 @@ identifications given by the glueings in the `default_covering`.
     function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
       haskey(ID, U) && return ID[U]
       V = ambient_scheme(U)
+      # In case the ambient_scheme is leading out of the admissible domain, 
+      # this is a top-chart and we have to reconstruct from below.
+      if !is_open_func(F)(V, space(F)) 
+        V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+
+        # Check for some SimplifiedSpec lurking around
+        if any(x->(x isa SimplifiedSpec), V)
+          i = findfirst(x->(x isa SimplifiedSpec), V)
+          W = V[i]
+          _, g = identification_maps(W)
+          return ideal(OO(U), pullback(g).(gens(ID[W])))
+        end
+
+        length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+        # Just return the unit ideal so that the 
+        # associated subscheme is empty.
+        result = ideal(OO(U), zero(OO(U)))
+        for VV in V
+          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+        end
+        return result
+      end
+
       IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
@@ -647,6 +671,28 @@ identifications given by the glueings in the `default_covering`.
     function production_func(F::AbsPreSheaf, U::SimplifiedSpec)
       haskey(ID, U) && return ID[U]
       V = original(U)
+      # In case the original is leading out of the admissible domain, 
+      # this is a top-chart and we have to reconstruct from below.
+      if !is_open_func(F)(V, space(F)) 
+        V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+
+        # Check for some SimplifiedSpec lurking around
+        if any(x->(x isa SimplifiedSpec), V)
+          i = findfirst(x->(x isa SimplifiedSpec), V)
+          W = V[i]
+          _, g = identification_maps(W)
+          return ideal(OO(U), pullback(g).(gens(ID[W])))
+        end
+
+        length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+        # Just return the unit ideal so that the 
+        # associated subscheme is empty.
+        result = ideal(OO(U), zero(OO(U)))
+        for VV in V
+          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+        end
+        return result
+      end
       IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
