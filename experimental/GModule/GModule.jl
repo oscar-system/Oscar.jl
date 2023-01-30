@@ -564,7 +564,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
   Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
-  @vtime :MinField 2 fl, cb = Oscar.GrpCoh.iscoboundary(Sigma)
+  @vtime :MinField 2 fl, cb = Oscar.GrpCoh.is_coboundary(Sigma)
 
   cc = Dict(k => cb(k).data for k = G)
   for g = G
