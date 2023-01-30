@@ -1708,6 +1708,8 @@ end
 
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
+#= not used
+
 function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
 
   U, mU = Hecke.one_unit_group(K)
@@ -1729,6 +1731,17 @@ function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, Fli
   return gmodule(G, hh)
 end
 
+=#
+
+"""
+For a local field extension K/k, return a gmodule for the multiplicative
+group of K as a Gal(K/k) module.
+
+Returns: 
+ - the gmodule
+ - the map from G = Gal(K/k) -> Set of actual automorphisms
+ - the map from the module into K
+"""
 function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0)
 
   #if K/k is unramified, then the units are cohomological trivial,
@@ -1738,10 +1751,9 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
 
   G, mG = automorphism_group(PermGroup, K, k)
 
-
   e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
   if e == 1
-    @show :unram
+#    @show :unram
     A = abelian_group([0])
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
@@ -1750,7 +1762,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   end
 
   if e % prime(K) != 0 #tame!
-    @show :tame
+#    @show :tame
     k, mk = ResidueField(K)
     u, mu = unit_group(k)
     pi = uniformizer(K)
@@ -1771,20 +1783,25 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
         end, A, K)
   end
  
-  @show :wild
+#  @show :wild
   U, mU = unit_group(K)
   n = divexact(absolute_degree(K), absolute_degree(k))
   @assert order(G) == n
 
   b = absolute_basis(K)
   # need a normal basis for K/k, so the elements need to be k-lin. indep
-  local o
+  local o, best_o
+  cnt = 0
   while true
     a = sum(b[i]*rand(-5:5) for i=1:length(b))
     o = [mG(g)(a) for g = G]
     m = matrix(k, n, n, vcat([coordinates(x, k) for x = o]...))
     dm = det(m)
-    if iszero(dm) || valuation(dm) > 5
+    cnt += 1
+    if cnt > 10
+      error("dnw")
+    end
+    if iszero(dm) #|| valuation(dm) > 5
       continue
     else
       break
@@ -1842,6 +1859,7 @@ Find the embedding of Gp -> G, realizing the local automorphism group
 as a subgroup of the global one.
 """
 function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))))
+  global last_data = (K, mK, mG, mGp)
   Kp = codomain(mK)
   @assert domain(mK) == K
 
@@ -1861,6 +1879,23 @@ function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = autom
 end
 
 """
+  For a real or complex embedding `emb`, find the unique automorphism
+  that acts on this embedding as complex conjugation.
+"""
+function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(K)[2])
+  G = domain(mG)
+  if is_real(emb)
+    return sub(G, [one(G)])[2]
+  end
+  g = gen(K)
+  lG = [g for g  = G]
+  l = findall(x->overlaps(conj(emb(g)), emb(mG(x)(g))), lG)
+  @assert length(l) == 1
+  sigma = lG[l[1]]
+  return sub(G, [sigma])[2]
+end
+
+"""
 For a Z[U]-Module C and a map U->G, compute the induced module:
     ind_U^G(C) = C otimes Z[G]
 where the tensor product is over Z[U].
@@ -1868,6 +1903,10 @@ The induced module is returned as a product of copies of C. it also returns
   - the transversal used
   - the projections
   - the injections
+
+  If D and mDC are given then mDC: D -> C.M has to be a Z[U] linear
+homomorphism. I this case a Z[G] linear map to the induced module
+is returned.
 """
 function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
   U = domain(h)
@@ -1903,7 +1942,6 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
     @assert all(x->x in iU, u)
     im_q = []
-    sigma = inv(sigma)
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
@@ -1916,7 +1954,7 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
   #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
     compute the Z[G]-lin embedding into the induced module.
     a -> sum a g_i^-1 otimes g_i
-    works (direct computation withh reps and cosets)
+    works (direct computation with reps and cosets)
   =#
   h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
   return iC, h    
@@ -2671,7 +2709,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     #we probably need the full decomposition anyhow.
     #this gives wrong results every now and then...
   end
-  @hassert :GaloisCohomology 1 is_consistent(iEt[1])
   #test if the G-action is the same:
   # induce returns a map U -> E that should be a Z[G]-hom
   function is_G_lin(U, E, mUE, acU)
