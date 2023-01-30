@@ -440,14 +440,14 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Ra
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
+  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
   return domain(inc), inc
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
   J = radical(modulus(OO(X)))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
+  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
   return domain(inc), inc
   return Spec(base_ring(J), J)
 end
@@ -557,7 +557,7 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
   I = radical(I)
   set_attribute!(X, :is_smooth, false)
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
+  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
   return domain(inc), inc
 end
 
@@ -632,7 +632,7 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
     # TODO: Already compute intermediate radicals?
   end
   I = radical(I)
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
+  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
   return domain(inc), inc
 end
 

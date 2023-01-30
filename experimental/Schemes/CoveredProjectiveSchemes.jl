@@ -255,6 +255,17 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 
   # It follows the generic Proj construction
+  R = OO(W)
+  T, (t,) = PolynomialRing(R, ["t"])
+  S, s = grade(PolynomialRing(R, Symbol.([var_name*"$i" for i in 0:ngens(I)-1]))[1])
+  phi = hom(S, T, [t*g for g in gens(I)])
+  K = kernel(phi)
+  K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
+  Bl_W = ProjectiveScheme(S, K)
+  set_base_scheme!(Bl_W, W)
+  return Bl_W
+
+  # the version below uses the now deprecated affine cone construction
   R = base_ring(OO(W))
   kk = coefficient_ring(R)
   A1 = affine_space(kk, 1)

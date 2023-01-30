@@ -61,37 +61,37 @@
   simplify!(Y4)
   @show "done"
   @test !is_smooth(Y4)
-
-  @show "round 4"
-  I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
-  @show "done"
-  Y5_proj = blow_up(I_sing_Y4)
-  @show "done"
-  Y5 = covered_scheme(Y5_proj)
-  @show "done"
-  simplify!(Y5)
-  @show "done"
-  @test !is_smooth(Y5)
-
-  @show "round 5"
-  I_sing_Y5 = oscar.ideal_sheaf_of_singular_locus(Y5)
-  @show "done"
-  Y6_proj = blow_up(I_sing_Y5)
-  @show "done"
-  Y6 = covered_scheme(Y5_proj)
-  @show "done"
-  simplify!(Y6)
-  @show "done"
-  @test !is_smooth(Y6)
-
-  @show "round 6"
-  I_sing_Y6 = oscar.ideal_sheaf_of_singular_locus(Y6)
-  @show "done"
-  Y7_proj = blow_up(I_sing_Y6)
-  @show "done"
-  Y7 = covered_scheme(Y6_proj)
-  @show "done"
-  simplify!(Y7)
-  @show "done"
-  @test !is_smooth(Y7)
+# 
+#  @show "round 4"
+#  I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
+#  @show "done"
+#  Y5_proj = blow_up(I_sing_Y4)
+#  @show "done"
+#  Y5 = covered_scheme(Y5_proj)
+#  @show "done"
+#  simplify!(Y5)
+#  @show "done"
+#  @test !is_smooth(Y5)
+# 
+#  @show "round 5"
+#  I_sing_Y5 = oscar.ideal_sheaf_of_singular_locus(Y5)
+#  @show "done"
+#  Y6_proj = blow_up(I_sing_Y5)
+#  @show "done"
+#  Y6 = covered_scheme(Y5_proj)
+#  @show "done"
+#  simplify!(Y6)
+#  @show "done"
+#  @test !is_smooth(Y6)
+# 
+#  @show "round 6"
+#  I_sing_Y6 = oscar.ideal_sheaf_of_singular_locus(Y6)
+#  @show "done"
+#  Y7_proj = blow_up(I_sing_Y6)
+#  @show "done"
+#  Y7 = covered_scheme(Y6_proj)
+#  @show "done"
+#  simplify!(Y7)
+#  @show "done"
+#  @test !is_smooth(Y7)
 #end

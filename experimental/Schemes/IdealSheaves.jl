@@ -487,3 +487,23 @@ function order_on_divisor(
 #    order_dict[U] = upper-lower
 end
 
+function radical(II::IdealSheaf)
+  X = scheme(II)
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(X)
+    ID[U] = radical(II(U))
+  end
+  return IdealSheaf(X, ID)
+end
+
+function radical(I::MPolyLocalizedIdeal)
+  J = pre_saturated_ideal(I)
+  return ideal(base_ring(I), gens(radical(J)))
+end
+
+function radical(I::MPolyQuoLocalizedIdeal)
+  W = base_ring(I)
+  J = pre_image_ideal(I)
+  return ideal(W, [g for g in W.(gens(radical(J))) if !iszero(g)])
+end
+
