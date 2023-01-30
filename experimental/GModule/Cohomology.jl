@@ -1749,17 +1749,21 @@ Returns:
  - the map from G = Gal(K/k) -> Set of actual automorphisms
  - the map from the module into K
 """
-function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0)
+function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
   #if K/k is tame, then the 1-units are cohomologycal trivial, hence
   #   Z time k^* is enough...
 
+  e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
+  f = divexact(absolute_degree(K), e)
+  @vprint :GaloisCohomology 1 "the local mult. group as a Z[G] module for e=$e and f = $f\n"
+  @vprint :GaloisCohomology 2 " .. the automorphism group ..\n"
   G, mG = automorphism_group(PermGroup, K, k)
 
-  e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
-  if e == 1
+  if e == 1 && !full
+    @vprint :GaloisCohomology 2 " .. unramified, only the free part ..\n"
 #    @show :unram
     A = abelian_group([0])
     pi = uniformizer(K)
@@ -1768,7 +1772,8 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
       MapFromFunc(x->pi^x[1], y->Int(e*valuation(y))*A[1], A, K)
   end
 
-  if e % prime(K) != 0 #tame!
+  if e % prime(K) != 0 && !full #tame!
+    @vprint :GaloisCohomology 2 " .. tame, no 1-units ..\n"
 #    @show :tame
     k, mk = ResidueField(K)
     u, mu = unit_group(k)
@@ -1791,10 +1796,12 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   end
  
 #  @show :wild
+  @vprint :GaloisCohomology 2 " .. wild case (or requested), unit group ..\n"
   U, mU = unit_group(K)
   n = divexact(absolute_degree(K), absolute_degree(k))
   @assert order(G) == n
 
+  @vprint :GaloisCohomology 2 " .. find lattice (normal basis) ..\n"
   b = absolute_basis(K)
   # need a normal basis for K/k, so the elements need to be k-lin. indep
   local o, best_o
@@ -1819,6 +1826,8 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   b = absolute_basis(k)
   o = [x*y for x = b for y = o]
 
+
+  @vprint :GaloisCohomology 2 " .. quotient ..\n"
   Q, mQ = quo(U, [preimage(mU, 1+prime(k)^4*x) for x = o])
   S, mS = snf(Q)
   Q = S
@@ -1830,6 +1839,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
     mG = mS*mG
   end
 
+  @vprint :GaloisCohomology 2 " .. the module ..\n"
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
@@ -2444,6 +2454,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     #we probably need the full decomposition anyhow.
     #this gives wrong results every now and then...
   end
+  @hassert :GaloisCohomology 1 is_consistent(iEt[1])
   #test if the G-action is the same:
   # induce returns a map U -> E that should be a Z[G]-hom
   function is_G_lin(U, E, mUE, acU)
@@ -2458,8 +2469,8 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     return true
   end
   @hassert :GaloisCohomology 1 is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
-  @hassert :GaloisCohomolgy 1 is_consistent(iEt[1])
-  
+
+>>>>>>> acd6bb29b6 (hassert and vprint)
   S = S[s]
 
   #TODO: precision: for some examples the default is too small
