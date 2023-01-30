@@ -637,10 +637,10 @@ end
 ####
 mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFromFunc}
     map::MapFromFunc{R, T}
+end
 
-    function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
-      return new(MapFromFunc(f, g, D, C))
-    end
+function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
+  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(f, g, D, C))
 end
 
 function GroupIsomorphismFromFunc(f, g, D, C)
