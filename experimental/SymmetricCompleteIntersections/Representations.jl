@@ -743,7 +743,7 @@ projective representation of the codomain of `p`.
 
 This is equivalent to ask that the center of `chi` coincides with the kernel of `p`.
 """
-function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) where T <: Union{Int, fmpz}
+function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
   E = chi.table.GAPGroup
   @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
   @req is_projective(chi, p) "chi is not afforded by a p-projective representation"

@@ -584,7 +584,7 @@ determinant_grassmannian(prep::ProjRep, t::Int, chi::Oscar.GAPGroupClassFunction
 
 ###  Intersections with Grassmannians
 
-function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothing) where {T, U}
+function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothing) where T
   F = base_ring(V[1])
   
   if S === nothing
