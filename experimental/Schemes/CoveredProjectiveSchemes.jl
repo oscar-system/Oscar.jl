@@ -254,24 +254,28 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   ) where {RingType<:Union{MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}}
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 
-#  # It follows the generic Proj construction
-#  R = base_ring(OO(W))
-#  kk = coefficient_ring(R)
-#  A1 = affine_space(kk, 1)
-#  # Fancy way of adjoining a variable to R
-#  WxA1, pW, _ = product(W, A1) 
-#  r = ngens(I)
-#  P = projective_space(W, r-1, var_name=var_name)
-#  S = ambient_coordinate_ring(P)
-#  # As usual we need to do actual computations on the affine cone
-#  CP = affine_cone(P)
-#  x = pullback(pW).(gens(OO(W)))
-#  t = last(gens(OO(WxA1)))
-#  g = pullback(pW).(gens(I))
-#  phi = hom(OO(CP), OO(WxA1), vcat([b*t for b in g], x))
-#  K = kernel(phi)
-#  IWh = ideal(S, poly_to_homog(P).(lifted_numerator.(gens(K))))
-#  return subscheme(P, IWh)
+  # It follows the generic Proj construction
+  R = base_ring(OO(W))
+  kk = coefficient_ring(R)
+  A1 = affine_space(kk, 1)
+  # Fancy way of adjoining a variable to R
+  WxA1, pW, _ = product(W, A1) 
+  r = ngens(I)
+  P = projective_space(W, r-1, var_name=var_name)
+  S = ambient_coordinate_ring(P)
+  # As usual we need to do actual computations on the affine cone
+  CP = affine_cone(P)
+  x = pullback(pW).(gens(OO(W)))
+  t = last(gens(OO(WxA1)))
+  g = pullback(pW).(gens(I))
+  phi = hom(OO(CP), OO(WxA1), vcat([b*t for b in g], x))
+  K = kernel(phi)
+  IWh = ideal(S, poly_to_homog(P).(lifted_numerator.(gens(K))))
+  return subscheme(P, IWh)
+
+  # The code below breaks the projective glueings, because we loose control 
+  # over the generators of the ideal corresponding to the variables of the 
+  # projective spaces.
 
   # We first blow up the smooth ambient space
   A = ambient_space(W)::AbsSpec{<:Field, <:MPolyRing}
