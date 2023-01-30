@@ -1615,7 +1615,7 @@ function projectivization(E::AbsCoherentSheaf;
     set_base_scheme!(PU, U)
     on_patches[U] = PU
   end
-  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
+  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   OX = StructureSheafOfRings(X)
 
   # prepare for the projective glueings
