@@ -1120,6 +1120,13 @@ end
 #                                                                     =#
 #
 # TODO: PullbackSheaf is not yet fully functional.
+#
+# Missing parts: 
+#
+#  - If ℳ  is given only on the patches of a refinement Vⱼ, j ∈ J of 
+#    the `default_covering` of X, then there is no method implemented 
+#    to create a module for ℳ (U) when U ⊂ X is an `affine_chart` of X. 
+#    The user is hence forced to work in the refinement only. 
 
 @attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
                                          RestrictionType
