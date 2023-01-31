@@ -391,7 +391,7 @@ end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
 # TODO: replace by a more efficient method!
-@attr function isprime(I::MPolyQuoIdeal)
+@attr function is_prime(I::MPolyQuoIdeal)
     return is_prime(saturated_ideal(I))
 end
 
@@ -843,7 +843,7 @@ end
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function isinvertible_with_inverse(a::MPolyQuoElem)
+function is_invertible_with_inverse(a::MPolyQuoElem)
  # TODO:
  # Eventually, the code below should be replaced 
  # by a call to `coordinates` over the ring `parent(a)`. 
@@ -862,10 +862,10 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
+is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
 
 function inv(a::MPolyQuoElem)
-  fl, b = isinvertible_with_inverse(a)
+  fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
