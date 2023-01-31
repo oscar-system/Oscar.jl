@@ -599,21 +599,6 @@ identifications given by the glueings in the `default_covering`.
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
-      # The ideal sheaf has to be provided on at least one dense
-      # open subset of every connected component.
-      @show "NOOOOOO!"
-      for G in values(glueings(default_covering(space(F))))
-        A, B = patches(G)
-        Asub, Bsub = glueing_domains(G)
-        if A === U && haskey(ID, B) && is_dense(Asub)
-          Z = intersect(subscheme(B, ID[B]), Bsub)
-          f, _ = glueing_morphisms(G)
-          pZ = preimage(f, Z)
-          ZU = closure(pZ, U)
-          ID[U] = ideal(OO(U), gens(saturated_ideal(modulus(OO(ZU)))))
-          return ID[U]
-        end
-      end
       # Transfering from another chart did not work. That means 
       # I(U) is already prescribed on some refinement of U. We 
       # need to gather that information from all the patches involved
