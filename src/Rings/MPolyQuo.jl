@@ -405,12 +405,9 @@ Return `true` if `a` is the zero ideal, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, [x^2-y, y^2-x+y])
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
- Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+julia> A, _ = quo(R, [x^2-y, y^2-x+y]);
 
 julia> I = ideal(A, [x^2+y^2, x+y])
 ideal(x^2 + y^2, x + y)
