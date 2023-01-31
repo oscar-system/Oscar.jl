@@ -685,8 +685,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     d = dim(X)
     R = base_ring(I)
     n = nvars(R) 
-    M = _jacobi_matrix_modulus(X)
-    #@show M
+    M = (issubset(P[1], radical(P[1])) ? _jacobi_matrix_modulus_reduced(X) : _jacobi_matrix_modulus(X))
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
@@ -715,6 +714,14 @@ end
 ## cheaper version of jacobi_matrix specifically for Jacobi matrix of modulus
 ## compute *some* representative of the jacobian matrix of gens(modulus),
 ## forgetting about the denominators (contribution killed by modulus anyway)
+
+function _jacobi_matrix_modulus_reduced(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+  g = gens(radical(modulus(underlying_quotient(OO(X)))))
+  L = base_ring(underlying_quotient(OO(X)))
+  n = nvars(L)
+  M = matrix(L, n, length(g),[derivative(f,i) for i=1:n for f in g])
+  return M
+end
 
 function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   g = gens(modulus(underlying_quotient(OO(X))))

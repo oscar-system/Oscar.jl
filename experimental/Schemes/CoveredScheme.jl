@@ -452,4 +452,3 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
   return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=check)
 end
 
-
