@@ -436,7 +436,6 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Ra
 
 ```
 """
-
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))

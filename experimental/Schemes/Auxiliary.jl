@@ -1,3 +1,4 @@
+export pushforward
 # This struct associates to a morphism f of type `MorphismType` 
 # the mathematical symbol f^* which, in one way or the other, 
 # denotes some pullback functor. 
@@ -40,6 +41,18 @@ function (f_star::UniversalPullbackSymbol)(M::Any)
   return pullback(f_star.f, M)
 end
 
+# We can do the same thing with pushforward and other symbols.
+struct UniversalPushforwardSymbol{MorphismType}
+  f::MorphismType
+end
+
+# The following refers a call of f_star(M) to a bivariate pullback-method.
+# The latter is what really needs to be implemented by the programmer. 
+# Also, all parent checks, etc. are expected to happen there.
+function (f_lower_star::UniversalPushforwardSymbol)(M::Any)
+  return pushforward(f_lower_star.f, M)
+end
+
 @Markdown.doc """
     pullback(f::CoveredSchemeMorphism)
 
@@ -52,6 +65,10 @@ Hence, that method needs to be implemented.
 """
 function pullback(f::AbsCoveredSchemeMorphism)
   return UniversalPullbackSymbol{typeof(f)}(f)
+end
+
+function pushforward(f::AbsCoveredSchemeMorphism)
+  return UniversalPushforwardSymbol{typeof(f)}(f)
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
