@@ -602,7 +602,7 @@ function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
     end
     bb = finish(b)
     b = zero(RX)
-    for (c, ex) = zip(AbstactAlgebra.coefficients(k), AbstractAlgebra.exponent_vectors(k))
+    for (c, ex) = zip(AbstractAlgebra.coefficients(k), AbstractAlgebra.exponent_vectors(k))
       b += c*R(K(monomial(Qt, ex[ngens(Qtx)+1:end])))*monomial(RX, ex[1:ngens(Qtx)])
     end
     kk = b
@@ -1076,7 +1076,7 @@ function solve_left(V::Vandermonde{T}, b::MatElem{T}) where {T <: Oscar.FieldEle
   f = reduce(*, [x-i for i=V.val], init = one(Qx)) #stupid: this is the poly from BM
   z = zero(base_ring(V))
   H = Hankel(vcat([coeff(f, i) for i=1:nrows(V)], [z for i=nrows(V):2*nrows(V)-1]))
-  Vt = V'
+  Vt = transpose(V)
   #TODO: for fun, use mult-point evaluation to find D
   # and use a special type of matrix again
   D = diagonal_matrix([inv(derivative(f)(x)) for x = V.val])

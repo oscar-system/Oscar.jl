@@ -14,3 +14,10 @@
 end
 
 
+@testset "Examples.factor_absolute" begin
+  S, (a, b) = PolynomialRing(QQ, ["a", "b"]);
+  S = parent(a//b)
+  St, (u, v) = PolynomialRing(S, ["u", "v"])
+  f = factor_absolute(u^2+v^2*a)
+  @test length(f) == 2
+end
