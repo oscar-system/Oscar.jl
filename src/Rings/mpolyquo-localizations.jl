@@ -1562,8 +1562,12 @@ function quo(
     L::MPolyQuoLocalizedRing,
     I::MPolyQuoLocalizedIdeal
   )
-  base_ring(I) == L || error("ideal does not belong to the correct ring")
-  W, _ = quo(localized_ring(L), modulus(L) + pre_image_ideal(I))
+  base_ring(I) === L || error("ideal does not belong to the correct ring")
+  R = base_ring(L)
+  J = modulus(underlying_quotient(L))
+  J = ideal(R, vcat([g for g in gens(J) if !iszero(g)], 
+                    [g for g in lifted_numerator.(gens(pre_image_ideal(I))) if !(g in J)]))
+  W, _ = quo(localized_ring(L), localized_ring(L)(J))
   return W, hom(L, W, gens(W), check=false)
 end
 
