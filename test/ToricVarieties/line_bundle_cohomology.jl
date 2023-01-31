@@ -1,15 +1,20 @@
+using Test
+
 @testset "Line bundle cohomologies and vanishing sets" begin
+    P2 = projective_space(NormalToricVariety,2)
     dP3 = NormalToricVariety([[1, 0], [1, 1], [0, 1], [-1, 0], [-1, -1], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 1]])
     F5 = NormalToricVariety([[1, 0], [0, 1], [-1, 5], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 1]])
     D2 = DivisorOfCharacter(F5, [1, 2])
 
     l = ToricLineBundle(dP3, [1, 2, 3, 4])
     l2 = ToricLineBundle(D2)
+    l3 = ToricLineBundle(P2, [1])
     l4 = canonical_bundle(dP3)
     l5 = anticanonical_bundle(dP3)
-    l7 = structure_sheaf(dP3)
+    l6 = structure_sheaf(dP3)
 
     vs = vanishing_sets(dP3)
+    vs2 = vanishing_sets(P2)
     R,_ = PolynomialRing(QQ, 3)
 
     @testset "Cohomology with cohomCalg" begin
@@ -19,17 +24,23 @@
         @test all_cohomologies(l2) == [1, 0, 0]
     end
 
-    @testset "Toric vanishingSets of dP3" begin
+    @testset "Toric vanishing sets of dP3" begin
         @test is_projective_space(toric_variety(vs[1])) == false
         @test contains(vs[1], l) == false
         @test contains(vs[1], l2) == false
         @test contains(vs[2], l) == true
         @test contains(vs[3], l) == true
-        @test contains(vs[1], l7) == false
-        @test contains(vs[2], l7) == true
-        @test contains(vs[3], l7) == true
+        @test contains(vs[1], l6) == false
+        @test contains(vs[2], l6) == true
+        @test contains(vs[3], l6) == true
         @test length(polyhedra(vs[1])) == 1
         @test cohomology_index(vs[1]) == 0
+    end
+
+    @testset "Toric vanishing sets of P2" begin
+        @test contains(vs2[1], l3) == false
+        @test contains(vs2[2], l3) == true
+        @test contains(vs2[3], l3) == true
     end
 
     @testset "Should fail" begin
