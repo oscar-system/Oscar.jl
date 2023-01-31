@@ -51,16 +51,6 @@ singular_quotient_ring(Q::MPolyQuo) = Q.SQR
 singular_poly_ring(Q::MPolyQuo) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuo) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuo) = base_ring(Q)
-#=
-function singular_poly_ring(Q::MPolyQuo)
-    @show isdefined(Q.I.gens.gens, :Sx)
-    @show Q.I.gens.gens.Sx
-    if !isdefined(Q.I.gens.gens, :Sx)
-        SG = singular_poly_ring_gb(Q)
-        Q.I.gens.gens.Sx = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
-    end
-    return Q.I.gens.gens.Sx
-end =#
 
 default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
 
