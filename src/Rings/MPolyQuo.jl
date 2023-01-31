@@ -182,7 +182,7 @@ end
 
 function groebner_assure(a::MPolyQuoIdeal)
     if !isdefined(a, :gb)
-        simplify(a)
+        singular_assure(a)
         a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
         a.gb.gens.S.isGB = a.gb.isGB = true
     end
