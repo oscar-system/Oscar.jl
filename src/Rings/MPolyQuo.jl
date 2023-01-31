@@ -159,7 +159,7 @@ function oscar_assure(a::MPolyQuoIdeal)
       return a.gens.gens.O
   end
   r = base_ring(base_ring(a))
-  a.gens.O = [r(g) for g = gens(a.gens.S)]
+  a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
 function singular_assure(a::MPolyQuoIdeal)
