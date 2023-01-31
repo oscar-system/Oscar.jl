@@ -437,20 +437,16 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
     end
   end
   glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
-  # TODO: Make glueings here lazy!
-  for (U, V) in keys(glueings(default_covering(X)))
-    (U in keys(rev_dict) && V in keys(rev_dict)) || continue # No need to glue empty sets
-    Unew = rev_dict[U]
-    Vnew = rev_dict[V]
-    glueing_dict[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
-                                             RestrictionDataClosedEmbedding(covering[U, V], Unew, Vnew)
-                                            )
-    glueing_dict[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, glueing_dict[(Unew, Vnew)])
-    continue
-    (isempty(intersect(rev_dict[U], glueing_domains(G)[1])) || isempty(intersect(rev_dict[V], glueing_domains(G)[2]))) && continue # No need to glue stuff trivially
-    GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V], check=false)
-    glueing_dict[(rev_dict[U], rev_dict[V])] = GG
+  for Unew in keys(mor_dict)
+    U = codomain(mor_dict[Unew])
+    for Vnew in keys(mor_dict)
+      V = codomain(mor_dict[Vnew])
+      glueing_dict[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+                                               RestrictionDataClosedEmbedding(covering[U, V], Unew, Vnew)
+                                              )
+    end
   end
+
   Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict))
   cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict)
   return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I)
