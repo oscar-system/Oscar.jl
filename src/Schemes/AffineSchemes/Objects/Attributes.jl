@@ -566,7 +566,6 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   set_attribute!(X, :is_smooth,true)
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
-  return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
 
 # TODO: Covered schemes, projective schemes
@@ -635,20 +634,19 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = radical(I)
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
-  return subscheme(X,I)
 end
 
 # make singular_locus_reduced agnostic to quotient
 function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
-  return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
 
 # internal workhorse, not user-facing
 function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
   I = saturated_ideal(modulus(OO(X)))
-  result = typeof(X)[]
+  empty = typeof(X)[]
+  result = empty
 
 # equidimensional decompositon to allow Jacobi criterion on each component
   P = []
@@ -672,7 +670,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
-    one(OO(X)) in JX && return result
+    one(OO(X)) in JX && return empty
     return [subscheme(X, J)]
   else
 # if reducible, determine pairwise intersection loci
@@ -689,6 +687,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     for Y in components
       result = vcat(result, singular_locus(Y)[1])
     end
+  one(OO(X)) in result && return empty
   end
   return result
 end
