@@ -469,7 +469,6 @@ include("Groups/action.jl")  # needs some PolynomialRings functionality
 
 include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")
-include("Rings/ReesAlgebra.jl")
 include("Modules/homological-algebra.jl")
 include("Modules/FreeModElem-orderings.jl")
 #include("Modules/FreeModules-graded.jl")
