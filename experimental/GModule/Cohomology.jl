@@ -345,6 +345,7 @@ function H_zero(C::GModule)
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
   end
+  #this is fix, now it "should" be mod by norm?
   z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
   set_attribute!(C, :H_zero => z)
   return k, z
@@ -2315,7 +2316,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     _k, mk = kernel(id_hom(q) - ss)
     @assert ngens(_k) > 0
     lk = [preimage(mq, mk(g)) for g = gens(_k)]
-    lf  = findall(g->isodd((sigma(g)-g)[1]), lk)
+    @show lf  = findall(g->isodd((sigma(g)-g)[1]), lk)
     #we need to find a unit that will give a non-trivial extension of Z
     #by Debeerst, this is linked to the torsion coming in from sigma(x)/x
     #must not be a square.. hence the coeff odd
@@ -2356,10 +2357,43 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     C, mC = sub(U, [C[i] + mW(pro[i](p)) for i=1:ngens(C)])
     @assert order(quo(U, W+C)[1]) == 1 && order(intersect(W, C)) == 1
     @assert all(g->haspreimage(mC, sigma(mC(g)))[1], gens(C))
-    q, mq = quo(U, C)
-    q, mmq = snf(q)
-    mq = mq * pseudo_inv(mmq)
-    Et = gmodule(G_inf, [hom(q, q, [mq(sigma(preimage(mq, g))) for g = gens(q)])])
+    if true
+      #Debeerst/ Chingur says that C splits into parts wher
+      # sigma acts by - (that is the U bit - the non-trivial module extensio)
+      # sigma acts trivial 
+      #            freely (2-dim modules)
+      # for the trivial ones we need to add additional generators to make
+      # them free (2-dim, free as C_2 modules)
+      # I think this can happen WITHOUT the explicit split...
+      #may need p 74 top???
+      #possibly: now the H^2 is correct, but the H^1 is not...
+      # x^8 - 12*x^7 + 44*x^6 - 24*x^5 - 132*x^4 + 120*x^3 + 208*x^2 - 528*x + 724
+      _k, _mk = kernel(hom(C, C, [preimage(mC, sigma(mC(x)))-x for x= gens(C)]))
+      _s, _ms = snf(_k)
+      #the trivial bit
+      @assert is_free(_s)
+      #add generators
+      W, pro, inj = direct_product(U, _s, task = :both)
+      _t = map(_ms, gens(_s))
+      _t = map(_mk, _t)
+      _t = map(mC, _t)
+      _t = map(inj[1], _t)
+      _tt = map(inj[2], gens(_s))
+      hs = hom(_s, W, _t .- _tt)
+      Et = gmodule(G_inf, [hom(W, W, [inj[1](sigma(pro[1](w))) + hs(pro[2](w)) for w = gens(W)])])
+      @assert is_consistent(Et)
+      mq = inj[1]
+      @show snf(cohomology_group(Et, 0)[1])[1]
+      @show snf(cohomology_group(Et, 1)[1])[1]
+      @show snf(cohomology_group(Et, 2)[1])[1]
+      #and adjust the maps...
+    else
+
+      q, mq = quo(U, C)
+      q, mmq = snf(q)
+      mq = mq * pseudo_inv(mmq)
+      Et = gmodule(G_inf, [hom(q, q, [mq(sigma(preimage(mq, g))) for g = gens(q)])])
+    end
     @assert is_consistent(Et)
     #if I understand Debeerst correct, then 
     # W is a Z[C_2] direct summand of U 
@@ -2387,7 +2421,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     return true
   end
   @hassert :GaloisCohomology 1 is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
-  @hassert :GaloisCohomolgy 1 is_consistent(iEt[1])
+  @hassert :GaloisCohomology 1 is_consistent(iEt[1])
   
   S = S[s]
 
