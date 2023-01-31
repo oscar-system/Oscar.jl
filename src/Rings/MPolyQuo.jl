@@ -241,6 +241,22 @@ end
     :^(a::MPolyQuoIdeal, m::Int)
 
 Return the `m`-th power of `a`.  
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> A, _ = quo(R, [x^2-y, y^2-x+y])
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
+ Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+
+julia> I = ideal(A, [x+y])
+ideal(x + y)
+
+julia> I^2
+ideal(x^2 + 2*x*y + y^2)
+```
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
     singular_assure(a)
@@ -251,6 +267,25 @@ end
     :+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the sum of `a` and `b`.  
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> A, _ = quo(R, [x^2-y, y^2-x+y])
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
+ Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+
+julia> I = ideal(A, [x+y])
+ideal(x + y)
+
+julia> J = ideal(A, [x^2+y^2, x+y])
+ideal(x^2 + y^2, x + y)
+
+julia> I+J
+ideal(x + y, x^2 + y^2)
+```
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
@@ -263,6 +298,25 @@ end
     :*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the product of `a` and `b`.  
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> A, _ = quo(R, [x^2-y, y^2-x+y])
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
+ Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+
+julia> I = ideal(A, [x+y])
+ideal(x + y)
+
+julia> J = ideal(A, [x^2+y^2, x+y])
+ideal(x^2 + y^2, x + y)
+
+julia> I*J
+ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
+```
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     base_ring(a) == base_ring(b) || error("base rings must match")
@@ -357,6 +411,29 @@ end
     iszero(a::MPolyQuoIdeal)
 
 Return `true` if `a` is the zero ideal, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> A, _ = quo(R, [x^2-y, y^2-x+y])
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
+ Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+
+julia> I = ideal(A, [x^2+y^2, x+y])
+ideal(x^2 + y^2, x + y)
+
+julia> iszero(I)
+false
+
+julia> J = ideal(A, [x^2-y])
+ideal(x^2 - y)
+
+julia> iszero(J)
+true
+
+```
 """
 function iszero(a::MPolyQuoIdeal)
     R = base_ring(a)
