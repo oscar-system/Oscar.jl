@@ -278,7 +278,7 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) # TODO: Set to false
+    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     return IPY
@@ -307,7 +307,7 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) # TODO: Set to false
+    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     return IPY
@@ -349,7 +349,7 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     W === codomain(p_res) || error("codomain not correct")
     ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
   end
-  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) # TODO: Set to false
+  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
   return Bl_W
@@ -603,7 +603,6 @@ function blow_up(
     gd = CoveredProjectiveGlueingData(U, V, P, Q, G, I)
     projective_glueings[U, V] = LazyProjectiveGlueing(P, Q, G, _compute_projective_glueing, gd)
   end
-  Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_glueings)
   Y = covered_scheme(Bl_I)
   # Assemble the exceptional divisor as a Cartier divisor
   ID = IdDict{AbsSpec, RingElem}()
@@ -717,6 +716,8 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
   return SimpleGlueing(UW, VW, ff, gg, check=false)
+  pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov))
+  return pr
 end
 
 struct ProjectiveGlueingData
