@@ -24,7 +24,7 @@ $f \in \mathbb Z[x]_>$, the notions *leading term*, *leading monomial*, *leading
 
 !!! note
     Over $\mathbb Z$, the basic idea of multivariate polynomial division with remainder in OSCAR is as follows:
-    If $\text{LT}(\widetilde{g}) = ax^\alpha$ is the leading term of the intermediate dividend, $f_i$
+    If $ax^\alpha$ is the leading term of the intermediate dividend, $f_i$
     is *some* divisor whose leading monomial equals $x^\alpha$, say
     $\text{LT}(f_i) = bx^\alpha$, and $r$ is the remainder of $a$ on division by $b$ in
     $\mathbb Z$, then $ax^\alpha$ is replaced by $rx^\alpha$.

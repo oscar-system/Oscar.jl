@@ -40,3 +40,15 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
   return CoveredSchemeMorphism(X, Z, cc, check=false)
 end
+
+function maps_with_given_codomain(f::AbsCoveredSchemeMorphism, V::AbsSpec)
+  fcov = covering_morphism(f)
+  result = Vector{AbsSpecMor}()
+  for U in keys(morphisms(fcov))
+    floc = morphisms(fcov)[U]
+    codomain(floc) === V || continue
+    push!(result, floc)
+  end
+  return result
+end
+

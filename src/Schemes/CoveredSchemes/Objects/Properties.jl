@@ -27,4 +27,3 @@ end
   return is_connected(glueing_graph(default_covering(X)))
 end
 
-is_connected(g::Graph{Undirected}) = Polymake.call_function(:graph, :is_connected, pm_object(g))::Bool

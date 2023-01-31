@@ -44,8 +44,22 @@ function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TO
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
+function FreeMod(R::Ring, names::Vector{String}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
+end
+
+function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, names)
+end
+
 @doc Markdown.doc"""
     free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
+
+    free_module(R::MPolyQuo, p::Int, name::String = "e"; cached::Bool = false)
+
+    free_module(R::MPolyLocalizedRing, p::Int, name::String = "e"; cached::Bool = false)
+
+    free_module(R::MPolyQuoLocalizedRing, p::Int, name::String = "e"; cached::Bool = false)
 
 Return the free $R$-module $R^p$, created with its basis of standard unit vectors.
 
@@ -53,20 +67,47 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+julia> FR = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
-julia> F[2]
-e[2]
+julia> x*FR[1]
+x*e[1]
 
-julia> typeof(F)
-FreeMod{fmpq_mpoly}
+julia> P = ideal(R, [x, y, z]);
+
+julia> U = complement_of_ideal(P);
+
+julia> RL, _ = Localization(R, U);
+
+julia> FRL = free_module(RL, 2, "f")
+Free module of rank 2 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
+
+julia> RL(x)*FRL[1]
+x//1*f[1]
+
+julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
+
+julia> FRQ =  free_module(RQ, 2, "g")
+Free module of rank 2 over Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia> RQ(x)*FRQ[1]
+x*g[1]
+
+julia> RQL, _ = Localization(RQ, U);
+
+julia> FRQL =  free_module(RQL, 2, "h")
+Free module of rank 2 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+
+julia> RQL(x)*FRQL[1]
+x//1*h[1]
 ```
 """
 free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuo, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyLocalizedRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuoLocalizedRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
@@ -86,7 +127,7 @@ function show(io::IO, F::FreeMod)
   @show_special(io, F)
 
   print(io, "Free module of rank $(F.n) over ")
-  print(IOContext(io, :compact =>true), F.R)
+  print(IOContext(io, :compact =>false), F.R)
 end
 
 @doc Markdown.doc"""
@@ -710,13 +751,20 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
+@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:SubQuo, <:ModuleFP, Nothing})
+    return identity_map(base_ring(domain(f)))
+end
+base_ring_map(f::SubQuoHom) = f.ring_map
+@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing})
+    return identity_map(base_ring(domain(f)))
+end
 
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
 
-Given a homomorphism `a` of type  `FreeModuleHom` with domain `F`
-and codomain `M`, return a matrix `A` with `rank(F)` rows and 
-`ngens(M)` columns such that `a == hom(F, M, A)`.
+Given a homomorphism `a : F → M` of type  `FreeModuleHom`, 
+return a matrix `A` over `base_ring(M)` with `rank(F)` rows and 
+`ngens(M)` columns such that $a(F[i]) = \sum_j A[i,j]*M[j]$.
 
 # Examples
 ```jldoctest
@@ -739,21 +787,21 @@ julia> matrix(a)
 [0   z]
 ```
 """
-function matrix(a::FreeModuleHom)
-  if !isdefined(a, :matrix)
-    D = domain(a)
-    C = codomain(a)
-    R = base_ring(D)
+function matrix(f::FreeModuleHom)
+  if !isdefined(f, :matrix)
+    D = domain(f)
+    C = codomain(f)
+    R = base_ring(C)
     matrix = zero_matrix(R, rank(D), ngens(C))
     for i=1:rank(D)
-      image_of_gen = a(D[i])
+      image_of_gen = f(D[i])
       for j=1:ngens(C)
         matrix[i,j] = image_of_gen[j]
       end
     end
-    setfield!(a, :matrix, matrix)
+    setfield!(f, :matrix, matrix)
   end
-  return a.matrix
+  return f.matrix
 end
 
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
@@ -800,12 +848,12 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> a(F[2])
 x*e[1] + y*e[2]
 
-julia> W = matrix(R, [y 0; x y; 0 z])
+julia> B = R[y 0; x y; 0 z]
 [y   0]
 [x   y]
 [0   z]
 
-julia> b = hom(F, G, W)
+julia> b = hom(F, G, B)
 Map with following data
 Domain:
 =======
@@ -1261,9 +1309,10 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
     return false
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
-  M_mod_N = reduce(M, N)
-  N_mod_M = reduce(N, M)
-  return iszero(M_mod_N) && iszero(N_mod_M)
+  # If yes, this could also be incorporated in the `in`-function.
+  all(x->(x in N), gens(M)) || return false
+  all(x->(x in M), gens(N)) || return false 
+  return true
 end
 
 @doc Markdown.doc"""
@@ -1471,22 +1520,21 @@ free module homomorphisms with codomain `F` represented by `A` and `B`.
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F = free_module(R, 1)
+julia> FR = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
-julia> A = R[x; y]
+julia> AR = R[x; y]
 [x]
 [y]
 
-julia> B = R[x^2; y^3; z^4]
+julia> BR = R[x^2; y^3; z^4]
 [x^2]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F, A, B)
+julia> MR = SubQuo(FR, AR, BR)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -1494,6 +1542,79 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
+
+julia> P = ideal(R, [x, y, z]);
+
+julia> U = complement_of_ideal(P);
+
+julia> RL, _ = Localization(R, U);
+
+julia> FRL = free_module(RL, 1)
+Free module of rank 1 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
+
+julia> ARL = RL[x; y]
+[x//1]
+[y//1]
+
+julia> BRL = RL[x^2; y^3; z^4]
+[x^2//1]
+[y^3//1]
+[z^4//1]
+
+julia> MRL = SubQuo(FRL, ARL, BRL)
+Subquotient of Submodule with 2 generators
+1 -> x//1*e[1]
+2 -> y//1*e[1]
+by Submodule with 3 generators
+1 -> x^2//1*e[1]
+2 -> y^3//1*e[1]
+3 -> z^4//1*e[1]
+
+julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
+
+julia> FRQ = free_module(RQ, 1)
+Free module of rank 1 over Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia> ARQ = RQ[x; y]
+[x]
+[y]
+
+julia> BRQ = RQ[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> MRQ = SubQuo(FRQ, ARQ, BRQ)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> 2*x^2*e[1]
+3 -> z^4*e[1]
+
+julia> RQL, _ = Localization(RQ, U);
+
+julia> FRQL = free_module(RQL, 1)
+Free module of rank 1 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+
+julia> ARQL = RQL[x; y]
+[x//1]
+[y//1]
+
+julia> BRQL = RQL[x^2; y^3; z^4]
+[x^2//1]
+[y^3//1]
+[z^4//1]
+
+julia> MRQL = SubQuo(FRQL, ARQL, BRQL)
+Subquotient of Submodule with 2 generators
+1 -> x//1*e[1]
+2 -> y//1*e[1]
+by Submodule with 3 generators
+1 -> 0
+2 -> 0
+3 -> z^4//1*e[1]
 ```
 """
 function subquotient(a::FreeModuleHom, b::FreeModuleHom)
@@ -1567,16 +1688,13 @@ Return the cokernel of `a` as an object of type `SubQuo`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> F = free_module(R, 3);
 
-julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> G = free_module(R, 2);
 
-julia> W = matrix(R, [y 0; x y; 0 z])
+julia> W = R[y 0; x y; 0 z]
 [y   0]
 [x   y]
 [0   z]
@@ -1594,11 +1712,9 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F1 = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> F = free_module(R, 1);
 
 julia> A = R[x; y]
 [x]
@@ -1609,7 +1725,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F1, A, B)
+julia> M = SubQuo(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -1625,9 +1741,9 @@ julia> V = [y^2*N[1], x*N[2]]
  x*y^2*e[1]
  x*y*e[1]
 
-julia> b = hom(M, N, V);
+julia> a = hom(M, N, V);
 
-julia> cokernel(b)
+julia> cokernel(a)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -2375,6 +2491,10 @@ true
 ```
 """
 ambient_representative(m::SubQuoElem) = repres(m)
+
+# another method for compatibility in generic code
+ambient_representative(a::FreeModElem) = a
+
 #######################################################
 
 @doc Markdown.doc"""
@@ -2702,6 +2822,37 @@ Additionally, if `N` denotes this object,
 - do none of the above if `task = :none`.
 
 If `task = :only_morphism`, return only the inclusion map.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 1);
+
+julia> V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+
+julia> N, incl = sub(F, V);
+
+julia> N
+Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+represented as subquotient with no relations.
+
+julia> incl
+Map with following data
+Domain:
+=======
+Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+represented as subquotient with no relations.
+Codomain:
+=========
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+```
 """
 function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
  error("sub is not implemented for the given types.")
@@ -2746,7 +2897,7 @@ end
 @doc Markdown.doc"""
     quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
 
-Given a vector `A`, return the quotient of `F` by the submodule of `F` which is generated by 
+Given a matrix `A`, return the quotient of `F` by the submodule of `F` which is generated by 
 the rows of `A`.
 
 Put more precisely, return this quotient as an object of type `SubQuo`. 
@@ -2843,6 +2994,39 @@ Additionally, if `N` denotes this object,
 - do none of the above if `task = :none` or `task = :module`.
 
 If `task = :only_morphism`, return only the projection map.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 1);
+
+julia> V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+
+julia> N, proj = quo(F, V);
+
+julia> N
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> proj
+Map with following data
+Domain:
+=======
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+```
 """
 function quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
  error("quo is not implemented for the given types.")
@@ -3046,11 +3230,11 @@ return the chain complex defined by these homomorphisms.
     The function checks whether successive homomorphisms indeed compose to zero.
 """
 function chain_complex(V::ModuleFPHom...; seed::Int = 0)
-  return ChainComplex(ModuleFP, collect(V); typ = :chain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, collect(V); typ = :chain, seed = seed)
 end
 
 function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ChainComplex(ModuleFP, V; typ = :chain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed)
 end
 
 ####################
@@ -3077,11 +3261,11 @@ return the cochain complex defined by these homomorphisms.
     The function checks whether successive homomorphisms indeed compose to zero.
 """
 function cochain_complex(V::ModuleFPHom...; seed::Int = 0)
-  return ChainComplex(ModuleFP, collect(V); typ = :cochain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, collect(V); typ = :cochain, seed = seed)
 end
 
 function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ChainComplex(ModuleFP, V; typ = :cochain, seed = seed)
+  return ComplexOfMorphisms(ModuleFP, V; typ = :cochain, seed = seed)
 end
 
 ####################
@@ -3140,7 +3324,7 @@ function presentation(SQ::SubQuo)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
+  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
 end
 
 @doc Markdown.doc"""
@@ -3151,7 +3335,7 @@ Return a free presentation of $F$.
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
-  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
 end
 
 @doc Markdown.doc"""
@@ -3360,7 +3544,7 @@ by Submodule with 3 generators
 julia> is_welldefined(a)
 true
 
-julia> W = matrix(R,  [y^2 0; 0 x])
+julia> W = R[y^2 0; 0 x]
 [y^2   0]
 [  0   x]
 
@@ -3642,7 +3826,7 @@ function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :a
     return sparse_row(base_ring(parent(a)))
   end
   if task == :auto
-    if base_ring(base_ring(parent(a))) isa Field
+    if coefficient_ring(base_ring(parent(a))) isa Field #base_ring(base_ring(...)) does not work for MPolyQuos
       task = :via_transform
     else
       task = :via_lift
@@ -3874,6 +4058,17 @@ function image(f::SubQuoHom, a::SubQuoElem)
   i = zero(codomain(f))
   b = coordinates(a)
   for (p,v) = b
+    i += base_ring_map(f)(v)*f.im[p]
+  end
+  return i
+end
+
+function image(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, a::SubQuoElem)
+  # TODO matrix vector multiplication
+  @assert a.parent === domain(f)
+  i = zero(codomain(f))
+  b = coordinates(a)
+  for (p,v) = b
     i += v*f.im[p]
   end
   return i
@@ -3888,12 +4083,30 @@ function image(f::SubQuoHom, a::FreeModElem)
   return image(f, SubQuoElem(a, domain(f)))
 end
 
+function image(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, a::FreeModElem)
+  return image(f, SubQuoElem(a, domain(f)))
+end
+
 @doc Markdown.doc"""
     preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
 
 Compute a preimage of `a` under `f`.
 """
-function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
+function preimage(f::SubQuoHom{<:SubQuo, <:ModuleFP}, a::Union{SubQuoElem,FreeModElem})
+  @assert parent(a) === codomain(f)
+  phi = base_ring_map(f)
+  D = domain(f)
+  i = zero(D)
+  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  bb = map_entries(x->(preimage(phi, x)), b)
+  for (p,v) = bb
+    i += v*gen(D, p)
+  end
+  return i
+end
+
+function preimage(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, 
+        a::Union{SubQuoElem,FreeModElem})
   @assert parent(a) === codomain(f)
   D = domain(f)
   i = zero(D)
@@ -3904,7 +4117,7 @@ function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
   return i
 end
 
-(f::SubQuoHom)(a::FreeModElem) = image(f, a)
+(f::SubQuoHom)(a::FreeModElem) = image(f, SubQuoElem(a, domain(f)))
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
@@ -3946,6 +4159,12 @@ true
 ```
 """
 function iszero(m::SubQuoElem)
+  is_zero(ambient_representative(m)) && return true
+  isdefined(parent(m), :quo) || return false
+  return (ambient_representative(m) in parent(m).quo)
+end
+
+function iszero(m::SubQuoElem{<:MPolyElem})
   C = parent(m)
   if !isdefined(C, :quo)
     return iszero(repres(m))
@@ -4124,28 +4343,30 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\rightar
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> F = free_module(R, 3);
 
-julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> G = free_module(R, 2);
 
-julia> W = matrix(R, [y 0; x y; 0 z])
+julia> W = R[y 0; x y; 0 z]
 [y   0]
 [x   y]
 [0   z]
 
 julia> a = hom(F, G, W);
 
-julia> I, iota = image(a)
-(Submodule with 3 generators
+julia> I, incl = image(a);
+
+julia> I
+Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
-represented as subquotient with no relations., Map with following data
+represented as subquotient with no relations.
+
+julia> incl
+Map with following data
 Domain:
 =======
 Submodule with 3 generators
@@ -4155,15 +4376,13 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F1 = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> F = free_module(R, 1);
 
 julia> A = R[x; y]
 [x]
@@ -4174,7 +4393,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F1, A, B)
+julia> M = SubQuo(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -4190,16 +4409,21 @@ julia> V = [y^2*N[1], x*N[2]]
  x*y^2*e[1]
  x*y*e[1]
 
-julia> b = hom(M, N, V);
+julia> a = hom(M, N, V);
 
-julia> image(b)
-(Subquotient of Submodule with 2 generators
+julia> I, incl = image(a);
+
+julia> I
+Subquotient of Submodule with 2 generators
 1 -> x*y^2*e[1]
 2 -> x*y*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
+3 -> z^4*e[1]
+
+julia> incl
+Map with following data
 Domain:
 =======
 Subquotient of Submodule with 2 generators
@@ -4217,7 +4441,7 @@ Subquotient of Submodule with 2 generators
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1])
+3 -> z^4*e[1]
 ```
 """
 function image(a::ModuleFPHom)
@@ -4254,26 +4478,28 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\rightar
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> F = free_module(R, 3);
 
-julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> G = free_module(R, 2);
 
-julia> W = matrix(R, [y 0; x y; 0 z])
+julia> W = R[y 0; x y; 0 z]
 [y   0]
 [x   y]
 [0   z]
 
 julia> a = hom(F, G, W);
 
-julia> kernel(a)
-(Submodule with 1 generator
+julia> K, incl = kernel(a);
+
+julia> K
+Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations., Map with following data
+represented as subquotient with no relations.
+
+julia> incl
+Map with following data
 Domain:
 =======
 Submodule with 1 generator
@@ -4281,15 +4507,13 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> F1 = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> F = free_module(R, 1);
 
 julia> A = R[x; y]
 [x]
@@ -4300,7 +4524,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F1, A, B)
+julia> M = SubQuo(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -4316,17 +4540,22 @@ julia> V = [y^2*N[1], x*N[2]]
  x*y^2*e[1]
  x*y*e[1]
 
-julia> b = hom(M, N, V);
+julia> a = hom(M, N, V);
 
-julia> K, iota = kernel(b)
-(Subquotient of Submodule with 3 generators
+julia> K, incl = kernel(a);
+
+julia> K
+Subquotient of Submodule with 3 generators
 1 -> (-x + y^2)*e[1]
 2 -> x*y*e[1]
 3 -> -x*y*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
+3 -> z^4*e[1]
+
+julia> incl
+Map with following data
 Domain:
 =======
 Subquotient of Submodule with 3 generators
@@ -4345,7 +4574,7 @@ Subquotient of Submodule with 2 generators
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1])
+3 -> z^4*e[1]
 ```
 """
 function kernel(a::ModuleFPHom)
@@ -4417,12 +4646,12 @@ true
 """
 is_complete(FR::FreeResolution) = FR.C.complete
 
-#= Fill functions (and helpers) for Hecke ChainComplexes in terms of free resolutions =#
-function _get_last_map_key(cc::Hecke.ChainComplex)
+#= Fill functions (and helpers) for Hecke ComplexOfMorphismses in terms of free resolutions =#
+function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
 end
 
-function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
+function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorithm::Symbol=:fres)
 # assuming a free res is a chain_complex, then it will be
 # M_1 -> M_0 -> S -> 0
 #the range is 1:-1:-2 or so
@@ -4448,7 +4677,7 @@ function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sy
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
   singular_kernel_entry.isGB = true
 
-  len = len_missing + 2 #??
+  len = len_missing + 1
   if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
   elseif algorithm == :sres
@@ -4482,8 +4711,10 @@ function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sy
 end
 
 @doc Markdown.doc"""
-    free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres)
+    free_resolution(M::SubQuo{<:MPolyElem}; 
+        ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres
+      )
 
 Return a free resolution of `M`.
 
@@ -4542,9 +4773,14 @@ rank   | 0  2  6  6  2
 -------|---------------
 degree | 4  3  2  1  0
 ```
+
+**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+iterative kernel computation.
 """
-function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres)
+function free_resolution(M::SubQuo{<:MPolyElem}; 
+    ordering::ModuleOrdering = default_ordering(M),
+    length::Int=0, algorithm::Symbol=:fres
+  )
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -4599,11 +4835,43 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
   end
 
-  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
 
   return FreeResolution(cc)
+end
+
+function free_resolution(M::SubQuo{T}) where {T<:RingElem}
+  # This generic code computes a free resolution in a lazy way.
+  # We start out with a presentation of M and implement 
+  # an iterative fill function to compute every higher term 
+  # on request.
+  R = base_ring(M)
+  p = presentation(M)
+  p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
+    # TODO: Use official getter and setter methods instead 
+    # of messing manually with the internals of the complex.
+    for i in first(range(C)):k-1
+      N = domain(map(C, i))
+
+      if iszero(N) # Fill up with zero maps
+        C.complete = true
+        phi = hom(N, N, elem_type(N)[])
+        pushfirst!(C.maps, phi)
+        continue
+      end
+
+      K, inc = kernel(map(C, i))
+      nz = findall(x->!iszero(x), gens(K))
+      F = FreeMod(R, length(nz))
+      iszero(length(nz)) && set_attribute!(F, :name => "0")
+      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]))
+      pushfirst!(C.maps, phi)
+    end
+    return first(C.maps)
+  end
+  return p
 end
 
 
@@ -4636,7 +4904,7 @@ function free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  C = Hecke.ChainComplex(ModuleFP, mp, check = false)
+  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
   return C
 end
@@ -4699,8 +4967,8 @@ Compute a free resolution of `Q`.
 # Examples
 """
 function free_resolution(Q::MPolyQuo)
-  F = free_module(Q, 1)
-  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)], :module)
+  F = FreeMod(Q, 1)
+  q = quo(F, [Q(x) * gen(F, 1) for x = gens(Q.I)], :module)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
@@ -4989,27 +5257,66 @@ end
 
 Return the composition `b` $\circ$ `a`.
 """
-function *(h::ModuleFPHom, g::ModuleFPHom)
+function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
 end
 
+function *(h::ModuleFPHom{T1, T2, <:Hecke.Map}, g::ModuleFPHom{T2, T3, <:Hecke.Map}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
+end
+
+function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), 
+             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
+             Hecke.MapFromFunc(x->(base_ring_map(g)(base_ring_map(h)(x))), 
+                                   base_ring(domain(h)), 
+                                   base_ring(codomain(g)))
+            )
+
+end
+
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
--(h::ModuleFPHom) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
-function -(h::ModuleFPHom, g::ModuleFPHom)
+-(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+-(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], base_ring_map(h))
+
+function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]))
 end
-function +(h::ModuleFPHom, g::ModuleFPHom)
+
+function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
 end
-function *(a::RingElem, g::ModuleFPHom)
+
+function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
+end
+
+function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), base_ring_map(g))
 end
 
 
@@ -5543,11 +5850,11 @@ end
 # Tor
 #############################
 @doc Markdown.doc"""
-    tensor_product(M::ModuleFP, C::ChainComplex{ModuleFP})
+    tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 
 Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 """
-function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
@@ -5561,15 +5868,15 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
   end
 
-  return Hecke.ChainComplex(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
 @doc Markdown.doc"""
-    tensor_product(C::ChainComplex{ModuleFP}, M::ModuleFP)
+    tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
-function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+function tensor_product(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_chain = Map[]
@@ -5585,7 +5892,7 @@ function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
   end
 
-  return Hecke.ChainComplex(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
 @doc Markdown.doc"""
@@ -5697,11 +6004,11 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
 end
 
 @doc Markdown.doc"""
-    hom(M::ModuleFP, C::ChainComplex{ModuleFP})
+    hom(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 
 Return the complex obtained by applying $\text{Hom}($`M`, $-)$ to `C`.
 """
-function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   chain_range = Hecke.map_range(C)
@@ -5716,13 +6023,16 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,j)))
   end
 
-  return Hecke.ChainComplex(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
 end
 
 @doc Markdown.doc"""
-    hom(C::ChainComplex{ModuleFP}, M::ModuleFP)
+    hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
+
+If `C` is a chain complex, return a cochain complex.
+If `C` is a cochain complex, return a chain complex.
 
 # Examples
 ```jldoctest
@@ -5749,7 +6059,7 @@ julia> range(D)
 3:5
 ```
 """
-function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+function hom(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   hom_chain = Map[]
@@ -5767,12 +6077,15 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
 
   typ = Hecke.is_chain_complex(C) ? :cochain : :chain
   seed = C.seed
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
 end
 
 @doc Markdown.doc"""
-    hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
-Apply $\text{Hom}(-,$ `M`$)$ to `C`. If `C` is a chain complex, return a chain complex.
+    hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+
+Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
+
+If `C` is a chain complex, return a chain complex.
 If `C` is a cochain complex, return a cochain complex.
 
 # Examples
@@ -5800,7 +6113,7 @@ julia> range(D)
 -3:-1:-5
 ```
 """
-function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   #up to seed/ typ identical to the one above. Should be
   #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
@@ -5817,12 +6130,12 @@ function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::Mod
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
 end
 
 #############################
 @doc Markdown.doc"""
-    homology(C::ChainComplex{<:ModuleFP})
+    homology(C::ComplexOfMorphisms{<:ModuleFP})
 
 Return the homology of `C`.
 
@@ -5840,7 +6153,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = ChainComplex(ModuleFP, [a, b]);
+julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C)
 3-element Vector{SubQuo{fmpq_mpoly}}:
@@ -5860,12 +6173,12 @@ by Submodule with 2 generators
 2 -> x^2*e[1]
 ```
 """
-function homology(C::Hecke.ChainComplex{<:ModuleFP})
+function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
   return [homology(C,i) for i in Hecke.range(C)]
 end
 
 @doc Markdown.doc"""
-    homology(C::ChainComplex{<:ModuleFP}, i::Int)
+    homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 
 Return the `i`-th homology module of `C`.
 
@@ -5883,7 +6196,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = ChainComplex(ModuleFP, [a, b]);
+julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C, 1)
 Subquotient of Submodule with 1 generator
@@ -5893,7 +6206,7 @@ by Submodule with 2 generators
 2 -> x^2*e[1]
 ```
 """
-function homology(C::Hecke.ChainComplex{<:ModuleFP}, i::Int)
+function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
   chain_range = Hecke.range(C)
   map_range = Hecke.map_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
@@ -6638,7 +6951,7 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = FreeMod(S, r)
+  FS = FreeMod(S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), MapFromFunc(x->S(x), R, S))
   return FS, map
 end
@@ -6647,7 +6960,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {Dom
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = FreeMod(S, r)
+  FS = FreeMod(S, F.S)
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end
@@ -6668,10 +6981,80 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubQuo) where {DomT
   S = codomain(f)
   F = ambient_free_module(M)
   R = base_ring(M)
-  FS, mapF = change_base_ring(S, F)
+  FS, mapF = change_base_ring(f, F)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubQuo(FS, mapF.(g), mapF.(rels))
   map = SubQuoHom(M, MS, gens(MS), f)
   return MS, map
 end
+
+### Duals of modules
+@Markdown.doc """
+    dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+
+Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
+interpretation map ``i``, turning an element ``φ`` of ``M*`` into 
+a homomorphism ``M → R``. 
+
+The optional argument allows to specify a free module of rank ``1`` 
+for the codomain of the dualizing functor.
+"""
+function dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+  base_ring(cod) === base_ring(M) && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
+  return hom(M, cod)
+end
+
+@Markdown.doc """
+    double_dual(M::ModuleFP)
+
+For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
+its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
+map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
+"""
+function double_dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+  M_dual, _ = dual(M, cod=cod)
+  M_double_dual, _ = dual(M_dual, cod=cod)
+  psi = hom(M, M_double_dual, 
+            [homomorphism_to_element(M_double_dual, 
+                                     hom(M_dual, cod,
+                                         [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]
+                                        )
+                                    )
+             for x in gens(M)
+            ]
+           )
+  return M_double_dual, psi
+end
+
+@Markdown.doc """
+    dual(f::ModuleFPHom; cod::FreeMod)
+
+For a morphism of modules ``f : M → N`` this returns the morphism 
+``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
+
+The optional argument allows to specify a free module of rank one over the 
+base ring of ``f`` for building the duals of ``M`` and ``N``.
+"""
+function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
+    cod::FreeMod=FreeMod(base_ring(domain(f)), 1), 
+    domain_dual::ModuleFP=dual(domain(f), cod=cod)[1],
+    codomain_dual::ModuleFP=dual(codomain(f), cod=cod)[1]
+  )
+  M = domain(f)
+  N = codomain(f)
+  R = base_ring(domain(f))
+  R === base_ring(N) || error("modules must be defined over the same rings")
+
+  M_dual = domain_dual
+  N_dual = codomain_dual
+
+  return hom(N_dual, M_dual, 
+             [homomorphism_to_element(M_dual, 
+                                      hom(M, cod, 
+                                          [element_to_homomorphism(phi)(f(v)) for v in gens(M)]
+                                         )
+                                     )
+              for phi in gens(N_dual)])
+end
+

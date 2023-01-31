@@ -39,6 +39,8 @@ include("Modules/FreeModElem-orderings-test.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
+include("Modules/MPolyQuo.jl")
+include("Modules/homological-algebra_test.jl")
 
 include("InvariantTheory/runtests.jl")
 

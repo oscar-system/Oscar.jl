@@ -11,10 +11,7 @@
     @test length(moved_points(G)) == n
     nmp = number_moved_points(G)
     @test nmp == n
-    @test nmp isa fmpz
-    nmp = number_moved_points(Int64, G)
-    @test nmp == n
-    @test nmp isa Int64
+    @test nmp isa Int
 
     @test isfinite(G)
 
@@ -97,12 +94,12 @@ end
   g = cyclic_group(PosInf())
   @test is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
 
   g = dihedral_group(PosInf())
   @test !is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
 
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
@@ -175,40 +172,32 @@ end
 end
 
 @testset "Classical groups" begin
-   @testset for n in [2,5]
-      @testset for q in [4,9]
-         G = GL(n,q)
-         S = SL(n,q)
-         @test G==general_linear_group(n,q)
-         @test S==special_linear_group(n,q)
-         @test order(S)==prod(BigInt[q^n-q^i for i in 0:(n-1)])÷(q-1)
-         @test index(G,S)==q-1
-      end
+   @testset for n in [2,5], q in [4,9]
+      G = GL(n,q)
+      S = SL(n,q)
+      @test G==general_linear_group(n,q)
+      @test S==special_linear_group(n,q)
+      @test order(S)==prod(BigInt[q^n-q^i for i in 0:(n-1)])÷(q-1)
+      @test index(G,S)==q-1
    end
 
-   @testset for n in 1:3
-      @testset for q in [2,3]
-         @test unitary_group(n,q)==GU(n,q)
-         @test special_unitary_group(n,q)==SU(n,q)
-         @test index(GU(n,q),SU(n,q))==q+1
-      end
+   @testset for n in 1:3, q in [2,3]
+      @test unitary_group(n,q)==GU(n,q)
+      @test special_unitary_group(n,q)==SU(n,q)
+      @test index(GU(n,q),SU(n,q))==q+1
    end
 
-   @testset for n in [2,4,6]
-      @testset for q in [4,9]
-         @test symplectic_group(n,q)==Sp(n,q)
-      end
+   @testset for n in [2,4,6], q in [4,9]
+      @test symplectic_group(n,q)==Sp(n,q)
    end
 
    @testset for q in [3,4]
-      @testset for n in [4,6]
-         @testset for e in [+1,-1]
-            @test GO(e,n,q)==orthogonal_group(e,n,q)
-            @test SO(e,n,q)==special_orthogonal_group(e,n,q)
-            @test index(GO(e,n,q), SO(e,n,q)) == gcd(2, q-1)
-            @test index(SO(e,n,q), omega_group(e,n,q)) == 2
-            @test index(GO(e,n,q), omega_group(e,n,q)) == 2 * gcd(2, q-1)
-         end
+      @testset for n in [4,6], e in [+1,-1]
+         @test GO(e,n,q)==orthogonal_group(e,n,q)
+         @test SO(e,n,q)==special_orthogonal_group(e,n,q)
+         @test index(GO(e,n,q), SO(e,n,q)) == gcd(2, q-1)
+         @test index(SO(e,n,q), omega_group(e,n,q)) == 2
+         @test index(GO(e,n,q), omega_group(e,n,q)) == 2 * gcd(2, q-1)
       end
       @testset for n in [3,5]
          @test GO(n,q)==orthogonal_group(n,q)

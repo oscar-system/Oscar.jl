@@ -106,7 +106,7 @@ function Base.in(
 end
 
 ### iteration 
-Base.iterate(U::MPolyPowersOfElement) = (U.a[1], 1)
+Base.iterate(U::MPolyPowersOfElement) = (length(U.a)>0 ? (U.a[1], 1) : nothing)
 Base.iterate(U::MPolyPowersOfElement, a::Tuple{<:MPolyElem, Int}) = (a[2] < length(U.a) ? (U.a[a[2]+1], a[2]+1) : nothing)
 Base.iterate(U::MPolyPowersOfElement, i::Int) = (i < length(U.a) ? (U.a[i+1], i+1) : nothing)
 
@@ -869,6 +869,26 @@ function preimage(f::Oscar.AffAlgHom, U::MST) where {MST<:AbsMPolyMultSet}
   error("not implemented")
 end
 
+### Transfer of multiplicative sets along ring homomorphisms 
+function (phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing, Nothing})(U::MPolyPowersOfElement;
+                                                               check::Bool=true
+                                                              )
+  ambient_ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
+  S = codomain(phi) 
+  SU = MPolyPowersOfElement(S, phi.(denominators(U)))
+  return SU
+end
+
+function (phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing, Nothing})(U::MPolyComplementOfPrimeIdeal;
+                                                               check::Bool=true
+                                                              )
+  ambient_ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
+  S = codomain(phi) 
+  Q = ideal(S, phi.(gens(prime_ideal(U))))
+  SU = MPolyComplementOfPrimeIdeal(S, Q, check=check)
+  return SU
+end
+
 ########################################################################
 # Localizations of polynomial rings over admissible fields             #
 ########################################################################
@@ -1405,7 +1425,7 @@ is_saturated(I::MPolyLocalizedIdeal) = I.is_saturated
 ngens(I::MPolyLocalizedIdeal) = length(I.gens)
 getindex(I::MPolyLocalizedIdeal, k::Int) = copy(I.gens[k])
 
-function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
+function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
@@ -1879,7 +1899,7 @@ saturated_ideal(I::MPolyIdeal) = I
 # the following overwrites the membership test 
 # assuming that direct computation of the saturation 
 # is cheaper when localizing at powers of elements.
-function Base.in(
+function ideal_membership(
     a::RingElem, 
     I::MPolyLocalizedIdeal{LocRingType}
   ) where {
@@ -1972,7 +1992,7 @@ end
   return ideal(R, shift.(gens(pre_saturated_ideal(I))))
 end
 
-function Base.in(
+function ideal_membership(
     a::RingElem, 
     I::MPolyLocalizedIdeal{LocRingType}
   ) where {
@@ -2090,7 +2110,7 @@ function coordinates(
   end
 end
 
-function Base.in(
+function ideal_membership(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
@@ -2147,7 +2167,7 @@ end
 # special treatment of localization at orderings                       #
 ########################################################################
 
-function Base.in(
+function ideal_membership(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
@@ -2480,3 +2500,19 @@ end
 function lift(a::MPolyLocalizedRingElem)
   return a
 end
+
+### Allow computation of kernels of maps to MPolyLocalizedRings
+function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyLocalizedRing})
+  P = domain(f)
+  L = codomain(f)
+  I = ideal(L, zero(L))
+  R = base_ring(L)
+  J = saturated_ideal(I)
+  d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
+  W = MPolyQuoLocalizedRing(R, ideal(R, zero(R)), MPolyPowersOfElement(R, d))
+  id =  _as_affine_algebra(W)
+  A = codomain(id)
+  h = hom(P, A, id.(f.(gens(P))))
+  return preimage(h, ideal(A, id.(W.(gens(J)))))
+end
+

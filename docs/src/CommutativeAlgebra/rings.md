@@ -17,8 +17,8 @@ Pages = ["rings.md"]
 
 In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
 while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
-rings with (multi)gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
-and their elements, we refer to the chapters on rings and fields. 
+rings with gradings by finitely presented groups. For more details on multivariate polynomial rings, their
+coefficient rings (fields), and their elements, we refer to the chapters on rings and fields. 
 
 ## Types
 
@@ -121,14 +121,14 @@ julia> z
 
 Gröbner and standard bases are implemented for multivariate polynomial rings over the fields and rings below:
 
-###### The field of rational numbers $\mathbb{Q}$
+### The field of rational numbers $\mathbb{Q}$
 
 ```jldoctest
 julia> QQ
 Rational Field
 
 ```
-###### Finite fields $\mathbb{F_p}$, $p$ a prime
+### Finite fields $\mathbb{F_p}$, $p$ a prime
 
 ```jldoctest
 julia> GF(3)
@@ -139,7 +139,7 @@ Galois field with characteristic 170141183460469231731687303715884105727
 
 ```
 
-###### Finite fields $\mathbb{F}_{p^n}$ with $p^n$ elements, $p$ a prime
+### Finite fields $\mathbb{F}_{p^n}$ with $p^n$ elements, $p$ a prime
 
 ```jldoctest
 julia> FiniteField(2, 70, "a")
@@ -147,7 +147,7 @@ julia> FiniteField(2, 70, "a")
 
 ```
 
-###### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
+### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
   
 ```jldoctest
 julia> T, t = PolynomialRing(QQ, "t")
@@ -167,7 +167,7 @@ julia> K, a = FiniteField(t^2 + 1, "a")
 
 ```
 
-###### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
+### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
 
 ```jldoctest
 julia> T, t = PolynomialRing(QQ, "t")
@@ -189,7 +189,7 @@ Fraction field of Multivariate Polynomial Ring in s, t over Galois field with ch
 
 ```
 
-###### The ring of integers $\mathbb{Z}$
+### The ring of integers $\mathbb{Z}$
 
 ```jldoctest
 julia> ZZ

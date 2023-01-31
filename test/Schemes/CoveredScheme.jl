@@ -27,8 +27,8 @@ end
   C = standard_covering(X)
   D, i, j = simplify(C) 
   @test all( x->(ngens(ambient_coordinate_ring(x)) == 2), collect(D))
-  @test_broken transition_graph(Pc[1])
-  @test_broken transition_graph(C)
+  @test transition_graph(Pc[1]) isa Graph
+  @test transition_graph(C) isa Graph
 end
 
 @testset "standard_covering" begin
@@ -173,4 +173,37 @@ end
   Z2 = subscheme(P, J2)
   Z2cov = covered_scheme(Z2)
   @test is_integral(Z2cov)
+end
+
+@testset "conversion of morphisms" begin
+  P = projective_space(QQ, 2)
+  SP = ambient_coordinate_ring(P)
+  (x, y, z) = gens(SP)
+  m = ideal(SP, gens(SP))
+  m3 = m^3
+  n = ngens(m3)
+  Q = projective_space(QQ, n-1)
+  SQ = ambient_coordinate_ring(Q)
+  phi = hom(SQ, SP, gens(m3))
+  f = ProjectiveSchemeMor(P, Q, phi)
+  f_cov = covered_scheme_morphism(f)
+  @test domain(f_cov) === covered_scheme(P)
+  @test codomain(f_cov) === covered_scheme(Q)
+
+  A = [1 2 4; 1 3 9; 1 5 25]
+  v = A*[x, y, z]
+  psi = hom(SP, SP, v)
+  g = ProjectiveSchemeMor(P, P, psi)
+  g_cov = covered_scheme_morphism(g)
+
+  @test domain(g_cov) === codomain(g_cov) === covered_scheme(P)
+
+  # Test the LazyGlueings:
+  X = covered_scheme(P)
+
+  gg = covering_morphism(g_cov)
+  dom_cov = domain(gg)
+  for k in keys(glueings(dom_cov))
+      @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
+  end
 end

@@ -13,4 +13,7 @@ include("Sheaves.jl")
 include("IdealSheaves.jl")
 include("WeilDivisor.jl")
 include("CoveredProjectiveSchemes.jl")
-
+include("CoherentSheaves.jl")
+include("SimplifiedSpec.jl")
+include("VectorBundles.jl")
+include("CartierDivisor.jl")

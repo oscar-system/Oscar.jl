@@ -29,18 +29,20 @@ presentation(M::ModuleFP)
 ## Syzygies and Free Resolutions
 
 ```@docs
-free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres)
+free_resolution(M::SubQuo{<:MPolyElem}; 
+    ordering::ModuleOrdering = default_ordering(M),
+    length::Int=0, algorithm::Symbol=:fres
+  )
 ```
 
 ## Homology
 
 ```@docs
-homology(C::ChainComplex{<:ModuleFP})
+homology(C::ComplexOfMorphisms{<:ModuleFP})
 ```
 
 ```@docs
-homology(C::ChainComplex{<:ModuleFP}, i::Int)
+homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 ```
 
 ## Hom and Ext
@@ -71,27 +73,47 @@ tensor_product(G::ModuleFP...; task::Symbol = :none)
 tor(M::ModuleFP, N::ModuleFP, i::Int)
 ```
 
+## Fitting Ideals
+
+```@docs
+fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
+```
+
 ## Flatness
 
-```@julia
-fitting_ideal(M::ModuleFP, i::Int)
+Checking flatness in OSCAR relies on characterizing flatness in terms of Fitting ideals.
+
+```@docs
+is_flat(M::ModuleFP{T}) where T <: MPolyElem
 ```
 
-```@julia
-is_flat(M::ModuleFP)
+```@docs
+non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
 ```
 
-```@julia
-non_flat_locus(M::ModuleFP)
+## Regular Sequence Test
+
+```@docs
+is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
+```
+
+## Koszul Homology
+
+```@docs
+koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyElem
 ```
 
 ## Depth
 
-```@julia
-koszul_homology(V::Vector, M:ModuleFP, i::Int)
+The computation of depth in OSCAR relies on expressing depth in terms of  Koszul cohomology. 
+
+```@docs
+depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
 ```
 
-```@julia
-depth(M::ModuleFP, I::Ideal)
-```
+
+
+
+
+
 

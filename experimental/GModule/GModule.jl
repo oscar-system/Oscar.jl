@@ -309,20 +309,6 @@ end
 
 gmodule(k::Nemo.GaloisField, C::GModule{<:Any, Generic.FreeModule{gfp_elem}}) = C
 
-function Oscar.representation_matrix(a::fq_nmod)
-  K = parent(a)
-  k = GF(Int(characteristic(K)))
-  m = zero_matrix(k, degree(K), degree(K))
-  b = basis(K)
-  for i=1:degree(K)
-    c = a*b[i]
-    for j=1:degree(K)
-      m[i,j] = coeff(c, j-1)
-    end
-  end
-  return m
-end
-
 function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, fmpq}}})
   G = group(C)
   phi = epimorphism_from_free_group(G)
@@ -635,7 +621,18 @@ function istwo_cocycle(X::Dict, mA)
   for g = G
     for h = G
       for k = G
-        @assert X[(g*h, k)] == X[(g, h*k)]//mA(k)(X[(g, h)])*X[(h, k)]
+        #= if (g*h)(x) = h(g(x)), then the cocycle should be
+             X[(g*h, k)] X[(g, h)] == mA(g)(X[(h, k)]) X[(g, hk)]
+           if (g*h)(x) = h(g(x)) then we should get
+             X[(g, hk)] X[(h, k)]  == mA(k)(X[(g, h)]) X[(gh, k)]
+
+             (Debeerst, PhD, (1.1) & (1.2))
+
+             However, if we mix the conventions, all bets are off...
+        =#       
+        a = X[(g, h*k)]*X[(h, k)] - mA(k)(X[(g, h)])*X[(g*h, k)]
+#        @show a, iszero(a) || valuation(a)
+        @assert iszero(a) # only for local stuff...|| valuation(a) > 20
       end
     end
   end
@@ -1365,32 +1362,6 @@ function reps(K, G::Oscar.GAPGroup)
   return R
 end
 
-#TODO: do this properly, eventually...
-#      hnf is a rref. maybe we could use a ref s.w.?
-#      in this file, all(?) hnf are actually over GF(p), so 
-#      maybe use this as well?
-function Nemo._hnf(x::fmpz_mat)
-  if nrows(x) * ncols(x) > 100
-    s = sparse_matrix(x)
-    if sparsity(s) > 0.7
-      return matrix(Hecke.hnf(s))
-    end
-  end
-  return Nemo.__hnf(x) # use original Nemo flint hnf
-end
-
-function Nemo._hnf_with_transform(x::fmpz_mat)
-  if nrows(x) * ncols(x) > 100
-    s = sparse_matrix(x)
-    if sparsity(s) > 0.7
-      s = hcat(s, identity_matrix(SMat, ZZ, nrows(x)))
-      m = matrix(Hecke.hnf(s))
-      return m[:, 1:ncols(x)], m[:, ncols(x)+1:end]
-    end
-  end
-  return Nemo.__hnf_with_transform(x) # use original Nemo flint hnf
-end
-
 
 """
 Brueckner Chap 1.3.1
@@ -1411,9 +1382,9 @@ function find_primes(mp::Map{FPGroup, PcGroup})
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
     ia = gmodule(GrpAbFinGen, ib)
     a, b = Oscar.GrpCoh.H_one_maps(ia)
-    da = Oscar.dual(a)
-    db = Oscar.dual(b)
-    #=
+#    da = Oscar.dual(a)
+#    db = Oscar.dual(b)
+    #= 
     R = Q/Z, then we should have
       R^l -a-> R^n -b-> R^m
     and the H^1 we want is ker(b)/im(a)
@@ -1423,8 +1394,24 @@ function find_primes(mp::Map{FPGroup, PcGroup})
     should give me
       quo(im(b'), ker(a'))
     as the dual to what I want.
+    ======================================
+    Wrong / don't know why correct.
+    2nd attempt:
+    Im(a) = R^? as R is divisible, the image is a quotient (domain modulo
+    kernel), hence a power of R
+    Ker(b) = R^? x Torsion:
+    transform b in SNF (change of basis R^n and R^m with Gl(n, Z))
+    then Ker = R^(number of 0) x T and the T is the non-zero elem. divisors.
+    Thus the quotient is R^? x T
+    (no duality was harmed here)
+    (the cohomology also works as the action (matrices) are identical for
+    R and Z (namely integral) and the cohomology does not do any computation
+    right until the end when images and kernels are obtained. The Maps
+    are correct...)
+    TODO: this is not (yet) implemented this way
     =#
-    q = quo(kernel(da)[1], image(db)[1])[1]
+    q = cokernel(b)[1]
+#    q = quo(kernel(da)[1], image(db)[1])[1]
     t = torsion_subgroup(q)[1]
     if order(t) > 1
       push!(lp, collect(keys(factor(order(t)).fac))...)
@@ -1503,6 +1490,10 @@ end
 
 function coimage(h::Map)
   return quo(domain(h), kernel(h)[1])
+end
+
+function Oscar.cokernel(h::Map)
+  return quo(codomain(h), image(h)[1])
 end
 
 function Base.iterate(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem

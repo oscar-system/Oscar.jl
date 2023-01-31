@@ -13,11 +13,12 @@ using Oscar
 Pages = ["subquotients.md"]
 ```
 
-# Subquotient Modules
+# Subquotients
 
-A subquotient module is a submodule of a quotient of a free module. In what follows, we simply
-use the expression *subquotient* to refer to a subquotient module over a multivariate polynomial ring.
-More concretely, given a multivariate polynomial ring $R$, a *subquotient* $M$ over $R$ is a module of type
+A subquotient  is a submodule of a quotient of a free module. In this section, the expression
+*subquotient* refers to a subquotient over a ring of type `MPolyRing`, `MPolyQuo`,
+`MPolyLocalizedRing`, or `MPolyQuoLocalizedRing`. That is, given a ring $R$ of one of these
+types, a subquotient $M$ over $R$ is a module of type
 
 $M = (\text{im } a + \text{im } b)/\text{im } b,$
 
@@ -50,10 +51,10 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 
 ## Types
 
-All OSCAR types for finitely presented modules over multivariate polynomial rings
-belong to the abstract type `ModuleFP{T}`, where `T` is the element type of the polynomial ring.
-For subquotients, OSCAR provides the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}` and
-its concrete descendant `SubQuo{T}`.
+All OSCAR types for the finitely presented modules considered here belong to the
+abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
+The subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
+they are modelled as objects of the concrete type `SubQuo{T} <: AbstractSubQuo{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -147,7 +148,7 @@ by Submodule with 3 generators
 
 ## Elements of Subqotients
 
-All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the
+All OSCAR types for elements of finitely presented modules considered here belong to the
 abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
 For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
 and its concrete descendant `SubQuoElem{T}` which implements an element $m$ of a subquotient
@@ -206,7 +207,7 @@ true
 
 ```
 
-Given an element `m`  of a subquotient `M`  over a multivariate polynomial ring $R$ with element type `T`,
+Given an element `m` of a subquotient `M` over a ring $R$ with element type `T`,
 - `parent(m)` refers to `M`, 
 - `coordinates(m)` to  an object of type `SRow{T}` specifying the coefficients of an $R$-linear combination of the generators of $M$ which gives $m$, and
 - `ambient_representative(m)` to an element of the ambient free module of `M` which represents `m`.
@@ -345,7 +346,7 @@ quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism)
 
 ## Homomorphisms From Subqotients
 
-All OSCAR types for homomorphisms of finitely presented modules over multivariate polynomial rings belong
+All OSCAR types for homomorphisms of finitely presented modules considered here belong
 to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom{T1, T2} <: ModuleFPHom{T1, T2}`
 as well as the following constructors:
@@ -363,3 +364,7 @@ matrix(a::SubQuoHom)
 
 The domain and codomain of a homomorphism `a`  of type `SubQuoHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
+
+
+
+

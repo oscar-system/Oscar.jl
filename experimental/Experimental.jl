@@ -20,3 +20,8 @@ include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 
 include("Matrix/matrix.jl")
+include("Schemes/SimplifiedSpec.jl")
+include("Schemes/CoherentSheaves.jl")
+include("Schemes/LazyGlueing.jl")
+include("Schemes/CartierDivisor.jl")
+include("Schemes/Auxiliary.jl")

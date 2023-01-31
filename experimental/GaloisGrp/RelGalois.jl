@@ -75,7 +75,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
     den = derivative(defining_polynomial(k))(gen(k))
   end
   zk = lll(zk) # always a good option!
-  p = degree(f)
+  p = pStart
   f *= lcm(map(denominator, coefficients(f)))
   np = 0
   _num = 0
@@ -100,7 +100,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
       continue
     end
     lf = factor_shape(fp)
-    c = CycleType(vec(collect(keys(lf))))
+    c = CycleType(vec(collect(lf)))
     push!(ct, c)
     dg = order(c)
     if order(c) == 1
@@ -111,7 +111,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
     elseif bp[2] > dg 
       bp = (p, dg, P[1][1])
     end
-    if ceil(Int, degree(f)/4) <= bp[2] <= floor(Int, degree(f)/2) || length(ct) > 2*degree(f) || _num > 200
+    if ceil(Int, degree(f)/4) <= bp[2] <= floor(Int, degree(f)/2) && length(ct) > 2*degree(f) || _num > 200
       #counter example: C_5: cycle_types are [1,1,1,1,1] or [5], degrees
       #                      1 and 5...
       break
