@@ -244,12 +244,9 @@ Return the `m`-th power of `a`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, [x^2-y, y^2-x+y])
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
- Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+julia> A, _ = quo(R, [x^2-y, y^2-x+y]);
 
 julia> I = ideal(A, [x+y])
 ideal(x + y)
@@ -270,12 +267,9 @@ Return the sum of `a` and `b`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, [x^2-y, y^2-x+y])
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
- Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+julia> A, _ = quo(R, [x^2-y, y^2-x+y]);
 
 julia> I = ideal(A, [x+y])
 ideal(x + y)
@@ -301,12 +295,9 @@ Return the product of `a` and `b`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, [x^2-y, y^2-x+y])
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, -x + y^2 + y), Map from
- Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse)
+julia> A, _ = quo(R, [x^2-y, y^2-x+y]);
 
 julia> I = ideal(A, [x+y])
 ideal(x + y)
