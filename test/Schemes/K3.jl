@@ -17,9 +17,12 @@
   I = IdealSheaf(X, U, [ft])
 
   # The fabulous K3-surface. Almost.
-  S = subscheme(I)
+  inc_S = oscar.CoveredClosedEmbedding(X, I)
+  @test I === image_ideal(inc_S)
+  S = domain(inc_S)
 
   I_sing = oscar.ideal_sheaf_of_singular_locus(S)
+  I_sing_X = radical(pushforward(inc_S)(I_sing))
 
   @test scheme(I_sing) === S
 
@@ -42,25 +45,25 @@
   
   @show "round 2"
   I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
-  @show "done"
-  Y3_proj = blow_up(I_sing_Y2)
-  @show "done"
-  Y3 = covered_scheme(Y3_proj)
-  @show "done"
-  simplify!(Y3)
-  @show "done"
-  @test !is_smooth(Y3)
-  
-  @show "round 3"
-  I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
-  @show "done"
-  Y4_proj = blow_up(I_sing_Y3)
-  @show "done"
-  Y4 = covered_scheme(Y4_proj)
-  @show "done"
-  simplify!(Y4)
-  @show "done"
-  @test !is_smooth(Y4)
+#  @show "done"
+#  Y3_proj = blow_up(I_sing_Y2)
+#  @show "done"
+#  Y3 = covered_scheme(Y3_proj)
+#  @show "done"
+#  simplify!(Y3)
+#  @show "done"
+#  @test !is_smooth(Y3)
+#  
+#  @show "round 3"
+#  I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
+#  @show "done"
+#  Y4_proj = blow_up(I_sing_Y3)
+#  @show "done"
+#  Y4 = covered_scheme(Y4_proj)
+#  @show "done"
+#  simplify!(Y4)
+#  @show "done"
+#  @test !is_smooth(Y4)
 # 
 #  @show "round 4"
 #  I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
