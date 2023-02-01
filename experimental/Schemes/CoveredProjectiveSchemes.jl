@@ -603,6 +603,7 @@ function blow_up(
     gd = CoveredProjectiveGlueingData(U, V, P, Q, G, I)
     projective_glueings[U, V] = LazyProjectiveGlueing(P, Q, G, _compute_projective_glueing, gd)
   end
+  Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_glueings)
   Y = covered_scheme(Bl_I)
   # Assemble the exceptional divisor as a Cartier divisor
   ID = IdDict{AbsSpec, RingElem}()
