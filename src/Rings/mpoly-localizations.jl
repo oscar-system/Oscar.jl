@@ -2429,7 +2429,7 @@ with the localization map (with the composition of the localization map and the 
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> I = ideal(R, [y-x^2, z-x^3])
+julia> I = ideal(R, [y-x^2, z-x^3]);
 
 julia> RQ, p = quo(R, I);
 

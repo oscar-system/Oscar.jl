@@ -300,11 +300,10 @@ julia> RQ, _ = quo(R, I);
 julia> RQL, iota = localization(RQ, U);
 
 julia> RQL
-Localization of Quotient of Multivariate Polynomial Ring in x, y over K by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
 
 julia> iota
-Map from
-RQ to Localization of Quotient of Multivariate Polynomial Ring in x, y over K by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
+Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
 ```
 """ localization(A::MPolyQuo, U::AbsMPolyMultSet)
 

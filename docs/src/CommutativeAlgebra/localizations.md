@@ -146,7 +146,6 @@ julia> K, a =  NumberField(2*t^2-1, "a");
 julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
 
 julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
-
 ideal(2*x^2 - y^3, 2*x^2 - y^5)
 
 julia> P = ideal(R, [y-1, x-a])
@@ -239,7 +238,6 @@ julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
 julia> U = complement_of_ideal(P)
-
 complement of ideal(y - 1, x - a)
 
 julia> RQ, p = quo(R, I);
@@ -348,7 +346,7 @@ julia> f = phi(x)
 x//1
 
 julia> parent(f)
-Localization of Quotient of Multivariate Polynomial Ring in x, y over K by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
 
 julia> g = f*inv(phi(y))
 x//y
