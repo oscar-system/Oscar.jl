@@ -126,14 +126,6 @@ function proj(Q::MPolyQuo{<:MPolyElem_dec})
   return ProjectiveScheme(Q)
 end
 
-#function is_injective(f::ModuleFPHom) 
-#  return iszero(kernel(f)[1])
-#end
-#
-#function is_surjective(f::ModuleFPHom)
-#  return iszero(cokernel(f))
-#end
-
 function is_isomorphism(f::ModuleFPHom)
   return is_injective(f) && is_surjective(f)
 end
