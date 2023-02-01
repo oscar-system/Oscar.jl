@@ -34,18 +34,11 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   R = base_ring(M)
   F = codomain(f)
   R === base_ring(F) || error("modules must be defined over the same ring")
-<<<<<<< HEAD
   P = presentation(M)::ComplexOfMorphisms
   p = map(P, 0)
   FM = P[0]
   r = rank(FM)
   r == length(var_names) || error("wrong number of variable names given")
-=======
-  P = presentation(M)::ChainComplex
-  p = map(P, 0)
-  FM = P[0]
-  r = rank(FM)
->>>>>>> Import and extend tests.
   sym_FM, s = PolynomialRing(R, Symbol.(var_names))
   sym_F, t = PolynomialRing(R, [Symbol("t$i") for i in 1:rank(F)])
   imgs = Vector{elem_type(sym_F)}()
@@ -140,6 +133,7 @@ function proj(Q::MPolyQuo{<:MPolyElem_dec})
 end
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #function is_injective(f::ModuleFPHom) 
 #  return iszero(kernel(f)[1])
@@ -150,6 +144,8 @@ end
 #end
 
 >>>>>>> Import and extend tests.
+=======
+>>>>>>> Remove deprecated comments.
 function is_isomorphism(f::ModuleFPHom)
   return is_injective(f) && is_surjective(f)
 end
