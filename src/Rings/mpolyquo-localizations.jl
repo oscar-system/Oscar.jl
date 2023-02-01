@@ -270,7 +270,7 @@ end
     localization(RQ::MPolyQuo, U::AbsMPolyMultSet)
 
 Given a quotient `RQ` of a multivariate polynomial ring `R` with projection map
-`p : R -> RQ`, say, and given a multiplicative closed subset `U` of `R`, return the 
+`p : R -> RQ`, say, and given a multiplicatively closed subset `U` of `R`, return the 
 localization of `RQ` at `p(U)`, together with the localization map.
 
 !!! note
@@ -303,6 +303,7 @@ julia> RQL
 Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
 
 julia> iota
+Map from
 Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
 ```
 """ localization(A::MPolyQuo, U::AbsMPolyMultSet)

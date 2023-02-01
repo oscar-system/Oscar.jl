@@ -385,7 +385,7 @@ homomorphisms. Let
 - `S` be another ring.
 Then, to give a ring homomorphism `PHI`  from `Rloc` to `S` (from`RQL` to `S`) is the same
 as to give a ring homomorphism `phi` from `R` to `S` which sends elements of `U` to units
-in `S`. That is, `PHI` is determined by the composition of `PHI` with the localization map
+in `S`. That is, `PHI` is determined by its composition with the localization map
 `R -> Rloc` (with the composition `R -> RQ -> RQL` of the localization map with the
 projection map). The constructors below take this into account.
 
