@@ -98,6 +98,23 @@ function _polymake_to_oscar_ray_index(P::Polymake.BigObject, v::AbstractVector)
     return [_polymake_to_oscar_ray_index(P, v[i]) for i in 1:length(v)]
 end
 
+
+@doc Markdown.doc"""
+    minimal_faces(as, P::Polyhedron)
+
+Return the smallest faces of a polyhedron. For a polyhedron without lineality,
+these are the vertices.
+"""
+function minimal_faces(as::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
+    return SubObjectIterator{as}(pm_object(P), _minimal_face_polyhedron, _nvertices(P))
+end
+minimal_faces(as::Type{PointVector}, P::Polyhedron) = _vertices(P)
+minimal_faces(P::Polyhedron{T}) where T = minimal_faces(Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}, P)
+
+_minimal_face_polyhedron(::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}(PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
+
+
+
 @doc Markdown.doc"""
     vertices(as, P)
 
@@ -454,6 +471,7 @@ normalized_volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, factorial
 
 normalized_volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, factorial(dim(P))*(pm_object(P)).VOLUME)
 
+
 @doc Markdown.doc"""
     dim(P::Polyhedron)
 
@@ -509,6 +527,7 @@ _lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer
 _point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = @view P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
+
 
 @doc Markdown.doc"""
     interior_lattice_points(P::Polyhedron{fmpq})
@@ -597,6 +616,7 @@ julia> ambient_dim(P)
 """
 ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))::Int
 
+
 @doc Markdown.doc"""
     codim(P::Polyhedron)
 
@@ -646,6 +666,7 @@ _generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogeniz
 
 _matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
 
+
 @doc Markdown.doc"""
     affine_hull(P::Polytope)
 
@@ -673,6 +694,7 @@ end
 _affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = P.AFFINE_HULL
 
 _affine_matrix_for_polymake(::Val{_affine_hull}) = _affine_equation_matrix
+
 
 @doc Markdown.doc"""
     recession_cone(P::Polyhedron)
@@ -928,6 +950,7 @@ Check whether `P` is simplicial.
 """
 is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
 
+
 @doc Markdown.doc"""
     is_fulldimensional(P::Polyhedron)
 
@@ -992,6 +1015,7 @@ function h_vector(P::Polyhedron)::Vector{fmpz}
     return pm_object(P).H_VECTOR
 end
 
+
 @doc Markdown.doc"""
     g_vector(P::Polyhedron)
 
@@ -1011,6 +1035,7 @@ function g_vector(P::Polyhedron)::Vector{fmpz}
     is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).G_VECTOR
 end
+
 
 @doc Markdown.doc"""
     relative_interior_point(P::Polyhedron)
@@ -1045,6 +1070,7 @@ julia> matrix(QQ, vertices(square))
 """
 relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
 
+
 @doc Markdown.doc"""
     support_function(P::Polyhedron; convention::Symbol = :max)
 
@@ -1073,6 +1099,7 @@ function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_t
     end
     return h
 end
+
 
 @doc Markdown.doc"""
     print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
