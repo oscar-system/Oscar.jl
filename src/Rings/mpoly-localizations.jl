@@ -2378,8 +2378,8 @@ be the homomorphism from `R` to `S` which is determined by the entries of `V` as
 the generators of `R`, and proceed as above.
 
 !!! warning
-    Except if `typeof(U) <: MPolyPowersOfElement` evaluates to `true`, the extra condion on `phi` is not checked by the function.
-
+    Except from the case where the type of `U` is `<: MPolyPowersOfElement`, the extra condition on `phi` is not checked by this constructor.
+ 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
