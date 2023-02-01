@@ -649,7 +649,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   result = empty
 
 # equidimensional decompositon to allow Jacobi criterion on each component
-  P = []
+  P = Ideal[]
 
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 
     push!(P, I)
