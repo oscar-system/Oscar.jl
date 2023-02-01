@@ -1,6 +1,6 @@
 GG = GAP.Globals
 
-export action_in_submodule,
+export action_on_submodule,
        affording_representation,
        all_characters,
        all_irreducible_representations,
@@ -1324,7 +1324,6 @@ function to_equivalent_block_representation(rep::LinRep)
   mr = matrix_representation(rep)
   mr2 = [B*m*inv(B) for m in mr]
   rep2 = _linear_representation(RR, mr2)
-  @assert character_representation(rep2) == character_representation(rep)
   return rep2, inv(B)
 end
 

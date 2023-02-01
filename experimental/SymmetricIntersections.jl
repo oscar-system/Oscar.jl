@@ -1,0 +1,6 @@
+include("SymmetricIntersections/Types.jl")
+include("SymmetricIntersections/Elevators.jl")
+include("SymmetricIntersections/Representations.jl")
+include("SymmetricIntersections/SymmetricGrassmannians.jl")
+include("SymmetricIntersections/HomogeneousPolynomialsActions.jl")
+include("SymmetricIntersections/K3Models.jl")

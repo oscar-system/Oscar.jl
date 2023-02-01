@@ -323,9 +323,9 @@ of `V` with a given character `mu` such that `mu` has dimension `d` and determin
 """
 irreducible_components(M::DeterminantGrassmannian) = M.irr_comp
 
-is_irreducible(M::DeterminantGrassmannian) = length(M.irr_comp) == 1
+is_irreducible(M::DeterminantGrassmannian) = length(irreducible_components(M)) == 1
 
-is_empty(M::DeterminantGrassmannian) = length(M.irr_comp) == 0
+is_empty(M::DeterminantGrassmannian) = length(irreducible_components(M)) == 0
 
 projective_dimension(M::DeterminantGrassmannian) = maximum(projective_dimension.(M.irr_comp); init = -1)
 
@@ -574,7 +574,7 @@ function determinant_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClass
   return DeterminantGrassmannian(rep, chi, irr_comp, t)
 end
 
-determinant_grassmannian(prep::ProjRep, t::Int, chi::Oscar.GAPGroupClassFunction) = determinant_grassmannian(linear_lift(prep), t, chi)
+determinant_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction, t::Int) = determinant_grassmannian(linear_lift(prep), chi, t)
 
 ###############################################################################
 #
@@ -615,12 +615,10 @@ function _defining_ideal_determinant_grassmannian(r::LinRep, chi::Oscar.GAPGroup
   @req degree(chi) == 1 "chi must be a linear character"
   @req chi in irreducible_characters_underlying_group(representation_ring(r)) "chi is not a character of the undrlying group of r"
   rt = t == 1 ? r : exterior_power_representation(r, t)
-  e = Int(exponent(underlying_group(r)))
-  F, _ = cyclotomic_field(e, cached=false)
+  F = splitting_field(representation_ring(r))
   k = dimension_representation(rt)
   S, _ = grade(PolynomialRing(F, "x" => 0:k-1)[1])
   bas = basis_isotypical_component(rt, chi)
-  bas = [matrix(F.(data.(m))) for m in bas]
   if length(bas) == 0
     return ideal(S, [S(1)])
   end
@@ -629,8 +627,7 @@ end
 
 function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   rt = t == 1 ? r : exterior_power_representation(r, t)
-  e = Int(exponent(underlying_group(r)))
-  F, _ = cyclotomic_field(e, cached=false)
+  F = splitting_field(representation_ring(r))
   cds = character_decomposition(rt)
   chis = [cd[2] for cd in cds if Int(degree(cd[2])) == 1]
   k = dimension_representation(rt)
@@ -639,7 +636,6 @@ function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   I = ideal(S, [S(1)])
   for chi in chis
     bas = basis_isotypical_component(rt, chi)
-    bas = [matrix(F.(data.(m))) for m in bas]
     J = _intersection_with_grassmannian(bas, dimension_representation(r), t, S=S)
     I = saturation(I*J, irre)
   end

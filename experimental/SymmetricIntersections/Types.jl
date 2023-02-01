@@ -14,7 +14,7 @@ export CharacterGrassmannian,
        ProjRep,
        RepRing,
        SymmetricGrassmannian,
-       SymmetricCompleteIntersections
+       SymmetricIntersections
 
 ###############################################################################
 #
@@ -188,12 +188,12 @@ end
 #
 ###############################################################################
 
-@attributes mutable struct SymmetricCompleteIntersections{S, T, U, V}
+@attributes mutable struct SymmetricIntersections{S, T, U, V}
   prep::ProjRep{S, T, U, V}
   para::CharacterGrassmannian{S, T, U}
   j::MapFromFunc
   
-  function SymmetricCompleteIntersections(prep::ProjRep{S, T, U, V}, para::CharacterGrassmannian{S, T, U}, j::MapFromFunc) where {S, T, U, V}
+  function SymmetricIntersections(prep::ProjRep{S, T, U, V}, para::CharacterGrassmannian{S, T, U}, j::MapFromFunc) where {S, T, U, V}
     z = new{S, T, U, V}(prep, para, j)
     return z
   end
