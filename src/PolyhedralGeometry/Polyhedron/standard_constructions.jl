@@ -189,9 +189,10 @@ julia> normalized_volume(C)
 120
 ```
 """
-cube(::Type{T}, d) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
-cube(::Type{T}, d, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
-cube(x...) = cube(fmpq, x...)
+cube(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
+cube(d::Int) = cube(fmpq, d)
+cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
+cube(d::Int, l, u) = cube(fmpq, d, l, u)
 
 @doc Markdown.doc"""
     tetrahedron()
@@ -585,9 +586,10 @@ julia> facets(t)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-simplex(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
-simplex(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
-simplex(x...) = simplex(fmpq, x...)
+simplex(::Type{T}, d::Int, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
+simplex(d::Int, n) = simplex(fmpq, d, n)
+simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
+simplex(d::Int) = simplex(fmpq, d)
 
 
 @doc Markdown.doc"""
@@ -630,9 +632,10 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross_polytope(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
+cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
+cross_polytope(d::Int64, n) = cross_polytope(fmpq, d, n)
 cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
-cross_polytope(x...) = cross_polytope(fmpq, x...)
+cross_polytope(d::Int64) = cross_polytope(fmpq, d)
 
 @doc Markdown.doc"""
 
