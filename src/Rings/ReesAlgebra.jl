@@ -71,7 +71,6 @@ function rees_algebra(M::SubQuo;
     # modulo linear equations in the variables parametrized by the base.
     R = base_ring(M)
     r = ngens(M)
-<<<<<<< HEAD
     S, s = PolynomialRing(R, Symbol.(var_names))
     A = matrix(compose(sigma, p)) # The projector matrix:
     # M is a direct summand of a free module via p : F ↔ M : sigma.
@@ -90,12 +89,6 @@ function rees_algebra(M::SubQuo;
     # generate that ideal. 
     B = one(A) - A
     I = ideal(S, [sum(B[j, i]*s[j] for j in 1:length(s)) for i in 1:ncols(B)])
-=======
-    S_tmp, s = PolynomialRing(R, Symbol.(var_names))
-    S, sg = grade(S_tmp)
-    A = matrix(p) # The presentation matrix
-    I = ideal(S, [sum(A[i, j]*sg[j] for j in 1:length(s)) for i in 1:nrows(A)])
->>>>>>> 8f897b3d46 (Allow choices of variable names in Rees algebras.)
     Q, sq = quo(S, I)
     return Q
   end
