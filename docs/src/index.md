@@ -57,8 +57,7 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 ```
 5. To use your `FTheoryTools` installation, you finally want to invoke
 ```julia
-    using("Oscar")
-    using("FTheoryTools")
+    using Oscar, FTheoryTools
 ```
 
 Note that due to the modularity of the `Julia` programing language, access to the `Oscar`
