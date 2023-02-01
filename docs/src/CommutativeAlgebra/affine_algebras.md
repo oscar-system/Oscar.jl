@@ -25,7 +25,7 @@ functionality for handling such algebras in OSCAR.
 
 !!! note
     In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
-    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
+    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The function `simplify` discussed in this section implements this.
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
@@ -185,7 +185,7 @@ ideal(Q::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
 ### Reducing Generators of Ideals
 
 ```@docs
-simplify_generators(a::MPolyQuoIdeal)
+simplify(a::MPolyQuoIdeal)
 ```
 
 ### Data Associated to Ideals in Affine Algebras
