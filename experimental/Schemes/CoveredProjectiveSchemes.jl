@@ -233,7 +233,7 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=true) # TODO: Set to false
+    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) # TODO: Set to false
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     return IPY
@@ -262,7 +262,7 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=true) # TODO: Set to false
+    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) # TODO: Set to false
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     return IPY
@@ -304,7 +304,7 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     W === codomain(p_res) || error("codomain not correct")
     ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
   end
-  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=true) # TODO: Set to false
+  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) # TODO: Set to false
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
   return Bl_W
@@ -566,24 +566,25 @@ function blow_up(
     I::IdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
-    var_name::String="s"
+    var_name::String="s",
+    covering::Covering=default_covering(scheme(I))
   )
   X = space(I)
   local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
-  C = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  for U in patches(C)
+  for U in patches(covering)
     local_blowups[U] = blow_up(U, I(U), var_name=var_name)
   end
   projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
 
   # prepare for the projective glueings
-  for (U, V) in keys(glueings(C))
+  for (U, V) in keys(glueings(covering))
     P = local_blowups[U]
     Q = local_blowups[V]
-    G = C[U, V]
+    G = covering[U, V]
     gd = CoveredProjectiveGlueingData(U, V, P, Q, G, I)
     projective_glueings[U, V] = LazyProjectiveGlueing(P, Q, G, _compute_projective_glueing, gd)
   end
+  Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_glueings)
   Y = covered_scheme(Bl_I)
   # Assemble the exceptional divisor as a Cartier divisor
   ID = IdDict{AbsSpec, RingElem}()
@@ -600,7 +601,7 @@ function blow_up(
     ID[U] = first(E_loc(U))
   end
   pr = BlowupMorphism(Bl_I, I)
-  pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov))
+  pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   return pr
 end
 

@@ -489,11 +489,13 @@ end
 
 @attr IdealSheaf function radical(II::IdealSheaf)
   X = scheme(II)
+  # If there is a simplified covering, do the calculations there.
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   ID = IdDict{AbsSpec, Ideal}()
-  for U in affine_charts(X)
+  for U in patches(covering)
     ID[U] = radical(II(U))
   end
-  return IdealSheaf(X, ID)
+  return IdealSheaf(X, ID, check=false)
 end
 
 @attr MPolyLocalizedIdeal function radical(I::MPolyLocalizedIdeal)

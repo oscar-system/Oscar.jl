@@ -117,8 +117,7 @@ end
 
 For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding` 
 ``ι : Z ↪ X``, compute the strict transform ``Z'`` of ``Z`` along ``p`` and 
-return the induced projection ``p : Z' → Z`` as 
-an ``AbsCoveredSchemeMorphism``.
+return the `CoveredClosedEmbedding` ``ι : Z' ↪ Y``.
 """
 function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   Y = domain(p)
@@ -130,13 +129,14 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   p_cov = covering_morphism(pr)
   CY = domain(p_cov)
   # We first apply elim_part to all the charts.
-  #CY_simp = simplified_covering(Y)
-  #phi = Y[CY_simp, CY]
   CY_simp, phi, psi = simplify(CY)
   # register the simplification in Y
   push!(coverings(Y), CY_simp)
   refinements(Y)[(CY_simp, CY)] = phi
   refinements(Y)[(CY, CY_simp)] = psi
+  CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
+
+  # compose the covering morphisms
   p_cov_simp = compose(phi, p_cov)
   CX = codomain(p_cov)
   E = exceptional_divisor(p)
@@ -151,10 +151,9 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
     ID[U] = pbJ
   end
 
-  I_trans = IdealSheaf(Y, ID, check=true) # TODO: Set to false
-  inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, covering=CY_simp)
-  Z_trans = domain(inc_Z_trans)
-  return compose(inc_Z_trans, pr)
+  I_trans = IdealSheaf(Y, ID, check=false) # TODO: Set to false
+  inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, covering=CY_simp, check=false)
+  return inc_Z_trans
 end
 
 #function saturation(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)

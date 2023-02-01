@@ -669,7 +669,11 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
+<<<<<<< HEAD
     one(OO(X)) in JX && return empty
+=======
+    one(OO(X)) in JX && return result
+>>>>>>> Some progress from experimenting [no ci].
     return [subscheme(X, J)]
   else
 # if reducible, determine pairwise intersection loci

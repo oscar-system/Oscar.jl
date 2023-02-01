@@ -162,8 +162,13 @@ function _flatten_open_subscheme(
                       OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
                       check=false), 
                   check=false)
+  inv_ident = SpecMor(WV, UV,
+                      hom(OO(UV), OO(WV),
+                          OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))),
+                          check=false),
+                      check=false)
   new_iso =  compose(iso, ident)
-  new_iso_inv = compose(inverse(ident), inverse(iso))
+  new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
   set_attribute!(new_iso_inv, :inverse, new_iso)
   if any(WW->(WW===W), patches(C)) 
