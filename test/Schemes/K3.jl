@@ -27,11 +27,10 @@
   @test scheme(I_sing) === S
   @test scheme(I_sing_X) === X
 
-  Bl_X = blow_up(I_sing_X)
-  E1 = oscar.exceptional_divisor(Bl_X)
-  X1 = domain(Bl_X)
-  inc_Y1 = strict_transform(Bl_X, inc_S)
-  Y1 = domain(inc_Y1)
+  prX = blow_up(I_sing_X)
+  E1 = oscar.exceptional_divisor(prX)
+  X1 = domain(prX)
+  Y1, inc_Y1, pr_Y1 = strict_transform(prX, inc_S)
   #simplify!(Y1)
   #@test !is_smooth(Y1)
   #@show "done"
@@ -47,9 +46,7 @@
   @show "done3"
   X2 = domain(prX2)
   @show "done4"
-  inc_Y2 = strict_transform(prX2, inc_Y1)
-  @show "done5"
-  Y2 = domain(inc_Y2)
+  Y2, inc_Y2, pr_Y2 = strict_transform(prX2, inc_Y1)
   @show "done6"
   simplify!(Y2)
   @show "done7"
@@ -64,10 +61,8 @@
   @show "done3"
   X3 = domain(prX3)
   @show "done4"
-  inc_Y3 = strict_transform(prX3, inc_Y2)
+  Y3, inc_Y3, pr_Y3 = strict_transform(prX3, inc_Y2)
   @show "done5"
-  Y3 = domain(inc_Y3)
-  @show "done6"
   simplify!(Y3)
   @show "done7"
   @show has_attribute(Y3, :simplified_covering)
@@ -81,115 +76,70 @@
   @show "done3"
   X4 = domain(prX4)
   @show "done4"
-  inc_Y4 = strict_transform(prX4, inc_Y3)
-  @show "done5"
-  Y4 = domain(inc_Y4)
+  Y4, inc_Y4, pr_Y4 = strict_transform(prX4, inc_Y3)
   @show "done6"
   I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
   I_sing_X4 = radical(pushforward(inc_Y4)(I_sing_Y4))
   U = patches(oscar.simplified_covering(X4))
+  println("Some context on how the architecture of the refinement:")
   @show gens.(I_sing_X4.(U))
-#  @show "done"
-#  prX5 = blow_up(I_sing_X4, covering=oscar.simplified_covering(X4),
-#                var_name="w")
-#  @show "done5"
-#  E5 = exceptional_divisor(prX5)
-#  @show "done3"
-#  X5 = domain(prX5)
-#  @show "done4"
-#  inc_Y5 = strict_transform(prX5, inc_Y4)
-#  @show "done5"
-#  Y5 = domain(inc_Y5)
-#  @show "done6"
-#  simplify!(Y5)
-#  @show "done7"
-#  @show has_attribute(Y5, :simplified_covering)
-#  I_sing_Y5 = oscar.ideal_sheaf_of_singular_locus(Y5)
-#  @show "success"
-#  I_sing_X5 = radical(pushforward(inc_Y5)(I_sing_Y5))
-#  @show "done"
-#  prX6 = blow_up(I_sing_X5, covering=oscar.simplified_covering(X5))
-#  @show "done6"
-#  E6 = exceptional_divisor(prX6)
-#  @show "done3"
-#  X6 = domain(prX6)
-#  @show "done4"
-#  inc_Y6 = strict_transform(prX6, inc_Y5)
-#  @show "done5"
-#  Y6 = domain(inc_Y6)
-#  @show "done6"
-#  simplify!(Y6)
-#  @show "done7"
-#  @show has_attribute(Y6, :simplified_covering)
-#  I_sing_Y6 = oscar.ideal_sheaf_of_singular_locus(Y6)
-#  I_sing_X6 = radical(pushforward(inc_Y6)(I_sing_Y6))
-#  @show "done"
-#  prX7 = blow_up(I_sing_X6, covering=oscar.simplified_covering(X6))
-#  @show "done7"
-#  E7 = exceptional_divisor(prX7)
-#  @show "done3"
-#  X7 = domain(prX7)
-#  @show "done4"
-#  inc_Y7 = strict_transform(prX7, inc_Y6)
-#  @show "done5"
-#  Y7 = domain(inc_Y7)
-#  @show "done6"
-#  simplify!(Y7)
-#  @show "done7"
-#  @test !is_smooth(Y2)
+
+  # We need to refine the covering so that we can separate the 
+  # different points in the support of I_sing_X4.
+
+  V1 = U[9]
+  V2 = U[11]
+  @show gens(I_sing_X4(V1))
+  @show gens(I_sing_X4(V2))
+  @show gens(OO(V1))
+  @show gens(OO(V2))
   
-#  @show "round 2"
-#  I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
-#  @show "done"
-#  Y3_proj = blow_up(I_sing_Y2)
-#  @show "done"
-#  Y3 = covered_scheme(Y3_proj)
-#  @show "done"
-#  simplify!(Y3)
-#  @show "done"
-#  @test !is_smooth(Y3)
-#  
-#  @show "round 3"
-#  I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
-#  @show "done"
-#  Y4_proj = blow_up(I_sing_Y3)
-#  @show "done"
-#  Y4 = covered_scheme(Y4_proj)
-#  @show "done"
-#  simplify!(Y4)
-#  @show "done"
-#  @test !is_smooth(Y4)
-# 
-#  @show "round 4"
-#  I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
-#  @show "done"
-#  Y5_proj = blow_up(I_sing_Y4)
-#  @show "done"
-#  Y5 = covered_scheme(Y5_proj)
-#  @show "done"
-#  simplify!(Y5)
-#  @show "done"
-#  @test !is_smooth(Y5)
-# 
-#  @show "round 5"
-#  I_sing_Y5 = oscar.ideal_sheaf_of_singular_locus(Y5)
-#  @show "done"
-#  Y6_proj = blow_up(I_sing_Y5)
-#  @show "done"
-#  Y6 = covered_scheme(Y5_proj)
-#  @show "done"
-#  simplify!(Y6)
-#  @show "done"
-#  @test !is_smooth(Y6)
-# 
-#  @show "round 6"
-#  I_sing_Y6 = oscar.ideal_sheaf_of_singular_locus(Y6)
-#  @show "done"
-#  Y7_proj = blow_up(I_sing_Y6)
-#  @show "done"
-#  Y7 = covered_scheme(Y6_proj)
-#  @show "done"
-#  simplify!(Y7)
-#  @show "done"
-#  @test !is_smooth(Y7)
+  ref_patches = [x for x in U if !(x===V1) && !(x===V2)]
+
+  id_dict = IdDict{AbsSpec, Ideal}()
+  for x in ref_patches
+    id_dict[x] = I_sing_X4(x)
+  end
+
+  V11 = PrincipalOpenSubset(V1, gens(OO(V1))[2])
+  V12 = PrincipalOpenSubset(V1, gens(OO(V1))[2]-1)
+
+  V21 = PrincipalOpenSubset(V2, gens(OO(V2))[1])
+  V22 = PrincipalOpenSubset(V2, gens(OO(V2))[1]-1)
+
+  id_dict[V11] = ideal(OO(V11), saturated_ideal(I_sing_X4(V11)))
+  id_dict[V12] = ideal(OO(V12), saturated_ideal(I_sing_X4(V12)))
+  id_dict[V21] = ideal(OO(V21), saturated_ideal(I_sing_X4(V21)))
+  id_dict[V22] = ideal(OO(V22), saturated_ideal(I_sing_X4(V22)))
+
+  ref_patches = vcat(ref_patches, [V11, V12, V21, V22])
+
+  ref = Covering(ref_patches)
+  oscar.inherit_glueings!(ref, oscar.simplified_covering(X4))
+  push!(coverings(X4), ref)
+
+  J = IdealSheaf(X4, id_dict, check=false)
+
+  prX4 = blow_up(J, covering=ref)
+  X5 = domain(Bl_X4)
+  E5 = exceptional_divisor(prX4)
+  simplify!(X5)
+  U = patches(oscar.simplified_covering(X5))
+
+  Y5, inc_Y5, pr_Y5 = strict_transform(prX4, inc_Y4)
+  Y5 = domain(inc_Y5)
+
+  @show is_smooth(Y5)
+
+#  P5 = pr_Y5
+#  P4 = compose(P5, pr_Y4)
+#  P3 = compose(P4, pr_Y3)
+#  P2 = compose(P3, pr_Y2)
+#  P1 = compose(P2, pr_Y1)
+#  D1 = pullback(P2, E1)
+#  D2 = pullback(P3, E2)
+#  D3 = pullback(P4, E3)
+#  D4 = pullback(P5, E4)
+#  D5 = E5
+
 #end

@@ -117,7 +117,11 @@ end
 
 For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding` 
 ``ι : Z ↪ X``, compute the strict transform ``Z'`` of ``Z`` along ``p`` and 
-return the `CoveredClosedEmbedding` ``ι : Z' ↪ Y``.
+return a triple ``(Z', j, π)`` containing the `CoveredClosedEmbedding` 
+``j : Z' ↪ Y`` and the induced projection ``π : Z' → Z``.
+
+!!! note The projection is not yet implemented! Instead, `nothing` is returned 
+as the third item.
 """
 function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   Y = domain(p)
@@ -144,6 +148,7 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
     p_res = p_cov_simp[U]
     V = codomain(p_res)
     J = image_ideal(inc)(V)
+    g = maps_with_given_codomain(inc, V)
     pbJ = ideal(OO(U), pullback(p_res).(gens(J)))
     pbJ_sat = saturated_ideal(pbJ)
     pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
@@ -153,9 +158,54 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
 
   I_trans = IdealSheaf(Y, ID, check=false) # TODO: Set to false
   inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, covering=CY_simp, check=false)
-  return inc_Z_trans
+  inc_cov = covering_morphism(inc_Z_trans)
+
+  Z_trans = domain(inc_Z_trans)
+  # TODO: Implement restrictions
+  # pr_res = restrict(projection(p), inc_Z_trans, inc)
+  return Z_trans, inc_Z_trans, nothing
 end
 
+#=
+#  Z' ↪ Y
+#       ↓ f
+#  Z ↪  X
+#
+#  Assuming f(Z') ⊂ Z, we compute and return the restriction f : Z' → Z.
+=#
+function restrict(f::AbsCoveredSchemeMorphism,
+    inc_dom::CoveredClosedEmbedding,
+    inc_cod::CoveredClosedEmbedding;
+    check::Bool=true
+  )
+  error("not implemented")
+  f_cov = covering_morphism(f)
+  inc_dom_cov = covering_morphism(inc_dom)
+  inc_cod_cov = covering_morphism(inc_cod)
+
+  # We need to do the following.
+  # - Pass to a common refinement ref_cod in X that both 
+  #   f and inc_cod can restrict to.
+  # - Pass to a common refinement in Y
+  ref_cod, a, b = common_refinement(codomain(f_cov), codomain(inc_cod_cov))
+  inc_cod_ref = restrict(inc_cod, ref_cod)
+  f_res = restrict(f, ref_cod)
+  ref_dom = common_refinement(domain(f_res), codomain(inc_dom_cov))
+  inc_dom_ref = restrict(inc_dom, ref_cod)
+  # Collecting the maps for the restricted projection here
+  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(domain(inc_cov))
+    q_res = compose(inc_cov[U], p_cov_simp[codomain(inc_cov[U])])
+    V = codomain(q_res)
+    g = maps_with_given_codomain(inc, V)
+    if !isone(length(g))
+      error()
+    end
+    pre_V = domain(first(g))
+    map_dict[U] = restrict(q_res, domain(q_res), pre_V, check=false)
+  end
+  psi = CoveringMorphism(domain(inc_cov), domain(covering_morphism(inc)), map_dict, check=false)
+end
 #function saturation(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
 #  L = base_ring(I) 
 #  L === base_ring(J) || error("ideals must be defined over the same ring")

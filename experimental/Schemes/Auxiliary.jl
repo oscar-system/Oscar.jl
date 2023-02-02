@@ -91,7 +91,12 @@ function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   Y = codomain(f)
   phi = covering_morphism(f)
   triv_dict = IdDict{AbsSpec, RingElem}()
-  psi = restrict(f, trivializing_covering(C))
+  # TODO: restrict f to a common_refinement(codomain(phi), trivializing_covering(C))
+  # (to be implemented)
+  # This might be codomain(phi) itself and that case is not covered, yet.
+  E, a, b = common_refinement(codomain(phi), trivializing_covering(C))
+  psi = restrict(f, E)
+  psi = compose(psi, b)
   triv_cov = domain(psi)
   for U in patches(triv_cov)
     V = codomain(psi[U])
@@ -184,7 +189,7 @@ end
 # the necessary refinement on X again and again. In particular, because 
 # we do not want the pulled back modules/ideals/functions... to live on different 
 # affine patches in X while their originals were defined on the same patches in Y.
-@attr IdDict{<:Covering, <:CoveringMorphism} function restriction_cache(f::CoveredSchemeMorphism)
+@attr IdDict{<:Covering, <:CoveringMorphism} function restriction_cache(f::AbsCoveredSchemeMorphism)
   res_dict = IdDict{Covering, CoveringMorphism}()
   phi = covering_morphism(f)
   res_dict[codomain(phi)] = phi

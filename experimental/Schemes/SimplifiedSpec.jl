@@ -82,7 +82,7 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
   V = original(U)
   f, g = identification_maps(U)
-  ceq = pullback(g).(complement_equations)
+  ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))
   h, d = _find_chart(V, C, complement_equations=ceq)
   return compose(f, h), d
 end

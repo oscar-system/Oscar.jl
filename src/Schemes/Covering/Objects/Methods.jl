@@ -226,3 +226,84 @@ function Base.show(io::IO, C::Covering)
 #   print(io, glueing_graph(C))
 end
 
+########################################################################
+# Refinements                                                          #
+########################################################################
+
+@Markdown.doc """
+    common_refinement(C::Covering, D::Covering)
+
+For two `Covering`s `C` and `D`, calculate a common refinement 
+`E` and return a triple ``(E, φ, ψ)`` with ``φ : E → C`` 
+and ``ψ : E → D`` the `CoveringMorphism`s with the inclusion maps. 
+
+!!! note Since the `Covering`s do not know about any `AbsCoveredScheme`, 
+the computation of the refinement has to rely on the intrinsic tree
+structure of their `patches`. Due to these limitations, only special 
+cases are implemented; see the source code for details.
+"""
+function common_refinement(C::Covering, D::Covering)
+  # Check the easy cases: C is a refinement of D or the other way around.
+  if all(x->some_ancestor_in(patches(D), x), patches(C))
+    # C is a refinement of D
+    E = C
+    phi = identity_map(E)
+    map_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for U in patches(C)
+      f, _ = _find_chart(U, D)
+      map_dict[U] = f
+    end
+    psi = CoveringMorphism(E, D, map_dict, check=false)
+    return E, phi, psi
+  elseif all(x->some_ancestor_in(patches(D), x), patches(C))
+    # D is a refinement of C
+    E = D
+    psi = identity_map(E)
+    map_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for U in patches(E)
+      f, _ = _find_chart(U, C)
+      map_dict[U] = f
+    end
+    phi = CoveringMorphism(E, C, map_dict, check=false)
+    return E, phi, psi
+  end 
+  
+  error("case not implemented")
+  # We still need to adjust the code below.
+  dirty_C = copy(patches(C))
+  dirty_D = copy(patches(D))
+
+  map_dict_C = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict_D = IdDict{AbsSpec, AbsSpecMor}()
+  for U in dirty_C
+    if some_ancestor_in(patches(D), U)
+      f, _ = _find_chart(U, D)
+      map_dict_D[U] = f
+      map_dict_C[U] = identity_map(U)
+    end
+  end
+  for U in dirty_D
+    if some_ancestor_in(patches(C), U)
+      f, _ = _find_chart(U, C)
+      map_dict_C[U] = f
+      map_dict_D[U] = identity_map(U)
+    end
+  end
+
+  dirty_C = filter!(x->!(x in keys(map_dict_C)), dirty_C)
+  dirty_D = filter!(x->!(x in keys(map_dict_D)), dirty_D)
+
+  #TODO: Check that all leftover dirty patches are already 
+  #covered by those in the keysets. What if this is not the case?
+
+  E = Covering(collect(keys(map_dict_C)))
+  #TODO: How to inherit the glueings?
+  phi = CoveringMorphism(E, C, map_dict_C, check=false)
+  psi = CoveringMorphism(E, D, map_dict_D, check=false)
+  return E, phi, psi
+end
+
+function some_ancestor_in(L::Vector, U::AbsSpec)
+  return some_ancestor(x->any(y->(y===x), L), U)
+end
+
