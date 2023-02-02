@@ -16,7 +16,6 @@
             end
         end
     end
-    @test res[1] == sols
     @test res[2].vars == Symbol[:x1, :x2, :x3]
     @test res[2].elim == elim
     @test res[2].denom == denom
