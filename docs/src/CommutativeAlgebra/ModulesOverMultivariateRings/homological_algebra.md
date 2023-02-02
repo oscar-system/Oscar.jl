@@ -38,11 +38,11 @@ free_resolution(M::SubQuo{<:MPolyElem};
 ## Homology
 
 ```@docs
-homology(C::ChainComplex{<:ModuleFP})
+homology(C::ComplexOfMorphisms{<:ModuleFP})
 ```
 
 ```@docs
-homology(C::ChainComplex{<:ModuleFP}, i::Int)
+homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 ```
 
 ## Hom and Ext

@@ -127,8 +127,9 @@ function _flatten_open_subscheme(
   hU = complement_equation(U)
   WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
   ident = SpecMor(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
+  inv_ident = SpecMor(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
-  new_iso_inv = compose(inverse(ident), inverse(iso))
+  new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
   set_attribute!(new_iso_inv, :inverse, new_iso)
   if any(WW->(WW===W), patches(C)) 
@@ -169,6 +170,20 @@ function _flatten_open_subscheme(
     return new_iso
   end
   return _flatten_open_subscheme(W, C, iso=new_iso)
+end
+
+function _flatten_open_subscheme(
+    U::AbsSpec, C::Covering;
+    iso::AbsSpecMor=begin
+      UU = PrincipalOpenSubset(U, one(OO(U)))
+      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      set_attribute!(f, :inverse, f_inv)
+      set_attribute!(f_inv, :inverse, f)
+      f
+    end
+  )
+  return iso
 end
 
 function _flatten_open_subscheme(

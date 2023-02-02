@@ -129,7 +129,7 @@ function set_base_scheme!(
     P::ProjectiveScheme{CRT, CRET, RT, RET}, 
     X::Union{<:AbsSpec, <:SpecOpen}
   ) where {CRT<:Ring, CRET, RT, RET}
-  OO(X) == base_ring(P) || error("schemes are not compatible")
+  OO(X) === base_ring(P) || error("schemes are not compatible")
   P.Y = X
   return P
 end
