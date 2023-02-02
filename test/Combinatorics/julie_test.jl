@@ -1,2 +1,3 @@
-# this file is a test
-@test partitions(3) isa Vector
+@testset "julie tests for partitions" begin
+  @test partitions(3) isa Vector
+end
