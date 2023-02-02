@@ -152,6 +152,32 @@ function hom(G::GAPGroup, H::GAPGroup, imgs::Vector; check::Bool = true)
   return hom(G, H, gens(G), imgs; check)
 end
 
+# Map `G::GAPGroup` to `A::GrpAbFinGen` by prescribing images.
+# Return a composition of homomorphisms `G -> G/G' -> B -> A`,
+# not a `GAPGroupHomomorphism`.
+function hom(G::GAPGroup, A::GrpAbFinGen, gensG::Vector, imgs::Vector{GrpAbFinGenElem}; check::Bool = true)
+  # map G to G/G'
+  (q, map1) = quo(G, derived_subgroup(G)[1])
+
+  # map G/G' to an isomorphic additive group B
+  iso = isomorphism(GrpAbFinGen, q)
+  B = codomain(iso)
+
+  # map B to A as prescribed
+  if length(gensG) == 0
+    map2 = hom([zero(B)], [zero(A)], check = check)
+  else
+    map2 = hom([iso(map1(x)) for x in gensG], imgs, check = check)
+  end
+
+  # create the composition
+  return compose(map1, compose(iso, map2))
+end
+
+function hom(G::GAPGroup, A::GrpAbFinGen, imgs::Vector{GrpAbFinGenElem}; check::Bool = true)
+  return hom(G, A, gens(G), imgs; check)
+end
+
 function domain(f::GAPGroupHomomorphism)
   return f.domain
 end
@@ -545,8 +571,8 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
        return group_element(G, res)
      end
 
-     return MapFromFunc(f, finv, G, A)
-   end::MapFromFunc{typeof(G), GrpAbFinGen}
+     return GroupIsomorphismFromFunc(f, finv, G, A)
+   end::GroupIsomorphismFromFunc{typeof(G), GrpAbFinGen}
 end
 
 """
@@ -604,9 +630,72 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        return Aindep_to_A(Aindep(exp))
      end
 
-     return MapFromFunc(f, finv, A, G)
-   end::MapFromFunc{GrpAbFinGen, T}
+     return GroupIsomorphismFromFunc(f, finv, A, G)
+   end::GroupIsomorphismFromFunc{GrpAbFinGen, T}
 end
+
+####
+mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFromFunc}
+    map::MapFromFunc{R, T}
+end
+
+function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
+  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(f, g, D, C))
+end
+
+function GroupIsomorphismFromFunc(f, g, D, C)
+  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(f, g, D, C)
+end
+
+# install the same methods as for `MapFromFunc`,
+# see `Hecke.jl/src/Map/MapType.jl`
+
+domain(f::GroupIsomorphismFromFunc) = domain(f.map)
+
+codomain(f::GroupIsomorphismFromFunc) = codomain(f.map)
+
+image_function(f::GroupIsomorphismFromFunc) = image_function(f.map)
+
+preimage_function(f::GroupIsomorphismFromFunc) = preimage_function(f.map)
+
+image(f::GroupIsomorphismFromFunc, x) = image(f.map, x)
+
+preimage(f::GroupIsomorphismFromFunc, y) = preimage(f.map, y)
+
+function Base.show(io::IO, M::GroupIsomorphismFromFunc)
+  Base.show(io, M.map)
+end
+
+Base.inv(M::GroupIsomorphismFromFunc) = GroupIsomorphismFromFunc(inv(M.map))
+
+# additional methods
+
+is_bijective(f::GroupIsomorphismFromFunc) = true
+
+kernel(f::GroupIsomorphismFromFunc) = trivial_subgroup(domain(f))
+
+####
+
+# compute the kernel of a composition of maps, with domain a `GAPGroup`,
+# where the kernels of the composed maps can be computed
+
+function kernel(comp::AbstractAlgebra.Generic.CompositeMap{T, GrpAbFinGen}) where T <: GAPGroup
+  map1 = comp.map1
+  map2 = comp.map2
+
+  ker2 = kernel( map2 )
+  ker2gens = [ker2[2](x) for x in gens(ker2[1])]
+  preimages = [preimage(map1, x) for x in ker2gens]
+  ker1 = kernel(map1)
+
+  # Compute generators of the kernel of `map2`,
+  # take their preimages under `map1`,
+  # form the closure with the kernel of `map1`
+  G = domain(comp)
+  K = sub(G, vcat([ker1[2](x) for x in gens(ker1[1])], preimages))
+end
+
+####
 
 function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
