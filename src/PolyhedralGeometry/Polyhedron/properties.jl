@@ -30,17 +30,8 @@ function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
     n = face_dim - length(lineality_space(P))
     n < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
-    nfaces = length(pfaces)
-    rfaces = Vector{Int64}(undef, nfaces - binomial(_nrays(P), n + 1))
-    nfarf = 0
     farf = Polymake.to_one_based_indexing(pm_object(P).FAR_FACE)
-    for index in 1:nfaces
-        if pfaces[index] <= farf
-            nfarf += 1
-        else
-            rfaces[index - nfarf] = index
-        end
-    end
+    rfaces = Vector{Int}(filter(i->!(pfaces[i] <= farf), range(1,length(pfaces))))
     return SubObjectIterator{Polyhedron{T}}(pm_object(P), _face_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
 end
 
