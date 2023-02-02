@@ -25,3 +25,5 @@ include("Schemes/CoherentSheaves.jl")
 include("Schemes/LazyGlueing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
+
+include("JuLie/partitions.jl")
