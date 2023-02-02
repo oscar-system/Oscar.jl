@@ -34,7 +34,7 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   R = base_ring(M)
   F = codomain(f)
   R === base_ring(F) || error("modules must be defined over the same ring")
-  P = presentation(M)::ChainComplex
+  P = presentation(M)::ComplexOfMorphisms
   p = map(P, 0)
   FM = P[0]
   r = rank(FM)
@@ -107,7 +107,7 @@ function _versal_morphism_to_free_module(M::SubQuo)
   R1 = FreeMod(R, 1)
   M_double_dual, psi = double_dual(M, cod=R1)
   M_dual = domain(element_to_homomorphism(zero(M_double_dual)))
-  pres_M_dual = presentation(M_dual)::ChainComplex
+  pres_M_dual = presentation(M_dual)::ComplexOfMorphisms
   g = map(pres_M_dual, 0) # The projection of a free module onto M_dual
   g_dual = dual(g, cod=R1, codomain_dual=M_double_dual)
   return compose(psi, g_dual)
