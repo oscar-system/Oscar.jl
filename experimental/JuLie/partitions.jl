@@ -1,6 +1,8 @@
 module JuLie
 
 using Oscar
+import Nemo:libflint
+
 
 ################################################################################
 # Partitions.

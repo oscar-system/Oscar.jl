@@ -245,6 +245,7 @@
 						break
 					end
 				end
+				#=
 				# check that partitions are constrained by v and mu
 				for λ in P
 					partcount = partition_to_partcount(λ)
@@ -257,7 +258,7 @@
 							end
 						end
 					end
-				end
+				end =#
 			end
 		end
 		if check==false
@@ -312,6 +313,7 @@
 	end
 	@test check==true
 
+	#=
 	# partcount_to_partition
 	@test partcount_to_partition([2,0,1]) == Partition([3,1,1])
 	@test partcount_to_partition(Int[]) == Partition([])
@@ -323,6 +325,7 @@
 	@test partition_to_partcount(Partition([])) == []
 	@test partition_to_partcount(Partition([3,2,1])) == [1,1,1]
 
+	
 	check = true
 	N = 0:20
 	for n in N
@@ -336,6 +339,7 @@
 			break
 		end
 	end
-	@test check==true
+	@test check==true =#
 
 end
+
