@@ -31,53 +31,32 @@
   E1 = oscar.exceptional_divisor(prX)
   X1 = domain(prX)
   Y1, inc_Y1, pr_Y1 = strict_transform(prX, inc_S)
-  #simplify!(Y1)
-  #@test !is_smooth(Y1)
-  #@show "done"
 
-  #@show has_attribute(Y1, :simplified_covering)
   I_sing_Y1 = oscar.ideal_sheaf_of_singular_locus(Y1)
   I_sing_X1 = radical(pushforward(inc_Y1)(I_sing_Y1))
-  @show "done"
   prX2 = blow_up(I_sing_X1, covering=oscar.simplified_covering(X1),
                 var_name="t")
-  @show "done2"
   E2 = exceptional_divisor(prX2)
-  @show "done3"
   X2 = domain(prX2)
-  @show "done4"
   Y2, inc_Y2, pr_Y2 = strict_transform(prX2, inc_Y1)
-  @show "done6"
   simplify!(Y2)
-  @show "done7"
   @show has_attribute(Y2, :simplified_covering)
   I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
   I_sing_X2 = radical(pushforward(inc_Y2)(I_sing_Y2))
-  @show "done"
   prX3 = blow_up(I_sing_X2, covering=oscar.simplified_covering(X2),
                 var_name="u")
-  @show "done3"
   E3 = exceptional_divisor(prX3)
-  @show "done3"
   X3 = domain(prX3)
-  @show "done4"
   Y3, inc_Y3, pr_Y3 = strict_transform(prX3, inc_Y2)
-  @show "done5"
   simplify!(Y3)
-  @show "done7"
   @show has_attribute(Y3, :simplified_covering)
   I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
   I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
-  @show "done"
   prX4 = blow_up(I_sing_X3, covering=oscar.simplified_covering(X3),
                 var_name="v")
-  @show "done4"
   E4 = exceptional_divisor(prX4)
-  @show "done3"
   X4 = domain(prX4)
-  @show "done4"
   Y4, inc_Y4, pr_Y4 = strict_transform(prX4, inc_Y3)
-  @show "done6"
   I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
   I_sing_X4 = radical(pushforward(inc_Y4)(I_sing_Y4))
   U = patches(oscar.simplified_covering(X4))
@@ -121,7 +100,7 @@
   J = IdealSheaf(X4, id_dict, check=false)
 
   prX4 = blow_up(J, covering=ref)
-  X5 = domain(Bl_X4)
+  X5 = domain(prX4)
   E5 = exceptional_divisor(prX4)
   simplify!(X5)
   U = patches(oscar.simplified_covering(X5))
@@ -131,15 +110,39 @@
 
   @show is_smooth(Y5)
 
-#  P5 = pr_Y5
-#  P4 = compose(P5, pr_Y4)
-#  P3 = compose(P4, pr_Y3)
-#  P2 = compose(P3, pr_Y2)
-#  P1 = compose(P2, pr_Y1)
-#  D1 = pullback(P2, E1)
-#  D2 = pullback(P3, E2)
-#  D3 = pullback(P4, E3)
-#  D4 = pullback(P5, E4)
-#  D5 = E5
+  P5 = pr_Y5
+  P4 = compose(P5, pr_Y4)
+  P3 = compose(P4, pr_Y3)
+  P2 = compose(P3, pr_Y2)
+  P1 = compose(P2, pr_Y1)
+  E11 = pullback(inc_Y1)(E1)
+  E12 = pullback(pr_Y2)(E11)
+  E13 = pullback(pr_Y3)(E12)
+  E14 = pullback(pr_Y4)(E13)
+  E15 = pullback(pr_Y5)(E14)
+
+  E22 = pullback(inc_Y2)(E2)
+  E23 = pullback(pr_Y3)(E22)
+  E24 = pullback(pr_Y4)(E23)
+  E25 = pullback(pr_Y5)(E24)
+  
+  E33 = pullback(inc_Y3)(E3)
+  E34 = pullback(pr_Y4)(E33)
+  E35 = pullback(pr_Y5)(E34)
+  
+  E44 = pullback(inc_Y4)(E4)
+  E45 = pullback(pr_Y5)(E44)
+
+  E55 = pullback(inc_Y5)(E5)
+
+  U = patches(oscar.simplified_covering(Y5))
+  for x in U
+    @show x
+    @show first(E15(x))
+    @show first(E25(x))
+    @show first(E35(x))
+    @show first(E45(x))
+    @show first(E55(x))
+  end
 
 #end
