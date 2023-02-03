@@ -480,7 +480,7 @@ julia> order(Oq)
   # we can compute the orthogonal group of L
   Oq = orthogonal_group(discriminant_group(L))
   G = orthogonal_group(L)
-  return sub(Oq, [Oq(g, check=false) for g in gens(G)])
+  return sub(Oq, unique([Oq(g, check=false) for g in gens(G)]))
 end
 
 @attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}

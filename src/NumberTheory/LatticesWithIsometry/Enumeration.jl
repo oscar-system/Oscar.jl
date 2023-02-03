@@ -363,7 +363,7 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
     f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
     G = genus(Lf)
     repre = representatives(G)
-    @info "$(length(repre)) representatives"
+    @info "$(length(repre)) representative(s)"
     for LL in repre
       is_of_same_type(Lf, lattice_with_isometry(LL, f^m, check=false)) && push!(reps, lattice_with_isometry(LL, f, check=false))
     end
@@ -528,16 +528,20 @@ function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::In
   @req p != q "Prime numbers must be distinct"
 
   reps = LatticeWithIsometry[]
-
+  @info "Compute admissible triples"
   atp = admissible_triples(Lf, p)
+  @info "$(atp) admissible triple(s)"
   for (A, B) in atp
     LB = lattice_with_isometry(representative(B))
     RB = representatives_of_pure_type(LB, p*q^d)
-    isempty(RB) && continue
+    if is_empty(RB)
+      continue
+    end
     LA = lattice_with_isometry(representative(A))
     RA = representatives_of_pure_type(LA, q^d)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
       E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p, check=false)
+      GC.gc()
       append!(reps, E)
     end
   end

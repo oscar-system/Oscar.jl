@@ -266,16 +266,18 @@ $q_L$ induced by `f`.
     UL = fmpq_mat[matrix(OL(s)) for s in gens(centralizer(OL, f)[1])]
     qL = discriminant_group(L)
     UL = fmpz_mat[hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)]).map_ab.map for g in UL]
-    GL = Oscar._orthogonal_group(qL, UL)
+    unique!(UL)
+    GL = Oscar._orthogonal_group(qL, UL, check = false)
   elseif rank(L) == euler_phi(n)
     qL = discriminant_group(L)
     UL = fmpz_mat[hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)]).map_ab.map for g in [-f^0, f]]
-    GL = Oscar._orthogonal_group(qL, UL)
+    unique!(UL)
+    GL = Oscar._orthogonal_group(qL, UL, check = false)
   else
     qL, fqL = discriminant_group(Lf)
     OqL = orthogonal_group(qL)
     CdL, _ =  centralizer(OqL, fqL)
-    GL, _ = sub(OqL, [OqL(s.X) for s in CdL])
+    GL, _ = sub(OqL, unique([OqL(s.X) for s in CdL]))
   end
   return GL::AutomorphismGroup{TorQuadMod}
 end

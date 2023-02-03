@@ -29,6 +29,62 @@ function inner_orthogonal_sum(T::TorQuadMod, U::TorQuadMod)
   return S, TinS, UinS
 end
 
+function embedding_orthogonal_group(i::TorQuadModMor, j::TorQuadModMor)
+  A = domain(i)
+  B = domain(j)
+  D = codomain(i)
+  Dorth = direct_sum(A, B)[1]
+  ok, phi = is_isometric_with_isometry(Dorth, D)
+  @assert ok
+  OD = orthogonal_group(D)
+  OA = orthogonal_group(A)
+  OB = orthogonal_group(B)
+
+  geneOAinDorth = TorQuadModMor[]
+  for f in gens(OA)
+    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOAinDorth, m)
+  end
+
+  geneOBinDorth = TorQuadModMor[]
+  for f in gens(OB)
+    m = block_diagonal_matrix([identity_matrix(ZZ, ngens(A)), matrix(f)])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOBinDorth, m)
+  end
+  geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
+  OAtoOD = hom(OA, OD, geneOAinOD, check = false)
+  geneOBinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOBinDorth]
+  OBtoOD = hom(OB, OD, geneOBinOD, check = false)
+  return OAtoOD, OBtoOD
+end
+
+function _embedding_orthogonal_group(i::TorQuadModMor)
+  @req is_injective(i) "i must be injective"
+  A = domain(i)
+  D = codomain(i)
+  OA = orthogonal_group(A)
+  OD = orthogonal_group(D)
+  if order(OA) == 1
+    return hom(OA, OD, [one(OD)], check = false)
+  end
+  B = orthogonal_submodule(D, A)[1]
+  Dorth = inner_orthogonal_sum(A, B)[1]
+  ok, phi = is_isometric_with_isometry(Dorth, D)
+  @assert ok
+
+  geneOAinDorth = TorQuadModMor[]
+  for f in gens(OA)
+    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOAinDorth, m)
+  end
+  geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
+  OAtoOD = hom(OA, OD, geneOAinOD, check = false)
+  return OAtoOD::GAPGroupHomomorphism{AutomorphismGroup{TorQuadMod}, AutomorphismGroup{TorQuadMod}}
+end
+
 function _restrict(f::TorQuadModMor, i::TorQuadModMor)
   imgs = TorQuadModElem[]
   V = domain(i)
@@ -483,22 +539,25 @@ function admissible_equivariant_primitive_extensions(Afa::LatticeWithIsometry,
 
   # this is where we will perform the glueing
   if ambient_space(Afa) === ambient_space(Bfb)
-    D, qAinD, qBinD = inner_orthogonal_sum(qA, qB) 
+    D, qAinD, qBinD = inner_orthogonal_sum(qA, qB)
+    OD = orthogonal_group(D)
+    OqAinOD = embedding_orthogonal_group(qAinD)
+    OqBinOD = embedding_orthogonal_group(qBinD)
   else
-    D, qAinD, qBinD = orthogonal_sum(qA, qB) 
+    D, qAinD, qBinD = orthogonal_sum(qA, qB)
+    OD = orthogonal_group(D)
+    OqAinOD, OqBinOD = embedding_orthogonal_group(qAinD, qBinD)
   end 
 
-  OD = orthogonal_group(D)
-  OqAinOD = embedding_orthogonal_group(qAinD)
-  OqBinOD = embedding_orthogonal_group(qBinD)
+  println(qBinD)
   OqA = domain(OqAinOD)
   OqB = domain(OqBinOD)
 
     # if the glue valuation is zero, then we glue along the trivial group and we don't
   # have much more to do. Since the triple is p-admissible, A+B = C
   if g == 0
-    geneA = AutomorphismGroupElem{TorQuadMod}[OqAinOD(a) for a in gens(GA)]
-    geneB = AutomorphismGroupElem{TorQuadMod}[OqBinOD(b) for b in gens(GB)]
+    geneA = AutomorphismGroupElem{TorQuadMod}[OqAinOD(OqA(a.X)) for a in gens(GA)]
+    geneB = AutomorphismGroupElem{TorQuadMod}[OqBinOD(OqB(b.X)) for b in gens(GB)]
     gene = vcat(geneA, geneB)
     GC2, _ = sub(OD, gene)
     if ambient_space(A) === ambient_space(B) === ambient_space(C)
@@ -531,14 +590,15 @@ function admissible_equivariant_primitive_extensions(Afa::LatticeWithIsometry,
   # scale of the dual: any glue kernel must contain the multiples of l of the respective
   # discriminant groups
   l = level(genus(C))
+  
 
   # We look for the GA|GB-invariant and fA|fB-stable subgroups of VA|VB which respectively
   # contained lqA|lqB. This is done by computing orbits and stabilisers of VA/lqA (resp VB/lqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
   # are fA-stable (resp. fB-stable)
+
   subsA = subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, fVA, ZZ(l))
   subsB = subgroups_orbit_representatives_and_stabilizers_elementary(VBinqB, GB, p^g, fVB, ZZ(l))
-
   # once we have the potential kernels, we create pairs of anti-isometric groups since glue
   # maps are anti-isometry
   R = Tuple{eltype(subsA), eltype(subsB), TorQuadModMor}[]
@@ -554,13 +614,13 @@ function admissible_equivariant_primitive_extensions(Afa::LatticeWithIsometry,
   for (H1, H2, phi) in R
     SAinqA, stabA = H1
     SA = domain(SAinqA)
-    OSAinOqA = embedding_orthogonal_group(SAinqA)
+    OSAinOqA = _embedding_orthogonal_group(SAinqA)
     OSA = domain(OSAinOqA)
     OSAinOD = compose(OSAinOqA, OqAinOD)
 
     SBinqB, stabB = H2
     SB = domain(SBinqB)
-    OSBinOqB = embedding_orthogonal_group(SBinqB)
+    OSBinOqB = _embedding_orthogonal_group(SBinqB)
     OSB = domain(OSBinOqB)
     OSBinOD = compose(OSBinOqB, OqBinOD)
 
