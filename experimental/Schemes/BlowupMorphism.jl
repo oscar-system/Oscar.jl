@@ -161,9 +161,8 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   inc_cov = covering_morphism(inc_Z_trans)
 
   Z_trans = domain(inc_Z_trans)
-  # TODO: Implement restrictions
-  # pr_res = restrict(projection(p), inc_Z_trans, inc)
-  return Z_trans, inc_Z_trans, nothing
+  pr_res = restrict(projection(p), inc_Z_trans, inc)
+  return Z_trans, inc_Z_trans, pr_res
 end
 
 #=
@@ -178,7 +177,6 @@ function restrict(f::AbsCoveredSchemeMorphism,
     inc_cod::CoveredClosedEmbedding;
     check::Bool=true
   )
-  error("not implemented")
   f_cov = covering_morphism(f)
   inc_dom_cov = covering_morphism(inc_dom)
   inc_cod_cov = covering_morphism(inc_cod)
@@ -187,25 +185,47 @@ function restrict(f::AbsCoveredSchemeMorphism,
   # - Pass to a common refinement ref_cod in X that both 
   #   f and inc_cod can restrict to.
   # - Pass to a common refinement in Y
-  ref_cod, a, b = common_refinement(codomain(f_cov), codomain(inc_cod_cov))
+  ref_cod, a, b = _register!(common_refinement(codomain(f_cov), codomain(inc_cod_cov)), codomain(f))
   inc_cod_ref = restrict(inc_cod, ref_cod)
   f_res = restrict(f, ref_cod)
-  ref_dom = common_refinement(domain(f_res), codomain(inc_dom_cov))
-  inc_dom_ref = restrict(inc_dom, ref_cod)
+  ref_dom, aa, bb = _register!(common_refinement(domain(f_res), codomain(inc_dom_cov)), domain(f))
+  inc_dom_ref = restrict(inc_dom, ref_dom)
+  inc_dom_ref = compose(inc_dom_ref, aa)
   # Collecting the maps for the restricted projection here
   map_dict = IdDict{AbsSpec, AbsSpecMor}()
-  for U in patches(domain(inc_cov))
-    q_res = compose(inc_cov[U], p_cov_simp[codomain(inc_cov[U])])
+  for U in patches(domain(inc_dom_ref))
+    q_res = compose(inc_dom_ref[U], f_res[codomain(inc_dom_ref[U])])
     V = codomain(q_res)
-    g = maps_with_given_codomain(inc, V)
+    g = maps_with_given_codomain(inc_cod_ref, V)
     if !isone(length(g))
       error()
     end
     pre_V = domain(first(g))
     map_dict[U] = restrict(q_res, domain(q_res), pre_V, check=false)
   end
-  psi = CoveringMorphism(domain(inc_cov), domain(covering_morphism(inc)), map_dict, check=false)
+  psi = CoveringMorphism(domain(inc_dom_ref), domain(inc_cod_ref), map_dict, check=false)
+  return CoveredSchemeMorphism(domain(inc_dom), domain(inc_cod), psi)
 end
+
+function _register!(data::Tuple{<:Covering, <:CoveringMorphism, <:CoveringMorphism},
+    X::AbsCoveredScheme
+  )
+  push!(coverings(X), data[1])
+  refinements(X)[(domain(data[2]), codomain(data[2]))] = data[2]
+  refinements(X)[(domain(data[3]), codomain(data[3]))] = data[3]
+  return data
+end
+
+function maps_with_given_codomain(phi::CoveringMorphism, V::AbsSpec)
+  result = Vector{AbsSpecMor}()
+  for U in keys(morphisms(phi))
+    floc = morphisms(phi)[U]
+    codomain(floc) === V || continue
+    push!(result, floc)
+  end
+  return result
+end
+
 #function saturation(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
 #  L = base_ring(I) 
 #  L === base_ring(J) || error("ideals must be defined over the same ring")
