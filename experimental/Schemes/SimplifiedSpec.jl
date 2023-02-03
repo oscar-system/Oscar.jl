@@ -318,7 +318,7 @@ function _have_common_ancestor(
 end
 
 function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedSpec)
-  U === V && return true
+  U === V && return true, V
   if ambient_scheme(U) === V
     return true, V
   elseif original(V) === U
@@ -337,7 +337,7 @@ function _have_common_ancestor(
 end
 
 function _have_common_ancestor(U::SimplifiedSpec, V::SimplifiedSpec)
-  U === V && return true
+  U === V && return true, V
   if original(U) === V
     return true, V
   elseif original(V) === U
