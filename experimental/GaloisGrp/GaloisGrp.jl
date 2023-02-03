@@ -2196,20 +2196,12 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
     end
   end
 end
-
-@doc Markdown.doc"""
-    fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
-
-Given the `GaloisCtx` as returned by a call to `galois_group` and a subgroup
-`U` of the Galois group, compute the field fixed by `U` as a simple
-extension.
-"""
-function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
-  G = GC.G
+function relative_invariant(G, U)
+  @assert degree(G) == degree(U)
+  S, g = slpoly_ring(ZZ, degree(G), cached = false)
   if index(G, U) == 1 # not type stable
-    return QQ
+    return one(S), [one(G)]
   end
-  #XXX: seems to be broken for reducible f, ie. intransitive groups
 
   c = reverse(maximal_subgroup_chain(G, U))
   @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
@@ -2220,9 +2212,11 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   # G = cup U b, U = cup V a, so G = V a b
   ts = [gen(Hecke.Globals.Zx) for i = I]
   tv  = [right_transversal(c[i], c[i+1]) for i=1:length(c)-1]
-  r = roots(GC, bound_to_precision(GC, GC.B))
-  k, mk = ResidueField(parent(r[1]))
-  r = map(mk, r)
+  k = GF(next_prime(10000))
+  r = [rand(k) for i=1:degree(G)]
+  while length(Set(r)) < length(r)
+    r = [rand(k) for i=1:degree(G)]
+  end
   mu = ones(Int, length(I))
   #need tschirni per invar
   local conj
@@ -2255,6 +2249,9 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
         break
       end
       mu[j] += 1
+      if mu[j] > characteristic(k)
+        error("dnw")
+      end
     end
     if iszero(mu[j])
       a = b
@@ -2263,12 +2260,34 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
     end
   end
   @vprint :GaloisGroup 2  "have primitive element via $mu \n$a\n"
+  return a, T
+end
 
-  B = upper_bound(GC, a)
+@doc Markdown.doc"""
+    fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+
+Given the `GaloisCtx` as returned by a call to `galois_group` and a subgroup
+`U` of the Galois group, compute the field fixed by `U` as a simple
+extension.
+"""
+function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+  G = GC.G
+  if index(G, U) == 1 # not type stable
+    return QQ
+  end
+  #XXX: seems to be broken for reducible f, ie. intransitive groups
+  a, T = relative_invariant(G, U)
+  r = roots(GC, 5)
+  ts = Oscar.GaloisGrp.find_transformation(r, a, T)
+
+  B = upper_bound(GC, a, ts)
   m = length(T)
   B = m*B^m
 
   @vtime :GaloisGroup 2 r = roots(GC, bound_to_precision(GC, B, extra))
+  if ts != gen(parent(ts))
+    r = map(ts, r)
+  end
   compile!(a)
   @vtime :GaloisGroup 2 conj = [evaluate(a, t, r) for t = T]
 
@@ -2285,7 +2304,10 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   end
   ps = map(base_ring(GC.f), ps)
 
-  k = extension_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  f = Hecke.power_sums_to_polynomial(ps)
+  @assert degree(f) > 0
+#  @assert is_irreducible(f)
+  k = extension_field(f, check = false, cached = false)[1]
   @assert all(x->isone(denominator(x)), coefficients(k.pol))
   @assert is_monic(k.pol)
   return k
@@ -2632,7 +2654,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"
-    G, C = galois_group(extension_field(lf[1][1], cached = false)[1])
+    G, C = galois_group(extension_field(lf[1][1], cached = false)[1], pStart = pStart, prime = prime)
     return blow_up(G, C, lf)
   end
 
