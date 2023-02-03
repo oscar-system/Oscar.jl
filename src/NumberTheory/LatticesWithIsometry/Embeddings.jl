@@ -1,5 +1,5 @@
-export primitive_embeddings_in_elementary,
-       primitive_extensions
+export admissible_equivariant_primitive_extensions,
+       primitive_embeddings_in_primary_lattice
 
 GG = GAP.Globals
 
@@ -85,7 +85,7 @@ function _rho_functor(q::TorQuadMod, p, l::Union{Integer, fmpz})
     Gm = intersect(1//p*N, dual(N))
     rholN = torsion_quadratic_module(Gl, p*Gm, modulus = QQ(1), modulus_qf = QQ(2))
     gene = [q(lift(g)) for g in gens(rholN)]
-    return sub(q, gene)[2]
+    return sub(q, gene)
   end  
   k = l-1
   m = l+1
@@ -96,6 +96,12 @@ function _rho_functor(q::TorQuadMod, p, l::Union{Integer, fmpz})
   gene = [q(lift(g)) for g in gens(rholN)]
   return sub(q, gene)
 end
+
+##############################################################################
+#
+#  Orbits and stabilizers of discriminant subgroups
+#
+##############################################################################
 
 function on_subgroup(H::Oscar.GAPGroup, g::AutomorphismGroupElem)
   G = domain(parent(g))
@@ -111,18 +117,14 @@ function stabilizer(O::AutomorphismGroup{TorQuadMod}, i::TorQuadModMor)
   OA = automorphism_group(A)
   OinOA, _ = sub(OA, OA.([g.X for g in gens(O)]))
   N, _ = sub(A, togap.(i.(gens(domain(i)))))
-  orb = orbit(OinOA, on_subgroup, N)
   stab, _ = stabilizer(OinOA, N, on_subgroup)
   return sub(O, O.([h.X for h in gens(stab)]))
 end
 
-##############################################################################
-#
-#  Orbits and stabilizers of elementary conjugate subgroups
-#
-##############################################################################
-
 function _as_Fp_vector_space_quotient(HinV, p, f)
+  if f isa AutomorphismGroupElem
+    f = hom(domain(f), domain(f), matrix(f))
+  end
   i = HinV.map_ab
   H = domain(HinV)
   Hab = domain(i)
@@ -170,17 +172,29 @@ function _as_Fp_vector_space_quotient(HinV, p, f)
   return Qp, VtoVp, VptoQp, fQp
 end
 
-function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModMor, G::AutomorphismGroup{TorQuadMod}, g::Int, f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = one(G), l::Hecke.IntegerUnion = 0)
+function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModMor,
+                                                                    G::AutomorphismGroup{TorQuadMod},
+                                                                    ord::Hecke.IntegerUnion,
+                                                                    f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = one(G),
+                                                                    l::Hecke.IntegerUnion = 0)
+  if ord == 1
+    if l != 0
+      return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[]
+    end
+    _, triv = sub(codomain(Vinq), TorQuadModElem[])
+    return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[(triv, G)]
+  end
   V = domain(Vinq)
   q = codomain(Vinq)
   p = elementary_divisors(V)[1]
+  g = valuation(ord, p)
   @req all(a -> haspreimage(Vinq.map_ab, data(l*a))[1], gens(q)) "lq is not contained in V"
   H0, H0inV = sub(V, [preimage(Vinq, (l*a)) for a in gens(q)])
   Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, f)
   Vp = codomain(VtoVp)
 
   if dim(Qp) == 0
-    if order(V) == p^g
+    if order(V) == ord
       return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[(Vinq, G)]
     end
     return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[]
@@ -223,7 +237,7 @@ function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQua
     gene_submod_in_V = TorQuadModElem[preimage(VtoVp, Vp(v)) for v in gene_submod_in_Vp]
     gene_submod_in_q = TorQuadModElem[image(Vinq, v) for v in gene_submod_in_V]
     orbq, orbqinq = sub(q, gene_submod_in_q)
-    @assert order(orbq) == p^g
+    @assert order(orbq) == ord
     stabq, _ = image(MGptoG, stab)
     push!(res, (orbqinq, stabq))
     @label non_fixed
@@ -231,24 +245,23 @@ function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQua
   return res
 end
 
-function subgroups_orbits_representatives_and_stabilizers(O::AutomorphismGroup{TorQuadMod}; order::Hecke.IntegerUnion = -1)
+function subgroups_orbit_representatives_and_stabilizers(O::AutomorphismGroup{TorQuadMod}; order::Hecke.IntegerUnion = -1)
   togap = get_attribute(O, :to_gap)
   tooscar = get_attribute(O, :to_oscar)
   q = domain(O)
   A = abelian_group(q)
   it = order == -1 ? subgroups(A) : subgroups(A, order=order)
-  co = [sub(q, q.(j[2].(gens(j[1])))) for j in it]
-  coAgap = [sub(Agap, togap.(j[1].(gens(j[2]))))[1] for j in co]
   Agap = codomain(togap)
+  coAgap = [sub(Agap, togap.(q.(j[2].(gens(j[1])))))[1] for j in it]
   OAgap = automorphism_group(Agap)
   OinOAgap, j = sub(OAgap, OAgap.([g.X for g in gens(O)]))
-  m = gset(OinOAgap, on_sub, coAgap)
+  m = gset(OinOAgap, on_subgroup, coAgap)
   orbs = orbits(m)
   res = Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[]
   for orb in orbs
     rep = representative(orb)
     stab, _ = stabilizer(OinOAgap, rep, on_subgroup)
-    rep = sub(q, TorQuadModElem[tooscar(Agap(g)) for g in gens(rep)])
+    _, rep = sub(q, TorQuadModElem[tooscar(Agap(g)) for g in gens(rep)])
     stab, _ = sub(O, O.([h.X for h in gens(stab)]))
     push!(res, (rep, stab))
   end 
@@ -256,7 +269,7 @@ function subgroups_orbits_representatives_and_stabilizers(O::AutomorphismGroup{T
 end
 
 function classes_conjugate_subgroups(O::AutomorphismGroup{TorQuadMod}, q::TorQuadMod)                             
-  sors = subgroups_orbits_representatives_and_stabilizers(O, order=order(q))
+  sors = subgroups_orbit_representatives_and_stabilizers(O, order=order(q))
   return filter(d -> is_isometric_with_isometry(domain(d[1]), q)[1], sors)
 end
 
@@ -266,24 +279,29 @@ end
 #
 #################################################################################
 
-function _isomorphism_classes_primitive_embeddings(N::Zlat, M::ZLat, H::TorQuadMod)
+# here for convenience, we choose in entry N and M to be of full rank and
+# with basis matrix equal to the identity matrix
+
+function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadMod)
+  @assert is_one(basis_matrix(N))
+  @assert is_one(basis_matrix(M))
   results = Tuple{ZLat, ZLat, ZLat}[]
   GN, GNinqN = image_in_Oq(N)
   GM, GMinqM = image_in_Oq(M)
-  qN = codomain(GNinqN)
-  qM = codomain(GMinqM)
+  qN = domain(GN)
+  qM = domain(GM)
 
   D, qNinD, qMinD = orthogonal_sum(qN, qM)
   OD = orthogonal_group(D)
-  OqNinOD = embedding_orthogonal_group(qNinOD)
-  OqMinOD = embedding_orthogonal_group(qMinOD)
+  OqNinOD = embedding_orthogonal_group(qNinD)
+  OqMinOD = embedding_orthogonal_group(qMinD)
   OqN = domain(OqNinOD)
   OqM = domain(OqMinOD)
 
   subsN = classes_conjugate_subgroups(GN, rescale(H, -1))
-  @assert !isempty(N)
+  @assert !isempty(subsN)
   subsM = classes_conjugate_subgroups(GM, H)
-  @assert !isempty(N)
+  @assert !isempty(subsM)
 
   for H1 in subsN, H2 in subsM
     ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
@@ -291,112 +309,154 @@ function _isomorphism_classes_primitive_embeddings(N::Zlat, M::ZLat, H::TorQuadM
 
     HNinqN, stabN = H1
     HN = domain(HNinqN)
-    OHNinOqN = embedding_orthogonal_group(HNinqN)
-    OHN = domain(OHNinOqN)
-    OHNinOD = compose(OHNinOqN, OqNinOD)
+    OHN = orthogonal_group(HN)
 
     HMinqM, stabM = H2
     HM = domain(HMinqM)
-    OHMinOqM = embedding_orthogonal_group(HMinqM)
-    OHM = domain(OHMinOqM)
-    OHMinOD = compose(OHMinOqM, OqMinOD)
+    OHM = orthogonal_group(HM)
 
     actN = hom(stabN, OHN, [OHN(_restrict(x, HNinqN)) for x in gens(stabN)])
     imN, _ = image(actN)
-    kerN = AutomorphismGroupElem{TorQuadMod}[OqNinOD(x) for in gens(kernel(actN)[1])]
+    kerN = AutomorphismGroupElem{TorQuadMod}[OqNinOD(x) for x in gens(kernel(actN)[1])]
 
     actM = hom(stabM, OHM, [OHM(_restrict(x, HMinqM)) for x in gens(stabM)])
     imM, _ = image(actM)
     kerM = AutomorphismGroupElem{TorQuadMod}[OqMinOD(x) for x in gens(kernel(actM)[1])]
 
-    stabNphi = AutomorphismGroupElem{TorQuadMod}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabA)]
+    stabNphi = AutomorphismGroupElem{TorQuadMod}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
     stabNphi, _ = sub(OHM, stabNphi)
     reps = double_cosets(OHM, stabNphi, imM)
-
+    @info "$(length(reps)) isomorphism classe(s) of primitive extensions"
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
-      S = relations(domain(phig))
-      R = relations(codomain(phig))
       _glue = Vector{fmpq}[lift(qNinD(HNinqN(g))) + lift(qMinD(HMinqM(phig(g)))) for g in gens(domain(phig))]
       z = zero_matrix(QQ, 0, degree(N)+degree(M))
       glue = reduce(vcat, [matrix(QQ, 1, degree(N)+degree(M), g) for g in _glue], init = z)
-      glue = vcat(block_diagonal_matrix([basis_matrix(N), basis_matrix(M)]), glue)
+      glue = vcat(identity_matrix(QQ, rank(N)+rank(M)), glue)
       glue = FakeFmpqMat(glue)
       _B = hnf(glue)
       _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
       L = lattice(ambient_space(cover(D)), _B[end-rank(N)-rank(M)+1:end, :])
-      N2 = lattice_in_same_ambient_space(L, _B[1:rank(N),:])
+      N2 = lattice_in_same_ambient_space(L, identity_matrix(QQ, rank(L))[1:rank(N),:])
       @assert genus(N) == genus(N2)
-      M2 = orthgonal_submodule(L, N2)
+      M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
       @assert genus(M) == genus(M2)
       push!(results, (L, M2, N2))
+      @info "Gluing done"
+      GC.gc()
     end
   end
   return results
 end
 
-function primitive_embeddings_in_elementary(L::ZLat, M::ZLat)
-  bool, p = is_elementary_with_prime(L)
-  @req bool "L must be unimodular or elementary"
+@doc Markdown.doc"""
+    primitive_embeddings_in_elementary_lattice(L::ZLat, M::ZLat)
+                                     -> Vector{Tuple{ZLat, ZLat, ZLat}}
 
+Given a `p`-primary lattice `L`, unique in its genus, and a lattice `M`,
+compute representatives for all isomorphism classes of primitive embeddings
+of `M` in `L` up to the actions of $\bar{O}(M)$ and $O(L)$. Here
+$\bar{O}(M)$ denotes the image of $O(M)\to O(q_M)$.
+
+The output is given in terms of triples `(L', M', N')` where `L'` is
+isometric to `L`, `M'` is a sublattice of `L'` isometric to `M` and
+`N'` is the orthogonal complement of `M'` in `L'`.
+"""
+function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat; check = false)
+  bool, p = is_primary_with_prime(L)
+  @req bool "L must be unimodular or elementary"
+  el = is_elementary(L, p)
+  if check
+    @req length(genus_representatives(L)) == 1 "L must be unique in its genus"
+  end
+  M = Zlattice(gram = gram_matrix(M))
   results = Tuple{ZLat, ZLat, ZLat}[]
   qL = discriminant_group(L)
   OqL = orthogonal_group(qL)
-  pL, nL = signature_pair(L)
-  pM, nM = signature_pair(M)
+  pL, _, nL = signature_tuple(L)
+  pM, _, nM = signature_tuple(M)
   @req (pL-pM >= 0 && nL-nM >= 0) "Impossible embedding"
+  if ((pL, nL) == (pM, nM))
+    genus(M) != genus(L) && return results
+    return [(M, M, lattice_in_same_ambient_space(M, zero_matrix(QQ, 0, degree(M))))]
+  end
   qM = discriminant_group(M)
-  VM, VMinqM, _ = _get_V(M, qM, identity_matrix(QQ, rank(M)), id_hom(qM), minpoly(identity_matrix(QQ,1)), p)
-  g = 0
-  while p^g <= min(order(qL), order(VM))
-    subsL = subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qL), OqL, g)
+  if el
+    VM, VMinqM, _ = _get_V(M, qM, identity_matrix(QQ, rank(M)), id_hom(qM), minpoly(identity_matrix(QQ,1)), p)
+  else
+    VM, VMinqM = primary_part(qM, p)
+  end
+  for k  in divisors(order(qL)) if k <= order(VM)
+    @info "Glue order: $(k)"
+    if el
+      subsL = subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qL), OqL, k)
+    else
+      subsL = subgroups_orbit_representatives_and_stabilizers(OqL, order = k)
+    end
+    @info "$(length(subsL)) subgroup(s)"
     for H in subsL
       HL = domain(H[1])
       it = subgroups(abelian_group(VM), order = order(HL))
-      subsM = [sub(qM, VMinqM.(VM.(j[2].(gens(j[1]))))) for j in it]
-      filter!(HM -> is_isometric_with_isometry(domain(HM), HL), subsM)
-      isempty(subsM) && continue
-      ok, j = has_complement(subsM[1])
-      @assert ok
-      qM2 = domain(j)
-      qL2 = codomain(has_complement(H)[2])
-      D = orthogonal_sum(rescale(qM2, -1), qL2)
-      !is_genus(D, (pL-pM, nL-nM)) && continue
+      subsM = [sub(qM, VMinqM.(VM.(j[2].(gens(j[1])))))[2] for j in it]
+      filter!(HM -> is_isometric_with_isometry(domain(HM), HL)[1], subsM)
+      isempty(subsM)  && continue
+      @info "Possible gluing"
+      qM2, _ = orthogonal_submodule(qM, domain(subsM[1]))
+      qL2, _ = orthogonal_submodule(qL, domain(H[1]))
+      D = direct_sum(rescale(qM2, -1), qL2)[1]
+      !is_genus(D, (pL-pM, nL-nM))  && continue
       G = genus(D, (pL-pM, nL-nM))
-      Ns = representatives(g)
+      @info "We can glue: $G"
+      Ns = representatives(G)
+      @info "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
+      Ns = ZLat[Zlattice(gram=gram_matrix(N)) for N in Ns]
       for N in Ns
-        append!(results, [_isomorphism_classes_primitive_embeddings(N, M, qM2)])
+        append!(results, _isomorphism_classes_primitive_extensions(N, M, qM2))
+        GC.gc()
       end
+      GC.gc()
     end
-    g += 1
   end
+  end
+  @assert all(triple -> genus(triple[1]) == genus(L), results)
   return results
 end
 
 ####################################################################################
 #
-# Admissible primitive extensions
+# Admissible equivariant primitive extensions
 #
 ####################################################################################
 
 @doc Markdown.doc"""
-    primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Int)
-                                          -> Vector{LatticeWithIsometry}
+    admissible_equivariant_primitive_extensions(Afa::LatticeWithIsometry,
+                                                Bfb::LatticeWithIsometry,
+                                                Cfc::LatticeWithIsometry,
+                                                p::Int; check=true)
+                                                     -> Vector{LatticeWithIsometry}
 
-Given a triple of lattices with isometry `(A, fa)`, `(B, fb)` and `(C, fc)` and a prime number
-`p`, such that `(A, B, C)` is `p`-admissible, return a set of representatives of the double coset
-$G_B\backslash S\slash/G_A$ where:
+Given a triple of lattices with isometry `(A, fa)`, `(B, fb)` and `(C, fc)` and a
+prime number `p`, such that `(A, B, C)` is `p`-admissible, return a set of
+representatives of the double coset $G_B\backslash S\slash/G_A$ where:
 
-  - $G_A$ and $G_B$ are the respective images of the morphisms $O(A, fa) -> O(q_A, \bar{fa})$
-    and $O(B, fb) -> O(q_B, \bar{fb})$;
-  - $S$ is the set of all primitive extensions $A \perp B \subseteq C'$ with isometry $fc'$ where
-    $p\cdot C' \subsetea A\perpB$ and the type of $(C', fc'^p)$ is equal to the type of $(C, fc)$.
+  - $G_A$ and $G_B$ are the respective images of the morphisms
+    $O(A, fa) -> O(q_A, \bar{fa})$ and $O(B, fb) -> O(q_B, \bar{fb})$;
+  - $S$ is the set of all primitive extensions $A \perp B \subseteq C'$ with isometry
+    $fc'$ where $p\cdot C' \subsetea A\perpB$ and the type of $(C', fc'^p)$ is equal
+    to the type of $(C, fc)$.
+
+If `check == true` the input triple is checked to a `p`-admissible triple of
+integral lattices (with isometry), imposing that `A` and `B` are orthogonal
+if `A`, `B` and `C` lie in the same ambient quadratic space.
 
 See Algorithm 2 of [BH22].
 """
-function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer; check=true)
+function admissible_equivariant_primitive_extensions(Afa::LatticeWithIsometry,
+                                                     Bfb::LatticeWithIsometry,
+                                                     Cfc::LatticeWithIsometry,
+                                                     p::Integer; check=true)
   # requirement for the algorithm of BH22
   @req is_prime(p) "p must be a prime number"  
   A, B, C = lattice.([Afa, Bfb, Cfc])
@@ -437,10 +497,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # if the glue valuation is zero, then we glue along the trivial group and we don't
   # have much more to do. Since the triple is p-admissible, A+B = C
   if g == 0
-    geneA = gens(GA)
-    geneA = AutomorphismGroupElem{TorQuadMod}[OqAinOD(a) for a in geneA]
-    geneB = gens(GB)
-    geneB = AutomorphismGroupElem{TorQuadMod}[OqBinOD(b) for b in geneB]
+    geneA = AutomorphismGroupElem{TorQuadMod}[OqAinOD(a) for a in gens(GA)]
+    geneB = AutomorphismGroupElem{TorQuadMod}[OqBinOD(b) for b in gens(GB)]
     gene = vcat(geneA, geneB)
     GC2, _ = sub(OD, gene)
     if ambient_space(A) === ambient_space(B) === ambient_space(C)
@@ -450,7 +508,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
       fC2 = _B*fC2*inv(_B)
       @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
     else
-      C2 = orthogonal_sum(A, B)[1]
+      C2 = direct_sum(A, B)[1]
       fC2 = block_diagonal_matrix([fA, fB])
     end
     if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), type(Cfc))
@@ -478,8 +536,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # contained lqA|lqB. This is done by computing orbits and stabilisers of VA/lqA (resp VB/lqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
   # are fA-stable (resp. fB-stable)
-  subsA = _subgroups_representatives(VAinqA, GA, g, fVA, ZZ(l))
-  subsB = _subgroups_representatives(VBinqB, GB, g, fVB, ZZ(l))
+  subsA = subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, fVA, ZZ(l))
+  subsB = subgroups_orbit_representatives_and_stabilizers_elementary(VBinqB, GB, p^g, fVB, ZZ(l))
 
   # once we have the potential kernels, we create pairs of anti-isometric groups since glue
   # maps are anti-isometry
@@ -523,11 +581,11 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # under the action of O(SB, rho_{l+1}(qB), fB)
     rB, rBinqB = _rho_functor(qB, p, valuation(l, p)+1)
     @assert Oscar._is_invariant(stabB, rBinqB)
-    rBinSB = hom(domain(rBinqB), SB, TorQuadModElem[SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
-    @assert is_trivial(domain(rBinSB).ab_grp) || is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
+    rBinSB = hom(rB, SB, TorQuadModElem[SBinqB\(rBinqB(k)) for k in gens(rB)])
+    @assert is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
 
     # We compute the generators of O(SB, rho_{l+1}(qB))
-    OSBrB, _ = _stabilizer(rBinSB)
+    OSBrB, _ = stabilizer(OSB, rBinSB)
     @assert fSB in OSBrB
 
     # phi might not "send" the restriction of fA to this of fB, but at least phi*fA*phi^-1
@@ -558,30 +616,28 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
-      S = relations(domain(phig))
-      R = relations(codomain(phig))
 
-      if ambient_space(R) === ambient_space(S)
+      if ambient_space(A) === ambient_space(B)
         _glue = Vector{fmpq}[lift(g) + lift(phig(g)) for g in gens(domain(phig))]
-        z = zero_matrix(QQ, 0, degree(S))
-        glue = reduce(vcat, [matrix(QQ, 1, degree(S), g) for g in _glue], init=z)
-        glue = vcat(basis_matrix(S+R), glue)
+        z = zero_matrix(QQ, 0, degree(A))
+        glue = reduce(vcat, [matrix(QQ, 1, degree(A), g) for g in _glue], init=z)
+        glue = vcat(basis_matrix(A+B), glue)
         glue = FakeFmpqMat(glue)
         _B = hnf(glue)
         _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
-        C2 = lattice(ambient_space(S), _B[end-rank(S)-rank(R)+1:end, :])
+        C2 = lattice(ambient_space(S), _B[end-rank(A)-rank(B)+1:end, :])
         fC2 = block_diagonal_matrix([fA, fB])
         _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
         fC2 = _B*fC2*inv(_B)
       else
         _glue = Vector{fmpq}[lift(qAinD(SAinqA(g))) + lift(qBinD(SBinqB(phig(g)))) for g in gens(domain(phig))]
-        z = zero_matrix(QQ,0,degree(S)+degree(R))
-        glue = reduce(vcat, [matrix(QQ,1,degree(S)+degree(R),g) for g in _glue], init=z)
-        glue = vcat(block_diagonal_matrix([basis_matrix(S), basis_matrix(R)]), glue)
+        z = zero_matrix(QQ,0,degree(A)+degree(B))
+        glue = reduce(vcat, [matrix(QQ,1,degree(A)+degree(B),g) for g in _glue], init=z)
+        glue = vcat(block_diagonal_matrix([basis_matrix(A), basis_matrix(B)]), glue)
         glue = FakeFmpqMat(glue)
         _B = hnf(glue)
         _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
-        C2 = lattice(ambient_space(cover(D)), _B[end-rank(S)-rank(R)+1:end, :])
+        C2 = lattice(ambient_space(cover(D)), _B[end-rank(A)-rank(B)+1:end, :])
         fC2 = block_diagonal_matrix([fA, fB])
         __B = solve_left(block_diagonal_matrix(basis_matrix.([A,B])), basis_matrix(C2))
         fC2 = __B*fC2*inv(__B)
@@ -594,7 +650,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
 
       ext, _ = sub(D, D.(_glue))
       perp, j = orthogonal_submodule(D, ext)
-      disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp), modulus_qf = modulus_quadratic_form(perp))
+      disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
+                                                               modulus_qf = modulus_quadratic_form(perp))
 
       qC2 = discriminant_group(C2)
       ok, phi2 = is_isometric_with_isometry(qC2, disc)

@@ -212,7 +212,9 @@ end
 
 Given a $\mathbb Z$-genus `C` and a prime number `p`, return all tuples of
 $\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
-`B` is of rank divisible by $p-1$. See Algorithm 1 [BH22].
+`B` is of rank divisible by $p-1$.
+
+See Algorithm 1 of [BH22].
 """
 function admissible_triples(G::ZGenus, p::Int64)
   @req is_prime(p) "p must be a prime number"
@@ -535,7 +537,7 @@ function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::In
     LA = lattice_with_isometry(representative(A))
     RA = representatives_of_pure_type(LA, q^d)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
-      E = primitive_extensions(L1, L2, Lf, p)
+      E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p, check=false)
       append!(reps, E)
     end
   end
@@ -605,7 +607,7 @@ function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int 
   B = prime_splitting_of_prime_power(B0, p)
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B])
     b == 1 && !divides(order_of_isometry(L1), p)[1] && !divides(order_of_isometry(L2), p)[1] && continue
-    E = primitive_extensions(L1, L2, Lf, q)
+    E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, check=false)
     @assert b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
   end
@@ -668,7 +670,7 @@ function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
   is_empty(A) && return reps
   B = prime_splitting_of_semi_pure_type(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
-    E = extensions(LA, LB, Lf, q)
+    E = admissible_equivariant_primitive_extensions(LA, LB, Lf, q, check = false)
     append!(reps, E)
   end
   return reps
@@ -719,7 +721,7 @@ function prime_splitting(Lf::LatticeWithIsometry, p::Int)
   isempty(A) && return reps
   B = prime_splitting(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
-    E = extensions(LA, LB, Lf, p)
+    E = admissible_equivariant_primitive_extensions(LA, LB, Lf, p, check = false)
     @assert all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
     append!(reps, E)
   end
