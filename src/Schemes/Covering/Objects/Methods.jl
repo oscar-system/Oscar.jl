@@ -255,7 +255,7 @@ function common_refinement(C::Covering, D::Covering)
     end
     psi = CoveringMorphism(E, D, map_dict, check=false)
     return E, phi, psi
-  elseif all(x->some_ancestor_in(patches(D), x), patches(C))
+  elseif all(x->some_ancestor_in(patches(C), x), patches(D))
     # D is a refinement of C
     E = D
     psi = identity_map(E)
