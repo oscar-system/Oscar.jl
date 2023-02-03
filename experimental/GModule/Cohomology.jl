@@ -1745,7 +1745,6 @@ Find the embedding of Gp -> G, realizing the local automorphism group
 as a subgroup of the global one.
 """
 function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))))
-  global last_data = (K, mK, mG, mGp)
   Kp = codomain(mK)
   @assert domain(mK) == K
 
@@ -1779,6 +1778,72 @@ function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, 
   @assert length(l) == 1
   sigma = lG[l[1]]
   return sub(G, [sigma])[2]
+end
+
+"""
+For a Z[U]-Module C and a map U->G, compute the induced module:
+    ind_U^G(C) = C otimes Z[G]
+where the tensor product is over Z[U].
+The induced module is returned as a product of copies of C. it also returns
+  - the transversal used
+  - the projections
+  - the injections
+
+  If D and mDC are given then mDC: D -> C.M has to be a Z[U] linear
+homomorphism. I this case a Z[G] linear map to the induced module
+is returned.
+"""
+function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
+  U = domain(h)
+  G = codomain(h)
+  @assert U == C.G
+  @assert D === nothing || mDC !== nothing
+  @assert D === nothing || (domain(mDC) == D.M && codomain(mDC) == C.M &&
+                            D.G == codomain(h))
+  iU = image(h)[1]
+
+# ra = right_coset_action(G, image(h)[1]) # will not always match 
+# the transversal, so cannot use. There is a PR in Gapp to return "both"
+  g = right_transversal(G, iU)
+  S = symmetric_group(length(g))
+  ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
+
+  #= C is Z[U] module, we needd
+    C otimes Z[G]
+
+    any pure tensor c otimes g can be "normalised" g = u*g_i for one of the 
+    reps fixed above, so c otimes g = c otimes u g_i == cu otimes g_i
+
+    For the G-action we thus get
+    (c otimes g_i)g = c otimes g_i g = c otimes u_i g_j (where the j comes
+                                                         from the coset action)
+                    = cu_i otimes g_j
+  =#                  
+
+  indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
+  AbstractAlgebra.set_attribute!(indC, :induce => (h, g))
+  ac = []
+  for s = gens(G)
+    sigma = ra(s)
+    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    @assert all(x->x in iU, u)
+    im_q = []
+    for q = gens(indC)
+      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    end
+    push!(ac, hom(indC, indC, [x for x = im_q]))
+  end
+  iC = GModule(G, [x for x = ac])
+  if D === nothing
+    return iC, g, pro, inj
+  end
+  #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
+    compute the Z[G]-lin embedding into the induced module.
+    a -> sum a g_i^-1 otimes g_i
+    works (direct computation with reps and cosets)
+  =#
+  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
+  return iC, h    
 end
 
 #= TODO
@@ -2034,117 +2099,6 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
 
-"""
-For a completion C of a number field K, implicitly given as the map
-    mK:  K -> C
-And the automorphism group G of K given via
-    mG:  G -> aut(K)
-and the automorphism group Gp of Kp, given via
-    mGp: Gp -> Aut(Kp)
-Find the embedding of Gp -> G, realizing the local automorphism group
-as a subgroup of the global one.
-"""
-function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))))
-  global last_data = (K, mK, mG, mGp)
-  Kp = codomain(mK)
-  @assert domain(mK) == K
-
-  Gp = domain(mGp)
-  G = domain(mG)
-
-  im = elem_type(G)[]
-  elG = [g for g = G]
-  imK = [mK(mG(g)(gen(K))) for g = elG]
-  for s = gens(Gp)
-    h = mGp(s)(mK(gen(K)))
-    z = findall(isequal(h), imK)
-    @assert length(z) == 1
-    push!(im, elG[z[1]])
-  end
-  return hom(Gp, G, im)
-end
-
-"""
-  For a real or complex embedding `emb`, find the unique automorphism
-  that acts on this embedding as complex conjugation.
-"""
-function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(K)[2])
-  G = domain(mG)
-  if is_real(emb)
-    return sub(G, [one(G)])[2]
-  end
-  g = gen(K)
-  lG = [g for g  = G]
-  l = findall(x->overlaps(conj(emb(g)), emb(mG(x)(g))), lG)
-  @assert length(l) == 1
-  sigma = lG[l[1]]
-  return sub(G, [sigma])[2]
-end
-
-"""
-For a Z[U]-Module C and a map U->G, compute the induced module:
-    ind_U^G(C) = C otimes Z[G]
-where the tensor product is over Z[U].
-The induced module is returned as a product of copies of C. it also returns
-  - the transversal used
-  - the projections
-  - the injections
-
-  If D and mDC are given then mDC: D -> C.M has to be a Z[U] linear
-homomorphism. I this case a Z[G] linear map to the induced module
-is returned.
-"""
-function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
-  U = domain(h)
-  G = codomain(h)
-  @assert U == C.G
-  @assert D === nothing || mDC !== nothing
-  @assert D === nothing || (domain(mDC) == D.M && codomain(mDC) == C.M &&
-                            D.G == codomain(h))
-  iU = image(h)[1]
-
-# ra = right_coset_action(G, image(h)[1]) # will not always match 
-# the transversal, so cannot use. There is a PR in Gapp to return "both"
-  g = right_transversal(G, iU)
-  S = symmetric_group(length(g))
-  ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
-
-  #= C is Z[U] module, we needd
-    C otimes Z[G]
-
-    any pure tensor c otimes g can be "normlised" g = u*g_i for one of the 
-    reps fixed above, so c otimes g = c otimes u g_i == cu otimes g_i
-
-    For the G-action we thus get
-    (c otimes g_i)g = c otimes g_i g = c otimes u_i g_j (where the j comes
-                                                         from the coset action)
-                    = cu_i otimes g_j
-  =#                  
-
-  indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
-  ac = []
-  for s = gens(G)
-    sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
-    im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
-    end
-    push!(ac, hom(indC, indC, [x for x = im_q]))
-  end
-  iC = GModule(G, [x for x = ac])
-  if D === nothing
-    return iC, g, pro, inj
-  end
-  #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
-    compute the Z[G]-lin embedding into the induced module.
-    a -> sum a g_i^-1 otimes g_i
-    works (direct computation with reps and cosets)
-  =#
-  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
-  return iC, h    
-end
 
 function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert task in [:sum, :prod, :both, :none]
@@ -2231,6 +2185,167 @@ Sort:
 #    use ...               to project to ray class
 # - a magic(?) function to get idel-aproximations in and out?
 
+function restrict(C::GModule, U::Oscar.GAPGroup)
+  fl, m = is_subgroup(C.G, U)
+  @assert fl
+  return gmodule(U, [action(C, m(g)) for g = gens(U)])
+end
+
+"""
+M has to be a torsion free Z module with a C_2 action by sigma.
+Returns data for the decomposition into indecomposables.
+They will be of type
+ - Z with trivial and non-trivial action
+ - Z[C_2]
+
+Two arrays are returned:
+ - generators for the 1-dim modules
+ - C_2 generators for the 2-dim ones
+
+Follows Debeerst rather closely...
+
+(Helper for the idel-class stuff)
+"""
+function debeerst(M::GrpAbFinGen, sigma::Map{GrpAbFinGen, GrpAbFinGen})
+  @assert domain(sigma) == codomain(sigma) == M
+  @assert all(x->sigma(sigma(x)) == x, gens(M))
+  @assert is_free(M) && rank(M) == ngens(M)
+
+  K, mK = kernel(id_hom(M)+sigma)
+  fl, mX = has_complement(mK)
+  @assert fl
+  X = domain(mX)
+  _X, _mX = snf(X)
+
+  S, mS = image(sigma -id_hom(M))
+  fl, mSK = is_subgroup(S, K)
+  @assert fl
+
+  _K, _mK = snf(K)
+  _S, _mS = snf(S)
+  @assert rank(_S) == ngens(_S) 
+  @assert rank(_K) == ngens(_K) 
+
+  m = matrix(GrpAbFinGenMap(_mS * mSK * inv((_mK))))
+  # elt in S * m = elt in K
+  # so
+  # elt in S * U^-1 U m V V^-1 = elt_in K
+  # elt in S * U^-1 snf = elt_in * V
+  s, U, V = snf_with_transform(m)
+  r = maximum(findall(x->isone(s[x,x]), 1:ngens(_S)))
+
+  mu = hom(_S, _S, inv(U))
+  mv = hom(_K, _K, V)
+  @assert all(i-> M(_mS(mu(gen(_S, i)))) == s[i,i] * M(_mK(mv(gen(_K, i)))), 1:ngens(S))
+  b = [_mK(mv(x)) for x = gens(_K)]
+
+  Q, mQ = quo(S, image(sigma -id_hom(M), K)[1])
+  B, mB = sub(Q,  [mQ(preimage(mSK, x)) for x = b[1:r]])
+  @assert order(B) == order(Q)
+
+  phi = GrpAbFinGenMap(_mX*mX*(sigma -id_hom(M))*pseudo_inv(mS)*mQ)
+  @assert is_surjective(phi)
+  A = vcat([preimage(mB, phi(k)).coeff for k = gens(_X)]...)
+  h, t = hnf_with_transform(A)
+  #t*A = h = diag(1) vcat 0
+  x = [sum(t[i,j]*_X[j] for j=1:ngens(_X)) for i=1:ngens(_X)]
+  sm1 = sigma - id_hom(M)
+  sm1_K = hom(K, M, [sm1(mK(x)) for x= gens(K)])
+  lambda = vcat([preimage(sm1_K, sm1(mX(_mX(x[i]))) - mK(b[i])) for i=1:r],
+                [preimage(sm1_K, sm1(mX(_mX(x[i])))) for i=r+1:length(x)])
+  x = map(_mX*mX, x)
+  lambda = map(mK, lambda)
+  y = x .- lambda
+  b = map(mK, b)
+
+  #just checking the action on the 2-dim stuff. magic.
+  #= (s-1)x = b + (s-1)l  1..r
+     y = x-l
+     s(y) = s(x) - s(l) = s(x)-x + x - s(l) + l - l
+           = (s-1)x + x -(s-1)l -l
+           = b + (s-1)l + x -(s-1)l - l = b + x-l = b + y
+  =#        
+  #=
+  h2 = []
+  for i=1:r
+    a = abelian_group([0,0])
+    push!(h2, (hom(a, M, [b[i], y[i]]), -y[i]-b[i]))
+  end
+  h_minus = []
+  for i=r+1:length(b)
+    a = abelian_group([0])
+    push!(h_minus, (hom(a, M, [b[i]]), b[i]))
+  end
+  h_plus = []
+  for i=r+1:length(y)
+    a = abelian_group([0])
+    push!(h_plus, (hom(a, M, [y[i]]), y[i]))
+  end
+  =#
+
+  return vcat(b[r+1:end], y[r+1:end]), [-y[i] - b[i] for i=1:r]
+end
+
+function (G::GrpAbFinGen)(x::GrpAbFinGenElem)
+  fl, m = is_subgroup(parent(x), G)
+  @assert fl
+  return m(x)
+end
+
+function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AnticNumberField})
+  k = base_ring(L)
+  @assert k == domain(m)
+
+  #want a map: L-> codomain(m)
+  function to(a::FacElem{nf_elem})
+    return prod(m(k)^v for (k,v) = a.fac)
+  end
+  function from(a::Hecke.LocalFieldElem)
+    return FacElem(preimage(m, a))
+  end
+  return MapFromFunc(to, from, L, codomain(m))
+end
+
+function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticNumberField})
+  k = base_ring(L)
+  @assert k == domain(m)
+  @assert codomain(mu) == codomain(m)
+
+  cache = Dict{nf_elem, GrpAbFinGenElem}()
+  #want a map: L-> codomain(m) -> domain(mu)
+  function to(a::FacElem{nf_elem})
+    s = domain(mu)[0]
+    for (k,v) = a.fac
+      if haskey(cache, k)
+        s += v*cache[k]
+      else
+        kk = preimage(mu, m(k))
+        cache[k] = kk
+        s += v*kk
+      end
+    end
+    return s
+  end
+  function from(a::Hecke.LocalFieldElem)
+    return FacElem(preimage(m, mu(a)))
+  end
+  return MapFromFunc(to, from, L, domain(mu))
+end
+
+mutable struct IdelClassCohomology
+  k::AnticNumberField
+  L::Vector # Completions: LocalField, map
+  C::Vector # MultGrp    : GModule, AutMap, UnitGroupMap (U -> LocalField)
+  D::Vector # Induced
+  iEt::GModule # inf data
+  F::Tuple{GModule, Vector{<:Map}} # the sum of iEt and D
+  h::Map #S-Units -> F
+  S::Vector # prime ideals
+
+ 
+end
+
+
 """
 Following Debeerst:
   Algorithms for Tamagawa Number Conjectures. Dissertation, University of Kassel, June 2011.
@@ -2259,6 +2374,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   end
 
   #think: does the quotient have to be trivial - or coprime to |G|?
+  #coprime should be enough
 
   for p = PrimesSet(2, -1)
     p in s && continue
@@ -2303,109 +2419,63 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     sigma = action(E, mG_inf(G_inf[1]))
     @assert order(G_inf[1]) == 2 == order(G_inf)
 
-    #partly does Debeerst:
-    # U as a Z[C_2] module splits into an extension of Z by the
-    # torsion (Z; U_tor) on page 72
-    # and the rest
-    # The cohomology for everything that Chinberg wants is already in (Z; U_tor)
-    # so thats what we want.
-    # For this we need a single unit s.th.
-    #  sigma(u) = zeta*u (so NOT invariant, but the C_2 module has Z-dim 1)
     q, mq = quo(U, [U[1]]) 
-    ss = hom(q, q, [mq(sigma(preimage(mq, g))) for g = gens(q)])
-    _k, mk = kernel(id_hom(q) - ss)
-    @assert ngens(_k) > 0
-    lk = [preimage(mq, mk(g)) for g = gens(_k)]
-    @show lf  = findall(g->isodd((sigma(g)-g)[1]), lk)
-    #we need to find a unit that will give a non-trivial extension of Z
-    #by Debeerst, this is linked to the torsion coming in from sigma(x)/x
-    #must not be a square.. hence the coeff odd
-    @assert length(lf) > 0
-    W, mW = sub(U, [U[1], lk[lf[1]]])
-    @assert all(g->haspreimage(mW, sigma(mW(g)))[1], gens(W))
-    #W here is (Z; U_tor) in Debeerst, next we need an invariant complement
-    fl, C = has_complement(W, U)
-    #... but it needs to be sigma invariant.
-    q, mq = quo(U, C)
-    hW = hom(W, q, [mq(mW(g)) for g = gens(W)])
-    @assert is_bijective(hW)
-    hW = GrpAbFinGenMap(mq*pseudo_inv(hW))
-    hC = (id_hom(U) - hW*mW)
-    fl, mC = is_subgroup(C, U)
-    @assert fl
-    @assert all(g->haspreimage(mC, hC(g))[1], gens(U))
-    @assert all(g->preimage(mC, hC(g)) + mW(hW(g)) == g, gens(U))
-    #the gens of C can be changed by elements of U
-    # C[i] -> C[i] + u[i]
-    # under sigma this is 
-    #  sigma(C[i])        = sum mu_ij C[j] + v[i]
-    #  sigma(C[i] + u[i]) = sum mu_ij C[j] + sigma(u[i]) + v[i]
-    #                     = sum mu_ij (C[j] + u[j]) 
-    #                                 - sum mu_ij u[j] + sigma(u[i]) + v[i]
-    # this is a "linear" equation in u
-    c = map(mC, gens(C))
-    c = map(sigma, c)
-    v = map(hW, c)
-    c = map(hC, c) #c[i] = mu_ij
-    c = [preimage(mC, x) for x=c]
-    @assert all(i->sigma(mC(C[i])) == mC(c[i]) + mW(v[i]), 1:ngens(C))
-    _, pro, inj = direct_product([W for i=c]..., task = :both)
-    sigW = hom(W, W, [preimage(mW, sigma(mW(g))) for g = gens(W)])
-    h = sum((sum(c[i][j]*pro[j] for j=1:ngens(C))-pro[i]*sigW)*inj[i] for i=1:ngens(C))
-    v = sum(inj[i](v[i]) for i=1:ngens(C))
-    p = preimage(h, v)
-    C, mC = sub(U, [C[i] + mW(pro[i](p)) for i=1:ngens(C)])
-    @assert order(quo(U, W+C)[1]) == 1 && order(intersect(W, C)) == 1
-    @assert all(g->haspreimage(mC, sigma(mC(g)))[1], gens(C))
-    if true
-      #Debeerst/ Chingur says that C splits into parts wher
-      # sigma acts by - (that is the U bit - the non-trivial module extensio)
-      # sigma acts trivial 
-      #            freely (2-dim modules)
-      # for the trivial ones we need to add additional generators to make
-      # them free (2-dim, free as C_2 modules)
-      # I think this can happen WITHOUT the explicit split...
-      #may need p 74 top???
+    q, _mq = snf(q)
+    mq = mq*pseudo_inv(_mq)
+    sigma_q = hom(q, q, [mq(sigma(preimage(mq, x))) for x = gens(q)])
+    x, y = debeerst(q, sigma_q)
+    # just to verify... Gunter Malle: the C_2 modules are visible over GF(2)...
+    _M = gmodule(GF(2), gmodule(G_inf, [sigma_q]))
+    _i = indecomposition(_M)
+    @assert length(findall(x->dim(x[1]) == 2, _i)) == length(y)
+    @assert length(findall(x->dim(x[1]) == 1, _i)) == length(x)
       #possibly: now the H^2 is correct, but the H^1 is not...
       # x^8 - 12*x^7 + 44*x^6 - 24*x^5 - 132*x^4 + 120*x^3 + 208*x^2 - 528*x + 724
-      _k, _mk = kernel(hom(C, C, [preimage(mC, sigma(mC(x)))-x for x= gens(C)]))
-      _s, _ms = snf(_k)
-      #the trivial bit
-      @assert is_free(_s)
-      #add generators
-      W, pro, inj = direct_product(U, _s, task = :both)
-      _t = map(_ms, gens(_s))
-      _t = map(_mk, _t)
-      _t = map(mC, _t)
-      _t = map(inj[1], _t)
-      _tt = map(inj[2], gens(_s))
-      hs = hom(_s, W, _t .- _tt)
-      Et = gmodule(G_inf, [hom(W, W, [inj[1](sigma(pro[1](w))) + hs(pro[2](w)) for w = gens(W)])])
-      @assert is_consistent(Et)
-      mq = inj[1]
-      @show snf(cohomology_group(Et, 0)[1])[1]
-      @show snf(cohomology_group(Et, 1)[1])[1]
-      @show snf(cohomology_group(Et, 2)[1])[1]
-      #and adjust the maps...
-    else
 
-      q, mq = quo(U, C)
-      q, mmq = snf(q)
-      mq = mq * pseudo_inv(mmq)
-      Et = gmodule(G_inf, [hom(q, q, [mq(sigma(preimage(mq, g))) for g = gens(q)])])
+    #theta:
+    theta = U[1] #should be a generator for torsion, torsion is even,
+                 #hence this elem cannot be a square
+    T = abelian_group([order(U[1]), 0])             
+    ac_T = hom(T, T, [sigma(U[1])[1]*T[1], T[1]+T[2]])
+
+    x = [preimage(mq, i) for i = x]
+    y = [preimage(mq, i) for i = y]
+
+    theta_i = [sigma(t)-t for t = x]
+    inv = findall(iszero, theta_i) #those that are invariant
+    not_inv = findall(x->!iszero(x), theta_i)
+    x = vcat(x[not_inv], x[inv])
+    theta_i = vcat(theta_i[not_inv], theta_i[inv])
+    
+    U_t, mU_t = sub(U, [U[1]])
+    sm1 = hom(U_t, U, [sigma(U[1]) - U[1]])
+    eta_i = [preimage(sm1, theta - theta_i[i]) for i=1:length(not_inv)]
+
+    eta_i = map(mU_t, eta_i)
+    V = abelian_group(elementary_divisors(U))
+    im_psi = [U[1], x[1]+ eta_i[1]]
+    for i=2:length(not_inv)
+      push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
+      #should be chosen to be pos. at place, flip signs...
     end
+    for i=length(not_inv)+1:length(x)
+      push!(im_psi, x[i])
+      #should be chosen to be pos. at place, flip signs...
+    end
+    for i=1:length(y)
+      push!(im_psi, y[i])
+      push!(im_psi, sigma(y[i]))
+    end
+    psi = hom(V, U, im_psi)
+    @assert is_bijective(psi)
+    F = abelian_group([0 for i=2:length(x)])
+    W, pro, inj = direct_product(V, F, task = :both)
+
+    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, [inj[1](preimage(psi, U[i])) - inj[2](F[i-1]) for i=2:length(x)]))
+    Et = gmodule(G_inf, [ac])
     @assert is_consistent(Et)
-    #if I understand Debeerst correct, then 
-    # W is a Z[C_2] direct summand of U 
-    # and C a Z[C_2]-complement. Debeerst shos that C is Z[C_2]-free hence
-    # trivial in the cohomology sense.
-    # thus W has the same cohomology as U - but fewer generators
-    # the "same" should also apply to the real case
-    #one looses the embedding into R^*/ C^* which hopefully is not used
-    @assert all(g->mq(sigma(g)) == action(Et, G_inf[1])(mq(g)), gens(E.M))
+    mq = pseudo_inv(psi)*inj[1]
     iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mq)
-    #we probably need the full decomposition anyhow.
-    #this gives wrong results every now and then...
   end
   #test if the G-action is the same:
   # induce returns a map U -> E that should be a Z[G]-hom
@@ -2434,19 +2504,45 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   Hecke.pushindent()
   C = [gmodule(x[1], prime_field(x[1])) for x = L];
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), C)
-  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, mU*z*L[i][2]*pseudo_inv(C[i][3])) for i=1:length(S)]
+  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, (mU*Hecke.extend_easy(L[i][2], C[i][3], codomain(mU)))) for i=1:length(S)]
+#  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, (mU*z*L[i][2]*pseudo_inv(C[i][3]))) for i=1:length(S)]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), D)
   @hassert :GaloisCohomology 1 all(x->is_G_lin(U, D[x][1], D[x][2], g->action(E, g)), 1:length(D))
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. the big product and the quotient\n"
 
-  F = direct_product(iEt[1], [x[1] for x = D]..., task = :sum)
+  F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
   @hassert :GaloisCohomology 1 is_consistent(F[1])
 
-  h = iEt[2]*F[2][1]+sum(D[i][2]*F[2][i+1] for i=1:length(S));
+  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(S));
   q, mq = quo(F[1], h)
+  q, _mq = simplify(q)
+  mq = GrpAbFinGenMap(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
-  return q
+  function idel(a::GrpAbFinGenElem)
+    a = preimage(mq, a) # in F
+    u = F[2][1](a) #in iEt need to get to the S-Unit somehow, maybe
+    v = [m(a) for m = F[2][2:end]] #in the induced GModules
+    #= TODO
+     - the induced stuff is equivalent to doing all completions:
+       for infinite places, same as finite ones over the same prime
+       Galois operates transitive, and the :induce has coset reps
+       -> sort places against coset reps
+       -> sort primes against coset reps
+       return a dictionary where keys are the 
+         places, prime ideals
+       and values are
+         s.th. for the infinite places, for the reals we need the sign?
+         elements in the completion for the prime ideals
+         (think: nf_elem as the completions do not exist? only in 
+           spirit via the cosets?)
+
+     - we need also the inverse operation...
+     =#
+    return u, v
+  end
+
+  return q, idel
 end
 
 function Oscar.simplify(C::GModule{PermGroup, GrpAbFinGen})
