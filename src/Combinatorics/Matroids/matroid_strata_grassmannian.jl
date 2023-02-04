@@ -21,7 +21,7 @@ function matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType,  F::Ab
     n = length(matroid_groundset(M))
 
     goodM = isomorphic_matroid(M, [i for i in 1:n])
-    #Vector{Int}
+    #Vector{Int}set difference julia
     goodB = sort!(Int.([M.gs2num[j] for j in B]))
 
     Bs = bases(goodM)
@@ -180,7 +180,7 @@ end
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
 
-function bases_determinants(X, Bs)
+function bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 

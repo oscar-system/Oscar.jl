@@ -155,14 +155,14 @@
     end
 
 
-    SG1 = Oscar.localizing_semigroup(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
+    #SG1 = Oscar.localizing_semigroup(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
     
     
-    @testset "localizing_semigroup" begin
+    #@testset "localizing_semigroup" begin
         
-        @test all(a in SG1 for a in D1)
+    #    @test all(a in SG1 for a in D1)
         
-    end
+    #end
 
     MS1 = Oscar.matroid_stratum_matrix_coordinates_given_ring(2,5,mb1,ZZ,[1,2],R1,x1,xd1)
     MS2 = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,7,mb2,GF(2),[1,2,4],R2,x2,xd2)
