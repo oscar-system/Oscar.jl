@@ -218,12 +218,12 @@
                 @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
             end
             @test Polyhedron(facets(A)) == A
-            b1 = birkhoff(3)
-            b2 = birkhoff(3, even = true)
+            b1 = birkhoff_polytope(3)
+            b2 = birkhoff_polytope(3, even = true)
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
             @test nvertices(b1) == nvertices(b2) * 2
             
-            P = gelfand_tsetlin([3,2,1])
+            P = gelfand_tsetlin_polytope([3,2,1])
             p = project_full(P)
             @test p isa Polyhedron{T}
             @test volume(P) == 0
