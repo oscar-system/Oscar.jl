@@ -44,7 +44,7 @@
         @test size(point_matrix(vertices(Q1))) == (3, 2)
         @test size(vector_matrix(rays(Q1))) == (1, 2)
         @test size(generator_matrix(lineality_space(Q1))) == (0, 2)
-        @test size(point_matrix(vertices(Q2))) == (2, 2)
+        @test size(point_matrix(vertices(Q2))) == (0, 2)
         @test size(vector_matrix(rays(Q2))) == (0, 2)
         @test size(generator_matrix(lineality_space(Q2))) == (1, 2)
         @test dim(Q0) == 2
