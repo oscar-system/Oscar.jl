@@ -184,6 +184,53 @@ end
 
 However, as always, rules sometimes should be broken.
 
+## Optional arguments for parents of return values
+
+Several objects in Oscar have `parent`s, e.g. polynomials, group elements, ... 
+Whenever a function creates such objects from an input which does not involve 
+the output's parent, the user should have the possibility to pass on this 
+parent as an optional argument. 
+
+Let's see an example. Say, you want to implement the characteristic 
+polynomial of a matrix. You could do it as follows:
+```julia
+  function characteristic_polynomial(A::MatrixElem)
+    kk = base_ring(A)
+    P, x = kk["x"]
+    AP = change_base_ring(P, A)
+    return det(AP - x*one(AP))
+  end
+```
+You can see that the polynomial ring `P`, i.e. the parent of the output, 
+is newly created in the body of the function. In particular, calling this 
+function two times on two different matrices `A` and `B` might produce 
+incompatible polynomials `p = det(A - x*one(A))` and `q = det(B - x*one(B))` 
+with different parents. Then `p + q` will produce an error. 
+
+To solve this, we should have implemented the function differently:
+```julia
+  function characteristic_polynomial(
+      A::MatrixElem;
+      ring::AbstractAlgebra.Ring=(base_ring(A)["t"])[1]
+    )
+    AP = change_base_ring(ring, A)
+    x = first(gens(ring))
+    return det(AP - x*one(AP))
+  end
+
+  function characteristic_polynomial(
+      P::AbstractAlgebra.Ring,
+      A::MatrixElem
+    )
+    coefficient_ring(P) === base_ring(A) || error("coefficient rings incompatible")
+    return characteristic_polynomial(A, ring=P)
+  end
+```
+This allows for two different entry points for the ring `P` of the output: 
+Once as the first argument of a method of `characteristic_polynomial` with 
+an extended signature, and second as an optional keyword argument for `ring` in 
+the original method. This should be the general rule for such implementations 
+within Oscar. 
 
 ## Deprecating functions
 
