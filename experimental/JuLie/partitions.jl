@@ -82,7 +82,7 @@ function Base.copy(P::Partition{T}) where T<:Integer
     return Partition{T}(copy(P.p))
 end
 
-"""
+@Markdown.doc """
     getindex_safe(P::Partition, i::Int)
 
 In algorithms involving partitions it is sometimes convenient to be able to access parts beyond the length of the partition, and then you want to get zero instead of an error. This function is a shortcut for
@@ -96,7 +96,7 @@ function getindex_safe(P::Partition, i::Int)
 end
 
 
-"""
+@Markdown.doc """
     num_partitions(n::Integer)
     num_partitions(n::fmpz)
 
@@ -118,7 +118,7 @@ function num_partitions(n::fmpz)
 end
 
 
-"""
+@Markdown.doc """
     num_partitions(n::Integer, k::Integer)
     num_partitions(n::fmpz, k::fmpz)
 
@@ -174,18 +174,15 @@ function num_partitions(n::fmpz, k::fmpz)
 end
 
 
-"""
+@Markdown.doc """
     partitions(n::Integer)
 
-A list of all partitions of an integer n ≥ 0, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998).
+A list of all partitions of an integer n ≥ 0, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998); see [ZS98](@cite).
 
 # Examples
 ```julia-repl
 julia> partitions(Int8(10)) #Using 8-bit integers
 ```
-
-# References
-1. Zoghbi, A. & Stojmenovic, I. (1998). Fast algorithms for generating integer partitions. *Int. J. Comput. Math., 70*(2), 319–332. [https://doi.org/10.1080/00207169808804755](https://doi.org/10.1080/00207169808804755)
 """
 function partitions(n::Integer)
 
@@ -241,12 +238,12 @@ end
 
 
 
-"""
+@Markdown.doc """
     ascending_partitions(n::Integer;alg="ks")
 
 Instead of encoding a partition of an integer n ≥ 0 as a *descending* sequence (which is our convention), one can also encode it as an *ascending* sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is said that generating the list of all ascending partitions is more efficient than generating descending ones. To test this, I have implemented the algorithms given in the papers:
-1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in Kelleher & O'Sullivan (2014).
-2. "m" is Algorithm 6 in Merca (2012). This is actually similar to "ks".
+1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KOS14](@cite).
+2. "m" is Algorithm 6 in [Mer12](@cite). This is actually similar to "ks".
 
 The ascending partitions are stored here as arrays and are not of type ```Partition``` since the latter are descending by our convention. I am using "ks" as default since it looks slicker and I believe there is a tiny mistake in the publication of "m" (which I fixed).
 
@@ -263,12 +260,6 @@ julia> @btime ascending_partitions(Int8(90),alg="ks");
 julia> @btime ascending_partitions(Int8(90),alg="m");
     3.451 s (56634200 allocations: 6.24 GiB)
 ```
-
-# References
-1. Kelleher, J. & B., O'Sullivan (2014). Generating All Partitions: A Comparison Of Two Encodings. *arXiv:0909.2331v2*. [https://arxiv.org/abs/0909.2331](https://arxiv.org/abs/0909.2331)
-
-2. Merca, M. (2012). Fast algorithm for generating ascending compositions. *J. Math. Model. Algorithms, 11*(1), 89–104. [https://doi.org/10.1007/s10852-011-9168-y](https://doi.org/10.1007/s10852-011-9168-y)
-
 """
 function ascending_partitions(n::Integer; alg="ks")
 
@@ -375,7 +366,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z=0)
 
 A list of all partitions of an integer m ≥ 0 into n ≥ 0 parts with lower bound l1 ≥ 0 and upper bound l2 ≥ l1 for the parts. There are two choices for the parameter z:
@@ -383,12 +374,9 @@ A list of all partitions of an integer m ≥ 0 into n ≥ 0 parts with lower bou
 * z=1: only distinct parts.
 The partitions are produced in *decreasing* order.
 
-The algorithm used is "parta" in Riha & James (1976), de-gotoed from old ALGOL code by E. Thiel!
-
-# References
-1. Riha, W. & James, K. R. (1976). Algorithm 29 efficient algorithms for doubly and multiply restricted partitions. *Computing, 16*, 163–168. [https://link.springer.com/article/10.1007/BF02241987](https://link.springer.com/article/10.1007/BF02241987)
+The algorithm used is "parta" in [RJ76](@cite), de-gotoed from old ALGOL code by E. Thiel!
 """
-function partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z=0)
+function partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z::Integer=0)
 
     # Note that we are considering partitions of m here. I would switch m and n
     # but the algorithm was given like that and I would otherwise confuse myself
@@ -485,7 +473,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     partitions(m::Integer, n::Integer)
 
 All partitions of an integer m ≥ 0 into n ≥ 1 parts (no further restrictions).
@@ -496,16 +484,13 @@ end
 
 
 
-"""
+@Markdown.doc """
     partitions(mu::Array{Integer,1}, m::Integer, v::Array{Integer,1}, n::Integer)
 
-All partitions of an integer m >= 0 into n >= 1 parts, where each part is an element in v and each v[i] occurs a maximum of mu[i] times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in Riha & James (1976).
+All partitions of an integer m >= 0 into n >= 1 parts, where each part is an element in v and each v[i] occurs a maximum of mu[i] times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in [RJ76](@cite).
 
 # Remark
 The original algorithm lead to BoundsErrors, since r could get smaller than 1. Furthermore x and y are handled as arrays with an infinite length. After finding all valid partitions, the algorithm will continue searching for partitions of length n+1. We thus had to add a few additional checks and interruptions. Done by T. Schmit.
-
-# References
-1. Riha, W. & James, K. R. (1976). Algorithm 29 efficient algorithms for doubly and multiply restricted partitions. *Computing, 16*, 163–168. [https://link.springer.com/article/10.1007/BF02241987](https://link.springer.com/article/10.1007/BF02241987)
 """
 function partitions(mu::Array{S,1}, m::Integer, v::Array{S,1}, n::Integer) where S<:Integer
     length(mu)==length(v) || throw(ArgumentError("mu and v should have the same length"))
@@ -637,27 +622,27 @@ end
 
 
 
-"""
-    dominates(λ::Partition, μ::Partition)
+@Markdown.doc """
+    dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ⊵ defined by λ ⊵ μ if and only if λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ for all i. This function returns true if λ ⊵ μ.
 
 # References
 1. Wikipedia, [Dominance order](https://en.wikipedia.org/wiki/Dominance_order)
 """
-function dominates(λ::Partition, μ::Partition)
+function dominates(lambda::Partition, mu::Partition)
     dif = 0
     i = 1
-    while i <= min(length(λ), length(μ))
-        dif += λ[i] - μ[i]
+    while i <= min(length(lambda), length(mu))
+        dif += lambda[i] - mu[i]
         i += 1
         if dif < 0
             return false
         end
     end
-    if length(λ) < length(μ)
-        while i <= length(μ)
-            dif -= μ[i]
+    if length(lambda) < length(mu)
+        while i <= length(mu)
+            dif -= mu[i]
             i += 1
         end
         if dif < 0
@@ -668,28 +653,28 @@ function dominates(λ::Partition, μ::Partition)
 end
 
 
-"""
-    conjugate(λ::Partition{T}) where T<:Integer
+@Markdown.doc """
+    conjugate(lambda::Partition{T}) where T<:Integer
 
 The **conjugate** of a partition is obtained by considering its Young diagram (see [Tableaux](@ref)) and then flipping it along its main diagonal.
 
 # References
 1. Wikipedia, [Partition (number theory)](https://en.wikipedia.org/wiki/Partition_(number_theory)#Conjugate_and_self-conjugate_partitions)
 """
-function conjugate(λ::Partition{T}) where T<:Integer
-    if isempty(λ)
-        return copy(λ)
+function conjugate(lambda::Partition{T}) where T<:Integer
+    if isempty(lambda)
+        return copy(lambda)
     end
 
-    μ = zeros(T, λ[1])
+    mu = zeros(T, lambda[1])
 
-    for i = 1:length(λ)
-        for j = 1:λ[i]
-            μ[j] += 1
+    for i = 1:length(lambda)
+        for j = 1:lambda[i]
+            mu[j] += 1
         end
     end
 
-    return Partition(μ)
+    return Partition(mu)
 end
 
 end # module JuLie
