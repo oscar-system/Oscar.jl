@@ -147,7 +147,7 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, nvertices(P))
+vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, pm_object(P))
 _vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
 _vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
