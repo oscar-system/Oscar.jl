@@ -28,7 +28,7 @@
 
     triangle = simplex(2)
     c = cube(3)
-    cr = cross(3)
+    cr = cross_polytope(3)
     egtriangle = edgegraph(triangle)
     dgtriangle = dualgraph(triangle)
     egcube = edgegraph(c)
