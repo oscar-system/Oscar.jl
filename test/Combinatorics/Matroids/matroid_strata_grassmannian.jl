@@ -5,6 +5,8 @@
     mb3 = matroid_from_nonbases([[1,2,6],[1,4,5],[1,7,8],[2,3,5],[2,4,8],[3,4,7],[3,6,8],[5,6,7]], 8)
     mb4 = matroid_from_nonbases([[1,2,3,4,5]], 7)
     mb5 = matroid_from_hyperplanes([[1,2,7,10],[3,4,7,10],[5,6,7,10],[8,7,9,10]], 10)
+    mb6 = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d']], ['a','b','c','d'])
+
 
     
     bmc1 = Oscar.bases_matrix_coordinates(bases(mb1), [1,2]);
@@ -318,8 +320,16 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
       @test MS4b[2] isa MPolyLocalizedRing 
     end
 
+    Mnoninteger = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d']], ['a', 'b', 'c', 'd'])
 
 
+
+    GrMnonZ = Oscar.matroid_stratum_matrix_coordinates(Mnoninteger, ['a','b'], ZZ)
+    RMnonZ = Oscar.matroid_realization_space(Mnoninteger, ['a','b','c'], ZZ)
+    @testset "matroid_realization_space_given_ring" begin
+        @test GrMnonZ[2] isa MPolyQuoLocalizedRing
+        @test RMnonZ[2] isa MPolyQuoLocalizedRing 
+    end
 
     
 end

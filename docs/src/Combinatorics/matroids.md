@@ -127,7 +127,7 @@ augmented_chow_ring(M::Matroid)
 
 ## Matroid strata and realization spaces
 
-For a matroid ``M``, of rank ``d`` on ``\{1,\ldots,n\}`` realizable over a ring ``K``, 
+For a matroid ``M``, of rank ``d`` on a ground set ``E`` of size ``n`` realizable over a ring ``K``, 
 its *matroid realization space* ``\mathsf{Gr}(M)`` is the locally closed subscheme of the Grassmannian
 ``\mathsf{Gr}(d,K^n)`` of ``d``-dimensional subspaces of ``K^n`` realizing ``M``. Precisely, 
 
