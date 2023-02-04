@@ -93,8 +93,9 @@ end
 @doc Markdown.doc"""
     minimal_faces(as, P::Polyhedron)
 
-Return the smallest faces of a polyhedron. For a polyhedron without lineality,
-these are the vertices.
+Return the smallest faces of a polyhedron as pairs of a point and generators of
+the lineality space. For a polyhedron without lineality, these are the
+vertices.
 """
 function minimal_faces(as::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
     return SubObjectIterator{as}(pm_object(P), _minimal_face_polyhedron, _nvertices(P))
@@ -105,11 +106,28 @@ minimal_faces(P::Polyhedron{T}) where T = minimal_faces(Pair{PointVector{T}, Sub
 _minimal_face_polyhedron(::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}(PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
 
 
+@doc Markdown.doc"""
+    minimal_recession_cone_faces(as, P::Polyhedron)
+
+Return the smallest faces of the recession cone as pairs of a direction vector
+and generators of the lineality space. For a polyhedron without lineality these
+are the rays.
+"""
+function minimal_recession_cone_faces(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
+    return SubObjectIterator{as}(pm_object(P), _minimal_recession_cone_face_polyhedron, _nrays(P))
+end
+minimal_recession_cone_faces(as::Type{RayVector}, P::Polyhedron) = _rays(P)
+minimal_recession_cone_faces(P::Polyhedron{T}) where T = minimal_recession_cone_faces(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, P)
+
+_minimal_recession_cone_face_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
+
 
 @doc Markdown.doc"""
     vertices(as, P)
 
-Return an iterator over the vertices of `P` in the format defined by `as`.
+Return an iterator over the vertices of `P` in the format defined by `as`. The
+vertices are defined to be the zero-dimensional faces, so if `P` has lineality,
+there are no vertices.
 
 Optional arguments for `as` include
 * `PointVector`.
