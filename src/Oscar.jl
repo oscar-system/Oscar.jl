@@ -133,6 +133,8 @@ if Sys.iswindows()
   windows_error()
 end
 
+const RNG = MersenneTwister()
+
 function __init__()
   if Sys.iswindows()
     windows_error()
@@ -155,6 +157,9 @@ function __init__()
     println("Type: '?Oscar' for more information")
     println("(c) 2019-2023 by The OSCAR Development Team")
   end
+
+  # re-seed at startup
+  Random.seed!(RNG)
 
   append!(_gap_group_types,
     [
@@ -198,7 +203,6 @@ const oscardir = Base.pkgdir(Oscar)
 const aadir = Base.pkgdir(AbstractAlgebra)
 const nemodir = Base.pkgdir(Nemo)
 const heckedir = Base.pkgdir(Hecke)
-
 
 function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
