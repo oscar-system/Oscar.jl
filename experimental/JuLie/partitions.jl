@@ -82,7 +82,7 @@ function Base.copy(P::Partition{T}) where T<:Integer
     return Partition{T}(copy(P.p))
 end
 
-"""
+@Markdown.doc """
     getindex_safe(P::Partition, i::Int)
 
 In algorithms involving partitions it is sometimes convenient to be able to access parts beyond the length of the partition, and then you want to get zero instead of an error. This function is a shortcut for
@@ -96,7 +96,7 @@ function getindex_safe(P::Partition, i::Int)
 end
 
 
-"""
+@Markdown.doc """
     num_partitions(n::Integer)
     num_partitions(n::fmpz)
 
@@ -118,7 +118,7 @@ function num_partitions(n::fmpz)
 end
 
 
-"""
+@Markdown.doc """
     num_partitions(n::Integer, k::Integer)
     num_partitions(n::fmpz, k::fmpz)
 
@@ -174,7 +174,7 @@ function num_partitions(n::fmpz, k::fmpz)
 end
 
 
-"""
+@Markdown.doc """
     partitions(n::Integer)
 
 A list of all partitions of an integer n ≥ 0, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998).
@@ -241,7 +241,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     ascending_partitions(n::Integer;alg="ks")
 
 Instead of encoding a partition of an integer n ≥ 0 as a *descending* sequence (which is our convention), one can also encode it as an *ascending* sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is said that generating the list of all ascending partitions is more efficient than generating descending ones. To test this, I have implemented the algorithms given in the papers:
@@ -375,7 +375,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z=0)
 
 A list of all partitions of an integer m ≥ 0 into n ≥ 0 parts with lower bound l1 ≥ 0 and upper bound l2 ≥ l1 for the parts. There are two choices for the parameter z:
@@ -485,7 +485,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     partitions(m::Integer, n::Integer)
 
 All partitions of an integer m ≥ 0 into n ≥ 1 parts (no further restrictions).
@@ -496,7 +496,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     partitions(mu::Array{Integer,1}, m::Integer, v::Array{Integer,1}, n::Integer)
 
 All partitions of an integer m >= 0 into n >= 1 parts, where each part is an element in v and each v[i] occurs a maximum of mu[i] times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in Riha & James (1976).
@@ -637,7 +637,7 @@ end
 
 
 
-"""
+@Markdown.doc """
     dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ⊵ defined by λ ⊵ μ if and only if λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ for all i. This function returns true if λ ⊵ μ.
@@ -668,7 +668,7 @@ function dominates(lambda::Partition, mu::Partition)
 end
 
 
-"""
+@Markdown.doc """
     conjugate(lambda::Partition{T}) where T<:Integer
 
 The **conjugate** of a partition is obtained by considering its Young diagram (see [Tableaux](@ref)) and then flipping it along its main diagonal.
