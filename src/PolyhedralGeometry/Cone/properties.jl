@@ -4,10 +4,10 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
-_rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
+rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
+_rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
 
-_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(view(C.RAYS, i, :))
+_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = T(view(C.RAYS, i, :))
 
 _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.RAYS, 0) : C.RAYS
 
@@ -67,13 +67,13 @@ Return the smallest faces of the recession cone as pairs of a direction vector
 and generators of the lineality space. For a polyhedron without lineality these
 are the rays.                                                                               
 """                                                             
-function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Cone) where T
+function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Cone) where T<:scalar_types
     return SubObjectIterator{as}(pm_object(C), _rays_modulo_lineality_polyhedron, _nrays(C))
 end
 rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
-rays_modulo_lineality(C::Cone{T}) where T = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, C) 
+rays_modulo_lineality(C::Cone{T}) where T<:scalar_types = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, C) 
     
-_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Polymake.BigObject, i::Base.Integer) where T = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view C.RAYS[i, :]), lineality_space(Cone{T}(C)))
+_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view C.RAYS[i, :]), lineality_space(Cone{T}(C)))
 
 
 

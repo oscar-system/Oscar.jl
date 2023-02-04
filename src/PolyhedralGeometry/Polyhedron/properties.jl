@@ -97,13 +97,13 @@ Return the smallest faces of a polyhedron as pairs of a point and generators of
 the lineality space. For a polyhedron without lineality, these are the
 vertices.
 """
-function minimal_faces(as::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
+function minimal_faces(as::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T<:scalar_types
     return SubObjectIterator{as}(pm_object(P), _minimal_face_polyhedron, _nvertices(P))
 end
 minimal_faces(as::Type{PointVector}, P::Polyhedron) = _vertices(P)
-minimal_faces(P::Polyhedron{T}) where T = minimal_faces(Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}, P)
+minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}, P)
 
-_minimal_face_polyhedron(::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}(PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
+_minimal_face_polyhedron(::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}(PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
 
 
 @doc Markdown.doc"""
@@ -113,13 +113,13 @@ Return the smallest faces of the recession cone as pairs of a direction vector
 and generators of the lineality space. For a polyhedron without lineality these
 are the rays.
 """
-function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
+function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T<:scalar_types
     return SubObjectIterator{as}(pm_object(P), _rays_modulo_lineality_polyhedron, _nrays(P))
 end
 rays_modulo_lineality(as::Type{RayVector}, P::Polyhedron) = _rays(P)
-rays_modulo_lineality(P::Polyhedron{T}) where T = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, P)
+rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, P)
 
-_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
+_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
 
 
 @doc Markdown.doc"""
@@ -147,10 +147,10 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, pm_object(P))
-_vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
+vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, pm_object(P))
+_vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
-_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
+_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
 
 _point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_vertex_indices(P), (homogenized ? 1 : 2):end]
 
@@ -239,10 +239,10 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, nrays(P))
-_rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
+rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, nrays(P))
+_rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
-_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
+_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
 
 _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
@@ -695,7 +695,7 @@ x₄ = 5
 """
 affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
-function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T
+function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     h = decompose_hdata(-view(P.AFFINE_HULL, [i], :))
     return AffineHyperplane{T}(h[1], h[2][])
 end

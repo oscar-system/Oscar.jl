@@ -36,7 +36,7 @@ end
 
 MixedIntegerLinearProgram(Q::Polyhedron{T}, objective::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max) where T<:scalar_types = MixedIntegerLinearProgram{T}(Q, objective; integer_variables = integer_variables, k = k, convention = convention)
 
-MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max)  where T =
+MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max)  where T<:scalar_types =
    MixedIntegerLinearProgram{T}(Polyhedron{T}(A, b), c; integer_variables = integer_variables, k = k, convention = convention)
 
 MixedIntegerLinearProgram(x...) = MixedIntegerLinearProgram{fmpq}(x...)
