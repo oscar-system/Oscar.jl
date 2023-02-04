@@ -968,7 +968,7 @@ Almost surely this is a simplicial polytope.
 julia> rsph = rand_spherical_polytope(3, 20)
 A polyhedron in ambient dimension 3
 
-julia> simplicial(rsph)
+julia> is_simplicial(rsph)
 true
 ```
 """
