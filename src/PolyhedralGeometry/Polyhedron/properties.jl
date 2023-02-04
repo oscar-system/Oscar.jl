@@ -194,7 +194,7 @@ Reflecting the input, the upper half-plane indeed has one ray.
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
 julia> nrays(UH)
-1
+0
 ```
 """
 nrays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nrays(P) : 0
