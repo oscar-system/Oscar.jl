@@ -213,6 +213,8 @@
       "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
       "Combinatorics/partitions.md",
+      "Combinatorics/tableaux.md",
+      "Combinatorics/schur_polynomials.md",
   ],
 
   "Straight Line Programs" => [
