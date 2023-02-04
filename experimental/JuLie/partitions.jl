@@ -1,9 +1,3 @@
-module JuLie
-
-using Oscar
-import Nemo:libflint
-
-
 ################################################################################
 # Partitions.
 #
@@ -676,8 +670,3 @@ function conjugate(lambda::Partition{T}) where T<:Integer
 
     return Partition(mu)
 end
-
-end # module JuLie
-
-using .JuLie
-export Partition, partitions

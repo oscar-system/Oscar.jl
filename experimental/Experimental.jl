@@ -26,5 +26,4 @@ include("Schemes/LazyGlueing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 
-include("JuLie/partitions.jl")
-include("JuLie/schur_polynomials.jl")
+include("JuLie.jl")

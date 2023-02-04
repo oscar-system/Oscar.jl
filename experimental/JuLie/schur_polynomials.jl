@@ -1,7 +1,3 @@
-module JuLie
-
-using Oscar
-
 ################################################################################
 # Schur Polynomials
 #
@@ -54,13 +50,21 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 """
 function schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
 	n>=0 || throw(ArgumentError("n≥0 required"))
-	x = [string("x",string(i)) for i=1:n]
-	R,x = PolynomialRing(ZZ, x)
-	return schur_polynomial(λ, R, n)
+    if n==0 || n < length(λ)
+        if isempty(λ)
+            return 1
+        else
+            return 0
+        end
+    else
+	    x = [string("x",string(i)) for i=1:n]
+	    R,x = PolynomialRing(ZZ, x)
+	    return schur_polynomial(R, λ, n)
+    end
 end
 
 
-function schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) where T<:Integer
+function schur_polynomial(R::FmpzMPolyRing, λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
 	n>=0 || throw(ArgumentError("n≥0 required"))
 	if n > R.nvars
 	n = R.nvars
@@ -75,12 +79,12 @@ function schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) wh
 	end
 
 	if n>=10
-	return schur_polynomial_combinat(λ, R, n)
+	return schur_polynomial_combinat(R, λ, n)
 	end
 	#decide which Algorithm to use if n<10
 	bo = sum(λ) <= [140,50,17,11,10,10,11,13,14][n]
 	if bo
-	return schur_polynomial_combinat(λ, R, n) #Combinatorial formula
+	return schur_polynomial_combinat(R, λ, n) #Combinatorial formula
 	else
 	return schur_polynomial_cbf(λ, x) #Cauchy's bialternant formula
 	end
@@ -100,13 +104,13 @@ function schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Int
 
 	if n>=10
 	R = x[1].parent
-	return schur_polynomial_combinat(λ, R, n)
+	return schur_polynomial_combinat(R, λ, n)
 	end
 	#decide which Algorithm to use if n<10
 	bo = sum(λ) <= [140,50,17,11,10,10,11,13,14][n]
 	if bo
 	R = x[1].parent
-	return schur_polynomial_combinat(λ, R, n) #Combinatorial formula
+	return schur_polynomial_combinat(R, λ, n) #Combinatorial formula
 	else
 	return schur_polynomial_cbf(λ, x) #Cauchy's bialternant formula
 	end
@@ -211,7 +215,7 @@ function schur_polynomial_cbf(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<
 end
 
 #returning the schur polynomial in the first k generators of R using the Combinatorial formula.
-function schur_polynomial_combinat(λ::Partition{T}, R::FmpzMPolyRing, k=sum(λ)::Int) where T<:Integer
+function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)::Int) where T<:Integer
 	if isempty(λ)
 	return one(R)
 	end
@@ -285,8 +289,3 @@ function schur_polynomial_combinat(λ::Partition{T}, R::FmpzMPolyRing, k=sum(λ)
 	n = λ[len]
 	end #while true
 end
-
-end # module JuLie
-
-using .JuLie
-export schur_polynomial
