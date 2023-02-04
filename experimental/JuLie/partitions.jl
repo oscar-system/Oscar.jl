@@ -638,26 +638,26 @@ end
 
 
 """
-    dominates(λ::Partition, μ::Partition)
+    dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ⊵ defined by λ ⊵ μ if and only if λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ for all i. This function returns true if λ ⊵ μ.
 
 # References
 1. Wikipedia, [Dominance order](https://en.wikipedia.org/wiki/Dominance_order)
 """
-function dominates(λ::Partition, μ::Partition)
+function dominates(lambda::Partition, mu::Partition)
     dif = 0
     i = 1
-    while i <= min(length(λ), length(μ))
-        dif += λ[i] - μ[i]
+    while i <= min(length(lambda), length(mu))
+        dif += lambda[i] - mu[i]
         i += 1
         if dif < 0
             return false
         end
     end
-    if length(λ) < length(μ)
-        while i <= length(μ)
-            dif -= μ[i]
+    if length(lambda) < length(mu)
+        while i <= length(mu)
+            dif -= mu[i]
             i += 1
         end
         if dif < 0
@@ -669,27 +669,27 @@ end
 
 
 """
-    conjugate(λ::Partition{T}) where T<:Integer
+    conjugate(lambda::Partition{T}) where T<:Integer
 
 The **conjugate** of a partition is obtained by considering its Young diagram (see [Tableaux](@ref)) and then flipping it along its main diagonal.
 
 # References
 1. Wikipedia, [Partition (number theory)](https://en.wikipedia.org/wiki/Partition_(number_theory)#Conjugate_and_self-conjugate_partitions)
 """
-function conjugate(λ::Partition{T}) where T<:Integer
-    if isempty(λ)
-        return copy(λ)
+function conjugate(lambda::Partition{T}) where T<:Integer
+    if isempty(lambda)
+        return copy(lambda)
     end
 
-    μ = zeros(T, λ[1])
+    mu = zeros(T, lambda[1])
 
-    for i = 1:length(λ)
-        for j = 1:λ[i]
-            μ[j] += 1
+    for i = 1:length(lambda)
+        for j = 1:lambda[i]
+            mu[j] += 1
         end
     end
 
-    return Partition(μ)
+    return Partition(mu)
 end
 
 end # module JuLie
