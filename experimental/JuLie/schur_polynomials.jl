@@ -9,7 +9,7 @@
 
 export schur_polynomial
 
-"""
+@doc Markdown.doc"""
     schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
     schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) where T<:Integer
     schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer

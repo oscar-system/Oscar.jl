@@ -551,14 +551,14 @@ end
 
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
 	num_standard_tableaux(lambda::Partition)
 
-Returns the number ``f^\lambda`` of standard tableaux of shape ``λ`` using the hook length formula
-```math
-f^{\lambda} = \frac{n!}{\prod_{i,j} h_\lambda(i,j)} \;,
-```
-where the product is taken over all boxes in the Young diagram of ``\lambda`` and ``h_\lambda`` denotes the hook length of the box (i,j).
+Returns the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
+
+$f^λ = \frac{n!}{\prod_{i,j} h_λ(i,j)},$
+
+where the product is taken over all boxes in the Young diagram of ``λ`` and ``h_λ`` denotes the hook length of the box (i,j).
 
 # References
 1. Wikipedia, [Hook length formula](https://en.wikipedia.org/wiki/Hook_length_formula).
