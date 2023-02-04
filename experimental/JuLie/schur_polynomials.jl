@@ -7,9 +7,9 @@
 export schur_polynomial
 
 """
-	schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
-	schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) where T<:Integer
-	schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
+    schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
+    schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) where T<:Integer
+    schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
 
 Returns the Schur polynomial ``s_λ(x₁,x₂,...,xₙ)`` in n variables, as a Multivariate Polynomial.
 
@@ -48,10 +48,10 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 \\end{vmatrix}
 ```
 """
-function schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
+function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
 	n>=0 || throw(ArgumentError("n≥0 required"))
-    if n==0 || n < length(λ)
-        if isempty(λ)
+    if n==0 || n < length(lambda)
+        if isempty(lambda)
             return 1
         else
             return 0
@@ -59,19 +59,19 @@ function schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
     else
 	    x = [string("x",string(i)) for i=1:n]
 	    R,x = PolynomialRing(ZZ, x)
-	    return schur_polynomial(R, λ, n)
+	    return schur_polynomial(R, lambda, n)
     end
 end
 
 
-function schur_polynomial(R::FmpzMPolyRing, λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
+function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
 	n>=0 || throw(ArgumentError("n≥0 required"))
 	if n > R.nvars
 	n = R.nvars
 	end
 	x = gens(R)[1:n]
-	if n==0 || n < length(λ)
-	if isempty(λ)
+	if n==0 || n < length(lambda)
+	if isempty(lambda)
 		return 1
 	else
 		return 0
@@ -79,23 +79,23 @@ function schur_polynomial(R::FmpzMPolyRing, λ::Partition{T}, n=sum(λ)::Int) wh
 	end
 
 	if n>=10
-	return schur_polynomial_combinat(R, λ, n)
+	return schur_polynomial_combinat(R, lambda, n)
 	end
 	#decide which Algorithm to use if n<10
-	bo = sum(λ) <= [140,50,17,11,10,10,11,13,14][n]
+	bo = sum(lambda) <= [140,50,17,11,10,10,11,13,14][n]
 	if bo
-	return schur_polynomial_combinat(R, λ, n) #Combinatorial formula
+	return schur_polynomial_combinat(R, lambda, n) #Combinatorial formula
 	else
-	return schur_polynomial_cbf(λ, x) #Cauchy's bialternant formula
+	return schur_polynomial_cbf(lambda, x) #Cauchy's bialternant formula
 	end
 end
 
 
-function schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
+function schur_polynomial(lambda::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
 	n = length(x)
 
-	if n==0 || n < length(λ)
-	if isempty(λ)
+	if n==0 || n < length(lambda)
+	if isempty(lambda)
 		return 1
 	else
 		return 0
@@ -104,22 +104,22 @@ function schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Int
 
 	if n>=10
 	R = x[1].parent
-	return schur_polynomial_combinat(R, λ, n)
+	return schur_polynomial_combinat(R, lambda, n)
 	end
 	#decide which Algorithm to use if n<10
-	bo = sum(λ) <= [140,50,17,11,10,10,11,13,14][n]
+	bo = sum(lambda) <= [140,50,17,11,10,10,11,13,14][n]
 	if bo
 	R = x[1].parent
-	return schur_polynomial_combinat(R, λ, n) #Combinatorial formula
+	return schur_polynomial_combinat(R, lambda, n) #Combinatorial formula
 	else
-	return schur_polynomial_cbf(λ, x) #Cauchy's bialternant formula
+	return schur_polynomial_cbf(lambda, x) #Cauchy's bialternant formula
 	end
 end
 
 #returning the schur polynomial in the first k generators of R using Cauchy's bialternant formula.
-function schur_polynomial_cbf(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
+function schur_polynomial_cbf(lambda::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
 	#if isempty(x) #this event is handled in the calling methods
-	#	if sum(λ)==0
+	#	if sum(lambda)==0
 	#	return 1
 	#	else
 	#	return 0
@@ -130,7 +130,7 @@ function schur_polynomial_cbf(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<
 	R = x[1].parent # Multi-polynomialring
 	S = R.base_ring # Integer Ring
 
-	#if n < length(λ)
+	#if n < length(lambda)
 	#	return 0
 	#end
 
@@ -144,7 +144,7 @@ function schur_polynomial_cbf(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<
 	=#
 
 	#initializing a few helpful Variables
-	exponents = Int[getindex_safe(λ,i)+n-i for i=1:n] #the exponents from the Matrix read from top to bottom
+	exponents = Int[getindex_safe(lambda,i)+n-i for i=1:n] #the exponents from the Matrix read from top to bottom
 	exp_incr = zeros(Int,n) #the increment with wich exponents increase
 	for i = 1:n-1
 	exp_incr[i] = exponents[i] - exponents[i+1]
@@ -215,8 +215,8 @@ function schur_polynomial_cbf(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<
 end
 
 #returning the schur polynomial in the first k generators of R using the Combinatorial formula.
-function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)::Int) where T<:Integer
-	if isempty(λ)
+function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum(lambda)::Int) where T<:Integer
+	if isempty(lambda)
 	return one(R)
 	end
 
@@ -224,17 +224,17 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)
 	sf = MPolyBuildCtx(R)
 
 	#version of the function semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
-	len = length(λ)
-	Tab = [(fill(i,λ[i])) for i = 1:len]
+	len = length(lambda)
+	Tab = [(fill(i,lambda[i])) for i = 1:len]
 	m = len
-	n = λ[m]
+	n = lambda[m]
 
 	count = zeros(Int, R.nvars)
 	valid = true
 	while true
 	count .= 0
 	for i = 1:len
-		for j = 1:λ[i]
+		for j = 1:lambda[i]
 		if Tab[i][j] <= k
 			count[Tab[i][j]] += 1
 		else
@@ -248,13 +248,13 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)
 	end
 	#raise one element by 1
 	while !(Tab[m][n] < k &&
-		(n==λ[m] || Tab[m][n]<Tab[m][n+1]) &&
-		(m==len || λ[m+1]<n || Tab[m][n]+1<Tab[m+1][n]))
+		(n==lambda[m] || Tab[m][n]<Tab[m][n+1]) &&
+		(m==len || lambda[m+1]<n || Tab[m][n]+1<Tab[m+1][n]))
 		if n > 1
 		n -= 1
 		elseif m > 1
 		m -= 1
-		n = λ[m]
+		n = lambda[m]
 		else
 		return finish(sf)
 		end
@@ -263,14 +263,14 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)
 	Tab[m][n] += 1
 
 	#minimize trailing elements
-	if n < λ[m]
+	if n < lambda[m]
 		i = m
 		j = n + 1
 	else
 		i = m + 1
 		j = 1
 	end
-	while (i<=len && j<=λ[i])
+	while (i<=len && j<=lambda[i])
 		if i == 1
 		Tab[1][j] = Tab[1][j-1]
 		elseif j == 1
@@ -278,7 +278,7 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)
 		else
 		Tab[i][j] = max(Tab[i][j-1], Tab[i-1][j] + 1)
 		end
-		if j < λ[i]
+		if j < lambda[i]
 		j += 1
 		else
 		j = 1
@@ -286,6 +286,6 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, λ::Partition{T}, k=sum(λ)
 		end
 	end
 	m = len
-	n = λ[len]
+	n = lambda[len]
 	end #while true
 end
