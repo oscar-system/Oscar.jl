@@ -10,5 +10,7 @@
         @test lineality_dim(P) == 1
         @test nrays(P) == 0
         @test nvertices(P) == 0
+        @test length(minimal_faces(P)) == 1
+        @test length(rays_modulo_lineality(P)) == 1
     end
 end

@@ -107,19 +107,19 @@ _minimal_face_polyhedron(::Type{Pair{PointVector{T}, SubObjectIterator{RayVector
 
 
 @doc Markdown.doc"""
-    minimal_recession_cone_faces(as, P::Polyhedron)
+    rays_modulo_lineality(as, P::Polyhedron)
 
 Return the smallest faces of the recession cone as pairs of a direction vector
 and generators of the lineality space. For a polyhedron without lineality these
 are the rays.
 """
-function minimal_recession_cone_faces(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
-    return SubObjectIterator{as}(pm_object(P), _minimal_recession_cone_face_polyhedron, _nrays(P))
+function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T
+    return SubObjectIterator{as}(pm_object(P), _rays_modulo_lineality_polyhedron, _nrays(P))
 end
-minimal_recession_cone_faces(as::Type{RayVector}, P::Polyhedron) = _rays(P)
-minimal_recession_cone_faces(P::Polyhedron{T}) where T = minimal_recession_cone_faces(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, P)
+rays_modulo_lineality(as::Type{RayVector}, P::Polyhedron) = _rays(P)
+rays_modulo_lineality(P::Polyhedron{T}) where T = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, P)
 
-_minimal_recession_cone_face_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
+_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
 
 
 @doc Markdown.doc"""
