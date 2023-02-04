@@ -59,6 +59,24 @@ julia> matrix(ZZ, rays(P))
 rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 _rays(C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
+
+@doc Markdown.doc"""                                                 
+    rays_modulo_lineality(as, C::Cone)
+                         
+Return the smallest faces of the recession cone as pairs of a direction vector
+and generators of the lineality space. For a polyhedron without lineality these
+are the rays.                                                                               
+"""                                                             
+function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Cone) where T
+    return SubObjectIterator{as}(pm_object(C), _rays_modulo_lineality_polyhedron, _nrays(C))
+end
+rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
+rays_modulo_lineality(C::Cone{T}) where T = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, C) 
+    
+_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Polymake.BigObject, i::Base.Integer) where T = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view C.RAYS[i, :]), lineality_space(Cone{T}(C)))
+
+
+
 @doc Markdown.doc"""
     faces(C::Cone, face_dim::Int)
 
