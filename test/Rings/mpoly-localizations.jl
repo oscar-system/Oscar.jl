@@ -206,9 +206,10 @@ end
 # test_Ring_interface_recursive(Localization(S)[1])
 # test_Ring_interface_recursive(Localization(T)[1])
 # test_Ring_interface_recursive(Localization(U)[1])
-  
-  AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
-  AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
+
+# should be unnecessary: https://github.com/oscar-system/Oscar.jl/pull/1459#issuecomment-1230185617
+#  AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
+#  AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
 
   kk = GF(7) 
   R, v = kk["x", "y"]
