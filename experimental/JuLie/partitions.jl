@@ -2,6 +2,9 @@
 # Partitions.
 #
 # Copyright (C) 2020 Ulrich Thiel, ulthiel.com/math
+#
+# Originally taken from the JuLie [repository](https://github.com/ulthiel/JuLie)
+# by Ulrich Thiel and OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
 export Partition, partitions, ascending_partitions, dominates, conjugate, getindex_safe, num_partitions

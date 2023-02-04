@@ -2,6 +2,9 @@
 # Tableaux
 #
 # Copyright (C) 2020 Ulrich Thiel, ulthiel.com/math
+#
+# Originally taken from the JuLie [repository](https://github.com/ulthiel/JuLie)
+# by Ulrich Thiel and OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
 export Tableau, shape, semistandard_tableaux, is_standard, is_semistandard, standard_tableaux, schensted, hook_length, hook_lengths, num_standard_tableaux, reading_word, weight, bump!
