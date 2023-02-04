@@ -392,6 +392,71 @@ end
    end
 end
 
+@testset "Homomorphism GAPGroup to GrpAbFinGen" begin
+   # G abelian, A isomorphic to G
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   A = abelian_group( [ 2, 4 ] )
+   imgs = gens(A)
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 1
+
+   # G abelian, A a proper factor of G
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   A = abelian_group( [ 2, 2 ] )
+   imgs = gens(A)
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 2
+
+   # G abelian, A containing a proper factor of G
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   A = abelian_group( [ 2, 4 ] )
+   imgs = [gen(A, 1), 2*gen(A, 2)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 2
+
+   # G nonabelian, A isomorphic to G/G'
+   G = dihedral_group(8)
+   A = abelian_group( [ 2, 2 ] )
+   imgs = [gen(A, 1), gen(A, 2), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 2
+
+   # G nonabelian, A a proper factor of  G/G'
+   G = dihedral_group(8)
+   A = abelian_group( [ 2 ] )
+   imgs = [gen(A, 1), gen(A, 1), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 4
+
+   # G nonabelian, A containing a proper factor of G/G'
+   G = dihedral_group(8)
+   A = abelian_group( [ 4 ] )
+   imgs = [2*gen(A,1), 2*gen(A,1), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 4
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   A = abelian_group( [ 2 ] )
+   imgs = elem_type(A)[]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 1
+
+   # A trivial
+   G = dihedral_group(8)
+   A = abelian_group( [ 1 ] )
+   imgs = [zero(A), zero(A), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 8
+
+   # G and A trivial
+   G = cyclic_group(PcGroup, 1)
+   A = abelian_group( [ 1 ] )
+   imgs = elem_type(A)[]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 1
+end
+
 TestDirectProds=function(G1,G2)
    G = direct_product(G1,G2)
    f1 = embedding(G,1)

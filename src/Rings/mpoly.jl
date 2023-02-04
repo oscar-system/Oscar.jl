@@ -4,7 +4,7 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coor
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
        leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
-       leading_monomial, leading_term, tail
+       leading_monomial, leading_term, singular_poly_ring, tail
 
 ##############################################################################
 #
@@ -201,11 +201,16 @@ mutable struct BiPolyArray{S}
   end
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
-    Sx = base_ring(S)
-    r = new{elem_type(T)}(Ox)
-    r.Sx = Sx
-    r.S = S
-    return r
+      Sx = base_ring(S)
+      if T <: MPolyQuo
+          r = new{typeof(Ox).parameters[1]}()
+      else
+          r = new{elem_type(T)}()
+      end
+      r.Sx = Sx
+      r.S = S
+      r.Ox = Ox
+      return r
   end
 end
 
@@ -245,15 +250,20 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::T, S::Singular.sideal, isReduced::Bool = false) where {T <: NCRing}
-    r = new{elem_type(T)}()
-    r.gens		= BiPolyArray(Ox, S)
-    r.isGB		= S.isGB
-	r.isReduced = isReduced
-    if T <: Union{MPolyRing, MPolyRingLoc, MPolyQuo}
-      r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
-    end
-    r.keep_ordering = true
-    return r
+      if T <: MPolyQuo
+          r = new{typeof(Ox).parameters[1]}()
+          r.ord = Ox.ordering
+      else
+          r = new{elem_type(T)}()
+      end
+      r.gens		= BiPolyArray(Ox, S)
+      r.isGB		= S.isGB
+      r.isReduced = isReduced
+      if T <: Union{MPolyRing, MPolyRingLoc}
+          r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+      end
+      r.keep_ordering = true
+      return r
   end
 end
 

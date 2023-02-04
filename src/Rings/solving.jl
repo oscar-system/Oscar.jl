@@ -20,14 +20,14 @@ is greater than zero an empty array is returned.
 
 # Examples
 ```jldoctest
-julia> R,(x1,x2,x3) = PolynomialRing(QQ, ["x1","x2","x3"])
-(Multivariate Polynomial Ring in x1, x2, x3 over Rational Field, fmpq_mpoly[x1, x2, x3])
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
-ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
+julia> I = ideal(R,[x^2-y^2, x+1])
+ideal(x^2 - y^2, x + 1)
 
 julia> real_solutions(I)
-(Vector{fmpq}[[744483363399261433351//1180591620717411303424, 372241681699630716673//1180591620717411303424, -154187553040555781639//1180591620717411303424], [1, 0, 0], [71793683196126133110381699745//316912650057057350374175801344, 71793683196126133110381699745//633825300114114700748351602688, 173325283664805084153412401855//633825300114114700748351602688], [196765270119568550571//590295810358705651712, 1//590295810358705651712, 196765270119568550571//590295810358705651712]], AlgebraicSolving.RationalParametrization([:x1, :x2, :x3], fmpz[], 84*x^4 - 40*x^3 + x^2 + x, 336*x^3 - 120*x^2 + 2*x + 1, PolyElem[184*x^3 - 80*x^2 + 4*x + 1, 36*x^3 - 18*x^2 + 2*x]))
+(Vector{fmpq}[[-1, -1], [-1, 1]], AlgebraicSolving.RationalParametrization([:x, :y], fmpz[], x^2 - 1, 2*x, PolyElem[-2*x]))
 ```
 """
 function real_solutions(
