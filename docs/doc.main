@@ -212,7 +212,7 @@
       "Combinatorics/graphs.md",
       "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
-      "Combinatorics/JuLie/partitions.md",
+      "Combinatorics/partitions.md",
   ],
 
   "Straight Line Programs" => [
