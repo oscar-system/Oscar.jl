@@ -37,6 +37,12 @@ function timo(f::fmpq_poly, p_all::Vector{Int})
     i = 0
     d = Dict{Int, Vector{Int}}()
     for i=1:length(gg)
+      #= aut(x) -> eval of polynomials/ Q which takes forever
+         replace by computation in Qp() of apropriate precision - much
+         faster
+         Also: the discriminant should give a upper bound on the valuation
+         this can get the precision
+      =#
       @time a = [x-g[i](x) for x = gns]
       v = [iszero(t) ? 10^6 : valuation(t, P) for t = a]
       m = minimum(v)
@@ -59,3 +65,7 @@ function timo(f::fmpq_poly, p_all::Vector{Int})
   end
   return data
 end
+
+#= the missing bit in Timo's code os the local factorisation
+  but that should just be a coset length or so...
+=#
