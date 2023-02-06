@@ -7,7 +7,7 @@
 rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
 _rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
 
-_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = T(view(C.RAYS, i, :))
+_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(view(C.RAYS, i, :))
 
 _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.RAYS, 0) : C.RAYS
 
