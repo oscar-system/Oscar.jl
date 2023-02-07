@@ -93,17 +93,39 @@ end
 @doc Markdown.doc"""
     minimal_faces(as, P::Polyhedron)
 
-Return the smallest faces of a polyhedron as pairs of a point and generators of
-the lineality space. For a polyhedron without lineality, these are the
-vertices.
+Return the minimal faces of a polyhedron. For a polyhedron without lineality,
+these are the vertices. If `P` has lineality `L`, then every minimal face is an
+affine translation `p+L`, where `p` is only unique modulo `L`. The return type
+is a dict, the key `:base_points` gives an iterator over such `p`, and the key
+`:lineality_basis` lets one access a basis for the lineality space `L` of `P`.
+
+# Examples
+The polyhedron `P` is just a line through the origin:
+```jldoctest
+julia> P = convex_hull([0 0], nothing, [1 0])
+A polyhedron in ambient dimension 2
+
+julia> lineality_dim(P)
+1
+
+julia> vertices(P)
+0-element SubObjectIterator{PointVector{fmpq}}
+
+julia> minimal_faces(P)
+Dict{Symbol, Union{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}} with 2 entries:
+  :base_points     => PointVector{fmpq}[[0, 0]]
+  :lineality_basis => RayVector{fmpq}[[1, 0]]
+```
 """
-function minimal_faces(as::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T<:scalar_types
-    return SubObjectIterator{as}(pm_object(P), _minimal_face_polyhedron, _nvertices(P))
+function minimal_faces(as::Type{Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}}, P::Polyhedron) where T<:scalar_types
+    return Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}(
+            :base_points => _vertices(P),
+            :lineality_basis => lineality_space(P)
+               )
 end
 minimal_faces(as::Type{PointVector}, P::Polyhedron) = _vertices(P)
-minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}, P)
+minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}, P)
 
-_minimal_face_polyhedron(::Type{Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Pair{PointVector{T}, SubObjectIterator{RayVector{T}}}(PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
 
 
 @doc Markdown.doc"""
@@ -113,13 +135,14 @@ Return the smallest faces of the recession cone as pairs of a direction vector
 and generators of the lineality space. For a polyhedron without lineality these
 are the rays.
 """
-function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T<:scalar_types
-    return SubObjectIterator{as}(pm_object(P), _rays_modulo_lineality_polyhedron, _nrays(P))
+function rays_modulo_lineality(as::Type{Dict{Symbol, SubObjectIterator{RayVector{T}}}}, P::Polyhedron) where T<:scalar_types
+    return Dict(
+                :rays_modulo_lineality => _rays(P),
+                :lineality_basis => lineality_space(P)
+            )
 end
 rays_modulo_lineality(as::Type{RayVector}, P::Polyhedron) = _rays(P)
-rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, P)
-
-_rays_modulo_lineality_polyhedron(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end]), lineality_space(Polyhedron{T}(P)))
+rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(Dict{Symbol, SubObjectIterator{RayVector{T}}}, P)
 
 
 @doc Markdown.doc"""
