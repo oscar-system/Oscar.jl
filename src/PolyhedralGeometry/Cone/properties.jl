@@ -101,15 +101,15 @@ julia> rays_modulo_lineality(C)
  [1, 0] => [[0, 1]]
 ```
 """                                                             
-function rays_modulo_lineality(as::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Cone) where T<:scalar_types
-    return SubObjectIterator{as}(pm_object(C), _rays_modulo_lineality_cone, _nrays(C))
+function rays_modulo_lineality(as::Type{Dict{Symbol, SubObjectIterator{RayVector{T}}}}, C::Cone) where T<:scalar_types
+    return Dict(
+                :rays_modulo_lineality => _rays(C),
+                :lineality_basis => lineality_space(C)
+            )
 end
 rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
-rays_modulo_lineality(C::Cone{T}) where T<:scalar_types = rays_modulo_lineality(Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}, C) 
+rays_modulo_lineality(C::Cone{T}) where T<:scalar_types = rays_modulo_lineality(Dict{Symbol, SubObjectIterator{RayVector{T}}}, C) 
     
-_rays_modulo_lineality_cone(::Type{Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Pair{RayVector{T}, SubObjectIterator{RayVector{T}}}(RayVector{T}(@view C.RAYS[i, :]), lineality_space(Cone{T}(C)))
-
-
 
 @doc Markdown.doc"""
     faces(C::Cone, face_dim::Int)
