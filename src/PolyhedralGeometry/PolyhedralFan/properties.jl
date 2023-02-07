@@ -43,7 +43,8 @@ julia> matrix(QQ, rays(NF))
 [ 0    0   -1]
 ```
 """
-rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
+rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, nrays(PF))
+_rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, _nrays(PF))
 
 _ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.RAYS, i, :))
 
@@ -52,6 +53,43 @@ _vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = hom
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
 _maximal_cone(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(PF, i - 1))
+
+
+@doc Markdown.doc"""                                                 
+    rays_modulo_lineality(as, F::Cone)
+                         
+Return rays of the polyhedral fan `F` modulo the lineality space. For a cone
+without lineality these are the rays. If `F` has lineality `L`, then
+`rays_modulo_lineality` returns representatives of the classes `r+L` in for the
+rays `r` of the pointed cone `F/L`.
+
+# Examples
+```jldoctest
+julia> P = convex_hull(fmpq, [0 0; 1 0])
+A polyhedron in ambient dimension 2
+
+julia> NF = normal_fan(P)
+A polyhedral fan in ambient dimension 2
+
+julia> rays_modulo_lineality(NF)
+Dict{Symbol, SubObjectIterator{RayVector{fmpq}}} with 2 entries:
+  :lineality_basis       => [[0, 1]]
+  :rays_modulo_lineality => [[1, 0], [-1, 0]]
+
+julia> rays(NF)
+0-element SubObjectIterator{RayVector{fmpq}}
+```
+"""
+function rays_modulo_lineality(as::Type{Dict{Symbol, SubObjectIterator{RayVector{T}}}}, F::_FanLikeType) where T<:scalar_types
+    return Dict(
+                :rays_modulo_lineality => _rays(F),
+                :lineality_basis => lineality_space(F)
+            )
+end
+rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
+rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(Dict{Symbol, SubObjectIterator{RayVector{T}}}, F) 
+    
+
 
 @doc Markdown.doc"""
     maximal_cones(PF::PolyhedralFan)
@@ -211,7 +249,8 @@ julia> nrays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+nrays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _nrays(PF) : 0
+_nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc Markdown.doc"""
