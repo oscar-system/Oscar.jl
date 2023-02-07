@@ -50,4 +50,28 @@
         @test length(RML[:rays_modulo_lineality]) == 2
         @test length(RML[:lineality_basis]) == 1
     end
+
+    @testset "PolyhedralComplex" begin
+        VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0]
+        IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+        far_vertices = [2,3,4]
+        L = [0 0 1]
+        PC = PolyhedralComplex(IM, VR, far_vertices, L)
+        @test length(vertices(PC)) == 0
+        @test length(rays(PC)) == 0
+        
+        MFP = minimal_faces(PC)
+        @test length(MFP) == 2
+        @test haskey(MFP, :lineality_basis)
+        @test haskey(MFP, :base_points)
+        @test length(MFP[:base_points]) == 1
+        @test length(MFP[:lineality_basis]) == 1
+        
+        RML = rays_modulo_lineality(PC)
+        @test length(RML) == 2
+        @test haskey(RML, :lineality_basis)
+        @test haskey(RML, :rays_modulo_lineality)
+        @test length(RML[:rays_modulo_lineality]) == 3
+        @test length(RML[:lineality_basis]) == 1
+    end
 end
