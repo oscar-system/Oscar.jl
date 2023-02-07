@@ -117,13 +117,13 @@ Dict{Symbol, Union{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVe
   :lineality_basis => RayVector{fmpq}[[1, 0]]
 ```
 """
-function minimal_faces(as::Type{Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}}, P::Polyhedron) where T<:scalar_types
+function minimal_faces(as::Type{Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}}, P::Polyhedron{T}) where T<:scalar_types
     return Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}(
-            :base_points => _vertices(P),
+            :base_points => _vertices(PointVector{T}, P),
             :lineality_basis => lineality_space(P)
                )
 end
-minimal_faces(as::Type{PointVector}, P::Polyhedron) = _vertices(P)
+minimal_faces(as::Type{PointVector{T}}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
 minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}, P)
 
 
