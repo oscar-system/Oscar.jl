@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
+rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, pm_object(C))
 _rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(view(C.RAYS, i, :))

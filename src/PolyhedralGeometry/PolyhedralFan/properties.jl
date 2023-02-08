@@ -43,7 +43,7 @@ julia> matrix(QQ, rays(NF))
 [ 0    0   -1]
 ```
 """
-rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, nrays(PF))
+rays(PF::_FanLikeType{T}) where T<:scalar_types = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{T}, pm_object(PF))
 _rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, _nrays(PF))
 
 _ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.RAYS, i, :))

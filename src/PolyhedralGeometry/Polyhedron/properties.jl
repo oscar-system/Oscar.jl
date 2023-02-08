@@ -279,7 +279,7 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, nrays(P))
+rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _rays(as, P) : _empty_subobjectiterator(as, pm_object(P))
 _rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
 _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])

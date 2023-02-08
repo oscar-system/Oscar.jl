@@ -4,6 +4,7 @@
         @test lineality_dim(C) == 1
         @test nrays(C) == 0
         @test length(rays(C)) == 0
+        @test size(vector_matrix(rays(C))) == (0, 2)
         
         RML = rays_modulo_lineality(C)
         @test RML isa NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
@@ -20,7 +21,9 @@
         @test nrays(P) == 0
         @test nvertices(P) == 0
         @test length(rays(P)) == 0
+        @test size(vector_matrix(rays(P))) == (0, 3)
         @test length(vertices(P)) == 0
+        @test size(point_matrix(vertices(P))) == (0, 3)
         
         MFP = minimal_faces(P)
         @test MFP isa NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
@@ -45,6 +48,7 @@
         @test lineality_dim(NF) == 1
         @test nrays(NF) == 0
         @test length(rays(NF)) == 0
+        @test size(vector_matrix(rays(NF))) == (0, 2)
         
         RML = rays_modulo_lineality(NF)
         @test RML isa NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
@@ -62,7 +66,9 @@
         L = [0 0 1]
         PC = PolyhedralComplex(IM, VR, far_vertices, L)
         @test length(vertices(PC)) == 0
+        @test size(point_matrix(vertices(PC))) == (0, 3)
         @test length(rays(PC)) == 0
+        @test size(vector_matrix(rays(PC))) == (0, 3)
         
         MFP = minimal_faces(PC)
         @test MFP isa NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
