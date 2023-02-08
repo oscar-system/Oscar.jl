@@ -16,6 +16,7 @@ include("Schemes/SpaceGerms.jl")
 include("Schemes/singular_locus.jl")
 include("Schemes/Sheaves.jl")
 include("Schemes/IdealSheaves.jl")
+include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 
