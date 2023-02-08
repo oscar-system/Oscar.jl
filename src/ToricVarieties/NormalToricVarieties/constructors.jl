@@ -290,9 +290,14 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :euler_characteristic, d+1)
     set_attribute!(variety, :betti_number, fill(fmpz(1), d+1))
     set_attribute!(variety, :character_lattice, free_abelian_group(d))
+    set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, id_hom(torusinvariant_weil_divisor_group(variety)))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
+    set_attribute!(variety, :class_group, free_abelian_group(1))
+    set_attribute!(variety, :picard_group, free_abelian_group(1))
+    weights = matrix(ZZ,hcat([1 for i in 1:d+1]))
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,d+1)))
     return variety
 end
 export projective_space
@@ -405,23 +410,16 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, 4)
     set_attribute!(variety, :betti_number, [fmpz(1), fmpz(2), fmpz(1)])
+    set_attribute!(variety, :character_lattice, free_abelian_group(2))
+    set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :class_group, free_abelian_group(2))
-    
-    # find weights of the Cox ring
-    weights = matrix(ZZ, [0 1; 1 0; 0 1; 1 r])
-    
-    # set map from torusinvariant weil divisors to class group
+    set_attribute!(variety, :picard_group, free_abelian_group(2))
+    weights = matrix(ZZ, [1 0; 0 1; 1 0; r 1])
     set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-    
-    # set map from character to torusinvariant weil divisor group and the character lattice
-    k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
-    set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
-    set_attribute!(variety, :character_lattice, domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(variety)))
-    
-    # set maps from cartier divisors to torusinvariant weil divisors and the picard group
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, id_hom(torusinvariant_weil_divisor_group(variety)))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
+    set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,4)))
     
     return variety
 end
@@ -491,58 +489,47 @@ function del_pezzo_surface(b::Int)
     
     # set attributes that depend on b
     if b == 1
-        # set special attributes
         set_attribute!(variety, :euler_characteristic, 4)
         set_attribute!(variety, :betti_number, [fmpz(1), fmpz(2), fmpz(1)])
-        
-        # determine weights of the Cox ring
-        weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
-        
-        # use it to set more attributes
+        set_attribute!(variety, :character_lattice, free_abelian_group(2))
+        set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
         set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
         set_attribute!(variety, :class_group, free_abelian_group(2))
+        set_attribute!(variety, :picard_group, free_abelian_group(2))
+        weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
         set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-        k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
-        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
-        
+        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
+        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
+        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,4)))
     end
     if b == 2
-        # set special attributes
         set_attribute!(variety, :euler_characteristic, 5)
         set_attribute!(variety, :betti_number, [fmpz(1), fmpz(3), fmpz(1)])
-        
-        # determine weights of the Cox ring
-        weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
-        
-        # use it to set more attributes
+        set_attribute!(variety, :character_lattice, free_abelian_group(2))
+        set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(5))
         set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(5))
         set_attribute!(variety, :class_group, free_abelian_group(3))
+        set_attribute!(variety, :picard_group, free_abelian_group(3))
+        weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
         set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-        k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
-        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
-        
+        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
+        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
+        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,5)))
     end
     if b == 3
-        # set special attributes
         set_attribute!(variety, :euler_characteristic, 6)
         set_attribute!(variety, :betti_number, [fmpz(1), fmpz(4), fmpz(1)])
-        
-        # determine weights of the Cox ring
-        weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
-        
-        # use it to set more attributes
+        set_attribute!(variety, :character_lattice, free_abelian_group(2))
+        set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(6))
         set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(6))
         set_attribute!(variety, :class_group, free_abelian_group(4))
+        set_attribute!(variety, :picard_group, free_abelian_group(4))
+        weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
         set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-        k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
-        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
-        
+        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
+        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
+        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,6)))
     end
-    
-    # set more attributes
-    set_attribute!(variety, :character_lattice, domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(variety)))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, id_hom(torusinvariant_weil_divisor_group(variety)))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
     return variety
 end
