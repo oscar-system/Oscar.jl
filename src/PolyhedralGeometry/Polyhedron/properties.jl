@@ -329,7 +329,7 @@ Return the number of facets of `P`.
 The number of facets of the 5-dimensional cross polytope can be retrieved via
 the following line:
 ```jldoctest
-julia> nfacets(cross(5))
+julia> nfacets(cross_polytope(5))
 32
 ```
 """
@@ -1051,7 +1051,7 @@ Undefined for unbounded polyhedra.
 
 # Examples
 ```jldoctest
-julia> h_vector(cross(3))
+julia> h_vector(cross_polytope(3))
 4-element Vector{fmpz}:
  1
  3
@@ -1074,7 +1074,7 @@ Undefined for unbounded polyhedra.
 
 # Examples
 ```jldoctest
-julia> g_vector(cross(3))
+julia> g_vector(cross_polytope(3))
 2-element Vector{fmpz}:
  1
  2
