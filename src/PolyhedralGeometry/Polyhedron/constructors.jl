@@ -197,8 +197,6 @@ function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{Abs
     end
 end
 
-convex_hull(V::AbstractCollection[PointVector]; non_redundant::Bool = false) = convex_hull(fmpq, V, nothing, nothing; non_redundant = non_redundant)
-convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(fmpq, V, R, nothing; non_redundant = non_redundant)
 convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(fmpq, V, R, L; non_redundant=non_redundant)
 
 ###############################################################################
