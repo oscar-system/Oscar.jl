@@ -93,11 +93,12 @@ end
 @doc Markdown.doc"""
     minimal_faces(as, P::Polyhedron)
 
-Return the minimal faces of a polyhedron. For a polyhedron without lineality,
-these are the vertices. If `P` has lineality `L`, then every minimal face is an
-affine translation `p+L`, where `p` is only unique modulo `L`. The return type
-is a dict, the key `:base_points` gives an iterator over such `p`, and the key
-`:lineality_basis` lets one access a basis for the lineality space `L` of `P`.
+Return the minimal faces of a polyhedron as a `NamedTuple` with two iterators.
+For a polyhedron without lineality, the `base_points` are the vertices. If `P`
+has lineality `L`, then every minimal face is an affine translation `p+L`,
+where `p` is only unique modulo `L`. The return type is a dict, the key
+`:base_points` gives an iterator over such `p`, and the key `:lineality_basis`
+lets one access a basis for the lineality space `L` of `P`.
 
 # Examples
 The polyhedron `P` is just a line through the origin:
@@ -112,11 +113,10 @@ julia> vertices(P)
 0-element SubObjectIterator{PointVector{fmpq}}
 
 julia> minimal_faces(P)
-Dict{Symbol, Union{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}} with 2 entries:
-  :base_points     => PointVector{fmpq}[[0, 0]]
-  :lineality_basis => RayVector{fmpq}[[1, 0]]
+(base_points = PointVector{fmpq}[[0, 0]], lineality_basis = RayVector{fmpq}[[1, 0]])
 ```
 """
+minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
 function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}}, P::Polyhedron{T}) where T<:scalar_types
     return (
         base_points = _vertices(PointVector{T}, P),
@@ -124,17 +124,35 @@ function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tup
     )
 end
 minimal_faces(as::Type{PointVector{T}}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
-minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
 
 
 
 @doc Markdown.doc"""
     rays_modulo_lineality(as, P::Polyhedron)
 
-Return the smallest faces of the recession cone as pairs of a direction vector
-and generators of the lineality space. For a polyhedron without lineality these
-are the rays.
+Return the rays of the recession cone of `PC` up to lineality as a `NamedTuple`
+with two iterators. If `PC` has lineality `L`, then the iterator
+`rays_modulo_lineality` iterates over representatives of the rays of `PC/L`.
+The iterator `lineality_basis` gives a basis of the lineality space `L`.
+
+# Examples
+```jldoctest
+julia> P = convex_hull([0 0 1], [0 1 0], [1 0 0])
+A polyhedron in ambient dimension 3
+
+julia> rmlP = rays_modulo_lineality(P)
+(rays_modulo_lineality = RayVector{fmpq}[[0, 1, 0]], lineality_basis = RayVector{fmpq}[[1, 0, 0]])
+
+julia> rmlP.rays_modulo_lineality
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [0, 1, 0]
+
+julia> rmlP.lineality_basis
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0, 0]
+```
 """
+rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
 function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, P::Polyhedron) where T<:scalar_types
     return (
         rays_modulo_lineality = _rays(P),
@@ -142,7 +160,6 @@ function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lin
     )
 end
 rays_modulo_lineality(as::Type{RayVector}, P::Polyhedron) = _rays(P)
-rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
 
 
 @doc Markdown.doc"""

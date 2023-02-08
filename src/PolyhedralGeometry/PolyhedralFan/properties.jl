@@ -56,12 +56,12 @@ _maximal_cone(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<
 
 
 @doc Markdown.doc"""                                                 
-    rays_modulo_lineality(as, F::Cone)
+    rays_modulo_lineality(as, F::PolyhedralFan)
                          
-Return rays of the polyhedral fan `F` modulo the lineality space. For a cone
-without lineality these are the rays. If `F` has lineality `L`, then
-`rays_modulo_lineality` returns representatives of the classes `r+L` in for the
-rays `r` of the pointed cone `F/L`.
+Return the rays of the polyhedral fan `F` up to lineality as a `NamedTuple`
+with two iterators. If `F` has lineality `L`, then the iterator
+`rays_modulo_lineality` iterates over representatives of the rays of `F/L`.
+The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
 # Examples
 ```jldoctest
@@ -71,15 +71,23 @@ A polyhedron in ambient dimension 2
 julia> NF = normal_fan(P)
 A polyhedral fan in ambient dimension 2
 
-julia> rays_modulo_lineality(NF)
-Dict{Symbol, SubObjectIterator{RayVector{fmpq}}} with 2 entries:
-  :lineality_basis       => [[0, 1]]
-  :rays_modulo_lineality => [[1, 0], [-1, 0]]
+julia> rmlF = rays_modulo_lineality(NF)
+(rays_modulo_lineality = RayVector{fmpq}[[1, 0], [-1, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+
+julia> rmlF.rays_modulo_lineality
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0]
+ [-1, 0]
+
+julia> rmlF.lineality_basis
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [0, 1]
 
 julia> rays(NF)
 0-element SubObjectIterator{RayVector{fmpq}}
 ```
 """
+rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, F) 
 function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
     return (
         rays_modulo_lineality = _rays(F),
@@ -87,7 +95,6 @@ function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lin
     )
 end
 rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
-rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, F) 
     
 
 

@@ -106,10 +106,39 @@ rays(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = l
 @doc Markdown.doc"""
     rays_modulo_lineality(as, PC::PolyhedralComplex)
 
-Return the smallest faces of the recession cone as pairs of a direction vector
-and generators of the lineality space. For a polyhedron without lineality these
-are the rays.
+Return the rays of the recession cone of `PC` up to lineality as a `NamedTuple`
+with two iterators. If `PC` has lineality `L`, then the iterator
+`rays_modulo_lineality` iterates over representatives of the rays of `PC/L`.
+The iterator `lineality_basis` gives a basis of the lineality space `L`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+A polyhedral complex in ambient dimension 3
+
+julia> RML = rays_modulo_lineality(PC)
+(rays_modulo_lineality = RayVector{fmpq}[[1, 0, 0], [0, 1, 0], [-1, 0, 0]], lineality_basis = RayVector{fmpq}[[0, 0, 1]])
+
+julia> RML.rays_modulo_lineality
+3-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0, 0]
+ [0, 1, 0]
+ [-1, 0, 0]
+
+julia> RML.lineality_basis
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [0, 0, 1]
+```
 """
+rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
 function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, PC::PolyhedralComplex) where T<:scalar_types
     return (
         rays_modulo_lineality = _rays(RayVector{T}, PC),
@@ -117,12 +146,44 @@ function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lin
     )
 end
 rays_modulo_lineality(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _rays(RayVector{T}, PC)
-rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
 
 
 @doc Markdown.doc"""
+    minimal_faces(as, PC::PolyhedralComplex)
 
+Return the minimal faces of a polyhedral complex as a `NamedTuple` with two
+iterators. For a polyhedral complex without lineality, the `base_points` are
+the vertices. If `PC` has lineality `L`, then every minimal face is an affine
+translation `p+L`, where `p` is only unique modulo `L`. The return type is a
+dict, the key `:base_points` gives an iterator over such `p`, and the key
+`:lineality_basis` lets one access a basis for the lineality space `L` of `PC`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+A polyhedral complex in ambient dimension 3
+
+julia> MFPC = minimal_faces(PC)
+(base_points = PointVector{fmpq}[[0, 0, 0]], lineality_basis = RayVector{fmpq}[[0, 0, 1]])
+
+julia> MFPC.base_points
+1-element SubObjectIterator{PointVector{fmpq}}:
+ [0, 0, 0]
+
+julia> MFPC.lineality_basis
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [0, 0, 1]
+```
 """
+minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
 function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}}, PC::PolyhedralComplex{T}) where T<:scalar_types
     return (
         base_points = _vertices(PointVector{T}, PC),
@@ -130,7 +191,6 @@ function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tup
     )
 end
 minimal_faces(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(PointVector{T}, PC)
-minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
 
 
 @doc Markdown.doc"""
