@@ -12,7 +12,7 @@ Return `true` if the toric line bundle `l` is basepoint free and `false` otherwi
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> is_basepoint_free(ToricLineBundle(F4, [0, 1]))
+julia> is_basepoint_free(ToricLineBundle(F4, [1, 0]))
 true
 ```
 """
