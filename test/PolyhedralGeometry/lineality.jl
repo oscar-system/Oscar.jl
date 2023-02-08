@@ -6,6 +6,7 @@
         @test length(rays(C)) == 0
         
         RML = rays_modulo_lineality(C)
+        @test RML isa NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
         @test length(RML) == 2
         @test haskey(RML, :lineality_basis)
         @test haskey(RML, :rays_modulo_lineality)
@@ -22,6 +23,7 @@
         @test length(vertices(P)) == 0
         
         MFP = minimal_faces(P)
+        @test MFP isa NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
         @test length(MFP) == 2
         @test haskey(MFP, :lineality_basis)
         @test haskey(MFP, :base_points)
@@ -29,6 +31,7 @@
         @test length(MFP[:lineality_basis]) == 1
         
         RML = rays_modulo_lineality(P)
+        @test RML isa NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
         @test length(RML) == 2
         @test haskey(RML, :lineality_basis)
         @test haskey(RML, :rays_modulo_lineality)
@@ -44,6 +47,7 @@
         @test length(rays(NF)) == 0
         
         RML = rays_modulo_lineality(NF)
+        @test RML isa NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
         @test length(RML) == 2
         @test haskey(RML, :lineality_basis)
         @test haskey(RML, :rays_modulo_lineality)
@@ -61,6 +65,7 @@
         @test length(rays(PC)) == 0
         
         MFP = minimal_faces(PC)
+        @test MFP isa NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
         @test length(MFP) == 2
         @test haskey(MFP, :lineality_basis)
         @test haskey(MFP, :base_points)
@@ -68,6 +73,7 @@
         @test length(MFP[:lineality_basis]) == 1
         
         RML = rays_modulo_lineality(PC)
+        @test RML isa NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{fmpq}}, SubObjectIterator{RayVector{fmpq}}}}
         @test length(RML) == 2
         @test haskey(RML, :lineality_basis)
         @test haskey(RML, :rays_modulo_lineality)

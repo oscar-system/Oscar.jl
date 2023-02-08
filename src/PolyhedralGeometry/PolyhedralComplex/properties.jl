@@ -110,27 +110,27 @@ Return the smallest faces of the recession cone as pairs of a direction vector
 and generators of the lineality space. For a polyhedron without lineality these
 are the rays.
 """
-function rays_modulo_lineality(as::Type{Dict{Symbol, SubObjectIterator{RayVector{T}}}}, PC::PolyhedralComplex) where T<:scalar_types
-    return Dict(
-                :rays_modulo_lineality => _rays(RayVector{T}, PC),
-                :lineality_basis => lineality_space(PC)
-            )
+function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, PC::PolyhedralComplex) where T<:scalar_types
+    return (
+        rays_modulo_lineality = _rays(RayVector{T}, PC),
+        lineality_basis = lineality_space(PC)
+    )
 end
 rays_modulo_lineality(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _rays(RayVector{T}, PC)
-rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types = rays_modulo_lineality(Dict{Symbol, SubObjectIterator{RayVector{T}}}, PC)
+rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
 
 
 @doc Markdown.doc"""
 
 """
-function minimal_faces(as::Type{Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}}, PC::PolyhedralComplex{T}) where T<:scalar_types
-    return Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}(
-                                                                                                   :base_points => _vertices(PointVector{T}, PC),
-                                                                                                   :lineality_basis => lineality_space(PC)
-               )
+function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}}, PC::PolyhedralComplex{T}) where T<:scalar_types
+    return (
+        base_points = _vertices(PointVector{T}, PC),
+        lineality_basis = lineality_space(PC)
+    )
 end
 minimal_faces(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(PointVector{T}, PC)
-minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types = minimal_faces(Dict{Symbol, Union{SubObjectIterator{RayVector{T}}, SubObjectIterator{PointVector{T}}}}, PC)
+minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
 
 
 @doc Markdown.doc"""

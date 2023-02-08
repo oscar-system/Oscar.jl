@@ -101,14 +101,14 @@ julia> rays_modulo_lineality(C)
  [1, 0] => [[0, 1]]
 ```
 """                                                             
-function rays_modulo_lineality(as::Type{Dict{Symbol, SubObjectIterator{RayVector{T}}}}, C::Cone) where T<:scalar_types
-    return Dict(
-                :rays_modulo_lineality => _rays(C),
-                :lineality_basis => lineality_space(C)
-            )
+function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, C::Cone) where T<:scalar_types
+    return (
+        rays_modulo_lineality = _rays(C),
+        lineality_basis = lineality_space(C)
+    )
 end
 rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
-rays_modulo_lineality(C::Cone{T}) where T<:scalar_types = rays_modulo_lineality(Dict{Symbol, SubObjectIterator{RayVector{T}}}, C) 
+rays_modulo_lineality(C::Cone{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, C) 
     
 
 @doc Markdown.doc"""

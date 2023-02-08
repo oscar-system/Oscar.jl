@@ -80,14 +80,14 @@ julia> rays(NF)
 0-element SubObjectIterator{RayVector{fmpq}}
 ```
 """
-function rays_modulo_lineality(as::Type{Dict{Symbol, SubObjectIterator{RayVector{T}}}}, F::_FanLikeType) where T<:scalar_types
-    return Dict(
-                :rays_modulo_lineality => _rays(F),
-                :lineality_basis => lineality_space(F)
-            )
+function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
+    return (
+        rays_modulo_lineality = _rays(F),
+        lineality_basis = lineality_space(F)
+    )
 end
 rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
-rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(Dict{Symbol, SubObjectIterator{RayVector{T}}}, F) 
+rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, F) 
     
 
 
