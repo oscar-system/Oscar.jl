@@ -95,14 +95,14 @@ function contributing_denominators(variety::AbstractNormalToricVariety)
     # we execute cohomCalg with homogeneous variable names "x1", "x2" and so on
     # -> translate back into actually chosen variable names
     gens = Hecke.gens(cox_ring(variety))
-    for i in 1:length(contributing_monomials)
-        if contributing_monomials[i] == [""]
-            contributing_monomials[i] = String[]
+    for cm in contributing_monomials
+        if cm == [""]
+            empty!(cm)
         else
-            for j in 1:length(contributing_monomials[i])
-                m = contributing_monomials[i][j]
+            for j in 1:length(cm)
+                m = cm[j]
                 present_variables = [occursin("x$k", m) for k in 1:ngens(cox_ring(variety))]
-                contributing_monomials[i][j] = string(prod(gens[k]^present_variables[k] for k in 1:ngens(cox_ring(variety))))
+                cm[j] = string(prod(gens[k]^present_variables[k] for k in 1:ngens(cox_ring(variety))))
             end
         end
     end
