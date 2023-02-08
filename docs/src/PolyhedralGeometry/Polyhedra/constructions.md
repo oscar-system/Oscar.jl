@@ -77,8 +77,8 @@ julia> halfspace_matrix_pair(facets(T))
 
 ```
 
-The complete $V$-representation can be retrieved using [`vertices`](@ref
-vertices), [`rays`](@ref rays) and [`lineality_space`](@ref lineality_space):
+The complete $V$-representation can be retrieved using [`minimal_faces`](@ref
+minimal_faces), [`rays_modulo_lineality`](@ref rays_modulo_lineality) and [`lineality_space`](@ref lineality_space):
 
 ```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])
@@ -90,7 +90,13 @@ A polyhedron in ambient dimension 2
 julia> P == Q0
 false
 
-julia> Q1 = convex_hull(vertices(P), rays(P))
+julia> mfP = minimal_faces(P)
+(base_points = PointVector{fmpq}[[0, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+
+julia> rmlP = rays_modulo_lineality(P)
+(rays_modulo_lineality = RayVector{fmpq}[[1, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+
+julia> Q1 = convex_hull(mfP.base_points, rmlP.rays_modulo_lineality)
 A polyhedron in ambient dimension 2
 
 julia> P == Q1
@@ -99,7 +105,7 @@ false
 julia> Q0 == Q1
 false
 
-julia> Q2 = convex_hull(vertices(P), rays(P), lineality_space(P))
+julia> Q2 = convex_hull(mfP.base_points, rmlP.rays_modulo_lineality, lineality_space(P))
 A polyhedron in ambient dimension 2
 
 julia> P == Q2
