@@ -236,7 +236,7 @@ function -(D::T) where {T<:AbsAlgebraicCycle}
   for I in keys(coefficient_dict(D))
     dict[I] = -D[I]
   end
-  return AbsAlgebraicCycle(scheme(D), coefficient_ring(D), dict, check=false)
+  return AlgebraicCycle(scheme(D), coefficient_ring(D), dict, check=false)
 end
 
 -(D::T, E::T) where {T<:AbsAlgebraicCycle} = D + (-E)
@@ -251,7 +251,7 @@ function *(a::RingElem, E::AbsAlgebraicCycle)
       dict[I] = c
     end
   end
-  return AbsAlgebraicCycle(scheme(E), coefficient_ring(E), dict, check=false)
+  return AlgebraicCycle(scheme(E), coefficient_ring(E), dict, check=false)
 end
 
 *(a::Int, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
