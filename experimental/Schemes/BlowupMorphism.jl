@@ -133,6 +133,78 @@ function strict_transform(p::BlowupMorphism, I::IdealSheaf)
   return I_trans
 end
 
+function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
+  X = scheme(C)
+  Y = domain(p) 
+  X === codomain(p) || error("ideal sheaf is not defined on the codomain of the morphism")
+
+  ID = IdDict{AbsSpec, RingElem}()
+  pr = projection(p)
+  p_cov = covering_morphism(pr)
+  CY = domain(p_cov)
+  CX = trivializing_covering(C)
+  p_cov_ref = restrict(pr, CX)::CoveringMorphism
+  CY_ref = domain(p_cov_ref)
+  # We first apply elim_part to all the charts.
+  CY_simp, phi, psi = simplify(CY_ref)
+  # register the simplification in Y
+  push!(coverings(Y), CY_simp)
+  refinements(Y)[(CY_simp, CY)] = phi
+  refinements(Y)[(CY, CY_simp)] = psi
+
+  # compose the covering morphisms
+  p_cov_simp = compose(phi, p_cov_ref)
+  E = exceptional_divisor(p)
+  multipl = -1
+  for U in patches(CY_simp)
+    p_res = p_cov_simp[U]
+    V = codomain(p_res)
+    length(C(V))==1 || error("ideal for divisor is not principal")
+    h = C(V)[1]
+    pbh = pullback(p_res)(h)
+    if isunit(pbh) 
+      ID[U] = one(OO(U))
+      continue
+    end
+    k = 0
+    e = first(E(U))
+    if isunit(e)
+      ID[U] = pbh
+      continue
+    end
+    # Warning! Successive division by e only gives the correct result in this 
+    # particular situation! The equation for e must be irreducible, etc.
+    success, b = divides(pbh, e)
+    while success
+      k = k + 1
+      pbh = b
+      success, b = divides(b, e)
+    end
+    ID[U] = pbh
+    if multipl != -1
+      k == multipl || error("multiplicities differ in different charts")
+    end
+    multipl = k
+  end
+
+  multipl = (multipl == -1 ? 0 : multipl)
+
+  C_trans = EffectiveCartierDivisor(Y, ID, check=true) # TODO: Set to false
+  return C_trans, multipl*E
+end
+
+function strict_transform(p::BlowupMorphism, C::CartierDivisor)
+  X = codomain(p)
+  Y = domain(p) 
+  X === scheme(C) || error("divisor not defined on the codomain of the map")
+  kk = coefficient_ring(C)
+  result = CartierDivisor(Y, kk)
+  for c in components(C)
+    result = result + C[c]*strict_transform(p, c)[1]
+  end
+  return result
+end
+
 @Markdown.doc """
     restrict(f::AbsCoveredSchemeMorphism,
         inc_dom::CoveredClosedEmbedding,

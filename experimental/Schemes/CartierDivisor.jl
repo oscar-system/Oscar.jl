@@ -134,6 +134,10 @@ function CartierDivisor(C::EffectiveCartierDivisor)
   return CartierDivisor(scheme(C), ZZ, IdDict([C => one(ZZ)]))
 end
 
+function CartierDivisor(X::AbsCoveredScheme, kk::Ring)
+  return CartierDivisor(X, kk, IdDict{EffectiveCartierDivisor, elem_type(kk)}())
+end
+
 function *(a::RingElem, C::EffectiveCartierDivisor)
   return CartierDivisor(scheme(C), parent(a), IdDict{EffectiveCartierDivisor, typeof(a)}([C => a]))
 end
@@ -142,12 +146,12 @@ function *(a::Integer, C::EffectiveCartierDivisor)
 end
 
 function ==(C::CartierDivisor, D::CartierDivisor)
+  C === D && return true
   for k in components(C)
-    iszero(C[k]) || (haskey(coefficient_dict(D), k) && D[k] == C[k]) || return false
+    iszero(C[k]) || (haskey(coefficient_dict(D), k) && D[k] == C[k]) || error("equality check not implemented in this complicated case")
   end
   for k in components(D) 
-    haskey(coefficient_dict(C), k) && continue
-    iszero(D[k]) || return false
+    iszero(D[k]) || (haskey(coefficient_dict(C), k) && D[k] == C[k]) || error("equality check not implemented in this complicated case")
   end
   return true
 end
