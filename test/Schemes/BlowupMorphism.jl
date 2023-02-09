@@ -25,10 +25,11 @@ end
   p = blow_up(II)
   C = oscar.effective_cartier_divisor(IP2, (x+y)^2)
   D = oscar.effective_cartier_divisor(IP2, (x-3*y)^5)
-  C_trans, E_trans = strict_transform(p, C)
-  @test E_trans == 2*exceptional_divisor(p)
-  D_trans, E_trans = strict_transform(p, D)
-  @test E_trans == 5*exceptional_divisor(p)
+  C_trans = strict_transform(p, C)
+  @test weil_divisor(pullback(projection(p))(C)) - weil_divisor(C_trans) == weil_divisor(2*exceptional_divisor(p))
+  D_trans = strict_transform(p, D)
+  @test weil_divisor(pullback(projection(p))(D)) - weil_divisor(D_trans) == weil_divisor(5*exceptional_divisor(p))
   CD = 5*C + 7*D
   CD_trans = strict_transform(p, CD)
+  @test weil_divisor(CD_trans) == weil_divisor(5*C_trans + 7*D_trans)
 end

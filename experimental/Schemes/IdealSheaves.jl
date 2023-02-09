@@ -683,3 +683,11 @@ end
 function complement_of_ideal(P::MPolyQuoIdeal)
   return complement_of_ideal(saturated_ideal(P))
 end
+
+function complement_of_ideal(P::MPolyQuoLocalizedIdeal)
+  return complement_of_ideal(saturated_ideal(P))
+end
+
+function complement_of_ideal(P::MPolyLocalizedIdeal)
+  return complement_of_ideal(saturated_ideal(P))
+end

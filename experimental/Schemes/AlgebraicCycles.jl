@@ -288,3 +288,23 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
   return true
 end
 
+@Markdown.doc """
+    integral(W::AbsAlgebraicCycle)
+
+Assume ``W`` is an algebraic cycle on ``X``. This returns the sum of 
+the lengths of all the components of dimension `0` of ``W``.
+"""
+function integral(W::AbsAlgebraicCycle; check::Bool=true)
+  result = zero(coefficient_ring(W))
+  X = scheme(W)
+  for I in components(W)
+    # All components must be prime, so the information is exclusively stored in the coefficients
+    if check
+      dim(I) == 0 || continue
+    end
+    result = result + W[I]
+  end
+  return result
+end
+
+

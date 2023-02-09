@@ -150,6 +150,16 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   phi = covering_morphism(f)
   C = domain(phi)
   D = codomain(phi)
+
+  # First check the trivial case that we can just compose.
+  if haskey(refinements(Y), (D, DD))
+    return compose(phi, refinements(Y)[(D, DD)])
+  end
+
+  # Then check whether we can nevertheless build the composition manually
+  success, psi = is_refinement(D, DD)
+  success && return compose(phi, psi)
+
   # DD needs to be a refinement of D; otherwise quit.
   all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
 
@@ -351,3 +361,14 @@ function inherit_glueings!(ref::Covering, orig::Covering)
   return ref
 end
 
+function is_refinement(D::Covering, C::Covering)
+  if !all(x->some_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
+    return false, nothing
+  end
+  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(D)
+    f, _ = _find_chart(U, C)
+    map_dict[U] = f
+  end
+  return true, CoveringMorphism(D, C, map_dict, check=false)
+end

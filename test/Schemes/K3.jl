@@ -92,13 +92,13 @@
 
   J = IdealSheaf(X4, id_dict, check=false)
 
-  prX4 = blow_up(J, covering=ref)
-  X5 = domain(prX4)
+  prX5 = blow_up(J, covering=ref)
+  X5 = domain(prX5)
   E5 = exceptional_divisor(prX4)
   simplify!(X5)
   U = patches(oscar.simplified_covering(X5))
 
-  Y5, inc_Y5, pr_Y5 = strict_transform(prX4, inc_Y4)
+  Y5, inc_Y5, pr_Y5 = strict_transform(prX5, inc_Y4)
   Y5 = domain(inc_Y5)
 
   @test is_smooth(Y5)

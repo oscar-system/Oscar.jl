@@ -136,7 +136,7 @@ end
 function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
   X = scheme(C)
   Y = domain(p) 
-  X === codomain(p) || error("ideal sheaf is not defined on the codomain of the morphism")
+  X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
 
   ID = IdDict{AbsSpec, RingElem}()
   pr = projection(p)
@@ -145,15 +145,17 @@ function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
   CX = trivializing_covering(C)
   p_cov_ref = restrict(pr, CX)::CoveringMorphism
   CY_ref = domain(p_cov_ref)
-  # We first apply elim_part to all the charts.
-  CY_simp, phi, psi = simplify(CY_ref)
-  # register the simplification in Y
-  push!(coverings(Y), CY_simp)
-  refinements(Y)[(CY_simp, CY)] = phi
-  refinements(Y)[(CY, CY_simp)] = psi
+#  # We first apply elim_part to all the charts.
+#  CY_simp, phi, psi = simplify(CY_ref)
+#  # register the simplification in Y
+#  push!(coverings(Y), CY_simp)
+#  refinements(Y)[(CY_simp, CY)] = phi
+#  refinements(Y)[(CY, CY_simp)] = psi
 
   # compose the covering morphisms
-  p_cov_simp = compose(phi, p_cov_ref)
+#  p_cov_simp = compose(phi, p_cov_ref)
+  p_cov_simp = p_cov_ref
+  CY_simp = CY_ref
   E = exceptional_divisor(p)
   multipl = -1
   for U in patches(CY_simp)
@@ -189,18 +191,18 @@ function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
 
   multipl = (multipl == -1 ? 0 : multipl)
 
-  C_trans = EffectiveCartierDivisor(Y, ID, check=true) # TODO: Set to false
-  return C_trans, multipl*E
+  C_trans = EffectiveCartierDivisor(Y, ID, check=false) # TODO: Set to false
+  return C_trans # TODO: Do we want to also return the exceptional component multipl*E ?
 end
 
 function strict_transform(p::BlowupMorphism, C::CartierDivisor)
   X = codomain(p)
   Y = domain(p) 
-  X === scheme(C) || error("divisor not defined on the codomain of the map")
+  X === scheme(C) || error("cartier divisor not defined on the codomain of the map")
   kk = coefficient_ring(C)
   result = CartierDivisor(Y, kk)
   for c in components(C)
-    result = result + C[c]*strict_transform(p, c)[1]
+    result = result + C[c]*strict_transform(p, c)
   end
   return result
 end
