@@ -260,16 +260,30 @@ end
 +(D::AbsAlgebraicCycle, I::IdealSheaf) = D + AbsAlgebraicCycle(I)
 
 function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle) 
-  keys(coefficient_dict(D)) == keys(coefficient_dict(E)) || return false
-  for I in keys(coefficient_dict(D))
-    if haskey(coefficient_dict(E), I)
-      D[I] == E[I] || return false
-    else
-      iszero(D[I]) || return false
+  if all(k->k in keys(coefficient_dict(D)), keys(coefficient_dict(E))) && all(k->k in keys(coefficient_dict(E)), keys(coefficient_dict(D))) 
+    for I in keys(coefficient_dict(D))
+      if haskey(coefficient_dict(E), I)
+        D[I] == E[I] || return false
+      else
+        iszero(D[I]) || return false
+      end
     end
-  end
-  for I in keys(coefficient_dict(E))
-    !(I in keys(coefficient_dict(D))) && !(iszero(E[I])) && return false
+    for I in keys(coefficient_dict(E))
+      !(I in keys(coefficient_dict(D))) && !(iszero(E[I])) && return false
+    end
+  else
+    keys_D = collect(keys(coefficient_dict(D)))
+    keys_E = collect(keys(coefficient_dict(E)))
+    for I in keys(coefficient_dict(D))
+      I_cand = findall(x->(x==I), keys_D)
+      J_cand = findall(x->(x==I), keys_E)
+      sum([D[keys_D[i]] for i in I_cand]) == sum([E[keys_E[j]] for j in J_cand]) || return false
+    end
+    for J in keys(coefficient_dict(E))
+      I_cand = findall(x->(x==J), keys_D)
+      J_cand = findall(x->(x==J), keys_E)
+      sum([D[keys_D[i]] for i in I_cand]) == sum([E[keys_E[j]] for j in J_cand]) || return false
+    end
   end
   return true
 end
