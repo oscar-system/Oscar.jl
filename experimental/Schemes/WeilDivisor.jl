@@ -75,6 +75,10 @@ function WeilDivisor(X::AbsCoveredScheme, R::Ring)
   return WeilDivisor(X, R, D)
 end
 
+function zero(W::WeilDivisor)
+  return WeilDivisor(scheme(W), coefficient_ring(W))
+end
+
 # provide non-camelcase methods
 @Markdown.doc """
     weil_divisor(X::AbsCoveredScheme, R::Ring)

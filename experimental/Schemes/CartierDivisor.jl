@@ -214,4 +214,58 @@ function weil_divisor(C::CartierDivisor)
   return result
 end
 
+function intersect(W::WeilDivisor, C::EffectiveCartierDivisor)
+  X = scheme(W)
+  result = zero(W)
+  for I in components(W)
+    inc_Y = CoveredClosedEmbedding(X, I, check=false)
+    #inc_Y = CoveredClosedEmbedding(X, I, covering=trivializing_covering(C), check=false)
+    Y = domain(inc_Y)
+    pbC = pullback(inc_Y)(C) # Will complain if the defining equation of C is vanishing identically on Y
+    W_sub = weil_divisor(pbC)
+    result = result + W[I] * pushforward(inc_Y)(W_sub)
+  end
+  return result
+end
+
+function intersect(W::WeilDivisor, C::CartierDivisor)
+  result = zero(W)
+  for c in components(C)
+    result = result + C[c] * intersect(W, c)
+  end
+  return result
+end
+
+function intersect(D::EffectiveCartierDivisor, C::EffectiveCartierDivisor)
+  return intersect(weil_divisor(D), C)
+end
+
+function intersect(D::EffectiveCartierDivisor, C::CartierDivisor)
+  return intersect(weil_divisor(D), C)
+end
+
+function intersect(D::CartierDivisor, C::EffectiveCartierDivisor)
+  return intersect(weil_divisor(D), C)
+end
+
+function intersect(D::CartierDivisor, C::CartierDivisor)
+  return intersect(weil_divisor(D), C)
+end
+
+
+function pushforward(inc::CoveredClosedEmbedding, W::WeilDivisor)
+  X = domain(inc)
+  Y = codomain(inc)
+  X === scheme(W) || error("divisor not defined on the domain")
+  kk = coefficient_ring(W)
+  ideal_dict = IdDict{IdealSheaf, elem_type(kk)}()
+  for I in components(W)
+    pfI = pushforward(inc)(I)
+    ideal_dict[pfI] = W[I]
+  end
+  return WeilDivisor(Y, kk, ideal_dict, check=false)
+end
+
+dim(C::EffectiveCartierDivisor) = dim(scheme(C))-1
+dim(C::CartierDivisor) = dim(scheme(C))-1
 

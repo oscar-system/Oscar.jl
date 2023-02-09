@@ -203,6 +203,19 @@ function Base.show(io::IO, D::AlgebraicCycle)
   println(io, out_str)
 end
 
+function dim(D::AlgebraicCycle)
+  result = -1
+  for I in components(D)
+    d = dim(I)
+    if d > result
+      result = d
+    end
+  end
+  return result
+end
+
+
+
 ### half-generic implementation of the arithmetic
 # Note that we need one minimal concrete type for the return values, 
 # so the implementation can not be truely generic. 

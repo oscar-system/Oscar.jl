@@ -114,21 +114,10 @@
   E14 = pullback(pr_Y4)(E13)
   E15 = pullback(pr_Y5)(E14)
 
-  E22 = pullback(inc_Y2)(E2)
-  E23 = pullback(pr_Y3)(E22)
-  E24 = pullback(pr_Y4)(E23)
-  E25 = pullback(pr_Y5)(E24)
-  
-  E33 = pullback(inc_Y3)(E3)
-  E34 = pullback(pr_Y4)(E33)
-  E35 = pullback(pr_Y5)(E34)
-  
-  E44 = pullback(inc_Y4)(E4)
-  E45 = pullback(pr_Y5)(E44)
 
-  E55 = pullback(inc_Y5)(E5)
+  E12res = pullback(inc_Y2)(E12)
+  E2res = pullback(inc_Y2)(E2)
 
-  U = patches(oscar.simplified_covering(Y5))
+  @test integral(intersect(E12res, E2res)) == 2
 
-end
-
+#end
