@@ -70,6 +70,70 @@ function exceptional_divisor(p::BlowupMorphism)
 end
 
 @Markdown.doc """
+    strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
+
+For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding` 
+``ι : Z ↪ X``, compute the strict transform ``Z'`` of ``Z`` along ``p`` and 
+return a triple ``(Z', j, π)`` containing the `CoveredClosedEmbedding` 
+``j : Z' ↪ Y`` and the induced projection ``π : Z' → Z``.
+
+!!! note The projection is not yet implemented! Instead, `nothing` is returned 
+as the third item.
+"""
+function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
+  Y = domain(p)
+  X = codomain(p)
+  Z = domain(inc)
+  codomain(inc) === X || error("maps must have the same codomain")
+  I_trans = strict_transform(p, image_ideal(inc))
+  inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, 
+                                       covering=simplified_covering(Y), # Has been set by the previous call
+                                       check=false)
+  inc_cov = covering_morphism(inc_Z_trans)
+
+  Z_trans = domain(inc_Z_trans)
+  pr_res = restrict(projection(p), inc_Z_trans, inc)
+  return Z_trans, inc_Z_trans, pr_res
+end
+
+function strict_transform(p::BlowupMorphism, I::IdealSheaf)
+  X = scheme(I)
+  Y = domain(p) 
+  X === codomain(p) || error("ideal sheaf is not defined on the codomain of the morphism")
+
+  ID = IdDict{AbsSpec, Ideal}()
+  pr = projection(p)
+  p_cov = covering_morphism(pr)
+  CY = domain(p_cov)
+  # We first apply elim_part to all the charts.
+  CY_simp, phi, psi = simplify(CY)
+  # register the simplification in Y
+  push!(coverings(Y), CY_simp)
+  refinements(Y)[(CY_simp, CY)] = phi
+  refinements(Y)[(CY, CY_simp)] = psi
+  CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
+
+  # compose the covering morphisms
+  p_cov_simp = compose(phi, p_cov)
+  CX = codomain(p_cov)
+  E = exceptional_divisor(p)
+  for U in patches(CY_simp)
+    p_res = p_cov_simp[U]
+    V = codomain(p_res)
+    J = I(V)
+    #g = maps_with_given_codomain(inc, V)
+    pbJ = ideal(OO(U), pullback(p_res).(gens(J)))
+    pbJ_sat = saturated_ideal(pbJ)
+    pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
+    pbJ = ideal(OO(U), [g for g in OO(U).(gens(pbJ_sat)) if !iszero(g)])
+    ID[U] = pbJ
+  end
+
+  I_trans = IdealSheaf(Y, ID, check=false) # TODO: Set to false
+  return I_trans
+end
+
+@Markdown.doc """
     restrict(f::AbsCoveredSchemeMorphism,
         inc_dom::CoveredClosedEmbedding,
         inc_cod::CoveredClosedEmbedding;
@@ -81,7 +145,6 @@ For a diagram
   Z' ↪ Y
        ↓ f
   Z ↪  X
-
 with `inc_dom` and `inc_cod` the respective horizontal maps 
 we assume ``f(Z') ⊂ Z``, compute and return the restriction ``f : Z' → Z``.
 """
@@ -137,49 +200,5 @@ function maps_with_given_codomain(phi::CoveringMorphism, V::AbsSpec)
     push!(result, floc)
   end
   return result
-end
-
-@Markdown.doc """
-    strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
-
-For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding` 
-``ι : Z ↪ X``, compute the strict transform ``Z'`` of ``Z`` along ``p`` and 
-return the `CoveredClosedEmbedding` ``ι : Z' ↪ Y``.
-"""
-function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
-  Y = domain(p)
-  X = codomain(p)
-  Z = domain(inc)
-  codomain(inc) === X || error("maps must have the same codomain")
-  ID = IdDict{AbsSpec, Ideal}()
-  pr = projection(p)
-  p_cov = covering_morphism(pr)
-  CY = domain(p_cov)
-  # We first apply elim_part to all the charts.
-  CY_simp, phi, psi = simplify(CY)
-  # register the simplification in Y
-  push!(coverings(Y), CY_simp)
-  refinements(Y)[(CY_simp, CY)] = phi
-  refinements(Y)[(CY, CY_simp)] = psi
-  CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
-
-  # compose the covering morphisms
-  p_cov_simp = compose(phi, p_cov)
-  CX = codomain(p_cov)
-  E = exceptional_divisor(p)
-  for U in patches(CY_simp)
-    p_res = p_cov_simp[U]
-    V = codomain(p_res)
-    J = image_ideal(inc)(V)
-    pbJ = ideal(OO(U), pullback(p_res).(gens(J)))
-    pbJ_sat = saturated_ideal(pbJ)
-    pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
-    pbJ = ideal(OO(U), [g for g in OO(U).(gens(pbJ_sat)) if !iszero(g)])
-    ID[U] = pbJ
-  end
-
-  I_trans = IdealSheaf(Y, ID, check=false) # TODO: Set to false
-  inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, covering=CY_simp, check=false)
-  return inc_Z_trans
 end
 
