@@ -20,14 +20,22 @@ export saturated_ideal
     r = new{elem_type(R)}()
     r.I = I
     r.ordering = ordering
-    groebner_assure(r.I, ordering)
-    oscar_assure(r.I.gb[ordering])
-    singular_assure(r.I.gb[ordering])
-    SG = r.I.gb[ordering].gens.S
-    r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
-    r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
     return r
   end
+end
+
+function groebner_assure(r::MPolyQuo)
+  if isdefined(r, :SQRGB)
+    return true
+  end
+  ordering = r.ordering
+  groebner_assure(r.I, ordering)
+  oscar_assure(r.I.gb[ordering])
+  singular_assure(r.I.gb[ordering])
+  SG = r.I.gb[ordering].gens.S
+  r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
+  r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
+  return true
 end
 
 function show(io::IO, Q::MPolyQuo)
@@ -44,10 +52,10 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuo) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuo) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuo) = Q.I
-oscar_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuo) = Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuo) = Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuo) = Q.SQR
+oscar_groebner_basis(Q::MPolyQuo) = groebner_assure(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuo) = groebner_assure(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuo) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuo) = groebner_assure(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuo) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuo) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuo) = base_ring(Q)
@@ -948,7 +956,7 @@ end
 
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuo)
-  G = Q.I.gb[Q.ordering].gens.S
+  G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
     error("ideal was no zero-dimensional")
