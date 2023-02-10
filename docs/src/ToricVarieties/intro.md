@@ -28,6 +28,11 @@ we provide support for the following:
 This project is work-in-progress.
 
 
+## Tutorial
+
+We provde a [tutorial for toric geometry in OSCAR ](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/ToricGeometryInOSCAR.ipynb).
+
+
 ## Long term goals
 
 We follow [CLS11](@cite). Our long term goals include the following:
