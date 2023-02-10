@@ -8,7 +8,7 @@ export Localization
 export MPolyQuoLocalizedRingElem
 export numerator, denominator, parent, lift, is_unit, inv, convert, lifted_numerator, lifted_denominator, fraction
 
-export MPolyQuoLocalizedRingHom
+export
 export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type, ideal_type
 export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
@@ -272,10 +272,6 @@ end
 Given a quotient `RQ` of a multivariate polynomial ring `R` with projection map
 `p : R -> RQ`, say, and given a multiplicatively closed subset `U` of `R`, return the 
 localization of `RQ` at `p(U)`, together with the localization map.
-
-!!! note
-    Internally, this amounts to localize the `R`-module `RQ` at `U`, and equip the result with the
-    appropriate ring structure.
 
 # Examples
 

@@ -2367,9 +2367,9 @@ the generators of `R`, and proceed as above.
 
 Given a localized ring `RQL`of type `MPolyQuoLocalizedRing`, say `RQL` is the localization 
 of a quotient ring `RQ` of a multivariate polynomial ring `R` at the multiplicatively closed subset `U` of `R`, and 
-given a homomorphism `phi` from `R` to `S` sending elements of `U` to units in `S`, return 
-the homomorphism from `Rloc` to `S` which composed with the composition `R -> RQ -> RQL` of
-the localization map with the projection map is `phi`.
+given a homomorphism `phi` from `R` to `S` sending elements of `U` to units in `S` and elements of the modulus
+of `RQ` to zero, return the homomorphism from `Rloc` to `S` whose composition with the localization map `RQ -> RQL`
+and the projection map `R -> RQ` is `phi`.
 
     hom(RQL::MPolyQuoLocalizedRing, S::Ring, V::Vector)
 
@@ -2378,7 +2378,7 @@ be the homomorphism from `R` to `S` which is determined by the entries of `V` as
 the generators of `R`, and proceed as above.
 
 !!! warning
-    Except from the case where the type of `U` is `<: MPolyPowersOfElement`, the extra condition on `phi` is not checked by this constructor.
+    Except from the case where the type of `U` is `<: MPolyPowersOfElement`, the extra condition on `phi` is not checked by the `hom` constructor.
  
 # Examples
 ```jldoctest

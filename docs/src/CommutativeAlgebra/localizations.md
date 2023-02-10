@@ -31,25 +31,21 @@ Mimicking the standard arithmetic for fractions, ``R[U^{-1}]`` can be made into 
 \iota : R\rightarrow R[U^{-1}],\; r \mapsto \frac{r}{1}.
 ```
 Given an ``R``-module ``M``, the analogous construction yields an ``R[U^{-1}]``-module ``M[U^{-1}]`` which is
-called the *localization  of ``M`` at ``U``*.  See, for instance, [Eis95](@cite).
+called the *localization  of ``M`` at ``U``*. See the section on modules.
 
-OSCAR supports several types of multiplicatively closed subsets of multivariate polynomial rings.
-The related functionality is not only used to construct localizations of
-- multivariate polynomial rings (OSCAR type `MPolyRing`),
-but also to construct localizations of
-- quotients of multivariate polynomial rings (OSCAR type `MPolyQuo`).
-
-For the latter, recall that if ``A`` is a quotient of a multivariate polynomial ring ``R``,
-``p: R \rightarrow A`` is the projection map, and ``S`` is a multiplicatively closed subset of ``A``,
-then the preimage $U = p^{-1}(S)$ is a multiplicatively closed subset of ``R`` such that ``S = p(U)``.
-Creating the localization of the ring ``A`` at ``S `` in OSCAR amounts to localize the ``R``-module
-``A`` at ``U``, and equip the result with the appropriate ring structure. Hence, the corresponding
-constructor takes as input ``A`` and ``U`` rather than ``A`` and ``S``.
+Our focus in this section is on localizing multivariate polynomial rings and their quotients. The starting point
+for this is to provide functionality for handling (several types of) multiplicatively closed subsets of multivariate
+polynomial rings. Given such a polynomial ring `R` and a multiplicatively closed subset `U` of `R` whose type
+is supported by OSCAR, entering `localization(R, U)` creates the localization of `R` at `U`. Given a quotient
+`RQ` of `R`, with projection map `p : R -> RQ`, and given a multiplicatively closed subset `U` of `R`, 
+entering `localization(RQ, U)` creates the localization of `RQ` at `p(U)`: Since every multiplicatively
+closed subset of `RQ` is of type `p(U)` for some `U`, there is no need to support an extra type for
+multiplicatively closed subsets of quotients.
 
 !!! note
-    Most functions described in this section rely on the computation of standard bases. Recall that OSCAR supports standard
-    bases for multivariate polynomial rings over fields (exact fields supported by OSCAR) and for multivariate
-	polynomial rings over the integers.	
+    Quite a number of functions described below rely on the computation of standard bases. Recall that OSCAR
+    supports standard bases for multivariate polynomial rings over fields (exact fields supported by OSCAR) and
+	for multivariate polynomial rings over the integers.	
 
 ## Types
 
@@ -57,8 +53,9 @@ The OSCAR types discussed in this section are all parametrized. To simplify the 
 details on the parameters are omitted.
 
 All types for multiplicatively closed subsets of rings belong to the abstract type `AbsMultSet`.
-For multiplicatively closed subsets of multivariate polynomial rings, there are the concrete descendants
-`MPolyComplementOfKPointIdeal`, `MPolyComplementOfPrimeIdeal`, and `MPolyPowersOfElement`.
+For multiplicatively closed subsets of multivariate polynomial rings, there are the abstract subtype
+`AbsPolyMultSet` and its concrete descendants `MPolyComplementOfKPointIdeal`,
+`MPolyComplementOfPrimeIdeal`, and `MPolyPowersOfElement`.
 
 The general abstract type for localizations of rings is `AbsLocalizedRing`. For localizations of multivariate
 polynomial rings, there is the concrete subtype `MPolyLocalizedRing`. For localizations of quotients of
@@ -116,7 +113,7 @@ multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at 
 - `base_ring(RQL)` refers to `R`, and
 - `inverted_set(RQL)` to `U`.
 
-This reflects the internal way of creating localizations of quotients of multivariate polynomial rings.
+This reflects the way of creating localizations of quotients of multivariate polynomial rings in OSCAR.
 
 ##### Examples
 
@@ -282,11 +279,11 @@ represented by a pair `(r, u)` of elements of `R`, then
 - `denominator(f)` to `u`.
 If `RQL` is a localization of a quotient `RQ` of a multivariate polynomial ring `R`, and `f` is an element of `RQL`,
 internally represented by a pair `(r, u)` of elements of `R`, then
-- `parent(f)` refers to `Rloc`,
+- `parent(f)` refers to `RQL`,
 - `numerator(f)` to the image of `r` in `RQ`, and
 - `denominator(f)` to the image of `u` in `RQ`.
-That is, the behaviour of the functions `numerator` and `denominator` reflects our mathematical viewpoint
-of representing `f` by pairs of elements of `RQ`, rather than reflecting the internal representation of `f`.
+That is, the behaviour of the functions `numerator` and `denominator` reflects the mathematical viewpoint
+of representing `f` by pairs of elements of `RQ` and not the internal representation of `f` as pairs of elements of `R`.
 
 ##### Examples
 
@@ -380,19 +377,19 @@ rings, there is the concrete subtype `MPolyQuoLocalizedRingHom`. We describe the
 homomorphisms. Let
 - `R` be a multivariate polynomial ring
 - `U` be a multiplicatively closed subset  of `R`,
-- `RQ` be a quotient of `R` with projection map `p: R -> RQ`,
+- `RQ = R/I` be a quotient of `R` with projection map `p: R -> RQ`,
 - `Rloc` (`RQL`) be the localization of `R` at `U` (of `RQ` at `p(U)`), and
 - `S` be another ring.
 Then, to give a ring homomorphism `PHI`  from `Rloc` to `S` (from`RQL` to `S`) is the same
 as to give a ring homomorphism `phi` from `R` to `S` which sends elements of `U` to units
-in `S`. That is, `PHI` is determined by its composition with the localization map
-`R -> Rloc` (with the composition `R -> RQ -> RQL` of the localization map with the
-projection map). The constructors below take this into account.
+in `S` (and elements of `I` to zero). That is, `PHI` is determined by composing it with the localization map `R -> Rloc`
+(by composing it with the composition of the localization map `RQ -> RQL` and the projection
+map `R -> RQ`). The constructors below take this into account.
 
 ```@docs
 hom(Rloc::MPolyLocalizedRing, S::Ring, F::Map)
 ```
-	
+
 Given a ring homomorphism `PHI` from `Rloc` to `S` (from `RQL` to `S`), `domain(PHI)` and `codomain(PHI)`
 refer to `Rloc` and `S` (`RQL`  and `S`), respectively. The corresponding homomorphism `phi` from `R`
 to `S` is recovered as follows:
