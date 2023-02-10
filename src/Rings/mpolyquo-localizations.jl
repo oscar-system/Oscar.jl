@@ -8,7 +8,7 @@ export Localization
 export MPolyQuoLocalizedRingElem
 export numerator, denominator, parent, lift, is_unit, inv, convert, lifted_numerator, lifted_denominator, fraction
 
-export
+export MPolyQuoLocalizedRingHom
 export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type, ideal_type
 export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
