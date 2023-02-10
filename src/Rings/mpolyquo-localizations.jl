@@ -266,6 +266,46 @@ function quo(
   return P, hom(L, P, gens(P))
 end
 
+@Markdown.doc """
+    localization(RQ::MPolyQuo, U::AbsMPolyMultSet)
+
+Given a quotient `RQ` of a multivariate polynomial ring `R` with projection map
+`p : R -> RQ`, say, and given a multiplicatively closed subset `U` of `R`, return the 
+localization of `RQ` at `p(U)`, together with the localization map.
+
+# Examples
+
+```jldoctest
+julia> T, t = PolynomialRing(QQ, "t");
+
+julia> K, a =  NumberField(2*t^2-1, "a");
+
+julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+
+julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia> P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia> U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia> RQ, _ = quo(R, I);
+
+julia> RQL, iota = localization(RQ, U);
+
+julia> RQL
+Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+
+julia> iota
+Map from
+Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
+```
+""" localization(A::MPolyQuo, U::AbsMPolyMultSet)
+
+###localization is an Abstract Algebra alias for Localization
+
 function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
   L = MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, Localization(S)[1])
   return L, MapFromFunc((x->L(lift(x))), Q, L)
@@ -494,6 +534,39 @@ For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representati
 ``a//b ∈  𝕜[x₁,…,xₙ][S⁻¹]`` of the fraction. 
 """
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
+
+
+@Markdown.doc """
+    is_unit(f::MPolyQuoLocalizedRingElem) 
+
+Return `true`, if `f` is a unit of `parent(f)`, `true` otherwise.
+
+# Examples
+
+```jldoctest
+julia> T, t = PolynomialRing(QQ, "t");
+
+julia> K, a =  NumberField(2*t^2-1, "a");
+
+julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+
+julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia> P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia> U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia> RQ, p = quo(R, I);
+
+julia> RQL, iota = Localization(RQ, U);
+
+julia> is_unit(iota(p(x)))
+true
+```
+""" is_unit(f::MPolyQuoLocalizedRingElem)
 
 function is_unit(f::MPolyQuoLocalizedRingElem) 
   lifted_numerator(f) in inverted_set(parent(f)) && return true
@@ -936,6 +1009,7 @@ function MPolyQuoLocalizedRingHom(
   return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
+hom(L::MPolyQuoLocalizedRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, a, check=check)
 hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a, check=check)
 
 ### implementing the Oscar map interface
