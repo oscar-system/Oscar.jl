@@ -272,14 +272,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     x_img = gens(OO(X))
     x_img = pullback(inverse(iso_X)).(x_img)
     x_img = OO(XYZ).(x_img)
-    phi = restrict(iso_Y, YX, XYZ)
+    phi = restrict(iso_Y, YX, XYZ, check=false)
     x_img = pullback(phi).(x_img)
     g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
     
     y_img = gens(OO(Y))
     y_img = pullback(inverse(iso_Y)).(y_img)
     y_img = OO(XYZ).(y_img)
-    psi = restrict(iso_X, XY, XYZ)
+    psi = restrict(iso_X, XY, XYZ, check=false)
     y_img = pullback(psi).(y_img)
     f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
     return SimpleGlueing(X, Y, f, g, check=false)
@@ -317,14 +317,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
   YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
 
-  fres = restrict(f, UXY, VYX)
-  gres = restrict(g, VYX, UXY)
+  fres = restrict(f, UXY, VYX, check=false)
+  gres = restrict(g, VYX, UXY, check=false)
 
   x_img = gens(OO(X))
   x_img = pullback(inverse(iso_X)).(x_img)
   x_img = OO(UXY).(x_img)
   x_img = pullback(gres).(x_img)
-  phi = restrict(iso_Y, YX, VYX)
+  phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
   gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img))
 
@@ -332,7 +332,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(inverse(iso_Y)).(y_img)
   y_img = OO(VYX).(y_img)
   y_img = pullback(fres).(y_img)
-  psi = restrict(iso_X, XY, UXY)
+  psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)
   ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
 
@@ -361,14 +361,3 @@ function inherit_glueings!(ref::Covering, orig::Covering)
   return ref
 end
 
-function is_refinement(D::Covering, C::Covering)
-  if !all(x->some_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
-    return false, nothing
-  end
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
-  for U in patches(D)
-    f, _ = _find_chart(U, C)
-    map_dict[U] = f
-  end
-  return true, CoveringMorphism(D, C, map_dict, check=false)
-end
