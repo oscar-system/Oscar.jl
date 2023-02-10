@@ -157,9 +157,7 @@ end
   return domain(inc), inc
 end
 
-@attr function singular_locus(
-    X::AbsCoveredScheme;
-  )
+@attr function singular_locus(X::AbsCoveredScheme)
   D = IdDict{AbsSpec, Ideal}()
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   for U in covering
