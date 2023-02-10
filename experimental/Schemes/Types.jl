@@ -444,7 +444,7 @@ identifications given by the glueings in the `default_covering`.
         G = default_covering(X)[W, U]
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
-        g_res = restrict(g, U, V_direct)
+        g_res = restrict(g, U, V_direct, check=false)
         return pullback(compose(g_res, inverse(incV)))
         ### deprecated code below; see comment above
         function rho_func2(a::RingElem)
@@ -476,7 +476,7 @@ identifications given by the glueings in the `default_covering`.
         f, g = glueing_morphisms(G)
         VV_flat = intersect(V_flat, codomain(f))
         VU = preimage(f, VV_flat)
-        fres = restrict(f, VU, VV_flat)
+        fres = restrict(f, VU, VV_flat, check=false)
         inc_V_flat_inv = inverse(inc_V_flat)
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
