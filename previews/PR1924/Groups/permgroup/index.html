@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Permutation groups · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox" checked/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li><a class="tocitem" href="../basics/">Basics</a></li><li><a class="tocitem" href="../subgroups/">Subgroups</a></li><li><a class="tocitem" href="../quotients/">Quotients</a></li><li><a class="tocitem" href="../products/">Products of groups</a></li><li class="is-active"><a class="tocitem" href>Permutation groups</a><ul class="internal"><li><a class="tocitem" href="#Permutations"><span>Permutations</span></a></li><li><a class="tocitem" href="#Operations-on-permutations"><span>Operations on permutations</span></a></li><li><a class="tocitem" href="#Permutations-as-functions"><span>Permutations as functions</span></a></li><li><a class="tocitem" href="#Operations-for-permutation-groups"><span>Operations for permutation groups</span></a></li></ul></li><li><a class="tocitem" href="../fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../action/">Group Actions</a></li><li><a class="tocitem" href="../grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/homological_algebra/">Homological Algebra</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox"/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Gröbner Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Surfaces/K3Surfaces/">Algebraic Surfaces</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Groups</a></li><li class="is-active"><a href>Permutation groups</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Permutation groups</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/Groups/permgroup.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Permutation-groups">Permutation groups</a></li><li class="no-marker"><ul><li><a href="#Permutations">Permutations</a></li><li><a href="#Operations-on-permutations">Operations on permutations</a></li><li><a href="#Permutations-as-functions">Permutations as functions</a></li><li><a href="#Operations-for-permutation-groups">Operations for permutation groups</a></li></ul></li></ul><h1 id="Permutation-groups"><a class="docs-heading-anchor" href="#Permutation-groups">Permutation groups</a><a id="Permutation-groups-1"></a><a class="docs-heading-anchor-permalink" href="#Permutation-groups" title="Permalink"></a></h1><p>Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.</p><article class="docstring"><header><a class="docstring-binding" id="PermGroup" href="#PermGroup"><code>PermGroup</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">PermGroup</code></pre><p>Groups of permutations. Every group of this type is a subgroup of Sym(n) for some n.</p><p><strong>Examples</strong></p><ul><li><code>symmetric_group(n::Int)</code>: the symmetric group Sym(n)</li><li><code>alternating_group(n::Int)</code>: the alternating group Alt(n)</li><li>subgroups of Sym(n)</li><li><code>dihedral_group(PermGroup, n::Int)</code>: the dihedral group of order <code>n</code> as a group of permutations. Same holds replacing <code>dihedral_group</code> by <code>quaternion_group</code></li></ul><p>If <code>G</code> is a permutation group and <code>x</code> is a permutation, <code>G(x)</code> returns a permutation <code>x</code> with parent <code>G</code>; an exception is thrown if <code>x</code> does not embed into <code>G</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; G=symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia&gt; x=cperm([1,2,3])
+(1,2,3)
+
+julia&gt; parent(x)
+Sym( [ 1 .. 3 ] )
+
+julia&gt; y=G(x)
+(1,2,3)
+
+julia&gt; parent(y)
+Sym( [ 1 .. 5 ] )</code></pre><p>If <code>G</code> is a permutation group and <code>L</code> is a vector of integers, <code>G(x)</code> returns a <a href="#PermGroupElem"><code>PermGroupElem</code></a> with parent <code>G</code>; an exception is thrown if the element does not embed into <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = symmetric_group(6)
+Sym( [ 1 .. 6 ] )
+
+julia&gt; x = G([2,4,6,1,3,5])
+(1,2,4)(3,6,5)
+
+julia&gt; parent(x)
+Sym( [ 1 .. 6 ] )</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/types.jl#L73-L122">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="PermGroupElem" href="#PermGroupElem"><code>PermGroupElem</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">PermGroupElem</code></pre><p>Element of a group of permutations. It is displayed as product of disjoint cycles.</p><p><strong>Assumptions:</strong></p><ul><li>for <code>x</code>,<code>y</code> in Sym(n), the product <code>xy</code> is read from left to right;</li><li>for <code>x</code> in Sym(n) and <code>i</code> in {1,...,n}, <code>i^x</code> and <code>x(i)</code> return the image of <code>i</code> under the action of <code>x</code>.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/types.jl#L147-L155">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="symmetric_group" href="#symmetric_group"><code>symmetric_group</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">symmetric_group(n::Int)</code></pre><p>Return the full symmetric group on the set <code>{1, 2, ..., n}</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia&gt; order(G)
+120
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/group_constructors.jl#L36-L50">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_natural_symmetric_group-Tuple{Oscar.GAPGroup}" href="#is_natural_symmetric_group-Tuple{Oscar.GAPGroup}"><code>is_natural_symmetric_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_natural_symmetric_group(G::GAPGroup)</code></pre><p>Return <code>true</code> if <code>G</code> is a permutation group acting as the symmetric group on its moved points, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/group_constructors.jl#L56-L61">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_isomorphic_with_symmetric_group-Tuple{Oscar.GAPGroup}" href="#is_isomorphic_with_symmetric_group-Tuple{Oscar.GAPGroup}"><code>is_isomorphic_with_symmetric_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_isomorphic_with_symmetric_group(G::GAPGroup)</code></pre><p>Return <code>true</code> if <code>G</code> is isomorphic with a symmetric group, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/group_constructors.jl#L64-L69">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="alternating_group" href="#alternating_group"><code>alternating_group</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">alternating_group(n::Int)</code></pre><p>Return the full alternating group on the set <code>{1, 2, ..., n}</code>..</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = alternating_group(5)
+Alt( [ 1 .. 5 ] )
+
+julia&gt; order(G)
+60
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/group_constructors.jl#L72-L86">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_natural_alternating_group-Tuple{Oscar.GAPGroup}" href="#is_natural_alternating_group-Tuple{Oscar.GAPGroup}"><code>is_natural_alternating_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_natural_alternating_group(G::GAPGroup)</code></pre><p>Return <code>true</code> if <code>G</code> is a permutation group acting as the alternating group on its moved points, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/group_constructors.jl#L92-L97">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_isomorphic_with_alternating_group-Tuple{Oscar.GAPGroup}" href="#is_isomorphic_with_alternating_group-Tuple{Oscar.GAPGroup}"><code>is_isomorphic_with_alternating_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_isomorphic_with_alternating_group(G::GAPGroup)</code></pre><p>Return <code>true</code> if <code>G</code> is isomorphic with an alternating group, and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/group_constructors.jl#L100-L105">source</a></section></article><p>In OSCAR, every permutation group has a degree <code>n</code>, that corresponds to the size of the set on which <code>G</code> acts.</p><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{PermGroup}" href="#degree-Tuple{PermGroup}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(G::PermGroup) -&gt; Int</code></pre><p>Return the degree of <code>G</code> as a permutation group, that is, an integer <code>n</code> that is stored in <code>G</code>, with the following meaning.</p><ul><li><code>G</code> embeds into <code>symmetric_group(n)</code>.</li><li>Two permutation groups of different degrees are regarded as not equal, even if they contain the same permutations.</li><li>Subgroups constructed with <code>derived_subgroup</code>, <code>sylow_subgroup</code>, etc., get the same degree as the given group.</li><li>The range <code>1:degree(G)</code> is used as the default set of points on which <code>G</code> and its element acts.</li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The degree of a group of permutations is not necessarily equal to the largest moved point of the group <code>G</code>. For example, the trivial subgroup of <code>symmetric_group(n)</code> has degree <code>n</code> even though it fixes <code>n</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; degree(symmetric_group(4))
+4
+
+julia&gt; t4 = trivial_subgroup(symmetric_group(4))[1];
+
+julia&gt; degree(t4)
+4
+
+julia&gt; t4 == trivial_subgroup(symmetric_group(5))[1]
+false
+
+julia&gt; show(Vector(gen(symmetric_group(4), 2)))
+[2, 1, 3, 4]
+julia&gt; show(Vector(gen(symmetric_group(5), 2)))
+[2, 1, 3, 4, 5]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L16-L53">source</a></section></article><h2 id="Permutations"><a class="docs-heading-anchor" href="#Permutations">Permutations</a><a id="Permutations-1"></a><a class="docs-heading-anchor-permalink" href="#Permutations" title="Permalink"></a></h2><p>Permutations in OSCAR are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions <code>perm</code>, <code>cperm</code>, or <code>@perm</code>.</p><article class="docstring"><header><a class="docstring-binding" id="perm" href="#perm"><code>perm</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">perm(L::AbstractVector{&lt;:IntegerUnion})</code></pre><p>Return the permutation <span>$x$</span> which maps every <span>$i$</span> from <code>1</code> to <span>$n$</span><code>= length(L)</code> to <code>L</code><span>$[i]$</span>. The parent of <span>$x$</span> is set to <a href="#symmetric_group"><code>symmetric_group</code></a><span>$(n)$</span>. An exception is thrown if <code>L</code> does not contain every integer from 1 to <span>$n$</span> exactly once.</p><p>The parent group of <span>$x$</span> is set to <a href="#symmetric_group"><code>symmetric_group</code></a><span>$(n)$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; x = perm([2,4,6,1,3,5])
+(1,2,4)(3,6,5)
+
+julia&gt; parent(x)
+Sym( [ 1 .. 6 ] )</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L106">source</a></section><section><div><pre><code class="nohighlight hljs">perm(G::PermGroup, L::AbstractVector{&lt;:IntegerUnion})
+(G::PermGroup)(L::AbstractVector{&lt;:IntegerUnion})</code></pre><p>Return the permutation <span>$x$</span> which maps every <code>i</code> from 1 to <span>$n$</span><code>= length(L)</code> to <code>L</code><span>$[i]$</span>. The parent of <span>$x$</span> is <code>G</code>. An exception is thrown if <span>$x$</span> is not contained in <code>G</code> or <code>L</code> does not contain every integer from 1 to <span>$n$</span> exactly once.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; perm(symmetric_group(6),[2,4,6,1,3,5])
+(1,2,4)(3,6,5)</code></pre><p>Equivalent permutations can be created using <a href="#cperm"><code>cperm</code></a> and <a href="#@perm"><code>@perm</code></a></p><pre><code class="language-julia-repl hljs">julia&gt; x = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; y = cperm([1,2,3],[4,5],[6,7,8])
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; x == y
+true
+
+julia&gt; z = @perm (1,2,3)(4,5)(6,7,8)
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; x == z
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L131">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="cperm" href="#cperm"><code>cperm</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">cperm(L::AbstractVector{&lt;:T}...) where T &lt;: IntegerUnion
+cperm(G::PermGroup, L::AbstractVector{&lt;:T}...)
+cperm(L::Vector{Vector{T}}) where T &lt;: IntegerUnion
+cperm(g::PermGroup,L::Vector{Vector{T}}) where T &lt;: IntegerUnion</code></pre><p>For given lists <span>$[a_1, a_2, \ldots, a_n], [b_1, b_2, \ldots , b_m], \ldots$</span> of positive integers, return the permutation <span>$x = (a_1, a_2, \ldots, a_n) * (b_1, b_2, \ldots, b_m) * \ldots$</span>. Arrays of the form <code>[n, n+1, ..., n+k]</code> can be replaced by <code>n:n+k</code>.</p><p>The parent of <span>$x$</span> is <code>G</code>. If <code>G</code> is not specified then the parent of <span>$x$</span> is set to <a href="#symmetric_group"><code>symmetric_group</code></a><span>$(n)$</span>, where <span>$n$</span> is the largest integer that occurs in an entry of <code>L</code>.</p><p>An exception is thrown if <span>$x$</span> is not contained in <code>G</code> or one of the given vectors is empty or contains duplicates.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; cperm([1,2,3],4:7)
+(1,2,3)(4,5,6,7)
+
+julia&gt; cperm([1,2],[2,3])
+(1,3,2)
+
+julia&gt; p = cperm([1,2,3],[7])
+(1,2,3)
+
+julia&gt; degree(p)
+7</code></pre><p>Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.</p><pre><code class="language-julia-repl hljs">julia&gt; G=symmetric_group(5);
+
+julia&gt; A=alternating_group(5);
+
+julia&gt; x=cperm(G,[1,2,3]);
+
+julia&gt; y=cperm(A,[1,2,3]);
+
+julia&gt; z=cperm([1,2,3]); parent(z)
+Sym( [ 1 .. 3 ] )
+
+julia&gt; x==y
+true
+
+julia&gt; x==z
+false</code></pre><p>In the example above, <code>x</code> and <code>y</code> are equal because both act on a set of cardinality <code>5</code>, while <code>x</code> and <code>z</code> are different because <code>x</code> belongs to <code>Sym(5)</code> and <code>z</code> belongs to <code>Sym(3)</code>.</p><p>cperm can also handle cycles passed in inside of a vector</p><pre><code class="language-julia-repl hljs">julia&gt; x = cperm([[1,2],[3,4]])
+(1,2)(3,4)
+
+julia&gt; y = cperm([1,2],[3,4])
+(1,2)(3,4)
+
+julia&gt; x == y
+true</code></pre><pre><code class="language-julia-repl hljs">julia&gt; G=symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia&gt; x = cperm(G,[[1,2],[3,4]])
+(1,2)(3,4)
+
+julia&gt; parent(x)
+Sym( [ 1 .. 5 ] )</code></pre><p>Equivalent permutations can be created using <a href="#perm"><code>perm</code></a> and <a href="#@perm"><code>@perm</code></a>:</p><pre><code class="language-julia-repl hljs">julia&gt; x = cperm([1,2,3],[4,5],[6,7,8])
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; y = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; x == y
+true
+
+julia&gt; z = @perm (1,2,3)(4,5)(6,7,8)
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; x == z
+true</code></pre><p>At the moment, the input vectors of the function <code>cperm</code> need not be disjoint.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L187">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="@perm" href="#@perm"><code>@perm</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia hljs">@perm ex</code></pre><p>Input a permutation in cycle notation. Supports arbitrary expressions for generating the integer entries of the cycles. The parent group is inferred  to be the symmetric group with a degree of the highest integer referenced  in the permutation.</p><p>The actual work is done by <a href="#cperm"><code>cperm</code></a>. Thus, for the time being, cycles which are <em>not</em> disjoint actually are supported.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; x = @perm (1,2,3)(4,5)(factorial(3),7,8)
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; parent(x)
+Sym( [ 1 .. 8 ] )
+
+julia&gt; y = cperm([1,2,3],[4,5],[6,7,8])
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; x == y
+true
+
+julia&gt; z = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
+(1,2,3)(4,5)(6,7,8)
+
+julia&gt; x == z
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L580">source</a></section><section><div><pre><code class="nohighlight hljs">@perm n gens</code></pre><p>Input a list of permutations in cycle notation, created as elements of the symmetric group of degree <code>n</code>, i.e., <code>symmetric_group(n)</code>, by invoking <a href="#cperm"><code>cperm</code></a> suitably..</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; gens = @perm 14 [
+              (1,10)
+              (2,11)
+              (3,12)
+              (4,13)
+              (5,14)
+              (6,8)
+              (7,9)
+              (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
+              (1,2)(10,11)
+             ]
+9-element Vector{PermGroupElem}:
+ (1,10)
+ (2,11)
+ (3,12)
+ (4,13)
+ (5,14)
+ (6,8)
+ (7,9)
+ (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
+ (1,2)(10,11)
+ 
+julia&gt; parent(gens[1])
+Sym( [ 1 .. 14 ] )</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L622">source</a></section></article><p>The function <code>Vector{T}</code> works in the opposite way with respect to <code>perm</code>:</p><article class="docstring"><header><a class="docstring-binding" id="Vector" href="#Vector"><code>Vector</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T &lt;: IntegerUnion
+Vector(x::PermGroupElem, n::Int = x.parent.deg)</code></pre><p>Return the list of length <code>n</code> that contains <code>x(i)</code> at position <code>i</code>. If not specified, <code>T</code> is set as <code>Int</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; pi = cperm(1:3)
+(1,2,3)
+julia&gt; Vector(pi)
+3-element Vector{Int64}:
+ 2
+ 3
+ 1
+julia&gt; Vector(pi, 2)
+2-element Vector{Int64}:
+ 2
+ 3
+julia&gt; Vector(pi, 4)
+4-element Vector{Int64}:
+ 2
+ 3
+ 1
+ 4
+julia&gt; Vector{fmpz}(pi, 2)
+2-element Vector{fmpz}:
+ 2
+ 3
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L319-L350">source</a></section></article><h2 id="Operations-on-permutations"><a class="docs-heading-anchor" href="#Operations-on-permutations">Operations on permutations</a><a id="Operations-on-permutations-1"></a><a class="docs-heading-anchor-permalink" href="#Operations-on-permutations" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="sign-Tuple{PermGroupElem}" href="#sign-Tuple{PermGroupElem}"><code>sign</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">sign(g::PermGroupElem) -&gt; Int</code></pre><p>Return the sign of the permutation <code>g</code>.</p><p>The sign of a permutation <span>$g$</span> is defined as <span>$(-1)^k$</span> where <span>$k$</span> is the number of cycles of <span>$g$</span> of even length.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; sign(cperm(1:2))
+-1
+
+julia&gt; sign(cperm(1:3))
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L362-L378">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isodd-Tuple{PermGroupElem}" href="#isodd-Tuple{PermGroupElem}"><code>isodd</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isodd(g::PermGroupElem)</code></pre><p>Return <code>true</code> if the permutation <code>g</code> is odd, <code>false</code> otherwise.</p><p>A permutation is odd if it has an odd number of cycles of even length. Equivalently, a permutation is odd if it has sign <span>$-1$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; isodd(cperm(1:2))
+true
+
+julia&gt; isodd(cperm(1:3))
+false
+
+julia&gt; isodd(cperm(1:2,3:4))
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L385-L404">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="iseven-Tuple{PermGroupElem}" href="#iseven-Tuple{PermGroupElem}"><code>iseven</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">iseven(g::PermGroupElem)</code></pre><p>Return <code>true</code> if the permutation <code>g</code> is even, <code>false</code> otherwise.</p><p>A permutation is even if it has an even number of cycles of even length. Equivalently, a permutation is even if it has sign <span>$+1$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; iseven(cperm(1:2))
+false
+
+julia&gt; iseven(cperm(1:3))
+true
+
+julia&gt; iseven(cperm(1:2,3:4))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L407-L426">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="cycle_structure-Tuple{PermGroupElem}" href="#cycle_structure-Tuple{PermGroupElem}"><code>cycle_structure</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">cycle_structure(g::PermGroupElem) -&gt; CycleType</code></pre><p>Return the cycle structure of the permutation <code>g</code> as a cycle type. A cycle type behaves similar to a vector of pairs <code>k =&gt; n</code> indicating that there are <code>n</code> cycles of length <code>k</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; g = cperm(1:3, 4:5, 6:7, 8:10, 11:15)
+(1,2,3)(4,5)(6,7)(8,9,10)(11,12,13,14,15)
+
+julia&gt; cycle_structure(g)
+3-element Oscar.CycleType:
+ 2 =&gt; 2
+ 3 =&gt; 2
+ 5 =&gt; 1
+
+julia&gt; cperm()
+()
+
+julia&gt; cycle_structure(ans)
+1-element Oscar.CycleType:
+ 1 =&gt; 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/perm.jl#L499-L524">source</a></section></article><h2 id="Permutations-as-functions"><a class="docs-heading-anchor" href="#Permutations-as-functions">Permutations as functions</a><a id="Permutations-as-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Permutations-as-functions" title="Permalink"></a></h2><p>A permutation can be viewed as a function on the set <code>{1,...,n}</code>, hence it can be evaluated on integers.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The multiplication between permutations works from the left to the right. So, if <code>x</code> and <code>y</code> are permutations and <code>n</code> is an integer, then <code>(x*y)(n) = (y(x(n))</code>, NOT <code>x(y(n))</code>. This works also if the argument is not in the range <code>1:n</code>; in such a case, the output coincides with the input.</p></div></div><pre><code class="language-julia-repl hljs">julia&gt; x = cperm([1,2,3,4,5]);
+
+julia&gt; x(2)
+3
+
+julia&gt; x(6)
+6</code></pre><h2 id="Operations-for-permutation-groups"><a class="docs-heading-anchor" href="#Operations-for-permutation-groups">Operations for permutation groups</a><a id="Operations-for-permutation-groups-1"></a><a class="docs-heading-anchor-permalink" href="#Operations-for-permutation-groups" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="is_transitive" href="#is_transitive"><code>is_transitive</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))</code></pre><p>Return whether <code>G</code> acts transitively on <code>L</code>, that is, <code>L</code> is an orbit of <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = symmetric_group(6);
+
+julia&gt; is_transitive(G)
+true
+
+julia&gt; is_transitive(sylow_subgroup(G, 2)[1])
+false
+
+julia&gt; is_transitive(stabilizer(G, 1)[1])
+false
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L868-L888">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="transitivity" href="#transitivity"><code>transitivity</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))</code></pre><p>Return the maximum <code>k</code> such that <code>G</code> acts <code>k</code>-transitively on <code>L</code>, that is, every <code>k</code>-tuple of points in <code>L</code> can be mapped simultaneously to every other <code>k</code>-tuple by an element of <code>G</code>.</p><p>The output is <code>0</code> if <code>G</code> acts intransitively on <code>L</code>, and an exception is thrown if <code>G</code> does not act on <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; transitivity(mathieu_group(24))
+5
+
+julia&gt; transitivity(symmetric_group(6))
+6
+
+julia&gt; transitivity(symmetric_group(6), 1:7)
+0
+
+julia&gt; transitivity(symmetric_group(6), 1:5)
+ERROR: ArgumentError: the group does not act</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L827-L851">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_primitive" href="#is_primitive"><code>is_primitive</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))</code></pre><p>Return whether the action of <code>G</code> on <code>L</code> is primitive, that is, the action is transitive and the point stabilizers are maximal in <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = alternating_group(6);
+
+julia&gt; mx = filter(is_transitive, maximal_subgroup_reps(G))
+3-element Vector{PermGroup}:
+ Group([ (1,2)(3,4), (1,2)(5,6), (1,3,5)(2,4,6), (1,3)(2,4) ])
+ Group([ (1,2,3), (4,5,6), (1,2)(4,5), (1,5,2,4)(3,6) ])
+ PSL(2,5)
+
+julia&gt; [(order(H), is_primitive(H)) for H in mx]
+3-element Vector{Tuple{fmpz, Bool}}:
+ (24, 0)
+ (36, 0)
+ (60, 1)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L895-L918">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_regular" href="#is_regular"><code>is_regular</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))</code></pre><p>Return whether the action of <code>G</code> on <code>L</code> is regular (i.e., transitive and semiregular).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = symmetric_group(6);
+
+julia&gt; H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
+Group([ (1,2,3,4,5,6) ])
+
+julia&gt; is_regular(H)
+true
+
+julia&gt; is_regular(G)
+false
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L922-L942">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_semiregular" href="#is_semiregular"><code>is_semiregular</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))</code></pre><p>Return whether the action of <code>G</code> on <code>L</code> is semiregular (i.e., the stabilizer of each point is the identity).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = symmetric_group(6);
+
+julia&gt; H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
+Group([ (1,2,3)(4,5,6) ])
+
+julia&gt; is_semiregular(H)
+true
+
+julia&gt; is_regular(H)
+false
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L946-L966">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="rank_action" href="#rank_action"><code>rank_action</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))</code></pre><p>Return the rank of the transitive action of <code>G</code> on <code>L</code>. This is defined as the number of <code>G</code>-orbits in the action on ordered pairs of points in <code>L</code>, and is equal to the number of orbits of the stabilizer of a point in <code>L</code> on <code>L</code>, see <a href="../../references/#Cam99">Peter J. Cameron (1999)</a> Section 1.11.</p><p>An exception is thrown if <code>G</code> is not transitive on <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = symmetric_group(4); rank_action(G)  # 4-transitive
+2
+
+julia&gt; H = sylow_subgroup(G, 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4) ])
+
+julia&gt; rank_action(H)  # not 2-transitive
+3
+
+julia&gt; K = stabilizer(G, 1)[1]
+Group([ (2,4,3), (3,4) ])
+
+julia&gt; rank_action(K, 2:4)  # 2-transitive
+2
+
+julia&gt; rank_action(K, 3:5)
+ERROR: ArgumentError: the group is not transitive</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L788-L819">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="blocks" href="#blocks"><code>blocks</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))</code></pre><p>Return a G-set that is a block system for the action of <code>G</code> on <code>L</code>, i.e., a non-trivial partition of <code>L</code> preserved by the action of <code>G</code>.</p><p>Here, <code>L</code> must be a subvector of <code>1:degree(G)</code> on which <code>G</code> acts transitively. <code>G</code> may move points outside <code>L</code>, in this case the restriction of the action of the set stabilizer of <code>L</code> in <code>G</code> to <code>L</code> is considered.</p><p>An exception is thrown if this action is not transitive.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; g = sylow_subgroup(symmetric_group(4), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4) ])
+
+julia&gt; collect(blocks(g))
+2-element Vector{Vector{Int64}}:
+ [1, 2]
+ [3, 4]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L670-L693">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="maximal_blocks" href="#maximal_blocks"><code>maximal_blocks</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))</code></pre><p>Return a G-set that is a maximal block system for the action of <code>G</code> on <code>L</code>, i.e., a maximal non-trivial partition of <code>L</code> preserved by the action of <code>G</code>.</p><p>Here, <code>L</code> must be a subvector of <code>1:degree(G)</code> on which <code>G</code> acts transitively. <code>G</code> may move points outside <code>L</code>, in this case the restriction of the action of the set stabilizer of <code>L</code> in <code>G</code> to <code>L</code> is considered.</p><p>An exception is thrown if this action is not transitive.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = transitive_group(8, 2)
+4[x]2
+
+julia&gt; collect(maximal_blocks(G))
+2-element Vector{Vector{Int64}}:
+ [1, 2, 3, 8]
+ [4, 5, 6, 7]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L700-L723">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="minimal_block_reps" href="#minimal_block_reps"><code>minimal_block_reps</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))</code></pre><p>Return a vector of block representatives for all minimal non-trivial block systems for the action of <code>G</code> on <code>L</code>.</p><p>Here, <code>L</code> must be a subvector of <code>1:degree(G)</code> on which <code>G</code> acts transitively. <code>G</code> may move points outside <code>L</code>, in this case the restriction of the action of the set stabilizer of <code>L</code> in <code>G</code> to <code>L</code> is considered.</p><p>An exception is thrown if this action is not transitive.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = transitive_group(8, 2)
+4[x]2
+
+julia&gt; minimal_block_reps(G)
+3-element Vector{Vector{Int64}}:
+ [1, 3]
+ [1, 5]
+ [1, 7]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L731-L755">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="all_blocks-Tuple{PermGroup}" href="#all_blocks-Tuple{PermGroup}"><code>all_blocks</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">all_blocks(G::PermGroup)</code></pre><p>Return a vector of smallest representatives of all block systems for the action of <code>G</code> on the set of moved points of <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = transitive_group(8, 2)
+4[x]2
+
+julia&gt; all_blocks(G)
+6-element Vector{Vector{Int64}}:
+ [1, 2, 3, 8]
+ [1, 5]
+ [1, 3, 5, 7]
+ [1, 3]
+ [1, 3, 4, 6]
+ [1, 7]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/ee511ea13aa64e2fc3f5a6c68997c75b0f12a838/src/Groups/gsets.jl#L762-L783">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../products/">« Products of groups</a><a class="docs-footer-nextpage" href="../fpgroup/">Finitely presented groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Friday 10 February 2023 17:45">Friday 10 February 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
