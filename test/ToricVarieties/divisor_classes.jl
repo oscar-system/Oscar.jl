@@ -19,7 +19,6 @@
         @test is_effective(DC7) == true
         @test is_effective(DC8) == false
     end
-    
     @testset "Arithmetic" begin
         @test is_trivial(fmpz(2)*DC+DC2) == false
         @test is_trivial(2*DC-DC2) == false
