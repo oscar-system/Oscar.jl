@@ -229,13 +229,27 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   return D
 end
 
-function ispower_bernstein(a::fmpz)
+function is_power_bernstein(a::fmpz)
 #https://cr.yp.to/lineartime/powers2-20060914-ams.pdf
+  if isone(a)
+    return (0, a)
+  end
   k, a = remove(a, fmpz(2))
+  if isone(a)
+    return (k, fmpz(2))
+  end
   l, a = remove(a, fmpz(3))
-  k = gcd(l, k)
-  l, a = remove(a, fmpz(5))
-  k = gcd(l, k)
+  g = gcd(k, l)
+  if isone(a)
+    # a is/was 2^k * 3^l
+    return (g, fmpz(2)^divexact(k, g)*fmpz(3)^divexact(l, g))
+  end
+  h, a = remove(a, fmpz(5))
+  g = gcd(h, g)
+  if isone(a)
+    return (g, fmpz(2)^divexact(k, g)*fmpz(3)^divexact(l, g)*fmpz(5)^divexact(h, g))
+  end
+
 
   p_test = next_prime(2^40)
   a_test = a % p_test
@@ -250,7 +264,7 @@ function ispower_bernstein(a::fmpz)
 
   f = 1
 
-  @time for p = PrimesSet(2, cl)
+  for p = PrimesSet(2, cl)
     if k % p != 0
       continue
     end
@@ -270,7 +284,7 @@ function ispower_bernstein(a::fmpz)
     if !isone(d)
       if powermod(d, p, fmpz(p_test)) == a_test && d^p == a
         f *= p
-        @show cl = min(cl, flog(d, 7))
+        cl = min(cl, flog(d, 7))
         a = d
         a_test = a % p_test
       else
@@ -302,7 +316,6 @@ function ispower_bernstein(a::fmpz)
   c = [x for x = c if !isone(x)]
   #not sure still necessary
   @time c = Hecke.coprime_base(c) 
-  @show length(c), length(Set(c))
   k = [valuation(a, p) for p = c]
   @show no_p
   return gcd(k)*f
