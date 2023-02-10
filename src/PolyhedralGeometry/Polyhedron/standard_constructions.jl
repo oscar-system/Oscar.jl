@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 @doc Markdown.doc"""
-    birkhoff(n::Integer, even::Bool = false)
+    birkhoff_polytope(n::Integer, even::Bool = false)
 
 Construct the Birkhoff polytope of dimension $n^2$.
 
@@ -16,7 +16,7 @@ Use `even = true` to get the vertices only for the even permutation matrices.
 
 # Examples
 ```jldoctest
-julia> b = birkhoff(3)
+julia> b = birkhoff_polytope(3)
 A polyhedron in ambient dimension 9
 
 julia> vertices(b)
@@ -29,7 +29,7 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-birkhoff(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
+birkhoff_polytope(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
 
 
 
@@ -97,8 +97,6 @@ function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:
    has_group = Polymake.exists(pm_in, "GROUP")
    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
 end
-
-
 
 @doc Markdown.doc"""
     normal_cone(P::Polyhedron, i::Int64)
@@ -191,11 +189,62 @@ julia> normalized_volume(C)
 120
 ```
 """
-cube(::Type{T}, d) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
-cube(::Type{T}, d, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
-cube(x...) = cube(fmpq, x...)
+cube(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
+cube(d::Int) = cube(fmpq, d)
+cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
+cube(d::Int, l, u) = cube(fmpq, d, l, u)
 
+@doc Markdown.doc"""
+    tetrahedron()
 
+Construct the regular tetrahedron, one of the Platonic solids.
+"""
+tetrahedron() = Polyhedron(Polymake.polytope.tetrahedron());
+
+@doc Markdown.doc"""
+    dodecahedron()
+
+Construct the regular dodecahedron, one out of two Platonic solids.
+"""
+dodecahedron() = Polyhedron(Polymake.polytope.dodecahedron());
+
+@doc Markdown.doc"""
+    icosahedron()
+
+Construct the regular icosahedron, one out of two exceptional Platonic solids.
+"""
+icosahedron() = Polyhedron(Polymake.polytope.icosahedron());
+
+@doc Markdown.doc"""
+    johnson_solid(i::Int)
+
+Construct the `i`-th proper Johnson solid.
+
+A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
+It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+"""
+johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
+
+@doc Markdown.doc"""
+    regular_24_cell()
+
+Construct the regular 24-cell, one out of three exceptional regular 4-polytopes.
+"""
+regular_24_cell() = Polyhedron(Polymake.polytope.regular_24_cell());
+
+@doc Markdown.doc"""
+    regular_120_cell()
+
+Construct the regular 120-cell, one out of three exceptional regular 4-polytopes.
+"""
+regular_120_cell() = Polyhedron(Polymake.polytope.regular_120_cell());
+
+@doc Markdown.doc"""
+    regular_600_cell()
+
+Construct the regular 600-cell, one out of three exceptional regular 4-polytopes.
+"""
+regular_600_cell() = Polyhedron(Polymake.polytope.regular_600_cell());
 
 """
     newton_polytope(poly::Polynomial)
@@ -271,7 +320,7 @@ octagon:
 ```jldoctest
 julia> P = cube(2);
 
-julia> Q = cross(2);
+julia> Q = cross_polytope(2);
 
 julia> M = minkowski_sum(P, Q)
 A polyhedron in ambient dimension 2
@@ -373,7 +422,7 @@ octagon:
 ```jldoctest
 julia> P = cube(2);
 
-julia> Q = cross(2);
+julia> Q = cross_polytope(2);
 
 julia> M = minkowski_sum(P, Q)
 A polyhedron in ambient dimension 2
@@ -537,14 +586,15 @@ julia> facets(t)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-simplex(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
-simplex(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
-simplex(x...) = simplex(fmpq, x...)
+simplex(::Type{T}, d::Int, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
+simplex(d::Int, n) = simplex(fmpq, d, n)
+simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
+simplex(d::Int) = simplex(fmpq, d)
 
 
 @doc Markdown.doc"""
 
-    cross([::Type{T} = fmpq,] d::Int [,n::Rational])
+    cross_polytope([::Type{T} = fmpq,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
 at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
@@ -553,7 +603,7 @@ at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
 Here we print the facets of a non-scaled and a scaled 3-dimensional cross
 polytope:
 ```jldoctest
-julia> C = cross(3)
+julia> C = cross_polytope(3)
 A polyhedron in ambient dimension 3
 
 julia> facets(C)
@@ -567,7 +617,7 @@ x₁ + x₂ - x₃ ≦ 1
 x₁ - x₂ - x₃ ≦ 1
 -x₁ - x₂ - x₃ ≦ 1
 
-julia> D = cross(3, 2)
+julia> D = cross_polytope(3, 2)
 A polyhedron in ambient dimension 3
 
 julia> facets(D)
@@ -582,9 +632,42 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
-cross(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
-cross(x...) = cross(fmpq, x...)
+cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
+cross_polytope(d::Int64, n) = cross_polytope(fmpq, d, n)
+cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
+cross_polytope(d::Int64) = cross_polytope(fmpq, d)
+
+@doc Markdown.doc"""
+
+    platonic_solid(s)
+
+Construct a Platonic solid with the name given by String `s` from the list
+below.
+
+# Arguments
+- `s::String`: The name of the desired Archimedean solid.
+    Possible values:
+    - "tetrahedron" : Tetrahedron.
+          Regular polytope with four triangular facets.
+    - "cube" : Cube.
+          Regular polytope with six square facets.
+    - "octahedron" : Octahedron.
+          Regular polytope with eight triangular facets.
+    - "dodecahedron" : Dodecahedron.
+          Regular polytope with 12 pentagonal facets.
+    - "icosahedron" : Icosahedron.
+          Regular polytope with 20 triangular facets.
+
+# Examples
+```jldoctest
+julia> T = platonic_solid("icosahedron")
+A polyhedron in ambient dimension 3 with nf_elem type coefficients
+
+julia> nfacets(T)
+20
+```
+"""
+platonic_solid(s::String) = Polyhedron(Polymake.polytope.platonic_solid(s))
 
 @doc Markdown.doc"""
 
@@ -647,7 +730,6 @@ julia> nfacets(T)
 ```
 """
 archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
-
 
 @doc Markdown.doc"""
 
@@ -790,12 +872,12 @@ project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.po
 
 @doc Markdown.doc"""
 
-    gelfand_tsetlin(lambda::AbstractVector)
+    gelfand_tsetlin_polytope(lambda::AbstractVector)
 
 Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
 ```jldoctest
-julia> P = gelfand_tsetlin([5,3,2])
+julia> P = gelfand_tsetlin_polytope([5,3,2])
 A polyhedron in ambient dimension 6
 
 julia> is_fulldimensional(P)
@@ -811,7 +893,7 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
 
 @doc Markdown.doc"""
     fano_simplex(d::Int)
@@ -871,3 +953,23 @@ julia> nvertices(cp)
 ```
 """
 cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))
+
+# random constructions
+
+@doc Markdown.doc"""
+    rand_spherical_polytope(d::Int, n::Int)
+
+Construct the convex hull of $n$ points on the unit sphere in $\mathbb{R}^d$.
+Almost surely this is a simplicial polytope.
+
+
+# Examples
+```jldoctest
+julia> rsph = rand_spherical_polytope(3, 20)
+A polyhedron in ambient dimension 3
+
+julia> is_simplicial(rsph)
+true
+```
+"""
+rand_spherical_polytope(d::Int, n::Int) = Polyhedron{fmpq}(Polymake.polytope.rand_sphere(d,n))

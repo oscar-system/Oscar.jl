@@ -34,7 +34,7 @@ end
 
 LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types = LinearProgram{T}(Q, objective; k = k, convention = convention)
 
-LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T =
+LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
    LinearProgram{T}(Polyhedron{T}(A, b), c;  k = k, convention = convention)
 
 LinearProgram(x...) = LinearProgram{fmpq}(x...)

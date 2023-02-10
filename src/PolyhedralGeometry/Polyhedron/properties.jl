@@ -30,17 +30,8 @@ function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
     n = face_dim - length(lineality_space(P))
     n < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
-    nfaces = length(pfaces)
-    rfaces = Vector{Int64}(undef, nfaces - binomial(nrays(P), n + 1))
-    nfarf = 0
     farf = Polymake.to_one_based_indexing(pm_object(P).FAR_FACE)
-    for index in 1:nfaces
-        if pfaces[index] <= farf
-            nfarf += 1
-        else
-            rfaces[index - nfarf] = index
-        end
-    end
+    rfaces = Vector{Int}(filter(i->!(pfaces[i] <= farf), range(1,length(pfaces); step=1)))
     return SubObjectIterator{Polyhedron{T}}(pm_object(P), _face_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
 end
 
@@ -98,10 +89,85 @@ function _polymake_to_oscar_ray_index(P::Polymake.BigObject, v::AbstractVector)
     return [_polymake_to_oscar_ray_index(P, v[i]) for i in 1:length(v)]
 end
 
+
+@doc Markdown.doc"""
+    minimal_faces(as, P::Polyhedron)
+
+Return the minimal faces of a polyhedron as a `NamedTuple` with two iterators.
+For a polyhedron without lineality, the `base_points` are the vertices. If `P`
+has lineality `L`, then every minimal face is an affine translation `p+L`,
+where `p` is only unique modulo `L`. The return type is a dict, the key
+`:base_points` gives an iterator over such `p`, and the key `:lineality_basis`
+lets one access a basis for the lineality space `L` of `P`.
+
+# Examples
+The polyhedron `P` is just a line through the origin:
+```jldoctest
+julia> P = convex_hull([0 0], nothing, [1 0])
+A polyhedron in ambient dimension 2
+
+julia> lineality_dim(P)
+1
+
+julia> vertices(P)
+0-element SubObjectIterator{PointVector{fmpq}}
+
+julia> minimal_faces(P)
+(base_points = PointVector{fmpq}[[0, 0]], lineality_basis = RayVector{fmpq}[[1, 0]])
+```
+"""
+minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
+function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}}, P::Polyhedron{T}) where T<:scalar_types
+    return (
+        base_points = _vertices(PointVector{T}, P),
+        lineality_basis = lineality_space(P)
+    )
+end
+minimal_faces(as::Type{PointVector{T}}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
+
+
+
+@doc Markdown.doc"""
+    rays_modulo_lineality(as, P::Polyhedron)
+
+Return the rays of the recession cone of `PC` up to lineality as a `NamedTuple`
+with two iterators. If `PC` has lineality `L`, then the iterator
+`rays_modulo_lineality` iterates over representatives of the rays of `PC/L`.
+The iterator `lineality_basis` gives a basis of the lineality space `L`.
+
+# Examples
+```jldoctest
+julia> P = convex_hull([0 0 1], [0 1 0], [1 0 0])
+A polyhedron in ambient dimension 3
+
+julia> rmlP = rays_modulo_lineality(P)
+(rays_modulo_lineality = RayVector{fmpq}[[0, 1, 0]], lineality_basis = RayVector{fmpq}[[1, 0, 0]])
+
+julia> rmlP.rays_modulo_lineality
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [0, 1, 0]
+
+julia> rmlP.lineality_basis
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0, 0]
+```
+"""
+rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
+function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, P::Polyhedron) where T<:scalar_types
+    return (
+        rays_modulo_lineality = _rays(P),
+        lineality_basis = lineality_space(P)
+    )
+end
+rays_modulo_lineality(as::Type{RayVector}, P::Polyhedron) = _rays(P)
+
+
 @doc Markdown.doc"""
     vertices(as, P)
 
-Return an iterator over the vertices of `P` in the format defined by `as`.
+Return an iterator over the vertices of `P` in the format defined by `as`. The
+vertices are defined to be the zero-dimensional faces, so if `P` has lineality,
+there are no vertices.
 
 Optional arguments for `as` include
 * `PointVector`.
@@ -121,15 +187,17 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
+vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, pm_object(P))
+_vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
-_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
+_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
 
 _point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_vertex_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
 vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
+_vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
 
 @doc Markdown.doc"""
     vertices(P::Polyhedron)
@@ -152,6 +220,7 @@ julia> vertices(P)
 ```
 """
 vertices(P::Polyhedron) = vertices(PointVector, P)
+_vertices(P::Polyhedron) = _vertices(PointVector, P)
 
 
 @doc Markdown.doc"""
@@ -165,10 +234,11 @@ Reflecting the input, the upper half-plane indeed has one ray.
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
 julia> nrays(UH)
-1
+0
 ```
 """
-nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+nrays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nrays(P) : 0
+_nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc Markdown.doc"""
     nvertices(P::Polyhedron)
@@ -184,7 +254,8 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - nrays(P)
+nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
+_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _nrays(P)
 
 
 @doc Markdown.doc"""
@@ -208,15 +279,17 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
+rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _rays(as, P) : _empty_subobjectiterator(as, pm_object(P))
+_rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
-_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
+_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
 
 _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
 rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = rays(RayVector{T}, P)
+_rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = _rays(RayVector{T}, P)
 
 @doc Markdown.doc"""
     rays(P::Polyhedron)
@@ -245,6 +318,7 @@ julia> matrix(ZZ, rays(PO))
 ```
 """
 rays(P::Polyhedron) = rays(RayVector, P)
+_rays(P::Polyhedron) = _rays(RayVector, P)
 
 @doc Markdown.doc"""
     nfacets(P::Polyhedron)
@@ -255,7 +329,7 @@ Return the number of facets of `P`.
 The number of facets of the 5-dimensional cross polytope can be retrieved via
 the following line:
 ```jldoctest
-julia> nfacets(cross(5))
+julia> nfacets(cross_polytope(5))
 32
 ```
 """
@@ -446,6 +520,7 @@ normalized_volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, factorial
 
 normalized_volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, factorial(dim(P))*(pm_object(P)).VOLUME)
 
+
 @doc Markdown.doc"""
     dim(P::Polyhedron)
 
@@ -501,6 +576,7 @@ _lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer
 _point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = @view P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
+
 
 @doc Markdown.doc"""
     interior_lattice_points(P::Polyhedron{fmpq})
@@ -589,6 +665,7 @@ julia> ambient_dim(P)
 """
 ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))::Int
 
+
 @doc Markdown.doc"""
     codim(P::Polyhedron)
 
@@ -638,6 +715,7 @@ _generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogeniz
 
 _matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
 
+
 @doc Markdown.doc"""
     affine_hull(P::Polytope)
 
@@ -657,7 +735,7 @@ x₄ = 5
 """
 affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
-function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T
+function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     h = decompose_hdata(-view(P.AFFINE_HULL, [i], :))
     return AffineHyperplane{T}(h[1], h[2][])
 end
@@ -665,6 +743,7 @@ end
 _affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = P.AFFINE_HULL
 
 _affine_matrix_for_polymake(::Val{_affine_hull}) = _affine_equation_matrix
+
 
 @doc Markdown.doc"""
     recession_cone(P::Polyhedron)
@@ -914,6 +993,14 @@ is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
 
 @doc Markdown.doc"""
+    is_simplicial(P::Polyhedron)
+
+Check whether `P` is simplicial.
+"""
+is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
+
+
+@doc Markdown.doc"""
     is_fulldimensional(P::Polyhedron)
 
 Check whether `P` is full-dimensional.
@@ -964,7 +1051,7 @@ Undefined for unbounded polyhedra.
 
 # Examples
 ```jldoctest
-julia> h_vector(cross(3))
+julia> h_vector(cross_polytope(3))
 4-element Vector{fmpz}:
  1
  3
@@ -977,6 +1064,7 @@ function h_vector(P::Polyhedron)::Vector{fmpz}
     return pm_object(P).H_VECTOR
 end
 
+
 @doc Markdown.doc"""
     g_vector(P::Polyhedron)
 
@@ -986,7 +1074,7 @@ Undefined for unbounded polyhedra.
 
 # Examples
 ```jldoctest
-julia> g_vector(cross(3))
+julia> g_vector(cross_polytope(3))
 2-element Vector{fmpz}:
  1
  2
@@ -996,6 +1084,7 @@ function g_vector(P::Polyhedron)::Vector{fmpz}
     is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).G_VECTOR
 end
+
 
 @doc Markdown.doc"""
     relative_interior_point(P::Polyhedron)
@@ -1030,6 +1119,7 @@ julia> matrix(QQ, vertices(square))
 """
 relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
 
+
 @doc Markdown.doc"""
     support_function(P::Polyhedron; convention::Symbol = :max)
 
@@ -1058,6 +1148,7 @@ function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_t
     end
     return h
 end
+
 
 @doc Markdown.doc"""
     print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)

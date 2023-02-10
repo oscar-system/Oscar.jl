@@ -4,7 +4,8 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
+rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, pm_object(C))
+_rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(view(C.RAYS, i, :))
 
@@ -13,6 +14,7 @@ _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = hom
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
 rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
+_rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
 @doc Markdown.doc"""
     rays(C::Cone)
@@ -55,6 +57,68 @@ julia> matrix(ZZ, rays(P))
 ```
 """
 rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
+_rays(C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
+
+
+@doc Markdown.doc"""                                                 
+    rays_modulo_lineality(as, C::Cone)
+
+Return the rays of the cone of `C` up to lineality as a `NamedTuple` with two
+iterators. If `C` has lineality `L`, then the iterator `rays_modulo_lineality`
+iterates over representatives of the rays of `C/L`. The iterator
+`lineality_basis` gives a basis of the lineality space `L`.
+
+# Examples
+For a pointed cone, with two generators, we get the usual rays:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+A polyhedral cone in ambient dimension 2
+
+julia> rays(C)
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0]
+ [0, 1]
+
+julia> RML = rays_modulo_lineality(C)
+(rays_modulo_lineality = RayVector{fmpq}[[1, 0], [0, 1]], lineality_basis = RayVector{fmpq}[])
+
+julia> RML.rays_modulo_lineality
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0]
+ [0, 1]
+
+julia> RML.lineality_basis
+0-element SubObjectIterator{RayVector{fmpq}}
+```
+If the cone has lineality, the second iterator iterates over a basis for the
+space of lineality.  The following example has one generator for the positive hull plus one generator for the lineality space: 
+```jldoctest
+julia> C = positive_hull([1 0],[0 1])
+A polyhedral cone in ambient dimension 2
+
+julia> lineality_dim(C)
+1
+
+julia> rays(C)
+0-element SubObjectIterator{RayVector{fmpq}}
+
+julia> RML = rays_modulo_lineality(C)
+(rays_modulo_lineality = RayVector{fmpq}[[1, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+
+julia> RML.lineality_basis
+1-element SubObjectIterator{RayVector{fmpq}}:
+ [0, 1]
+```
+"""                                                             
+rays_modulo_lineality(C::Cone{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, C) 
+function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, C::Cone) where T<:scalar_types
+    return (
+        rays_modulo_lineality = _rays(C),
+        lineality_basis = lineality_space(C)
+    )
+end
+rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
+    
 
 @doc Markdown.doc"""
     faces(C::Cone, face_dim::Int)
@@ -140,7 +204,8 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
+nrays(C::Cone) = lineality_dim(C) == 0 ? _nrays(C) : 0
+_nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)
