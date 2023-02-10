@@ -147,7 +147,7 @@ end
     quo(A::PBWAlgRing, I::PBWAlgIdeal)
 
 Given a two-sided ideal `I` of `A`, create the quotient algebra $A/I$ and
-return the new algebra together with the quotient map $A\rightarrow A/I$.
+return the new algebra together with the quotient map $A\to A/I$.
 
 # Examples
 ```jldoctest

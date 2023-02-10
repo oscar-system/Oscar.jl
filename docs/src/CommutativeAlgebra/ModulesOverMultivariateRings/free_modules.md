@@ -159,7 +159,7 @@ iszero(F::AbstractFreeMod)
 
 All OSCAR types for homomorphisms of the modules considered here belong
 to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
-A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
+A homomorphism $F\to M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
 `FreeModuleHom{T1, T2} <: ModuleFPHom{T1, T2}` as well as the following constructors:
 

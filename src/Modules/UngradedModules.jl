@@ -3713,7 +3713,7 @@ end
 Given modules `M`, `N` which are products with the same number of factors,  
 say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^r N_j$, and given a matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
-$M \rightarrow N$ with $ij$-components $a_{ij}$.
+$M \to N$ with $ij$-components $a_{ij}$.
 """
 function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
   tM = get_attribute(M, :direct_product)
@@ -4214,7 +4214,7 @@ end
 
 Return the kernel of `a` as an object of type `SubQuo`.
 
-Additionally, if `K` denotes this object, return the inclusion map `K` $\rightarrow$ `domain(a)`.
+Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `domain(a)`.
 
 # Examples
 ```jldoctest
@@ -4280,7 +4280,7 @@ end
 
 Return the image of `a` as an object of type `SubQuo`.
 
-Additionally, if `I` denotes this object, return the inclusion map `I` $\rightarrow$ `codomain(a)`.
+Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 
 # Examples
 ```jldoctest
@@ -4326,7 +4326,7 @@ end
 
 Return the image of `a` as an object of type `SubQuo`.
 
-Additionally, if `I` denotes this object, return the inclusion map `I` $\rightarrow$ `codomain(a)`.
+Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 """
 function image(h::SubQuoHom)
   h_image_vector::Vector{elem_type(codomain(h))} = h.im
@@ -4339,7 +4339,7 @@ end
 
 Return the image of `a` as an object of type `SubQuo`.
 
-Additionally, if `I` denotes this object, return the inclusion map `I` $\rightarrow$ `codomain(a)`.
+Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 
 # Examples
 ```jldoctest
@@ -4453,7 +4453,7 @@ end
 
 Return the kernel of `a` as an object of type `SubQuo`.
 
-Additionally, if `K` denotes this object, return the inclusion map `K` $\rightarrow$ `domain(a)`.
+Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `domain(a)`.
 """
 function kernel(h::SubQuoHom)
   D = domain(h)
@@ -4474,7 +4474,7 @@ end
 
 Return the kernel of `a` as an object of type `SubQuo`.
 
-Additionally, if `K` denotes this object, return the inclusion map `K` $\rightarrow$ `domain(a)`.
+Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `domain(a)`.
 
 # Examples
 ```jldoctest
@@ -5396,8 +5396,8 @@ end
 Given free modules $F_1\dots F_n$, say, return the direct product $\prod_{i=1}^n F_i$.
 
 Additionally, return
-- a vector containing the canonical projections  $\prod_{i=1}^n F_i\rightarrow F_i$ if `task = :prod` (default),
-- a vector containing the canonical injections  $F_i\rightarrow\prod_{i=1}^n F_i$ if `task = :sum`,
+- a vector containing the canonical projections  $\prod_{i=1}^n F_i\to F_i$ if `task = :prod` (default),
+- a vector containing the canonical injections  $F_i\to\prod_{i=1}^n F_i$ if `task = :sum`,
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
@@ -5461,8 +5461,8 @@ end
 Given modules $M_1\dots M_n$, say, return the direct product $\prod_{i=1}^n M_i$.
 
 Additionally, return
-- a vector containing the canonical projections  $\prod_{i=1}^n M_i\rightarrow M_i$ if `task = :prod` (default),
-- a vector containing the canonical injections  $M_i\rightarrow\prod_{i=1}^n M_i$ if `task = :sum`,
+- a vector containing the canonical projections  $\prod_{i=1}^n M_i\to M_i$ if `task = :prod` (default),
+- a vector containing the canonical injections  $M_i\to\prod_{i=1}^n M_i$ if `task = :sum`,
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
@@ -5525,8 +5525,8 @@ end
 Given modules $M_1\dots M_n$, say, return the direct sum $\bigoplus_{i=1}^n M_i$.  
  
 Additionally, return 
-- a vector containing the canonical injections  $M_i\rightarrow\bigoplus_{i=1}^n M_i$ if `task = :sum` (default),
-- a vector containing the canonical projections  $\bigoplus_{i=1}^n M_i\rightarrow M_i$ if `task = :prod`,
+- a vector containing the canonical injections  $M_i\to\bigoplus_{i=1}^n M_i$ if `task = :sum` (default),
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n M_i\to M_i$ if `task = :prod`,
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """

@@ -301,7 +301,7 @@ ideal_membership(f::MPolyQuoElem{T}, a::MPolyQuoIdeal{T}) where T
 ## Homomorphisms From Affine Algebras
 
 If $A=R/I$ is an affine $C$-algebra, and $S$ is any ring, then defining a ring homomorphism
-$\overline{\phi}: A \rightarrow S$ means to define a ring homomorphism $\phi: R \rightarrow S$
+$\overline{\phi}: A \to S$ means to define a ring homomorphism $\phi: R \to S$
 such that $I\subset \ker(\phi)$. Thus, $\overline{\phi} $ is determined by specifying its restriction
 to $C$, and by assigning an image to each generator of $A$.
 In OSCAR, such homomorphisms are created by using the following constructor:

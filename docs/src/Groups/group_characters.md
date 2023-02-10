@@ -15,9 +15,9 @@ Pages = ["group_characters.md"]
 
 # Group characters
 
-Let ``G`` be a finite group, and let ``\rho: G \rightarrow GL(n, R)``
+Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``
 be a group homomorphism, for some ring ``R``.
-We call ``\chi: G \rightarrow R``, defined by ``\chi(g) = Trace(\rho(g))``,
+We call ``\chi: G \to R``, defined by ``\chi(g) = Trace(\rho(g))``,
 the character afforded by ``\rho``.
 
 Since ``\chi`` is constant on conjugacy classes of ``G``,

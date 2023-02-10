@@ -154,7 +154,7 @@ end
     Localization(U::AbsMultSet)
 
 Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
-return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\rightarrow`` ``R[U^{-1}]``.
+return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\to`` ``R[U^{-1}]``.
 
     Localization(R::Ring, U::AbsMultSet)
 

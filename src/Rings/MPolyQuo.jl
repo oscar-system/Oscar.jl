@@ -731,7 +731,7 @@ end
     quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
 
 Create the quotient ring $R/I$ and return the new
-ring as well as the projection map $R\rightarrow R/I$.
+ring as well as the projection map $R\to R/I$.
 
     quo(R::MPolyRing, V::Vector{MPolyElem}) -> MPolyQuoRing, Map
 

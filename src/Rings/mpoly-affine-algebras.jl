@@ -206,7 +206,7 @@ Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
 positive integer weights to the variables, return the value $H(A, d),$ where 
 
-$H(A, \underline{\phantom{d}}): \N \rightarrow \N, \; d  \mapsto \dim_K A_d,$ 
+$H(A, \underline{\phantom{d}}): \N \to \N, \; d  \mapsto \dim_K A_d,$ 
 
 is the Hilbert function of $A$.
 
@@ -1111,14 +1111,14 @@ Find the normalization of a reduced affine algebra over a perfect field $K$.
 That is, given the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
 modulo a radical ideal $I$, compute the integral closure $\overline{A}$ 
 of $A$ in its total ring of fractions $Q(A)$, together with the embedding 
-$f: A \rightarrow \overline{A}$. 
+$f: A \to \overline{A}$. 
 
 # Implemented Algorithms and how to Read the Output
 
 The function relies on the algorithm 
 of Greuel, Laplagne, and Seelisch which proceeds by finding a suitable decomposition 
 $I=I_1\cap\dots\cap I_r$ into radical ideals $I_k$, together with
-maps $A = R/I \rightarrow A_k=\overline{R/I_k}$ which give rise to the normalization map of $A$:
+maps $A = R/I \to A_k=\overline{R/I_k}$ which give rise to the normalization map of $A$:
 
 $A\hookrightarrow A_1\times \dots\times A_r=\overline{A}$
 
@@ -1264,7 +1264,7 @@ end
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
 - ``V`` is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; 
-- ``F: A=R/I \rightarrow B = R/\phi(I)`` is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
+- ``F: A=R/I \to B = R/\phi(I)`` is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
 - ``G = F^{-1}.``
 
 !!! warning
