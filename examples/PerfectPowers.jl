@@ -236,17 +236,20 @@ function is_power_bernstein(a::fmpz)
   end
   k, a = remove(a, fmpz(2))
   if isone(a)
+    return k
     return (k, fmpz(2))
   end
   l, a = remove(a, fmpz(3))
   g = gcd(k, l)
   if isone(a)
     # a is/was 2^k * 3^l
+    return g
     return (g, fmpz(2)^divexact(k, g)*fmpz(3)^divexact(l, g))
   end
   h, a = remove(a, fmpz(5))
   g = gcd(h, g)
   if isone(a)
+    return g
     return (g, fmpz(2)^divexact(k, g)*fmpz(3)^divexact(l, g)*fmpz(5)^divexact(h, g))
   end
 
