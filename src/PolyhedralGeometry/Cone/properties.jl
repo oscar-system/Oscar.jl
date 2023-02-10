@@ -69,7 +69,7 @@ iterates over representatives of the rays of `C/L`. The iterator
 `lineality_basis` gives a basis of the lineality space `L`.
 
 # Examples
-For a pointed cone we get the usual rays:
+For a pointed cone, with two generators, we get the usual rays:
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
@@ -91,7 +91,7 @@ julia> RML.lineality_basis
 0-element SubObjectIterator{RayVector{fmpq}}
 ```
 If the cone has lineality, the second iterator iterates over a basis for the
-space of lineality.
+space of lineality.  The following example has one generator for the positive hull plus one generator for the lineality space: 
 ```jldoctest
 julia> C = positive_hull([1 0],[0 1])
 A polyhedral cone in ambient dimension 2

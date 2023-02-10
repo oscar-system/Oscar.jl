@@ -1,7 +1,7 @@
 @doc Markdown.doc"""
     visualize(P::Polyhedron)
 
-Visualize a polyhedron of dimension at most four.
+Visualize a polyhedron of dimension at most four (in 3-space).
 In dimensions up to 3 a usual embedding is shown.
 Four-dimensional polytopes are visualized as a Schlegel diagram, which is a projection onto one of the facets; e.g., see Chapter 5 of [Zie95](@cite).
 
