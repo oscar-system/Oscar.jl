@@ -569,6 +569,7 @@ function primary_decomposition(I::IdealSheaf)
     #@show U
     new_components = decomp_dict[U]
     for (Q, P) in new_components
+      isone(P) && continue
       #@show "looking at component"
       #@show gens(Q)
       #@show gens(P)
@@ -576,6 +577,7 @@ function primary_decomposition(I::IdealSheaf)
       for i in 1:length(prime_parts)
         #@show i
         is_possible_match = true
+        all_intersections_trivial = true
         for V in clean_charts
           #@show V
           if !haskey(glueings(default_covering(X)), (V, U))
@@ -590,6 +592,9 @@ function primary_decomposition(I::IdealSheaf)
           #@show gens(QV_res)
           if QU_res == QV_res
             #@show "possible match"
+            if !isone(QV_res)
+              all_intersections_trivial = false
+            end
           else 
             #@show "ideals do not coincide on overlap"
             is_possible_match = false
@@ -598,7 +603,9 @@ function primary_decomposition(I::IdealSheaf)
         end
         if is_possible_match
           #@show "found a possible match in $i"
-          push!(possible_matches, i)
+          if !all_intersections_trivial
+            push!(possible_matches, i)
+          end
         end
       end
       #@show possible_matches
