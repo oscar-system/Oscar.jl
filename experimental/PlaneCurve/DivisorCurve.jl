@@ -537,7 +537,8 @@ function _purify1(I::T, Q) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
    f = ideal(Q, [gens(Id)[1]])
    res = f:(f:IdQ)
    Oscar.oscar_assure(res)
-   return ideal(Q, _minimal_generating_set(res.I))
+   res_ideal = ideal(base_ring(res.qRing), res.gens.O)
+   return ideal(Q, _minimal_generating_set(res_ideal))
 end
 
 function _basis(I::Oscar.MPolyIdeal, d::Int)
@@ -559,7 +560,8 @@ function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, q::Os
    q1 = fJ:Ip
    P = _purify1(q1, Q)
    Oscar.oscar_assure(P)
-   B = _basis(P.I, total_degree(f.f))
+   P_ideal = ideal(base_ring(P.qRing), P.gens.O)
+   B = _basis(P_ideal, total_degree(f.f))
    arr = normal_form(B, q)
    LD = ideal(R, arr)
    return [_remove_zeros(LD), f.f]

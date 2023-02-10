@@ -164,7 +164,9 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
-    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+    withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
+      GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+    end
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
@@ -437,6 +439,7 @@ include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
 include("Modules/mpolyquo.jl")
+include("Rings/ReesAlgebra.jl")
 
 include("Geometry/basics.jl")
 include("Geometry/K3Auto.jl")

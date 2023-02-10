@@ -42,6 +42,7 @@ include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
 include("Modules/MPolyQuo.jl")
 include("Modules/homological-algebra_test.jl")
+include("Rings/ReesAlgebra.jl")
 
 include("InvariantTheory/runtests.jl")
 

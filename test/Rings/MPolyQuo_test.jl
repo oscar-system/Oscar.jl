@@ -79,9 +79,10 @@ end
   @test b == ideal(Q, gens(b))
 
   I = ideal(Q, [x^2*y-x+y,y+1])
-  simplify_generators!(I)
+  simplify(I)
   SQ = singular_poly_ring(Q)
-  @test I.SI[1] == SQ(-x+y) && I.SI[2] == SQ(y+1)
+  SI = I.gens.gens.S
+  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false
@@ -166,5 +167,14 @@ end
   A, _ = quo(R, I)
   a = inv(A(1-x*y))
   @test isone(a*(1-x*y))
+end
+
+@testset "issue #1901" begin
+  R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  L, _ = Localization(R, powers_of_element(R[1]))
+  S, (s0, s1, s2) = PolynomialRing(L, ["s0", "s1", "s2"])
+  I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
+  Q, _ = quo(S, I)
+  @test Q isa MPolyQuo
 end
 
