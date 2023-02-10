@@ -50,74 +50,179 @@
   simplify!(Y3)
   I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
   I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
-  prX4 = blow_up(I_sing_X3, covering=oscar.simplified_covering(X3),
+
+  # Now the singular locus consists of two points. 
+  # We blow them up successively rather than at once. 
+  println("starting primary decomposition of singular locus")
+  decomp = primary_decomposition(I_sing_X3)
+  println("finished primary decomposition of singular locus")
+  l = radical.([a for (_, a) in decomp])
+
+  @show "blowing up first center"
+  @show gens.(l[1].(patches(oscar.simplified_covering(X3))))
+  prX41 = blow_up(l[1], covering=oscar.simplified_covering(X3),
                 var_name="v")
-  E4 = exceptional_divisor(prX4)
-  X4 = domain(prX4)
-  Y4, inc_Y4, pr_Y4 = strict_transform(prX4, inc_Y3)
-  I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
-  I_sing_X4 = radical(pushforward(inc_Y4)(I_sing_Y4))
-  U = patches(oscar.simplified_covering(X4))
-  println("Some context on how the architecture of the refinement:")
-
-  # We need to refine the covering so that we can separate the 
-  # different points in the support of I_sing_X4.
-
-  V1 = U[9]
-  V2 = U[11]
+  @show "done blowing up"
+  X41 = domain(prX41)
+  E41 = exceptional_divisor(prX41)
+  X41 = domain(prX41)
+  Y41, inc_Y41, pr_Y41 = strict_transform(prX41, inc_Y3)
   
-  ref_patches = [x for x in U if !(x===V1) && !(x===V2)]
+  l2 = radical(strict_transform(prX41, l[2]))
+  simplify!(X41)
+  @show scheme(l2) === X41
+  @show "blowing up second center"
+  @show gens.(l2.(patches(oscar.simplified_covering(X41))))
+  prX42 = blow_up(l2, var_name="vv")
+ # prX42 = blow_up(l2, covering=oscar.simplified_covering(X41),
+ #               var_name="vv")
+  E42 = exceptional_divisor(prX42)
+  X42 = domain(prX42)
+  Y42, inc_Y42, pr_Y42 = strict_transform(prX42, inc_Y41)
+  I_sing_Y42 = oscar.ideal_sheaf_of_singular_locus(Y42)
+  I_sing_X42 = radical(pushforward(inc_Y42)(I_sing_Y42))
 
-  id_dict = IdDict{AbsSpec, Ideal}()
-  for x in ref_patches
-    id_dict[x] = I_sing_X4(x)
+
+  # Now the singular locus consists of three points. 
+  # We blow them up successively rather than at once. 
+  println("starting primary decomposition of singular locus")
+  decomp = primary_decomposition(I_sing_X42)
+  println("finished primary decomposition of singular locus")
+
+  centers = [a for (_, a) in decomp]
+
+  prX51 = blow_up(first(centers))
+
+  E51 = exceptional_divisor(prX51)
+
+  Y51, inc_Y51, prY51 = strict_transform(prX51, inc_Y42)
+  centers = (x->strict_transform(prX51, x)).(centers[2:3])
+
+  prX52 = blow_up(first(centers))
+  E52 = exceptional_divisor(prX52)
+
+  Y52, inc_Y52, prY52 = strict_transform(prX52, inc_Y51)
+  centers = (x->strict_transform(prX52, x)).(centers[2:2])
+
+  prX53 = blow_up(first(centers))
+  E53 = exceptional_divisor(prX53)
+
+  Y53, inc_Y53, prY53 = strict_transform(prX53, inc_Y52)
+
+# error()
+# U = patches(oscar.simplified_covering(X4))
+# println("Some context on how the architecture of the refinement:")
+# @show gens.(I_sing_X4.(U))
+#
+# # We need to refine the covering so that we can separate the 
+# # different points in the support of I_sing_X4.
+#
+# V1 = U[9]
+# V2 = U[11]
+# @show gens(I_sing_X4(V1))
+# @show gens(I_sing_X4(V2))
+# @show gens(OO(V1))
+# @show gens(OO(V2))
+# 
+# ref_patches = [x for x in U if !(x===V1) && !(x===V2)]
+#
+# id_dict = IdDict{AbsSpec, Ideal}()
+# for x in ref_patches
+#   id_dict[x] = I_sing_X4(x)
+# end
+#
+# V11 = PrincipalOpenSubset(V1, gens(OO(V1))[2])
+# V12 = PrincipalOpenSubset(V1, gens(OO(V1))[2]-1)
+#
+# V21 = PrincipalOpenSubset(V2, gens(OO(V2))[1])
+# V22 = PrincipalOpenSubset(V2, gens(OO(V2))[1]-1)
+#
+# id_dict[V11] = ideal(OO(V11), saturated_ideal(I_sing_X4(V11)))
+# id_dict[V12] = ideal(OO(V12), saturated_ideal(I_sing_X4(V12)))
+# id_dict[V21] = ideal(OO(V21), saturated_ideal(I_sing_X4(V21)))
+# id_dict[V22] = ideal(OO(V22), saturated_ideal(I_sing_X4(V22)))
+#
+# ref_patches = vcat(ref_patches, [V11, V12, V21, V22])
+#
+# ref = Covering(ref_patches)
+# oscar.inherit_glueings!(ref, oscar.simplified_covering(X4))
+# push!(coverings(X4), ref)
+#
+# J = IdealSheaf(X4, id_dict, check=false)
+#
+# prX5 = blow_up(J, covering=ref)
+# X5 = domain(prX5)
+# E5 = exceptional_divisor(prX4)
+# simplify!(X5)
+# U = patches(oscar.simplified_covering(X5))
+
+  Y53 = domain(inc_Y53)
+
+  @show is_smooth(Y53)
+
+  # Pull all exceptional divisors up to the smooth model:
+  E12 = strict_transform(prX2, E1)
+  E13 = strict_transform(prX3, E12)
+  E141 = strict_transform(prX41, E13)
+  E142 = strict_transform(prX42, E141)
+  E151 = strict_transform(prX51, E142)
+  E152 = strict_transform(prX52, E151)
+  E153 = strict_transform(prX53, E152)
+
+  E23 = strict_transform(prX3, E2)
+  E241 = strict_transform(prX41, E23)
+  E242 = strict_transform(prX42, E241)
+  E251 = strict_transform(prX51, E242)
+  E252 = strict_transform(prX52, E251)
+  E253 = strict_transform(prX53, E252)
+
+  E341 = strict_transform(prX41, E3)
+  E342 = strict_transform(prX42, E341)
+  E351 = strict_transform(prX51, E342)
+  E352 = strict_transform(prX52, E351)
+  E353 = strict_transform(prX53, E352)
+ 
+  E4142 = strict_transform(prX42, E41)
+  E4151 = strict_transform(prX51, E4142)
+  E4152 = strict_transform(prX52, E4151)
+  E4153 = strict_transform(prX53, E4152)
+
+  E4251 = strict_transform(prX51, E42)
+  E4252 = strict_transform(prX52, E4251)
+  E4253 = strict_transform(prX53, E4252)
+
+  E5152 = strict_transform(prX52, E51)
+  E5153 = strict_transform(prX53, E5152)
+
+  E5253 = strict_transform(prX53, E52)
+  
+  E5353 = E53
+
+  # Restrict them: 
+  E1res = pullback(inc_Y53)(E153)
+  E2res = pullback(inc_Y53)(E253)
+  E3res = pullback(inc_Y53)(E353)
+  E41res = pullback(inc_Y53)(E4153)
+  E42res = pullback(inc_Y53)(E4253)
+  E51res = pullback(inc_Y53)(E5153)
+  E52res = pullback(inc_Y53)(E5253)
+  E53res = pullback(inc_Y53)(E5353)
+
+  # Compute the intersection matrix:
+  A = zero(MatrixSpace(ZZ, 8, 8))
+  E = [E1res, E2res, E3res, E41res, E42res, E51res, E52res, E53res]
+  for i in 1:8
+    @show i
+    for j in 1:8
+      @show j
+      if j == i 
+        # avoid self intersection for now
+        A[i, i] = -ZZ(2)
+        continue
+      end
+      A[i, j] = integral(intersect(E[i], E[j]))
+      @show A[i, j]
+    end
   end
-
-  V11 = PrincipalOpenSubset(V1, gens(OO(V1))[2])
-  V12 = PrincipalOpenSubset(V1, gens(OO(V1))[2]-1)
-
-  V21 = PrincipalOpenSubset(V2, gens(OO(V2))[1])
-  V22 = PrincipalOpenSubset(V2, gens(OO(V2))[1]-1)
-
-  id_dict[V11] = ideal(OO(V11), saturated_ideal(I_sing_X4(V11)))
-  id_dict[V12] = ideal(OO(V12), saturated_ideal(I_sing_X4(V12)))
-  id_dict[V21] = ideal(OO(V21), saturated_ideal(I_sing_X4(V21)))
-  id_dict[V22] = ideal(OO(V22), saturated_ideal(I_sing_X4(V22)))
-
-  ref_patches = vcat(ref_patches, [V11, V12, V21, V22])
-
-  ref = Covering(ref_patches)
-  oscar.inherit_glueings!(ref, oscar.simplified_covering(X4))
-  push!(coverings(X4), ref)
-
-  J = IdealSheaf(X4, id_dict, check=false)
-
-  prX5 = blow_up(J, covering=ref)
-  X5 = domain(prX5)
-  E5 = exceptional_divisor(prX4)
-  simplify!(X5)
-  U = patches(oscar.simplified_covering(X5))
-
-  Y5, inc_Y5, pr_Y5 = strict_transform(prX5, inc_Y4)
-  Y5 = domain(inc_Y5)
-
-  @test is_smooth(Y5)
-
-  P5 = pr_Y5
-  P4 = compose(P5, pr_Y4)
-  P3 = compose(P4, pr_Y3)
-  P2 = compose(P3, pr_Y2)
-  P1 = compose(P2, pr_Y1)
-  E11 = pullback(inc_Y1)(E1)
-  E12 = pullback(pr_Y2)(E11)
-  E13 = pullback(pr_Y3)(E12)
-  E14 = pullback(pr_Y4)(E13)
-  E15 = pullback(pr_Y5)(E14)
-
-
-  E12res = pullback(inc_Y2)(E12)
-  E2res = pullback(inc_Y2)(E2)
-
-  @test integral(intersect(E12res, E2res)) == 2
-
+  @show A
 #end
