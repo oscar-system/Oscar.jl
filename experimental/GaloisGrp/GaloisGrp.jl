@@ -1122,24 +1122,12 @@ function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
   O = collect(probable_orbit(C.G, I))
   n = length(O)
   rt = roots(C)
-  #make square-free (in residue field)
-  k, mk = ResidueField(parent(rt[1]))
-  k_rt = map(mk, rt)
-  ts = gen(Hecke.Globals.Zx)
-  while true
-    r = map(ts, k_rt)
-    s = Set(map(x->evaluate(x, r), O))
-    if length(s) < length(O)
-      while true
-        ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
-        if degree(ts) > 0
-          break
-        end
-      end
-    else
-      break
-    end
+  k = GF(next_prime(10^6))
+  r = [rand(k) for i=1:degree(C.f)]
+  while length(Set(r)) < length(r)
+    r = [rand(k) for i=r]
   end
+  ts = find_transformation(r, O)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
   rt = roots(C, bound_to_precision(C, B, extra))
@@ -2177,13 +2165,17 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
 """
 function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
+  return find_transformation(r, [I^t for t = T])
+end
+
+function find_transformation(r, I::Vector{<:SLPoly})
   Zx = Hecke.Globals.Zx
   ts = gen(Zx)
   cnt = 0
   while true
     rt = map(ts, r)
-    conj = [evaluate(I^t, rt) for t = T]
-    if length(Set(conj)) == length(T)
+    conj = [evaluate(i, rt) for i = I]
+    if length(Set(conj)) == length(I)
       return ts
     end
     while true
@@ -2196,17 +2188,24 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
     end
   end
 end
-function relative_invariant(G, U)
+
+function relative_invariant(G, U; Chain::Union{Nothing, <:Vector{<:Tuple{PermGroup, <:Any}}} = nothing)
   @assert degree(G) == degree(U)
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
   if index(G, U) == 1 # not type stable
     return one(S), [one(G)]
   end
 
-  c = reverse(maximal_subgroup_chain(G, U))
-  @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
+  if Chain !== nothing
+    c = [x[1] for x = Chain]
+    I = [x[2] for x = Chain]
+    pop!(I)
+  else
+    c = reverse(maximal_subgroup_chain(G, U))
+    I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
+  end
 
-  I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
+  @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
   #the I[i] is a relative primitive element - it may be absolute or not...
   # right_transversal: U*g, thus G>U>V -> V a b where a runs (U/V), b (G/U):
   # G = cup U b, U = cup V a, so G = V a b
