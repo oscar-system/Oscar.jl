@@ -30,8 +30,15 @@ Note that the isometry `f` computed is given by its action on the ambient space 
 trace lattice of `L`.
 """
 function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
-                                           beta::FieldElem = gen(base_field(L)),
+                                           beta::FieldElem = one(base_field(L)),
                                            order::Integer = 2) where T
+
+  return trace_lattice_with_map(L, alpha=alpha, beta=beta, order=order)[1]
+end
+
+function trace_lattice_with_map(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
+                                                    beta::FieldElem = gen(base_field(L)),
+                                                    order::Integer = 2) where T
   E = base_field(L)
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
   @req order > 0 "The order must be positive"
@@ -44,6 +51,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
   end
 
   if E == QQ
+    V = ambient_space(L)
     if order == 1
       f = identity_matrix(E, n)
     elseif order == 2
@@ -51,13 +59,44 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
     else
       error("For ZLat the order must be 1 or 2")
     end
-    return lattice_with_isometry(L, f, order, check = false)
+    return lattice_with_isometry(L, f, order, check = false), VecSpaceRes{typeof(V), typeof(V)}(V, V)
   end
   
   bool, m = Hecke.is_cyclotomic_type(E)
   @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "The normalisation of beta must be a $m-primitive root of 1"
 
   Lres, f = restrict_scalars_with_map(L, QQ, alpha)
+  iso = zero_matrix(QQ, 0, degree(Lres))
+  v = vec(zeros(QQ, 1, degree(Lres)))
+
+  for i in 1:degree(Lres)
+    v[i] = one(QQ)
+    v2 = f(v)
+    v2 = beta.*v2
+    v3 = f\v2
+    iso = vcat(iso, transpose(matrix(v3)))
+    v[i] = zero(QQ)
+  end
+
+  return lattice_with_isometry(Lres, iso, ambient_representation=true), f
+end
+
+function trace_lattice(L::Hecke.AbsLat{T}, f::SpaceRes; beta::FieldElem = gen(base_field(L))) where T
+  @req codomain(f) === ambient_space(L) "f must be a map of restriction of scalars associated to the ambient space of L"
+  E = base_field(L)
+  @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
+  @req degree(L) == rank(L) "Lattice must be of full rank"
+  @req parent(beta) == E "beta must be an element of the base algebra of L"
+  @req !is_zero(beta) "beta must be non zero"
+  s = involution(E)
+  if s(beta)*beta != 1
+    beta = beta//s(beta)
+  end
+
+  bool, m = Hecke.is_cyclotomic_type(E)
+  @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "The normalisation of beta must be a $m-primitive root of 1"
+
+  Lres = restrict_scalars(L, f)
   iso = zero_matrix(QQ, 0, degree(Lres))
   v = vec(zeros(QQ, 1, degree(Lres)))
 
@@ -113,9 +152,10 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
   if E === nothing
     E, b = cyclotomic_field_as_cm_extension(n)
   elseif !Hecke.is_cyclotomic_type(E)[1]
-    @req degree(E) == 2 && absolute_degree(E) == 2*euler_phi(n) "E should be the $n-th cyclotomic field seen as a cm-extension of its real cyclotomic subfield"
+    @req degree(E) == 2 && absolute_degree(E) == euler_phi(n) "E should be the $n-th cyclotomic field seen as a cm-extension of its real cyclotomic subfield"
     Et, t = E["t"]
     rt = roots(t^n-1)
+    filter!(l -> findfirst(i -> isone(l^i), 1:n) == n, rt)
     @req length(rt) == euler_phi(n) "E is not of cyclotomic type"
     b = isone(rt[1]) ? rt[2] : rt[1]
   else

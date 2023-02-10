@@ -3,10 +3,10 @@ export ambient_isometry,
        hermitian_structure,
        image_centralizer_in_Oq,
        isometry,
-       is_of_pure_type,
+       is_of_hermitian_type,
        is_of_same_type,
        is_of_type,
-       is_pure,
+       is_hermitian,
        lattice_with_isometry,
        order_of_isometry,
        type
@@ -95,7 +95,7 @@ minpoly(Lf::LatticeWithIsometry) = minpoly(isometry(Lf))::fmpq_poly
 Given a lattice with isometry $(L, f)$, return the genus of the underlying 
 lattice `L`.
 """
-genus(Lf::LatticeWithIsometry) = begin; L = lattice(Lf); is_integral(L) ? genus(L)::ZGenus : error("Underlying lattice must be integral"); end
+genus(Lf::LatticeWithIsometry) = genus(lattice(Lf))::ZGenus
 
 @doc Markdown.doc"""
     ambient_space(Lf::LatticeWithIsometry) -> QuadSpace
@@ -104,6 +104,29 @@ Given a lattice with isometry $(L, f)$, return the ambient space of the underlyi
 lattice `L`.
 """
 ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, fmpq_mat}
+
+basis_matrix(Lf::LatticeWithIsometry) = basis_matrix(lattice(Lf))::fmpq_mat
+
+gram_matrix(Lf::LatticeWithIsometry) = gram_matrix(lattice(Lf))::fmpq_mat
+
+rational_span(Lf::LatticeWithIsometry) = rational_span(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, fmpq_mat}
+
+det(Lf::LatticeWithIsometry) = det(lattice(Lf))::fmpq
+
+scale(Lf::LatticeWithIsometry) = det(lattice(Lf))::fmpq
+
+norm(Lf::LatticeWithIsometry) = norm(lattice(Lf))::fmpq
+
+is_integral(Lf::LatticeWithIsometry) = is_integral(lattice(Lf))::Bool
+
+degree(Lf::LatticeWithIsometry) = degree(lattice(Lf))::Int
+
+is_even(Lf::LatticeWithIsometry) = is_even(lattice(Lf))::Int
+
+discriminant(Lf::LatticeWithIsometry) = discriminant(Lf)::fmpq
+
+signature_tuple(Lf::LatticeWithIsometry) = signature_tuple(Lf)::Tuple{Int, Int, Int}
+
 
 ###############################################################################
 #
@@ -197,9 +220,33 @@ end
 
 ###############################################################################
 #
+#  Operations on lattice with isometry
+#
+###############################################################################
+
+function rescale(Lf::LatticeWithIsometry, a::Hecke.RationalUnion)
+    return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), order_of_isometry(Lf), check=false)
+end
+
+function dual(Lf::LatticeWithIsometry)
+  @req is_integral(Lf) "Underlying lattice must be integral"
+  return lattice_with_isometry(dual(lattice(Lf)), ambient_isometry(Lf), order_of_isometry(Lf), check = false)
+end
+
+###############################################################################
+#
 #  Hermitian structure
 #
 ###############################################################################
+
+function is_of_hermitian_type(Lf::LatticeWithIsometry)
+  @req rank(Lf) > 0 "Underlying lattice must have positive rank"
+  n = order_of_isometry(Lf)
+  if n <= 2 || !is_finite(n)
+    return false
+  end
+  return is_cyclotomic_polynomial(minpoly(f))
+end
 
 @doc Markdown.doc"""
     hermitian_structure(Lf::LatticeWithIsometry; check::Bool = true) -> HermLat
@@ -212,12 +259,9 @@ field, where $n$ is the order of `f`.
 If it exists, the hermitian structure is cached.
 """
 @attr HermLat function hermitian_structure(Lf::LatticeWithIsometry)
-  @req rank(Lf) > 0 "Lf must be of positive rank"
+  @req is_of_hermitian_type(Lf) "Lf is not of hermitian type"
   f = isometry(Lf)
   n = order_of_isometry(Lf)
-
-  @req n >= 3 "No hermitian structures for n smaller than 3"
-  @req is_cyclotomic_polynomial(minpoly(f)) "The minimal polynomial must be irreducible and cyclotomic"
 
   return Oscar._hermitian_structure(lattice(Lf), f, n = n, check = false,
                                                      ambient_representation = false)
@@ -237,9 +281,9 @@ of the underlying lattice `L` as well as this image of the underlying isometry
 `f` inside $O(q)$.
 """
 function discriminant_group(Lf::LatticeWithIsometry)
+  @req is_integral(Lf) "Underlying lattice must be integral"
   L = lattice(Lf)
   f = ambient_isometry(Lf)
-  @req is_integral(L) "Underlying lattice must be integral"
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
   return (q, Oq(gens(matrix_group(f))[1], check = false))::Tuple{TorQuadMod, AutomorphismGroupElem{TorQuadMod}}
@@ -254,13 +298,13 @@ denotes the discriminant group of `L` and $\bar{f}$ is the isometry of
 $q_L$ induced by `f`.
 """
 @attr AutomorphismGroup{TorQuadMod} function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
+  @req is_integral(Lf) "Underlying lattice must be integral"
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
-  @req is_integral(L) "Underlying lattice must be integral"
-  if n in [1, -1]
+  if (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
     GL, _ = image_in_Oq(L)
-  elseif is_definite(L)
+  elseif is_definite(L) 
     OL = orthogonal_group(L)
     f = OL(f)
     UL = fmpq_mat[matrix(OL(s)) for s in gens(centralizer(OL, f)[1])]
@@ -274,6 +318,7 @@ $q_L$ induced by `f`.
     unique!(UL)
     GL = Oscar._orthogonal_group(qL, UL, check = false)
   else
+    @req is_hermitian(Lf) "Not yet implemented for indefinite lattices with isometry which are not hermitian"
     qL, fqL = discriminant_group(Lf)
     OqL = orthogonal_group(qL)
     CdL, _ =  centralizer(OqL, fqL)
@@ -321,12 +366,10 @@ the $i$-th signature of $(L, f)$ is given by the signatures of the real quadrati
 form $\Ker(f + f^{-1} - z^i - z^{-i})$.
 """
 function signatures(Lf::LatticeWithIsometry)
-  @req rank(Lf) != 0 "Signatures non available for the empty lattice"
+  @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
   L = lattice(Lf)
   f = isometry(Lf)
-  @req is_cyclotomic_polynomial(minpoly(f)) "Minimal polynomial must be irreducible and cyclotomic"
   n = order_of_isometry(Lf)
-  @req divides(rank(L), euler_phi(n))[1] "The totient of the order of the underlying isometry must divide the rank of the underlying lattice"
   C = CalciumField()
   eig = eigenvalues(f, QQBar)
   j = findfirst(z -> findfirst(k -> isone(z^k), 1:n) == n, eig)
@@ -373,7 +416,7 @@ function kernel_lattice(Lf::LatticeWithIsometry, p::fmpq_poly)
   chif = parent(p)(collect(coefficients(minpoly(Lf))))
   _chi = gcd(p, chif)
   @assert (rank(L2) == 0) || (chi == _chi)
-  return lattice_with_isometry(L2, f2, check = true, ambient_representation = false)
+  return lattice_with_isometry(L2, f2, ambient_representation = false)
 end
 
 kernel_lattice(Lf::LatticeWithIsometry, p::fmpz_poly) = kernel_lattice(Lf, change_base_ring(QQ, p))
@@ -493,24 +536,12 @@ function is_of_same_type(L::LatticeWithIsometry, M::LatticeWithIsometry)
 end
 
 @doc Markdown.doc"""
-    is_of_pure_type(Lf::LatticeWithIsometry) -> Bool
+    is_hermitian(t::Dict) -> Bool
 
-Given a lattice with isometry $(L, f)$, return whether the minimal polynomial
-of `f` is irreducible cyclotomic.
+Given a type `t` of lattices with isometry, return whether `t` is hermitian, i.e.
+whether it defines the type of a hermitian lattice with isometry.
 """
-function is_of_pure_type(L::LatticeWithIsometry)
-  @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
-  return is_cyclotomic_polynomial(minpoly(L))
-end
-
-@doc Markdown.doc"""
-    is_pure(t::Dict) -> Bool
-
-Given a type `t` of lattices with isometry, return whether `t` is pure, i.e.
-whether it defines the type of lattice with isometry whose minimal polynomial
-is irreducible cyclotomic.
-"""
-function is_pure(t::Dict)
+function is_hermitian(t::Dict)
   ke = collect(keys(t))
   n = maximum(ke)
   return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, [i for i in ke if i != n])

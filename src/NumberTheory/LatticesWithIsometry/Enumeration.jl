@@ -1,10 +1,10 @@
 export admissible_triples,
        is_admissible_triple,
-       prime_splitting,
-       prime_splitting_of_prime_power,
-       prime_splitting_of_pure_type_prime_power,
-       prime_splitting_of_semi_pure_type,
-       representatives_of_pure_type
+       splitting_of_hermitian_prime_power,
+       splitting_of_mixed_prime_power,
+       splitting_of_partial_mixed_prime_power,
+       splitting_of_prime_power,
+       representatives_of_hermitian_type
 
 ##################################################################################
 #
@@ -332,29 +332,27 @@ function _possible_signatures(s1, s2, E, rk)
 end
 
 @doc Markdown.doc"""
-    representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
+    representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
                                             -> Vector{LatticeWithIsometry}
 
-Given a lattice with isometry $(L, f)$ of pure type (i.e. the minimal
-polynomial of `f` is irreducible cyclotomic), and a positive integer `m` (set to
-1 by default), return a set of representatives of isomorphism classes of lattices
-with isometry of pure type $(M, g)$ and such that the type of $(B, g^m)$ is equal
-to the type of $(L, f)$. Note that in this case, the isometries `g`'s are of order
-$nm$.
+Given a lattice with isometry $(L, f)$ of hermitian type (i.e. the minimal polynomial 
+of `f` is irreducible cyclotomic), and a positive integer `m`, return a set of
+representatives of isomorphism classes of lattices with isometry of hermitian
+type $(M, g)$ and such that the type of $(B, g^m)$ is equal to the type of
+$(L, f)$. Note that in this case, the isometries `g`'s are of order $nm$.
 
 See Algorithm 3 of [BH22].
 """
-function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
+function representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
   rank(Lf) == 0 && return LatticeWithIsometry[]
 
   @req m >= 1 "m must be a positive integer"
-  @req is_of_pure_type(Lf) "Minimal polyomial must be irreducible and cyclotomic"
+  @req is_of_hermitian_type(Lf) "Lf must be of hermitian"
 
-  L = lattice(Lf)
-  rk = rank(L)
-  d = det(L)
+  rk = rank(Lf)
+  d = det(Lf)
   n = order_of_isometry(Lf)
-  s1, _, s2 = signature_tuple(L)
+  s1, _, s2 = signature_tuple(Lf)
 
   reps = LatticeWithIsometry[]
 
@@ -407,10 +405,10 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
     end
     @info "$H"
     M = trace_lattice(H)
-    @assert det(lattice(M)) == d
-    @assert is_cyclotomic_polynomial(minpoly(M))
+    @assert det(M) == d
+    @assert is_of_hermitian_type(M)
     @assert order_of_isometry(M) == n*m
-    if iseven(lattice(M)) != iseven(L)
+    if iseven(M) != iseven(Lf)
       continue
     end
     if !is_of_same_type(Lf, lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
@@ -422,28 +420,27 @@ function representatives_of_pure_type(Lf::LatticeWithIsometry, m::Int = 1)
 end
 
 @doc Markdown.doc"""
-    representatives_of_pure_type(t::Dict, m::Int = 1; check::Bool = true)
+    representatives_of_hermitian_type(t::Dict, m::Int = 1; check::Bool = true)
                                           -> Vector{LatticeWithIsometry}
 
-Given a type `t` for lattices with isometry of pure type (i.e. the minimal
+Given a hermitian type `t` for lattices with isometry (i.e. the minimal
 polymomial of the associated isometry is irreducible cyclotomic) and an intger
 `m` (set to 1 by default), return a set of representatives of isomorphism
-classes of lattices with isometry of pure type $(L, f)$ such that the
+classes of lattices with isometry of hermitian type $(L, f)$ such that the
 type of $(L, f^m)$ is equal to `t`.
 
-If `check === true`, then `t` is checked to be pure. Note that `n` can be 1.
+If `check === true`, then `t` is checked to be hermitian. Note that `n` can be 1.
 
 See Algorithm 3 of [BH22].
 """
-function representatives_of_pure_type(t::Dict, m::Integer = 1; check::Bool = true)
+function representatives_of_hermitian_type(t::Dict, m::Integer = 1; check::Bool = true)
   M = _representative(t, check = check)
   M === nothing && return LatticeWithIsometry[]
-  return representatives_of_pure_type(M, m)
+  return representatives_of_hermitian_type(M, m)
 end
 
-
 function _representative(t::Dict; check::Bool = true)
-  !check || is_pure(t) || error("t must be pure")
+  !check || is_hermitian(t) || error("t must be pure")
   
   ke = collect(keys(t))
   n = maximum(ke)
@@ -488,10 +485,10 @@ function _representative(t::Dict; check::Bool = true)
     end
     H = H
     M = trace_lattice(H)
-    @assert det(lattice(M)) == d
-    @assert is_cyclotomic_polynomial(minpoly(M))
+    @assert det(M) == d
+    @assert is_of_hermitian_type(M)
     @assert order_of_isometry(M) == n
-    if iseven(lattice(M)) != iseven(G)
+    if iseven(M) != iseven(G)
       continue
     end
     if !is_of_type(M, t)
@@ -503,24 +500,23 @@ function _representative(t::Dict; check::Bool = true)
 end
 
 @doc Markdown.doc"""
-    prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::Int)
+    splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int)
                                                   -> Vector{LatticeWithIsometry}
 
-Given a lattice with isometry $(L, f)$ of pure type (i.e. the minimal polynomial
-of `f` is irreducible cyclotomic) with `f` of order $q^d$ for some prime number `q`,
-and a prime number $p \neq q$, return a set of representatives of the isomorphisms
-classes of lattices with isometry $(M, g)$ such that the type of $(M, g^p)$ is equal
-to the type of $(L, f)$.
+Given a lattice with isometry $(L, f)$ of hermitian type with `f` of order $q^d$
+for some prime number `q`, and given another prime number $p \neq q$, return a
+set of representatives of the isomorphism classes of lattices with isometry
+$(M, g)$ such that the type of $(M, g^p)$ is equal to the type of $(L, f)$.
 
 Note that `d` can be 0.
 
 See Algorithm 4 of [BH22].
 """
-function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::Int)
+function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int)
   rank(Lf) == 0 && return LatticeWithIsometry[]
 
   @req is_prime(p) "p must be a prime number"
-  @req is_of_pure_type(Lf) "Minimal polynomial must be irreducible and cyclotomic"
+  @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
 
   ok, q, d = is_prime_power_with_data(order_of_isometry(Lf))
 
@@ -533,12 +529,12 @@ function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::In
   @info "$(atp) admissible triple(s)"
   for (A, B) in atp
     LB = lattice_with_isometry(representative(B))
-    RB = representatives_of_pure_type(LB, p*q^d)
+    RB = representatives_of_hermitian_type(LB, p*q^d)
     if is_empty(RB)
       continue
     end
     LA = lattice_with_isometry(representative(A))
-    RA = representatives_of_pure_type(LA, q^d)
+    RA = representatives_of_hermitian_type(LA, q^d)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
       E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p, check=false)
       GC.gc()
@@ -548,30 +544,28 @@ function prime_splitting_of_pure_type_prime_power(Lf::LatticeWithIsometry, p::In
   return reps
 end
 
-
 @doc Markdown.doc"""
-    prime_splitting_of_pure_type_prime_power(t::Dict, p::Int)
+    splitting_of_hermitian_prime_power(t::Dict, p::Int)
                                                   -> Vector{LatticeWithIsometry}
 
-Given a type `t` of lattice with isometry of pure type $(L, f)$ (i.e. the minimal
-polynomial of `f` is irreducible cyclotomic) with `f` of order $q^d$ for some
-prime number `q`, and a prime number $p \neq q$, return a set of representatives
-of the isomorphisms classes of lattices with isometry $(M, g)$ such that the type
-of $(M, g^p)$ is equal to `t`.
+Given a hermitian type `t` of lattice with isometry $(L, f)$ with `f` of order
+$q^d$ for some prime number `q`, and given another prime number $p \neq q$,
+return a set of representatives of the isomorphisms classes of lattices with
+isometry $(M, g)$ such that the type of $(M, g^p)$ is equal to `t`.
 
 Note that `d` can be 0.
 
 See Algorithm 4 of [BH22].
 """
-function prime_splitting_of_pure_type_prime_power(t::Dict, p::Int)
+function splitting_of_hermitian_prime_power(t::Dict, p::Int)
   @req is_prime(p) "p must be a prime number"
-  @req is_pure(t) "t must be pure"
+  @req is_hermitian(t) "t must be hermitian"
   Lf = _representative(t)
-  return prime_splitting_of_pure_type_prime_power(Lf, p)
+  return splitting_of_hermitian_prime_power(Lf, p)
 end
 
 @doc Markdown.doc"""
-    prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
+    splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
                                                      -> Vector{LatticeWithIsometry}
 
 Given a lattice with isometry $(L, f)$ with `f` of order $q^e$ for some prime number
@@ -584,7 +578,7 @@ Note that `e` can be 0.
 
 See Algorithm 5 of [BH22].
 """
-function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
+function splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
   rank(Lf) == 0 && return LatticeWithIsometry[]
 
   @req is_prime(p) "p must be a prime number"
@@ -598,7 +592,7 @@ function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int 
   reps = LatticeWithIsometry[]
 
   if e == 0
-    reps = prime_splitting_of_pure_type_prime_power(Lf, p)
+    reps = splitting_of_hermitian_prime_power(Lf, p)
     (b == 1) && filter!(M -> order_of_isometry(M) == p, reps)
     return reps
   end
@@ -606,9 +600,9 @@ function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int 
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, q^e)
   B0 = kernel_lattice(Lf, x^(q^e-1)-1)
-  A = prime_splitting_of_pure_type_prime_power(A0, p)
+  A = splitting_of_hermitian_prime_power(A0, p)
   is_empty(A) && return reps
-  B = prime_splitting_of_prime_power(B0, p)
+  B = splitting_of_prime_power(B0, p)
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B])
     b == 1 && !divides(order_of_isometry(L1), p)[1] && !divides(order_of_isometry(L2), p)[1] && continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, check=false)
@@ -619,11 +613,11 @@ function prime_splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int 
 end
 
 @doc Markdown.doc"""
-    prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
+    splitting_of_partial_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
                                                  -> Vector{LatticeWithIsometry}
 
 Given a lattice with isometry $(L, f)$ and a prime number `p`, such that
-the minimal of `f` divides $\prod_{i=0}^e\Phi_{p^dq^i}(f)$ for some
+the minimal polynomial of `f` divides $\prod_{i=0}^e\Phi_{p^dq^i}(f)$ for some
 $d > 0$ and $e \geq 0$, return a set of representatives of the isomorphism classes
 of lattices with isometry $(M, g)$ such that the type of $(M, g^p)$ is equal to the type
 of $(L, f)$.
@@ -632,7 +626,7 @@ Note that `e` can be 0, while `d` has to be positive.
 
 See Algorithm 6 of [BH22].
 """
-function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
+function splitting_of_partial_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
   rank(Lf) == 0 && return LatticeWithIsometry[]
 
   @req is_prime(p) "p must be a prime number"
@@ -662,7 +656,7 @@ function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
   reps = LatticeWithIsometry[]
 
   if e == 0
-    return representatives_of_pure_type(Lf, p)
+    return splitting_of_hermitian_prime_power(Lf, p)
   end
 
   A0 = kernel_lattice(Lf, p^d*q^e)
@@ -670,9 +664,9 @@ function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
   @assert bool
 
   B0 = kernel_lattice(Lf, r)
-  A = representatives_of_pure_type(A0, p)
+  A = splitting_of_prime_power(A0, p)
   is_empty(A) && return reps
-  B = prime_splitting_of_semi_pure_type(B0, p)
+  B = splitting_of_partial_mixed_prime_power(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = admissible_equivariant_primitive_extensions(LA, LB, Lf, q, check = false)
     append!(reps, E)
@@ -681,7 +675,8 @@ function prime_splitting_of_semi_pure_type(Lf::LatticeWithIsometry, p::Int)
 end
 
 @doc Markdown.doc"""
-    prime_splitting(Lf::LatticeWithIsometry, p::Int) -> Vector{LatticeWithIsometry}
+    splitting_of_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
+                                          -> Vector{LatticeWithIsometry}
 
 Given a lattice with isometry $(L, f)$ and a prime number `p` such that
 `f` is of order $p^dq^e$ for some prime number $q \neq p$, return a set
@@ -693,7 +688,7 @@ Note that `d` and `e` can be both zero.
 
 See Algorithm 7 of [BH22].
 """
-function prime_splitting(Lf::LatticeWithIsometry, p::Int)
+function splitting_of_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
   rank(Lf) == 0 && return LatticeWithIsometry[]
 
   n = order_of_isometry(Lf)
@@ -705,7 +700,7 @@ function prime_splitting(Lf::LatticeWithIsometry, p::Int)
   @req length(pd) <= 2 "Order must have at most 2 prime divisors"
 
   if !(p in pd)
-    return prime_splitting_of_prime_power(Lf, p, 1)
+    return splitting_of_prime_power(Lf, p, 1)
   end
 
   d = valuation(n, p)
@@ -721,9 +716,9 @@ function prime_splitting(Lf::LatticeWithIsometry, p::Int)
   x = gen(parent(minpoly(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
   A0 = kernel_lattice(Lf, prod([cyclotomic_polynomial(p^d*q^i) for i in 0:e]))
-  A = prime_splitting_of_semi_pure_type(A0, p)
+  A = splitting_of_partial_mixed_prime_power(A0, p)
   isempty(A) && return reps
-  B = prime_splitting(B0, p)
+  B = splitting_of_mixed_prime_power(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = admissible_equivariant_primitive_extensions(LA, LB, Lf, p, check = false)
     @assert all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
