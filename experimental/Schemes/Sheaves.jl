@@ -77,7 +77,7 @@ production_func(F::PreSheafOnScheme) = F.production_func
 restriction_func(F::PreSheafOnScheme) = F.restriction_func
 
 ### Production and caching of the values of F on admissible open sets
-function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=true) where {OpenType, OutputType, T<:OpenType}
+function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=false) where {OpenType, OutputType, T<:OpenType}
   #First look whether or not the asked for result has been computed before
   haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType 
 
@@ -98,7 +98,7 @@ For a `F` produce (and cache) the restriction map `F(U) → F(V)`.
 """
 function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
     U::Type1, V::Type2;
-    check::Bool=true
+    check::Bool=false
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   # First, look up whether this restriction had already been asked for previously.
   inc = incoming_restrictions(F, F(V)) 
