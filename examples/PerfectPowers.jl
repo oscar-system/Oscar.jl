@@ -321,7 +321,7 @@ function is_power_bernstein(a::fmpz)
   return gcd(k)*f
 end
 
-export ispower_exact, root_exact
+export is_power_bernstein, root_exact
 
 end
 
