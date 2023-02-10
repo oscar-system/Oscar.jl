@@ -106,12 +106,14 @@ function strict_transform(p::BlowupMorphism, I::IdealSheaf)
   p_cov = covering_morphism(pr)
   CY = domain(p_cov)
   # We first apply elim_part to all the charts.
-  CY_simp, phi, psi = simplify(CY)
-  # register the simplification in Y
-  push!(coverings(Y), CY_simp)
-  refinements(Y)[(CY_simp, CY)] = phi
-  refinements(Y)[(CY, CY_simp)] = psi
-  CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
+# CY_simp, phi, psi = simplify(CY)
+# # register the simplification in Y
+# push!(coverings(Y), CY_simp)
+# refinements(Y)[(CY_simp, CY)] = phi
+# refinements(Y)[(CY, CY_simp)] = psi
+# CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
+  CY_simp = (CY === default_covering(Y) ? simplified_covering(Y) : CY)
+  phi = (CY === default_covering(Y) ? Y[CY_simp, CY] : identity_map(CY_simp))
 
   # compose the covering morphisms
   p_cov_simp = compose(phi, p_cov)
@@ -126,6 +128,9 @@ function strict_transform(p::BlowupMorphism, I::IdealSheaf)
     pbJ_sat = saturated_ideal(pbJ)
     pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
     pbJ = ideal(OO(U), [g for g in OO(U).(gens(pbJ_sat)) if !iszero(g)])
+    if length(gens(pbJ))==0 
+        error("output of saturation invalid; faulty exceptional divisor?")
+    end
     ID[U] = pbJ
   end
 
