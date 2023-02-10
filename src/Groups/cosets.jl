@@ -241,9 +241,11 @@ true
 is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
 """
-    right_cosets(G::Group, H::Group)
+    right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
 
 Return the vector of the right cosets of `H` in `G`.
+
+If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
@@ -261,19 +263,17 @@ julia> right_cosets(G,H)
  Right coset   Sym( [ 1 .. 3 ] ) * (1,4,3)
 ```
 """
-function right_cosets(G::GAPGroup, H::GAPGroup)
-  L = GAP.Globals.RightCosets(G.X, H.X)
-  l = Vector{GroupCoset{typeof(G), elem_type(G)}}(undef, length(L))
-  for i = 1:length(l)
-    l[i] = _group_coset(G, H, group_element(G, GAP.Globals.Representative(L[i])), :right, L[i])
-  end
-  return l
+function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+  t = right_transversal(G, H, check = check)
+  return [right_coset(H, x) for x in t]
 end
 
 """
-    left_cosets(G::Group, H::Group)
+    left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
 
 Return the vector of the left cosets of `H` in `G`.
+
+If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
@@ -291,20 +291,18 @@ julia> left_cosets(G,H)
  Left coset   (1,3,4) * Sym( [ 1 .. 3 ] )
 ```
 """
-function left_cosets(G::GAPGroup, H::GAPGroup)
-  T = left_transversal(G,H)
-  L = [left_coset(H,t) for t in T]
-  l = Vector{GroupCoset{typeof(G), elem_type(G)}}(undef, length(L))
-  for i = 1:length(l)
-    l[i] = _group_coset(G, H, group_element(G, T[i].X), :left, L[i].X)
-  end
-  return l
+function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+  t = left_transversal(G, H, check = check)
+  return [left_coset(H, x) for x in t]
 end
 
 """
-    right_transversal(G::T, H::T) where T<: Group
+    right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
 
-Return a vector containing a complete set of representatives for right cosets for `H`.
+Return a vector containing a complete set of representatives for
+the right cosets of `H` in `G`.
+
+If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
@@ -322,8 +320,14 @@ julia> right_transversal(G,H)
  (1,4,3)
 ```
 """
-function right_transversal(G::T, H::T) where T<: GAPGroup
+function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+   if check && ! GAPWrap.IsSubset(G.X, H.X)
+     throw(ArgumentError("H is not a subgroup of G"))
+   end
    L = GAP.Globals.RightTransversal(G.X,H.X)
+#TODO: The object returned by GAP tries to avoid the overhead of explicitly
+#      listing all elements.
+#      Eventually, we should use similar iterable objects in Oscar.
    l = Vector{elem_type(G)}(undef, length(L))
    for i in 1:length(l)
       l[i] = group_element(G,L[i])
@@ -332,9 +336,12 @@ function right_transversal(G::T, H::T) where T<: GAPGroup
 end
 
 """
-    left_transversal(G::T, H::T) where T<: Group
+    left_transversal(G::T, H::T; check::Bool=true) where T<: Group
 
-Return a vector containing a complete set of representatives for left cosets for `H`.
+Return a vector containing a complete set of representatives for
+the left cosets for `H` in `G`.
+
+If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
@@ -352,8 +359,8 @@ julia> left_transversal(G,H)
  (1,3,4)
 ```
 """
-function left_transversal(G::T, H::T) where T<: GAPGroup
-   return [x^-1 for x in right_transversal(G,H)]
+function left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+   return [x^-1 for x in right_transversal(G, H, check = check)]
 end
 
 Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
