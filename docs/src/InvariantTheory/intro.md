@@ -19,7 +19,7 @@ The basic setting in this context consists of a group $G$, a field $K$, a vector
 $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.
 The induced action on the dual vector space $V^\ast$,
 
-$V^\ast  \times G \rightarrow V^\ast, (f, \pi)\mapsto f \;\!   . \;\! \pi  := f\circ \rho(\pi),$
+$V^\ast  \times G \to V^\ast, (f, \pi)\mapsto f \;\!   . \;\! \pi  := f\circ \rho(\pi),$
  
 extends to an action of $G$ on the graded symmetric algebra
 

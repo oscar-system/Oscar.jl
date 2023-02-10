@@ -2378,7 +2378,7 @@ be the homomorphism from `R` to `S` which is determined by the entries of `V` as
 the generators of `R`, and proceed as above.
 
 !!! warning
-    Except from the case where the type of `U` is `<: MPolyPowersOfElement`, the extra condition on `phi` is not checked by the `hom` constructor.
+    Except from the case where the type of `U` is `<: MPolyPowersOfElement`, the condition on `phi` requiring that elements of `U` are send to units in `S` is not checked by the `hom` constructor.
  
 # Examples
 ```jldoctest

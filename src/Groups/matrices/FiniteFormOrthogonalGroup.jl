@@ -392,13 +392,13 @@ end
 #     r"""
 #     Return generators of the orthogonal groups of ``G`` modulo `p`.
 #
-#     Let `V = \Zp^n` && `b: V \times V \rightarrow \Zp` be the bilinear form
+#     Let `V = \Zp^n` && `b: V \times V \to \Zp` be the bilinear form
 #     `b(x,y)= x^T G y`. This method computes generators of the image of
 #     the orthogonal group `O(V,b)` under
 #
 #     ..MATH:
 #
-#         O(V,b) \rightarrow GL(V/pV)
+#         O(V,b) \to GL(V/pV)
 #
 #     INPUT::
 #
@@ -482,7 +482,7 @@ end
 # r"""
 # Return the generators of the orthogonal groups of ``G`` modulo `2`.
 #
-# Let `V = \FF_2^n` && `b: V \times V \rightarrow \FF_2` be the bilinear form
+# Let `V = \FF_2^n` && `b: V \times V \to \FF_2` be the bilinear form
 # `b(x,y)= x^T G y`. Compute generators of `O(V,b)`.
 #
 # INPUT::

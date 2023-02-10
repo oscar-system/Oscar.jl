@@ -28,7 +28,7 @@ Write ``\frac{r}{u}`` for the equivalence class of ``(r, u)`` and ``R[U^{-1}]`` 
 Mimicking the standard arithmetic for fractions, ``R[U^{-1}]`` can be made into a ring. This ring is called the
 *localization of ``R`` at ``U``*. It comes equipped with  the natural ring homomorphism
 ```math
-\iota : R\rightarrow R[U^{-1}],\; r \mapsto \frac{r}{1}.
+\iota : R\to R[U^{-1}],\; r \mapsto \frac{r}{1}.
 ```
 Given an ``R``-module ``M``, the analogous construction yields an ``R[U^{-1}]``-module ``M[U^{-1}]`` which is
 called the *localization  of ``M`` at ``U``*. See the section on modules.
@@ -37,7 +37,7 @@ Our focus in this section is on localizing multivariate polynomial rings and the
 for this is to provide functionality for handling (several types of) multiplicatively closed subsets of multivariate
 polynomial rings. Given such a polynomial ring `R` and a multiplicatively closed subset `U` of `R` whose type
 is supported by OSCAR, entering `localization(R, U)` creates the localization of `R` at `U`. Given a quotient
-`RQ` of `R`, with projection map `p : R -> RQ`, and given a multiplicatively closed subset `U` of `R`, 
+`RQ` of `R`, with projection map `p` : `R` ``\to`` `RQ`, and given a multiplicatively closed subset `U` of `R`,
 entering `localization(RQ, U)` creates the localization of `RQ` at `p(U)`: Since every multiplicatively
 closed subset of `RQ` is of type `p(U)` for some `U`, there is no need to support an extra type for
 multiplicatively closed subsets of quotients.
@@ -107,7 +107,7 @@ If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multip
 - `base_ring(Rloc)` refers to `R`, and
 - `inverted_set(Rloc)` to `U`.
 
-If `RQ` is a quotient of a multivariate polynomial ring `R`, `p : R -> RQ` is the projection map, `U`  is a
+If `RQ` is a quotient of a multivariate polynomial ring `R`, `p` : `R` ``\to`` `RQ` is the projection map, `U`  is a
 multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at `p(U)`, then
 
 - `base_ring(RQL)` refers to `R`, and
@@ -176,7 +176,7 @@ If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multip
 `U` of `R`, then elements of `Rloc` are created as (fractions of) images of elements of `R` under
 the localization map or by coercing (pairs of) elements of `R` into fractions. 
 
-If `RQ` is a quotient of a multivariate polynomial ring `R`, `p : R -> RQ` is the projection map, `U`  is a
+If `RQ` is a quotient of a multivariate polynomial ring `R`, `p` : `R` ``\to`` `RQ` is the projection map, `U`  is a
 multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at `p(U)`, then elements of
 `RQL` are created similarly, starting from elements of `R`.
 
@@ -377,14 +377,14 @@ rings, there is the concrete subtype `MPolyQuoLocalizedRingHom`. We describe the
 homomorphisms. Let
 - `R` be a multivariate polynomial ring
 - `U` be a multiplicatively closed subset  of `R`,
-- `RQ = R/I` be a quotient of `R` with projection map `p: R -> RQ`,
+- `RQ = R/I` be a quotient of `R` with projection map `p` : `R` ``\to`` `RQ`,
 - `Rloc` (`RQL`) be the localization of `R` at `U` (of `RQ` at `p(U)`), and
 - `S` be another ring.
 Then, to give a ring homomorphism `PHI`  from `Rloc` to `S` (from`RQL` to `S`) is the same
 as to give a ring homomorphism `phi` from `R` to `S` which sends elements of `U` to units
-in `S` (and elements of `I` to zero). That is, `PHI` is determined by composing it with the localization map `R -> Rloc`
-(by composing it with the composition of the localization map `RQ -> RQL` and the projection
-map `R -> RQ`). The constructors below take this into account.
+in `S` (and elements of `I` to zero). That is, `PHI` is determined by composing it with the localization map `R` ``\to`` `Rloc`
+(by composing it with the composition of the localization map `RQ` ``\to`` `RQL` and the projection
+map `R` ``\to`` `RQ`). The constructors below take this into account.
 
 ```@docs
 hom(Rloc::MPolyLocalizedRing, S::Ring, F::Map)
@@ -474,7 +474,7 @@ We call this ideal the *saturation of ``I`` over ``R``*.  In OSCAR, it is obtain
 
 If ``RQL`` is the localization of a quotient ``RQ`` of a multivariate polynomial ring ``R``, and
 ``I`` is an ideal of ``RQL``, then the return value of `saturated_ideal(I)` is the preimage of
-the saturation of ``I`` over ``RQ`` under the projection map ``R \rightarrow RQ`` (and not
+the saturation of ``I`` over ``RQ`` under the projection map ``R \to RQ`` (and not
 the saturation of ``I`` over ``RQ`` itself).
 
 ```@docs
