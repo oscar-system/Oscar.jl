@@ -46,7 +46,7 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, Gs::Oscar.GAPGroup, n::Int, d
     return Tuple{ProjRep, Vector{SymmetricIntersections}}[]
   end
   @info "$(length(sum_index)) possible action(s) to consider"
-  F = splitting_field(RR)
+  F = base_field(RR)
   S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
   E = underlying_group(RR)
@@ -97,7 +97,7 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   bool, RR, sum_index, p = _has_pfr(G, n)
   !bool && (return Tuple{ProjRep, Vector{SymmetricIntersections}}[])
   @info "$(length(sum_index)) possible actions to consider"
-  F = splitting_field(RR)
+  F = base_field(RR)
   S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
   E = underlying_group(RR)
@@ -145,7 +145,7 @@ function possible_ideals_for_cubics(G::Oscar.GAPGroup)
   bool, RR, sum_index, p = _has_pfr(G, 6)
   !bool && return Tuple{ProjRep, Vector{SymmetricIntersections}}[]
   @info "$(length(sum_index)) possible actions to consider"
-  F = splitting_field(RR)
+  F = base_field(RR)
   S, _ = grade(PolynomialRing(F, "x" => 0:5)[1])
   _, j = homogeneous_component(S, 3)
   E = underlying_group(RR)

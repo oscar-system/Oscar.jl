@@ -1,13 +1,11 @@
 import AbstractAlgebra: is_empty
 
-import Oscar: defining_ideal, describe
-
-import Base: parent
+import Oscar: defining_ideal, describe, irreducible_components
 
 export character_grassmannian,
        determinant_grassmannian,
        invariant_grassmannian,
-       irreducible_components,
+       irreducible_component,
        isotypical_factor,
        isotypical_factors,
        isotypical_grassmannian,
@@ -16,7 +14,7 @@ export character_grassmannian,
        projective_dimension,
        standard_element,
        submodule_character,
-       submodule_determinantal_character,
+       submodule_determinant_character,
        submodule_dimension
 
 ###############################################################################
@@ -104,34 +102,32 @@ projective_dimension(M::IsotypicalGrassmannian) = M.t
 
 function defining_ideal(M::IsotypicalGrassmannian)
   rep = module_representation(M)
-  F = splitting_field(representation_ring(rep))
+  F = base_field(representation_ring(rep))
   chi = submodule_character(M)
   cd = character_decomposition(chi)[1]
   n = Int(scalar_product(character_representation(rep), cd[2]))
-  if (cd[1] == 1 || cd[1] == n - 1) && n > 1
-    return defining_ideal(projective_space(F, n-1))
+  t = cd[1]
+  if t in [1, n-1, n]
+    return defining_ideal(projective_space(F, binomial(n,t)-1))
   end
   t = cd[1]
-  if 2*t > n
-    t = n-t
-  end
   S, _ = GradedPolynomialRing(F, ["x[$j]" for j in 0:binomial(n, t)-1], [1 for i in 1:binomial(n,t)])
   return grassmann_pluecker_ideal(S, t, n)
 end
 
 function describe(M::IsotypicalGrassmannian)
   rep = module_representation(M)
-  F = splitting_field(representation_ring(rep))
+  F = base_field(representation_ring(rep))
   chi = submodule_character(M)
   cd = character_decomposition(chi)[1]
   t = cd[1]
   n = Int(scalar_product(character_representation(rep), cd[2]))
-  if n == 1
-    println("A point")
+  if n == t
+    return "A point"
   elseif t == 1
-    println("$(n-1)-dimensional projective space over F = $F")
+    return "$(n-1)-dimensional projective space over F = $F"
   else
-    println("Grassmannian Gr($t, F^$n) where F = $F")
+    return "Grassmannian Gr($t, F^$n) where F = $F"
   end
 end
 
@@ -147,11 +143,11 @@ to `chi` and `n` is the size of the submodules of `Hom(N, V)` parametrized by `M
 
 The elements of `B` are given by matrices in the standard coordinates of `V` and `N`.
 """
-function parametrization_data(M::IsotypicalGrassmannian)
+function parametrization_data(M::IsotypicalGrassmannian{S, T, U}) where {S, T, U}
   f = M.vs_struct
   chi = submodule_character(M)
   n, _ = character_decomposition(chi)[1]
-  B = f.(gens(domain(f)))
+  B = f.(gens(domain(f)))::Vector{dense_matrix_type(U)}
   return B, n
 end
 
@@ -165,7 +161,7 @@ made from all possible elements in `M`.
 """
 function standard_element(M::IsotypicalGrassmannian)
   B, n = parametrization_data(M)
-  std_el = []
+  std_el = eltype(B)[]
   for i in 1:n
     push!(std_el, sum([B[j] for j in i:length(B)]))
   end
@@ -240,15 +236,15 @@ function describe(M::CharacterGrassmannian)
   length(ifs) == 1 && return describe(ifs[1])
   str = ""
   rep = module_representation(M)
-  F = splitting_field(representation_ring(rep))
+  F = base_field(representation_ring(rep))
   chi = submodule_character(M)
   cds = character_decomposition(chi)
   t = cds[1][1]
   n = Int(scalar_product(character_representation(rep), cds[1][2]))
-  if n == 1
+  if n == t
     str *= "{pt}"
   elseif t == 1
-    str *= "$PP^$(n-1)_F"
+    str *= "PP^$(n-1)_F"
   else
     str *= "Gr($t, F^$n)"
   end
@@ -259,7 +255,7 @@ function describe(M::CharacterGrassmannian)
     if n == 1
       str *= "{pt}"
     elseif t == 1
-      str *= "$PP^$(n-1)_F"
+      str *= "PP^$(n-1)_F"
     else
       str *= "Gr($t, F^$n)"
     end
@@ -267,7 +263,7 @@ function describe(M::CharacterGrassmannian)
   if projective_dimension(M) != 0
     str *= " where F = $F"
   end
-  println(str)
+  return str
 end
 
 @doc Markdown.doc"""
@@ -297,7 +293,7 @@ standard_element(M::CharacterGrassmannian) = standard_element.(isotypical_factor
 
 ###############################################################################
 
-### Determinantal Grassmannians
+### Determinant Grassmannians
 
 submodule_dimension(M::DeterminantGrassmannian) = M.d
 
@@ -415,7 +411,7 @@ end
 
 ###############################################################################
 
-### Determinantal Grassmannian
+### Determinant Grassmannian
 
 function Base.show(io::IO, ::MIME"text/plain", M::DeterminantGrassmannian)
   chi = submodule_determinant_character(M)
@@ -458,7 +454,7 @@ function _submodules_space_isotypical_as_vs(rep::LinRep{S, T, U},
   n = Int(degree(chis))
   d = length(B)
   @assert alpha <= d
-  F = splitting_field(RR)
+  F = base_field(RR)
   V = VectorSpace(F, d)
 
   function _basis_parametrisation(v)
@@ -539,7 +535,6 @@ function invariant_grassmannian(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
   @req 1 <= t < dimension_representation(rep) "t must be positive and (strictly) smaller than the dimension of rep"
   chis = constituents(character_representation(rep), t)
   M = CharacterGrassmannian{S, T, U}[]
-  @info "Construct $(length(chis)) irreducible component(s)"
   for chi in chis
     N = character_grassmannian(rep, chi)
     push!(M, N)
@@ -592,7 +587,11 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothi
   end
   
   X = ProjectiveScheme(S)
-  ideal_Gr = grassmann_pluecker_ideal(S, t, n)
+  if t == 1
+    ideal_Gr = ideal(S, [S(0)])
+  else
+    ideal_Gr = grassmann_pluecker_ideal(S, t, n)
+  end
   Grtn = subscheme(X, ideal_Gr)
   B = reduce(vcat, V)
   _, K = right_kernel(B)
@@ -609,25 +608,25 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothi
   return J
 end
 
-### For invariant and determinantal grassmannians
+### For invariant and determinant grassmannians
 
 function _defining_ideal_determinant_grassmannian(r::LinRep, chi::Oscar.GAPGroupClassFunction, t::Int)
   @req degree(chi) == 1 "chi must be a linear character"
   @req chi in irreducible_characters_underlying_group(representation_ring(r)) "chi is not a character of the undrlying group of r"
   rt = t == 1 ? r : exterior_power_representation(r, t)
-  F = splitting_field(representation_ring(r))
+  F = base_field(representation_ring(r))
   k = dimension_representation(rt)
   S, _ = grade(PolynomialRing(F, "x" => 0:k-1)[1])
   bas = basis_isotypical_component(rt, chi)
   if length(bas) == 0
     return ideal(S, [S(1)])
   end
-  return _intersection_with_grassmannian(bas, dimension_representation(r), t, S = S)
+  return _intersection_with_grassmannian(bas, dimension_representation(r), t, S = S)::ideal_type(S)
 end
 
 function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   rt = t == 1 ? r : exterior_power_representation(r, t)
-  F = splitting_field(representation_ring(r))
+  F = base_field(representation_ring(r))
   cds = character_decomposition(rt)
   chis = [cd[2] for cd in cds if Int(degree(cd[2])) == 1]
   k = dimension_representation(rt)

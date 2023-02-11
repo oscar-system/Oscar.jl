@@ -1,3 +1,5 @@
+import Base: length, IteratorSize, eltype
+
 export associated_bounds,
        associated_function,
        degree_of_elevations,
@@ -64,7 +66,7 @@ function _iterate_size_no_lbs(L::Vector{fmpz}, ubs::Vector{Int}, d::Int)
   return s
 end
 
-@attr function _num_sum(EC::ElevCtx{T, U}) where {T, U}
+@attr Tuple{Int, Vector{Vector{fmpz}}} function _num_sum(EC::ElevCtx{T, U}) where {T, U}
   len = Int(0)
   sumsum = Vector{fmpz}[]
   it = underlying_iterator(EC)
@@ -236,7 +238,7 @@ elevator(L::Vector{Int}, d::Int; lbs::Vector{Int} = [0 for i in 1:length(L)], ub
 #
 ###############################################################################
 
-function _first(EC::ElevCtx, sumtype::Vector{<:IntegerUnion})
+function _first(EC::ElevCtx, sumtype::Vector{fmpz})
   @assert sum(sumtype) == degree_of_elevations(EC)
   @assert any(s -> s == sumtype, _possible_sums(EC))
   lbs, ubs  = associated_bounds(EC)
@@ -281,9 +283,9 @@ function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   return sort(s)
 end
 
-@attr _first(EC::ElevCtx) = _first(EC, _possible_sums(EC)[1])
+@attr Vector{Int} _first(EC::ElevCtx) = _first(EC, _possible_sums(EC)[1])
 
-function _last(EC::ElevCtx, sumtype::Vector{<: IntegerUnion})
+function _last(EC::ElevCtx, sumtype::Vector{fmpz})
   @assert sum(sumtype) == degree_of_elevations(EC)
   @assert any(s -> s == sumtype, _possible_sums(EC))
   lbs, ubs  = associated_bounds(EC)
@@ -328,7 +330,7 @@ function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   return sort(s)
 end
 
-@attr _last(EC::ElevCtx) = _last(EC, _possible_sums(EC)[end])
+@attr Vector{Int} _last(EC::ElevCtx) = _last(EC, _possible_sums(EC)[end])
 
 function _next(EC::ElevCtx, elev::Vector{Int})
   lbs, ubs  = associated_bounds(EC)
@@ -424,9 +426,10 @@ end
 
 Base.length(EC::ElevCtx) = number_of_elevations(EC)
 
-Base.IteratorSize(::Type{ElevCtx}) = Bas.HasLength()
+Base.IteratorSize(::Type{T}) where T <: ElevCtx = Base.HasLength()
 
-Base.eltype(::Type{ElevCtx}) = Vector{Int}
+Base.eltype(::Type{T}) where T <: ElevCtx= Vector{Int}
+
 
 #############################################################################
 #

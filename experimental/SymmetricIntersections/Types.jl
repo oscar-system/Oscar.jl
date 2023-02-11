@@ -1,3 +1,5 @@
+import Oscar: elem_type
+
 """
 We work always with finite groups and splitting fields of characteristic zero.
 So by default, we take `QQAb` which is algebraically close of characteristic
@@ -59,26 +61,22 @@ tale which store the group and the field, by it is easily accessed like this.
 @attributes mutable struct RepRing{S, T}
   field::S
   group::T
-  gens::Vector
+  gens::Vector{GAPGroupElem{T}}
   ct::Oscar.GAPGroupCharacterTable
   irr::Vector{Oscar.GAPGroupClassFunction}
   
-  function RepRing(F::S, E::T) where {S, T}
+  function RepRing{S, T}(F::S, E::T) where {S, T}
     ct = character_table(E)
     Irr = collect(ct)
     H = gens(E)
     RR = new{S, T}(F, E, H, ct, Irr)
   end
 
-  function RepRing(E::T) where {T <: Oscar.GAPGroup}
-    ct = character_table(E)
-    F = parent(ct[1][1])
-    Irr = collect(ct)
-    H = gens(E)
-    RR = new{typeof(F), T}(F, E, H, ct, Irr)
-    return RR
-  end
 end
+
+elem_type(RR::RepRing{S, T}) where {S, T} = LinRep{S, T, Oscar.elem_type(S)}
+
+elem_type(::Type{RepRing{S, T}}) where {S, T} = LinRep{S, T, Oscar.elem_type(S)}
 
 ###############################################################################
 ### Linear representations of finite groups
@@ -91,11 +89,10 @@ have entries in the cached splitting field of the representation ring.
 """
 @attributes mutable struct LinRep{S, T, U}
   rep_ring::RepRing{S, T}
-  f::GAPGroupHomomorphism
+  f::GAPGroupHomomorphism{T, MatrixGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}
   char::Oscar.GAPGroupClassFunction
 
-  function LinRep(RR::RepRing{S, T}, f::GAPGroupHomomorphism, char::Oscar.GAPGroupClassFunction) where {S, T}
-    U = elem_type(base_ring(codomain(f)))
+  function LinRep{S, T, U}(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatrixGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}, char::Oscar.GAPGroupClassFunction) where {S, T, U}
     z = new{S, T, U}()
     z.rep_ring = RR
     z.f = f
@@ -115,7 +112,7 @@ Schur cover of the group. We store the underlying group and the linear lift.
   LR::LinRep{S, T, U}
   p::V
 
-  function ProjRep(LR::LinRep{S, T, U}, p::V) where {S, T, U, V}
+  function ProjRep{S, T, U, V}(LR::LinRep{S, T, U}, p::V) where {S, T, U, V}
     z = new{S, T, U, V}()
     z.LR = LR
     z.p = p
@@ -191,7 +188,7 @@ end
 @attributes mutable struct SymmetricIntersections{S, T, U, V}
   prep::ProjRep{S, T, U, V}
   para::CharacterGrassmannian{S, T, U}
-  j::MapFromFunc
+  j::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, MPolyRing_dec{U, AbstractAlgebra.Generic.MPolyRing{U}}}
   
   function SymmetricIntersections(prep::ProjRep{S, T, U, V}, para::CharacterGrassmannian{S, T, U}, j::MapFromFunc) where {S, T, U, V}
     z = new{S, T, U, V}(prep, para, j)

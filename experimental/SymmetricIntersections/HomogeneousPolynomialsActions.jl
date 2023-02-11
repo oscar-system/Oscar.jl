@@ -21,7 +21,7 @@ action on `R_d`.
 function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec
   @req is_homogeneous(f) "f must be a homogeneous polynomial"
   R = parent(f)
-  @req base_ring(R) === splitting_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
+  @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of f"
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
@@ -47,7 +47,7 @@ corresponding to the induced action on `f`.
 function action_on_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec
   @req is_homogeneous(f) "f must be a homogeneous polynomial"
   R = parent(f)
-  @req base_ring(R) === splitting_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
+  @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of f"
   R1, R1toR = homogeneous_component(R, 1)
   F = base_ring(R)
@@ -60,7 +60,7 @@ function action_on_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec
     @req ok && is_constant(k) "Polynomial is not semi-invariant"
     push!(coll, matrix(base_ring(R),1,1,[collect(coefficients(k))[1]])::eltype(matrix_representation(rep)))
   end
-  return linear_representation(representation_ring(rep), coll)
+  return Oscar.SymInt._linear_representation(representation_ring(rep), coll)
 end
 
 @doc Markdown.doc"""
@@ -78,7 +78,7 @@ associated polynomial algebra `R` if and only if the `d`-homogeneous component
 """ 
 function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
   R = base_ring(I)
-  @req base_ring(R) === splitting_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
+  @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
   gene = minimal_generating_set(I)
   R1, R1toR = homogeneous_component(R, 1)
@@ -103,7 +103,7 @@ linear representation corresponding to the induced action on `I`.
 """ 
 function action_on_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
   R = base_ring(I)
-  @req base_ring(R) === splitting_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
+  @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
   gene = minimal_generating_set(I)
   d = Int(degree(gene[1]).coeff[1])
@@ -155,8 +155,8 @@ function parametrization_data(symci::SymmetricIntersections)
   for (B, n) in pd
     B2 = Vector{MPolyElem_dec}[]
     for b in B
-      vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
-      vv = domain(j).(vv)
+      _vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
+      vv = domain(j).(_vv)
       push!(B2, j.(vv))
     end
     push!(pd2, (B2, n))
@@ -173,13 +173,13 @@ return an specific ideal in `symci` made up of all possible samples.
 """
 function standard_element(symci::SymmetricIntersections)
   std_el = standard_element(symci.para)
-  std_el2 = MPolyElem_dec[]
   j = symci.j
   S = codomain(j)
+  std_el2 = elem_type(S)[]
   for B in std_el
     for b in B
-      vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
-      vv = j.(domain(j).(vv))
+      _vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
+      vv = j.(domain(j).(_vv))::typeof(std_el2)
       append!(std_el2, vv)
     end
   end
@@ -187,7 +187,7 @@ function standard_element(symci::SymmetricIntersections)
 end
 
 @doc Markdown.doc"""
-    symmetric_complete_intersections(prep::ProjRep{S, T, U, V}, d::Int, t::Int;
+    symmetric_intersections(prep::ProjRep{S, T, U, V}, d::Int, t::Int;
                                      j::MapFromFunc = nothing,
                                      check::Bool = true) -> Vector{SymmetricIntersections{S, T, U, V}}
 
@@ -208,7 +208,7 @@ for which the action of `E` on a set of generators is given by `chi`.
 """
 function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j = nothing, check::Bool = true)
   RR = representation_ring_linear_lift(prep)
-  F = splitting_field(RR)
+  F = base_field(RR)
   if j === nothing
     S, _ = grade(PolynomialRing(F, "x" => 0:dimension_linear_lift(prep)-1)[1])
     _, j = homogeneous_component(S, d)
@@ -236,7 +236,7 @@ function Base.show(io::IO, ::MIME"text/plain", symci::SymmetricIntersections)
   M = symci.para
   j = symci.j
   RR = representation_ring_linear_lift(symci.prep)
-  F = splitting_field(RR)
+  F = base_field(RR)
   G = underlying_group(symci.prep)
   n = ngens(codomain(j))
   t = submodule_dimension(M)
@@ -273,11 +273,11 @@ linear action of `G` on $\mathbb P^{n-1}$
 """
 function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   pfr = faithful_projective_representations(G, n)
-  is_empty(pfr) && return InvariantGrassmannian, grade(PolynomialRing(QQ, "x" => 0:n-1)[1])
-  F = splitting_field(representation_ring_linear_lift(pfr[1]))
+  res = Tuple{ProjRep, Vector{SymmetricIntersections}}[]
+  is_empty(pfr) && return res
+  F = base_field(representation_ring_linear_lift(pfr[1]))
   S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
-  res = Tuple{ProjRep, Vector{SymmetricIntersections}}[]
   for prep in pfr
     D = symmetric_intersections(prep, d, t, j = j, check = false)
     push!(res, (prep, D))
