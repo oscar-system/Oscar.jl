@@ -1,6 +1,6 @@
 module GaloisGrp
 
-using Oscar, Markdown
+using Oscar, Markdown, Random
 import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP, extension_field
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
@@ -1207,6 +1207,7 @@ mutable struct DescentEnv
   I::Dict{Int, SLPoly}
   T::Dict{Int, Vector{fmpz_poly}}
   l::Vector{Int}
+  rng::AbstractRNG
   #the coset reps need to be cached as well
   #a "work limit" on the "invariant" function
   #a more select choice of group....
@@ -1221,6 +1222,7 @@ mutable struct DescentEnv
     r.I = Dict{Int, SLPoly}()
     r.T = Dict{Int, Vector{fmpz_poly}}()
     r.l = zeros(Int, length(r.s))
+    r.rng = MersenneTwister(1)
     return r
   end
 end
@@ -1245,9 +1247,9 @@ function Base.iterate(D::DescentEnv, i::Int=1)
 
   if haskey(D.T, i)
     T = D.T[i]
-    ts = rand(Hecke.Globals.Zx, 2:degree(D.G), -4:4)
+    ts = rand(D.rng, Hecke.Globals.Zx, 2:degree(D.G), -4:4)
     while degree(ts) < 2 || ts in T
-      ts = rand(Hecke.Globals.Zx, 2:degree(D.G), -4:4)
+      ts = rand(D.rng, Hecke.Globals.Zx, 2:degree(D.G), -4:4)
     end
     push!(D.T[i], ts)
     TS = ts
@@ -2164,11 +2166,11 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
 """
-function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
-  return find_transformation(r, [I^t for t = T])
+function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem}; RNG::AbstractRNG=Random.default_rng())
+  return find_transformation(r, [I^t for t = T], RNG = RNG)
 end
 
-function find_transformation(r, I::Vector{<:SLPoly})
+function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.default_rng())
   Zx = Hecke.Globals.Zx
   ts = gen(Zx)
   cnt = 0
@@ -2181,7 +2183,7 @@ function find_transformation(r, I::Vector{<:SLPoly})
     while true
       cnt += 1
       cnt > 20 && error("no Tschirni found")
-      ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
+      ts = rand(RNG, Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
       end
@@ -2277,7 +2279,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
   r = roots(GC, 5)
-  ts = Oscar.GaloisGrp.find_transformation(r, a, T)
+  ts = find_transformation(r, a, T, RNG = MersenneTwister(1))
 
   B = upper_bound(GC, a, ts)
   m = length(T)
@@ -2351,7 +2353,7 @@ julia> galois_quotient(C, 6)
  Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
 
 julia> galois_group(ans[1])
-(Group([ (1,2,3)(4,5,6), (1,4)(2,6)(3,5) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true
@@ -2454,6 +2456,7 @@ julia> i = galois_ideal(galois_group(x^4-2)[2])
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x4 + x2*x3, x1^2*x4^2 + x2^2*x3^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
 
 julia> k, _ = number_field(i);
+
 
 julia> length(roots(x^4-2, k))
 4
