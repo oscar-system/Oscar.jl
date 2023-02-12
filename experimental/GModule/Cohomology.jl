@@ -2014,11 +2014,6 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   end
 end
 
-function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
-  q, mq = quo(C.M, image(mDC)[1])
-  return GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac]), mq
-end
-
 export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
        action, cohomology_group, extension, is_coboundary, pc_group
 
