@@ -748,7 +748,7 @@ end
 # """
 function _compute_gens(T::TorQuadMod)
   T.is_normal || error("T must be normal")
-
+  isbilinear = modulus(Hecke.value_module(T))==modulus(Hecke.value_module_quadratic_form(T))
   # corner case
   invs = elementary_divisors(T)
   if length(invs) == 0
@@ -776,6 +776,9 @@ function _compute_gens(T::TorQuadMod)
     # compute the generators of the p-primary part
     # the whole group is the direct product of the p-primary parts
     q_p = gram_matrix_quadratic(T)[indices, indices]
+    if p==2 && isbilinear
+      q_p = block_diagonal_matrix([QQ[1;],q_p])
+    end
     b = valuation(invs[end], p)
     R = ResidueRing(ZZ,fmpz(p)^(b+5))
     G_p = change_base_ring(ZZ, q_p*p^b)
@@ -786,6 +789,9 @@ function _compute_gens(T::TorQuadMod)
     end
     # the generators in matrix form
     gens_mat = _gens(G_p, b, p)
+    if p==2 && isbilinear
+      gens_mat = [g[2:end,2:end] for g in gens_mat]
+    end
     # extend as identity on the orthogonal complement
     E1 = identity_matrix(ZZ, indices[1]-1)
     E2 = identity_matrix(ZZ, n - indices[end])
