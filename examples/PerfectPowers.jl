@@ -104,7 +104,7 @@ end
   ccall((:fmpz_fdiv_r_2exp, Nemo.libflint), Cvoid, (Ref{fmpz}, Ref{fmpz}, Clong), a, a, i)
 end
 
-function powermod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worde than 
+function powermod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worse than 
                                               #powermod directly
   @assert a > 0 && p > 0
   a = copy(a)
@@ -229,6 +229,18 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   return D
 end
 
+"""
+    is_power_bernstein(a::fmpz)
+
+Computes the maximal `k` s.th. `a = b^k` using an asymptotically optimal
+algorithm with a runtime softly linear in the size of `a`.
+
+Much faster than `is_power` from gmp/flint for large input.
+
+Try `a = fmpz(12345)^56789`
+
+Not fine tuned for small input
+"""
 function is_power_bernstein(a::fmpz)
 #https://cr.yp.to/lineartime/powers2-20060914-ams.pdf
   if isone(a)
@@ -237,20 +249,17 @@ function is_power_bernstein(a::fmpz)
   k, a = remove(a, fmpz(2))
   if isone(a)
     return k
-    return (k, fmpz(2))
   end
   l, a = remove(a, fmpz(3))
   g = gcd(k, l)
   if isone(a)
     # a is/was 2^k * 3^l
     return g
-    return (g, fmpz(2)^divexact(k, g)*fmpz(3)^divexact(l, g))
   end
   h, a = remove(a, fmpz(5))
   g = gcd(h, g)
   if isone(a)
     return g
-    return (g, fmpz(2)^divexact(k, g)*fmpz(3)^divexact(l, g)*fmpz(5)^divexact(h, g))
   end
 
 
@@ -267,6 +276,7 @@ function is_power_bernstein(a::fmpz)
 
   f = 1
 
+  #TODO: for large input, the runtime is DOMINATED by the PrimesSet...
   for p = PrimesSet(2, cl)
     if k % p != 0
       continue
@@ -320,7 +330,6 @@ function is_power_bernstein(a::fmpz)
   #not sure still necessary
   @time c = Hecke.coprime_base(c) 
   k = [valuation(a, p) for p = c]
-  @show no_p
   return gcd(k)*f
 end
 
