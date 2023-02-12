@@ -169,3 +169,12 @@ end
   @test isone(a*(1-x*y))
 end
 
+@testset "issue #1901" begin
+  R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  L, _ = Localization(R, powers_of_element(R[1]))
+  S, (s0, s1, s2) = PolynomialRing(L, ["s0", "s1", "s2"])
+  I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
+  Q, _ = quo(S, I)
+  @test Q isa MPolyQuo
+end
+
