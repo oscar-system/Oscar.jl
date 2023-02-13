@@ -277,9 +277,13 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
 end
 
 function gmodule(k::Nemo.GaloisField, C::GModule{PermGroup, GrpAbFinGen})
-  r = ngens(Oscar.GrpCoh.Module(C))
+  q, mq = quo(C.M, characteristic(k))
+  s, ms = snf(q)
+
+  r = ngens(s)
   F = free_module(k, r)
-  return gmodule(F, group(C), [hom(F, F, map_entries(k, x.map)) for x = C.ac])
+  mp = [GrpAbFinGenMap(ms*pseudo_inv(mq)*x*mq*pseudo_inv(ms)) for x= C.ac]
+  return gmodule(F, group(C), [hom(F, F, map_entries(k, x.map)) for x = mp])
 end
 
 function gmodule(k::Nemo.GaloisField, mC::Hecke.MapClassGrp)
@@ -564,7 +568,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
   Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
-  @vtime :MinField 2 fl, cb = Oscar.GrpCoh.iscoboundary(Sigma)
+  @vtime :MinField 2 fl, cb = Oscar.GrpCoh.is_coboundary(Sigma)
 
   cc = Dict(k => cb(k).data for k = G)
   for g = G
@@ -770,7 +774,7 @@ end
 """
 The composition factors of `C` with their frequency
 """
-function composition_factors(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function Oscar.composition_factors_with_multiplicity(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   z = GAP.Globals.MTX.CollectedFactors(G)
   g = Group(C)
@@ -786,6 +790,25 @@ function composition_factors(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldEl
   return CF
 end
 
+"""
+A decomposition of the module into indecomposable summands. Returns a list
+of pairs: 
+ - a direct indecomposable summand
+ - a homomorphism (embedding) of the underlying free modules
+"""
+function indecomposition(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+  G = Gap(C)
+  z = GAP.Globals.MTX.Indecomposition(G)
+  k = base_ring(C)
+  CF = []
+  for c = z
+    m = GAP.Globals.MTX.Generators(c[2])
+    mm = [matrix(k, x) for x = m]
+    F = free_module(k, nrows(mm[1]))
+    push!(CF, (gmodule(F, Group(C), [hom(F, F, x) for x = mm]), hom(F, C.M, matrix(k, c[1]))))
+  end
+  return CF
+end
 
 function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:FieldElem}}
   b = hom_base(C, D)
@@ -1152,7 +1175,7 @@ end
 
 
 export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
-       composition_factors
+       indecomposition
 
 ## Fill in some stubs for Hecke
 
@@ -1199,7 +1222,7 @@ end #module GModuleFromGap
 using .GModuleFromGap
 
 export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
-       composition_factors
+       indecomposition
 
 module RepPc
 using Oscar

@@ -1,6 +1,6 @@
 module GaloisGrp
 
-using Oscar, Markdown
+using Oscar, Markdown, Random
 import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP, extension_field
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
@@ -1122,24 +1122,12 @@ function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
   O = collect(probable_orbit(C.G, I))
   n = length(O)
   rt = roots(C)
-  #make square-free (in residue field)
-  k, mk = ResidueField(parent(rt[1]))
-  k_rt = map(mk, rt)
-  ts = gen(Hecke.Globals.Zx)
-  while true
-    r = map(ts, k_rt)
-    s = Set(map(x->evaluate(x, r), O))
-    if length(s) < length(O)
-      while true
-        ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
-        if degree(ts) > 0
-          break
-        end
-      end
-    else
-      break
-    end
+  k = GF(next_prime(10^6))
+  r = [rand(k) for i=1:degree(C.f)]
+  while length(Set(r)) < length(r)
+    r = [rand(k) for i=r]
   end
+  ts = find_transformation(r, O)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
   rt = roots(C, bound_to_precision(C, B, extra))
@@ -1219,6 +1207,7 @@ mutable struct DescentEnv
   I::Dict{Int, SLPoly}
   T::Dict{Int, Vector{fmpz_poly}}
   l::Vector{Int}
+  rng::AbstractRNG
   #the coset reps need to be cached as well
   #a "work limit" on the "invariant" function
   #a more select choice of group....
@@ -1233,6 +1222,7 @@ mutable struct DescentEnv
     r.I = Dict{Int, SLPoly}()
     r.T = Dict{Int, Vector{fmpz_poly}}()
     r.l = zeros(Int, length(r.s))
+    r.rng = MersenneTwister(1)
     return r
   end
 end
@@ -1257,9 +1247,9 @@ function Base.iterate(D::DescentEnv, i::Int=1)
 
   if haskey(D.T, i)
     T = D.T[i]
-    ts = rand(Hecke.Globals.Zx, 2:degree(D.G), -4:4)
+    ts = rand(D.rng, Hecke.Globals.Zx, 2:degree(D.G), -4:4)
     while degree(ts) < 2 || ts in T
-      ts = rand(Hecke.Globals.Zx, 2:degree(D.G), -4:4)
+      ts = rand(D.rng, Hecke.Globals.Zx, 2:degree(D.G), -4:4)
     end
     push!(D.T[i], ts)
     TS = ts
@@ -2176,20 +2166,24 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
 """
-function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
+function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem}; RNG::AbstractRNG=Random.default_rng())
+  return find_transformation(r, [I^t for t = T], RNG = RNG)
+end
+
+function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.default_rng())
   Zx = Hecke.Globals.Zx
   ts = gen(Zx)
   cnt = 0
   while true
     rt = map(ts, r)
-    conj = [evaluate(I^t, rt) for t = T]
-    if length(Set(conj)) == length(T)
+    conj = [evaluate(i, rt) for i = I]
+    if length(Set(conj)) == length(I)
       return ts
     end
     while true
       cnt += 1
       cnt > 20 && error("no Tschirni found")
-      ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
+      ts = rand(RNG, Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
       end
@@ -2197,32 +2191,33 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
   end
 end
 
-@doc Markdown.doc"""
-    fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
-
-Given the `GaloisCtx` as returned by a call to `galois_group` and a subgroup
-`U` of the Galois group, compute the field fixed by `U` as a simple
-extension.
-"""
-function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
-  G = GC.G
+function relative_invariant(G, U; Chain::Union{Nothing, <:Vector{<:Tuple{PermGroup, <:Any}}} = nothing)
+  @assert degree(G) == degree(U)
+  S, g = slpoly_ring(ZZ, degree(G), cached = false)
   if index(G, U) == 1 # not type stable
-    return QQ
+    return one(S), [one(G)]
   end
-  #XXX: seems to be broken for reducible f, ie. intransitive groups
 
-  c = reverse(maximal_subgroup_chain(G, U))
+  if Chain !== nothing
+    c = [x[1] for x = Chain]
+    I = [x[2] for x = Chain]
+    pop!(I)
+  else
+    c = reverse(maximal_subgroup_chain(G, U))
+    I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
+  end
+
   @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
-
-  I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
   #the I[i] is a relative primitive element - it may be absolute or not...
   # right_transversal: U*g, thus G>U>V -> V a b where a runs (U/V), b (G/U):
   # G = cup U b, U = cup V a, so G = V a b
   ts = [gen(Hecke.Globals.Zx) for i = I]
   tv  = [right_transversal(c[i], c[i+1]) for i=1:length(c)-1]
-  r = roots(GC, bound_to_precision(GC, GC.B))
-  k, mk = ResidueField(parent(r[1]))
-  r = map(mk, r)
+  k = GF(next_prime(10000))
+  r = [rand(k) for i=1:degree(G)]
+  while length(Set(r)) < length(r)
+    r = [rand(k) for i=1:degree(G)]
+  end
   mu = ones(Int, length(I))
   #need tschirni per invar
   local conj
@@ -2255,6 +2250,9 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
         break
       end
       mu[j] += 1
+      if mu[j] > characteristic(k)
+        error("dnw")
+      end
     end
     if iszero(mu[j])
       a = b
@@ -2263,12 +2261,34 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
     end
   end
   @vprint :GaloisGroup 2  "have primitive element via $mu \n$a\n"
+  return a, T
+end
 
-  B = upper_bound(GC, a)
+@doc Markdown.doc"""
+    fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+
+Given the `GaloisCtx` as returned by a call to `galois_group` and a subgroup
+`U` of the Galois group, compute the field fixed by `U` as a simple
+extension.
+"""
+function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+  G = GC.G
+  if index(G, U) == 1 # not type stable
+    return QQ
+  end
+  #XXX: seems to be broken for reducible f, ie. intransitive groups
+  a, T = relative_invariant(G, U)
+  r = roots(GC, 5)
+  ts = find_transformation(r, a, T, RNG = MersenneTwister(1))
+
+  B = upper_bound(GC, a, ts)
   m = length(T)
   B = m*B^m
 
   @vtime :GaloisGroup 2 r = roots(GC, bound_to_precision(GC, B, extra))
+  if ts != gen(parent(ts))
+    r = map(ts, r)
+  end
   compile!(a)
   @vtime :GaloisGroup 2 conj = [evaluate(a, t, r) for t = T]
 
@@ -2285,7 +2305,10 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   end
   ps = map(base_ring(GC.f), ps)
 
-  k = extension_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  f = Hecke.power_sums_to_polynomial(ps)
+  @assert degree(f) > 0
+#  @assert is_irreducible(f)
+  k = extension_field(f, check = false, cached = false)[1]
   @assert all(x->isone(denominator(x)), coefficients(k.pol))
   @assert is_monic(k.pol)
   return k
@@ -2330,7 +2353,7 @@ julia> galois_quotient(C, 6)
  Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
 
 julia> galois_group(ans[1])
-(Group([ (1,2,3)(4,5,6), (1,4)(2,6)(3,5) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true
@@ -2433,6 +2456,7 @@ julia> i = galois_ideal(galois_group(x^4-2)[2])
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x4 + x2*x3, x1^2*x4^2 + x2^2*x3^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
 
 julia> k, _ = number_field(i);
+
 
 julia> length(roots(x^4-2, k))
 4
@@ -2632,7 +2656,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"
-    G, C = galois_group(extension_field(lf[1][1], cached = false)[1])
+    G, C = galois_group(extension_field(lf[1][1], cached = false)[1], pStart = pStart, prime = prime)
     return blow_up(G, C, lf)
   end
 
