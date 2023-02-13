@@ -206,7 +206,7 @@ function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) wher
 end
 
 ################################################################################
-# Include internal saves for specific types
+# Include serialization implementations for various types
 
 include("basic_types.jl")
 include("containers.jl")
@@ -244,7 +244,7 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
         end
     end
 
-    upgraded_dict[:_ns] = get_version_info()
+    upgraded_dict[:_ns] = versionInfo
     
     return upgraded_dict
 end
@@ -348,12 +348,12 @@ true
 """
 function load(io::IO; parent::Any = nothing,
               type::Any = nothing,
-              check_namespace=false)
+              check_namespace::Bool = false)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-    if (check_namespace)
+    if check_namespace
         haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
         _ns = jsondict[:_ns]
         if haskey(_ns, :polymake)

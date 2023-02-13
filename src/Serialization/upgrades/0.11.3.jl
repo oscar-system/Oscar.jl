@@ -12,9 +12,7 @@ push!(upgrade_scripts, UpgradeScript(
     v"0.11.3", # version this script upgrades to
     function (s::DeserializerState, dict::Dict)
         # file comes from polymake
-        if haskey(dict, :_ns)
-            haskey(dict[:_ns], :polymake) && return dict
-        end
+        haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
 
         # moves down tree to point where type exists in dict
         # since we are only doing updates based on certain types
@@ -53,7 +51,7 @@ push!(upgrade_scripts, UpgradeScript(
         !haskey(dict, :data) && return dict
 
         # load any non backrefs into state
-        if (haskey(dict, :id))
+        if haskey(dict, :id)
             s.objs[UUID(dict[:id])] = dict
         end
 
@@ -67,7 +65,7 @@ push!(upgrade_scripts, UpgradeScript(
 
                 # store values that aren't backrefs in state
                 if entry[:type] != string(backref_sym)
-                    if (haskey(entry, :id))
+                    if haskey(entry, :id)
                         s.objs[UUID(entry[:id])] = entry
                     end
                     entry_type = entry[:type]
@@ -98,7 +96,7 @@ push!(upgrade_scripts, UpgradeScript(
 
         # Upgrades fmpq serialization
         if is_basic_serialization_type(U)
-            if U == fmpq
+            if U === fmpq
                 num = dict[:data][:num][:data]
                 den = dict[:data][:den][:data]
                 return "$num//$den"
