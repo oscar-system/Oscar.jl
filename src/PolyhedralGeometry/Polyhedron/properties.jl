@@ -226,10 +226,19 @@ _vertices(P::Polyhedron) = _vertices(PointVector, P)
 @doc Markdown.doc"""
     nrays(P::Polyhedron)
 
-Return the number of rays of `P`.
+Return the number of rays of `P`, i.e. the number of rays of the recession cone
+of `P`.
 
 # Examples
-Reflecting the input, the upper half-plane indeed has one ray.
+The two-dimensional positive orthant has two rays.
+```jldoctest
+julia> PO = convex_hull([0 0],[1 0; 0 1])
+A polyhedron in ambient dimension 2
+
+julia> nrays(PO)
+2
+```
+The upper half-plane has no ray, since it has lineality.
 ```jldoctest
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
