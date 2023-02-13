@@ -13,8 +13,7 @@ else
   seed = rand(UInt32)
   @info string(@__FILE__)*" -- SEED $seed"
 end
-
-Random.seed!(Oscar.RNG, seed)
+Oscar.set_seed!(seed)
 
 import Oscar.Nemo.AbstractAlgebra
 include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))

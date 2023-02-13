@@ -1,4 +1,4 @@
-const rng = Oscar.RNG
+const rng = Oscar.get_seeded_rng()
 
 @testset "mpoly-localizations" begin
   R, variab = ZZ["x", "y"]
