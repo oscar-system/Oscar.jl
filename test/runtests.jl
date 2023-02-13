@@ -18,6 +18,43 @@ Oscar.set_seed!(seed)
 import Oscar.Nemo.AbstractAlgebra
 include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
 
+# some helpers
+import Printf
+import PrettyTables
+
+const stats_time = Dict{String,Float64}()
+const stats_alloc = Dict{String,Float64}()
+
+function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=15)
+  sorted = sort(collect(stats_time), by=x->x[2], rev=true)
+  println(io, "### Timings in seconds per file")
+  println(io)
+  PrettyTables.pretty_table(io, hcat(first.(sorted), last.(sorted)); tf=fmt, max_num_of_rows=max, header=[:Filename, Symbol("Time in s")])
+  println(io)
+  sorted = sort(collect(stats_alloc), by=x->x[2], rev=true)
+  println(io, "### Allocations in megabytes per file")
+  println(io)
+  PrettyTables.pretty_table(io, hcat(first.(sorted), last.(sorted)); tf=fmt, max_num_of_rows=max, header=[:Filename, Symbol("Alloc in MB")])
+end
+
+# we only want to print stats for files that run tests and not those that just
+# include other files
+const innermost = Ref(true)
+# redefine include to print and collect some extra stats
+function include(str::String)
+  innermost[] = true
+  # we pass the identity to avoid recursing into this function again
+  stats = @timed Base.include(identity, Main, str)
+  if innermost[]
+    dir = Base.source_dir()
+    dir = joinpath(relpath(dir, joinpath(Oscar.oscardir,"test")), str)
+    stats_time[dir] = stats.time
+    stats_alloc[dir] = stats.bytes/2^20
+    Printf.@printf "Testing %s took: %.2f seconds, %d MB\n" dir stats.time stats.bytes/2^20
+    innermost[] = false
+  end
+end
+
 # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
 include("printing.jl")
@@ -77,4 +114,12 @@ if v"1.6.0" <= VERSION < v"1.7.0" && !haskey(ENV,"oscar_run_doctests")
   doctest(Oscar)
 else
   @info "Not running doctests (Julia version must be 1.6)"
+end
+
+if haskey(ENV, "GITHUB_STEP_SUMMARY")
+  open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
+    print_stats(io, fmt=PrettyTables.tf_markdown)
+  end
+else
+  print_stats(stdout)
 end
