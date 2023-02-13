@@ -22,19 +22,25 @@ include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance
 import Printf
 import PrettyTables
 
-const stats_time = Dict{String,Float64}()
-const stats_alloc = Dict{String,Float64}()
+# the current code for extracting the compile times does not work on earlier
+# julia version
+const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
 
-function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=15)
-  sorted = sort(collect(stats_time), by=x->x[2], rev=true)
-  println(io, "### Timings in seconds per file")
+const stats_dict = Dict{String,NamedTuple}()
+
+function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=25)
+  sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
+  println(io, "### Stats per file")
   println(io)
-  PrettyTables.pretty_table(io, hcat(first.(sorted), last.(sorted)); tf=fmt, max_num_of_rows=max, header=[:Filename, Symbol("Time in s")])
-  println(io)
-  sorted = sort(collect(stats_alloc), by=x->x[2], rev=true)
-  println(io, "### Allocations in megabytes per file")
-  println(io)
-  PrettyTables.pretty_table(io, hcat(first.(sorted), last.(sorted)); tf=fmt, max_num_of_rows=max, header=[:Filename, Symbol("Alloc in MB")])
+  table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
+  @static if compiletimes
+    header=([:Filename, Symbol("Time"), :Compilation, :Recompilation, Symbol("Alloc")], [Symbol(""), :seconds, Symbol(""), Symbol("of comilation"), :MB])
+    formatters = PrettyTables.ft_printf("%.2f%%", [3,4])
+  else
+    header=([:Filename, Symbol("Time"), Symbol("Alloc")], [Symbol(""), :seconds, :MB])
+    formatters = nothing
+  end
+  PrettyTables.pretty_table(io, table; tf=fmt, max_num_of_rows=max, header=header, formatters=formatters)
 end
 
 # we only want to print stats for files that run tests and not those that just
@@ -44,17 +50,34 @@ const innermost = Ref(true)
 function include(str::String)
   innermost[] = true
   # we pass the identity to avoid recursing into this function again
+  @static if compiletimes
+    compile_elapsedtimes = Base.cumulative_compile_time_ns()
+  end
   stats = @timed Base.include(identity, Main, str)
   if innermost[]
-    dir = Base.source_dir()
-    dir = joinpath(relpath(dir, joinpath(Oscar.oscardir,"test")), str)
-    stats_time[dir] = stats.time
-    stats_alloc[dir] = stats.bytes/2^20
-    Printf.@printf "Testing %s took: %.2f seconds, %d MB\n" dir stats.time stats.bytes/2^20
+    @static if compiletimes
+      compile_elapsedtimes = Base.cumulative_compile_time_ns() .- compile_elapsedtimes
+      compile_elapsedtimes = compile_elapsedtimes ./ 10^9
+    end
+    path = Base.source_dir()
+    path = joinpath(relpath(path, joinpath(Oscar.oscardir,"test")), str)
+    rtime=NaN
+    @static if compiletimes
+      comptime = first(compile_elapsedtimes)
+      rcomptime = last(compile_elapsedtimes)
+      stats_dict[path] = (time=stats.time, ctime=100*comptime/stats.time, rctime=100*rcomptime/comptime, alloc=stats.bytes/2^20)
+      Printf.@printf "-> Testing %s took: %.3f seconds, %.2f%% compilation, of this %.2f%% recompilation, %.2f MB\n" path stats.time 100*comptime/stats.time 100*rcomptime/comptime stats.bytes/2^20
+    else
+      Printf.@printf "-> Testing %s took: %.3f seconds, %.2f MB\n" path stats.time stats.bytes/2^20
+      stats_dict[path] = (time=stats.time, alloc=stats.bytes/2^20)
+    end
     innermost[] = false
   end
 end
 
+@static if compiletimes
+  Base.cumulative_compile_timing(true);
+end
 # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
 include("printing.jl")
@@ -103,6 +126,10 @@ include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")
 
 include("StraightLinePrograms/runtests.jl")
+
+@static if compiletimes
+  Base.cumulative_compile_timing(false);
+end
 
 # Doctests
 

@@ -60,6 +60,8 @@ jobs:
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
+        with:
+          coverage: ${{ matrix.julia-version == '1.6' }}
       - name: "Process code coverage"
         uses: julia-actions/julia-processcoverage@v1
         with:
