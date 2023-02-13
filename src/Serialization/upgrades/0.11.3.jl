@@ -1,16 +1,14 @@
 ################################################################################
 # Upgrade Summary
-# Types of the form `Vector{T}` are only serialized with backref when
-# `is_basic_serialization_type(T) == false`. If
-# `is_basic_serialization_type(T) == true` the type `Vector{T}` does not
-# serialize `T` in the entries, but instead as a part of the `Vector` serialization.
-# Instances of the form `Tuple{T}` with `is_basic_serialization_type(T) == true` 
-# are no longer serialized with backref, however these types were already storing
-# there types outside of the JSON array of entries
+# When `is_basic_serialization_type(T) == true` the type `Vector{T}` the entries
+# are no longer serialized as dicts, and as a result entries can no longer be
+# referenced with backref. The type is encoded on the Vector at the same level as
+# the entry data. 
+
 
 push!(upgrade_scripts, UpgradeScript(
     v"0.11.3", # version this script upgrades to
-    function (s::DeserializerState, dict::Dict)
+    function upgrade_0_11_3(s::DeserializerState, dict::Dict)
         # file comes from polymake
         haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
 
@@ -21,17 +19,15 @@ push!(upgrade_scripts, UpgradeScript(
             for (key, value) in dict
                 if value isa String || value isa Vector{String} || key == :field_types
                     upgraded_dict[key] = value
+                elseif  value isa  Dict{Symbol, Any}
+                    # recursive call unnamed function with var"#self"
+                    upgraded_dict[key] = upgrade_0_11_3(s, value)
                 else
-                    if typeof(value) <: Dict{Symbol, Any}
-                        # recursive call unnamed function with var"#self"
-                        upgraded_dict[key] = var"#self#"(s, value)
-                    else
-                        values = []
-                        for v in value
-                            push!(values, var"#self#"(s, v))
-                        end
-                        upgraded_dict[key] = values
+                    values = []
+                    for v in value
+                        push!(values, upgrade_0_11_3(s, v))
                     end
+                    upgraded_dict[key] = values
                 end
             end
             return upgraded_dict
@@ -43,7 +39,7 @@ push!(upgrade_scripts, UpgradeScript(
 
             # recursive call unnamed function with var"#self"
             # replace backrefs for types that no longer support backrefs
-            is_basic_serialization_type(backref_type) && return var"#self#"(s, backref)
+            is_basic_serialization_type(backref_type) && return upgrade_0_11_3(s, backref)
             return dict
         end
 
@@ -61,7 +57,7 @@ push!(upgrade_scripts, UpgradeScript(
 
             for entry in dict[:data][:vector]
                 # recursive call unnamed function with var"#self"
-                result = var"#self#"(s, entry)
+                result = upgrade_0_11_3(s, entry)
 
                 # store values that aren't backrefs in state
                 if entry[:type] != string(backref_sym)
@@ -106,7 +102,7 @@ push!(upgrade_scripts, UpgradeScript(
         end
 
         # recursive call unnamed function with var"#self"
-        upgraded_data = var"#self#"(s, dict[:data])
+        upgraded_data = upgrade_0_11_3(s, dict[:data])
 
         return Dict(
             :type => dict[:type],

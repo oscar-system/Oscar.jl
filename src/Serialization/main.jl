@@ -346,22 +346,18 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; parent::Any = nothing,
-              type::Any = nothing,
-              check_namespace::Bool = false)
+function load(io::IO; parent::Any = nothing, type::Any = nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-    if check_namespace
-        haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
-        _ns = jsondict[:_ns]
-        if haskey(_ns, :polymake)
-            # If this is a polymake file
-            return load_from_polymake(jsondict)
-        end
-        haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
+    haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
+    _ns = jsondict[:_ns]
+    if haskey(_ns, :polymake)
+        # If this is a polymake file
+        return load_from_polymake(jsondict)
     end
+    haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
     
     file_version = get_file_version(jsondict)
 
