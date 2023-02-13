@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Gröbner/Standard Bases Over Fields · Oscar.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img src="../../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox" checked/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Introduction</a></li><li><a class="tocitem" href="../../rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../../ModulesOverMultivariateRings/homological_algebra/">Homological Algebra</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox" checked/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Gröbner Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../orderings/">Monomial Orderings</a></li><li class="is-active"><a class="tocitem" href>Gröbner/Standard Bases Over Fields</a><ul class="internal"><li><a class="tocitem" href="#Division-With-Remainder"><span>Division With Remainder</span></a></li><li><a class="tocitem" href="#Gröbner-and-Standard-Bases"><span>Gröbner and Standard Bases</span></a></li><li><a class="tocitem" href="#Leading-Ideals"><span>Leading Ideals</span></a></li><li><a class="tocitem" href="#Normal-Forms"><span>Normal Forms</span></a></li><li><a class="tocitem" href="#Syzygies"><span>Syzygies</span></a></li></ul></li><li><a class="tocitem" href="../groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/K3Surfaces/">Algebraic Surfaces</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Commutative Algebra</a></li><li><a class="is-disabled">Gröbner Bases</a></li><li class="is-active"><a href>Gröbner/Standard Bases Over Fields</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Gröbner/Standard Bases Over Fields</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/CommutativeAlgebra/GroebnerBases/groebner_bases.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Gröbner/Standard-Bases-Over-Fields">Gröbner/Standard Bases Over Fields</a></li><li class="no-marker"><ul><li><a href="#Division-With-Remainder">Division With Remainder</a></li><li><a href="#Gröbner-and-Standard-Bases">Gröbner and Standard Bases</a></li><li><a href="#Leading-Ideals">Leading Ideals</a></li><li><a href="#Normal-Forms">Normal Forms</a></li><li><a href="#Syzygies">Syzygies</a></li></ul></li></ul><h1 id="Gröbner/Standard-Bases-Over-Fields"><a class="docs-heading-anchor" href="#Gröbner/Standard-Bases-Over-Fields">Gröbner/Standard Bases Over Fields</a><a id="Gröbner/Standard-Bases-Over-Fields-1"></a><a class="docs-heading-anchor-permalink" href="#Gröbner/Standard-Bases-Over-Fields" title="Permalink"></a></h1><p>We fix our notation in the context of standard (Gröbner) bases and present relevant OSCAR functions.</p><p>Let <span>$K[x] = K[x_1, \dots, x_n]$</span> be a polynomial ring over a field <span>$K$</span>, and let <span>$&gt;$</span> be a monomial ordering on <span>$\text{Mon}_n(x)$</span>.</p><p>Given a polynomial <span>$f\in K[x]\setminus \{0\}$</span>, write <span>$f$</span> as the sum of its nonzero terms as follows:</p><p class="math-container">\[f = a_\alpha x^\alpha + a_{\beta_1} x^{\beta_1} + \dots + a_{\beta_s} x^{\beta_s},\quad x^\alpha &gt; x^{\beta_1} &gt; \dots &gt; x^{\beta_s} .\]</p><p>Then, with respect to <span>$&gt;$</span>, we refer to <span>$\text{LT}_&gt;(f) = a_\alpha x^\alpha$</span>, <span>$\text{LM}_&gt;(f) = x^\alpha$</span>, <span>$\text{LE}_&gt;(f) = \alpha$</span>, <span>$\text{LC}_&gt;(f) = a_\alpha$</span>, and <span>$\text{tail}_&gt;(f) = f - \text{LT}_&gt;(f)$</span> as the  <em>leading term</em>, the <em>leading monomial</em>, the <em>leading exponent</em>, the <em>leading coefficient</em>, and the <em>tail</em> of <span>$f$</span>, respectively.</p><p>Next note that the set</p><p class="math-container">\[U_&gt;:= \{u\in K[x]\setminus \{0\} \mid {\text{LM}}_&gt;(u)=1 \}\]</p><p>is a multiplicatively closed subset of <span>$K[x]$</span>. Consider the localization</p><p class="math-container">\[K[x]_&gt;:= K[x][U^{-1}] = \left\{ \frac{f}{u} \:\bigg|\: f \in K[x], \, u\in U_&gt;\right\}.\]</p><p>Then <span>$K[x]\subseteq K[x]_&gt;\subseteq K[x]_{\langle x \rangle},$</span> where <span>$K[x]_{\langle x \rangle}$</span> is the localization of <span>$K[x] $ at the maximal ideal $\langle x \rangle .$</span> Moreover,</p><ul><li><p><span>$K[x] = K[x]_&gt;$</span> iff <span>$&gt;$</span> is global, and</p></li><li><p><span>$K[x]_&gt; = K[x]_{\langle x \rangle}$</span> iff <span>$&gt;$</span> is local.</p></li></ul><p>Extending the notation introduced for polynomials, let now <span>$f\in K[x]_&gt;\setminus \{0\}$</span>. Choose <span>$u\in U_&gt;$</span> such that <span>$uf\in K[x]$</span>. Then, with respect to <span>$&gt;$</span>, the  <em>leading term</em>  of <span>$f$</span> is defined to be <span>$\text{LT}_&gt;(f) = \text{LT}_&gt;(uf)$</span> (this definition is independent of the choice of <span>$u$</span>). The <em>leading monomial</em> <span>$\text{LM}_&gt;(f)$</span>, the <em>leading exponent</em> <span>$\text{LE}_&gt;(f)$</span>, the <em>leading coefficient</em> <span>$\text{LC}_&gt;(f)$</span>, and the <em>tail</em> <span>$\text{tail}_&gt;(f)$</span> of <span>$f$</span> are defined similarly.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Given a monomial ordering <span>$&gt;$</span> on a free <span>$K[x]$</span>-module <span>$F = K[x]^p$</span> with basis <span>$e_1, \dots, e_p$</span>, the above notation extends naturally to elements of  <span>$K[x]^p$</span> and <span>$K[x]_&gt;^p$</span>, respectively. There is one particularity: Given an element <span>$f = K[x]^p\setminus \{0\}$</span> with leading term <span>$\text{LT}(f) = x^\alpha e_i$</span>, we write <span>$\text{LE}_&gt;(f) = (\alpha, i)$</span>.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The OSCAR functions discussed in this section depend on a monomial <code>ordering</code> which is entered as a keyword argument. Given a polynomial ring <span>$R$</span>, the <code>default_ordering</code> for this is <code>degrevlex</code> except if <span>$R$</span> is <span>$\mathbb Z$</span>-graded with positive weights. Then the corresponding <code>wdegrevlex</code> ordering is used. Given a free <span>$R$</span>-module <span>$F$</span>, the <code>default_ordering</code> is <code>default_ordering(R)*lex(gens(F))</code>.</p></div></div><p>Here are some illustrating OSCAR examples:</p><h5 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; default_ordering(R)
+degrevlex([x, y, z])
+
+julia&gt; F = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia&gt; default_ordering(F)
+degrevlex([x, y, z])*lex([gen(1), gen(2)])
+
+julia&gt; S, _ = grade(R, [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -&gt; [1]
+  y -&gt; [2]
+  z -&gt; [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia&gt; default_ordering(S)
+wdegrevlex([x, y, z], [1, 2, 3])</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; f = 3*z^3+2*x*y+1
+2*x*y + 3*z^3 + 1
+
+julia&gt; terms(f)
+terms iterator of 3*z^3 + 2*x*y + 1
+
+julia&gt; collect(ans)
+3-element Vector{fmpq_mpoly}:
+ 3*z^3
+ 2*x*y
+ 1
+
+julia&gt; monomials(f, ordering = lex(R))
+monomials iterator of 2*x*y + 3*z^3 + 1
+
+julia&gt; coefficients(f)
+coefficients iterator of 3*z^3 + 2*x*y + 1
+
+julia&gt; exponents(f, ordering = neglex(R))
+exponents iterator of 1 + 3*z^3 + 2*x*y
+
+julia&gt; coefficients_and_exponents(f)
+coefficients and exponents iterator of 3*z^3 + 2*x*y + 1
+
+julia&gt; collect(ans)
+3-element Vector{Tuple{fmpq, Vector{Int64}}}:
+ (3, [0, 0, 3])
+ (2, [1, 1, 0])
+ (1, [0, 0, 0])
+
+julia&gt; leading_term(f)
+3*z^3
+
+julia&gt; leading_monomial(f, ordering = lex(R))
+x*y
+
+julia&gt; leading_exponent(f, ordering = neglex(R))
+3-element Vector{Int64}:
+ 0
+ 0
+ 0
+
+julia&gt; leading_coefficient(f)
+3
+
+julia&gt; tail(f)
+2*x*y + 1</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia&gt; f = (5*x*y^2-y^10+3)*F[1]+(4*x^3+2*y) *F[2]+16*x*F[3]
+(5*x*y^2 - y^10 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]
+
+julia&gt; default_ordering(F)
+degrevlex([x, y])*lex([gen(1), gen(2), gen(3)])
+
+julia&gt; collect(terms(f))
+6-element Vector{FreeModElem{fmpq_mpoly}}:
+ -y^10*e[1]
+ 4*x^3*e[2]
+ 5*x*y^2*e[1]
+ 16*x*e[3]
+ 2*y*e[2]
+ 3*e[1]
+
+julia&gt; collect(terms(f, ordering = lex(F)*lex(R)))
+6-element Vector{FreeModElem{fmpq_mpoly}}:
+ 5*x*y^2*e[1]
+ -y^10*e[1]
+ 3*e[1]
+ 4*x^3*e[2]
+ 2*y*e[2]
+ 16*x*e[3]
+
+julia&gt; tail(f)
+(5*x*y^2 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]
+
+julia&gt; leading_exponent(f)
+([0, 10], 1)
+
+julia&gt; leading_exponent(f, ordering = lex(F)*lex(R))
+([1, 2], 1)</code></pre><h2 id="Division-With-Remainder"><a class="docs-heading-anchor" href="#Division-With-Remainder">Division With Remainder</a><a id="Division-With-Remainder-1"></a><a class="docs-heading-anchor-permalink" href="#Division-With-Remainder" title="Permalink"></a></h2><p>The computation of Gröbner (standard) bases relies on multivariate division with remainder which is interesting in its own right. If a monomial ordering <span>$&gt;$</span> is given, the basic idea is to mimic Euclidean division with remainder, allowing more than one divisor: At each step of the resulting process, this amounts to removing the leading term of the intermediate dividend, using the leading term of <em>some</em> divisor by which it is divisible. In its basic form, the process works well if <span>$&gt;$</span> is global, but may not terminate for local and mixed orderings. In the latter case, Mora&#39;s division algorithm, which relies on a more restricted selection strategy for the divisors to be used, comes to our rescue.</p><p>We discuss this in more detail:</p><p>First suppose that <span>$&gt;$</span> is global and let polynomials <span>$g\in K[x]$</span> and <span>$f_1, \dots, f_r\in K[x]\setminus \{0\}$</span> be given. In this situation, multivariate division with remainder allows us to compute expressions</p><p class="math-container">\[g = q_1f_1+\dots q_rf_r + h, \; h\in K[x], \;\text{ all }\; q_i \in K[x]\]</p><p>such that:</p><ul><li><span>$\text{LM}_&gt;(g) \ge \text{LM}_&gt;(q_if_i)$</span> whenever both sides are nonzero.</li><li>If <span>$h$</span> is nonzero, then <span>$\text{LM}_&gt;(h)$</span> is not divisible by any <span>$\text{LM}_&gt;(f_i)$</span>.</li></ul><p>Each such expression is called a <em>standard representation</em> for <span>$g$</span> with <em>quotients</em> <span>$q_i$</span> and <em>remainder</em> <span>$h$</span> (on division by the <span>$f_i$</span>, with respect to <span>$&gt;$</span>). If, at each step of the division process, we allow to remove some term of the current dividend instead of just focusing on its leading term, then the algorithm will return a standard expression in which the remainder is <em>fully reduced</em>. That is, <span>$h$</span> satisfies the stronger condition below:</p><ul><li>If <span>$h$</span> is nonzero, then no term of <span>$h$</span> is divisible by any <span>$\text{LM}_&gt;(f_i)$</span>.</li></ul><p>Without restrictions on  <span>$&gt;$</span>, let elements <span>$g\in K[x]_&gt;$</span> and <span>$f_1, \dots, f_r\in K[x]\setminus \{0\}$</span> be given. In this situation, Mora division with remainder allows us to compute expressions</p><p class="math-container">\[ug = q_1f_1+\dots q_rf_r + h, \; h\in K[x]_&gt;, \;\text{ all }\; q_i \in K[x]_&gt;\]</p><p>such that:</p><ul><li><span>$u$</span> is a unit of <span>$K[x]_&gt;$</span>, that is, <span>$\text{LM}_&gt;(u)=1$</span>.</li><li><span>$\text{LM}_&gt;(g) \ge \text{LM}_&gt;(q_if_i)$</span> whenever both sides are nonzero.</li><li>If <span>$h$</span> is nonzero, then <span>$\text{LM}_&gt;(h)$</span> is not divisible by any <span>$\text{LM}_&gt;(f_i)$</span>.</li></ul><p>Each such expression is called a <em>weak standard representation</em> for <span>$g$</span> with <em>quotients</em> <span>$q_i$</span> and <em>remainder</em> <span>$h$</span> (on division by the <span>$f_i$</span>, with respect to <span>$&gt;$</span>). If <span>$g\in K[x]$</span>, we speak of a <em>polynomial weak standard representation</em> if <span>$u$</span> and the <span>$q_i$</span> are elements of <span>$K[x].$</span> Using power series expansions, it makes still sense to speak of fully reduced remainders. However, even if we start from polynomial data, such remainders may not be computable (in finitely many steps).</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Given a monomial ordering <span>$&gt;$</span> on a free <span>$K[x]$</span>-module <span>$F = K[x]^p$</span> with basis <span>$e_1, \dots, e_p$</span>, the above notation and the division algorithms extend naturally to <span>$K[x]^p$</span> and <span>$K[x]_&gt;^p$</span>, respectively.</p></div></div><p>The OSCAR functions discussed below compute standard representations and polynomial weak standard representations, respectively. In the global case, they always return fully reduced remainders.</p><article class="docstring"><header><a class="docstring-binding" id="reduce-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:MPolyElem" href="#reduce-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:MPolyElem"><code>reduce</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">reduce(g::T, F::Vector{T}; 
+       ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T &lt;: MPolyElem</code></pre><p>If <code>ordering</code> is global, return the remainder in a standard representation for <code>g</code> on division by the polynomials in <code>F</code> with respect to <code>ordering</code>. Otherwise, return the remainder in a <em>weak</em> standard representation for <code>g</code> on division by the polynomials in <code>F</code> with respect to <code>ordering</code>.</p><pre><code class="nohighlight hljs">reduce(G::Vector{T}, F::Vector{T};
+       ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T &lt;: MPolyElem</code></pre><p>Return a <code>Vector</code> which contains, for each element <code>g</code> of <code>G</code>, a remainder as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In the global case, the returned remainders are fully reduced.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; reduce(y^3, [x^2, x*y-y^3])
+x*y
+
+julia&gt; reduce(y^3, [x^2, x*y-y^3], ordering = lex(R))
+y^3</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (z, y, x) = PolynomialRing(QQ, [&quot;z&quot;, &quot;y&quot;, &quot;x&quot;]);
+
+julia&gt; f1 = y-x^2; f2 = z-x^3;
+
+julia&gt; g = x^3*y-3*y^2*z^2+x*y*z;
+
+julia&gt; reduce(g, [f1, f2], ordering = lex(R))
+-3*x^10 + x^6 + x^5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L635">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="reduce_with_quotients-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:MPolyElem" href="#reduce_with_quotients-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:MPolyElem"><code>reduce_with_quotients</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">reduce_with_quotients(g::T, F::Vector{T}; 
+       ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T &lt;: MPolyElem</code></pre><p>If <code>ordering</code> is global, return the quotients and the remainder in a standard representation for <code>g</code> on division by the polynomials in <code>F</code> with respect to <code>ordering</code>. Otherwise, return the quotients and the remainder in a <em>weak</em> standard representation for <code>g</code> on division by the polynomials in <code>F</code> with respect to <code>ordering</code>.</p><pre><code class="nohighlight hljs">reduce_with_quotients(G::Vector{T}, F::Vector{T}; 
+       ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T &lt;: MPolyElem</code></pre><p>Return a <code>Vector</code> which contains, for each element <code>g</code> of <code>G</code>, quotients and a remainder as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In the global case, the returned remainders are fully reduced.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (z, y, x) = PolynomialRing(QQ, [&quot;z&quot;, &quot;y&quot;, &quot;x&quot;]);
+
+julia&gt; f1 = y-x^2; f2 = z-x^3;
+
+julia&gt; g = x^3*y-3*y^2*z^2+x*y*z;
+
+julia&gt; Q, h = reduce_with_quotients(g, [f1, f2], ordering = lex(R));
+
+julia&gt; Q
+[-3*y*x^6 - 3*x^8 + x^4 + x^3   -3*z*y^2 - 3*y^2*x^3 + y*x]
+
+julia&gt; h
+-3*x^10 + x^6 + x^5
+
+julia&gt; g == Q[1]*f1+Q[2]*f2+h
+true
+
+julia&gt; G = [g, x*y^3-3*x^2*y^2*z^2];
+
+julia&gt; Q, H = reduce_with_quotients(G, [f1, f2], ordering = lex(R));
+
+julia&gt; Q
+[          -3*y*x^6 - 3*x^8 + x^4 + x^3   -3*z*y^2 - 3*y^2*x^3 + y*x]
+[y^2*x - 3*y*x^8 + y*x^3 - 3*x^10 + x^5     -3*z*y^2*x^2 - 3*y^2*x^5]
+
+julia&gt; H
+2-element Vector{fmpq_mpoly}:
+ -3*x^10 + x^6 + x^5
+ -3*x^12 + x^7
+
+julia&gt; G == Q*[f1, f2]+H
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L862">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="reduce_with_quotients_and_unit-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:MPolyElem" href="#reduce_with_quotients_and_unit-Union{Tuple{T}, Tuple{T, Vector{T}}} where T&lt;:MPolyElem"><code>reduce_with_quotients_and_unit</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">reduce_with_quotients_and_unit(g::T, F::Vector{T};
+       ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T &lt;: MPolyElem</code></pre><p>Return the unit, the quotients and the remainder in a weak standard representation for <code>g</code> on division by the polynomials in <code>F</code> with respect to <code>ordering</code>.</p><pre><code class="nohighlight hljs">reduce_with_quotients_and_unit(G::Vector{T}, F::Vector{T};
+       ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T &lt;: MPolyElem</code></pre><p>Return a <code>Vector</code> which contains, for each element <code>g</code> of <code>G</code>, a unit, quotients, and a remainder as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>In the global case, a standard representation with a fully reduced remainder is computed.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
+
+julia&gt; g = x^3*y+x^5+x^2*y^2*z^2+z^6;
+
+julia&gt; u, Q, h = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
+([y+1], [x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0)
+
+julia&gt; u*g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
+true
+
+julia&gt; G = [g, x*y^3-3*x^2*y^2*z^2];
+
+julia&gt; U, Q,  H = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = lex(R));
+
+julia&gt; U
+[1   0]
+[0   1]
+
+julia&gt; H
+2-element Vector{fmpq_mpoly}:
+ -z^9 + z^7 + z^6 + z^4
+ -3*z^7 + z^6
+
+julia&gt; U*G == Q*[f1, f2, f3]+H
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L689">source</a></section></article><h2 id="Gröbner-and-Standard-Bases"><a class="docs-heading-anchor" href="#Gröbner-and-Standard-Bases">Gröbner and Standard Bases</a><a id="Gröbner-and-Standard-Bases-1"></a><a class="docs-heading-anchor-permalink" href="#Gröbner-and-Standard-Bases" title="Permalink"></a></h2><p>Still keeping the notation introduced at the beginning of this section, let <span>$G$</span> be a subset of <span>$K[x]_&gt;$</span>. Then the <em>leading ideal</em> of <span>$G$</span> is the ideal of <span>$K[x]$</span> defined by</p><p class="math-container">\[\text{L}_&gt;(G)=\langle \text{LT}_&gt;(g) \mid g\in G\setminus\{0\}\rangle\subset K[x].\]</p><p>A finite subset <span>$G$</span> of an ideal <span>$I\subset K[x]_&gt;$</span> is called a <em>standard basis</em> of <span>$I$</span> (with respect to <span>$&gt;$</span>) if <span>$\text{L}_&gt;(G) = \text{L}_&gt;(I)$</span>.  A finite subset of <span>$K[x]_&gt;$</span> is a <em>standard basis</em> if it is a standard basis of the ideal it generates. A standard basis with respect to a global monomial ordering is also called a <em>Gröbner basis</em>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Every standard basis of <span>$I$</span> generates <span>$I$</span>.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Gröbner bases (standard bases) can be computed using Buchberger&#39;s algorithm (Buchberger&#39;s algorithm as enhanced by Mora).</p></div></div><p>We call a standard basis <span>$G = \{g_1,\dots, g_r\}\subset K[x]_&gt;\setminus \{0\}$</span> <em>minimal</em>  if <span>$\text{LM}_&gt;(g_i)\neq \text{LM}_&gt;(g_j)$</span> for <span>$i\neq j$</span>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The definition of minimal above deviates from the definition in most textbooks as we do not ask that the leading coefficients of the standard basis elements are 1.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The standard bases returned by OSCAR are always minimal in the sense above.</p></div></div><p>We call a standard basis <span>$G = \{g_1,\dots, g_r\}$</span> with respect to a global monomial ordering <em>reduced</em> if it is minimal and no term of <span>$g_i$</span> is divisible by <span>$\text{LM}_&gt;(g_j)$</span>, for <span>$i\neq j$</span>. Using power series expansions, we may extend this notion to local and mixed orderings. However, while reduced standard bases can be computed in the global case, they may not be computable (in finitely many steps) in the other cases.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Given a monomial ordering <span>$&gt;$</span> on a free <span>$K[x]$</span>-module <span>$F = K[x]^p$</span> with basis <span>$e_1, \dots, e_p$</span>, the above notation and results extend naturally to submodules of <span>$K[x]_&gt;^p$</span>.</p></div></div><p>Here are the relevant OSCAR functions for computing Gröbner and standard bases. The elements of a computed basis can be retrieved by using the <code>elements</code> function or its alias <code>gens</code>.</p><article class="docstring"><header><a class="docstring-binding" id="groebner_basis-Tuple{MPolyIdeal}" href="#groebner_basis-Tuple{MPolyIdeal}"><code>groebner_basis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">groebner_basis(I::MPolyIdeal;
+  ordering::MonomialOrdering = default_ordering(base_ring(I)),
+  complete_reduction::Bool = false, algorithm::Symbol = :buchberger)</code></pre><p>If <code>ordering</code> is global, return a Gröbner basis of <code>I</code> with respect to <code>ordering</code>.</p><p>The keyword <code>algorithm</code> can be set to</p><ul><li><code>:buchberger</code> (implementation of Buchberger&#39;s algorithm in <em>Singular</em>),</li><li><code>:hilbert</code> (implementation of a Hilbert driven Gröbner basis computation in <em>Singular</em>),</li><li><code>:fglm</code> (implementation of the FGLM algorithm in <em>Singular</em>), and</li><li><code>:f4</code> (implementation of Faugère&#39;s F4 algorithm in the <em>msolve</em> package).</li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>See the description of the functions <code>fglm</code> and <code>f4</code> for restrictions on the input data when using these versions of the Gröbner basis algorithm.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The returned Gröbner basis is reduced if <code>complete_reduction = true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; I = ideal(R, [y-x^2, z-x^3]);
+
+julia&gt; G = groebner_basis(I)
+Gröbner basis with elements
+1 -&gt; y^2 - x*z
+2 -&gt; x*y - z
+3 -&gt; x^2 - y
+with respect to the ordering
+degrevlex([x, y, z])
+
+julia&gt; elements(G)
+3-element Vector{fmpq_mpoly}:
+ -x*z + y^2
+ x*y - z
+ x^2 - y
+
+julia&gt; elements(G) == gens(G)
+true
+
+julia&gt; groebner_basis(I, ordering = lex(R))
+Gröbner basis with elements
+1 -&gt; y^3 - z^2
+2 -&gt; x*z - y^2
+3 -&gt; x*y - z
+4 -&gt; x^2 - y
+with respect to the ordering
+lex([x, y, z])</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = GradedPolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;], [1, 3]);
+
+julia&gt; I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
+
+julia&gt; groebner_basis(I)
+Gröbner basis with elements
+1 -&gt; 3*x^4 - x*y
+2 -&gt; 2*x^3*y^2 - 3*y^3
+3 -&gt; x*y^3
+4 -&gt; y^4
+with respect to the ordering
+wdegrevlex([x, y], [1, 3])</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; f1 = 3*x^3*y+x^3+x*y^3+y^2*z^2
+3*x^3*y + x^3 + x*y^3 + y^2*z^2
+
+julia&gt; f2 = 2*x^3*z-x*y-x*z^3-y^4-z^2
+2*x^3*z - x*y - x*z^3 - y^4 - z^2
+
+julia&gt; f3 = 2*x^2*y*z-2*x*y^2+x*z^2-y^4
+2*x^2*y*z - 2*x*y^2 + x*z^2 - y^4
+
+julia&gt; I = ideal(R, [f1, f2, f3])
+ideal(3*x^3*y + x^3 + x*y^3 + y^2*z^2, 2*x^3*z - x*y - x*z^3 - y^4 - z^2, 2*x^2*y*z - 2*x*y^2 + x*z^2 - y^4)
+
+julia&gt; G = groebner_basis(I, ordering = lex(R), algorithm = :fglm);
+
+julia&gt; length(G)
+8
+
+julia&gt; total_degree(G[8])
+34
+
+julia&gt; leading_coefficient(G[8])
+-91230304237130414552564280286681870842473427917231798336639893796481988733936505735341479640589040146625319419037353645834346047404145021391726185993823650399589880820226804328750</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L178">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="standard_basis-Tuple{MPolyIdeal}" href="#standard_basis-Tuple{MPolyIdeal}"><code>standard_basis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">standard_basis(I::MPolyIdeal;
+  ordering::MonomialOrdering = default_ordering(base_ring(I)),
+  complete_reduction::Bool = false, algorithm::Symbol = :buchberger,
+  weights::Vector{E} = ones(ngens(base_ring(I)))) where {E &lt;: Integer}</code></pre><p>Return a standard basis of <code>I</code> with respect to <code>ordering</code>.</p><p>The keyword <code>algorithm</code> can be set to</p><ul><li><code>:buchberger</code> (implementation of Buchberger&#39;s algorithm in <em>Singular</em>),</li><li><code>:hilbert</code> (implementation of a Hilbert driven Gröbner basis computation in <em>Singular</em>),</li><li><code>:fglm</code> (implementation of the FGLM algorithm in <em>Singular</em>), and</li><li><code>:f4</code> (implementation of Faugère&#39;s F4 algorithm in the <em>msolve</em> package).</li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>See the description of the functions <code>fglm</code> and <code>f4</code> for restrictions on the input data when using these versions of the Gröbner basis algorithm.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The returned standard basis is reduced if <code>ordering</code> is <code>global</code> and <code>complete_reduction = true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R,(x,y) = PolynomialRing(QQ, [&quot;x&quot;,&quot;y&quot;]);
+
+julia&gt; I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
+
+julia&gt; standard_basis(I, ordering = negdegrevlex(R))
+Standard basis with elements
+1 -&gt; x
+2 -&gt; y
+with respect to the ordering
+negdegrevlex([x, y])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L108">source</a></section></article><h3 id="Gröbner-Bases-with-transformation-matrix"><a class="docs-heading-anchor" href="#Gröbner-Bases-with-transformation-matrix">Gröbner Bases with transformation matrix</a><a id="Gröbner-Bases-with-transformation-matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Gröbner-Bases-with-transformation-matrix" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="groebner_basis_with_transformation_matrix-Tuple{MPolyIdeal}" href="#groebner_basis_with_transformation_matrix-Tuple{MPolyIdeal}"><code>groebner_basis_with_transformation_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">groebner_basis_with_transformation_matrix(I::MPolyIdeal;
+  ordering::MonomialOrdering = default_ordering(base_ring(I)),
+  complete_reduction::Bool=false)</code></pre><p>Return a pair <code>G</code>, <code>T</code>, say, where <code>G</code> is a Gröbner basis of <code>I</code> with respect to <code>ordering</code>, and <code>T</code>  is a transformation matrix from <code>gens(I)</code> to <code>G</code>. That is, <code>gens(I)*T == G</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The returned Gröbner basis is reduced if <code>complete_reduction = true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R,(x,y) = PolynomialRing(QQ,[&quot;x&quot;,&quot;y&quot;]);
+
+julia&gt; I = ideal([x*y^2-1,x^3+y^2+x*y]);
+
+julia&gt; G, T = groebner_basis_with_transformation_matrix(I)
+(Gröbner basis with elements
+1 -&gt; x*y^2 - 1
+2 -&gt; x^3 + x*y + y^2
+3 -&gt; y^4 + x^2 + y
+with respect to the ordering
+degrevlex([x, y]), [1 0 -x^2-y; 0 1 y^2])
+
+julia&gt; gens(I)*T == gens(G)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L425">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="standard_basis_with_transformation_matrix-Tuple{MPolyIdeal}" href="#standard_basis_with_transformation_matrix-Tuple{MPolyIdeal}"><code>standard_basis_with_transformation_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">standard_basis_with_transformation_matrix(I::MPolyIdeal;
+  ordering::MonomialOrdering = default_ordering(base_ring(I)),
+  complete_reduction::Bool=false)</code></pre><p>Return a pair <code>G</code>, <code>T</code>, say, where <code>G</code> is a standard basis of <code>I</code> with respect to <code>ordering</code>, and <code>T</code>  is a transformation matrix from <code>gens(I)</code> to <code>G</code>. That is, <code>gens(I)*T == G</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The returned Gröbner basis is reduced if <code>ordering</code> is a global monomial odering and <code>complete_reduction = true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R,(x,y) = PolynomialRing(QQ,[&quot;x&quot;,&quot;y&quot;]);
+
+julia&gt; I = ideal([x*y^2-1,x^3+y^2+x*y]);
+
+julia&gt; G, T = standard_basis_with_transformation_matrix(I, ordering=neglex(R))
+(Standard basis with elements
+1 -&gt; 1 - x*y^2
+with respect to the ordering
+neglex([x, y]), [-1; 0])
+
+julia&gt; gens(I)*T == gens(G)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L390">source</a></section></article><h3 id="Gröbner-Basis-Conversion-Algorithms"><a class="docs-heading-anchor" href="#Gröbner-Basis-Conversion-Algorithms">Gröbner Basis Conversion Algorithms</a><a id="Gröbner-Basis-Conversion-Algorithms-1"></a><a class="docs-heading-anchor-permalink" href="#Gröbner-Basis-Conversion-Algorithms" title="Permalink"></a></h3><p>The performance of Buchberger&#39;s Gröbner basis algorithm is sensitive to the choice of monomial ordering. A Gröbner basis computation with respect to a less favorable ordering such as <code>lex</code> may easily run out of time or memory even in cases where a Gröbner basis computation with respect to a more efficient  ordering such as <code>degrevlex</code> is very well feasible. <em>Gröbner basis conversion algorithms</em> and the <em>Hilbert driven Buchberger algorithm</em>  discussed subsequently take their cue from this observation.</p><p>Gröbner basis conversion algorithms proceed along the following lines:</p><ul><li>Given an ideal <span>$I$</span> of a multivariate polynomial ring over a field and a slow <code>destination_ordering</code>, compute a Gröbner basis for <span>$I$</span> with respect to an appropriately chosen fast <code>start_ordering</code>.</li><li>Convert the result to a Gröbner basis with respect to the given slow <code>destination_ordering</code>.</li></ul><p>The algorithms differ in how they perform the conversion.</p><h4 id="The-FGLM-Algorithm"><a class="docs-heading-anchor" href="#The-FGLM-Algorithm">The FGLM Algorithm</a><a id="The-FGLM-Algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#The-FGLM-Algorithm" title="Permalink"></a></h4><article class="docstring"><header><a class="docstring-binding" id="fglm-Tuple{MPolyIdeal}" href="#fglm-Tuple{MPolyIdeal}"><code>fglm</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                    destination_ordering::MonomialOrdering)</code></pre><p>Given a <strong>zero-dimensional</strong> ideal <code>I</code>, return a Gröbner basis of <code>I</code> with respect to <code>destination_ordering</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Both <code>start_ordering</code> and <code>destination_ordering</code> must be global and the base ring of <code>I</code> must be a polynomial ring over a field.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The function implements the Gröbner basis conversion algorithm by <strong>F</strong>augère, <strong>G</strong>ianni, <strong>L</strong>azard, and <strong>M</strong>ora. See <a href="../../../references/#FGLM93">J.C. Faugère, P. Gianni, D. Lazard, T. Mora (1993)</a> for more information.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c, d, e) = PolynomialRing(QQ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]);
+
+julia&gt; f1 = a+b+c+d+e;
+
+julia&gt; f2 = a*b+b*c+c*d+a*e+d*e;
+
+julia&gt; f3 = a*b*c+b*c*d+a*b*e+a*d*e+c*d*e;
+
+julia&gt; f4 = b*c*d+a*b*c*e+a*b*d*e+a*c*d*e+b*c*d*e;
+
+julia&gt; f5 = a*b*c*d*e-1;
+
+julia&gt; I = ideal(R, [f1, f2, f3, f4, f5]);
+
+julia&gt; G = fglm(I, destination_ordering = lex(R));
+
+julia&gt; length(G)
+8
+
+julia&gt; total_degree(G[8])
+60
+
+julia&gt; leading_coefficient(G[8])
+83369589588385815165248207597941242098312973356252482872580035860533111990678631297423089011608753348453253671406641805924218003925165995322989635503951507226650115539638517111445927746874479234</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L1139">source</a></section></article><h4 id="Gröbner-Walk-Algorithms"><a class="docs-heading-anchor" href="#Gröbner-Walk-Algorithms">Gröbner Walk Algorithms</a><a id="Gröbner-Walk-Algorithms-1"></a><a class="docs-heading-anchor-permalink" href="#Gröbner-Walk-Algorithms" title="Permalink"></a></h4><h3 id="The-Hilbert-driven-Buchberger-Algorithm"><a class="docs-heading-anchor" href="#The-Hilbert-driven-Buchberger-Algorithm">The Hilbert driven Buchberger Algorithm</a><a id="The-Hilbert-driven-Buchberger-Algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#The-Hilbert-driven-Buchberger-Algorithm" title="Permalink"></a></h3><h3 id="Faugère&#39;s-F4-Algorithm"><a class="docs-heading-anchor" href="#Faugère&#39;s-F4-Algorithm">Faugère&#39;s F4 Algorithm</a><a id="Faugère&#39;s-F4-Algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#Faugère&#39;s-F4-Algorithm" title="Permalink"></a></h3><div class="admonition is-warning"><header class="admonition-header">Expert function for computing Gröbner bases</header><div class="admonition-body"><p>With many adjustable keyword arguments, the following function provides low-level implementations of various versions of the Gröbner basis algorithm. Use these functions only if you know what you are doing.</p></div></div><article class="docstring"><header><a class="docstring-binding" id="f4-Tuple{MPolyIdeal}" href="#f4-Tuple{MPolyIdeal}"><code>f4</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">f4(I::MPolyIdeal, &lt;keyword arguments&gt;)</code></pre><p>Compute a Gröbner basis of <code>I</code> with respect to <code>degrevlex</code> using Faugère&#39;s F4 algorithm. See <a href="../../../references/#Fau99">Jean-Charles Faugère (1999)</a> for more information.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>At current state only prime fields of characteristic <code>0 &lt; p &lt; 2^{31}</code> are supported.</p></div></div><p><strong>Possible keyword arguments</strong></p><ul><li><code>initial_hts::Int=17</code>: initial hash table size <code>log_2</code>.</li><li><code>nr_thrds::Int=1</code>: number of threads for parallel linear algebra.</li><li><code>max_nr_pairs::Int=0</code>: maximal number of pairs per matrix, only bounded by minimal degree if <code>0</code>.</li><li><code>la_option::Int=2</code>: linear algebra option: exact sparse-dense (<code>1</code>), exact sparse (<code>2</code>, default), probabilistic sparse-dense (<code>42</code>), probabilistic sparse(<code>44</code>).</li><li><code>eliminate::Int=0</code>: size of first block of variables to be eliminated.</li><li><code>complete_reduction::Bool=true</code>: compute a reduced Gröbner basis for <code>I</code></li><li><code>info_level::Int=0</code>: info level printout: off (<code>0</code>, default), summary (<code>1</code>), detailed (<code>2</code>).</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R,(x,y,z) = PolynomialRing(GF(101), [&quot;x&quot;,&quot;y&quot;,&quot;z&quot;], ordering=:degrevlex)
+(Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, gfp_mpoly[x, y, z])
+
+julia&gt; I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
+ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
+
+julia&gt; f4(I)
+Gröbner basis with elements
+1 -&gt; x + 2*y + 2*z + 100
+2 -&gt; y*z + 82*z^2 + 10*y + 40*z
+3 -&gt; y^2 + 60*z^2 + 20*y + 81*z
+4 -&gt; z^3 + 28*z^2 + 64*y + 13*z
+with respect to the ordering
+degrevlex([x, y, z])
+
+julia&gt; isdefined(I, :gb)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L277">source</a></section></article><h2 id="Leading-Ideals"><a class="docs-heading-anchor" href="#Leading-Ideals">Leading Ideals</a><a id="Leading-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Leading-Ideals" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="leading_ideal-Union{Tuple{Vector{T}}, Tuple{T}} where T&lt;:MPolyElem" href="#leading_ideal-Union{Tuple{Vector{T}}, Tuple{T}} where T&lt;:MPolyElem"><code>leading_ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) 
+                            where T &lt;: MPolyElem</code></pre><p>Return the leading ideal of <code>G</code> with respect to <code>ordering</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(R))
+ideal(x*y^2, y^5)
+
+julia&gt; L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(R))
+ideal(x*y^2, x^3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L487">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="leading_ideal-Tuple{MPolyIdeal}" href="#leading_ideal-Tuple{MPolyIdeal}"><code>leading_ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))</code></pre><p>Return the leading ideal of <code>I</code> with respect to <code>ordering</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
+ideal(x*y^2 - 3*x, x^3 - 14*y^5)
+
+julia&gt; L = leading_ideal(I, ordering=degrevlex(R))
+ideal(x*y^2, x^4, y^5)
+
+julia&gt; L = leading_ideal(I, ordering=lex(R))
+ideal(y^7, x*y^2, x^3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L518">source</a></section></article><h2 id="Normal-Forms"><a class="docs-heading-anchor" href="#Normal-Forms">Normal Forms</a><a id="Normal-Forms-1"></a><a class="docs-heading-anchor-permalink" href="#Normal-Forms" title="Permalink"></a></h2><p>Given a polynomial <span>$g\in K[x]$</span>, an ideal <span>$I\subset K[x]$</span>, and a global monomial ordering <span>$&gt;$</span> on the monomials in <span>$x$</span>, the fully reduced remainder <span>$h$</span> in a standard expression on division by the elements of a Gröbner basis of <span>$I$</span> with respect to <span>$&gt;$</span> is uniquely determined by <span>$g$</span>, <span>$I$</span>, and <span>$&gt;$</span> (and does not depend on the choice of Gröbner basis). We refer to such a remainder as the <em>normal form</em>  of <span>$g$</span> mod <span>$I$</span>, with respect to <span>$&gt;$</span>.</p><article class="docstring"><header><a class="docstring-binding" id="normal_form-Union{Tuple{T}, Tuple{T, MPolyIdeal}} where T&lt;:MPolyElem" href="#normal_form-Union{Tuple{T}, Tuple{T, MPolyIdeal}} where T&lt;:MPolyElem"><code>normal_form</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">normal_form(g::T, I::MPolyIdeal; 
+  ordering::MonomialOrdering = default_ordering(base_ring(I))) where T &lt;: MPolyElem</code></pre><p>Compute the normal form of <code>g</code> mod <code>I</code> with respect to <code>ordering</code>.</p><pre><code class="nohighlight hljs">normal_form(G::Vector{T}, I::MPolyIdeal; 
+  ordering::MonomialOrdering = default_ordering(base_ring(I))) where T &lt;: MPolyElem</code></pre><p>Return a <code>Vector</code> which contains for each element <code>g</code> of <code>G</code> a normal form as above.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R,(a,b,c) = PolynomialRing(QQ,[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;])
+(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+
+julia&gt; J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
+ideal(b + c - 1, 2*a*b + a*c + b - 1)
+
+julia&gt; gens(groebner_basis(J))
+2-element Vector{fmpq_mpoly}:
+ b + c - 1
+ a*c - 2*a + c
+
+julia&gt; normal_form(-1+c+b+a^3, J)
+a^3
+
+julia&gt; R,(a,b,c) = PolynomialRing(QQ,[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;])
+(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+
+julia&gt; A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
+3-element Vector{fmpq_mpoly}:
+ a^3 + b + c - 1
+ 2*a^3 + a*c + b - 1
+ a*c^2 + b*c + 5
+
+julia&gt; J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
+ideal(b + c - 1, 2*a*b + a*c + b - 1)
+
+julia&gt; gens(groebner_basis(J))
+2-element Vector{fmpq_mpoly}:
+ b + c - 1
+ a*c - 2*a + c
+
+julia&gt; normal_form(A, J)
+3-element Vector{fmpq_mpoly}:
+ a^3
+ 2*a^3 + 2*a - 2*c
+ 4*a - 2*c^2 - c + 5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L940">source</a></section></article><h2 id="Syzygies"><a class="docs-heading-anchor" href="#Syzygies">Syzygies</a><a id="Syzygies-1"></a><a class="docs-heading-anchor-permalink" href="#Syzygies" title="Permalink"></a></h2><p>We refer to the section on modules for more on syzygies.</p><article class="docstring"><header><a class="docstring-binding" id="syzygy_generators-Tuple{Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:MPolyElem}" href="#syzygy_generators-Tuple{Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:MPolyElem}"><code>syzygy_generators</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">syzygy_generators(G::Vector{&lt;:MPolyElem})</code></pre><p>Return generators for the syzygies on the polynomials given as elements of <code>G</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
+3-element Vector{FreeModElem{fmpq_mpoly}}:
+ (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
+ (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
+ (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/groebner.jl#L460">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../orderings/">« Monomial Orderings</a><a class="docs-footer-nextpage" href="../groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span> »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 13 February 2023 23:53">Monday 13 February 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

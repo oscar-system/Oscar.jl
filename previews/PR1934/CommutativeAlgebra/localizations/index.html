@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Localized Rings and Their Ideals · Oscar.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox" checked/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li><a class="tocitem" href="../rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../affine_algebras/">Affine Algebras and Their Ideals</a></li><li class="is-active"><a class="tocitem" href>Localized Rings and Their Ideals</a><ul class="internal"><li><a class="tocitem" href="#Types"><span>Types</span></a></li><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Data-associated-to-Localized-Rings"><span>Data associated to Localized Rings</span></a></li><li><a class="tocitem" href="#Elements-of-Localized-Rings"><span>Elements of Localized Rings</span></a></li><li><a class="tocitem" href="#Homomorphisms-from-Localized-Rings"><span>Homomorphisms from Localized Rings</span></a></li><li><a class="tocitem" href="#Ideals-in-Localized-Rings"><span>Ideals in Localized Rings</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../ModulesOverMultivariateRings/homological_algebra/">Homological Algebra</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox"/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Gröbner Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Surfaces/K3Surfaces/">Algebraic Surfaces</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Commutative Algebra</a></li><li class="is-active"><a href>Localized Rings and Their Ideals</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Localized Rings and Their Ideals</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/CommutativeAlgebra/localizations.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Localized-Rings-and-Their-Ideals">Localized Rings and Their Ideals</a></li><li class="no-marker"><ul><li><a href="#Types">Types</a></li><li><a href="#Constructors">Constructors</a></li><li><a href="#Data-associated-to-Localized-Rings">Data associated to Localized Rings</a></li><li><a href="#Elements-of-Localized-Rings">Elements of Localized Rings</a></li><li><a href="#Homomorphisms-from-Localized-Rings">Homomorphisms from Localized Rings</a></li><li><a href="#Ideals-in-Localized-Rings">Ideals in Localized Rings</a></li></ul></li></ul><h1 id="Localized-Rings-and-Their-Ideals"><a class="docs-heading-anchor" href="#Localized-Rings-and-Their-Ideals">Localized Rings and Their Ideals</a><a id="Localized-Rings-and-Their-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Localized-Rings-and-Their-Ideals" title="Permalink"></a></h1><p>We recall the definition of localization. All rings considered are commutative,  with multiplicative identity 1. Let <span>$R$</span> be a ring, and let <span>$U \subset R$</span> be a <em>multiplicatively closed subset.</em> That is,</p><p class="math-container">\[1 \in U  \;\text{ and }\;  u, v \in U \;\Rightarrow \; u\cdot v \in U.\]</p><p>Consider the equivalence relation on <span>$R\times U$</span> defined by setting</p><p class="math-container">\[(r,u)\sim (r&#39;, u&#39;) \;\text{ iff }\; v(r u&#39;-u r&#39;)=0 \;{\text{ for some }}\; v\in U.\]</p><p>Write <span>$\frac{r}{u}$</span> for the equivalence class of <span>$(r, u)$</span> and <span>$R[U^{-1}]$</span> for the set of all equivalence classes. Mimicking the standard arithmetic for fractions, <span>$R[U^{-1}]$</span> can be made into a ring. This ring is called the <em>localization of <span>$R$</span> at <span>$U$</span></em>. It comes equipped with  the natural ring homomorphism</p><p class="math-container">\[\iota : R\to R[U^{-1}],\; r \mapsto \frac{r}{1}.\]</p><p>Given an <span>$R$</span>-module <span>$M$</span>, the analogous construction yields an <span>$R[U^{-1}]$</span>-module <span>$M[U^{-1}]$</span> which is called the <em>localization  of <span>$M$</span> at <span>$U$</span></em>. See the section on modules.</p><p>Our focus in this section is on localizing multivariate polynomial rings and their quotients. The starting point for this is to provide functionality for handling (several types of) multiplicatively closed subsets of multivariate polynomial rings. Given such a polynomial ring <code>R</code> and a multiplicatively closed subset <code>U</code> of <code>R</code> whose type is supported by OSCAR, entering <code>localization(R, U)</code> creates the localization of <code>R</code> at <code>U</code>. Given a quotient <code>RQ</code> of <code>R</code>, with projection map <code>p</code> : <code>R</code> <span>$\to$</span> <code>RQ</code>, and given a multiplicatively closed subset <code>U</code> of <code>R</code>, entering <code>localization(RQ, U)</code> creates the localization of <code>RQ</code> at <code>p(U)</code>: Since every multiplicatively closed subset of <code>RQ</code> is of type <code>p(U)</code> for some <code>U</code>, there is no need to support an extra type for multiplicatively closed subsets of quotients.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Quite a number of functions described below rely on the computation of standard bases. Recall that OSCAR supports standard bases for multivariate polynomial rings over fields (exact fields supported by OSCAR) and for multivariate polynomial rings over the integers.	</p></div></div><h2 id="Types"><a class="docs-heading-anchor" href="#Types">Types</a><a id="Types-1"></a><a class="docs-heading-anchor-permalink" href="#Types" title="Permalink"></a></h2><p>The OSCAR types discussed in this section are all parametrized. To simplify the presentation, details on the parameters are omitted.</p><p>All types for multiplicatively closed subsets of rings belong to the abstract type <code>AbsMultSet</code>. For multiplicatively closed subsets of multivariate polynomial rings, there are the abstract subtype <code>AbsPolyMultSet</code> and its concrete descendants <code>MPolyComplementOfKPointIdeal</code>, <code>MPolyComplementOfPrimeIdeal</code>, and <code>MPolyPowersOfElement</code>.</p><p>The general abstract type for localizations of rings is <code>AbsLocalizedRing</code>. For localizations of multivariate polynomial rings, there is the concrete subtype <code>MPolyLocalizedRing</code>. For localizations of quotients of multivariate polynomial rings, there is the concrete subtype <code>MPolyQuoLocalizedRing</code>. </p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><h3 id="Multiplicatively-Closed-Subsets"><a class="docs-heading-anchor" href="#Multiplicatively-Closed-Subsets">Multiplicatively Closed Subsets</a><a id="Multiplicatively-Closed-Subsets-1"></a><a class="docs-heading-anchor-permalink" href="#Multiplicatively-Closed-Subsets" title="Permalink"></a></h3><p>In accordance with the above mentioned types, we have the following constructors for multiplicatively closed subsets of multivariate polynomial rings.</p><article class="docstring"><header><a class="docstring-binding" id="complement_of_ideal-Tuple{MPolyRing, Vector{T} where T}" href="#complement_of_ideal-Tuple{MPolyRing, Vector{T} where T}"><code>complement_of_ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">complement_of_ideal(R::MPolyRing, a::Vector)</code></pre><p>Given a polynomial ring <span>$R$</span>, say <span>$R = K[x_1,\dots, x_n]$</span>, and given a vector  <span>$a = (a_1, \dots, a_n)$</span> of <span>$n$</span> elements of <span>$K$</span>, return the multiplicatively  closed subset <span>$R\setminus m$</span>, where <span>$m$</span> is the maximal ideal </p><p class="math-container">\[m = \langle x_1-a_1,\dots, x_n-a_n\rangle \subset R.\]</p><pre><code class="nohighlight hljs">complement_of_ideal(P::MPolyIdeal; check::Bool=false)</code></pre><p>Given a prime ideal <span>$P$</span> of a polynomial ring <span>$R$</span>, say, return the multiplicatively closed subset <span>$R\setminus P.$</span></p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If  <code>check</code> is set to <code>true</code>, the function checks whether <span>$P$</span> is indeed a prime ideal. </p><p>This may take some time.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; U = complement_of_ideal(R, [0, 0 ,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(x)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L266">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="powers_of_element-Tuple{MPolyElem}" href="#powers_of_element-Tuple{MPolyElem}"><code>powers_of_element</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">powers_of_element(f::MPolyElem)</code></pre><p>Given an element <code>f</code> of a polynomial ring, return the multiplicatively  closed subset of the polynomial ring which is formed by the powers of <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; f = x
+x
+
+julia&gt; U = powers_of_element(f)
+powers of fmpq_mpoly[x]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L302">source</a></section></article><p>It is also possible to build products of multiplicatively closed sets already given:</p><article class="docstring"><header><a class="docstring-binding" id="product-Tuple{Oscar.AbsMPolyMultSet, Oscar.AbsMPolyMultSet}" href="#product-Tuple{Oscar.AbsMPolyMultSet, Oscar.AbsMPolyMultSet}"><code>product</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)</code></pre><p>Return the product of the multiplicative subsets <code>T</code> and <code>U</code>. </p><p>Alternatively, write <code>T*U</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; T = complement_of_ideal(R, [0, 0 ,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia&gt; f = x
+x
+
+julia&gt; U = powers_of_element(f)
+powers of fmpq_mpoly[x]
+
+julia&gt; S = product(T, U)
+product of the multiplicative sets [complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], powers of fmpq_mpoly[x]]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L675-L698">source</a></section></article><p>Containment in multiplicatively closed subsets can be checked via the <code>in</code> function:</p><article class="docstring"><header><a class="docstring-binding" id="in-Tuple{MPolyElem, Oscar.AbsMPolyMultSet}" href="#in-Tuple{MPolyElem, Oscar.AbsMPolyMultSet}"><code>in</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">in(f::MPolyElem, U::AbsMPolyMultSet)</code></pre><p>Return <code>true</code> if <code>f</code> is contained in <code>U</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; S = complement_of_ideal(R, [0, 0 ,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia&gt; y in S
+false
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; T = complement_of_ideal(P)
+complement of ideal(x)
+
+julia&gt; y in T
+true
+
+julia&gt; U = powers_of_element(x)
+powers of fmpq_mpoly[x]
+
+julia&gt; x^3 in U
+true
+
+julia&gt; (1+y)*x^2 in product(S, U)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L2576-L2610">source</a></section></article><h3 id="Localized-Rings"><a class="docs-heading-anchor" href="#Localized-Rings">Localized Rings</a><a id="Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Localized-Rings" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="localization-Tuple{MPolyRing, Oscar.AbsMPolyMultSet}" href="#localization-Tuple{MPolyRing, Oscar.AbsMPolyMultSet}"><code>localization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">localization(R::MPolyRing, U::AbsMPolyMultSet)</code></pre><p>Return the localization of <code>R</code> at <code>U</code>, together with the localization map.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(x)
+
+julia&gt; Rloc, iota = localization(R, U);
+
+julia&gt; Rloc
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+
+julia&gt; iota
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L945-L975">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="localization-Tuple{MPolyQuo, Oscar.AbsMPolyMultSet}" href="#localization-Tuple{MPolyQuo, Oscar.AbsMPolyMultSet}"><code>localization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">localization(RQ::MPolyQuo, U::AbsMPolyMultSet)</code></pre><p>Given a quotient <code>RQ</code> of a multivariate polynomial ring <code>R</code> with projection map <code>p : R -&gt; RQ</code>, say, and given a multiplicatively closed subset <code>U</code> of <code>R</code>, return the  localization of <code>RQ</code> at <code>p(U)</code>, together with the localization map.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;);
+
+julia&gt; K, a =  NumberField(2*t^2-1, &quot;a&quot;);
+
+julia&gt; R, (x, y) = PolynomialRing(K, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia&gt; P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia&gt; RQ, _ = quo(R, I);
+
+julia&gt; RQL, iota = localization(RQ, U);
+
+julia&gt; RQL
+Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+
+julia&gt; iota
+Map from
+Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpolyquo-localizations.jl#L269-L305">source</a></section></article><h2 id="Data-associated-to-Localized-Rings"><a class="docs-heading-anchor" href="#Data-associated-to-Localized-Rings">Data associated to Localized Rings</a><a id="Data-associated-to-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Data-associated-to-Localized-Rings" title="Permalink"></a></h2><p>If <code>Rloc</code> is the localization of a multivariate polynomial ring <code>R</code>  at a multiplicatively closed subset <code>U</code> of <code>R</code>, then</p><ul><li><code>base_ring(Rloc)</code> refers to <code>R</code>, and</li><li><code>inverted_set(Rloc)</code> to <code>U</code>.</li></ul><p>If <code>RQ</code> is a quotient of a multivariate polynomial ring <code>R</code>, <code>p</code> : <code>R</code> <span>$\to$</span> <code>RQ</code> is the projection map, <code>U</code>  is a multiplicatively closed subset of <code>R</code>, and <code>RQL</code> is the localization of <code>RQ</code> at <code>p(U)</code>, then</p><ul><li><code>base_ring(RQL)</code> refers to <code>R</code>, and</li><li><code>inverted_set(RQL)</code> to <code>U</code>.</li></ul><p>This reflects the way of creating localizations of quotients of multivariate polynomial rings in OSCAR.</p><h5 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(x)
+
+julia&gt; Rloc, _ = localization(U);
+
+julia&gt; R === base_ring(Rloc)
+true
+
+julia&gt; U === inverted_set(Rloc)
+true</code></pre><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;);
+
+julia&gt; K, a =  NumberField(2*t^2-1, &quot;a&quot;);
+
+julia&gt; R, (x, y) = PolynomialRing(K, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia&gt; P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia&gt; RQ, _ = quo(R, I);
+
+julia&gt; RQL, _ = localization(RQ, U);
+
+julia&gt; R == base_ring(RQL)
+true
+
+julia&gt; U == inverted_set(RQL)
+true</code></pre><h2 id="Elements-of-Localized-Rings"><a class="docs-heading-anchor" href="#Elements-of-Localized-Rings">Elements of Localized Rings</a><a id="Elements-of-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Elements-of-Localized-Rings" title="Permalink"></a></h2><h3 id="Types-2"><a class="docs-heading-anchor" href="#Types-2">Types</a><a class="docs-heading-anchor-permalink" href="#Types-2" title="Permalink"></a></h3><p>The general abstract type for elements of localizations of rings is <code>AbsLocalizedRingElem</code>. For elements of localizations of multivariate polynomial rings, there is the concrete subtype <code>MPolyLocalizedRingElem</code>. For elements of localizations of quotients of multivariate polynomial rings, there is the concrete subtype <code>MPolyQuoLocalizedRingElem</code>.</p><h3 id="Creating-Elements-of-Localized-Rings"><a class="docs-heading-anchor" href="#Creating-Elements-of-Localized-Rings">Creating Elements of Localized Rings</a><a id="Creating-Elements-of-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Elements-of-Localized-Rings" title="Permalink"></a></h3><p>If <code>Rloc</code> is the localization of a multivariate polynomial ring <code>R</code>  at a multiplicatively closed subset <code>U</code> of <code>R</code>, then elements of <code>Rloc</code> are created as (fractions of) images of elements of <code>R</code> under the localization map or by coercing (pairs of) elements of <code>R</code> into fractions. </p><p>If <code>RQ</code> is a quotient of a multivariate polynomial ring <code>R</code>, <code>p</code> : <code>R</code> <span>$\to$</span> <code>RQ</code> is the projection map, <code>U</code>  is a multiplicatively closed subset of <code>R</code>, and <code>RQL</code> is the localization of <code>RQ</code> at <code>p(U)</code>, then elements of <code>RQL</code> are created similarly, starting from elements of <code>R</code>.</p><h5 id="Examples-2"><a class="docs-heading-anchor" href="#Examples-2">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-2" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(x)
+
+julia&gt; Rloc, iota = localization(U);
+
+julia&gt; iota(x)
+x//1
+
+julia&gt; Rloc(x)
+x//1
+
+julia&gt; f = iota(y)//iota(z)
+y//z
+
+julia&gt; g = Rloc(y, z)
+y//z
+
+julia&gt; X, Y, Z = Rloc.(gens(R));
+
+julia&gt; h = Y//Z
+y//z
+
+julia&gt; f == g == h
+true
+
+julia&gt; f+g
+(2*y)//z
+
+julia&gt; f*g
+y^2//z^2</code></pre><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;);
+
+julia&gt; K, a =  NumberField(2*t^2-1, &quot;a&quot;);
+
+julia&gt; R, (x, y) = PolynomialRing(K, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia&gt; P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia&gt; RQ, p = quo(R, I);
+
+julia&gt; RQL, iota = Localization(RQ, U);
+
+julia&gt; phi = compose(p, iota);
+
+julia&gt; phi(x)
+x//1
+
+julia&gt; RQL(x)
+x//1
+
+julia&gt; f = phi(x)*inv(phi(y))
+x//y
+
+julia&gt; g = RQL(x, y)
+x//y
+
+julia&gt; X, Y = gens(RQL);
+
+julia&gt; h = X*inv(Y)
+x//y
+
+julia&gt; f == g == h
+true
+
+julia&gt; f+g
+(2*x)//y
+
+julia&gt; f*g
+x^2//y^2</code></pre><h3 id="Data-Associated-to-Elements-of-Localized-Rings"><a class="docs-heading-anchor" href="#Data-Associated-to-Elements-of-Localized-Rings">Data Associated to Elements of Localized Rings</a><a id="Data-Associated-to-Elements-of-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Elements-of-Localized-Rings" title="Permalink"></a></h3><p>If <code>Rloc</code> is a localization of a multivariate polynomial ring <code>R</code>, and <code>f</code> is an element of <code>Rloc</code>, internally represented by a pair <code>(r, u)</code> of elements of <code>R</code>, then </p><ul><li><code>parent(f)</code> refers to <code>Rloc</code>,</li><li><code>numerator(f)</code> to <code>r</code>, and</li><li><code>denominator(f)</code> to <code>u</code>.</li></ul><p>If <code>RQL</code> is a localization of a quotient <code>RQ</code> of a multivariate polynomial ring <code>R</code>, and <code>f</code> is an element of <code>RQL</code>, internally represented by a pair <code>(r, u)</code> of elements of <code>R</code>, then</p><ul><li><code>parent(f)</code> refers to <code>RQL</code>,</li><li><code>numerator(f)</code> to the image of <code>r</code> in <code>RQ</code>, and</li><li><code>denominator(f)</code> to the image of <code>u</code> in <code>RQ</code>.</li></ul><p>That is, the behaviour of the functions <code>numerator</code> and <code>denominator</code> reflects the mathematical viewpoint of representing <code>f</code> by pairs of elements of <code>RQ</code> and not the internal representation of <code>f</code> as pairs of elements of <code>R</code>.</p><h5 id="Examples-3"><a class="docs-heading-anchor" href="#Examples-3">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-3" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(x)
+
+julia&gt; Rloc, iota = localization(U);
+
+julia&gt; f = iota(x)//iota(y)
+x//y
+
+julia&gt; parent(f)
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+
+julia&gt; g = iota(y)//iota(z)
+y//z
+
+julia&gt; r = numerator(f*g)
+x
+
+julia&gt; u = denominator(f*g)
+z
+
+julia&gt; typeof(r) == typeof(u) &lt;: MPolyElem
+true</code></pre><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;);
+
+julia&gt; K, a =  NumberField(2*t^2-1, &quot;a&quot;);
+
+julia&gt; R, (x, y) = PolynomialRing(K, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia&gt; P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia&gt; RQ, p = quo(R, I);
+
+julia&gt; RQL, iota = Localization(RQ, U);
+
+julia&gt; phi = compose(p, iota);
+
+julia&gt; f = phi(x)
+x//1
+
+julia&gt; parent(f)
+Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+
+julia&gt; g = f*inv(phi(y))
+x//y
+
+julia&gt; r = numerator(f*g)
+x^2
+
+julia&gt; u = denominator(f*g)
+y
+
+julia&gt; typeof(r) == typeof(u) &lt;: MPolyQuoElem
+true</code></pre><h3 id="Tests-on-Elements-of-Localized-Rings"><a class="docs-heading-anchor" href="#Tests-on-Elements-of-Localized-Rings">Tests on Elements of Localized Rings</a><a id="Tests-on-Elements-of-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Elements-of-Localized-Rings" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_unit-Tuple{MPolyLocalizedRingElem}" href="#is_unit-Tuple{MPolyLocalizedRingElem}"><code>is_unit</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_unit(f::MPolyLocalizedRingElem)</code></pre><p>Return <code>true</code>, if <code>f</code> is a unit of <code>parent(f)</code>, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; P = ideal(R, [x])
+ideal(x)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(x)
+
+julia&gt; Rloc, iota = localization(U);
+
+julia&gt; is_unit(iota(x))
+false
+
+julia&gt; is_unit(iota(y))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L1285-L1309">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_unit-Tuple{MPolyQuoLocalizedRingElem}" href="#is_unit-Tuple{MPolyQuoLocalizedRingElem}"><code>is_unit</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_unit(f::MPolyQuoLocalizedRingElem)</code></pre><p>Return <code>true</code>, if <code>f</code> is a unit of <code>parent(f)</code>, <code>true</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T, t = PolynomialRing(QQ, &quot;t&quot;);
+
+julia&gt; K, a =  NumberField(2*t^2-1, &quot;a&quot;);
+
+julia&gt; R, (x, y) = PolynomialRing(K, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia&gt; P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia&gt; U = complement_of_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia&gt; RQ, p = quo(R, I);
+
+julia&gt; RQL, iota = Localization(RQ, U);
+
+julia&gt; is_unit(iota(p(x)))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpolyquo-localizations.jl#L539-L569">source</a></section></article><h2 id="Homomorphisms-from-Localized-Rings"><a class="docs-heading-anchor" href="#Homomorphisms-from-Localized-Rings">Homomorphisms from Localized Rings</a><a id="Homomorphisms-from-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Homomorphisms-from-Localized-Rings" title="Permalink"></a></h2><p>The general abstract type for ring homomorphisms starting from localized rings is <code>AbsLocalizedRingHom</code>. For ring homomorphisms starting from localizations of multivariate polynomial rings, there is the concrete subtype <code>MPolyLocalizedRingHom</code>. For ring homomorphisms starting from quotients of multivariate polynomial rings, there is the concrete subtype <code>MPolyQuoLocalizedRingHom</code>. We describe the construction of such homomorphisms. Let</p><ul><li><code>R</code> be a multivariate polynomial ring</li><li><code>U</code> be a multiplicatively closed subset  of <code>R</code>,</li><li><code>RQ = R/I</code> be a quotient of <code>R</code> with projection map <code>p</code> : <code>R</code> <span>$\to$</span> <code>RQ</code>,</li><li><code>Rloc</code> (<code>RQL</code>) be the localization of <code>R</code> at <code>U</code> (of <code>RQ</code> at <code>p(U)</code>), and</li><li><code>S</code> be another ring.</li></ul><p>Then, to give a ring homomorphism <code>PHI</code>  from <code>Rloc</code> to <code>S</code> (from<code>RQL</code> to <code>S</code>) is the same as to give a ring homomorphism <code>phi</code> from <code>R</code> to <code>S</code> which sends elements of <code>U</code> to units in <code>S</code> (and elements of <code>I</code> to zero). That is, <code>PHI</code> is determined by composing it with the localization map <code>R</code> <span>$\to$</span> <code>Rloc</code> (by composing it with the composition of the localization map <code>RQ</code> <span>$\to$</span> <code>RQL</code> and the projection map <code>R</code> <span>$\to$</span> <code>RQ</code>). The constructors below take this into account.</p><article class="docstring"><header><a class="docstring-binding" id="hom-Tuple{MPolyLocalizedRing, AbstractAlgebra.Ring, Map}" href="#hom-Tuple{MPolyLocalizedRing, AbstractAlgebra.Ring, Map}"><code>hom</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hom(Rloc::MPolyLocalizedRing, S::Ring, phi::Map)</code></pre><p>Given a localized ring <code>Rloc</code>of type <code>MPolyLocalizedRing</code>, say <code>Rloc</code> is the localization  of a multivariate polynomial ring <code>R</code> at the multiplicatively closed subset <code>U</code> of <code>R</code>, and  given a homomorphism <code>phi</code> from <code>R</code> to <code>S</code> sending elements of <code>U</code> to units in <code>S</code>, return  the homomorphism from <code>Rloc</code> to <code>S</code> whose composition with the localization map is <code>phi</code>.</p><pre><code class="nohighlight hljs">hom(Rloc::MPolyLocalizedRing, S::Ring, V::Vector)</code></pre><p>Given a localized ring <code>Rloc</code> as above, and given a vector <code>V</code> of <code>nvars</code> elements of <code>S</code>, let <code>phi</code>  be the homomorphism from <code>R</code> to <code>S</code> which is determined by the entries of <code>V</code> as the images of the generators of <code>R</code>, and proceed as above.</p><pre><code class="nohighlight hljs">hom(RQL::MPolyQuoLocalizedRing, S::Ring, phi::Map)</code></pre><p>Given a localized ring <code>RQL</code>of type <code>MPolyQuoLocalizedRing</code>, say <code>RQL</code> is the localization  of a quotient ring <code>RQ</code> of a multivariate polynomial ring <code>R</code> at the multiplicatively closed subset <code>U</code> of <code>R</code>, and  given a homomorphism <code>phi</code> from <code>R</code> to <code>S</code> sending elements of <code>U</code> to units in <code>S</code> and elements of the modulus of <code>RQ</code> to zero, return the homomorphism from <code>Rloc</code> to <code>S</code> whose composition with the localization map <code>RQ -&gt; RQL</code> and the projection map <code>R -&gt; RQ</code> is <code>phi</code>.</p><pre><code class="nohighlight hljs">hom(RQL::MPolyQuoLocalizedRing, S::Ring, V::Vector)</code></pre><p>Given a localized ring <code>RQL</code>as above, and given a vector <code>V</code> of <code>nvars</code> elements of <code>S</code>, let <code>phi</code>  be the homomorphism from <code>R</code> to <code>S</code> which is determined by the entries of <code>V</code> as the images of the generators of <code>R</code>, and proceed as above.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>Except from the case where the type of <code>U</code> is <code>&lt;: MPolyPowersOfElement</code>, the condition on <code>phi</code> requiring that elements of <code>U</code> are send to units in <code>S</code> is not checked by the <code>hom</code> constructor.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; I = ideal(R, [y-x^2, z-x^3]);
+
+julia&gt; RQ, p = quo(R, I);
+
+julia&gt; UR = complement_of_ideal(R, [0, 0, 0]);
+
+julia&gt; RQL, _ = localization(RQ, UR);
+
+julia&gt; T, (t,) =  PolynomialRing(QQ, [&quot;t&quot;]);
+
+julia&gt; UT = complement_of_ideal(T, [0]);
+
+julia&gt; TL, _ =  localization(T, UT);
+
+julia&gt; PHI = hom(RQL, TL, TL.([t, t^2, t^3]));
+
+julia&gt; PSI = hom(TL, RQL, RQL.([x]));
+
+julia&gt; PHI(RQL(z))
+t^3//1
+
+julia&gt; PSI(TL(t))
+x//1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L2352">source</a></section></article><p>Given a ring homomorphism <code>PHI</code> from <code>Rloc</code> to <code>S</code> (from <code>RQL</code> to <code>S</code>), <code>domain(PHI)</code> and <code>codomain(PHI)</code> refer to <code>Rloc</code> and <code>S</code> (<code>RQL</code>  and <code>S</code>), respectively. The corresponding homomorphism <code>phi</code> from <code>R</code> to <code>S</code> is recovered as follows:</p><article class="docstring"><header><a class="docstring-binding" id="restricted_map-Tuple{MPolyLocalizedRingHom}" href="#restricted_map-Tuple{MPolyLocalizedRingHom}"><code>restricted_map</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">restricted_map(PHI::MPolyLocalizedRingHom)
+
+restricted_map(PHI::MPolyQuoLocalizedRingHom)</code></pre><p>Given a ring homomorphism <code>PHI</code> starting from a localized multivariate polynomial ring (a localized quotient of a multivariate polynomial ring), return the composition of <code>PHI</code>  with the localization map (with the composition of the localization map and the projection map).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; I = ideal(R, [y-x^2, z-x^3]);
+
+julia&gt; RQ, p = quo(R, I);
+
+julia&gt; UR = complement_of_ideal(R, [0, 0, 0]);
+
+julia&gt; RQL, _ = localization(RQ, UR);
+
+julia&gt; T, (t,) =  PolynomialRing(QQ, [&quot;t&quot;]);
+
+julia&gt; UT = complement_of_ideal(T, [0]);
+
+julia&gt; TL, _ =  localization(T, UT);
+
+julia&gt; PHI = hom(RQL, TL, TL.([t, t^2, t^3]));
+
+julia&gt; PSI = hom(TL, RQL, RQL.([x]));
+
+julia&gt; phi = restricted_map(PHI)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+localization of Multivariate Polynomial Ring in t over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0]
+
+julia&gt; psi = restricted_map(PSI)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L2419">source</a></section></article><h2 id="Ideals-in-Localized-Rings"><a class="docs-heading-anchor" href="#Ideals-in-Localized-Rings">Ideals in Localized Rings</a><a id="Ideals-in-Localized-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Ideals-in-Localized-Rings" title="Permalink"></a></h2><h3 id="Types-3"><a class="docs-heading-anchor" href="#Types-3">Types</a><a class="docs-heading-anchor-permalink" href="#Types-3" title="Permalink"></a></h3><p>The general abstract type for ideals in localized rings is <code>AbsLocalizedIdeal</code>. For ideals in  localizations of multivariate polynomial rings, there is the concrete subtype <code>MPolyLocalizedIdeal</code>. For ideals in localizations of quotients of multivariate polynomial rings, there is the concrete subtype <code>MPolyQuoLocalizedIdeal</code>.</p><h3 id="Constructors-2"><a class="docs-heading-anchor" href="#Constructors-2">Constructors</a><a class="docs-heading-anchor-permalink" href="#Constructors-2" title="Permalink"></a></h3><p>Given a localization <code>Rloc</code> of a multivariate polynomial ring <code>R</code>, and given a vector <code>V</code> of elements of <code>Rloc</code> (of <code>R</code>),  the ideal of <code>Rloc</code> which is generated by (the images) of the entries of <code>V</code> is created by entering <code>ideal(Rloc, V)</code>. The construction of ideals in localizations of quotients of multivariate polynomial rings is similar..</p><h5 id="Examples-4"><a class="docs-heading-anchor" href="#Examples-4">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-4" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; f = x^3+y^4
+x^3 + y^4
+
+julia&gt; V = [derivative(f, i) for i=1:2]
+2-element Vector{fmpq_mpoly}:
+ 3*x^2
+ 4*y^3
+
+julia&gt; U = complement_of_ideal(R, [0, 0]);
+
+julia&gt; Rloc, _ = localization(R, U);
+
+julia&gt; MI = ideal(Rloc, V)
+ideal in localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0, 0] generated by the elements (3*x^2)//1, (4*y^3)//1</code></pre><h3 id="Data-Associated-to-Ideals"><a class="docs-heading-anchor" href="#Data-Associated-to-Ideals">Data Associated to Ideals</a><a id="Data-Associated-to-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Ideals" title="Permalink"></a></h3><p>If <code>I</code> is an ideal of a localized multivariate polynomial ring  <code>Rloc</code>, then</p><ul><li><code>base_ring(I)</code> refers to <code>Rloc</code>,</li><li><code>gens(I)</code> to the generators of <code>I</code>,</li><li><code>ngens(I)</code> to the number of these generators, and</li><li><code>gen(I, k)</code> as well as <code>I[k]</code> to the <code>k</code>-th such generator.</li></ul><p>Similarly, if <code>I</code> is an ideal of a localized quotient of a multivariate polynomial ring.</p><h3 id="Operations-on-Ideals"><a class="docs-heading-anchor" href="#Operations-on-Ideals">Operations on Ideals</a><a id="Operations-on-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Operations-on-Ideals" title="Permalink"></a></h3><p>If <code>I</code>,  <code>J</code> are ideals of a localized multivariate polynomial ring  <code>Rloc</code>, then</p><ul><li><code>I^k</code> refers to the <code>k</code>-th  power of <code>I</code>, </li><li><code>I+J</code>, <code>I*J</code>,  and <code>intersect(I, J)</code> to the sum, product, and intersection of <code>I</code> and  <code>J</code>, and</li><li><code>quotient(I, J)</code> as well as <code>I:J</code> to the ideal quotient of <code>I</code> by <code>J</code>.</li></ul><p>Similarly, if <code>I</code> and <code>J</code> are ideals of a localized quotient of a multivariate polynomial ring.</p><h3 id="Tests-on-Ideals"><a class="docs-heading-anchor" href="#Tests-on-Ideals">Tests on Ideals</a><a id="Tests-on-Ideals-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Ideals" title="Permalink"></a></h3><p>The usual tests <code>f in J</code>, <code>issubset(I, J)</code>, and <code>I == J</code> are available.</p><h3 id="Saturation"><a class="docs-heading-anchor" href="#Saturation">Saturation</a><a id="Saturation-1"></a><a class="docs-heading-anchor-permalink" href="#Saturation" title="Permalink"></a></h3><p>If <span>$Rloc$</span> is the localization of a multivariate polynomial ring <span>$R$</span> at a multiplicative subset <span>$U$</span> of <span>$R$</span>, then the ideal theory of <span>$Rloc$</span> is a simplified version of the ideal theory of <span>$R$</span> (see, for instance, <a href="../../references/#Eis95">David Eisenbud (1995)</a>). In particular, each ideal <span>$I$</span> of <span>$Rloc$</span> is the extension <span>$J\cdot Rloc$</span> of an ideal <span>$J$</span> of <span>$R$</span>. The ideal</p><p class="math-container">\[\{f\in R \mid uf\in J \text{ for some } u\in U\}\]</p><p>is independent of the choice of <span>$J$</span> and is the largest ideal of <span>$R$</span> which extends to <span>$I$</span>. It is, thus, the contraction of <span>$I$</span> to <span>$R$</span>,  that is, the preimage of <span>$I$</span>  under the localization map. We call this ideal the <em>saturation of <span>$I$</span> over <span>$R$</span></em>.  In OSCAR, it is obtained by entering <code>saturated_ideal(I)</code>.</p><p>If <span>$RQL$</span> is the localization of a quotient <span>$RQ$</span> of a multivariate polynomial ring <span>$R$</span>, and <span>$I$</span> is an ideal of <span>$RQL$</span>, then the return value of <code>saturated_ideal(I)</code> is the preimage of the saturation of <span>$I$</span> over <span>$RQ$</span> under the projection map <span>$R \to RQ$</span> (and not the saturation of <span>$I$</span> over <span>$RQ$</span> itself).</p><article class="docstring"><header><a class="docstring-binding" id="saturated_ideal-Tuple{MPolyLocalizedIdeal}" href="#saturated_ideal-Tuple{MPolyLocalizedIdeal}"><code>saturated_ideal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">saturated_ideal(I::MPolyLocalizedIdeal)</code></pre><p>Given an ideal <code>I</code> of a localization, say, <code>Rloc</code> of a multivariate polynomial ring, say, <code>R</code>, return the saturation of <code>I</code> over <code>R</code>. That is, return the largest ideal of <code>R</code> whose extension to  <code>Rloc</code> is <code>I</code>. This is the preimage of <code>I</code> under the localization map.</p><pre><code class="nohighlight hljs">saturated_ideal(I::MPolyQuoLocalizedIdeal)</code></pre><p>Given an ideal <code>I</code> of a localization, say, <code>RQL</code> of a quotient, say, <code>RQ</code> of a multivariate  polynomial ring, say, <code>R</code>, return the preimage of the saturation of <code>I</code> over <code>RQ</code> under the  projection map <code>R -&gt; RQ</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x,) = PolynomialRing(QQ, [&quot;x&quot;]);
+
+julia&gt; U = powers_of_element(x)
+powers of fmpq_mpoly[x]
+
+julia&gt; Rloc, iota = localization(R, U);
+
+julia&gt; I = ideal(Rloc, [x+x^2])
+ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the powers of fmpq_mpoly[x] generated by the elements (x^2 + x)//1
+
+julia&gt; SI = saturated_ideal(I)
+ideal(x + 1)
+
+julia&gt; base_ring(SI)
+Multivariate Polynomial Ring in x over Rational Field
+
+julia&gt; U = complement_of_ideal(R, [0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0]
+
+julia&gt; Rloc, iota = localization(R, U);
+
+julia&gt; I = ideal(Rloc, [x+x^2])
+ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0] generated by the elements (x^2 + x)//1
+
+julia&gt; saturated_ideal(I)
+ideal(x)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/d5f2b516d25542d25805e56c49a4056a0323a53a/src/Rings/mpoly-localizations.jl#L1525-L1567">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../affine_algebras/">« Affine Algebras and Their Ideals</a><a class="docs-footer-nextpage" href="../ModulesOverMultivariateRings/intro/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 13 February 2023 23:53">Monday 13 February 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
