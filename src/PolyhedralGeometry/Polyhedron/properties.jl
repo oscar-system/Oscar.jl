@@ -130,9 +130,9 @@ minimal_faces(as::Type{PointVector{T}}, P::Polyhedron{T}) where T<:scalar_types 
 @doc Markdown.doc"""
     rays_modulo_lineality(as, P::Polyhedron)
 
-Return the rays of the recession cone of `PC` up to lineality as a `NamedTuple`
-with two iterators. If `PC` has lineality `L`, then the iterator
-`rays_modulo_lineality` iterates over representatives of the rays of `PC/L`.
+Return the rays of the recession cone of `P` up to lineality as a `NamedTuple`
+with two iterators. If `P` has lineality `L`, then the iterator
+`rays_modulo_lineality` iterates over representatives of the rays of `P/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
 # Examples
