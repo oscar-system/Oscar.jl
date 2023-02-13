@@ -39,6 +39,7 @@ LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k
 
 LinearProgram(x...) = LinearProgram{fmpq}(x...)
 
+pm_object(lp::LinearProgram) = lp.polymake_lp
 
 ###############################################################################
 ###############################################################################
