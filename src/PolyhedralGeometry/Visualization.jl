@@ -7,7 +7,6 @@ Four-dimensional polytopes are visualized as a Schlegel diagram, which is a proj
 
 In higher dimensions there is no standard method; use projections to lower dimensions or try ideas from [GJRW10](@cite).
 """
-
 function visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
     d = ambient_dim(P)
     b = P isa Polyhedron
