@@ -88,7 +88,7 @@ For detailed information about the implemented functionality, please take a look
 We aim for a high test coverage. This should be conducted with good and demanding examples, which at the same time do not exceed certain
 computational times. To this end, we use a particular toric 3-fold, which we have identified to serve this purpose.
 ```@docs
-TestBase()
+test_base()
 ```
 
 

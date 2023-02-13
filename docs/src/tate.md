@@ -68,7 +68,7 @@ ring of an auxiliary toric base space, namely an affine space with those coordin
 
 Such geometries can be constructed with the following constructor:
 ```@docs
-GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
+global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
 ```
 
 
