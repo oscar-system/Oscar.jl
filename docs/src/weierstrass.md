@@ -42,9 +42,9 @@ ambient space need not be smooth.
 
 We support the following constructors:
 ```@docs
-GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)
-GlobalWeierstrassModelOverProjectiveSpace()
-GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
+global_weierstrass_model(base::Oscar.AbstractNormalToricVariety)
+global_weierstrass_model_over_projective_space()
+global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
 ```
 
 ## ... over not fully specified bases
@@ -70,7 +70,7 @@ toric base space, namely an affine space with those coordinates.
 
 For such geometries, we support the following functionality.
 ```@docs
-GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
+global_weierstrass_model(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
 ```
 
 
