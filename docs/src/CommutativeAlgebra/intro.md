@@ -21,21 +21,22 @@ The commutative algebra part of OSCAR provides functionality for dealing with
 
 We use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
 
-!!! note
-    Fundamental to most functions described below is the concept of *standard bases*. Each such basis
-    is defined relative to a *monomial ordering*. If this ordering is a well-ordering, a standard basis is also called
-    a *Gröbner basis*.
+Fundamental to computational commutative algebra is the concept of *standard bases*. Each such basis
+is defined relative to a *monomial ordering*. If this ordering is a well-ordering, a standard basis is also called
+a *Gröbner basis*. We refer to the corresponding section in this chapter for details.
 
 !!! note
-    Every multivariate polynomial ring in OSCAR comes equipped with a monomial ordering according to which the
+    Each multivariate polynomial ring in OSCAR comes equipped with a monomial ordering according to which the
     polynomials are stored and displayed. Independently of this ordering, standard bases can be computed with respect
-	to any monomial ordering: The `groebner_basis` and `standard_basis` functions provided by OSCAR allow us to
-	specify the desired monomial `ordering` as a key word argument.
-	
+	to any monomial ordering: The `groebner_basis` and `standard_basis` functions provided by OSCAR allow one to
+	specify the desired monomial `ordering` as a key word argument. Typically, however, the user does not have
+	to worry about Gröbner (standard) bases: The functions discussed in this chapter compute such bases behind
+	the scenes when needed. Once computed, each such basis is cached for later reuse.
+ 
 !!! note
-	OSCAR provides functionality for equipping multivariate polynomial rings with gradings by finitely presented groups. 
-    Most functions discussed below apply to both ungraded and graded polynomial rings.
-	For simplicity of the presentation in this documentation, however, they are often only illustrated by examples with
+    In Oscar, it is possible to equip multivariate polynomial rings with gradings by finitely presented groups. 
+    Most functions discussed in this chapter apply to both ungraded and graded polynomial rings. However,
+	for simplicity of the presentation, in this documentation, the functions are often only illustrated by examples with
 	focus on the former case, but work similarly for homogeneous ideals and graded modules in the latter case.
 
 !!! note

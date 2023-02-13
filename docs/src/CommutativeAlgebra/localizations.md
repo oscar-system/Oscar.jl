@@ -43,7 +43,7 @@ closed subset of `RQ` is of type `p(U)` for some `U`, there is no need to suppor
 multiplicatively closed subsets of quotients.
 
 !!! note
-    Quite a number of functions described below rely on the computation of standard bases. Recall that OSCAR
+    Most functions described here rely on the computation of standard bases. Recall that OSCAR
     supports standard bases for multivariate polynomial rings over fields (exact fields supported by OSCAR) and
 	for multivariate polynomial rings over the integers.	
 
