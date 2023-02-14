@@ -520,6 +520,9 @@ function blow_up(
 #  return projective_version, covered_version, projection_map, exc_div
 end
 
+# The following is a wrap-up of local variables necessary to compute glueings
+# from morphisms of graded algebras. It will be used to fill in the 
+# `LazyGlueing` together with the compute function following below.
 struct ProjectiveGlueingData
   down_left::AbsSpec
   down_right::AbsSpec
@@ -529,6 +532,14 @@ struct ProjectiveGlueingData
   projective_scheme::CoveredProjectiveScheme
 end
 
+# This function actually computes the glueing with the data extracted 
+# from the ProjectiveGlueingData. 
+#
+# Originally, this was in the body of a constructor. But we want to 
+# postpone the actual computation, so we wrap up all necessary local 
+# variables in a `ProjectiveGlueingData` and copy-paste the required 
+# part of code into the body of this function. Together with a header 
+# which is restoring our local variables. 
 function _compute_glueing(gd::ProjectiveGlueingData)
   U = gd.down_left
   V = gd.down_right
