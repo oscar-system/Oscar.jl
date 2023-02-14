@@ -1547,14 +1547,24 @@ function projectivization(E::AbsCoherentSheaf;
   C = trivializing_covering(E)
   algebras = IdDict{AbsSpec, Union{MPolyQuo, MPolyRing}}()
   on_patches = IdDict{AbsSpec, AbsProjectiveScheme}()
+
+  # Fill in the names of the variables in case there are none provided.
+  if length(var_names) == 0
+    # determine the global bound on the rank
+    r = 0
+    for U in patches(C)
+      F = E(U)
+      F isa FreeMod || error("modules must locally be free")
+      r = (rank(F) > r ? rank(F) : r)
+    end
+    var_names = ["s$i" for i in 0:r-1]
+  end
+
   for U in patches(C)
     F = E(U)
     F isa FreeMod || error("modules must locally be free")
     r = rank(F)
-    if length(var_names) == 0
-      var_names = ["s$i" for i in 0:r-1]
-    end
-    length(var_names) == r || error("number of names for the variables does not coincide with the local rank of the module")
+    length(var_names) >= r || error("number of names for the variables must greater or equal to the local rank of the module")
     RU = rees_algebra(E(U), var_names=var_names)
     algebras[U] = RU
     SU, _ = grade(RU)
