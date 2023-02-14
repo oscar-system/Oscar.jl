@@ -1,9 +1,8 @@
 ################################################################################
 # Upgrade Summary
 # When `is_basic_serialization_type(T) == true` the type `Vector{T}` the entries
-# are no longer serialized as dicts, and as a result entries can no longer be
-# referenced with backref. The type is encoded on the Vector at the same level as
-# the entry data. 
+# are no longer serialized as dicts, The type is encoded on the Vector at the same level as
+# the entry data. The entries no longer being dictionaries prevents the use of backrefs.
 
 
 push!(upgrade_scripts, UpgradeScript(
@@ -14,18 +13,22 @@ push!(upgrade_scripts, UpgradeScript(
 
         # moves down tree to point where type exists in dict
         # since we are only doing updates based on certain types
+        # no :type key implies the dict is data
         if !haskey(dict, :type)
             upgraded_dict = Dict{Symbol, Any}()
             for (key, value) in dict
-                if value isa String || value isa Vector{String} || key == :field_types
+                if value isa String
                     upgraded_dict[key] = value
-                elseif  value isa  Dict{Symbol, Any}
-                    # recursive call unnamed function with var"#self"
+                elseif value isa Dict{Symbol, Any}
                     upgraded_dict[key] = upgrade_0_11_3(s, value)
                 else
                     values = []
                     for v in value
-                        push!(values, upgrade_0_11_3(s, v))
+                        if v isa String
+                            push!(values, v)
+                        else
+                            push!(values, upgrade_0_11_3(s, v))
+                        end
                     end
                     upgraded_dict[key] = values
                 end
@@ -35,41 +38,38 @@ push!(upgrade_scripts, UpgradeScript(
 
         if dict[:type] == string(backref_sym)
             backref = s.objs[UUID(dict[:id])]
-            backref_type = decodeType(backref[:type])
 
-            # recursive call unnamed function with var"#self"
-            # replace backrefs for types that no longer support backrefs
-            is_basic_serialization_type(backref_type) && return upgrade_0_11_3(s, backref)
+            # data no longer uses backref and is part of the update
+            backref isa String && return backref
+
             return dict
         end
 
-        # this is one of the base cases
+        # this handles types like FlintRationalField that have no associated data
         !haskey(dict, :data) && return dict
 
-        # load any non backrefs into state
-        if haskey(dict, :id)
-            s.objs[UUID(dict[:id])] = dict
-        end
-
+        # apply upgrade to vector entries
+        # we only do this here since upgrade_0_11_13 is only defined for dicts
+        # we could make this it's own function outside of this script
         if dict[:type] == "Vector"
             upgraded_vector = []
             entry_type = nothing
 
             for entry in dict[:data][:vector]
-                # recursive call unnamed function with var"#self"
                 result = upgrade_0_11_3(s, entry)
 
-                # store values that aren't backrefs in state
+                # store values in state that are vector entries that aren't backrefs
                 if entry[:type] != string(backref_sym)
                     if haskey(entry, :id)
-                        s.objs[UUID(entry[:id])] = entry
+                        s.objs[UUID(entry[:id])] = result
                     end
                     entry_type = entry[:type]
                 end
 
                 push!(upgraded_vector, result)
             end
-            
+
+            # no update at this level
             upgraded_vector[1] isa Dict && return Dict(
                 :type => "Vector",
                 :id => dict[:id],
@@ -101,14 +101,18 @@ push!(upgrade_scripts, UpgradeScript(
             end
         end
 
-        # recursive call unnamed function with var"#self"
         upgraded_data = upgrade_0_11_3(s, dict[:data])
-
-        return Dict(
+        upgraded_dict = Dict(
             :type => dict[:type],
             :data => upgraded_data,
             :id => dict[:id]
         )
+
+        # adds updated object in case it is referenced somewhere
+        if haskey(dict, :id)
+            s.objs[UUID(dict[:id])] = upgraded_dict
+        end
+
+        return upgraded_dict
     end
 ))
-

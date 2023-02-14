@@ -35,7 +35,7 @@ function get_version_info()
     )
     return result
 end
-const versionInfo = get_version_info()
+const oscarSerializationVersion = get_version_info()
 
 
 ################################################################################
@@ -92,7 +92,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     if is_basic_serialization_type(T) && s.depth != 0
         return save_internal(s, obj)
     end
-        
+
     if !isprimitivetype(T) && !Base.issingletontype(T)
         # if obj is already serialzed, just output
         # a backref
@@ -121,7 +121,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         s.depth -= 1
     end
     if s.depth == 0
-        result[:_ns] = versionInfo
+        result[:_ns] = oscarSerializationVersion
     end
     return result
 end
@@ -163,7 +163,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     else
         result = load_internal(s, T, dict[:data])
     end
-    
+
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
     end
@@ -223,31 +223,6 @@ include("QuadForm.jl")
 # Include upgrade scripts
 
 include("upgrades/main.jl")
-
-################################################################################
-# Loading with upgrade checks on dict
-
-# Finds the first version where an upgrade can be applied and then incrementally
-# upgrades to the current version
-function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
-    upgraded_dict = dict
-    for upgrade_script in upgrade_scripts
-        script_version = version(upgrade_script)
-
-        if dict_version < script_version
-            # TODO: use a macro from Hecke that will allow user to surpress
-            # such a message
-            @info("upgrading serialized data....", maxlog=1)
-            s = DeserializerState()
-
-            upgraded_dict = upgrade_script(s, upgraded_dict)
-        end
-    end
-
-    upgraded_dict[:_ns] = versionInfo
-    
-    return upgraded_dict
-end
 
 function get_file_version(dict::Dict{Symbol, Any})
     ns = dict[:_ns]
@@ -358,7 +333,7 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
         return load_from_polymake(jsondict)
     end
     haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
-    
+
     file_version = get_file_version(jsondict)
 
     if file_version < VERSION_NUMBER
@@ -376,4 +351,3 @@ function load(filename::String; parent::Any = nothing, type::Any = nothing)
         return load(file; parent=parent, type=type)
     end
 end
-
