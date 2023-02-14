@@ -176,8 +176,6 @@ function test_elem(W::MPolyLocalizedRing)
 end
 
 @testset "Ring interface for localized polynomial rings" begin
-  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
-#
 # kk = QQ
 # R, v = kk["x", "y"]
 # x = v[1]
