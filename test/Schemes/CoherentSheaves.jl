@@ -135,6 +135,21 @@ end
   @test patches(codomain(covering_morphism(p))) == patches(default_covering(C))
 end
 
+@testset "projectivization of vector bundles with several components" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+
+  I = ideal(R, [x-1, y]) * ideal(R, [x]) # A line and a plane, disjoint.
+
+  X = CoveredScheme(Spec(R, I))
+
+  @test_broken is_smooth(X)
+
+  T = tangent_sheaf(X) # A locally free sheaf with different ranks on the two components.
+
+  PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
+end
+
+
 @testset "direct sums of sheaves" begin
   IP = projective_space(QQ, ["x", "y", "z", "w"])
   S = ambient_coordinate_ring(IP)

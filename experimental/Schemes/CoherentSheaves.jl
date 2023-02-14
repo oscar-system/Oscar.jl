@@ -210,7 +210,7 @@ identifications given by the glueings in the `default_covering`.
     # 3) Otherwise, U is covered by patches {Aᵢ}, i ∈ I, from `default_cov` and 
     #    contained in one affine chart U₁ of X 
     #      U₁ ⊃ U ⊃ Aᵢ.
-    #    We distinguish to sub-cases. 
+    #    We distinguish two sub-cases. 
     #
     #    3.1) U appears in the refinement tree T of W whose leafs consist 
     #    entirely of the Aᵢs and the latter cover U. For instance, this 
@@ -1230,8 +1230,18 @@ end
     # For U ⊂ V ⊂ X, f : X → Y, M on Y and F = f^*M we do the following. 
     # Let ϕ be the `covering_morphism` behind f. 
     #
-    # 1) If both U and V are in `domain(ϕ)` induce the restriction from 
-    #    the one on Y. 
+    #             f : X   →    Y
+    #            
+    #                 ∪        ∪
+    #                    ϕ[V]
+    #    f*ℱ (V)      V   →    V' ↦ ℱ (V')
+    #            
+    #      ↓ f*ρ      ∪        ∪      ↓ ρ
+    #                    ϕ[U]
+    #    f*ℱ (U)      U   →    U' ↦ ℱ (U') 
+    #
+    # 1) If both U and V are in the `Covering` `domain(ϕ)` induce the restriction 
+    #    f*ρ from ρ on Y. 
     # 2) If V is in `domain(ϕ)` and U is a node hanging below V in 
     #    the refinement tree, restrict from V. 
     # 3) If V is in `domain(ϕ)` and U is a subset of V, restrict as usual.
@@ -1444,16 +1454,44 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   # We do not need to go through all entries of A, but only those 
   # necessary to generate the unit ideal.
   I = ideal(OOX(U), [A[i, j] for i in 1:nrows(A) for j in 1:ncols(A)])
-  one(OOX(U)) in I || error("sheaf is not locally trivial")
+  @show A
+  @show gens(I)
+  @show gens(I)[1] == gens(OOX(U))[1]
+  @show OOX(U)
+  @show iszero(A)
+  x = gens(OOX(U))[1]
+  @show iszero(x)
+  if !(one(OOX(U)) in I)
+    # Now two things could be happening.
+    # 1. The sheaf is not locally trivial.
+    # 2. We might have different disjoint components on which 
+    #    the sheaf has different ranks.
+    Y = components(U) 
+    length(Y) == 1 && error("sheaf is not locally free")
+
+    return_patches = AbsSpec[]
+    for V in Y
+      # Test for being locally free on V
+      rho = OOX(U, V)
+      MV, res = change_base_ring(rho, MU)
+      add_incoming_restriction!(M, U, MV, res)
+      object_cache(M)[V] = MV
+      return_patches = vcat(return_patches, _trivializing_covering(M, V))
+    end
+    return return_patches
+  end
+
   # The non-zero coordinates provide us with a list of entries which 
   # are sufficient to do so. This set can not assumed to be minimal, though.
   a = coordinates(one(OOX(U)), I)
   nonzero_entries = [ i for i in 1:ngens(I) if !iszero(a[i])]
+  @show nonzero_entries
   return_patches = AbsSpec[]
 
   for t in nonzero_entries
     i = div(t-1, ncols(A)) + 1
     j = mod(t-1, ncols(A)) + 1 # The matrix coordinates of the nonzero entry
+    @show i, j
     # We invert the (i,j)-th entry of A. 
     # Then we can reduce the presentation matrix so that we can throw away one 
     # of the generators of the module. 
@@ -1469,7 +1507,11 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
       #multiply_row!(Ares, u, k)
       add_row!(Ares, -A[k, j], i, k)
     end
+    @show Ares
+    @show [k for k in 1:nrows(Ares) if k != i]
+    @show [k for k in 1:ncols(Ares) if k !=j]
     Asub = Ares[[k for k in 1:nrows(Ares) if k != i], [k for k in 1:ncols(Ares) if k !=j]]
+    @show Asub
 
     # Assemble the restriction map from the parent node
     if iszero(Asub)
@@ -1538,6 +1580,21 @@ end
 # AbsCoherentSheaf.
 ########################################################################
 
+@Markdown.doc """
+    projectivization(E::AbsCoherentSheaf; 
+        var_names::Vector{String}=Vector{String}(),
+        check::Bool=true
+      )
+
+For a locally free sheaf ``E`` on an `AbsCoveredScheme` ``X`` this produces 
+the associated projectivization ``ℙ (E) → X`` as a `CoveredProjectiveScheme`.
+
+A list of names for the variables of the relative homogeneous coordinate 
+rings can be provided with `var_names`.
+
+!!! note: The sheaf ``E`` needs to be locally free so that a `trivializing_covering` 
+can be computed. The check for this can be turned off by setting `check=false`.
+"""
 function projectivization(E::AbsCoherentSheaf; 
     var_names::Vector{String}=Vector{String}(),
     check::Bool=true
