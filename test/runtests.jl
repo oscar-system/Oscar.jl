@@ -31,7 +31,7 @@ include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
 include("Experimental/MPolyRingSparse-test.jl")
 include("Experimental/MatrixGroups-test.jl")
-include("Experimental/JuLie-test.jl")
+include("Experimental/JuLie_test.jl")
 
 include("Geometry/K3Auto.jl")
 
