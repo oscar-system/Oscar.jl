@@ -366,10 +366,7 @@ function H_zero_tate(C::GModule)
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
   end
-  N = id_hom(M)
-  for g = group(C)
-    N += action(C, g)
-  end
+  N = sum(action(C, g) for g = group(C))
 
   i = image(N)[1]
   fl, inj = is_subgroup(i, k)
