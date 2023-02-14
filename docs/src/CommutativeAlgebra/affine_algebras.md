@@ -15,17 +15,27 @@ Pages = ["affine_algebras.md"]
 
 # Affine Algebras and Their Ideals
 
-With regard to notation, we use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
-More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient ring of $R$
+With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring modulo an ideal*.
+More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient of $R$
 modulo an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we discuss
 functionality for handling such algebras in OSCAR.
 
 !!! note
-    Most functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
-
+    Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
+    modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
+	basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
+	to the default ordering of the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
+	OSCAR). Once computed, the Gröbner basis is cached for later reuse.
+	
 !!! note
-    In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
-    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The function `simplify` discussed in this section implements this.
+    Recall that Gröbner basis methods are implemented for multivariate polynomial rings over fields (exact fields supported by
+    OSCAR) and, where not indicated otherwise, for multivariate polynomial rings over the integers.
+ 
+!!! note
+    In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring
+    (that is, with regard to a Gröbner basis of the modulus). Operations involving Gröbner basis computations may lead
+	to partial reductions. The function `simplify` discussed in this section always returns full reductions. See the subsection
+	*Division with Remainder* of the section on *Gröbner/Standard Bases* for reductions.
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
@@ -36,7 +46,7 @@ functionality for handling such algebras in OSCAR.
 
 ## Types
 
-The OSCAR type for quotient rings of  multivariate polynomial rings is of parametrized form `MPolyQuo{T}`,
+The OSCAR type for quotients of  multivariate polynomial rings is of parametrized form `MPolyQuo{T}`,
 with elements of type `MPolyQuoElem{T}`. Here, `T` is the element type of the polynomial ring.
     
 ## Constructors
@@ -49,7 +59,7 @@ quo(R::MPolyRing, I::MPolyIdeal)
 
 ### Basic Data
 
-If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an ideal `I` of `R`, then
+If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal `I` of `R`, then
 
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
@@ -60,12 +70,9 @@ If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an 
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
 julia> base_ring(A)
 Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -107,13 +114,13 @@ vdim(A::MPolyQuo)
 
 ### Types
 
-The OSCAR type for elements of quotient rings of  multivariate polynomial rings is of
+The OSCAR type for elements of quotients of  multivariate polynomial rings is of
 parametrized form `MPolyQuo{T}`, where `T` is the element type of the polynomial ring.
 
 ### Creating Elements of Affine Algebras
 
-Elements of an affine algebra $A = R/I$ are created as images of elements of $R$ under the projection map
-or by directly coercing elements of $R$ into $A$.
+Elements of an affine algebra `A=R/I` are created as images of elements of `R` under the projection map
+or by directly coercing elements of `R` into `A`.
 
 ###### Examples
 
@@ -151,7 +158,7 @@ simplify(f::MPolyQuoElem)
 In the graded case, we additionally have:
 
 ```@docs
-is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ### Data associated to Elements of Affine Algebras
@@ -304,15 +311,15 @@ If $A=R/I$ is an affine $C$-algebra, and $S$ is any ring, then defining a ring h
 $\overline{\phi}: A \to S$ means to define a ring homomorphism $\phi: R \to S$
 such that $I\subset \ker(\phi)$. Thus, $\overline{\phi} $ is determined by specifying its restriction
 to $C$, and by assigning an image to each generator of $A$.
-In OSCAR, such homomorphisms are created by using the following constructor:
+In OSCAR, such homomorphisms are created as follows:
 
 ```@docs
 hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
-Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
-refer to `R` and `S`, respectively. Given ring homomorphisms `F` from `R` to `S` and
-`G` from `S` to `T` as above, `compose(F, G)` refers to their composition.
+Given a ring homomorphism `F` : `R` $\to$ `S` as above, `domain(F)` and `codomain(F)`
+refer to `R` and `S`, respectively. Given ring homomorphisms `F` : `R` $\to$ `S` and
+`G` : `S` $\to$ `T` as above, `compose(F, G)` refers to their composition.
 
 ## Homomorphisms of Affine Algebras
 
@@ -409,9 +416,9 @@ ideal(y[1]^6*y[2]^6 + 2*y[1]^6*y[2]^3*y[3]^3 + y[1]^6*y[3]^6 + 2*y[1]^3*y[2]^6*y
 
 
 ```@docs
-is_injective(F::AffAlgHom)
-is_surjective(F::AffAlgHom)
-is_bijective(F::AffAlgHom)
+isinjective(F::AffAlgHom)
+issurjective(F::AffAlgHom)
+isbijective(F::AffAlgHom)
 isfinite(F::AffAlgHom)
 ```
 
@@ -435,14 +442,14 @@ Codomain:
 =========
 Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)
 
-julia> is_surjective(F)
+julia> issurjective(F)
 true
 
 julia> D1, _ = quo(D, kernel(F));
 
 julia> F1 = hom(D1, C, V);
 
-julia> is_bijective(F1)
+julia> isbijective(F1)
 true
 
 ```
@@ -467,38 +474,12 @@ julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
 julia> isfinite(hom(D, C, V))
 true
-
 ```
 
 ### Inverting Homomorphisms of Affine Algebras
 
 ```@docs
 inverse(F::AffAlgHom)
-```
-
-```jldoctest
-julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
-
-julia> D, _ = quo(D1, [y-x^2, z-x^3])
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
-
-julia> C, (t,) = PolynomialRing(QQ, ["t"]);
-
-julia> para = hom(D, C, [t, t^2, t^3]);
-
-julia> is_bijective(para)
-true
-
-julia> inverse(para)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in t over Rational Field
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
-
 ```
 
 ## Subalgebras
@@ -575,13 +556,13 @@ integral_basis(f::MPolyElem, i::Int)
 ### Reducedness Test
 
 ```@docs
-is_reduced(A::MPolyQuo)
+isreduced(A::MPolyQuo)
 ```
 
 ### Normality Test
 
 ```@docs
-is_normal(A::MPolyQuo)
+isnormal(A::MPolyQuo)
 ```
 
 ### Cohen-Macaulayness Test
