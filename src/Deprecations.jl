@@ -18,7 +18,6 @@
 @deprecate morphism_on_cartier_divisor_group(tm::ToricMorphism) morphism_on_torusinvariant_cartier_divisor_group(tm)
 @deprecate bounded(Obj::Polyhedron) is_bounded(Obj)
 @deprecate vf_group(P::Polyhedron) automorphism_group(P; action = :on_facets)
-@deprecate automorphisms(x::Graph) automorphism_group_generators(x)
 @deprecate birkhoff(n::Integer; even::Bool = false) birkhoff_polytope(n; even=even)
 @deprecate cross(args...) cross_polytope(args...)
 @deprecate gelfand_tsetlin(lambda::AbstractVector) gelfand_tsetlin_polytope(lambda)
