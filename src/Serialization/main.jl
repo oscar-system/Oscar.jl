@@ -373,7 +373,7 @@ end
 
 function load(filename::String; parent::Any = nothing, type::Any = nothing)
     open(filename) do file
-        return load(file; parent=parent, type=type, check_namespace=true)
+        return load(file; parent=parent, type=type)
     end
 end
 
