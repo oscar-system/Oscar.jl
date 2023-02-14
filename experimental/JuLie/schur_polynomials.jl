@@ -14,7 +14,7 @@ export schur_polynomial
     schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) where T<:Integer
     schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
 
-Returns the Schur polynomial ``s_λ(x₁,x₂,...,xₙ)`` in n variables, as a Multivariate Polynomial.
+Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a Multivariate Polynomial.
 
 If neither `R` nor `x` are given, the Schur polynomial will be over `PolynomialRing(ZZ,["x1","x2",...,"xn"])`.
 
@@ -36,19 +36,19 @@ The Combinatorial Algorithm is used for Partitions of small Integers, or if ``n 
 
 **Combinatorial Algorithm**
 ```math
-s_λ:=∑_T x₁^{m₁}…xₙ^{mₙ}
+s_λ:=∑_T x_1^{m_1}…x_n^{m_n}
 ```
-where the sum is taken over all semistandard [tableaux](@ref JuLie.Tableau) ``T`` of shape ``λ``, and ``mᵢ`` gives the weight of ``i`` in ``T``.
+where the sum is taken over all semistandard tableaux ``T`` of shape ``λ``, and ``m_i`` gives the weight of ``i`` in ``T``.
 
 **Cauchy's bialternant formula**
 ```math
-s_λ(x₁,…,xₙ) =	∏_{1 ≤ i < j ≤ n} (x_i-x_j)^{-1} ⋅
-\\begin{vmatrix}
-x_1^{λ₁+n-1} & x_2^{λ_1+n-1} & … & x_n^{λ_1+n-1} \\\\
-x_1^{λ_2+n-2} & x_2^{λ_2+n-2} & … & x_n^{λ_2+n-2} \\\\
-⋮ & ⋮ & ⋱ & ⋮ \\\\
+s_\lambda(x_1,\dots,x_n) = \prod_{1\leq i < j \leq n} (x_i-x_j)^{-1}
+\begin{vmatrix}
+x_1^{λ_1+n-1} & x_2^{λ_1+n-1} & … & x_n^{λ_1+n-1} \\
+x_1^{λ_2+n-2} & x_2^{λ_2+n-2} & … & x_n^{λ_2+n-2} \\
+⋮ & ⋮ & ⋱ & ⋮ \\
 x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
-\\end{vmatrix}
+\end{vmatrix}
 ```
 """
 function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer

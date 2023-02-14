@@ -9,10 +9,10 @@
 
 export Partition, partitions, ascending_partitions, dominates, conjugate, getindex_safe, num_partitions
 
-"""
+@doc Markdown.doc"""
     Partition{T} <: AbstractArray{T,1}
 
-A **partition** of an integer n ≥ 0 is a decreasing sequence λ=(λ₁,…,λᵣ) of positive integers λᵢ whose sum is equal to n. The λᵢ are called the **parts** of the partition. We encode a partition as an array with elements λᵢ. You may increase performance by using smaller integer types, see the examples below. For efficiency, the ```Partition``` constructor does not check whether the given array is in fact a partition, i.e. a decreasing sequence.
+A **partition** of an integer ``n ≥ 0`` is a decreasing sequence ``λ=(λ₁,…,λᵣ)`` of positive integers ``λᵢ`` whose sum is equal to ``n``. The ``λᵢ`` are called the **parts** of the partition. We encode a partition as an array with elements ``λᵢ``. You may increase performance by using smaller integer types, see the examples below. For efficiency, the ```Partition``` constructor does not check whether the given array is in fact a partition, i.e. a decreasing sequence.
 
 # Examples
 ```julia-repl
@@ -27,7 +27,7 @@ julia> P=Partition(Int8[3,2,1]) #Same partition but using 8 bit integers
 
 # Remarks
 
-* Usually, |λ| ≔ n is called the **size** of λ. In Julia, the function ```size``` for arrays already exists and returns the *dimension* of an array. Instead, you can use the Julia function ```sum``` to get the sum of the parts.
+* Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function ```size``` for arrays already exists and returns the *dimension* of an array. Instead, you can use the Julia function ```sum``` to get the sum of the parts.
 
 * There is no performance impact by using an own type for partitions rather than simply using arrays—and this is of course much cleaner. The implementation of a subtype of AbstractArray is explained in the [Julia documentation](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array).
 
@@ -97,7 +97,7 @@ end
     num_partitions(n::Integer)
     num_partitions(n::fmpz)
 
-The number of integer partitions of the integer n ≥ 0. Uses the function from FLINT, which is very fast.
+The number of integer partitions of the integer ``n ≥ 0``. Uses the function from FLINT, which is very fast.
 
 # References
 1. The On-Line Encyclopedia of Integer Sequences, [A000041](https://oeis.org/A000041)
@@ -119,7 +119,7 @@ end
     num_partitions(n::Integer, k::Integer)
     num_partitions(n::fmpz, k::fmpz)
 
-The number of integer partitions of the integer n ≥ 0 into k ≥ 0 parts. The implementation uses a recurrence relation.
+The number of integer partitions of the integer ``n ≥ 0`` into ``k ≥ 0`` parts. The implementation uses a recurrence relation.
 
 # References
 1. The On-Line Encyclopedia of Integer Sequences, [A008284](https://oeis.org/A008284)
@@ -174,7 +174,7 @@ end
 @Markdown.doc """
     partitions(n::Integer)
 
-A list of all partitions of an integer n ≥ 0, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998); see [ZS98](@cite).
+A list of all partitions of an integer ``n ≥ 0``, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998); see [ZS98](@cite).
 
 # Examples
 ```julia-repl
@@ -238,8 +238,8 @@ end
 @Markdown.doc """
     ascending_partitions(n::Integer;alg="ks")
 
-Instead of encoding a partition of an integer n ≥ 0 as a *descending* sequence (which is our convention), one can also encode it as an *ascending* sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is said that generating the list of all ascending partitions is more efficient than generating descending ones. To test this, I have implemented the algorithms given in the papers:
-1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KOS14](@cite).
+Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending* sequence (which is our convention), one can also encode it as an *ascending* sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is said that generating the list of all ascending partitions is more efficient than generating descending ones. To test this, I have implemented the algorithms given in the papers:
+1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
 2. "m" is Algorithm 6 in [Mer12](@cite). This is actually similar to "ks".
 
 The ascending partitions are stored here as arrays and are not of type ```Partition``` since the latter are descending by our convention. I am using "ks" as default since it looks slicker and I believe there is a tiny mistake in the publication of "m" (which I fixed).
@@ -366,7 +366,7 @@ end
 @Markdown.doc """
     partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z=0)
 
-A list of all partitions of an integer m ≥ 0 into n ≥ 0 parts with lower bound l1 ≥ 0 and upper bound l2 ≥ l1 for the parts. There are two choices for the parameter z:
+A list of all partitions of an integer ``m ≥ 0`` into ``n ≥ 0`` parts with lower bound ``l1 ≥ 0`` and upper bound ``l2 ≥ l1`` for the parts. There are two choices for the parameter z:
 * z=0: no further restriction (*default*);
 * z=1: only distinct parts.
 The partitions are produced in *decreasing* order.
@@ -473,7 +473,7 @@ end
 @Markdown.doc """
     partitions(m::Integer, n::Integer)
 
-All partitions of an integer m ≥ 0 into n ≥ 1 parts (no further restrictions).
+All partitions of an integer ``m ≥ 0`` into ``n ≥ 1`` parts (no further restrictions).
 """
 function partitions(m::Integer, n::Integer)
   return partitions(m,n,1,m,z=0)
@@ -484,7 +484,7 @@ end
 @Markdown.doc """
     partitions(mu::Array{Integer,1}, m::Integer, v::Array{Integer,1}, n::Integer)
 
-All partitions of an integer m >= 0 into n >= 1 parts, where each part is an element in v and each v[i] occurs a maximum of mu[i] times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in [RJ76](@cite).
+All partitions of an integer ``m >= 0`` into ``n >= 1`` parts, where each part is an element in ``v`` and each ``v[i]`` occurs a maximum of ``mu[i]`` times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in [RJ76](@cite).
 
 # Remark
 The original algorithm lead to BoundsErrors, since r could get smaller than 1. Furthermore x and y are handled as arrays with an infinite length. After finding all valid partitions, the algorithm will continue searching for partitions of length n+1. We thus had to add a few additional checks and interruptions. Done by T. Schmit.
@@ -622,7 +622,7 @@ end
 @Markdown.doc """
     dominates(lambda::Partition, mu::Partition)
 
-The **dominance order** on partitions is the partial order ⊵ defined by λ ⊵ μ if and only if λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ for all i. This function returns true if λ ⊵ μ.
+The **dominance order** on partitions is the partial order ``⊵`` defined by ``λ ⊵ μ`` if and only if ``λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ`` for all i. This function returns true if ``λ ⊵ μ``.
 
 # References
 1. Wikipedia, [Dominance order](https://en.wikipedia.org/wiki/Dominance_order)
