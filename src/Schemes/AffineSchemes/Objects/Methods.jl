@@ -117,6 +117,16 @@ function intersect(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
 end
 
 
+# TODO: The method below is necessary for a temporary hotfix; see #1882.
+# It seems likely that the implementation can be tuned so that, for 
+# instance, the massive use of primary decompositions can be avoided. 
+# This should eventually be addressed. 
+@Markdown.doc """
+    components(X::AbsSpec)
+
+This returns a decomposition of ``X`` into its connected components 
+``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
+"""
 function components(X::AbsSpec)
   I = saturated_ideal(modulus(OO(X)))
   l = primary_decomposition(I)
@@ -138,7 +148,52 @@ function components(X::AbsSpec)
       end
     end
   end
-  return comp::Vector{<:AbsSpec}
+
+  # We need to reproduce the components of X as `PrincipalOpenSubset`s. 
+  # To this end, we first determine separating equations between pairs 
+  # of components.
+
+  n = length(comp)
+  separating_equations = Array{RingElem}(undef, n, n)
+  for i in 1:length(comp)
+    C1 = comp[i]
+    for j in i:length(comp)
+      C2 = comp[j]
+      if i == j
+        separating_equations[i, j] = one(OO(X))
+        continue
+      end
+      
+      v = OO(X).(gens(saturated_ideal(modulus(OO(C1)))))
+      w = OO(X).(gens(saturated_ideal(modulus(OO(C2)))))
+
+      J = ideal(OO(X), vcat(v, w))
+      # The idea is to write 1 = f + g with f ∈ I(C1) and g ∈ I(C2).
+      # Then 1 - f = g vanishes identically on C2, but is a unit in OO(C1) 
+      # and vice versa. 
+      c = coordinates(one(OO(X)), J)
+
+      # Conversion to assure compatibility. 
+      # This can be removed, once the ideal interface is streamlined. 
+      if c isa MatrixElem
+        c = [c[1, i] for i in 1:ncols(c)]::Vector
+      end
+
+      a = c[1:length(v)]
+      b = c[length(v)+1:length(v)+length(w)]
+
+      f = sum([v[i]*a[i] for i in 1:length(v)], init=zero(OO(X)))
+      g = sum([w[i]*b[i] for i in 1:length(w)], init=zero(OO(X)))
+      separating_equations[i, j] = 1 - f
+      separating_equations[j, i] = 1 - g
+    end
+  end
+  result = Vector{PrincipalOpenSubset}()
+  for i in 1:n
+    f = prod(separating_equations[i, :], init=one(OO(X)))
+    push!(result, PrincipalOpenSubset(X, f))
+  end
+  return result
 end
 
 
