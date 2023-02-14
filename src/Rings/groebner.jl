@@ -1485,40 +1485,54 @@ end
 
 # modular gröbner basis techniques
 
+# TODO: what is the purpose of using rational reconstruction in the middle of this algorithm?
+# it is done both in experimental/modstd and in the paper sasaki - a modular method for gröbner basis construction
+
+# TODO: how to protect against the case where the first prime is unlucky?
 function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
                                 ordering::MonomialOrdering)
-  if haskey(I.gb, ord)
-    return I.gb[ord]
+
+  # small function to get a canonically sorted reduced gb
+  sorted_gb = idl -> begin
+    R = base_ring(idl)
+    gb = gens(groebner_basis(idl, ordering = ordering,
+                             complete_reduction = true))
+    sort!(gb, by = p -> leading_monomial(p),
+          lt = (m1, m2) -> cmp(MonomialOrdering(R, ordering.o), m1, m2) > 0)
+  end
+  
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
   end
 
   primes = Hecke.PrimesSet(2^15, -1)
 
   p = iterate(primes)[1]
   Qt = base_ring(I)
-  Q = base_ring(Qt)
   Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
 
-  R = GF(p) 
-  Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
-  Gp = groebner_basis(ideal(Rt, gens(I)), ordering = ordering,
-                      complete_reduction = true)
-  std_basis_mod_p_lifted = map(x->lift(Zt, x), gens(Gp))
-  standard_basis_crt_previous = std_basis_mod_p_lifted
+  Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+  std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+  std_basis_crt_previous = std_basis_mod_p_lifted
 
   n_stable_primes = 0
   d = fmpz(p)
   while n_stable_primes < 2
     p = iterate(primes, p)[1]
-    Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
-    Gp = groebner_basis(ideal(Rt, gens(I)), ordering = ordering,
-                        complete_reduction = true)
-    std_basis_mod_p_lifted = map(x->lift(Zt, x), gens(Gp))
+    println("prime $p")
+    Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+    std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
 
+    # test for unlucky prime
+    if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
+           enumerate(std_basis_mod_p_lifted))
+      continue
+    end
+    
     is_stable = true
     for (i, f) in enumerate(std_basis_mod_p_lifted)
-      # TODO: this test seems not great to me
-      if !iszero(f - standard_basis_crt_previous[i])
-        standard_basis_crt_previous[i], _ = induce_crt(standard_basis_crt_previous[i], d, f, fmpz(p), true)
+      if !iszero(f - std_basis_crt_previous[i])
+        std_basis_crt_previous[i], _ = induce_crt(std_basis_crt_previous[i], d, f, fmpz(p), true)
         stable = false
       end
     end
@@ -1528,10 +1542,24 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
     d *= fmpz(p)
   end
   final_gb = fmpq_mpoly[]
-  for f in in standard_basis_crt_previous
-    did_succeed, f_QQ = induce_rational_reconstruction(f, d)[2] 
+  for f in std_basis_crt_previous
+    did_succeed, f_QQ = induce_rational_reconstruction(f, d, parent = base_ring(I)) 
     did_succeed || error("ask christian")
     push!(final_gb, f_QQ)
   end
   return IdealGens(final_gb, ordering, isGB = true)
 end
+
+# taken straight from experimental/ModStd with unused arguments removed
+function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent=1)
+  g = MPolyBuildCtx(parent)
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    fl, r, s = Hecke.rational_reconstruction(c, d)
+    if !fl
+      return false, finish(g)
+    end
+    push_term!(g, r//s, v)
+  end
+  return true, finish(g)
+end
+
