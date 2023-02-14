@@ -239,7 +239,7 @@ end
     ascending_partitions(n::Integer;alg="ks")
 
 Instead of encoding a partition of an integer n ≥ 0 as a *descending* sequence (which is our convention), one can also encode it as an *ascending* sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is said that generating the list of all ascending partitions is more efficient than generating descending ones. To test this, I have implemented the algorithms given in the papers:
-1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KOS14](@cite).
+1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
 2. "m" is Algorithm 6 in [Mer12](@cite). This is actually similar to "ks".
 
 The ascending partitions are stored here as arrays and are not of type ```Partition``` since the latter are descending by our convention. I am using "ks" as default since it looks slicker and I believe there is a tiny mistake in the publication of "m" (which I fixed).

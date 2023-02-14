@@ -9,14 +9,29 @@
 
 export Tableau, shape, semistandard_tableaux, is_standard, is_semistandard, standard_tableaux, schensted, hook_length, hook_lengths, num_standard_tableaux, reading_word, weight, bump!
 
-"""
+@doc Markdown.doc"""
     Tableau{T} <: AbstractArray{AbstractArray{T,1},1}
 
-A **Young diagram** is a diagram of finitely many empty "boxes" arranged in left-justified rows, with the row lengths in non-increasing order. The box in row i and and column j has the **coordinates** (i,j). Listing the number of boxes in each row gives a partition λ of a non-negative integer n (the total number of boxes of the diagram). The diagram is then said to be of **shape** λ. Conversely, one can associate to any partition λ a Young diagram in the obvious way, so Young diagrams are just another way to look at partitions.
+A **Young diagram** is a diagram of finitely many empty "boxes" arranged
+in left-justified rows, with the row lengths in non-increasing order. The
+box in row `i` and and column `j` has the **coordinates** `(i,j)`. Listing
+the number of boxes in each row gives a partition ``λ`` of a non-negative
+integer `n` (the total number of boxes of the diagram). The diagram is
+then said to be of **shape** ``λ``. Conversely, one can associate to any
+partition ``λ`` a Young diagram in the obvious way, so Young diagrams are
+just another way to look at partitions.
 
-A **Young tableau** of shape λ is a filling of the boxes of the Young diagram of λ with elements from some set. After relabeling we can (and will) assume that we fill from a set of integers from 1 up to some number, which in applications is often equal to n. We encode a tableau as an array of arrays and we have implemented an own type ```Tableau{T}```	as subtype of ```AbstractArray{AbstractArray{T,1},1}``` to work with tableaux. As for partitions, you may increase performance by casting into smaller integer types, e.g.
+A **Young tableau** of shape ``λ`` is a filling of the boxes of the Young
+diagram of ``λ`` with elements from some set. After relabeling we can (and
+will) assume that we fill from a set of integers from ``1`` up to some number,
+which in applications is often equal to `n`. We encode a tableau as an
+array of arrays and we have implemented an own type ```Tableau{T}```
+as subtype of ```AbstractArray{AbstractArray{T,1},1}``` to work with
+tableaux. As for partitions, you may increase performance by casting
+into smaller integer types, e.g.
 
-For efficiency, we do not check whether the given array is really a tableau, i.e. whether the structure of the array defines a partition.
+For efficiency, we do not check whether the given array is really a
+tableau, i.e. whether the structure of the array defines a partition.
 
 # Example
 ```julia-repl
@@ -67,7 +82,7 @@ end
 @Markdown.doc """
     weight(Tab::Tableau)
 
-The **weight** of a tableau is the number of times each number appears in the tableau. The return value is an array whose i-th element gives the number of times the integer i appears in the tableau.
+The **weight** of a tableau is the number of times each number appears in the tableau. The return value is an array whose `i`-th element gives the number of times the integer `i` appears in the tableau.
 """
 function weight(Tab::Tableau)
   if isempty(Tab)
@@ -169,7 +184,11 @@ end
 @Markdown.doc """
     semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
 
-Returns a list of all semistandard tableaux of given shape and filling elements bounded by `max_val`. By default, `max_val` is equal to the sum of the shape partition (the number of boxes in the Young diagram). The list of tableaux is in lexicographic order from left to right and top to bottom.
+Returns a list of all semistandard tableaux of given shape and filling
+elements bounded by `max_val`. By default, `max_val` is equal to the sum
+of the shape partition (the number of boxes in the Young diagram). The
+list of tableaux is in lexicographic order from left to right and top
+to bottom.
 """
 function semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
   SST = Array{Tableau{T},1}()
@@ -235,7 +254,7 @@ end
 @Markdown.doc """
     semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
 
-Shortcut for ```semistandard_tableaux(Partition(shape),max_val)```.
+Shortcut for ```semistandard_tableaux(Partition(shape), max_val)```.
 """
 function semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::T) where T<:Integer
   return semistandard_tableaux(Partition(shape), max_val)
@@ -244,7 +263,8 @@ end
 @Markdown.doc """
     semistandard_tableaux(box_num::T, max_val=box_num::T) where T<:Integer
 
-Returns a list of all semistandard tableaux consisting of `box_num` boxes and filling elements bounded by `max_val`.
+Returns a list of all semistandard tableaux consisting of `box_num`
+boxes and filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val=box_num::T) where T<:Integer
   box_num>=0 || throw(ArgumentError("box_num ≥ 0 required"))
@@ -267,8 +287,8 @@ end
 @Markdown.doc """
     semistandard_tableaux(s::Array{T,1}, weight::Array{T,1}) where T<:Integer
 
-Returns a list of all semistandard tableaux with shape s and given weight. This
-requires that sum(s) = sum(weight).
+Returns a list of all semistandard tableaux with shape `s` and given weight. This
+requires that `sum(s) = sum(weight)`.
 """
 function semistandard_tableaux(s::Array{T,1}, weight::Array{T,1}) where T<:Integer
   n_max = sum(s)
@@ -376,7 +396,8 @@ end
 @Markdown.doc """
     is_standard(Tab::Tableau)
 
-A tableau is called **standard** if it is semistandard and the entries are in bijection with 1,…,n, where n is the number of boxes.
+A tableau is called **standard** if it is semistandard and the entries
+are in bijection with ``1,…,n``, where ``n`` is the number of boxes.
 """
 function is_standard(Tab::Tableau)
   s = shape(Tab)
@@ -513,7 +534,11 @@ end
 @Markdown.doc """
     hook_length(lambda::Partition, i::Integer, j::Integer)
 
-Consider the Young diagram of a partition λ. The **hook length** of a box, is the number of boxes to the right in the same row + the number of boxes below in the same column + 1. The function returns the hook length of the box with coordinates (i,j). The functions assumes that the box exists.
+Consider the Young diagram of a partition ``λ``. The **hook length** of a
+box, is the number of boxes to the right in the same row + the number
+of boxes below in the same column + 1. The function returns the hook
+length of the box with coordinates `(i,j)`. The functions assumes that
+the box exists.
 """
 function hook_length(lambda::Partition, i::Integer, j::Integer)
   h = lambda[i] - j + 1
@@ -528,7 +553,7 @@ end
 @Markdown.doc """
     hook_length(Tab::Tableau, i::Integer, j::Integer)
 
-Shortcut for ```hook_length(shape(Tab),i,j)```.
+Shortcut for ```hook_length(shape(Tab), i, j)```.
 """
 function hook_length(Tab::Tableau, i::Integer, j::Integer)
   return hook_length(shape(Tab),i,j)
@@ -538,7 +563,8 @@ end
 @Markdown.doc """
     hook_lengths(lambda::Partition)
 
-Returns the tableau of shape λ in which the entry at position (i,j) is equal to the hook length of the corresponding box.
+Returns the tableau of shape ``λ`` in which the entry at position `(i,j)`
+is equal to the hook length of the corresponding box.
 """
 function hook_lengths(lambda::Partition)
   if isempty(lambda)
@@ -552,7 +578,7 @@ end
 
 
 @doc Markdown.doc"""
-	num_standard_tableaux(lambda::Partition)
+    num_standard_tableaux(lambda::Partition)
 
 Returns the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
 
@@ -579,7 +605,11 @@ end
     schensted(sigma::Array{Integer,1})
     schensted(sigma::Perm{T})
 
-The Robinson–Schensted correspondence is a bijection between permutations and pairs of standard Young tableaux of the same shape. For a permutation sigma (given as an array), this function performs the Schnested algorithm and returns the corresponding pair of standard tableaux (the insertion and recording tableaux).
+The Robinson–Schensted correspondence is a bijection between
+permutations and pairs of standard Young tableaux of the same shape. For
+a permutation sigma (given as an array), this function performs the
+Schnested algorithm and returns the corresponding pair of standard
+tableaux (the insertion and recording tableaux).
 
 # Example
 ```julia-repl
@@ -614,7 +644,8 @@ end
 @Markdown.doc """
     bump!(Tab::Tableau, x::Int)
 
-Inserts the integer x into the tableau Tab according to the bumping algorithm by applying the Schensted insertion.
+Inserts the integer `x` into the tableau Tab according to the bumping
+algorithm by applying the Schensted insertion.
 
 # References
 1. Wolfram MathWorld, [Bumping Algorithm](https://mathworld.wolfram.com/BumpingAlgorithm.html)
@@ -650,7 +681,9 @@ end
 @Markdown.doc """
     bump!(Tab::Tableau, x::Integer, Q::Tableau, y::Integer)
 
-Inserts x into Tab according to the bumping algorithm by applying the Schensted insertion. Traces the change with Q by inserting y at the same Position in Q as x in Tab.
+Inserts `x` into Tab according to the bumping algorithm by applying the
+Schensted insertion. Traces the change with `Q` by inserting `y` at the same
+Position in `Q` as `x` in Tab.
 """
 function bump!(Tab::Tableau, x::Integer, Q::Tableau, y::Integer)
   if isempty(Tab)
