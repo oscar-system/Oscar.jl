@@ -694,6 +694,9 @@ function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
 
       @vtime :ModStdQt 2 MM = g(v...)
       fg = factor_absolute(MM)
+      if length(fg) > 2
+        return nothing #bad evaluation
+      end
       @assert length(fg) == 2
       if isa(base_ring(fg[2][1][1]), FlintRationalField)
         return nothing
