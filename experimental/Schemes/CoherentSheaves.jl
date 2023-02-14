@@ -1479,13 +1479,11 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   # are sufficient to do so. This set can not assumed to be minimal, though.
   a = coordinates(one(OOX(U)), I)
   nonzero_entries = [ i for i in 1:ngens(I) if !iszero(a[i])]
-  @show nonzero_entries
   return_patches = AbsSpec[]
 
   for t in nonzero_entries
     i = div(t-1, ncols(A)) + 1
     j = mod(t-1, ncols(A)) + 1 # The matrix coordinates of the nonzero entry
-    @show i, j
     # We invert the (i,j)-th entry of A. 
     # Then we can reduce the presentation matrix so that we can throw away one 
     # of the generators of the module. 
@@ -1501,11 +1499,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
       #multiply_row!(Ares, u, k)
       add_row!(Ares, -A[k, j], i, k)
     end
-    @show Ares
-    @show [k for k in 1:nrows(Ares) if k != i]
-    @show [k for k in 1:ncols(Ares) if k !=j]
     Asub = Ares[[k for k in 1:nrows(Ares) if k != i], [k for k in 1:ncols(Ares) if k !=j]]
-    @show Asub
 
     # Assemble the restriction map from the parent node
     if iszero(Asub)
@@ -1616,7 +1610,7 @@ function projectivization(E::AbsCoherentSheaf;
     F isa FreeMod || error("modules must locally be free")
     r = rank(F)
     length(var_names) >= r || error("number of names for the variables must greater or equal to the local rank of the module")
-    RU = rees_algebra(E(U), var_names=var_names)
+    RU = rees_algebra(E(U), var_names=var_names[1:r])
     algebras[U] = RU
     SU, _ = grade(RU)
     PU = ProjectiveScheme(SU)

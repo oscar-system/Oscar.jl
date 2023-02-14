@@ -142,10 +142,13 @@ end
 
   X = CoveredScheme(Spec(R, I))
 
-  @test_broken is_smooth(X)
+  @test is_smooth(X)
 
   T = tangent_sheaf(X) # A locally free sheaf with different ranks on the two components.
 
+  @test trivializing_covering(T) isa Covering
+
+  PT = oscar.projectivization(T)
   PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
 end
 
