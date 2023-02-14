@@ -93,30 +93,6 @@ export is_effective
 
 
 @doc Markdown.doc"""
-    is_linearly_equivalent_to_effective_toric_divisor(td::ToricDivisor)
-
-Determine whether the toric divisor `td` is linearly equivalent to an effective toric divisor.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety,2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> td = ToricDivisor(P2, [1,-1,0])
-A torus-invariant, non-prime divisor on a normal toric variety
-
-julia> is_effective(td)
-false
-
-julia> is_linearly_equivalent_to_effective_toric_divisor(td)
-true
-```
-"""
-@attr Bool is_linearly_equivalent_to_effective_toric_divisor(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE
-export is_linearly_equivalent_to_effective_toric_divisor
-
-
-@doc Markdown.doc"""
     is_integral(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is integral.

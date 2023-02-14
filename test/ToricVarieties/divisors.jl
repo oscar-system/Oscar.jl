@@ -49,9 +49,6 @@
         @test is_prime(D3) == true
         @test is_effective(D7) ==  true
         @test is_effective(D8) ==  false
-        @test is_linearly_equivalent_to_effective_toric_divisor(D7) == true
-        @test is_linearly_equivalent_to_effective_toric_divisor(D8) == true
-        @test is_linearly_equivalent_to_effective_toric_divisor(D9) == false
     end
 
     @testset "Arithmetic" begin
