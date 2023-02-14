@@ -116,3 +116,31 @@ function intersect(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
   return PrincipalOpenSubset(ambient_scheme(U), complement_equation(U)*complement_equation(V))
 end
 
+
+function components(X::AbsSpec)
+  I = saturated_ideal(modulus(OO(X)))
+  l = primary_decomposition(I)
+  comp = [subscheme(X, Q) for (Q, _) in l]
+  found_intersection = true
+  while found_intersection
+    found_intersection = false
+    for i in 1:length(comp)-1
+      for j in i+1:length(comp)
+        if !isempty(intersect(comp[i], comp[j]))
+          found_intersection = true
+          C2 = popat!(comp, j)
+          C1 = comp[i]
+          C_new = subscheme(X, intersect(saturated_ideal(modulus(OO(C1))),
+                                         saturated_ideal(modulus(OO(C2)))
+                                        ))
+          comp[i] = C_new
+        end
+      end
+    end
+  end
+  return comp::Vector{<:AbsSpec}
+end
+
+
+
+
