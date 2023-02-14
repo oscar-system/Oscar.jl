@@ -764,7 +764,7 @@ fmpq_mpoly
 
 julia> p
 Map from
-Multivariate Polynomial Ring in x, y over Rational Field to A defined by a julia-function with inverse
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
 
 julia> p(x)
 x
