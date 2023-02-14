@@ -22,39 +22,47 @@ the affine and non-affine case:
 
 ## Constructors
 
+All of the constructors below accept as their last argument an optional boolean. This boolean `set_attributes` controls whether the constructors
+sets attributes for the constructed variety. The benefit of such setters is increased performance. However, as per usual, a shortcut comes at
+a price. In the case at hand, it might lead to possible inconsistencies, despite our best efforts to prevent this from happening.
+
+The default is `set_attributes = true`, that is our constructors set attributes upon construction. If not desired, it can be switched off by
+passing `set_attributes = false` as last argument.
+
+
 ### Affine Toric Varieties
 
 ```@docs
-AffineNormalToricVariety(C::Cone)
-NormalToricVariety(C::Cone)
-AffineNormalToricVariety(v::NormalToricVariety)
+AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
+NormalToricVariety(C::Cone; set_attributes::Bool = true)
+AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
 ```
 
 ### Normal Toric Varieties
 
 ```@docs
-NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = true)
-NormalToricVariety(PF::PolyhedralFan)
-NormalToricVariety(P::Polyhedron)
+NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
+NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
 ```
 
 ### Famous Toric Vareties
 
 ```@docs
-affine_space(::Type{NormalToricVariety}, d::Int)
-del_pezzo_surface(b::Int)
-hirzebruch_surface(r::Int)
-projective_space(::Type{NormalToricVariety}, d::Int)
-weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
+affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
+del_pezzo_surface(b::Int; set_attributes::Bool = true)
+hirzebruch_surface(r::Int; set_attributes::Bool = true)
+projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
+weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 ```
 
 ### Further Constructions
 
 ```@docs
-blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String)
-Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
-NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
-NormalToricVarietyFromGLSM(charges::fmpz_mat)
+blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
+Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true)
+NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true)
 ```
 
 
