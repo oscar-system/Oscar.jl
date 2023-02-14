@@ -148,7 +148,8 @@ identifications given by the glueings in the `default_covering`.
   ID::IdDict{AbsSpec, ModuleFP} # the modules on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
   M::PreSheafOnScheme # the underlying presheaf of modules for caching
-  C::Covering # The covering of X on which the modules had first been described
+  C::Covering # The covering of X on which the modules had first been described, a.k.a. the 
+              # `default_covering` of this sheaf ℱ.
 
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme, 
@@ -162,7 +163,7 @@ identifications given by the glueings in the `default_covering`.
                                                        # of MD[V]. The aᵢⱼ are elements of 𝒪(U ∩ V)
                                                        # represented as a subset of V.
       check::Bool=true,
-      default_cov::Covering=begin
+      default_cov::Covering=begin                      # This will be the `default_covering` of the sheaf to be created.
         patch_list = collect(keys(MD))
         glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
         C = Covering(patch_list, glueing_dict)
@@ -172,8 +173,8 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = OO(X)
     # Make sure that all patches and glueings of the 
-    # given default_cov are compatible with the data in 
-    # the dictionaries.
+    # given `default_covering` of the sheaf ℱ to be created 
+    # are compatible with the data in the dictionaries.
     all(x->haskey(MD, x), patches(default_cov)) || error("all patches in the default covering must have a prescribed module")
     all(x->any(y->(x===y), patches(default_cov)), keys(MD)) || error("all prescribed modules must appear in the default covering")
     all(x->haskey(MG, x), keys(glueings(default_cov))) || error("all glueings in the default covering must have a prescribed transition")
@@ -184,27 +185,47 @@ identifications given by the glueings in the `default_covering`.
     # When asked to produce a module on an open affine U, the functions 
     # below lead to the following behaviour.
     #
-    # 1) Look up whether U is in the list of patches of default_cov.
-    #    If yes, return the value of the dictionary.
+    #                     U₁                    an `affine_chart` of `X`
+    #           _________/|\______________      (`patches` of `default_covering(X)`)
+    #          /          |               \    
+    #          V₁         V₂______        |     two `PrincipalOpenSubset`s of U₁  
+    #         /|\        /|\      \       |     covering the latter
+    #        / | \      / | \     |       |      
+    #       W₁ W₂ W₃   A₁ A₂ A₃   C₁      D₁    `PrincipalOpenSubset`s of, respectively, 
+    #                        |                  V₁, V₂, and U₁
+    #                        |
+    #                        E
+    #
+    #  Figure 1: A sample tree in one `affine_chart` of a `CoveredScheme`
+    #
+    #  Suppose the patches of the `default_covering` of ℱ (i.e. now the local variable
+    #  `default_cov`) are V₁ together with A₁, A₂, and A₃.
+    #
+    # 1) Look up whether U is in the list of patches of `default_cov`, e.g. U = V₁ 
+    #    or U = A₂. If yes, return the value of the dictionary.
     #
     # 2) See whether U hangs below some V in the ancestry tree with V 
-    #    in the default_cov; if yes, restrict from V.
+    #    in `default_cov`; e.g. U = E or U = W₃. If yes, restrict from V.
     #
-    # 3) Otherwise, U is covered by patches {Vᵢ}, i ∈ I, from default_cov and 
-    #    contained in one affine chart W of X 
-    #      W ⊃ U ⊃ Vᵢ.
+    # 3) Otherwise, U is covered by patches {Aᵢ}, i ∈ I, from `default_cov` and 
+    #    contained in one affine chart U₁ of X 
+    #      U₁ ⊃ U ⊃ Aᵢ.
     #    We distinguish to sub-cases. 
     #
     #    3.1) U appears in the refinement tree T of W whose leafs consist 
-    #    entirely of the Vᵢs. Let T' be the subtree starting from U and 
-    #    let {Vⱼ}, j ∈ J be the leafs of this subtree. We then recursively 
-    #    build up the modules on the nodes in T'.
+    #    entirely of the Aᵢs and the latter cover U. For instance, this 
+    #    could be the case for U = V₂ with the Aᵢ covering it. 
+    #    Let T' be the subtree starting from U and let {Aⱼ}, j ∈ J be the 
+    #    leafs of this subtree. We then recursively build up the modules on 
+    #    the nodes in T'. Note that this requires some further obvious 
+    #    covering properties on the subtree T'. 
     #
-    #    3.2) U does not appear in the refinement tree T above. Then we 
-    #    first have to build the module on W and restrict from there. 
+    #    3.2) U does not appear in the refinement tree T above; e.g. 
+    #    when U = C₁ or U = D₁. Then we first have to build the module on 
+    #    U₁ and restrict from there. 
     #
     # The point 3) is not implemented, yet. Instead, the current code 
-    # requires to take refinements hanging under nodes in default_cov. 
+    # requires to take refinements hanging under nodes in `default_cov`. 
 
     ### Production of the modules on open sets; to be cached
     function production_func(
@@ -315,6 +336,7 @@ identifications given by the glueings in the `default_covering`.
     function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::SimplifiedSpec)
       # If V was not an affine_chart of X, some other function would have 
       # been triggered. 
+      @assert any(x->x===V, affine_charts(X)) "first argument must be an affine chart"
 
       # First the easy case: Inheritance from an ancestor in the tree.
       if original(U) === V
@@ -1094,7 +1116,7 @@ end
 ########################################################################
 
 #=
-# Let f : X ↪ Y be a closed embedding with ideal sheaf ℐ on Y and ℳ 
+# Let f : X → Y be a morphism and ℳ 
 # a sheaf of modules on Y. For an open set U ⊂ X we have 
 # f^* ℳ (U) to be the 𝒪_X(U)-module 
 #
