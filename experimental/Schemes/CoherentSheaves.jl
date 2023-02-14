@@ -1227,7 +1227,8 @@ end
 
     ### Restriction for pulled back sheaves of modules
     #
-    # For U ⊂ V ⊂ X, f : X → Y, M on Y and F = f^*M we do the following. 
+    # For U ⊂ V ⊂ X, f : X → Y, M on Y and F = f^*M we do the following 
+    # to compute the restriction morphism F(V) → F(U).
     # Let ϕ be the `covering_morphism` behind f. 
     #
     #             f : X   →    Y
