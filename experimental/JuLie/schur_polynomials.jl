@@ -10,9 +10,9 @@
 export schur_polynomial
 
 @doc Markdown.doc"""
-    schur_polynomial(λ::Partition{T}, n=sum(λ)::Int) where T<:Integer
-    schur_polynomial(λ::Partition{T}, R::FmpzMPolyRing, n=sum(λ)::Int) where T<:Integer
-    schur_polynomial(λ::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
+    schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int; ring::FmpzMPolyRing) where T<:Integer
+    schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
+    schur_polynomial(lambda::Partition{T}, x::Array{fmpz_mpoly,1}) where T<:Integer
 
 Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a Multivariate Polynomial.
 
@@ -51,7 +51,13 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 \end{vmatrix}
 ```
 """
-function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
+function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int;
+    ring::AbstractAlgebra.Ring=(n<=0 ? ZZ : begin # the ring for the return value
+                                  x = [string("x",string(i)) for i=1:n]
+                                  PolynomialRing(ZZ, x)[1]
+                                end
+                               )
+  ) where T<:Integer
   n>=0 || throw(ArgumentError("n≥0 required"))
   if n==0 || n < length(lambda)
     if isempty(lambda)
@@ -60,9 +66,7 @@ function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int) where T<:Int
       return 0
     end
   else
-    x = [string("x",string(i)) for i=1:n]
-    R,x = PolynomialRing(ZZ, x)
-    return schur_polynomial(R, lambda, n)
+    return schur_polynomial(ring::FmpzMPolyRing, lambda, n)
   end
 end
 
@@ -105,14 +109,15 @@ function schur_polynomial(lambda::Partition{T}, x::Array{fmpz_mpoly,1}) where T<
     end
   end
 
+  R = parent(x[1])
+  @assert all(y->parent(y)===R, x) "input elements do not have the same parent"
+
   if n>=10
-    R = x[1].parent
     return schur_polynomial_combinat(R, lambda, n)
   end
   #decide which Algorithm to use if n<10
   bo = sum(lambda) <= [140,50,17,11,10,10,11,13,14][n]
   if bo
-    R = x[1].parent
     return schur_polynomial_combinat(R, lambda, n) #Combinatorial formula
   else
     return schur_polynomial_cbf(lambda, x) #Cauchy's bialternant formula
@@ -130,8 +135,13 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Array{fmpz_mpoly,1}) wher
   #end
 
   n = length(x)
+  @assert n > 0 "number of variables must be > 0"
+  # TODO: The next line suggested that the case n<=0 is invalid input. But is this 
+  # really the case? I see some comment lines below which have probably been there 
+  # at some point to catch such boundary cases. 
   R = x[1].parent # Multi-polynomialring
-  S = R.base_ring # Integer Ring
+  @assert all(y->parent(y)===R, x) "input elements must have the same parent"
+  S = base_ring(R) # Integer Ring
 
   #if n < length(lambda)
   #	return 0
@@ -223,7 +233,7 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
     return one(R)
   end
 
-  S = R.base_ring
+  S = base_ring(R)
   sf = MPolyBuildCtx(R)
 
   #version of the function semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
