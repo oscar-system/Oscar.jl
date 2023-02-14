@@ -9,7 +9,7 @@
 
 export Tableau, shape, semistandard_tableaux, is_standard, is_semistandard, standard_tableaux, schensted, hook_length, hook_lengths, num_standard_tableaux, reading_word, weight, bump!
 
-@docs Markdown.doc"""
+@doc Markdown.doc"""
     Tableau{T} <: AbstractArray{AbstractArray{T,1},1}
 
 A **Young diagram** is a diagram of finitely many empty "boxes" arranged
