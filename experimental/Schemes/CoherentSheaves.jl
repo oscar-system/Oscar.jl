@@ -251,7 +251,7 @@ identifications given by the glueings in the `default_covering`.
 
       # If not: See whether we are below a prescribed module in the 
       # refinement tree
-      if some_ancestor(x->haskey(MD, x), U)
+      if has_ancestor(x->haskey(MD, x), U)
         V = ambient_scheme(U)
         MV = F(V)
         rho = OOX(V, U)
@@ -272,7 +272,7 @@ identifications given by the glueings in the `default_covering`.
 
       # If not: See whether we are below a prescribed module in the 
       # refinement tree
-      if some_ancestor(x->haskey(MD, x), U)
+      if has_ancestor(x->haskey(MD, x), U)
         V = original(U)
         MV = F(V)
         rho = OOX(V, U)
@@ -312,7 +312,7 @@ identifications given by the glueings in the `default_covering`.
         # This is the end of the recursion induced in the next elseif below.
         res = hom(F(V), F(U), gens(F(U)), OOX(W, U))
         return res
-      elseif some_ancestor(W->(W === V), U)
+      elseif has_ancestor(W->(W === V), U)
         W = ambient_scheme(U)
         return compose(F(V, W), F(W, U))
       end
@@ -346,7 +346,7 @@ identifications given by the glueings in the `default_covering`.
         W = original(U)
         res = hom(F(W), F(U), gens(MU), OOX(W, U))
         return res
-      elseif some_ancestor(W->(W === V), U)
+      elseif has_ancestor(W->(W === V), U)
         W = original(U)
         return compose(F(V, W), F(W, U))
       end
@@ -404,7 +404,7 @@ identifications given by the glueings in the `default_covering`.
 
       if V === ambient_scheme(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = ambient_scheme(U)
         return compose(F(V, W), F(W, U))
       end
@@ -462,7 +462,7 @@ identifications given by the glueings in the `default_covering`.
     function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedSpec)
       if V === original(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = original(U)
         return compose(F(V, W), F(W, U))
       end
@@ -520,7 +520,7 @@ identifications given by the glueings in the `default_covering`.
     function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::PrincipalOpenSubset)
       if V === ambient_scheme(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = ambient_scheme(U)
         return compose(F(V, W), F(W, U))
       end
@@ -580,7 +580,7 @@ identifications given by the glueings in the `default_covering`.
 
       if V === original(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = original(U)
         return compose(F(V, W), F(W, U))
       end
@@ -1214,7 +1214,7 @@ end
 
       # If not, check whether we are hanging below such a patch in the 
       # refinement tree.
-      if some_ancestor(y->any(x->(x===y), patches(domain(fcov))), U)
+      if has_ancestor(y->any(x->(x===y), patches(domain(fcov))), U)
         V = __find_chart(U, domain(fcov))
         MU, res = change_base_ring(OOX(V, U), FF(V))
         add_incoming_restriction!(FF, V, MU, res)

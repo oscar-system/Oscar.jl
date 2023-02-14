@@ -616,7 +616,7 @@ identifications given by the glueings in the `default_covering`.
       # I(U) is already prescribed on some refinement of U. We 
       # need to gather that information from all the patches involved
       # and assemble the ideal from there.
-      V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+      V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
 
       # Check for some SimplifiedSpec lurking around
       if any(x->(x isa SimplifiedSpec), V)

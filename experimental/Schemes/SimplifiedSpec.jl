@@ -31,21 +31,21 @@ function simplify(X::AbsSpec{<:Field})
 end
 
 ### Methods to roam in the ancestry tree
-function some_ancestor(P::Function, X::SimplifiedSpec)
-  return P(X) || some_ancestor(P, original(X))
+function has_ancestor(P::Function, X::SimplifiedSpec)
+  return P(X) || has_ancestor(P, original(X))
 end
 
-function some_ancestor(P::Function, X::PrincipalOpenSubset)
-  return P(X) || some_ancestor(P, ambient_scheme(X))
+function has_ancestor(P::Function, X::PrincipalOpenSubset)
+  return P(X) || has_ancestor(P, ambient_scheme(X))
 end
 
 @Markdown.doc """
-    some_ancestor(P::Function, X::AbsSpec)
+    has_ancestor(P::Function, X::AbsSpec)
 
 Check whether property `P` holds for `X` or some ancestor of `X` in 
 case it is a `PrincipalOpenSubset`, or a `SimplifiedSpec`.
 """
-function some_ancestor(P::Function, X::AbsSpec)
+function has_ancestor(P::Function, X::AbsSpec)
   return P(X) # This case will only be called when we reached the root.
 end
 
@@ -119,7 +119,7 @@ function _flatten_open_subscheme(
       f
     end
   )
-  some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
+  has_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
@@ -149,7 +149,7 @@ function _flatten_open_subscheme(
       f
     end
   )
-  some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
+  has_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
@@ -199,7 +199,7 @@ function _flatten_open_subscheme(
   )
   U === P && return iso
 
-  some_ancestor(W->W===P, U) || error("ancestor not found")
+  has_ancestor(W->W===P, U) || error("ancestor not found")
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
@@ -230,7 +230,7 @@ function _flatten_open_subscheme(
   )
   U === P && return iso
 
-  some_ancestor(W->W===P, U) || error("ancestor not found")
+  has_ancestor(W->W===P, U) || error("ancestor not found")
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
