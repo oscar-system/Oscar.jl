@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Affine schemes · Oscar.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img src="../../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../../Experimental/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/visualization/">Visualization</a></li></ul></li><li><a class="tocitem" href="../../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/homological_algebra/">Homological Algebra</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-7" type="checkbox"/><label class="tocitem" for="menuitem-9-7"><span class="docs-label">Gröbner/Standard Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox" checked/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox" checked/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../GeneralSchemes/">General schemes</a></li><li class="is-active"><a class="tocitem" href>Affine schemes</a><ul class="internal"><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Attributes"><span>Attributes</span></a></li><li><a class="tocitem" href="#Properties"><span>Properties</span></a></li><li><a class="tocitem" href="#Methods"><span>Methods</span></a></li></ul></li><li><a class="tocitem" href="../MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../CoveringsAndGlueings/">Coverings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../../ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../../ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../../ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../../ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../../ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../../ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../../ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../../TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Standard Constructions</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StandardConstructions/standard_constructions/">Standard Constructions in Algebraic Geometry</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Surfaces/K3Surfaces/">Algebraic Surfaces</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Finitely Presented Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/serialization/">Serialization</a></li><li><input class="collapse-toggle" id="menuitem-17-7" type="checkbox"/><label class="tocitem" for="menuitem-17-7"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Algebraic Geometry</a></li><li><a class="is-disabled">Schemes</a></li><li class="is-active"><a href>Affine schemes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Affine schemes</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/AlgebraicGeometry/Schemes/AffineSchemes.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><ul><li><a href="#Affine-schemes">Affine schemes</a></li><li class="no-marker"><ul><li><a href="#Constructors">Constructors</a></li><li><a href="#Attributes">Attributes</a></li><li><a href="#Properties">Properties</a></li><li><a href="#Methods">Methods</a></li></ul></li></ul><h1 id="Affine-schemes"><a class="docs-heading-anchor" href="#Affine-schemes">Affine schemes</a><a id="Affine-schemes-1"></a><a class="docs-heading-anchor-permalink" href="#Affine-schemes" title="Permalink"></a></h1><p>Let <span>$\mathbb k$</span> be a commutative noetherian base ring (in practice: an algebraic extension of <span>$\mathbb Q$</span> or <span>$\mathbb F_p$</span>). We support functionality for affine schemes <span>$X = \mathrm{Spec}(R)$</span> over <span>$\mathbb k$</span>. Currently, we support rings <span>$R$</span> of type <code>MPolyRing</code>, <code>MPolyQuo</code>, <code>MPolyLocalizedRing</code>, and <code>MPolyQuoLocalizedRing</code> defined over the integers, a finite field or algebraic field extensions of <span>$\mathbb Q$</span></p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><h3 id="General-constructors"><a class="docs-heading-anchor" href="#General-constructors">General constructors</a><a id="General-constructors-1"></a><a class="docs-heading-anchor-permalink" href="#General-constructors" title="Permalink"></a></h3><p>Besides <code>Spec(R)</code> for <code>R</code> of either one of the types <code>MPolyRing</code>, <code>MPolyQuo</code>, <code>MPolyLocalizedRing</code>, or  <code>MPolyQuoLocalizedRing</code>, we have the following constructors:</p><article class="docstring"><header><a class="docstring-binding" id="Spec-Tuple{MPolyRing, MPolyIdeal}" href="#Spec-Tuple{MPolyRing, MPolyIdeal}"><code>Spec</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Spec(R::MPolyRing, I::MPolyIdeal)</code></pre><p>Constructs the affine scheme of the ideal <span>$I$</span> in the ring <span>$R$</span>. This is the spectrum of the quotient ring <span>$R/I$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [x]);
+
+julia&gt; Spec(R, I)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L12">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Spec-Tuple{MPolyRing, Oscar.AbsMPolyMultSet}" href="#Spec-Tuple{MPolyRing, Oscar.AbsMPolyMultSet}"><code>Spec</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Spec(R::MPolyRing, U::AbsMPolyMultSet)</code></pre><p>Given a polynomial ring <span>$R$</span>, we can localize that polynomial ring at a multiplicatively closed subset <span>$U$</span> of <span>$R$</span>. The spectrum of the localized ring <span>$U^{-1} R$</span> is computed by this method.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [x]);
+
+julia&gt; U = complement_of_ideal(I);
+
+julia&gt; Spec(R, U)
+Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L31">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Spec-Tuple{MPolyRing, MPolyIdeal, Oscar.AbsMPolyMultSet}" href="#Spec-Tuple{MPolyRing, MPolyIdeal, Oscar.AbsMPolyMultSet}"><code>Spec</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)</code></pre><p>We allow to combine quotients and localizations at the same time. That is, consider a polynomial ring <span>$R$</span>, an ideal <span>$I$</span> of <span>$R$</span> and a multiplicatively closed subset <span>$U$</span> of <span>$R$</span>. The spectrum of the localized ring <span>$U^{-1} (R/I)$</span> is computed by this method.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; I = ideal(R, [x]);
+
+julia&gt; U = complement_of_ideal(ideal(R, [y]));
+
+julia&gt; Spec(R, I, U)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L53">source</a></section></article><p>See <a href="../MorphismsOfAffineSchemes/#inclusion_morphism-Tuple{AbsSpec, AbsSpec}"><code>inclusion_morphism(::AbsSpec, ::AbsSpec)</code></a> for a way to obtain the ideal <span>$I$</span> from <span>$X = \mathrm{Spec}(R, I)$</span>.</p><h3 id="Affine-n-space"><a class="docs-heading-anchor" href="#Affine-n-space">Affine n-space</a><a id="Affine-n-space-1"></a><a class="docs-heading-anchor-permalink" href="#Affine-n-space" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="affine_space-Union{Tuple{BRT}, Tuple{BRT, Int64}} where BRT&lt;:AbstractAlgebra.Ring" href="#affine_space-Union{Tuple{BRT}, Tuple{BRT, Int64}} where BRT&lt;:AbstractAlgebra.Ring"><code>affine_space</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">affine_space(kk::BRT, n::Int; variable_name=&quot;x&quot;) where {BRT&lt;:Ring}</code></pre><p>The <span>$n$</span>-dimensional affine space over a ring <span>$kk$</span> is created by this method. By default, the variable names are chosen as <span>$x_1$</span>, <span>$x_2$</span> and so on. This choice can be overwritten with a third optional argument.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; affine_space(QQ, 5)
+Spec of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field
+
+julia&gt; affine_space(QQ,5,variable_name=&quot;y&quot;)
+Spec of Multivariate Polynomial Ring in y1, y2, y3, y4, y5 over Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L112">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="affine_space-Union{Tuple{BRT}, Tuple{BRT, Vector{Symbol}}} where BRT&lt;:AbstractAlgebra.Ring" href="#affine_space-Union{Tuple{BRT}, Tuple{BRT, Vector{Symbol}}} where BRT&lt;:AbstractAlgebra.Ring"><code>affine_space</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT&lt;:Ring}</code></pre><p>Creates the <span>$n$</span>-dimensional affine space over a ring <span>$kk$</span>, but allows more flexibility in the choice of variable names. The following example demonstrates this.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; affine_space(QQ,[:y1,:z2,:a])
+Spec of Multivariate Polynomial Ring in y1, z2, a over Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L134">source</a></section></article><h3 id="Closed-subschemes"><a class="docs-heading-anchor" href="#Closed-subschemes">Closed subschemes</a><a id="Closed-subschemes-1"></a><a class="docs-heading-anchor-permalink" href="#Closed-subschemes" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="subscheme-Tuple{AbsSpec, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:RingElem}" href="#subscheme-Tuple{AbsSpec, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:RingElem}"><code>subscheme</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">subscheme(X::AbsSpec, f::Vector{&lt;:RingElem})</code></pre><p>For an affine spectrum <span>$X$</span> and elements <span>$f_1$</span>, <span>$f_2$</span>, etc. of the coordinate ring of <span>$X$</span>, this method computes the subscheme <span>$V(f_1, f_2, \dots)$</span> of <span>$X$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; subscheme(X,x1)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia&gt; subscheme(X,[x1,x2])
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1, x2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L259">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="subscheme-Tuple{AbsSpec, Ideal}" href="#subscheme-Tuple{AbsSpec, Ideal}"><code>subscheme</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">subscheme(X::AbsSpec, I::Ideal)</code></pre><p>For a scheme <span>$X = Spec(R)$</span> and an ideal <span>$I ⊂ 𝒪(X)$</span> this returns the closed subscheme defined by <span>$I$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L295-L318">source</a></section></article><h3 id="Intersections"><a class="docs-heading-anchor" href="#Intersections">Intersections</a><a id="Intersections-1"></a><a class="docs-heading-anchor-permalink" href="#Intersections" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="intersect-Union{Tuple{BRT}, Tuple{AbsSpec{BRT, var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:AbstractAlgebra.Ring, AbsSpec{BRT, var&quot;#s261&quot;} where var&quot;#s261&quot;&lt;:AbstractAlgebra.Ring}} where BRT&lt;:AbstractAlgebra.Ring" href="#intersect-Union{Tuple{BRT}, Tuple{AbsSpec{BRT, var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:AbstractAlgebra.Ring, AbsSpec{BRT, var&quot;#s261&quot;} where var&quot;#s261&quot;&lt;:AbstractAlgebra.Ring}} where BRT&lt;:AbstractAlgebra.Ring"><code>intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Base.intersect(X::AbsSpec, Y::AbsSpec)</code></pre><p>This method computes the intersection to two affine schemes that reside in the same ambient affine space.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; Y1 = subscheme(X,[x1])
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia&gt; Y2 = subscheme(X,[x2])
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x2)
+
+julia&gt; intersect(Y1, Y2)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1, x2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L486-L515">source</a></section></article><h3 id="Open-subschemes"><a class="docs-heading-anchor" href="#Open-subschemes">Open subschemes</a><a id="Open-subschemes-1"></a><a class="docs-heading-anchor-permalink" href="#Open-subschemes" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="hypersurface_complement-Tuple{AbsSpec, RingElem}" href="#hypersurface_complement-Tuple{AbsSpec, RingElem}"><code>hypersurface_complement</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hypersurface_complement(X::AbsSpec, f::RingElem)</code></pre><p>For a scheme <span>$X = Spec(R)$</span> and an element <span>$f ∈ R$</span> this returns the open subscheme <span>$U = Spec(R[f⁻¹]) = X ∖ V(f)$</span> defined by the complement of the vanishing locus of <span>$f$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1, x2, x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; hypersurface_complement(X, x1)
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L332-L356">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="hypersurface_complement-Tuple{AbsSpec, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:RingElem}" href="#hypersurface_complement-Tuple{AbsSpec, Vector{var&quot;#s262&quot;} where var&quot;#s262&quot;&lt;:RingElem}"><code>hypersurface_complement</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hypersurface_complement(X::AbsSpec, f::Vector{&lt;:RingElem})</code></pre><p>For a scheme <span>$X = Spec(R)$</span> and elements <span>$f₁, f₂, ... ∈ R$</span> this returns the open subscheme <span>$U = Spec(R[f₁⁻¹,f₂⁻¹, ...]) = X ∖ V(f₁⋅f₂⋅…)$</span> defined by the complement of the vanishing locus of the product <span>$f₁⋅f₂⋅…$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; hypersurface_complement(X,[x1,x2])
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1, x2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L400-L424">source</a></section></article><h3 id="Closure"><a class="docs-heading-anchor" href="#Closure">Closure</a><a id="Closure-1"></a><a class="docs-heading-anchor-permalink" href="#Closure" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="closure-Tuple{AbsSpec, AbsSpec}" href="#closure-Tuple{AbsSpec, AbsSpec}"><code>closure</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">closure(X::AbsSpec, Y::AbsSpec)</code></pre><p>Returns the closure of <span>$X$</span> in <span>$Y$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; H = subscheme(X,ideal(R,[x1]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia&gt; closure(H, X)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1) at the multiplicative set powers of fmpq_mpoly[1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Constructors.jl#L655-L680">source</a></section></article><h2 id="Attributes"><a class="docs-heading-anchor" href="#Attributes">Attributes</a><a id="Attributes-1"></a><a class="docs-heading-anchor-permalink" href="#Attributes" title="Permalink"></a></h2><h3 id="Ambient-affine-space"><a class="docs-heading-anchor" href="#Ambient-affine-space">Ambient affine space</a><a id="Ambient-affine-space-1"></a><a class="docs-heading-anchor-permalink" href="#Ambient-affine-space" title="Permalink"></a></h3><p>Most affine schemes in Oscar <span>$X = \mathrm{Spec}(R)$</span> over a ring <span>$B$</span>, come with an embedding into an affine space <span>$\mathbb{A}_B$</span>. More precisely, <code>ambient_space(X)</code> is defined for <code>X = Spec(R)</code> if <code>R</code> is constructed from a polynomial ring. In particular <span>$\mathrm{Spec}(\mathbb{Z})$</span> or <span>$\mathrm{Spec}(\mathbb{k})$</span> for <span>$\mathbb k$</span> a field do not have an ambient affine space.</p><article class="docstring"><header><a class="docstring-binding" id="ambient_space-Tuple{AbsSpec}" href="#ambient_space-Tuple{AbsSpec}"><code>ambient_space</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ambient_space(X::AbsSpec)</code></pre><p>Return the ambient affine space of <span>$X$</span>. </p><p>Use <a href="#ambient_embedding-Tuple{AbsSpec}"><code>ambient_embedding(::AbsSpec)</code></a> to obtain the embedding of <span>$X$</span> in its ambient affine space.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia&gt; ambient_space(X) == X
+true
+
+julia&gt; (x, y) = coordinates(X);
+
+julia&gt; Y = subscheme(X, [x])
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+
+julia&gt; X == ambient_space(Y)
+true
+
+julia&gt; Z = subscheme(Y, y)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia&gt; ambient_space(Z) == X
+true
+
+julia&gt; V = hypersurface_complement(Y, y)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+
+julia&gt; ambient_space(V) == X
+true</code></pre><p>We can create <span>$X$</span>, <span>$Y$</span> and <span>$Z$</span> also by first constructing the corresponding coordinate rings. The subset relations are inferred from the coordinate rings. More precisely, for a polynomial ring <span>$P$</span> an ideal <span>$I ⊆ P$</span> and a multiplicatively closed subset <span>$U$</span> of <span>$P$</span> let <span>$R$</span> be one of <span>$P$</span>, <span>$U^{-1}P$</span>, <span>$P/I$</span> or <span>$U^{-1}(P/I)$</span>. In each case the ambient affine space is given by <code>Spec(P)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; P, (x, y) = PolynomialRing(QQ, [:x, :y])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; X = Spec(P)
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia&gt; I = ideal(P, x)
+ideal(x)
+
+julia&gt; RmodI, quotient_map = quo(P, I);
+
+julia&gt; Y = Spec(RmodI)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+
+julia&gt; ambient_space(Y) == X
+true
+
+julia&gt; J = ideal(RmodI, y);
+
+julia&gt; RmodJ, quotient_map2 = quo(RmodI, J);
+
+julia&gt; Z = Spec(RmodJ)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia&gt; ambient_space(Z) == X
+true
+
+julia&gt; U = powers_of_element(y)
+powers of fmpq_mpoly[y]
+
+julia&gt; URmodI, _ = localization(RmodI, U);
+
+julia&gt; V = Spec(URmodI)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+
+julia&gt; ambient_space(V) == X
+true</code></pre><p>Note: compare with <code>==</code>, as the same affine space could be represented internally by different objects for technical reasons.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; AX = ambient_space(X);
+
+julia&gt; AY = ambient_space(Y);
+
+julia&gt; AX == AY
+true
+
+julia&gt; AX === AY
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Attributes.jl#L50-L148">source</a></section></article><h3 id="Other-attributes"><a class="docs-heading-anchor" href="#Other-attributes">Other attributes</a><a id="Other-attributes-1"></a><a class="docs-heading-anchor-permalink" href="#Other-attributes" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="base_ring-Tuple{AbsSpec}" href="#base_ring-Tuple{AbsSpec}"><code>base_ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">base_ring(I::MPolyIdeal)</code></pre><p>Return the ambient ring of <code>I</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = PolynomialRing(QQ, [&quot;x&quot;, &quot;y&quot;])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia&gt; I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia&gt; base_ring(I)
+Multivariate Polynomial Ring in x, y over Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Rings/mpoly-ideals.jl#L1045">source</a></section><section><div><pre><code class="nohighlight hljs">base_ring(X::AbsSpec)</code></pre><p>On an affine scheme <span>$X/𝕜$</span> over <span>$𝕜$</span> this returns the ring <span>$𝕜$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; base_ring(X)
+Rational Field</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Attributes.jl#L269-L282">source</a></section><section><div><pre><code class="nohighlight hljs">base_ring(M::PMat)</code></pre><p>The <code>PMat</code> <span>$M$</span> defines an <span>$R$</span>-module for some maximal order <span>$R$</span>. This function returns the <span>$R$</span> that was used to defined <span>$M$</span>.</p></div></section></article><article class="docstring"><header><a class="docstring-binding" id="codim-Tuple{AbsSpec}" href="#codim-Tuple{AbsSpec}"><code>codim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">codim(X::AbsSpec)</code></pre><p>Return the codimension of <span>$X$</span> in its ambient affine space.</p><p>Throws and error if <span>$X$</span> does not have an ambient affine space.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; codim(X)
+0
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; Y = subscheme(X, x1)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia&gt; codim(Y)
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Attributes.jl#L333-L363">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ambient_embedding-Tuple{AbsSpec}" href="#ambient_embedding-Tuple{AbsSpec}"><code>ambient_embedding</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ambient_embedding(X::AbsSpec)</code></pre><p>Return the embedding of <span>$X$</span> in its ambient affine space.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia&gt; (x, y) = coordinates(X);
+
+julia&gt; Y = subscheme(X, [x]);
+
+julia&gt; inc = ambient_embedding(Y);
+
+julia&gt; inc == inclusion_morphism(Y, X)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Attributes.jl#L161-L180">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="dim-Tuple{AbsSpec}" href="#dim-Tuple{AbsSpec}"><code>dim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dim(T::TropicalVariety{M, EMB})
+dim(T::TropicalCurve{M, EMB})
+dim(T::TropicalHypersurface{M, EMB})
+dim(T::TropicalLinearSpace{M, EMB})</code></pre><p>Return the dimension of <code>T</code>.</p><p><strong>Examples</strong></p><p>A tropical hypersurface in <span>$\mathbb{R}^n$</span> is always of dimension n-1</p><pre><code class="language-julia-repl hljs">julia&gt; RR = TropicalSemiring(min);
+
+julia&gt; S,(x,y) = RR[&quot;x&quot;,&quot;y&quot;];
+
+julia&gt; f = x+y+1;
+
+julia&gt; tropicalLine = TropicalHypersurface(f);
+
+julia&gt; dim(tropicalLine)
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/TropicalGeometry/variety_supertype.jl#L165">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="name-Tuple{AbsSpec}" href="#name-Tuple{AbsSpec}"><code>name</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">name(X::AbsSpec)</code></pre><p>Return the current name of an affine scheme.</p><p>This name can be specified via <code>set_name!</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ, 3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; name(X)
+&quot;unnamed affine variety&quot;
+
+julia&gt; set_name!(X, &quot;affine 3-dimensional space&quot;)
+
+julia&gt; name(X)
+&quot;affine 3-dimensional space&quot;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Attributes.jl#L369">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="OO-Tuple{AbsSpec}" href="#OO-Tuple{AbsSpec}"><code>OO</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">OO(X::AbsSpec)</code></pre><p>On an affine scheme <span>$X = Spec(R)$</span> this returns the ring <span>$R$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Attributes.jl#L40-L44">source</a></section></article><h3 id="Type-getters"><a class="docs-heading-anchor" href="#Type-getters">Type getters</a><a id="Type-getters-1"></a><a class="docs-heading-anchor-permalink" href="#Type-getters" title="Permalink"></a></h3><p>We support functions which return the types of schemes, associated rings, and their elements. See the  source code for details.</p><h2 id="Properties"><a class="docs-heading-anchor" href="#Properties">Properties</a><a id="Properties-1"></a><a class="docs-heading-anchor-permalink" href="#Properties" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="is_open_embedding-Tuple{AbsSpec, AbsSpec}" href="#is_open_embedding-Tuple{AbsSpec, AbsSpec}"><code>is_open_embedding</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_open_embedding(X::AbsSpec, Y::AbsSpec)</code></pre><p>Checks whether <span>$X$</span> is openly embedded in <span>$Y$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; Y = subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+
+julia&gt; is_open_embedding(Y, X)
+false
+
+julia&gt; Z = hypersurface_complement(X, x1)
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+
+julia&gt; is_open_embedding(Z, X)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Properties.jl#L294-L325">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_closed_embedding-Tuple{AbsSpec, AbsSpec}" href="#is_closed_embedding-Tuple{AbsSpec, AbsSpec}"><code>is_closed_embedding</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_closed_embedding(X::AbsSpec, Y::AbsSpec)</code></pre><p>Checks whether <span>$X$</span> is closed embedded in <span>$Y$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; Y = subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+
+julia&gt; is_closed_embedding(Y, X)
+true
+
+julia&gt; Z = hypersurface_complement(X, x1)
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+
+julia&gt; is_closed_embedding(Z, X)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Properties.jl#L359-L390">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isempty-Tuple{AbsSpec}" href="#isempty-Tuple{AbsSpec}"><code>isempty</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_empty(X::AbsSpec)</code></pre><p>This method returns <code>true</code> if the affine scheme <span>$X$</span> is empty. Otherwise, <code>false</code> is returned.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; isempty(X)
+false
+
+julia&gt; is_empty(subscheme(X, one(OO(X))))
+true
+
+julia&gt; isempty(EmptyScheme(QQ))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Properties.jl#L11-L31">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="issubset-Tuple{AbsSpec, AbsSpec}" href="#issubset-Tuple{AbsSpec, AbsSpec}"><code>issubset</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_subset(X::AbsSpec, Y::AbsSpec)</code></pre><p>Checks whether <span>$X$</span> is a subset of <span>$Y$</span> based on the comparison of their coordinate rings. See <a href="../MorphismsOfAffineSchemes/#inclusion_morphism-Tuple{AbsSpec, AbsSpec}"><code>inclusion_morphism(::AbsSpec, ::AbsSpec)</code></a> for the corresponding morphism.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; Y = subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+
+julia&gt; is_subset(X, Y)
+false
+
+julia&gt; is_subset(Y, X)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Properties.jl#L45-L74">source</a></section></article><h2 id="Methods"><a class="docs-heading-anchor" href="#Methods">Methods</a><a id="Methods-1"></a><a class="docs-heading-anchor-permalink" href="#Methods" title="Permalink"></a></h2><h3 id="Comparison"><a class="docs-heading-anchor" href="#Comparison">Comparison</a><a id="Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Comparison" title="Permalink"></a></h3><p>Two schemes <span>$X$</span> and <span>$Y$</span> can be compared if their ambient affine spaces are equal. In particular <span>$X$</span> and <span>$Y$</span> are considered equal (<code>==</code>) if and only if the identity morphism of their ambient affine space induces an isomorphism of <span>$X$</span> and <span>$Y$</span>. For <span>$X$</span> and <span>$Y$</span> with different ambient affine space <code>X==Y</code> is always <code>false</code>.</p><h3 id="Auxiliary-methods"><a class="docs-heading-anchor" href="#Auxiliary-methods">Auxiliary methods</a><a id="Auxiliary-methods-1"></a><a class="docs-heading-anchor-permalink" href="#Auxiliary-methods" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="is_non_zero_divisor-Tuple{RingElem, AbsSpec}" href="#is_non_zero_divisor-Tuple{RingElem, AbsSpec}"><code>is_non_zero_divisor</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_non_zero_divisor(f::RingElem, X::AbsSpec)</code></pre><p>Checks if a ring element is a non-zero divisor in the coordinate ring of an affine scheme.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia&gt; (x1, x2, x3) = gens(OO(X))
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia&gt; is_non_zero_divisor(x1, X)
+true
+
+julia&gt; is_non_zero_divisor(zero(OO(X)), X)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/69f1d42d1fa34f60a201ebfb00767ec9689f644d/src/Schemes/AffineSchemes/Objects/Methods.jl#L48-L71">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../GeneralSchemes/">« General schemes</a><a class="docs-footer-nextpage" href="../MorphismsOfAffineSchemes/">Morphisms of affine schemes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Tuesday 14 February 2023 22:49">Tuesday 14 February 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
