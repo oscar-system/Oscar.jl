@@ -15,10 +15,10 @@ Pages = ["rings.md"]
 
 # Creating Multivariate Rings
 
-In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
-while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
-rings with gradings by finitely presented groups. For more details on multivariate polynomial rings, their
-coefficient rings (fields), and their elements, we refer to the chapters on rings and fields. 
+In this section, for the convenience of the reader, we recall from the chapters on rings and fields
+how to create multivariate polynomial rings and their elements, adding illustrating examples.
+At the same time, we introduce and illustrate a ring type for modelling multivariate polynomial
+rings with gradings.
 
 ## Types
 
@@ -423,13 +423,10 @@ Relevant test calls on an element `f` of `R` are  `iszero(f)` and `isone(f)`.
 ### Data Associated to Elements of Multivariate Rings
 
 Given an element `f` of a multivariate polynomial ring `R` or a graded version of such a ring, 
-- `parent(f)` refers to `R`,
-- `total_degree(f)` to the total degree of `f`,
-- `monomial(f, i)` to the `i`-th monomial of `f`, 
-- `term(f, i)` to the `i`-th term of `f`,
-- `coeff(f, i)` to the coefficient of the `i`-th term of `f`, and
-- `exponent_vector(f, i)` to the exponent vector of the `i`-th term of `f`.
-
+- `parent(f)` refers to `R`, and
+- `total_degree(f)` to the total degree of `f`.
+For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
+subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
 
 ###### Examples
 
@@ -457,21 +454,6 @@ Multivariate Polynomial Ring in x, y over Galois field with characteristic 5
 
 julia> total_degree(f)
 5
-
-julia> coeff(f, 2)
-2
-
-julia> exponent_vector(f, 2)
-2-element Vector{Int64}:
- 1
- 0
-
-julia> monomial(f, 2)
-x
-
-julia> term(f, 2)
-2*x
-
 ```
 
 Further functionality is available in the graded case:

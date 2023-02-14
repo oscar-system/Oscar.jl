@@ -134,7 +134,7 @@
 	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/homological_algebra.md",
      ],
-     "Gröbner Bases" => [
+     "Gröbner/Standard Bases" => [
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
 	"CommutativeAlgebra/GroebnerBases/groebner_bases_integers.md",
