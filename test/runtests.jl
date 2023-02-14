@@ -143,10 +143,10 @@ else
   @info "Not running doctests (Julia version must be 1.6)"
 end
 
-if haskey(ENV, "GITHUB_STEP_SUMMARY")
+if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
     print_stats(io, fmt=PrettyTables.tf_markdown)
   end
 else
-  print_stats(stdout)
+  print_stats(stdout; max=10)
 end
