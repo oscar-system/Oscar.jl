@@ -1482,3 +1482,56 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   # assure that the weights fit in Int32 for singular
   return all(ret .< 2^32) ? ret : zeros(Int,ncols)
 end
+
+# modular gröbner basis techniques
+
+function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
+                                ordering::MonomialOrdering)
+  if haskey(I.gb, ord)
+    return I.gb[ord]
+  end
+
+  primes = Hecke.PrimesSet(2^15, -1)
+
+  p = iterate(primes)[1]
+  Qt = base_ring(I)
+  Q = base_ring(Qt)
+  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+
+  R = GF(p) 
+  Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
+  Gp = groebner_basis(ideal(Rt, gens(I)), ordering = ordering,
+                      complete_reduction = true)
+  std_basis_mod_p_lifted = map(x->lift(Zt, x), gens(Gp))
+  standard_basis_crt_previous = std_basis_mod_p_lifted
+
+  n_stable_primes = 0
+  d = fmpz(p)
+  while n_stable_primes < 2
+    p = iterate(primes, p)[1]
+    Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
+    Gp = groebner_basis(ideal(Rt, gens(I)), ordering = ordering,
+                        complete_reduction = true)
+    std_basis_mod_p_lifted = map(x->lift(Zt, x), gens(Gp))
+
+    is_stable = true
+    for (i, f) in enumerate(std_basis_mod_p_lifted)
+      # TODO: this test seems not great to me
+      if !iszero(f - standard_basis_crt_previous[i])
+        standard_basis_crt_previous[i], _ = induce_crt(standard_basis_crt_previous[i], d, f, fmpz(p), true)
+        stable = false
+      end
+    end
+    if is_stable
+      n_stable_primes += 1
+    end
+    d *= fmpz(p)
+  end
+  final_gb = fmpq_mpoly[]
+  for f in in standard_basis_crt_previous
+    did_succeed, f_QQ = induce_rational_reconstruction(f, d)[2] 
+    did_succeed || error("ask christian")
+    push!(final_gb, f_QQ)
+  end
+  return IdealGens(final_gb, ordering, isGB = true)
+end
