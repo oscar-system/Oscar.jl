@@ -1447,7 +1447,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
     V = PrincipalOpenSubset(U, one(OO(U)))
     F = FreeMod(OO(V), ncols(A))
     res = hom(MU, F, gens(F), OOX(U, V))
-    add_incoming_restriction(M, U, F, res)
+    add_incoming_restriction!(M, U, F, res)
     object_cache(M)[V] = F
     return [V]
   end
@@ -1455,13 +1455,6 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   # We do not need to go through all entries of A, but only those 
   # necessary to generate the unit ideal.
   I = ideal(OOX(U), [A[i, j] for i in 1:nrows(A) for j in 1:ncols(A)])
-  @show A
-  @show gens(I)
-  @show gens(I)[1] == gens(OOX(U))[1]
-  @show OOX(U)
-  @show iszero(A)
-  x = gens(OOX(U))[1]
-  @show iszero(x)
   if !(one(OOX(U)) in I)
     # Now two things could be happening.
     # 1. The sheaf is not locally trivial.
