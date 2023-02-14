@@ -52,10 +52,11 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 ```
 """
 function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int;
-    ring::FmpzMPolyRing=begin # the ring for the return value
-      x = [string("x",string(i)) for i=1:n]
-      PolynomialRing(ZZ, x)
-    end
+    ring::AbstractAlgebra.Ring=(n<=0 ? ZZ : begin # the ring for the return value
+                                  x = [string("x",string(i)) for i=1:n]
+                                  PolynomialRing(ZZ, x)[1]
+                                end
+                               )
   ) where T<:Integer
   n>=0 || throw(ArgumentError("n≥0 required"))
   if n==0 || n < length(lambda)
@@ -65,7 +66,7 @@ function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int;
       return 0
     end
   else
-    return schur_polynomial(ring, lambda, n)
+    return schur_polynomial(ring::FmpzMPolyRing, lambda, n)
   end
 end
 
