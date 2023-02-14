@@ -30,12 +30,12 @@ functionality for handling such algebras in OSCAR.
 !!! note
     Recall that Gröbner basis methods are implemented for multivariate polynomial rings over fields (exact fields supported by
     OSCAR) and, where not indicated otherwise, for multivariate polynomial rings over the integers.
- 
+
 !!! note
-    In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring
-    (that is, with regard to a Gröbner basis of the modulus). Operations involving Gröbner basis computations may lead
-	to partial reductions. The function `simplify` discussed in this section always returns full reductions. See the subsection
-	*Division with Remainder* of the section on *Gröbner/Standard Bases* for reductions.
+    In OSCAR, elements of a quotient $A = R/I$ are not necessarily reduced with regard to $I$. That is, if $f\in R$ is the internal
+    representative of an element of $A$, then $f$ may not be a normal form mod $I$ with respect to the default ordering on $R$
+	(see the section on *Gröbner/Standard Bases* for normal forms). Operations involving Gröbner basis computations may lead to
+	(partial) reductions. The function `simplify` discussed in this section always returns a full reduction. 
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
