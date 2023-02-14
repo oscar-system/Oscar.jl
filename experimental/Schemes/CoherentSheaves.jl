@@ -1281,44 +1281,6 @@ function Base.show(io::IO, M::PullbackSheaf)
   print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
 end
 
-########################################################################
-# Auxiliary helper functions for PullbackSheaves                       #
-########################################################################
-#=
-# For an 𝒪(U)-module M this constructs an 𝒪(V)-module N where V is 
-# the `ambient_scheme` of U, together with a map ϕ : N → M 
-# over the canonical map 𝒪(V) → 𝒪(U) such that M ≅ image(ϕ).        =#
-
-function _lift_module(M::SubQuo, U::PrincipalOpenSubset)
-  V = ambient_scheme(U)
-  base_ring(M) === OO(U) || error("module not defined over the correct ring")
-  R = base_ring(OO(U))
-  F = ambient_free_module(M)
-  FR = base_ring_module(F)
-  FV, FRtoFV = change_base_ring(FR, OO(V))
-  gens_lift = [clear_denominators(g) for g in ambient_representatives_gens(M)]
-  rels_lift = [clear_denominators(g) for g in relations(M)]
-  MV = SubQuo(FV, [FRtoFV(g[1]) for g in gens_lift], [FRtoFV(g[1]) for g in rels_lift])
-  MVtoM = hom(MV, M, [OO(U)(one(R), gens_lift[i][2], check=false)*MV[i] for i in 1:ngens(MV)],
-              MapFromFunc(
-                          x->OO(U)(lifted_numerator(x), lifted_denominator(x), check=false),
-                          OO(V), OO(U)
-                         )
-             )
-  return MV, MVtoM
-end
-
-function _lift_module(F::FreeMod, U::PrincipalOpenSubset)
-  V = ambient_scheme(U)
-  base_ring(M) === OO(U) || error("module not defined over the correct ring")
-  FV = FreeMod(OO(V), ngens(F))
-  FVtoF = hom(FV, F, gens(F), 
-              MapFromFunc(x->OO(U)(lifted_numerator(x), lifted_denominator(x), check=false),
-                          OO(V), OO(U)
-                         )
-             )
-  return FV, FVtoF
-end
 
 ########################################################################
 # pushforward of modules                                               #
