@@ -28,17 +28,17 @@ const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
 
 const stats_dict = Dict{String,NamedTuple}()
 
-function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=25)
+function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=50)
   sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
   println(io, "### Stats per file")
   println(io)
   table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
+  formatters = nothing
   @static if compiletimes
-    header=([:Filename, Symbol("Time"), :Compilation, :Recompilation, Symbol("Alloc")], [Symbol(""), :seconds, Symbol(""), Symbol("of comilation"), :MB])
-    formatters = PrettyTables.ft_printf("%.2f%%", [3,4])
+    header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("Allocations in MB")]
+    #formatters = PrettyTables.ft_printf("%.2f%%", [3,4])
   else
-    header=([:Filename, Symbol("Time"), Symbol("Alloc")], [Symbol(""), :seconds, :MB])
-    formatters = nothing
+    header=[:Filename, Symbol("Time in s"), Symbol("Allocations in MB")]
   end
   PrettyTables.pretty_table(io, table; tf=fmt, max_num_of_rows=max, header=header, formatters=formatters)
 end
@@ -65,8 +65,8 @@ function include(str::String)
     @static if compiletimes
       comptime = first(compile_elapsedtimes)
       rcomptime = last(compile_elapsedtimes)
-      stats_dict[path] = (time=stats.time, ctime=100*comptime/stats.time, rctime=100*rcomptime/comptime, alloc=stats.bytes/2^20)
-      Printf.@printf "-> Testing %s took: %.3f seconds, %.2f%% compilation, of this %.2f%% recompilation, %.2f MB\n" path stats.time 100*comptime/stats.time 100*rcomptime/comptime stats.bytes/2^20
+      stats_dict[path] = (time=stats.time-comptime, ctime=comptime-rcomptime, rctime=rcomptime, alloc=stats.bytes/2^20)
+      Printf.@printf "-> Testing %s took: runtime %.3f seconds + compilation %.3f seconds + recompilation %.3f seconds, %.2f MB\n" path stats.time-comptime comptime-rcomptime rcomptime stats.bytes/2^20
     else
       Printf.@printf "-> Testing %s took: %.3f seconds, %.2f MB\n" path stats.time stats.bytes/2^20
       stats_dict[path] = (time=stats.time, alloc=stats.bytes/2^20)
