@@ -54,7 +54,9 @@ function include(str::String)
     compile_elapsedtimes = Base.cumulative_compile_time_ns()
   end
   stats = @timed Base.include(identity, Main, str)
-  if innermost[]
+  # skip files which just include other files and ignore
+  # files outside of the oscar folder
+  if innermost[] && !isabspath(str)
     @static if compiletimes
       compile_elapsedtimes = Base.cumulative_compile_time_ns() .- compile_elapsedtimes
       compile_elapsedtimes = compile_elapsedtimes ./ 10^9
