@@ -91,7 +91,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
     X = Spec(R)
     U = components(X)
     l = length(U)
-    length(l) == 1 && return false, zero(MatrixSpace(R, n, n)), 0
+    l == 1 && return false, zero(MatrixSpace(R, n, n)), 0
     projectors = MatElem[] # The local projectors on each component
     expon = Int[]
     for k in 1:l
