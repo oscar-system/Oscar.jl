@@ -1010,7 +1010,12 @@ function MPolyQuoLocalizedRingHom(
 end
 
 hom(L::MPolyQuoLocalizedRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, a, check=check)
-hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a, check=check)
+
+function hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
+  R = base_ring(L)
+  res = hom(R, S, a)
+  MPolyQuoLocalizedRingHom(L, S, res, check=check)
+end
 
 ### implementing the Oscar map interface
 function identity_map(W::T) where {T<:MPolyQuoLocalizedRing} 
