@@ -4,7 +4,7 @@
 # Copyright (C) 2020 Ulrich Thiel, ulthiel.com/math
 #
 # Originally taken from the JuLie [repository](https://github.com/ulthiel/JuLie)
-# by Ulrich Thiel and OSCAR-ified by Claudia He Yun and Matthias Zach.
+# by Tom Schmit and Ulrich Thiel; OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
 export schur_polynomial
