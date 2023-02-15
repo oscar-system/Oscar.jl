@@ -1,3 +1,5 @@
+const rng = Oscar.get_seeded_rng()
+
 @testset "mpoly-localizations" begin
   R, variab = ZZ["x", "y"]
   x = variab[1]
@@ -169,7 +171,7 @@ end
 end
 
 function test_elem(W::MPolyLocalizedRing) 
-  f = rand(W, 0:3, 0:4, 0:3)
+  f = rand(rng, W, 0:3, 0:4, 0:3)
   return f
 end
 
@@ -192,9 +194,10 @@ end
 # test_Ring_interface_recursive(Localization(S)[1])
 # test_Ring_interface_recursive(Localization(T)[1])
 # test_Ring_interface_recursive(Localization(U)[1])
-  
-  AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
-  AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
+
+# should be unnecessary: https://github.com/oscar-system/Oscar.jl/pull/1459#issuecomment-1230185617
+#  AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
+#  AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
 
   kk = GF(7) 
   R, v = kk["x", "y"]
@@ -204,8 +207,8 @@ end
   I = ideal(R, f)
 
   d = Vector{elem_type(R)}()
-  for i in 0:(abs(rand(Int))%3+1)
-    f = rand(R, 1:3, 0:3, 1:10)::elem_type(R)
+  for i in 0:(abs(rand(rng, Int))%3+1)
+    f = rand(rng, R, 1:3, 0:3, 1:10)::elem_type(R)
     iszero(f) || push!(d, f)
   end
   S = MPolyPowersOfElement(R, d)

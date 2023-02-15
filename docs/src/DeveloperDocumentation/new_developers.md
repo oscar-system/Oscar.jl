@@ -91,8 +91,17 @@ There are two ways to add tests:
     folder. The main file there is `test/runtests.jl` which then includes other
     testfiles. 
 
+Tests that rely on random values should use `Oscar.get_seeded_rng`, which will
+return a seeded random number source, and pass this to any functions that need
+random values.  The code may also directly create and use such a random source.
+The current seed will be printed at the beginning of the testsuite, it is fixed
+to 42 in the CI. It can be changed by setting `ENV["OSCAR_RANDOM_SEED"]` (for
+the testsuite running in a separate process) or by using `Oscar.set_seed!` (for
+the current session, e.g. `Oscar.test_module("something.jl", false)`).
+
 ```@docs
 Oscar.test_module
+Oscar.get_seeded_rng
 ```
 
 ### Adding documentation
