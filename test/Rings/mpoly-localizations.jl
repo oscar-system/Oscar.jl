@@ -385,3 +385,11 @@ end
   c2 = coordinates(y-1, JJ)
   @test y-1 == c2[1]*gens(JJ)[1] + c2[2]*gens(JJ)[2]
 end
+
+@testset "printing" begin
+  R, (x,y) = ZZ["x", "y"]
+  U = powers_of_element(x)
+  L, m = localization(R, U)
+  @test sprint(show, L(y, x)) == "y//x"
+  @test sprint(show, L(y)) == "y" # Denominator is one; omit printing it.
+end
