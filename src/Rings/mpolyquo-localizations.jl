@@ -1058,6 +1058,19 @@ function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom)
   return true
 end
 
+### printing
+function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  println(io, "$(domain(phi)) → $(codomain(phi));")
+  for i in 1:ngens(R)-1
+    println(io, " $(R[i]) ↦ $(psi(R[i])),")
+  end
+  n = ngens(R)
+  println(io, " $(R[n]) ↦ $(psi(R[n]))")
+  return
+end
+
 ### helper_ring
 # Sets up the ring S[c⁻¹] from the Lemma.
 function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocalizedRing})
