@@ -131,7 +131,6 @@ end
 
 @testset "printing of ideals" begin
   R, (x, y) = ZZ["x", "y"]
-  R, (x, y) = ZZ["x", "y"]
   I = ideal(R, [x^2-y^2])
   U = powers_of_element(y)
   A, = quo(R, I)
