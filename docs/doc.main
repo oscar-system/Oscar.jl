@@ -109,7 +109,6 @@
        "PolyhedralGeometry/Polyhedra/constructions.md",
        "PolyhedralGeometry/Polyhedra/polymake.md",
        "PolyhedralGeometry/Polyhedra/auxiliary.md",
-       "PolyhedralGeometry/Polyhedra/visualization.md",
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
