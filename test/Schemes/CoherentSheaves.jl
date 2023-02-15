@@ -100,9 +100,9 @@ end
   J = ideal(S, [x-z, y])
   JJ = IdealSheaf(IP, J)
   JJC = pullback(inc, JJ)
-  IP_Bl_C = blow_up(JJC)
-  Bl_C = covered_scheme(IP_Bl_C)
-  p = covered_projection_to_base(IP_Bl_C)
+  blow_down_map = blow_up(JJC)
+  Bl_C = domain(IP_Bl_C)
+  p = projection(blow_down_map)
   p_star = pullback(p)
   p_star_LC = p_star(LC)
 
