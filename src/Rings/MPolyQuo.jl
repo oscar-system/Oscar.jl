@@ -547,7 +547,9 @@ end
 @doc Markdown.doc"""
     simplify(a::MPolyQuoIdeal)
 
-Replace the generators of `a` by their reductions with regard to the modulus of the quotient ring.
+If `a` is an ideal of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
+replace the internal polynomial representative of each generator of `a` by its normal form 
+mod `I` with respect to the `default_ordering` on `R`.
 
 # Examples
 ```jldoctest
@@ -563,9 +565,7 @@ julia> gens(a)
  x^3*y^4 - x + y
  x*y^2 + x*y
 
-julia> simplify(a);
-
-julia> a
+julia> simplify(a)
 ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 
 julia> gens(a)
@@ -680,7 +680,9 @@ end
 @doc Markdown.doc"""
     simplify(f::MPolyQuoElem)
 
-Replace `f` by its reduction with regard to the modulus of the quotient ring.
+If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
+replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
+the `default_ordering` on `R`.
 
 # Examples
 ```jldoctest

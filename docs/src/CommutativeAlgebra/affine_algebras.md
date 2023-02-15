@@ -24,7 +24,7 @@ functionality for handling such algebras in OSCAR.
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
 	basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
-	to the default ordering of the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
+	to the `default_ordering` on the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
 	OSCAR). Once computed, the Gröbner basis is cached for later reuse.
 	
 !!! note
@@ -32,10 +32,18 @@ functionality for handling such algebras in OSCAR.
     OSCAR) and, where not indicated otherwise, for multivariate polynomial rings over the integers.
 
 !!! note
+    In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
+    That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
+	with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
+	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section always returns a
+	fully reduced representative. 
+
+
+!!! note
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily reduced with regard to $I$. That is, if $f\in R$ is the internal
     representative of an element of $A$, then $f$ may not be a normal form mod $I$ with respect to the default ordering on $R$
 	(see the section on *Gröbner/Standard Bases* for normal forms). Operations involving Gröbner basis computations may lead to
-	(partial) reductions. The function `simplify` discussed in this section always returns a full reduction. 
+	(partial) reductions. The function `simplify` discussed in this section computes fully reduced representatives. 
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
@@ -143,7 +151,7 @@ true
 
 ```
 
-### Reducing Elements of Affine Algebras
+### Reducing Polynomial Representatives
 
 ```@docs
 simplify(f::MPolyQuoElem)
@@ -189,7 +197,7 @@ degree(f::MPolyQuoElem{<:MPolyElem_dec})
 ideal(Q::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
 ```
 
-### Reducing Generators of Ideals
+### Reducing Polynomial Representatives of Generators
 
 ```@docs
 simplify(a::MPolyQuoIdeal)
