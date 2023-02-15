@@ -1,5 +1,7 @@
 export admissible_equivariant_primitive_extensions,
-       primitive_embeddings_in_primary_lattice
+       equivariant_primitive_extensions,
+       primitive_embeddings_in_primary_lattice,
+       primitive_embeddings_of_elementary_lattice
 
 GG = GAP.Globals
 
@@ -179,7 +181,7 @@ end
 
 function _as_Fp_vector_space_quotient(HinV, p, f)
   if f isa AutomorphismGroupElem
-    f = hom(domain(f), domain(f), matrix(f))
+    f = hom(f)
   end
   i = HinV.map_ab
   H = domain(HinV)
@@ -231,7 +233,7 @@ end
 function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModMor,
                                                                     G::AutomorphismGroup{TorQuadMod},
                                                                     ord::Hecke.IntegerUnion,
-                                                                    f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = one(G),
+                                                                    f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = id_hom(codomain(Vinq)),
                                                                     l::Hecke.IntegerUnion = 0)
   if ord == 1
     if l != 0
@@ -246,7 +248,7 @@ function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQua
   g = valuation(ord, p)
   @req all(a -> haspreimage(Vinq.map_ab, data(l*a))[1], gens(q)) "lq is not contained in V"
   H0, H0inV = sub(V, [preimage(Vinq, (l*a)) for a in gens(q)])
-  Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, f)
+  Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, _restrict(f, Vinq))
   Vp = codomain(VtoVp)
 
   if dim(Qp) == 0
@@ -397,6 +399,71 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
   return results
 end
 
+function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::ZLat, H::TorQuadMod)
+  @assert is_one(basis_matrix(N))
+  @assert is_one(basis_matrix(M))
+  bool, p = is_elementary_with_prime(H)
+  @assert bool
+  @assert is_elementary(M, p)
+  results = Tuple{ZLat, ZLat, ZLat}[]
+  GN, _ = image_in_Oq(N)
+  GM, _ = image_in_Oq(M)
+  qN = domain(GN)
+  qM = domain(GM)
+
+  D, qNinD, qMinD = orthogonal_sum(qN, qM)
+  OD = orthogonal_group(D)
+  VN, VNinqN, _ = _get_V(N, qN, identity_matrix(QQ, rank(N)), id_hom(qN), minpoly(identity_matrix(QQ,1)), p)
+  subsN = subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, p)
+  filter!(HN -> is_anti_isometric_with_anti_isometry(domain(HN[1]), H), subsN)
+  @assert !isempty(subsN)
+  subsM = subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qM), GM, p)
+  filter!(HM -> is_isometric_with_isometry(domain(HM[1]), H), subsM)
+  @assert !isempty(subsM)
+
+  for H1 in subsN, H2 in subsM
+    ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
+    @assert ok
+
+    HNinqN, stabN = H1
+    OHN = orthogonal_group(HN)
+
+    HMinqM, stabM = H2
+    OHM = orthogonal_group(HM)
+
+    actN = hom(stabN, OHN, [OHN(_restrict(x, HNinqN)) for x in gens(stabN)])
+
+    actM = hom(stabM, OHM, [OHM(_restrict(x, HMinqM)) for x in gens(stabM)])
+    imM, _ = image(actM)
+
+    stabNphi = AutomorphismGroupElem{TorQuadMod}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
+    stabNphi, _ = sub(OHM, stabNphi)
+    reps = double_cosets(OHM, stabNphi, imM)
+    @info "$(length(reps)) isomorphism classe(s) of primitive extensions"
+    for g in reps
+      g = representative(g)
+      phig = compose(phi, hom(g))
+      _glue = Vector{fmpq}[lift(qNinD(HNinqN(g))) + lift(qMinD(HMinqM(phig(g)))) for g in gens(domain(phig))]
+      z = zero_matrix(QQ, 0, degree(N)+degree(M))
+      glue = reduce(vcat, [matrix(QQ, 1, degree(N)+degree(M), g) for g in _glue], init = z)
+      glue = vcat(identity_matrix(QQ, rank(N)+rank(M)), glue)
+      glue = FakeFmpqMat(glue)
+      _B = hnf(glue)
+      _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
+      L = lattice(ambient_space(cover(D)), _B[end-rank(N)-rank(M)+1:end, :])
+      N2 = lattice_in_same_ambient_space(L, identity_matrix(QQ, rank(L))[1:rank(N),:])
+      @assert genus(N) == genus(N2)
+      M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
+      @assert genus(M) == genus(M2)
+      push!(results, (L, M2, N2))
+      @info "Gluing done"
+      GC.gc()
+    end
+  end
+  return results
+end
+
+
 @doc Markdown.doc"""
     primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat)
                                      -> Vector{Tuple{ZLat, ZLat, ZLat}}
@@ -480,11 +547,177 @@ function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::Automorph
   return results
 end
 
+function primitive_embeddings_of_elementary_lattice(L::ZLat, M::ZLat, GL::AutomorphismGroup{TorQuadMod} = orthogonal_group(discriminant_group(L)); classification::Bool = false, check::Bool = false)
+  bool, p = is_elementary_with_prime(M)
+  @req bool "M must be elementary"
+  if check
+    @req length(genus_representatives(L)) == 1 "L must be unique in its genus"
+  end
+  results = Tuple{ZLat, ZLat, ZLat}[]
+  qL = rescale(discriminant_group(L), -1)
+  GL = Oscar._orthogonal_group(qL, matrix.(gens(GL)))
+  pL, _, nL = signature_tuple(L)
+  pM, _, nM = signature_tuple(M)
+  @req (pL-pM >= 0 && nL-nM >= 0) "Impossible embedding"
+  if ((pL, nL) == (pM, nM))
+    if genus(M) != genus(L) 
+      return false, results
+    else
+      return true, [(M, M, lattice_in_same_ambient_space(M, zero_matrix(QQ, 0, degree(M))))]
+    end
+  end
+  qM = discriminant_group(M)
+  D, (qMinD, qLinD), proj = Hecke._orthogonal_sum_with_injections_and_projections([qM, qL])
+  VL, VLinqL, _ = _get_V(L, qL, identity_matrix(QQ, rank(L)), id_hom(qL), minpoly(identity_matrix(QQ,1)), p)
+  for k  in divisors(gcd(order(qM), order(VL)))
+    @info "Glue order: $(k)"
+    subsL = subgroups_orbit_representatives_and_stabilizers_elementary(VLinqL, GL, k)
+    @info "$(length(subsL)) subgroup(s)"
+    subsM = subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qM), orthogonal_group(qM), k)
+    for H in subsL
+      HL = domain(H[1])
+      _subsM = filter(HM -> is_anti_isometric_with_anti_isometry(domain(HM[1]), HL)[1], subsM)
+      isempty(_subsM)  && continue
+      @info "Possible gluing"
+      HM = _subsM[1][1]
+      ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
+      @assert ok
+      _glue = [lift(qMinD(HM(g))) + lift(qLinD(H[1](phi(g)))) for g in gens(domain(HM))]
+      ext, _ = sub(D, D.(_glue))
+      perp, j = orthogonal_submodule(D, ext)
+      disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
+                                                               modulus_qf = modulus_quadratic_form(perp))
+      disc = rescale(disc, -1)
+      !is_genus(disc, (pL-pM, nL-nM))  && continue
+      G = genus(disc, (pL-pM, nL-nM))
+      !classification && return true, G
+      @info "We can glue: $G"
+      Ns = representatives(G)
+      @info "$(length(Ns)) possible orthogonal complement(s)"
+      Ns = lll.(Ns)
+      Ns = ZLat[Zlattice(gram=gram_matrix(N)) for N in Ns]
+      ext2, _ = sub(D, [qMinD(HM(g)) for g in gens(domain(HM))])
+      perp2, j = orthogonal_submodule(D, ext2)
+      qM2, _ = sub(qM, [proj[1](j(g)) for g in gens(perp2)])
+      for N in Ns
+        append!(results, _isomorphism_classes_primitive_extensions_along_elementary(N, M, qM2))
+        GC.gc()
+      end
+      GC.gc()
+    end
+  end
+  @assert all(triple -> genus(triple[1]) == genus(L), results)
+  return (length(results) >0), results
+end
+
 ####################################################################################
 #
 # Admissible equivariant primitive extensions
 #
 ####################################################################################
+
+function equivariant_primitive_extensions(A::LatticeWithIsometry, GA::AutomorphismGroup{TorQuadMod},
+                                         B::LatticeWithIsometry, GB::AutomorphismGroup{TorQuadMod},
+                                         L::ZLat; check::Bool = false)
+  
+  if check
+    pA, nA = signature_tuple(A)
+    pB, nB = signature_tuple(B)
+    pL, nL = signature_tuple(L)
+    @req pA+pB == pL "Incompatible signatures"
+    @req nA+nB == nL "Incompatible signatures"
+    @req ambient_space(A) === ambient_space(B) === ambient_space(L) "Lattices must all live in the same ambient space"
+  end
+
+  results = LatticeWithIsometry[]
+
+  qA, fqA = discriminant_group(A)
+  qB, fqB = discriminant_group(B)
+  
+  if check
+    @req all(g -> compose(g, compose(fqA, inv(g))) == fqA, GA) "GA does not centralize fqA"
+    @req all(g -> compose(g, compose(fqB, inv(g))) == fqB, GB) "GB does not centralize fqB"
+  end
+  D, qAinD, qBinD = inner_orthogonal_sum(qA, qB)
+  OD = orthogonal_group(D)
+  OqAinOD = embedding_orthogonal_group(qAinD)
+  OqBinOD = embedding_orthogonal_group(qBinD)
+  OqA = domain(OqAinOD)
+  OqB = domain(OqBinOD)
+
+  gamma, _, _ = glue_map(L, lattice(A), lattice(B))
+  subsA = classes_conjugate_subgroups(GA, domain(gamma))
+  @assert !isempty(subsN)
+  subsB = classes_conjugate_subgroups(GB, codomain(gamma))
+  @assert !isempty(subsM)
+
+  for (H1, H2) in Hecke.cartesian_product_iterator([subsA, subsB], inplace=true)
+    ok, phi = is_anti_isometric_with_anti_isometry(H1, H2)
+    @assert ok
+    SAinqA, stabA = H1
+    OSAinOqA = _embedding_orthogonal_group(SAinqA)
+    OSA = domain(OSAinOqA)
+    OSAinOD = compose(OSAinOqA, OqAinOD)
+
+    SBinqB, stabB = H2
+    SB = domain(SBinqB)
+    OSBinOqB = _embedding_orthogonal_group(SBinqB)
+    OSB = domain(OSBinOqB)
+    OSBinOD = compose(OSBinOqB, OqBinOD)
+
+    # we compute the image of the stabalizers in the respective OS* and we keep track
+    # of the elements of the stabilizers acting trivially in the respective S*
+    actA = hom(stabA, OSA, [OSA(Oscar._restrict(x, SAinqA)) for x in gens(stabA)])
+    imA, _ = image(actA)
+    kerA = AutomorphismGroupElem{TorQuadMod}[OqAinOD(x) for x in gens(kernel(actA)[1])]
+    fSA = OSA(_restrict(fqA, SAinqA))
+
+    actB = hom(stabB, OSB, [OSB(Oscar._restrict(x, SBinqB)) for x in gens(stabB)])
+    imB, _ = image(actB)
+    kerB = AutomorphismGroupElem{TorQuadMod}[OqBinOD(x) for x in gens(kernel(actB)[1])]
+    fSB = OSB(_restrict(fqB, SBinqB))
+
+
+    fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
+    bool, g0 = representative_action(OSB, fSAinOSB, fSB)
+    bool || continue
+    phi = compose(phi, hom(OSB(g0)))
+    fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
+    # Now the new phi is "sending" the restriction of fA to this of fB.
+    # So we can glue SA and SB.
+    @assert fSAinOSB == fSB
+
+    # Now it is time to compute generators for O(SB, rho_l(qB), fB), and the induced
+    # images of stabA|stabB for taking the double cosets next
+    center, _ = centralizer(OSB, fSB)
+    center, _ = sub(OSB, [OSB(c) for c in gens(center)])
+    stabSAphi = AutomorphismGroupElem{TorQuadMod}[OSB(compose(inv(phi), compose(hom(actA(g)), phi))) for g in gens(stabA)]
+    stabSAphi, _ = sub(center, stabSAphi)
+    stabSB, _ = sub(center, [actB(s) for s in gens(stabB)])
+    reps = double_cosets(center, stabSB, stabSAphi)
+
+    for g in reps
+      g = representative(g)
+      phig = compose(phi, hom(g))
+
+      _glue = Vector{fmpq}[lift(g) + lift(phig(g)) for g in gens(domain(phig))]
+      z = zero_matrix(QQ, 0, degree(A))
+      glue = reduce(vcat, [matrix(QQ, 1, degree(A), g) for g in _glue], init=z)
+      glue = vcat(basis_matrix(lattice(A)+lattice(B)), glue)
+      glue = FakeFmpqMat(glue)
+      _B = hnf(glue)
+      _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
+      C2 = lattice(ambient_space(A), _B[end-rank(A)-rank(B)+1:end, :])
+      fC2 = block_diagonal_matrix([isometry(A), isometry(B)])
+      _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
+      fC2 = _B*fC2*inv(_B)
+      L2 = lattice_with_isometry(C2, fC2, ambient_representation = false)
+      @assert genus(L2) == genus(L)
+      push!(results, L2)
+    end
+  end
+  return results
+end
 
 @doc Markdown.doc"""
     admissible_equivariant_primitive_extensions(Afa::LatticeWithIsometry,

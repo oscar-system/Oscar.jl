@@ -123,9 +123,9 @@ degree(Lf::LatticeWithIsometry) = degree(lattice(Lf))::Int
 
 is_even(Lf::LatticeWithIsometry) = is_even(lattice(Lf))::Int
 
-discriminant(Lf::LatticeWithIsometry) = discriminant(Lf)::fmpq
+discriminant(Lf::LatticeWithIsometry) = discriminant(lattice(Lf))::fmpq
 
-signature_tuple(Lf::LatticeWithIsometry) = signature_tuple(Lf)::Tuple{Int, Int, Int}
+signature_tuple(Lf::LatticeWithIsometry) = signature_tuple(lattice(Lf))::Tuple{Int, Int, Int}
 
 
 ###############################################################################
@@ -242,10 +242,10 @@ end
 function is_of_hermitian_type(Lf::LatticeWithIsometry)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
   n = order_of_isometry(Lf)
-  if n <= 2 || !is_finite(n)
+  if n == -1 || !is_finite(n)
     return false
   end
-  return is_cyclotomic_polynomial(minpoly(f))
+  return is_cyclotomic_polynomial(minpoly(isometry(Lf)))
 end
 
 @doc Markdown.doc"""

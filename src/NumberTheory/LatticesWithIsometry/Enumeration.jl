@@ -512,7 +512,7 @@ Note that `d` can be 0.
 
 See Algorithm 4 of [BH22].
 """
-function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int)
+function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int; pA::Int = -1, pB::Int = -1)
   rank(Lf) == 0 && return LatticeWithIsometry[]
 
   @req is_prime(p) "p must be a prime number"
@@ -526,6 +526,12 @@ function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int)
   reps = LatticeWithIsometry[]
   @info "Compute admissible triples"
   atp = admissible_triples(Lf, p)
+  if pA >= 0
+    filter!(t -> signature_pair(t[1])[1] == pA, atp)
+  end
+  if pB >= 0
+    filter!(t -> singature_pairhe(t[2][1]) == pB, atp)
+  end
   @info "$(atp) admissible triple(s)"
   for (A, B) in atp
     LB = lattice_with_isometry(representative(B))
