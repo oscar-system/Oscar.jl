@@ -86,6 +86,7 @@ export AffineHalfspace,
     load,
     load_lp,
     load_mps,
+    markov_basis,
     maximal_cells,
     maximal_cones,
     maximal_polyhedra,
@@ -184,6 +185,7 @@ include("type_functions.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")
 include("triangulations.jl")
+include("markov_basis.jl")
 
 
 # Some temporary aliases to avoid breaking all current PRs
