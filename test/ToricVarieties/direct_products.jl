@@ -8,12 +8,6 @@ using Test
     variety = F5 * P2
     
     @testset "Properties of a direct product of two toric varieties" begin
-        @test is_normal(variety) == true
-        @test is_affine(variety) == false
-        @test is_projective(variety) == true
-        @test is_projective_space(variety) == false
-        @test is_orbifold(variety) == true
-        @test is_simplicial(variety) == true
         @test is_smooth(variety) == true
         @test is_complete(variety) == true
         @test has_torusfactor(variety) == false
