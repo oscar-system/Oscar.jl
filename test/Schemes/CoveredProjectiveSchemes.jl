@@ -6,9 +6,9 @@
   M = S[x y z; y z w]
   I = ideal(S, minors(M, 2))
   II = IdealSheaf(P, I)
-  B = blow_up(II)
-  Bcov = covered_scheme(B)
-  p = covered_projection_to_base(B)
+  B = blow_up(II)::BlowupMorphism
+  Bcov = domain(B)
+  p = projection(B)
   @test domain(p) === Bcov
   @test codomain(p) === covered_scheme(P)
 end
@@ -42,7 +42,7 @@ end
   @test S isa AbsSpec
   @test inc isa ClosedEmbedding
   B1 = blow_up(X, ideal(OO(X), [x,y,z]))
-  @test B1 isa ProjectiveScheme
+  @test B1 isa AbsProjectiveScheme
   Y = covered_scheme(B1)
   @test !is_smooth(Y)
   S, inc = singular_locus(Y);
@@ -52,7 +52,7 @@ end
   @test dim(U[1]) == 1
   @test dim(U[2]) == 0
   B2 = blow_up(image_ideal(inc), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
-  Z = covered_scheme(B2)
+  Z = domain(B2)
   @test is_smooth(Z)
 end
 
@@ -84,7 +84,7 @@ end
   @test scheme(I_sing) === S
 
   Y1_proj = blow_up(I_sing)
-  Y1 = covered_scheme(Y1_proj)
+  Y1 = domain(Y1_proj)
   simplify!(Y1)
   sing_Y1, inc_Y1 = singular_locus(Y1)
   I_sing_Y1 = image_ideal(inc_Y1)
