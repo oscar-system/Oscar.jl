@@ -1232,15 +1232,15 @@ function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {B
   return b*a
 end
 
-function Base.:(//)(a::Integer, b::T) where {T<:MPolyLocalizedRingElem}
+function Base.:(/)(a::Integer, b::T) where {T<:MPolyLocalizedRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(//)(a::fmpz, b::T) where {T<:MPolyLocalizedRingElem}
+function Base.:(/)(a::fmpz, b::T) where {T<:MPolyLocalizedRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(//)(a::T, b::T) where {T<:MPolyLocalizedRingElem}
+function Base.:(/)(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   g = gcd(numerator(a), numerator(b))
   c = divexact(numerator(a), g)

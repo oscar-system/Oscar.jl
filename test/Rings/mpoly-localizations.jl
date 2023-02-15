@@ -40,9 +40,9 @@
   @test a*(b+c) == a*b + a*c
   @test a*(b+c)^2 != a*(b^2) + a*c^2
   b = W((x-19)//(y-2))
-  W(1)//b
+  W(1)/b
   c = W((f+3)//(y-9))
-  @test c//b == 1//(b//c)
+  @test c/b == 1/(b/c)
 
   I_loc = ideal(W, gens(I))
   @test gens(I_loc) == [W(f)]
@@ -138,7 +138,7 @@ end
   W, _ = Localization(S)
   @test x*y^2 in S
   @test !(x*(x+y) in S)
-  @test W(1//x) == 1//W(x)
+  @test W(1//x) == 1/W(x)
   I = ideal(W, x*y*(x+y))
   @test x+y in I
   @test x+y in saturated_ideal(I)
