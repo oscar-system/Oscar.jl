@@ -288,7 +288,7 @@ ideal(2*x^2 - y^3, 2*x^2 - y^5)
 julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
-julia> U = complement_of_ideal(P)
+julia> U = complement_of_prime_ideal(P)
 complement of ideal(y - 1, x - a)
 
 julia> RQ, _ = quo(R, I);
@@ -556,7 +556,7 @@ ideal(2*x^2 - y^3, 2*x^2 - y^5)
 julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
-julia> U = complement_of_ideal(P)
+julia> U = complement_of_prime_ideal(P)
 complement of ideal(y - 1, x - a)
 
 julia> RQ, p = quo(R, I);

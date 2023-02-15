@@ -77,7 +77,7 @@ x*e[1]
 
 julia> P = ideal(R, [x, y, z]);
 
-julia> U = complement_of_ideal(P);
+julia> U = complement_of_prime_ideal(P);
 
 julia> RL, _ = Localization(R, U);
 
@@ -1545,7 +1545,7 @@ by Submodule with 3 generators
 
 julia> P = ideal(R, [x, y, z]);
 
-julia> U = complement_of_ideal(P);
+julia> U = complement_of_prime_ideal(P);
 
 julia> RL, _ = Localization(R, U);
 
