@@ -2362,6 +2362,19 @@ function MPolyLocalizedRingHom(
   return MPolyLocalizedRingHom(W, S, res, check=check)
 end
 
+### printing
+function Base.show(io::IO, phi::MPolyLocalizedRingHom)
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  println(io, "$(domain(phi)) → $(codomain(phi));")
+  for i in 1:ngens(R)-1
+    println(io, " $(R[i]) ↦ $(psi(R[i])),")
+  end
+  n = ngens(R)
+  println(io, " $(R[n]) ↦ $(psi(R[n]))")
+  return
+end
+
 @doc Markdown.doc"""
     hom(Rloc::MPolyLocalizedRing, S::Ring, phi::Map)
 
