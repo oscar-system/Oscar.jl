@@ -338,18 +338,12 @@ function *(a::AbsLocalizedRingElem{RT, RET, MST}, b::RET) where {RT, RET <: Ring
   return b*a
 end
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
+  return divexact(parent(b)(a), b)
 end
 
-### Why are divisions not implemented as generic functions?
-# Say both a = p⋅c/q and b = f⋅c/g are elements of a localized 
-# ring R[S⁻¹] such that f⋅c ∉ S, but f ∈ S. Then by cancellation 
-# a/b is an admissible element of the localization. But this 
-# cancellation can not be implemented on a generic level, but 
-# only for the specific ring R.
-function Base.:(//)(a::T, b::T) where {T<:AbsLocalizedRingElem}
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::T, b::T) where {T<:AbsLocalizedRingElem}
+  return divexact(a, b)
 end
 
 function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
