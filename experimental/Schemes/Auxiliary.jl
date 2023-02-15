@@ -116,7 +116,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   C = domain(phi)
   D = codomain(phi)
   # DD needs to be a refinement of D; otherwise quit.
-  all(x->some_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
+  all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
 
   res_cache = restriction_cache(f)
   haskey(res_cache, DD) && return res_cache[DD]
@@ -196,6 +196,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     h_Y = complement_equation(codomain(iso_Y))
     XY = PrincipalOpenSubset(X, pullback(iso_X)(OO(codomain(iso_X))(h_Y)))
     YX = PrincipalOpenSubset(Y, pullback(iso_Y)(OO(codomain(iso_Y))(h_X)))
+    if iszero(h_X*h_Y)
+      # Glueing along the empty set. This is trivial.
+      g = SpecMor(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
+      f = SpecMor(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
+      
+      return SimpleGlueing(X, Y, f, g, check=false)
+    end
+
     XYZ = PrincipalOpenSubset(Z, h_X*h_Y)
 
     x_img = gens(OO(X))
@@ -203,15 +211,15 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     x_img = OO(XYZ).(x_img)
     phi = restrict(iso_Y, YX, XYZ)
     x_img = pullback(phi).(x_img)
-    g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img))
+    g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
     
     y_img = gens(OO(Y))
     y_img = pullback(inverse(iso_Y)).(y_img)
     y_img = OO(XYZ).(y_img)
     psi = restrict(iso_X, XY, XYZ)
     y_img = pullback(psi).(y_img)
-    f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
-    return SimpleGlueing(X, Y, f, g)
+    f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
+    return SimpleGlueing(X, Y, f, g, check=false)
   end
 
   # As the easy case would have been caught before, we are now facing an inherited 
@@ -267,6 +275,8 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   return SimpleGlueing(X, Y, ff, gg, check=false)
 end
+
+ngens(Q::MPolyQuoLocalizedRing) = ngens(base_ring(Q))
 
 @Markdown.doc """
     inherit_glueings!(ref::Covering, orig::Covering)

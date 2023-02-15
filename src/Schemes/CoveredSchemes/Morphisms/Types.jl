@@ -4,8 +4,8 @@ export AbsCoveredSchemeMorphism, CoveredSchemeMorphism
 # Morphisms of covered schemes                                         #
 ########################################################################
 abstract type AbsCoveredSchemeMorphism{
-    DomainType<:CoveredScheme,
-    CodomainType<:CoveredScheme,
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
     BaseMorphismType,
     CoveredSchemeMorphismType
    } <: SchemeMor{DomainType, CodomainType, CoveredSchemeMorphismType, BaseMorphismType}

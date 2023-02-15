@@ -81,7 +81,58 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
   entry_list = [(A[i,j], i, j) for i in 1:m for j in 1:n if !iszero(A[i,j])]
   I = ideal(R, [a[1] for a in entry_list])
   if !(one(R) in I)
-    return false, zero(MatrixSpace(R, n, n)), 0
+    # If I is not the unit ideal, it might still be the case that this holds true for the 
+    # restriction to the components of Spec(R). 
+    R isa Union{MPolyRing, MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing} || error("method not implemented")
+    # TODO: Work this out without schemes on the purely algebraic side.
+    # This is a temporary hotfix to address a particular boundary case, see #1882. 
+    # The code below is also not generic and should eventually be adjusted.
+
+    X = Spec(R)
+    U = components(X)
+    l = length(U)
+    l == 1 && return false, zero(MatrixSpace(R, n, n)), 0
+    projectors = MatElem[] # The local projectors on each component
+    expon = Int[]
+    for k in 1:l
+      L, inc = Localization(R, complement_equation(U[k])) # We can not use OO(U[k]) directly, because 
+                                                          # we'd be missing the map in that case. 
+      success, p, k = _is_projective_without_denominators(change_base_ring(L, A), unit=L(unit))
+      !success && return false, zero(MatrixSpace(R, n, n)), 0
+      q = zero(MatrixSpace(R, nrows(p), ncols(p)))
+      for i in 1:nrows(p)
+        for j in 1:ncols(p)
+          q[i, j] = preimage(inc, p[i, j])
+        end
+      end
+      push!(projectors, q)
+      push!(expon, k)
+    end
+
+    c = coordinates(one(R), ideal(R, [complement_equation(U[k])^(expon[k]+1) for k in 1:length(expon)]))
+    result = sum([c[k]*projectors[k] for k in 1:length(projectors)])
+
+    # Copied from below
+    d = lcm(_lifted_denominator.(result))
+    if isone(d)
+      return true, result, 0
+    end
+
+    inner, outer = ppio(d, _lifted_numerator(unit))
+    (mpow, upow) = Oscar._minimal_power_such_that(_lifted_numerator(unit), 
+                                                  x->(divides(x, inner)[1]))
+
+    # pull u^mpow from each entry of the matrix:
+    L = zero(MatrixSpace(R, n, n))
+    for i in 1:n
+      for j in 1:n
+        L[i, j] = R(_lifted_numerator(result[i, j])*
+                    divides(upow, inner)[2]*
+                    divides(d, _lifted_denominator(result[i, j]))[2]
+                   )*inv(R(outer*(_lifted_denominator(unit)^mpow)))
+      end
+    end
+    return true, L, mpow
   end
 
   lambda1 = coordinates(one(R), I) # coefficients for the first powers

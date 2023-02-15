@@ -95,7 +95,7 @@ end
 # Restrictions of Glueings to closed subschemes                        #
 ########################################################################
 function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
-  return restrict(underlying_glueing(G), X, Y)
+  return restrict(underlying_glueing(G), X, Y, check=check)
 end
 
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
