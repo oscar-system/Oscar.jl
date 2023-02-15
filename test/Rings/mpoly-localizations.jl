@@ -409,3 +409,12 @@ end
   phi = hom(L, L, gens(L))
   @test sprint(show, phi) == "localization of Multivariate Polynomial Ring in x, y over Integer Ring at the powers of fmpz_mpoly[y] → localization of Multivariate Polynomial Ring in x, y over Integer Ring at the powers of fmpz_mpoly[y];\n x ↦ x,\n y ↦ y\n"
 end
+
+@testset "fractions and divexact: Issue #1885" begin
+  R, (x, y) = ZZ["x", "y"]
+  U = powers_of_element(y)
+  L, = localization(R, U)
+
+  @test L(x)/L(y) == L(x//y)
+  @test_throws ErrorException L(y)/L(x-1)
+end

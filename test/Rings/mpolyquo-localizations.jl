@@ -147,3 +147,14 @@ end
   @test sprint(show, phi) == "$(L) → $(L);\n x ↦ x,\n y ↦ y\n"
 end
   
+@testset "fractions and divexact: Issue #1885" begin
+  R, (x, y) = ZZ["x", "y"]
+  I = ideal(R, [x^2-y^2])
+  U = powers_of_element(y)
+  A, = quo(R, I)
+  L, = localization(A, U)
+
+  @test L(x)/L(y) == L(x//y)
+  @test L(y)/L(x) == L(y//x)
+  @test_throws ErrorException L(y)/L(x-1)
+end

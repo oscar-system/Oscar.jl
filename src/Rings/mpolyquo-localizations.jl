@@ -770,6 +770,26 @@ function Base.:(//)(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   error("function `//` not implemented for elements of type $(typeof(b))")
 end
 
+function Base.:(/)(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
+  success, c = divides(parent(b), b)
+  !success && error("$b does not divide $a")
+  return c
+end
+
+function Base.:(/)(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
+  success, c = divides(a, b)
+  !success && error("$b does not divide $a")
+  return c
+end
+
+function divexact(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
+  return a/b
+end
+
+function divexact(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
+  return a/b
+end
+
 function ==(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a) in modulus(parent(a))
