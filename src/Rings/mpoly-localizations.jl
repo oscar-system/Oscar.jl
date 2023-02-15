@@ -21,7 +21,7 @@ export domain, codomain, images
 
 import AbstractAlgebra: Ring, RingElem
 
-export complement_of_prime_ideal, powers_of_element
+export complement_of_prime_ideal, complement_of_point_ideal, powers_of_element
 
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #
@@ -264,7 +264,7 @@ mutable struct MPolyComplementOfKPointIdeal{
 end
 
 @doc Markdown.doc"""  
-    complement_of_ideal(R::MPolyRing, a::Vector)
+    complement_of_point_ideal(R::MPolyRing, a::Vector)
 
 Given a polynomial ring ``R``, say ``R = K[x_1,\dots, x_n]``, and given a vector 
 ``a = (a_1, \dots, a_n)`` of ``n`` elements of ``K``, return the multiplicatively 
@@ -272,6 +272,17 @@ closed subset ``R\setminus m``, where ``m`` is the maximal ideal
 
 $$m = \langle x_1-a_1,\dots, x_n-a_n\rangle \subset R.$$
 
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> U = complement_of_point_ideal(R, [0, 0 ,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+```
+"""
+complement_of_point_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdeal(R, a)
+
+@doc Markdown.doc"""
     complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false)
 
 Given a prime ideal ``P`` of a polynomial ring ``R``, say,
@@ -286,9 +297,6 @@ return the multiplicatively closed subset ``R\setminus P.``
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> U = complement_of_ideal(R, [0, 0 ,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
-
 julia> P = ideal(R, [x])
 ideal(x)
 
@@ -296,7 +304,6 @@ julia> U = complement_of_prime_ideal(P)
 complement of ideal(x)
 ```
 """
-complement_of_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdeal(R, a)
 complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false) = MPolyComplementOfPrimeIdeal(P; check)
 
 @doc Markdown.doc"""  
@@ -683,7 +690,7 @@ Alternatively, write `T*U`.
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> T = complement_of_ideal(R, [0, 0 ,0])
+julia> T = complement_of_point_ideal(R, [0, 0 ,0])
 complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
 
 julia> f = x
@@ -1553,7 +1560,7 @@ ideal(x + 1)
 julia> base_ring(SI)
 Multivariate Polynomial Ring in x over Rational Field
 
-julia> U = complement_of_ideal(R, [0])
+julia> U = complement_of_point_ideal(R, [0])
 complement of maximal ideal corresponding to point with coordinates fmpq[0]
 
 julia> Rloc, iota = localization(R, U);
@@ -2388,13 +2395,13 @@ julia> I = ideal(R, [y-x^2, z-x^3]);
 
 julia> RQ, p = quo(R, I);
 
-julia> UR = complement_of_ideal(R, [0, 0, 0]);
+julia> UR = complement_of_point_ideal(R, [0, 0, 0]);
 
 julia> RQL, _ = localization(RQ, UR);
 
 julia> T, (t,) =  PolynomialRing(QQ, ["t"]);
 
-julia> UT = complement_of_ideal(T, [0]);
+julia> UT = complement_of_point_ideal(T, [0]);
 
 julia> TL, _ =  localization(T, UT);
 
@@ -2433,13 +2440,13 @@ julia> I = ideal(R, [y-x^2, z-x^3]);
 
 julia> RQ, p = quo(R, I);
 
-julia> UR = complement_of_ideal(R, [0, 0, 0]);
+julia> UR = complement_of_point_ideal(R, [0, 0, 0]);
 
 julia> RQL, _ = localization(RQ, UR);
 
 julia> T, (t,) =  PolynomialRing(QQ, ["t"]);
 
-julia> UT = complement_of_ideal(T, [0]);
+julia> UT = complement_of_point_ideal(T, [0]);
 
 julia> TL, _ =  localization(T, UT);
 
@@ -2583,7 +2590,7 @@ Return `true` if `f` is contained in `U`, `false` otherwise.
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> S = complement_of_ideal(R, [0, 0 ,0])
+julia> S = complement_of_point_ideal(R, [0, 0 ,0])
 complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
 
 julia> y in S

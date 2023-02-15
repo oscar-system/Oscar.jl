@@ -70,11 +70,9 @@ In accordance with the above mentioned types, we have the following constructors
 for multiplicatively closed subsets of multivariate polynomial rings.
 
 ```@docs
-complement_of_ideal(R::MPolyRing, a::Vector)
-```
-
-```@docs
-powers_of_element(f::MPolyElem)
+    complement_of_point_ideal(R::MPolyRing, a::Vector)
+    complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false)
+    powers_of_element(f::MPolyElem)
 ```
 
 It is also possible to build products of multiplicatively closed sets already given:
@@ -426,7 +424,7 @@ julia> V = [derivative(f, i) for i=1:2]
  3*x^2
  4*y^3
 
-julia> U = complement_of_ideal(R, [0, 0]);
+julia> U = complement_of_point_ideal(R, [0, 0]);
 
 julia> Rloc, _ = localization(R, U);
 
