@@ -628,7 +628,7 @@ identifications given by the glueings in the `default_covering`.
       # In case the ambient_scheme is leading out of the admissible domain, 
       # this is a top-chart and we have to reconstruct from below.
       if !is_open_func(F)(V, space(F)) 
-        V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+        V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
 
         # Check for some SimplifiedSpec lurking around
         if any(x->(x isa SimplifiedSpec), V)
@@ -659,7 +659,7 @@ identifications given by the glueings in the `default_covering`.
       # In case the original is leading out of the admissible domain, 
       # this is a top-chart and we have to reconstruct from below.
       if !is_open_func(F)(V, space(F)) 
-        V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+        V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
 
         # Check for some SimplifiedSpec lurking around
         if any(x->(x isa SimplifiedSpec), V)

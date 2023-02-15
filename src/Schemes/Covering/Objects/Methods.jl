@@ -244,7 +244,7 @@ cases are implemented; see the source code for details.
 """
 function common_refinement(C::Covering, D::Covering)
   # Check the easy cases: C is a refinement of D or the other way around.
-  if all(x->some_ancestor_in(patches(D), x), patches(C))
+  if all(x->has_ancestor_in(patches(D), x), patches(C))
     # C is a refinement of D
     E = C
     phi = identity_map(E)
@@ -255,7 +255,7 @@ function common_refinement(C::Covering, D::Covering)
     end
     psi = CoveringMorphism(E, D, map_dict, check=false)
     return E, phi, psi
-  elseif all(x->some_ancestor_in(patches(C), x), patches(D))
+  elseif all(x->has_ancestor_in(patches(C), x), patches(D))
     # D is a refinement of C
     E = D
     psi = identity_map(E)
@@ -276,14 +276,14 @@ function common_refinement(C::Covering, D::Covering)
   map_dict_C = IdDict{AbsSpec, AbsSpecMor}()
   map_dict_D = IdDict{AbsSpec, AbsSpecMor}()
   for U in dirty_C
-    if some_ancestor_in(patches(D), U)
+    if has_ancestor_in(patches(D), U)
       f, _ = _find_chart(U, D)
       map_dict_D[U] = f
       map_dict_C[U] = identity_map(U)
     end
   end
   for U in dirty_D
-    if some_ancestor_in(patches(C), U)
+    if has_ancestor_in(patches(C), U)
       f, _ = _find_chart(U, C)
       map_dict_C[U] = f
       map_dict_D[U] = identity_map(U)
@@ -303,7 +303,7 @@ function common_refinement(C::Covering, D::Covering)
   return E, phi, psi
 end
 
-function some_ancestor_in(L::Vector, U::AbsSpec)
-  return some_ancestor(x->any(y->(y===x), L), U)
+function has_ancestor_in(L::Vector, U::AbsSpec)
+  return has_ancestor(x->any(y->(y===x), L), U)
 end
 
