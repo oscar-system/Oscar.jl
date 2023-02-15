@@ -279,7 +279,7 @@ end
 
 function expressify(f::AbsLocalizedRingElem; context=nothing) 
   isone(denominator(f)) && return expressify(numerator(f), context=context)
-  return Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+  return Expr(:call, :/, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
 end
 
 @enable_all_show_via_expressify AbsLocalizedRingElem

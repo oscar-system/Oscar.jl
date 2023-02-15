@@ -390,7 +390,7 @@ end
   R, (x,y) = ZZ["x", "y"]
   U = powers_of_element(x)
   L, m = localization(R, U)
-  @test sprint(show, L(y, x)) == "y//x"
+  @test sprint(show, L(y, x)) == "y/x"
   @test sprint(show, L(y)) == "y" # Denominator is one; omit printing it.
 end
 
