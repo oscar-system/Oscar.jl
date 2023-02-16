@@ -39,7 +39,7 @@ The arguments consist of
  * the patches ``X`` and ``Y`` to be glued;
  * a glueing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the 
    `ProjectiveGlueing` to be computed sits;
- * a function `compute_function` which takes a single single argument `glueing_data` 
+ * a function `compute_function` which takes a single argument `glueing_data` 
    of arbitrary type and actually carries out the computation; 
  * an arbitrary struct `glueing_data` that the user can fill with whatever 
    information is needed to properly feed their `compute_function`. 
@@ -509,11 +509,12 @@ end
 
 # This is a sample for how to use LazyProjectiveGlueings. 
 # Originally, we probably had some body of a double for-loop iterating over 
-# pairs of patches (P, Q) that we need to glue. We take that body and move 
+# pairs of patches (P, Q) that we need to glue. We take that body which 
+# computes the glueing of P and Q and move 
 # it to an external function (here _compute_projective_glueing). Then we 
 # go through all the local variables in the body of the for-loop which 
 # are needed for the actual computation and create a tailor-made struct to 
-# hous them. We add an extraction section in the beginning of the compute 
+# house them. We add an extraction section in the beginning of the compute 
 # function to restore them and recreate the original setting within the 
 # for-loops. 
 #
