@@ -360,7 +360,7 @@ end
 
 
 
-function realization_bases_determinants(X, Bs)
+function realization_bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
@@ -385,6 +385,8 @@ function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
     Bs = bases(M)
     NBs = nonbases(M)
     MC = realization_bases_coordinates(Bs,A)
+    NBsNotVariable = [nb for nb in NBs if length(symdiff(A[1:d],nb)) != 2]
+
 
     X = realization_coordinate_matrix(d, n, MC, A, R, x, xdict)
     basesX = realization_bases_determinants(X, Bs)
@@ -394,7 +396,7 @@ function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
     SinvR , iota = Localization(R, S)
     
 
-    Igens = [det(X[:, nb]) for nb in NBs ]
+    Igens = [det(X[:, nb]) for nb in NBsNotVariable ]
     Iloc = ideal(SinvR, Igens)
     if iszero(Iloc)
       return (X, SinvR)
