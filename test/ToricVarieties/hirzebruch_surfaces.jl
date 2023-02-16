@@ -51,10 +51,10 @@ using Test
         @test transpose(matrix(ZZ,rays(F5))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5))
         @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5)) == character_lattice(F5)
         @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5)) == torusinvariant_weil_divisor_group(F5)
-        @test domain(map_from_cartier_divisor_group_to_picard_group(F5)) == cartier_divisor_group(F5)
-        @test codomain(map_from_cartier_divisor_group_to_picard_group(F5)) == picard_group(F5)
-        @test domain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(F5)) == cartier_divisor_group(F5)
-        @test codomain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(F5)) == torusinvariant_weil_divisor_group(F5)
+        @test domain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(F5)) == cartier_divisor_group(F5)
+        @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(F5)) == picard_group(F5)
+        @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(F5)) == cartier_divisor_group(F5)
+        @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(F5)) == torusinvariant_weil_divisor_group(F5)
         @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(F5)) == matrix(ZZ, [[1, 0], [0, 1], [1, 0], [5, 1]])
         if set_attributes
             @test coordinate_names(F5) == ["t1", "x1", "t2", "x2"]
