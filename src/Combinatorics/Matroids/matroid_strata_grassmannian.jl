@@ -58,12 +58,17 @@ julia> W # The coordinate ring of the stratum.
 function matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
 
     n_connected_components(M) == 1 || error("Matroid is not connected")
+    is_simple(M) || error("Matroid is not simple")
     
     d = rank(M)
     n = length(matroid_groundset(M))
 
+    if d == 1
+        return F
+    end
+
+    
     goodM = isomorphic_matroid(M, [i for i in 1:n])
-    #Vector{Int}
     goodA = sort!(Int.([M.gs2num[j] for j in A]))
 
     Bs = bases(goodM)
@@ -336,7 +341,8 @@ end
 function projective_identity(d::Int)
     if d == 1
         return [1]
-    end 
+    end
+
     X = zeros(Int, d, d+1)
     for i in 1:d
         X[i,i] = 1
@@ -349,9 +355,17 @@ function realization_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
                                        A::Vector{Int}, R::MPolyRing, x::Vector{T},
                                        xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
-    Id = projective_identity(d) 
+    
+    if d == 1
+        S = MatrixSpace(R,1,1)
+        Id = S([1])
+    else
+        S = MatrixSpace(R,d,d+1)
+        Id = S(projective_identity(d))
+    end
     Xpre = matrix_realization_small(d, n, MC, R, x, xdict)
     return interlace_columns(Id, Xpre, A, R, x)
+
 end
 
 
