@@ -60,11 +60,11 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    is_injective(F::AffAlgHom)
+    isinjective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
-function is_injective(F::AffAlgHom)
+function isinjective(F::AffAlgHom)
   iszero(kernel(F))
 end
 
@@ -97,11 +97,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    is_surjective(F::AffAlgHom)
+    issurjective(F::AffAlgHom)
 
 Return `true` if `F` is is_surjective, `false` otherwise.
 """
-function is_surjective(F::AffAlgHom)
+function issurjective(F::AffAlgHom)
   # Compute data necessary for computation
   r = domain(F)
   s = codomain(F)
@@ -126,11 +126,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    is_bijective(F::AffAlgHom)
+    isbijective(F::AffAlgHom)
 
 Return `true` if `F` is bijective, `false` otherwise.
 """
-function is_bijective(F::AffAlgHom)
+function isbijective(F::AffAlgHom)
   return is_injective(F) && is_surjective(F)
 end
 
@@ -180,15 +180,13 @@ If `F` is bijective, return its inverse.
 ```jldoctest
 julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> D, _ = quo(D1, [y-x^2, z-x^3])
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+julia> D, _ = quo(D1, [y-x^2, z-x^3]);
 
 julia> C, (t,) = PolynomialRing(QQ, ["t"]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
-julia> is_bijective(F)
+julia> isbijective(F)
 true
 
 julia> G = inverse(F)
