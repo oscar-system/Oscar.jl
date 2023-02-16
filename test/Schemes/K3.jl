@@ -1,4 +1,4 @@
-#@testset "A K3 surface from an elliptic fibration" begin
+@testset "A K3 surface from an elliptic fibration" begin
   IP1 = projective_space(GF(29), ["s", "t"])
 
   O0 = twisting_sheaf(IP1, 0)
@@ -40,7 +40,6 @@
   X2 = domain(prX2)
   Y2, inc_Y2, pr_Y2 = strict_transform(prX2, inc_Y1)
   simplify!(Y2)
-  @show has_attribute(Y2, :simplified_covering)
   I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
   I_sing_X2 = radical(pushforward(inc_Y2)(I_sing_Y2))
   prX3 = blow_up(I_sing_X2, covering=oscar.simplified_covering(X2),
@@ -49,7 +48,6 @@
   X3 = domain(prX3)
   Y3, inc_Y3, pr_Y3 = strict_transform(prX3, inc_Y2)
   simplify!(Y3)
-  @show has_attribute(Y3, :simplified_covering)
   I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
   I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
   prX4 = blow_up(I_sing_X3, covering=oscar.simplified_covering(X3),
@@ -60,18 +58,6 @@
   I_sing_Y4 = oscar.ideal_sheaf_of_singular_locus(Y4)
   I_sing_X4 = radical(pushforward(inc_Y4)(I_sing_Y4))
   U = patches(oscar.simplified_covering(X4))
-  println("Some context on how the architecture of the refinement:")
-  @show gens.(I_sing_X4.(U))
-
-  # We need to refine the covering so that we can separate the 
-  # different points in the support of I_sing_X4.
-
-  V1 = U[9]
-  V2 = U[11]
-  @show gens(I_sing_X4(V1))
-  @show gens(I_sing_X4(V2))
-  @show gens(OO(V1))
-  @show gens(OO(V2))
   
   ref_patches = [x for x in U if !(x===V1) && !(x===V2)]
 
@@ -108,8 +94,6 @@
   Y5, inc_Y5, pr_Y5 = strict_transform(prX4, inc_Y4)
   Y5 = domain(inc_Y5)
 
-  @show is_smooth(Y5)
-
   P5 = pr_Y5
   P4 = compose(P5, pr_Y4)
   P3 = compose(P4, pr_Y3)
@@ -134,15 +118,4 @@
   E45 = pullback(pr_Y5)(E44)
 
   E55 = pullback(inc_Y5)(E5)
-
-  U = patches(oscar.simplified_covering(Y5))
-  for x in U
-    @show x
-    @show first(E15(x))
-    @show first(E25(x))
-    @show first(E35(x))
-    @show first(E45(x))
-    @show first(E55(x))
-  end
-
-#end
+end
