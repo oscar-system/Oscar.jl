@@ -2636,3 +2636,16 @@ true
 ```
 """ Base.in(f::MPolyElem, U::AbsMPolyMultSet) 
 
+### Some auxiliary functions
+
+@attr function radical(I::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  J = pre_saturated_ideal(I)
+  J_rad = radical(J)
+  return ideal(L, [g for g in L.(gens(J_rad))])
+end
+
+@attr function dim(I::MPolyLocalizedIdeal)
+  return dim(saturated_ideal(I))
+end
+
