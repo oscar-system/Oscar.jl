@@ -321,14 +321,15 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
     end
 
     Mnoninteger = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d']], ['a', 'b', 'c', 'd'])
+    Mnoninteger2 = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d'], ['c','d']], ['a', 'b', 'c', 'd'])
 
 
 
     GrMnonZ = Oscar.matroid_stratum_matrix_coordinates(Mnoninteger, ['a','b'], ZZ)
-    RMnonZ = Oscar.matroid_realization_space(Mnoninteger, ['a','b','c'], ZZ)
+    RMnonZ = Oscar.matroid_realization_space(Mnoninteger2, ['a','b','c'], ZZ)
     @testset "matroid_realization_space_given_ring" begin
         @test GrMnonZ[2] isa MPolyQuoLocalizedRing
-        @test RMnonZ[2] isa MPolyQuoLocalizedRing 
+        @test RMnonZ[2] isa MPolyLocalizedRing 
     end
 
     
