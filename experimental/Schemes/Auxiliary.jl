@@ -46,7 +46,7 @@ struct UniversalPushforwardSymbol{MorphismType}
   f::MorphismType
 end
 
-# The following refers a call of f_star(M) to a bivariate pullback-method.
+# The following refers a call of f_star(M) to a bivariate pushforward-method.
 # The latter is what really needs to be implemented by the programmer. 
 # Also, all parent checks, etc. are expected to happen there.
 function (f_lower_star::UniversalPushforwardSymbol)(M::Any)
@@ -67,6 +67,16 @@ function pullback(f::AbsCoveredSchemeMorphism)
   return UniversalPullbackSymbol{typeof(f)}(f)
 end
 
+@Markdown.doc """
+    pushforward(f::CoveredSchemeMorphism)
+
+Return a function `phi` which takes any reasonable 
+argument `M` associated to the `domain` of `f` and 
+produces ``f_*(M)``.
+
+**Note:** Internally, this simply calls `pushforward(f, M)`. 
+Hence, that method needs to be implemented.
+"""
 function pushforward(f::AbsCoveredSchemeMorphism)
   return UniversalPushforwardSymbol{typeof(f)}(f)
 end
@@ -97,9 +107,6 @@ function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   # and pull back along psi.
   phi = covering_morphism(f)
   triv_dict = IdDict{AbsSpec, RingElem}()
-  # TODO: restrict f to a common_refinement(codomain(phi), trivializing_covering(C))
-  # (to be implemented)
-  # This might be codomain(phi) itself and that case is not covered, yet.
   E, a, b = common_refinement(codomain(phi), trivializing_covering(C))
   psi = restrict(f, E)
   psi = compose(psi, b)
