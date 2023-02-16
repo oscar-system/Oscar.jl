@@ -1526,6 +1526,7 @@ end
 ### required getter functions
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
 gens(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
+getindex(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
 ### additional getter functions 
