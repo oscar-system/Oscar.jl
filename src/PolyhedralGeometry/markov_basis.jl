@@ -53,6 +53,10 @@ end
 function markov_basis(S::AbstractVector{<:AbstractVector{U}};
                       use_kernel::Bool=true) where U <: Union{Base.Integer, fmpz}
     T = matrix(ZZ, Vector{Vector{fmpz}}(S))
+
+    if use_kernel
+        T = transpose(T)
+    end
     return markov_basis(T; use_kernel=use_kernel)
 end
 
