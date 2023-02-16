@@ -1,14 +1,21 @@
 export BlowupMorphism
 export center, projection, exceptional_divisor
 
+########################################################################
+# BlowupMorphism 
+#
+# A datastructure to maintain all information necessary to effectively 
+# handle blowups. This is work in progress and will one day serve as 
+# a building blow for sequences of blowups
+########################################################################
 mutable struct BlowupMorphism{
                               CodomainType<:AbsCoveredScheme
-                             }
+                             } # TODO: Derive this from AbsCoveredSchemeMorphism ? 
   projective_bundle::CoveredProjectiveScheme 
-  codomain::CodomainType   # i.A. ein CoveredScheme
+  codomain::CodomainType   # in general a CoveredScheme
   center::IdealSheaf      # on codomain
   projection::AbsCoveredSchemeMorphism
-  domain::AbsCoveredScheme # i.A. ein CoveredScheme
+  domain::AbsCoveredScheme # in general a CoveredScheme
   exceptional_divisor::EffectiveCartierDivisor
 
   function BlowupMorphism(
@@ -56,60 +63,10 @@ of the local blowup over ``U``.
 function exceptional_divisor(p::BlowupMorphism)
   if !isdefined(p, :exceptional_divisor)
     error("exceptional divisor needs to be cached during construction")
-    Y = domain(p)
-    pr = projection(p)
-    pr_cov = covering_morphism(pr)
-    IC = center(p)
-    ideals_on_patches = IdDict{AbsSpec, Ideal}()
-    mult_flag = false # To compute the multiplicity only once 
-    multiplicity = one(ZZ)
-    for U in domain(pr_cov)
-      pr_U = pr_cov[U]
-      V = codomain(pr_U)
-      J = ideal(OO(U), pullback(pr_U).(gens(IC(V))))
-      J_rad = radical(J)
-      # TODO: Pick the "simplest" chart for the following computation.
-      # We could also first use elimpart for simplification.
-      if !mult_flag && !(J == J_rad)
-        R = base_ring(OO(U))
-        S = MPolyComplementOfPrimeIdeal(saturated_ideal(J_rad))
-        R_loc, loc_map = localization(R, S)
-        F = FreeMod(R_loc, 1)
-        JF, _ = sub(F, [g*F[1] for g in gens(saturated_ideal(J))])
-        M, _ = quo(F, JF)
-        multiplicity = length(M)
-        mult_flag = true
-      end
-      ideals_on_patches[U] = J_rad
-    end
-    IE = IdealSheaf(Y, ideals_on_patches)
-    p.exceptional_divisor = WeilDivisor(Y, ZZ, IdDict{IdealSheaf, elem_type(ZZ)}(IE => multiplicity))
+    # The exceptional divisor must be created 
+    # and set during the construction of the BlowupMorphism. 
   end
   return p.exceptional_divisor
-end
-
-### Auxiliary function which were not there; to be moved
-
-@attr function radical(I::MPolyQuoLocalizedIdeal)
-  L = base_ring(I)
-  J = pre_image_ideal(I)
-  J_rad = radical(J)
-  return ideal(L, [g for g in L.(gens(J_rad)) if !iszero(g)])
-end
-
-@attr function radical(I::MPolyLocalizedIdeal)
-  L = base_ring(I)
-  J = pre_saturated_ideal(I)
-  J_rad = radical(J)
-  return ideal(L, [g for g in L.(gens(J_rad))])
-end
-
-@attr function dim(I::MPolyQuoLocalizedIdeal)
-  return dim(pre_image_ideal(I))
-end
-
-@attr function dim(I::MPolyLocalizedIdeal)
-  return dim(saturated_ideal(I))
 end
 
 @Markdown.doc """
@@ -119,9 +76,6 @@ For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding`
 ``ι : Z ↪ X``, compute the strict transform ``Z'`` of ``Z`` along ``p`` and 
 return a triple ``(Z', j, π)`` containing the `CoveredClosedEmbedding` 
 ``j : Z' ↪ Y`` and the induced projection ``π : Z' → Z``.
-
-!!! note The projection is not yet implemented! Instead, `nothing` is returned 
-as the third item.
 """
 function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   Y = domain(p)
@@ -148,7 +102,6 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
     p_res = p_cov_simp[U]
     V = codomain(p_res)
     J = image_ideal(inc)(V)
-    g = maps_with_given_codomain(inc, V)
     pbJ = ideal(OO(U), pullback(p_res).(gens(J)))
     pbJ_sat = saturated_ideal(pbJ)
     pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
@@ -156,7 +109,7 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
     ID[U] = pbJ
   end
 
-  I_trans = IdealSheaf(Y, ID, check=false) # TODO: Set to false
+  I_trans = IdealSheaf(Y, ID, check=false)
   inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, covering=CY_simp, check=false)
   inc_cov = covering_morphism(inc_Z_trans)
 
@@ -165,13 +118,22 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   return Z_trans, inc_Z_trans, pr_res
 end
 
-#=
-#  Z' ↪ Y
-#       ↓ f
-#  Z ↪  X
-#
-#  Assuming f(Z') ⊂ Z, we compute and return the restriction f : Z' → Z.
-=#
+@Markdown.doc """
+    restrict(f::AbsCoveredSchemeMorphism,
+        inc_dom::CoveredClosedEmbedding,
+        inc_cod::CoveredClosedEmbedding;
+        check::Bool=true
+      )
+
+For a diagram 
+
+  Z' ↪ Y
+       ↓ f
+  Z ↪  X
+
+with `inc_dom` and `inc_cod` the respective horizontal maps 
+we assume ``f(Z') ⊂ Z``, compute and return the restriction ``f : Z' → Z``.
+"""
 function restrict(f::AbsCoveredSchemeMorphism,
     inc_dom::CoveredClosedEmbedding,
     inc_cod::CoveredClosedEmbedding;
@@ -225,31 +187,4 @@ function maps_with_given_codomain(phi::CoveringMorphism, V::AbsSpec)
   end
   return result
 end
-
-#function saturation(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
-#  L = base_ring(I) 
-#  L === base_ring(J) || error("ideals must be defined over the same ring")
-#  II = pre_saturated_ideal(I)
-#  JJ = pre_saturated_ideal(J)
-#  KK = saturation(II, JJ)
-#  return ideal(R, [g for g in R.(gens(KK)) if !iszero(g)])
-#end
-#
-#function saturation(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
-#  L = base_ring(I) 
-#  L === base_ring(J) || error("ideals must be defined over the same ring")
-#  II = pre_image_ideal(I)
-#  JJ = pre_image_ideal(J)
-#  KK = saturation(II, JJ)
-#  return ideal(R, [g for g in R.(gens(KK)) if !iszero(g)])
-#end
-#
-#function saturation(I::MPolyQuoIdeal, J::MPolyQuoIdeal)
-#  L = base_ring(I) 
-#  L === base_ring(J) || error("ideals must be defined over the same ring")
-#  II = saturated_ideal(I)
-#  JJ = saturated_ideal(J)
-#  KK = saturation(II, JJ)
-#  return ideal(R, [g for g in R.(gens(KK)) if !iszero(g)])
-#end
 

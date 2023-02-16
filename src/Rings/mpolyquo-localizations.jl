@@ -1634,3 +1634,17 @@ function _is_integral_domain(R::Ring)
   is_domain_type(typeof(R)) && return true
   error("method not implemented for rings of type $(typeof(R))")
 end
+
+### Some auxiliary functions
+
+@attr function radical(I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  J = pre_image_ideal(I)
+  J_rad = radical(J)
+  return ideal(L, [g for g in L.(gens(J_rad)) if !iszero(g)])
+end
+
+@attr function dim(I::MPolyQuoLocalizedIdeal)
+  return dim(pre_image_ideal(I))
+end
+
