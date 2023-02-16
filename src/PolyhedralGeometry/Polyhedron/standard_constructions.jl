@@ -968,7 +968,7 @@ Almost surely this is a simplicial polytope.
   - `:uniform` (default): Use intermediate floating point numbers for an almost
                           uniform distribution on the sphere.
                           The points will not be exactly on the sphere.
-  - `:spherical`:         Create exact rational points on the unit sphere, this
+  - `:exact`:             Create exact rational points on the unit sphere, this
                           works at the expense of both uniformity and log-height
                           of the points.
 - `precision::Int64`:     Precision in bits during floating point approximation
@@ -994,7 +994,7 @@ julia> map(x->dot(x,x), vertices(rsph))
  4165//4096
  8281//8192
 
-julia> rsph = rand_spherical_polytope(3, 4; distribution=:spherical)
+julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
 A polyhedron in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
@@ -1009,7 +1009,7 @@ julia> map(x->dot(x,x), vertices(rsph))
 function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, seed=nothing, precision=nothing)
   if distribution === :uniform
     type = "AccurateFloat"
-  elseif distribution === :spherical
+  elseif distribution === :exact
     type = "Rational"
   else
     throw(ArgumentError("rand_spherical_polytope: invalid distribution specified"))

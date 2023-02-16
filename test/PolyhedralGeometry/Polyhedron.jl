@@ -216,7 +216,7 @@
             @test is_simplicial(rsph)
             @test nvertices(rsph) == 15
 
-            rsph_r = rand_spherical_polytope(3, 10; distribution=:spherical)
+            rsph_r = rand_spherical_polytope(3, 10; distribution=:exact)
             @test map(x->dot(x,x), vertices(rsph_r)) == ones(fmpq,10)
             @test is_simplicial(rsph_r)
             @test nvertices(rsph_r) == 10
