@@ -15,10 +15,14 @@ Pages = ["affine_algebras.md"]
 
 # Affine Algebras and Their Ideals
 
-With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring modulo an ideal*.
+With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient of $R$
-modulo an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we discuss
-functionality for handling such algebras in OSCAR.
+by an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we
+discuss functionality for handling such algebras in OSCAR.
+
+!!! note
+    To emphasize this point: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
+    $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on modules.
 
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
@@ -35,15 +39,8 @@ functionality for handling such algebras in OSCAR.
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
     That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
 	with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
-	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section always returns a
-	fully reduced representative. 
-
-
-!!! note
-    In OSCAR, elements of a quotient $A = R/I$ are not necessarily reduced with regard to $I$. That is, if $f\in R$ is the internal
-    representative of an element of $A$, then $f$ may not be a normal form mod $I$ with respect to the default ordering on $R$
-	(see the section on *Gröbner/Standard Bases* for normal forms). Operations involving Gröbner basis computations may lead to
-	(partial) reductions. The function `simplify` discussed in this section computes fully reduced representatives. 
+	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
+	reduced representatives. 
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
