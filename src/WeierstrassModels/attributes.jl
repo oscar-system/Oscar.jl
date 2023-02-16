@@ -242,7 +242,7 @@ julia> singular_loci(weier)[2]
     d_primes = primary_decomposition(ideal([discriminant(w)]))
     nontrivial_d_primes = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}}[]
     for k in 1:length(d_primes)
-        if !(is_one(d_primes[k][2]) || is_one(saturation(d_primes[k][2], B)))
+        if _is_nontrivial(d_primes[k][2], B)
             push!(nontrivial_d_primes, d_primes[k])
         end
     end
