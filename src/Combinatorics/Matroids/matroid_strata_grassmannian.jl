@@ -8,7 +8,7 @@ Return the data of the coordinate ring of the matroid stratum of M in the Grassm
 
 # Examples
 ```jldoctest
-julia> M = fano_matroid()
+julia> M = fano_matroid();
 julia> (A, W) = matroid_stratum_matrix_coordinates(M, [1,2,4], GF(2));
 julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 julia> W # The coordinate ring of the stratum; in general a localized quotient ring `(R/I)[S⁻¹]`.
@@ -49,7 +49,7 @@ the matroid realization space is `W`.
 
 # Examples
 ```jldoctest
-julia> M = fano_matroid()
+julia> M = fano_matroid();
 julia> (X, W) = matroid_realization_space(M, [1,2,4,7], GF(2));
 julia> X # The coordinate matrix.
 julia> W # The coordinate ring of the stratum.
