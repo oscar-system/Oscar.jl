@@ -142,7 +142,7 @@ zero(F::AbstractFreeMod)
 Whether a given element of a free module is zero can be tested as follows:
 
 ```@docs
-iszero(f::AbstractFreeModElem)
+is_zero(f::AbstractFreeModElem)
 ```
 
 ## Tests on Free Modules
@@ -152,7 +152,7 @@ iszero(f::AbstractFreeModElem)
 ```
 
 ```@docs
-iszero(F::AbstractFreeMod)
+is_zero(F::AbstractFreeMod)
 ```
 
 ## Homomorphisms from Free Modules

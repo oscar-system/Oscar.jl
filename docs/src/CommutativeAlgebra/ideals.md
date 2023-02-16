@@ -141,11 +141,11 @@ eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyElem
 ### Basic Tests
 
 ```@docs
-iszero(I::MPolyIdeal)
+is_zero(I::MPolyIdeal)
 ```
 
 ```@docs
-isone(I::MPolyIdeal)
+is_one(I::MPolyIdeal)
 ```
 
 ```@docs
@@ -155,7 +155,7 @@ is_monomial(f::MPolyElem)
 ### Containment of Ideals
 
 ```@docs
-issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Equality of Ideals

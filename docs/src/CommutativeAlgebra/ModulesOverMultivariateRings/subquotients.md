@@ -302,7 +302,7 @@ zero(M::SubQuo)
 Whether a given element of a subquotient is zero can be tested as follows:
 
 ```@docs
-iszero(m::SubQuoElem)
+is_zero(m::SubQuoElem)
 ```
 
 ## Tests on Subqotients
@@ -312,11 +312,11 @@ iszero(m::SubQuoElem)
 ```
 
 ```@docs
-issubset(M::SubQuo{T}, N::SubQuo{T}) where T
+is_subset(M::SubQuo{T}, N::SubQuo{T}) where T
 ```
 
 ```@docs
-iszero(M::SubQuo)
+is_zero(M::SubQuo)
 ```
 
 ## Basic Operations on Subquotients
