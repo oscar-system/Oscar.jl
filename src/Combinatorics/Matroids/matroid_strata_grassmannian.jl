@@ -2,7 +2,7 @@ export
     matroid_stratum_matrix_coordinates, matroid_realization_space
 
 @doc Markdown.doc"""
-    matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring = ZZ)
+    matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType, F::AbstractAlgebra.Ring = ZZ)
 
 Return the data of the coordinate ring of the matroid stratum of M in the Grassmannian with respect to matrix coordinates. Here, `B` is a basis of `M`` and the submatrix with columns indexed by `B' is the identity. This function returns a pair `(A, W)` where `A` is the coordinate matrix, and `W` is the coordinate ring of the stratum, in general this is a localized quotient ring. 
 
@@ -35,7 +35,7 @@ end
 
 
 @doc Markdown.doc"""
-    matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
+    matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
 
 Returns the data of the coordinate ring of the realization space of
 the matroid `M` using matrix coordinates. The matroid `M` should be
