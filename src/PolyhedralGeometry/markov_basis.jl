@@ -19,7 +19,7 @@ when either `use_kernel=true` or the argument is of type `Polyhedron{fmpq}`, oth
 $L$ is given by the span of the collection of integer vectors `S`.
 
 # Algorithm
-Uses the project and lift algorithm see [HM04](@cite) and [DLHK12](@cite)
+Uses the project and lift algorithm see [HM05](@cite) and [DLHK12](@cite)
 
 # Examples
 ```jldoctest
@@ -31,13 +31,15 @@ julia> S = [1 0 0 -1; 0 -1 1 0; -1 0 -1 0; 0 1 0 1]
   0   1   0   1
 
 julia> markov_basis(S)
+Warning: unbounded / huge integer variable. Setting  <= (output unimplemented)
 1×4 Matrix{fmpz}:
  1  -1  -1  1
 ```
 """
 function markov_basis(S:: Union{MatElem{U}, <: AbstractMatrix{U}};
                       use_kernel=true) where U <: Union{Base.Integer, fmpz}
-    if use_kernel
+    S = fmpz_mat(S)
+    if !use_kernel
         S = transpose(S)
     end
 
