@@ -762,14 +762,6 @@ end
 # * Division routines can be used for the ring R[S⁻¹] with subsequent
 #   conversion. 
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
-  error("function `//` not implemented for elements of type $(typeof(b))")
-end
-
-function Base.:(//)(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
-  error("function `//` not implemented for elements of type $(typeof(b))")
-end
-
 function Base.:(/)(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
   success, c = divides(parent(b), b)
   !success && error("$b does not divide $a")
