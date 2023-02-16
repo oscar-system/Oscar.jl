@@ -957,11 +957,24 @@ cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))
 # random constructions
 
 @doc Markdown.doc"""
-    rand_spherical_polytope(d::Int, n::Int)
+    rand_spherical_polytope([rng::AbstractRNG,] d::Int, n::Int;
+    distribution=:uniform, precision=nothing, seed=nothing)
 
 Construct the convex hull of $n$ points on the unit sphere in $\mathbb{R}^d$.
 Almost surely this is a simplicial polytope.
 
+# Keywords
+- `distribution::Symbol`: One of the following two options:
+  - `:uniform` (default): Use intermediate floating point numbers for an almost
+                          uniform distribution on the sphere.
+                          The points will not be exactly on the sphere.
+  - `:spherical`:         Create exact rational points on the unit sphere, this
+                          works at the expense of both uniformity and log-height
+                          of the points.
+- `precision::Int64`:     Precision in bits during floating point approximation
+                          for uniform distribution.
+- `seed::Int64`:          Seed for random number generation. Cannot be used
+                          together with the `AbstractRNG` argument.
 
 # Examples
 ```jldoctest
@@ -970,6 +983,47 @@ A polyhedron in ambient dimension 3
 
 julia> is_simplicial(rsph)
 true
+
+julia> rsph = rand_spherical_polytope(3, 4; precision=5, seed=132)
+A polyhedron in ambient dimension 3
+
+julia> map(x->dot(x,x), vertices(rsph))
+4-element Vector{fmpq}:
+ 4306545//4194304
+ 15849//16384
+ 4165//4096
+ 8281//8192
+
+julia> rsph = rand_spherical_polytope(3, 4; distribution=:spherical)
+A polyhedron in ambient dimension 3
+
+julia> map(x->dot(x,x), vertices(rsph))
+4-element Vector{fmpq}:
+ 1
+ 1
+ 1
+ 1
+
 ```
 """
-rand_spherical_polytope(d::Int, n::Int) = Polyhedron{fmpq}(Polymake.polytope.rand_sphere(d,n))
+function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, seed=nothing, precision=nothing)
+  if distribution === :uniform
+    type = "AccurateFloat"
+  elseif distribution === :spherical
+    type = "Rational"
+  else
+    throw(ArgumentError("rand_spherical_polytope: invalid distribution specified"))
+  end
+  opts = Dict{Symbol,Any}( :template_parameters => [type] )
+  if seed != nothing
+    opts[:seed] = convert(Int64, seed)
+  end
+  if precision != nothing
+    opts[:precision] = convert(Int64, precision)
+  end
+  pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
+  return Polyhedron{fmpq}(pm_obj)
+end
+
+rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
+  rand_spherical_polytope(d, n; distribution=distribution, seed=rand(rng,Int64), precision=precision)

@@ -210,6 +210,24 @@
             @test p isa Polyhedron{T}
             @test volume(P) == 0
             @test volume(p) == 1
+
+            rsph = rand_spherical_polytope(3, 15)
+            @test rsph isa Polyhedron{T}
+            @test is_simplicial(rsph)
+            @test nvertices(rsph) == 15
+
+            rsph_r = rand_spherical_polytope(3, 10; distribution=:spherical)
+            @test map(x->dot(x,x), vertices(rsph_r)) == ones(fmpq,10)
+            @test is_simplicial(rsph_r)
+            @test nvertices(rsph_r) == 10
+
+            prec = 20
+            rsph_prec = rand_spherical_polytope(3, 20; precision=prec)
+            @test rsph_prec isa Polyhedron{T}
+            @test is_simplicial(rsph_prec)
+            @test nvertices(rsph_prec) == 20
+            @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< fmpq(2)^-(prec-1))
+
         end
         
     end
