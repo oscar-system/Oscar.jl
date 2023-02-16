@@ -146,7 +146,7 @@ end
 
 
 # M and N have same number of rows, and M has #B columns, both have entries in ring R
-function interlace_columns(M::MatrixElem, N::MatrixElem, B::Vector{Int},
+function interlace_columns(M::MatrixElem{T}, N::MatrixElem{T}, B::Vector{Int},
                            R::MPolyRing, x::Vector{T}) where T <: MPolyElem 
     
     M_nrows, M_ncols = size(M)
