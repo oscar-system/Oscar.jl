@@ -23,6 +23,33 @@ patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
 glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
 
 
+@Markdown.doc """
+  LazyProjectiveGlueing(
+      X::AbsProjectiveScheme,
+      Y::AbsProjectiveScheme,
+      BG::AbsGlueing,
+      compute_function::Function, 
+      glueing_data
+    )
+
+Produce a container `pg` to host a non-computed `ProjectiveGlueing` of ``X`` with ``Y``.
+
+The arguments consist of 
+
+ * the patches ``X`` and ``Y`` to be glued;
+ * a glueing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the 
+   `ProjectiveGlueing` to be computed sits;
+ * a function `compute_function` which takes a single single argument `glueing_data` 
+   of arbitrary type and actually carries out the computation; 
+ * an arbitrary struct `glueing_data` that the user can fill with whatever 
+   information is needed to properly feed their `compute_function`. 
+
+The container `pg` can then be stored as the glueing of ``X`` and ``Y``. As soon 
+as it is asked about any data on the glueing beyond its two `patches`, it will 
+invoke the internally stored `compute_function` to actually carry out the computation 
+of the glueing and then serve the incoming request on the basis of that result. 
+The latter actual `ProjectiveGlueing` will then be cached. 
+"""
 mutable struct LazyProjectiveGlueing{
                                      GlueingType<:AbsGlueing,
                                      GlueingDataType
@@ -57,7 +84,25 @@ function underlying_glueing(G::LazyProjectiveGlueing)
   return G.underlying_glueing
 end
 
+@Markdown.doc """
+    ProjectiveGlueing(
+        G::GlueingType, 
+        incP::IncType, incQ::IncType,
+        f::IsoType, g::IsoType;
+        check::Bool=true
+      ) where {GlueingType<:AbsGlueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
 
+The `AbsProjectiveSchemeMorphism`s `incP` and `incQ` are open embeddings over open 
+embeddings of their respective `base_scheme`s. 
+
+        PX ↩ PU ≅ QV ↪ QY
+      π ↓    ↓    ↓    ↓ π
+    G : X  ↩ U  ≅ V  ↪ Y 
+
+This creates a glueing of the projective schemes `codomain(incP)` and `codomain(incQ)` 
+over a glueing `G` of their `base_scheme`s along the morphisms of `AbsProjectiveScheme`s 
+`f` and `g`, identifying `domain(incP)` and `domain(incQ)`, respectively.
+"""
 mutable struct ProjectiveGlueing{
                                  GlueingType<:AbsGlueing,
                                  IsoType<:ProjectiveSchemeMor,
@@ -308,46 +353,6 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
   return Bl_W
-
-  # the version below uses the now deprecated affine cone construction
-  R = base_ring(OO(W))
-  kk = coefficient_ring(R)
-  A1 = affine_space(kk, 1)
-  # Fancy way of adjoining a variable to R
-  WxA1, pW, _ = product(W, A1) 
-  r = ngens(I)
-  P = projective_space(W, r-1, var_name=var_name)
-  S = ambient_coordinate_ring(P)
-  # As usual we need to do actual computations on the affine cone
-  CP = affine_cone(P)
-  x = pullback(pW).(gens(OO(W)))
-  t = last(gens(OO(WxA1)))
-  g = pullback(pW).(gens(I))
-  phi = hom(OO(CP), OO(WxA1), vcat([b*t for b in g], x))
-  K = kernel(phi)
-  IWh = ideal(S, poly_to_homog(P).(lifted_numerator.(gens(K))))
-  return subscheme(P, IWh)
-
-  # The code below breaks the projective glueings, because we loose control 
-  # over the generators of the ideal corresponding to the variables of the 
-  # projective spaces.
-
-  # We first blow up the smooth ambient space
-  A = ambient_space(W)::AbsSpec{<:Field, <:MPolyRing}
-  J = ideal(OO(A), lifted_numerator.(gens(I)))
-  P = blow_up(A, J)
-
-  # ...and then compute the strict transform of W in there
-  SP = ambient_coordinate_ring(P)
-  IE = ideal(SP, SP.(lifted_numerator.(gens(I))))
-  IW = ideal(SP, SP.(gens(modulus(underlying_quotient(OO(W))))))
-  IW = IW + defining_ideal(P)
-  IWstrict = saturation(IW, IE)
-
-  Q = projective_space(W, symbols(SP))
-  SQ = ambient_coordinate_ring(Q)
-  res = hom(SP, SQ, OO(W), gens(SQ)) # the restriction map
-  return subscheme(Q, ideal(SQ, res.(gens(IWstrict))))
 end
 
 function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
