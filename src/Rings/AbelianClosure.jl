@@ -664,7 +664,7 @@ function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
 
     R, mR = ray_class_group(lcm(d, c)*maximal_order(QQ), infinite_places(QQ), 
                                         n_quo = degree(g)*degree(k))
-    q, mq = quo(R, [R[0]])
+    q, mq = quo(R, [R[0]], false)
     for p = PrimesSet(100, -1, c, 1) #totally split primes.
       if d % p == 0
         continue
@@ -681,7 +681,7 @@ function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
       lp = Hecke.modular_proj(g, me)
       for pg = lp
         l = factor(pg)
-        q, mqq = quo(q, [degree(x)*mq(P) for x = keys(l.fac)])
+        q, mqq = quo(q, [degree(x)*mq(P) for x = keys(l.fac)], false)
         mq = mq*mqq
         if order(q) <= degree(g)*degree(k)
           break

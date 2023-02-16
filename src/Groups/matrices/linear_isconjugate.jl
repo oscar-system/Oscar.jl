@@ -73,7 +73,7 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_pow
 function _elem_given_det(x,d)
    C,e = centralizer(GL(x.parent.deg, x.parent.ring),x)
    U,fa = unit_group(x.parent.ring)
-   GA,ea = sub(U, [preimage(fa,det(g)) for g in gens(C)])
+   GA,ea = sub(U, [preimage(fa,det(g)) for g in gens(C)], false)
    l = preimage(ea,preimage(fa,d))
    return prod([C[i]^Int(l[i]) for i in 1:ngens(C)])
 end

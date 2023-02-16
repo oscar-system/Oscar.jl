@@ -683,7 +683,11 @@ function kernel(comp::AbstractAlgebra.Generic.CompositeMap{T, GrpAbFinGen}) wher
   map1 = comp.map1
   map2 = comp.map2
 
-  ker2 = kernel( map2 )
+  if map2 isa GrpAbFinGenMap
+    ker2 = kernel(map2, false)::Tuple{GrpAbFinGen, GrpAbFinGenMap}
+  else
+    ker2 = kernel(map2)
+  end
   ker2gens = [ker2[2](x) for x in gens(ker2[1])]
   preimages = [preimage(map1, x) for x in ker2gens]
   ker1 = kernel(map1)
