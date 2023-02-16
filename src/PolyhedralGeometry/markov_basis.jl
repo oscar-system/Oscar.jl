@@ -8,8 +8,8 @@ Collection of integer vectors that span the columnspace of a matrix M,
  or when `use_kernel=false` collection of integer vectors that span an integer lattice.
 
 - `S::Union{MatElem{U}, <: AbstractMatrix{U}} where U <: Union{Base.Integer, fmpz}`:
-A matrix whoses integer kernel span an integere Lattice,
-or when use_kernel=false a matrix whoses rows span an integer lattice.
+A matrix whose integer kernel span an integere Lattice,
+or when use_kernel=false a matrix whose rows span an integer lattice.
 
 - `P::Polyhedron{fmpq}`: Polyhedron whose homogenized lattice points span the columnspace of a matrix.
 
