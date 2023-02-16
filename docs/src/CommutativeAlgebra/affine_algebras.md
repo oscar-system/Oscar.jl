@@ -166,7 +166,7 @@ simplify(f::MPolyQuoElem)
 In the graded case, we additionally have:
 
 ```@docs
-ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ### Data associated to Elements of Affine Algebras
@@ -292,13 +292,13 @@ quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 #### Basic Tests
 
 ```@docs
-iszero(a::MPolyQuoIdeal)
+is_zero(a::MPolyQuoIdeal)
 ```
 
 #### Containment of Ideals in Affine Algebras
 
 ```@docs
-issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
+is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 #### Equality of Ideals in Affine Algebras
@@ -424,10 +424,10 @@ ideal(y[1]^6*y[2]^6 + 2*y[1]^6*y[2]^3*y[3]^3 + y[1]^6*y[3]^6 + 2*y[1]^3*y[2]^6*y
 
 
 ```@docs
-isinjective(F::AffAlgHom)
-issurjective(F::AffAlgHom)
-isbijective(F::AffAlgHom)
-isfinite(F::AffAlgHom)
+is_injective(F::AffAlgHom)
+is_surjective(F::AffAlgHom)
+is_bijective(F::AffAlgHom)
+is_finite(F::AffAlgHom)
 ```
 
 ###### Examples
@@ -450,14 +450,14 @@ Codomain:
 =========
 Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)
 
-julia> issurjective(F)
+julia> is_surjective(F)
 true
 
 julia> D1, _ = quo(D, kernel(F));
 
 julia> F1 = hom(D1, C, V);
 
-julia> isbijective(F1)
+julia> is_bijective(F1)
 true
 
 ```
@@ -480,7 +480,7 @@ Multivariate Polynomial Ring in s, t over Rational Field
 
 julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
-julia> isfinite(hom(D, C, V))
+julia> is_finite(hom(D, C, V))
 true
 ```
 
@@ -564,13 +564,13 @@ integral_basis(f::MPolyElem, i::Int)
 ### Reducedness Test
 
 ```@docs
-isreduced(A::MPolyQuo)
+is_reduced(A::MPolyQuo)
 ```
 
 ### Normality Test
 
 ```@docs
-isnormal(A::MPolyQuo)
+is_normal(A::MPolyQuo)
 ```
 
 ### Cohen-Macaulayness Test

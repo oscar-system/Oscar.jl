@@ -60,11 +60,11 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isinjective(F::AffAlgHom)
+    is_injective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
-function isinjective(F::AffAlgHom)
+function is_injective(F::AffAlgHom)
   iszero(kernel(F))
 end
 
@@ -97,11 +97,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    issurjective(F::AffAlgHom)
+    is_surjective(F::AffAlgHom)
 
-Return `true` if `F` is is_surjective, `false` otherwise.
+Return `true` if `F` is surjective, `false` otherwise.
 """
-function issurjective(F::AffAlgHom)
+function is_surjective(F::AffAlgHom)
   # Compute data necessary for computation
   r = domain(F)
   s = codomain(F)
@@ -126,11 +126,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isbijective(F::AffAlgHom)
+    is_bijective(F::AffAlgHom)
 
 Return `true` if `F` is bijective, `false` otherwise.
 """
-function isbijective(F::AffAlgHom)
+function is_bijective(F::AffAlgHom)
   return is_injective(F) && is_surjective(F)
 end
 
@@ -141,11 +141,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isfinite(F::AffAlgHom)
+    is_finite(F::AffAlgHom)
 
 Return `true` if `F` is finite, `false` otherwise.
 """
-function isfinite(F::AffAlgHom)
+function is_finite(F::AffAlgHom)
   (T, _, _, J, _) = _groebner_data(F, :lex)
   G = collect(groebner_assure(J))
   # Find all elements with leading monomial which contains the 
@@ -186,7 +186,7 @@ julia> C, (t,) = PolynomialRing(QQ, ["t"]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
-julia> isbijective(F)
+julia> is_bijective(F)
 true
 
 julia> G = inverse(F)
