@@ -507,6 +507,19 @@ end
 #  end
 #end
 
+# This is a sample for how to use LazyProjectiveGlueings. 
+# Originally, we probably had some body of a double for-loop iterating over 
+# pairs of patches (P, Q) that we need to glue. We take that body and move 
+# it to an external function (here _compute_projective_glueing). Then we 
+# go through all the local variables in the body of the for-loop which 
+# are needed for the actual computation and create a tailor-made struct to 
+# hous them. We add an extraction section in the beginning of the compute 
+# function to restore them and recreate the original setting within the 
+# for-loops. 
+#
+# Finally, we can replace the inner part of the double for-loop with the 
+# actual wrap-up of the local variables and feed everything to a constructor 
+# for a `LazyProjectiveGlueing` as documented above. 
 struct CoveredProjectiveGlueingData
   U::AbsSpec
   V::AbsSpec
