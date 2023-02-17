@@ -115,5 +115,5 @@ binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
 # Markov Basis 
 
 ```@docs
-    markov_basis
+markov_basis
 ```
