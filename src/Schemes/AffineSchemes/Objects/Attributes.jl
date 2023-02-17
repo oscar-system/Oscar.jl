@@ -540,7 +540,7 @@ to
 
 with coordinates
 
-	x//1, y//1, z//1)
+	x, y, z)
 
 ```
 """

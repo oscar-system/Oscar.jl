@@ -113,6 +113,15 @@ Type                                   | An `AffineHyperplane` corresponds to...
 `SubObjectIterator{<:Hyperplane}`      | an element of the iterator.
 
 
+## Visualization
+
+Lower dimensional polyhedral objects can be visualized through polymake's backend.
+
+```@docs
+visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
+```
+
+
 ## Serialization
 
 Most objects from the polyhedral geometry section can be saved through the
