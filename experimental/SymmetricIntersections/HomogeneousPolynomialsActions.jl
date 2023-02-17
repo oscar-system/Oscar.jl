@@ -103,7 +103,7 @@ linear representation corresponding to the induced action on `I`.
 """ 
 function action_on_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
   R = base_ring(I)
-  @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
+  @req base_ring(R) === base_field(representation_ring(rep)) "The coefficients of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
   gene = minimal_generating_set(I)
   d = Int(degree(gene[1]).coeff[1])
