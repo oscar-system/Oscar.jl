@@ -34,7 +34,7 @@ to
 
 with coordinates
 
-	1//x, y//x
+	1/x, y/x
 
 julia> typeof(G)<:SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
 true

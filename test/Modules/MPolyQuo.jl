@@ -81,7 +81,7 @@ end
 
   R, (x,y,z) = QQ["x", "y", "z"]
   A, _ = quo(R, ideal(R, [x^2, y, z]))
-  W, _ = localization(A, complement_of_ideal(ideal(R, [x,y,z])))
+  W, _ = localization(A, complement_of_prime_ideal(ideal(R, [x,y,z])))
   F = FreeMod(W, 2)
   N, _ = quo(F, (ideal(W, [x,y,z])*F)[1])
   H, interp = hom(N, F)
