@@ -195,7 +195,7 @@ If `f` is not provided, `L` must be a list of integers and the function
 returns the usual `d`-elevator of `L`.
 
 One can provide lower bounds and upper bounds on the number of times which index
-can be repeatedly taken to construct an elevations. By default, there is
+can be repeatedly taken to construct an elevation. By default, there is
 no bound.
 """
 function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 1:length(L)], ubs::Vector{Int} = Int[-1 for i in 1:length(L)]) where {T, U}
