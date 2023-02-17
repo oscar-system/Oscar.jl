@@ -58,9 +58,3 @@ nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone{T}) where T<:scalar_types
 rays_modulo_lineality(C::Cone{T}) where T<:scalar_types
-```
-
-### Visualization
-```@docs
-visualize(C::Cone)
-```

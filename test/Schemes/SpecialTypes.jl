@@ -9,7 +9,7 @@
   inc = inclusion_morphism(U, check=true)
   @test inc === inclusion_morphism(U) # test caching
 
-  f = OO(U)(x)//OO(U)(h^2)
+  f = OO(U)(x)/OO(U)(h^2)
   @test OO(U)(generic_fraction(f, U)) == f
 
   @test domain(underlying_morphism(inc)) === U

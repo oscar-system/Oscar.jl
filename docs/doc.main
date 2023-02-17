@@ -109,7 +109,6 @@
        "PolyhedralGeometry/Polyhedra/constructions.md",
        "PolyhedralGeometry/Polyhedra/polymake.md",
        "PolyhedralGeometry/Polyhedra/auxiliary.md",
-       "PolyhedralGeometry/Polyhedra/visualization.md",
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
@@ -176,6 +175,11 @@
         "ToricVarieties/Subvarieties.md",
         "ToricVarieties/AlgebraicCycles.md",
         "ToricVarieties/ToricMorphisms.md",
+     ],
+     "Toric Schemes" => [
+         "Experimental/ToricSchemes/intro.md",
+         "Experimental/ToricSchemes/AffineToricSchemes.md",
+         "Experimental/ToricSchemes/NormalToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",
