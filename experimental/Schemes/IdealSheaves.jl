@@ -676,16 +676,16 @@ function (phi::MPolyAnyMap{D, C})(I::MPolyQuoIdeal) where {D<:MPolyQuo, C<:Ring}
   return ideal(S, phi.(gens(I)))
 end
 
-function complement_of_ideal(P::MPolyQuoIdeal)
-  return complement_of_ideal(saturated_ideal(P))
+function complement_of_prime_ideal(P::MPolyQuoIdeal)
+  return complement_of_prime_ideal(saturated_ideal(P))
 end
 
-function complement_of_ideal(P::MPolyQuoLocalizedIdeal)
-  return complement_of_ideal(saturated_ideal(P))
+function complement_of_prime_ideal(P::MPolyQuoLocalizedIdeal)
+  return complement_of_prime_ideal(saturated_ideal(P))
 end
 
-function complement_of_ideal(P::MPolyLocalizedIdeal)
-  return complement_of_ideal(saturated_ideal(P))
+function complement_of_prime_ideal(P::MPolyLocalizedIdeal)
+  return complement_of_prime_ideal(saturated_ideal(P))
 end
 
 @attr IdealSheaf function radical(II::IdealSheaf)

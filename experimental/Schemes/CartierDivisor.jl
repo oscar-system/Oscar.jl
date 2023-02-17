@@ -192,7 +192,7 @@ function weil_divisor(C::EffectiveCartierDivisor)
     for U in affine_charts(X)
       isone(P(U)) && continue
       R = base_ring(P(U))
-      L, phi = localization(R, complement_of_ideal(P(U)))
+      L, phi = localization(R, complement_of_prime_ideal(P(U)))
       F = FreeMod(L, 1)
       QF, _ = phi(Q(U))*F
       M, _ = quo(F, QF)
