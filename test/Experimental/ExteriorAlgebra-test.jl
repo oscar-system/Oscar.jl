@@ -23,19 +23,18 @@ exterior_algebra_naive(ResidueField(ZZ,1180591620717411303449), 2);
 exterior_algebra_naive(ResidueRing(ZZ,4), 3)  # Coeffs not integral domain
 
 
-@test_throws  ArgumentError  exterior_algebra_naive(QQ, 2; var_prefix="@");
-@test_throws  ArgumentError  exterior_algebra_naive(QQ, ["x", "y", "x"]);
+@test_throws  ArgumentError  exterior_algebra_naive(QQ, ["x", "y", "x"]); # duplicate name
 
 
 ## (reduced) COMPUTATIONAL SPEED TEST
 
-ExtAlg, (x1,x2,x3,x4,x5,x6) = exterior_algebra_naive(QQ, 6; var_prefix="x");
-fac1 = x1 + 2*x1*x2 + 3*x1*x2*x3 + 4*x1*x2*x3*x4 + 5*x1*x2*x3*x4*x5 + 6*x1*x2*x3*x4*x5*x6;
-fac2 = x6 + 2*x5*x6 + 3*x4*x5*x6 + 4*x3*x4*x5*x6 + 5*x2*x3*x4*x5*x6 + 6*x1*x2*x3*x4*x5*x6;
+ExtAlg, (e1,e2,e3,e4,e5,e6) = exterior_algebra_naive(QQ, 6);
+fac1 = e1 + 2*e1*e2 + 3*e1*e2*e3 + 4*e1*e2*e3*e4 + 5*e1*e2*e3*e4*e5 + 6*e1*e2*e3*e4*e5*e6;
+fac2 = e6 + 2*e5*e6 + 3*e4*e5*e6 + 4*e3*e4*e5*e6 + 5*e2*e3*e4*e5*e6 + 6*e1*e2*e3*e4*e5*e6;
 prod12 = fac1*fac2;
 prod21 = fac2*fac1;
-expected12 = 35*x1*x2*x3*x4*x5*x6 +4*x1*x2*x3*x4*x6 +6*x1*x2*x3*x5*x6 +6*x1*x2*x4*x5*x6 +4*x1*x3*x4*x5*x6 +3*x1*x2*x3*x6 +4*x1*x2*x5*x6 +3*x1*x4*x5*x6 +2*x1*x2*x6 +2*x1*x5*x6 +x1*x6;
-expected21 = - 3*x1*x2*x3*x4*x5*x6 + 4*x1*x2*x3*x4*x6 + 6*x1*x2*x3*x5*x6 + 6*x1*x2*x4*x5*x6 + 4*x1*x3*x4*x5*x6 - 3*x1*x2*x3*x6 + 4*x1*x2*x5*x6 - 3*x1*x4*x5*x6 + 2*x1*x2*x6 + 2*x1*x5*x6 - x1*x6;
+expected12 = 35*e1*e2*e3*e4*e5*e6 +4*e1*e2*e3*e4*e6 +6*e1*e2*e3*e5*e6 +6*e1*e2*e4*e5*e6 +4*e1*e3*e4*e5*e6 +3*e1*e2*e3*e6 +4*e1*e2*e5*e6 +3*e1*e4*e5*e6 +2*e1*e2*e6 +2*e1*e5*e6 +e1*e6;
+expected21 = - 3*e1*e2*e3*e4*e5*e6 + 4*e1*e2*e3*e4*e6 + 6*e1*e2*e3*e5*e6 + 6*e1*e2*e4*e5*e6 + 4*e1*e3*e4*e5*e6 - 3*e1*e2*e3*e6 + 4*e1*e2*e5*e6 - 3*e1*e4*e5*e6 + 2*e1*e2*e6 + 2*e1*e5*e6 - e1*e6;
 @test is_zero(prod12 - expected12);
 @test is_zero(prod21 - expected21);
 
@@ -77,22 +76,21 @@ exterior_algebra_singular(ResidueField(ZZ,2), 2);
 exterior_algebra_singular(ResidueField(ZZ,3), 4);
 exterior_algebra_singular(ResidueField(ZZ,1180591620717411303449), 2);
 
-exterior_algebra_singular(ResidueRing(ZZ,4), 3)  # Coeffs not integral domain
 
-
-@test_throws  ArgumentError  exterior_algebra_singular(QQ, 2; var_prefix="@");
-@test_throws  ArgumentError  exterior_algebra_singular(QQ, ["x", "y", "x"]);
+@test_throws MethodError exterior_algebra_singular(ZZ, 3)  # Coeffs not field
+@test_throws MethodError exterior_algebra_singular(ResidueRing(ZZ,4), 3)  # Coeffs not field
+@test_throws  ArgumentError  exterior_algebra_singular(QQ, ["x", "y", "x"]); # duplicate name
 
 
 ## (reduced) COMPUTATIONAL SPEED TEST
 
-ExtAlg, (x1,x2,x3,x4,x5,x6) = exterior_algebra_singular(QQ, 6; var_prefix="x");
-fac1 = x1 + 2*x1*x2 + 3*x1*x2*x3 + 4*x1*x2*x3*x4 + 5*x1*x2*x3*x4*x5 + 6*x1*x2*x3*x4*x5*x6;
-fac2 = x6 + 2*x5*x6 + 3*x4*x5*x6 + 4*x3*x4*x5*x6 + 5*x2*x3*x4*x5*x6 + 6*x1*x2*x3*x4*x5*x6;
+ExtAlg, (e1,e2,e3,e4,e5,e6) = exterior_algebra_singular(QQ, 6);
+fac1 = e1 + 2*e1*e2 + 3*e1*e2*e3 + 4*e1*e2*e3*e4 + 5*e1*e2*e3*e4*e5 + 6*e1*e2*e3*e4*e5*e6;
+fac2 = e6 + 2*e5*e6 + 3*e4*e5*e6 + 4*e3*e4*e5*e6 + 5*e2*e3*e4*e5*e6 + 6*e1*e2*e3*e4*e5*e6;
 prod12 = fac1*fac2;
 prod21 = fac2*fac1;
-expected12 = 35*x1*x2*x3*x4*x5*x6 +4*x1*x2*x3*x4*x6 +6*x1*x2*x3*x5*x6 +6*x1*x2*x4*x5*x6 +4*x1*x3*x4*x5*x6 +3*x1*x2*x3*x6 +4*x1*x2*x5*x6 +3*x1*x4*x5*x6 +2*x1*x2*x6 +2*x1*x5*x6 +x1*x6;
-expected21 = - 3*x1*x2*x3*x4*x5*x6 + 4*x1*x2*x3*x4*x6 + 6*x1*x2*x3*x5*x6 + 6*x1*x2*x4*x5*x6 + 4*x1*x3*x4*x5*x6 - 3*x1*x2*x3*x6 + 4*x1*x2*x5*x6 - 3*x1*x4*x5*x6 + 2*x1*x2*x6 + 2*x1*x5*x6 - x1*x6;
+expected12 = 35*e1*e2*e3*e4*e5*e6 +4*e1*e2*e3*e4*e6 +6*e1*e2*e3*e5*e6 +6*e1*e2*e4*e5*e6 +4*e1*e3*e4*e5*e6 +3*e1*e2*e3*e6 +4*e1*e2*e5*e6 +3*e1*e4*e5*e6 +2*e1*e2*e6 +2*e1*e5*e6 +e1*e6;
+expected21 = - 3*e1*e2*e3*e4*e5*e6 + 4*e1*e2*e3*e4*e6 + 6*e1*e2*e3*e5*e6 + 6*e1*e2*e4*e5*e6 + 4*e1*e3*e4*e5*e6 - 3*e1*e2*e3*e6 + 4*e1*e2*e5*e6 - 3*e1*e4*e5*e6 + 2*e1*e2*e6 + 2*e1*e5*e6 - e1*e6;
 @test is_zero(prod12 - expected12);
 @test is_zero(prod21 - expected21);
 
