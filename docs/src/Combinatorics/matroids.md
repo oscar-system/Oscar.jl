@@ -140,7 +140,7 @@ coordinate of the linear subspace ``F \subset K^n``. The coordinate ring of ``\m
 using matrix coordinates, see Construction 2.2 of [Cor21](@cite). The following function computes this ring. 
 
 ```@docs
-matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int64}, F::AbstractAlgebra.Ring = ZZ)
+matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType, F::AbstractAlgebra.Ring = ZZ)
 ```
 
 When the matroid ``M`` is connected, the diagonal torus of ``\mathsf{PGL}(n)`` acts freely on 
@@ -153,5 +153,5 @@ The coordinate ring of ``R(M)`` is computed in the following function.
 
 
 ```@docs
-matroid_realization_space(M::Matroid, A::Vector{Int64}, F::AbstractAlgebra.Ring=ZZ)
+matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
 ```
