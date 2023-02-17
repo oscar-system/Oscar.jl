@@ -1478,7 +1478,6 @@ ideal_type(L::MPolyLocalizedRing) = ideal_type(typeof(L))
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring
 is_saturated(I::MPolyLocalizedIdeal) = I.is_saturated
 ngens(I::MPolyLocalizedIdeal) = length(I.gens)
-getindex(I::MPolyLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   L = base_ring(I)

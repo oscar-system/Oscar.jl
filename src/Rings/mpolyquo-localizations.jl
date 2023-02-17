@@ -1525,7 +1525,6 @@ base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
 pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
-getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 ### Additional constructors
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
