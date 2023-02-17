@@ -1,6 +1,6 @@
 export singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify, default_ordering
-export issubset
+export is_subset
 export saturated_ideal
 ##############################################################################
 #
@@ -409,7 +409,7 @@ end
 end
 
 @doc Markdown.doc"""
-    iszero(a::MPolyQuoIdeal)
+    is_zero(a::MPolyQuoIdeal)
 
 Return `true` if `a` is the zero ideal, `false` otherwise.
 
@@ -422,18 +422,18 @@ julia> A, _ = quo(R, [x^2-y, y^2-x+y]);
 julia> a = ideal(A, [x^2+y^2, x+y])
 ideal(x^2 + y^2, x + y)
 
-julia> iszero(a)
+julia> is_zero(a)
 false
 
 julia> b = ideal(A, [x^2-y])
 ideal(x^2 - y)
 
-julia> iszero(b)
+julia> is_zero(b)
 true
 
 ```
 """
-function iszero(a::MPolyQuoIdeal)
+function is_zero(a::MPolyQuoIdeal)
   R = base_ring(a)
   singular_assure(a)
   return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
@@ -622,7 +622,7 @@ Base.:in(a::MPolyQuoElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
 
 
 @doc Markdown.doc"""
-    issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
+    is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is contained in `b`, `false` otherwise.
 
@@ -638,14 +638,14 @@ ideal(x^3*y^4 - x + y, x*y^2 + x*y)
 julia> b = ideal(A, [x^3*y^3-x+y, x^2*y+y^2*x])
 ideal(x^3*y^3 - x + y, x^2*y + x*y^2)
 
-julia> issubset(a,b)
+julia> is_subset(a,b)
 false
 
-julia> issubset(b,a)
+julia> is_subset(b,a)
 true
 ```
 """
-function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
+function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   as = simplify(a)
   groebner_assure(b)
@@ -1160,7 +1160,7 @@ function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+    is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 
 Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
@@ -1173,14 +1173,14 @@ julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 true
 
 julia> f
 z^4
 ```
 """
-function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
+function is_homogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify(a)
   return is_homogeneous(a.f)
 end

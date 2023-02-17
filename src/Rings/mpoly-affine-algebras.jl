@@ -3,7 +3,7 @@ export normalization_with_delta
 export noether_normalization, normalization, integral_basis
 export is_reduced, subalgebra_membership, subalgebra_membership_homogeneous, minimal_subalgebra_generators
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
-export is_surjective, is_injective, is_bijective, inverse, preimage, isfinite
+export is_surjective, is_injective, is_bijective, inverse, preimage, is_finite
 export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
 export is_cohen_macaulay
 ##############################################################################
@@ -749,17 +749,17 @@ julia> R, (x,) = PolynomialRing(QQ, ["x"]);
 
 julia> A, _ = quo(R, ideal(R, [x^4]));
 
-julia> isreduced(A)
+julia> is_reduced(A)
 false
 ```
 """
-function isreduced(A::MPolyQuo) 
+function is_reduced(A::MPolyQuo) 
   I = A.I
   return I == radical(I)
 end
 
 @doc Markdown.doc"""
-    isnormal(A::MPolyQuo)
+    is_normal(A::MPolyQuo)
 
 Given an affine algebra `A` over a perfect field,
 return `true` if `A` is normal, `false` otherwise.
@@ -773,11 +773,11 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [z^2-x*y]));
 
-julia> isnormal(A)
+julia> is_normal(A)
 true
 ```
 """
-function isnormal(A::MPolyQuo)
+function is_normal(A::MPolyQuo)
   if !(coefficient_ring(A) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
   end

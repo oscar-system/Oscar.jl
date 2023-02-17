@@ -77,7 +77,7 @@ x*e[1]
 
 julia> P = ideal(R, [x, y, z]);
 
-julia> U = complement_of_ideal(P);
+julia> U = complement_of_prime_ideal(P);
 
 julia> RL, _ = Localization(R, U);
 
@@ -85,7 +85,7 @@ julia> FRL = free_module(RL, 2, "f")
 Free module of rank 2 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
 
 julia> RL(x)*FRL[1]
-x//1*f[1]
+x*f[1]
 
 julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
 
@@ -101,7 +101,7 @@ julia> FRQL =  free_module(RQL, 2, "h")
 Free module of rank 2 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
 
 julia> RQL(x)*FRQL[1]
-x//1*h[1]
+x*h[1]
 ```
 """
 free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
@@ -170,11 +170,11 @@ function is_isomorphic(F::FreeMod, G::FreeMod)
 end
 
 @doc Markdown.doc"""
-    iszero(F::AbstractFreeMod)
+    is_zero(F::AbstractFreeMod)
 
 Return `true` if `F` is the zero module, `false` otherwise.
 """
-function iszero(F::AbstractFreeMod)
+function is_zero(F::AbstractFreeMod)
   return rank(F) == 0
 end
 
@@ -450,11 +450,11 @@ Return the free module where `a` lives in.
 parent(a::AbstractFreeModElem) = a.parent
 
 @doc Markdown.doc"""
-    iszero(f::AbstractFreeModElem)
+    is_zero(f::AbstractFreeModElem)
 
 Return `true` if `f` is zero, `false` otherwise.
 """
-iszero(f::AbstractFreeModElem) = iszero(coordinates(f))
+is_zero(f::AbstractFreeModElem) = iszero(coordinates(f))
 
 ###############################################################################
 # ModuleGens constructors
@@ -1545,7 +1545,7 @@ by Submodule with 3 generators
 
 julia> P = ideal(R, [x, y, z]);
 
-julia> U = complement_of_ideal(P);
+julia> U = complement_of_prime_ideal(P);
 
 julia> RL, _ = Localization(R, U);
 
@@ -1553,22 +1553,22 @@ julia> FRL = free_module(RL, 1)
 Free module of rank 1 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
 
 julia> ARL = RL[x; y]
-[x//1]
-[y//1]
+[x]
+[y]
 
 julia> BRL = RL[x^2; y^3; z^4]
-[x^2//1]
-[y^3//1]
-[z^4//1]
+[x^2]
+[y^3]
+[z^4]
 
 julia> MRL = SubQuo(FRL, ARL, BRL)
 Subquotient of Submodule with 2 generators
-1 -> x//1*e[1]
-2 -> y//1*e[1]
+1 -> x*e[1]
+2 -> y*e[1]
 by Submodule with 3 generators
-1 -> x^2//1*e[1]
-2 -> y^3//1*e[1]
-3 -> z^4//1*e[1]
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
 
 julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
 
@@ -1599,22 +1599,22 @@ julia> FRQL = free_module(RQL, 1)
 Free module of rank 1 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
 
 julia> ARQL = RQL[x; y]
-[x//1]
-[y//1]
+[x]
+[y]
 
 julia> BRQL = RQL[x^2; y^3; z^4]
-[x^2//1]
-[y^3//1]
-[z^4//1]
+[x^2]
+[y^3]
+[z^4]
 
 julia> MRQL = SubQuo(FRQL, ARQL, BRQL)
 Subquotient of Submodule with 2 generators
-1 -> x//1*e[1]
-2 -> y//1*e[1]
+1 -> x*e[1]
+2 -> y*e[1]
 by Submodule with 3 generators
 1 -> 0
 2 -> 0
-3 -> z^4//1*e[1]
+3 -> z^4*e[1]
 ```
 """
 function subquotient(a::FreeModuleHom, b::FreeModuleHom)
@@ -1864,7 +1864,7 @@ function leading_module(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
 end
 
 @doc Markdown.doc"""
-    issubset(M::SubQuo{T}, N::SubQuo{T}) where T
+    is_subset(M::SubQuo{T}, N::SubQuo{T}) where T
 
 Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
 return `true` if `M` is contained in `N`, where `M` and `N` are regarded as submodules 
@@ -1913,11 +1913,11 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-julia> issubset(M, N)
+julia> is_subset(M, N)
 true
 ```
 """
-function issubset(M::SubQuo{T}, N::SubQuo{T}) where T
+function is_subset(M::SubQuo{T}, N::SubQuo{T}) where T
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return issubset(M.sub, N.sub)
@@ -3143,7 +3143,7 @@ Return the zero element of `M`.
 zero(M::SubQuo) = SubQuoElem(SRow(base_ring(M)), M)
 
 @doc Markdown.doc"""
-    iszero(M::SubQuo)
+    is_zero(M::SubQuo)
 
 Return `true` if `M` is the zero module, `false` otherwise.
 
@@ -3171,11 +3171,11 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-julia> iszero(M)
+julia> is_zero(M)
 false
 ```
 """
-function iszero(M::SubQuo)
+function is_zero(M::SubQuo)
   return all(iszero, gens(M))
 end
 
@@ -4121,7 +4121,7 @@ end
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
-    iszero(m::SubQuoElem)
+    is_zero(m::SubQuoElem)
 
 Return `true` if `m` is zero, `false` otherwise.
 
@@ -4151,14 +4151,14 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-julia> iszero(M[1])
+julia> is_zero(M[1])
 false
 
-julia> iszero(x*M[1])
+julia> is_zero(x*M[1])
 true
 ```
 """
-function iszero(m::SubQuoElem)
+function is_zero(m::SubQuoElem)
   is_zero(ambient_representative(m)) && return true
   isdefined(parent(m), :quo) || return false
   return (ambient_representative(m) in parent(m).quo)

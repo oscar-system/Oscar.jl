@@ -4,6 +4,8 @@ export ProjectiveSchemeMor
 export VarietyFunctionField, VarietyFunctionFieldElem
 export AbsPreSheaf
 export IdealSheaf
+export ToricSpec
+export ToricCoveredScheme
 
 
 ########################################################################

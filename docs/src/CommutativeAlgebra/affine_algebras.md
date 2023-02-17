@@ -15,10 +15,14 @@ Pages = ["affine_algebras.md"]
 
 # Affine Algebras and Their Ideals
 
-With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring modulo an ideal*.
+With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient of $R$
-modulo an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we discuss
-functionality for handling such algebras in OSCAR.
+by an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we
+discuss functionality for handling such algebras in OSCAR.
+
+!!! note
+    To emphasize this point: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
+    $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on modules.
 
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
@@ -35,15 +39,8 @@ functionality for handling such algebras in OSCAR.
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
     That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
 	with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
-	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section always returns a
-	fully reduced representative. 
-
-
-!!! note
-    In OSCAR, elements of a quotient $A = R/I$ are not necessarily reduced with regard to $I$. That is, if $f\in R$ is the internal
-    representative of an element of $A$, then $f$ may not be a normal form mod $I$ with respect to the default ordering on $R$
-	(see the section on *Gröbner/Standard Bases* for normal forms). Operations involving Gröbner basis computations may lead to
-	(partial) reductions. The function `simplify` discussed in this section computes fully reduced representatives. 
+	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
+	reduced representatives. 
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
@@ -166,7 +163,7 @@ simplify(f::MPolyQuoElem)
 In the graded case, we additionally have:
 
 ```@docs
-ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ### Data associated to Elements of Affine Algebras
@@ -292,13 +289,13 @@ quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 #### Basic Tests
 
 ```@docs
-iszero(a::MPolyQuoIdeal)
+is_zero(a::MPolyQuoIdeal)
 ```
 
 #### Containment of Ideals in Affine Algebras
 
 ```@docs
-issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
+is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 #### Equality of Ideals in Affine Algebras
@@ -424,10 +421,10 @@ ideal(y[1]^6*y[2]^6 + 2*y[1]^6*y[2]^3*y[3]^3 + y[1]^6*y[3]^6 + 2*y[1]^3*y[2]^6*y
 
 
 ```@docs
-isinjective(F::AffAlgHom)
-issurjective(F::AffAlgHom)
-isbijective(F::AffAlgHom)
-isfinite(F::AffAlgHom)
+is_injective(F::AffAlgHom)
+is_surjective(F::AffAlgHom)
+is_bijective(F::AffAlgHom)
+is_finite(F::AffAlgHom)
 ```
 
 ###### Examples
@@ -450,14 +447,14 @@ Codomain:
 =========
 Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)
 
-julia> issurjective(F)
+julia> is_surjective(F)
 true
 
 julia> D1, _ = quo(D, kernel(F));
 
 julia> F1 = hom(D1, C, V);
 
-julia> isbijective(F1)
+julia> is_bijective(F1)
 true
 
 ```
@@ -480,7 +477,7 @@ Multivariate Polynomial Ring in s, t over Rational Field
 
 julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
-julia> isfinite(hom(D, C, V))
+julia> is_finite(hom(D, C, V))
 true
 ```
 
@@ -564,13 +561,13 @@ integral_basis(f::MPolyElem, i::Int)
 ### Reducedness Test
 
 ```@docs
-isreduced(A::MPolyQuo)
+is_reduced(A::MPolyQuo)
 ```
 
 ### Normality Test
 
 ```@docs
-isnormal(A::MPolyQuo)
+is_normal(A::MPolyQuo)
 ```
 
 ### Cohen-Macaulayness Test
