@@ -33,6 +33,9 @@ julia> S = [1 0 0 -1; 0 -1 1 0; -1 0 -1 0; 0 1 0 1]
 julia> markov_basis(S)
 Warning: unbounded / huge integer variable. Setting  <= (output unimplemented)
 [1   -1   -1   1]
+
+julia> binomial_exponents_to_ideal(M)
+ideal(x1*x4 - x2*x3)
 ```
 """
 function markov_basis(S:: Union{MatElem{U}, <: AbstractMatrix{U}};
