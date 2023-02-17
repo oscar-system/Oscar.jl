@@ -32,8 +32,7 @@ julia> S = [1 0 0 -1; 0 -1 1 0; -1 0 -1 0; 0 1 0 1]
 
 julia> markov_basis(S)
 Warning: unbounded / huge integer variable. Setting  <= (output unimplemented)
-1×4 Matrix{fmpz}:
- 1  -1  -1  1
+[1   -1   -1   1]
 ```
 """
 function markov_basis(S:: Union{MatElem{U}, <: AbstractMatrix{U}};
