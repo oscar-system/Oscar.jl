@@ -459,16 +459,14 @@ with coordinates
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
-  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
   return domain(inc), inc
-  return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
   J = radical(modulus(OO(X)))
-  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
   return domain(inc), inc
-  return Spec(base_ring(J), J)
 end
 
 ## to make reduced_scheme agnostic for quotient ring

@@ -487,17 +487,6 @@ function order_on_divisor(
 #    order_dict[U] = upper-lower
 end
 
-@attr IdealSheaf function radical(II::IdealSheaf)
-  X = scheme(II)
-  # If there is a simplified covering, do the calculations there.
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  ID = IdDict{AbsSpec, Ideal}()
-  for U in patches(covering)
-    ID[U] = radical(II(U))
-  end
-  return IdealSheaf(X, ID, check=false)
-end
-
 @Markdown.doc """
     smooth_lci_covering(I::IdealSheaf)
 
@@ -697,4 +686,15 @@ end
 
 function complement_of_ideal(P::MPolyLocalizedIdeal)
   return complement_of_ideal(saturated_ideal(P))
+end
+
+@attr IdealSheaf function radical(II::IdealSheaf)
+  X = scheme(II)
+  # If there is a simplified covering, do the calculations there.
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in patches(covering)
+    ID[U] = radical(II(U))
+  end
+  return IdealSheaf(X, ID, check=false)
 end

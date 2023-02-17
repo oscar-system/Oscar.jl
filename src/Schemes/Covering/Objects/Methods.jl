@@ -294,7 +294,7 @@ function has_ancestor_in(L::Vector, U::AbsSpec)
 end
 
 function is_refinement(D::Covering, C::Covering)
-  if !all(x->some_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
+  if !all(x->has_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
     return false, nothing
   end
   map_dict = IdDict{AbsSpec, AbsSpecMor}()

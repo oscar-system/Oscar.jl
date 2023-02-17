@@ -1,5 +1,4 @@
-@testset "A K3 surface from an elliptic fibration" begin
-  IP1 = projective_space(GF(29), ["s", "t"])
+ IP1 = projective_space(GF(29), ["s", "t"])
 
   O0 = twisting_sheaf(IP1, 0)
   O4 = twisting_sheaf(IP1, -4)
@@ -40,6 +39,7 @@
   X2 = domain(prX2)
   Y2, inc_Y2, pr_Y2 = strict_transform(prX2, inc_Y1)
   simplify!(Y2)
+  @show has_attribute(Y2, :simplified_covering)
   I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
   I_sing_X2 = radical(pushforward(inc_Y2)(I_sing_Y2))
   prX3 = blow_up(I_sing_X2, covering=oscar.simplified_covering(X2),
@@ -48,6 +48,7 @@
   X3 = domain(prX3)
   Y3, inc_Y3, pr_Y3 = strict_transform(prX3, inc_Y2)
   simplify!(Y3)
+  @show has_attribute(Y3, :simplified_covering)
   I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
   I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
 
@@ -67,7 +68,7 @@
   E41 = exceptional_divisor(prX41)
   X41 = domain(prX41)
   Y41, inc_Y41, pr_Y41 = strict_transform(prX41, inc_Y3)
-  
+
   l2 = radical(strict_transform(prX41, l[2]))
   simplify!(X41)
   @show scheme(l2) === X41
@@ -181,7 +182,7 @@
   E351 = strict_transform(prX51, E342)
   E352 = strict_transform(prX52, E351)
   E353 = strict_transform(prX53, E352)
- 
+
   E4142 = strict_transform(prX42, E41)
   E4151 = strict_transform(prX51, E4142)
   E4152 = strict_transform(prX52, E4151)
@@ -195,7 +196,7 @@
   E5153 = strict_transform(prX53, E5152)
 
   E5253 = strict_transform(prX53, E52)
-  
+
   E5353 = E53
 
   # Restrict them: 
@@ -225,4 +226,3 @@
     end
   end
   @show A
-#end
