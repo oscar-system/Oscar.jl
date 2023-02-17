@@ -96,7 +96,7 @@ end
     action_on_ideal(rep::LinRep, I::S)
                               where S <: MPolyIdeal{<: MPolyElem_dec} -> LinRep
 
-Given a linear representation `rep` on a finite vector space `V` and an invariant
+Given a linear representation `rep` on a finite dimensional vector space `V` and an invariant
 homogeneous polynomial `I` in the ($\mathbb Z$-graded) polynomial algebra `R`
 associated to `V`, such that `I = I_d` for some posiitve integer `d, return the
 linear representation corresponding to the induced action on `I`.
