@@ -69,7 +69,7 @@ end
 
 Given a linear representation `rep` on a finite vector space `V` and a
 homogeneous polynomial `I` in the ($\mathbb Z$-graded) polynomial algebra `R`
-associated to `V`, return whether `I` is invariant under the induce action on
+associated to `V`, return whether `I` is invariant under the induced action on
 `R`.
 
 A homogeneous ideal `I` is invariant under a linear action of a group on its
