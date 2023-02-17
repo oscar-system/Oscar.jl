@@ -21,7 +21,6 @@ julia> W # The coordinate ring of the stratum; in general a localized quotient r
 Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of gfp_mpoly[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
 ```
 """
-
 function matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType,  F::AbstractAlgebra.Ring = ZZ)
 
     d = rank(M)
