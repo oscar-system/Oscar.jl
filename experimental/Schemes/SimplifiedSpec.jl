@@ -119,6 +119,7 @@ function _flatten_open_subscheme(
       f
     end
   )
+  any(W->(W===U), patches(C)) && return iso # If U is already in C do nothing.
   has_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = ambient_scheme(U)
   V = domain(iso)
@@ -149,6 +150,7 @@ function _flatten_open_subscheme(
       f
     end
   )
+  any(W->(W===U), patches(C)) && return iso # If U is already in C do nothing.
   has_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = original(U)
   V = domain(iso)
