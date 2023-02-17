@@ -1637,11 +1637,10 @@ end
 
 ### Some auxiliary functions
 
-@attr function radical(I::MPolyQuoLocalizedIdeal)
-  L = base_ring(I)
+@attr MPolyQuoLocalizedIdeal function radical(I::MPolyQuoLocalizedIdeal)
+  W = base_ring(I)
   J = pre_image_ideal(I)
-  J_rad = radical(J)
-  return ideal(L, [g for g in L.(gens(J_rad)) if !iszero(g)])
+  return ideal(W, [g for g in W.(gens(radical(J))) if !iszero(g)])
 end
 
 @attr function dim(I::MPolyQuoLocalizedIdeal)

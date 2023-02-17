@@ -498,17 +498,6 @@ end
   return IdealSheaf(X, ID, check=false)
 end
 
-@attr MPolyLocalizedIdeal function radical(I::MPolyLocalizedIdeal)
-  J = pre_saturated_ideal(I)
-  return ideal(base_ring(I), gens(radical(J)))
-end
-
-@attr MPolyQuoLocalizedIdeal function radical(I::MPolyQuoLocalizedIdeal)
-  W = base_ring(I)
-  J = pre_image_ideal(I)
-  return ideal(W, [g for g in W.(gens(radical(J))) if !iszero(g)])
-end
-
 @Markdown.doc """
     smooth_lci_covering(I::IdealSheaf)
 

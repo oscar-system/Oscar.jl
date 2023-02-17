@@ -2638,11 +2638,9 @@ true
 
 ### Some auxiliary functions
 
-@attr function radical(I::MPolyLocalizedIdeal)
-  L = base_ring(I)
+@attr MPolyLocalizedIdeal function radical(I::MPolyLocalizedIdeal)
   J = pre_saturated_ideal(I)
-  J_rad = radical(J)
-  return ideal(L, [g for g in L.(gens(J_rad))])
+  return ideal(base_ring(I), gens(radical(J)))
 end
 
 @attr function dim(I::MPolyLocalizedIdeal)
