@@ -16,21 +16,21 @@ push!(upgrade_scripts, UpgradeScript(
         # no :type key implies the dict is data
         if !haskey(dict, :type)
             upgraded_dict = Dict{Symbol, Any}()
-            for (key, value) in dict
-                if value isa String
-                    upgraded_dict[key] = value
-                elseif value isa Dict{Symbol, Any}
-                    upgraded_dict[key] = upgrade_0_11_3(s, value)
+            for (key, dict_value) in dict
+                if dict_value isa String
+                    upgraded_dict[key] = dict_value
+                elseif dict_value isa Dict{Symbol, Any}
+                    upgraded_dict[key] = upgrade_0_11_3(s, dict_value)
                 else  # not a string or a dictionary, so must be a vector
-                    values = []
-                    for v in value
+                    new_value = []
+                    for v in dict_value
                         if v isa String
-                            push!(values, v)
+                            push!(new_value, v)
                         else
-                            push!(values, upgrade_0_11_3(s, v))
+                            push!(new_value, upgrade_0_11_3(s, v))
                         end
                     end
-                    upgraded_dict[key] = values
+                    upgraded_dict[key] = new_value
                 end
             end
             return upgraded_dict
@@ -47,7 +47,14 @@ push!(upgrade_scripts, UpgradeScript(
         end
 
         # this handles types like FlintRationalField that have no associated data
-        !haskey(dict, :data) && return dict
+        if !haskey(dict, :data)
+            # adds object to instance in case it is backrefed
+            if haskey(dict, :id)
+                s.objs[UUID(dict[:id])] = dict
+            end
+
+            return dict
+        end
 
         # apply upgrade to vector entries
         # we only do this here since upgrade_0_11_13 is only defined for dicts
@@ -75,15 +82,20 @@ push!(upgrade_scripts, UpgradeScript(
             # here by dicts, and we do nothing else; if the objects are basic,
             # they are represented by strings, and we'll add the `entry_type`
             # to the vector data below...
-            upgraded_vector[1] isa Dict && return Dict(
-                :type => "Vector",
-                :id => dict[:id],
-                :data => Dict(
-                    :vector => upgraded_vector
+            if upgraded_vector[1] isa Dict
+                upgraded_dict = Dict(
+                    :type => "Vector",
+                    :id => dict[:id],
+                    :data => Dict(
+                        :vector => upgraded_vector
+                    )
                 )
-            )
+                # add to state
+                s.objs[UUID(dict[:id])] = upgraded_dict
+                return upgraded_dict
+            end
 
-            return Dict(
+            upgraded_dict = Dict(
                 :type => "Vector",
                 :id => dict[:id],
                 :data => Dict(
@@ -91,6 +103,9 @@ push!(upgrade_scripts, UpgradeScript(
                     :entry_type => entry_type
                 )
             )
+            s.objs[UUID(dict[:id])] = upgraded_dict
+
+            return upgraded_dict
         end
 
         U = decodeType(dict[:type])
@@ -100,9 +115,19 @@ push!(upgrade_scripts, UpgradeScript(
             if U === fmpq
                 num = dict[:data][:num][:data]
                 den = dict[:data][:den][:data]
-                return "$num//$den"
+                updated_fmpq = "$num//$den"
+                #add to state
+                s.objs[UUID(dict[:id])] = updated_fmpq
+                
+                return updated_fmpq
             else
-                return dict[:data]
+                updated_basic_value = dict[:data]
+                #add to state
+                if haskey(dict, :id)
+                    s.objs[UUID(dict[:id])] = updated_basic_value
+                end
+                
+                return updated_basic_value
             end
         end
 
