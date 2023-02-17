@@ -34,7 +34,7 @@ julia> y*x
 -x*y
 ```
 """
-function exterior_algebra_naive(K::Ring, NumVars::Int64)
+function exterior_algebra_naive(K::Ring, NumVars::Int)
   fn_name = "exterior_algebra_naive";
   if (NumVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) NumVars must be strictly positive"));  end;
   return exterior_algebra_naive(K, (1:NumVars) .|> (k -> "e$k"));
@@ -134,7 +134,7 @@ julia> y*x
 -x*y
 ```
 """
-function exterior_algebra_singular(K::Field, NumVars::Int64)
+function exterior_algebra_singular(K::Field, NumVars::Int)
   fn_name = "exterior_algebra_singular";
   if (NumVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) NumVars must be strictly positive"));  end;
   return exterior_algebra_singular(K, (1:NumVars) .|> (k -> "e$k"));
