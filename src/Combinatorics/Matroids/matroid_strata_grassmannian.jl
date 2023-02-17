@@ -9,11 +9,14 @@ Return the data of the coordinate ring of the matroid stratum of M in the Grassm
 # Examples
 ```jldoctest
 julia> M = fano_matroid();
+
 julia> (A, W) = matroid_stratum_matrix_coordinates(M, [1,2,4], GF(2));
+
 julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 [1   0   x[1, 1]   0   x[1, 2]         0   x[1, 4]]
 [0   1   x[2, 1]   0         0   x[2, 3]   x[2, 4]]
 [0   0         0   1   x[3, 2]   x[3, 3]   x[3, 4]]
+
 julia> W # The coordinate ring of the stratum; in general a localized quotient ring `(R/I)[S⁻¹]`.
 Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of gfp_mpoly[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
 ```
@@ -54,11 +57,14 @@ the matroid realization space is `W`.
 # Examples
 ```jldoctest
 julia> M = fano_matroid();
+
 julia> (X, W) = matroid_realization_space(M, [1,2,4,7], GF(2));
+
 julia> X # The coordinate matrix.
 [1   0   x[1, 1]   0   x[1, 2]         0   1]
 [0   1         1   0         0   x[2, 3]   1]
 [0   0         0   1         1         1   1]
+
 julia> W # The coordinate ring of the stratum.
 Localization of Quotient of Multivariate Polynomial Ring in x[1, 1], x[1, 2], x[2, 3] over Galois field with characteristic 2 by ideal(x[2, 3] + 1, x[1, 2] + 1, x[1, 1] + 1, x[1, 1]*x[2, 3] + x[1, 2]) at the multiplicative set powers of gfp_mpoly[1, x[1, 1]*x[2, 3] + x[1, 1] + 1, x[2, 3], x[1, 2]*x[2, 3] + x[1, 2] + x[2, 3], x[1, 1] + x[1, 2] + 1, x[1, 2], x[1, 1], x[1, 2]*x[2, 3], x[1, 1]*x[2, 3]]
 ```
