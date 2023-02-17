@@ -1,4 +1,5 @@
- IP1 = projective_space(GF(29), ["s", "t"])
+@testset "resolution of singularities of elliptic fibrations" begin
+  IP1 = projective_space(GF(29), ["s", "t"])
 
   O0 = twisting_sheaf(IP1, 0)
   O4 = twisting_sheaf(IP1, -4)
@@ -212,17 +213,16 @@
   # Compute the intersection matrix:
   A = zero(MatrixSpace(ZZ, 8, 8))
   E = [E1res, E2res, E3res, E41res, E42res, E51res, E52res, E53res]
+  F = weil_divisor.(E)
   for i in 1:8
-    @show i
     for j in 1:8
-      @show j
       if j == i 
         # avoid self intersection for now
         A[i, i] = -ZZ(2)
         continue
       end
-      A[i, j] = integral(intersect(E[i], E[j]))
-      @show A[i, j]
+      A[i, j] = integral(intersect(F[i], E[j]))
     end
   end
-  @show A
+  @test A == ZZ[-2 0 0 0 2 0 0 0; 0 -2 0 0 0 0 0 2; 0 0 -2 0 2 2 0 0; 0 0 0 -2 0 2 2 2; 2 0 2 0 -2 0 0 0; 0 0 2 2 0 -2 0 0; 0 0 0 2 0 0 -2 0; 0 2 0 2 0 0 0 -2]
+end
