@@ -237,9 +237,7 @@ identifications given by the glueings in the `default_covering`.
       #
       # See whether we have anything cached for U
       haskey(MD, U) && return MD[U]
-
-      # If not, we are in case 3) above.
-      error("production of modules not implemented in this case")
+      error("module on $U was not found")
     end
 
     function production_func(
@@ -1617,7 +1615,7 @@ function projectivization(E::AbsCoherentSheaf;
     set_base_scheme!(PU, U)
     on_patches[U] = PU
   end
-  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
+  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   OX = StructureSheafOfRings(X)
 
   # prepare for the projective glueings

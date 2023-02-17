@@ -82,7 +82,7 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
   V = original(U)
   f, g = identification_maps(U)
-  ceq = pullback(g).(complement_equations)
+  ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))
   h, d = _find_chart(V, C, complement_equations=ceq)
   return compose(f, h), d
 end
@@ -162,8 +162,13 @@ function _flatten_open_subscheme(
                       OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
                       check=false), 
                   check=false)
+  inv_ident = SpecMor(WV, UV,
+                      hom(OO(UV), OO(WV),
+                          OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))),
+                          check=false),
+                      check=false)
   new_iso =  compose(iso, ident)
-  new_iso_inv = compose(inverse(ident), inverse(iso))
+  new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
   set_attribute!(new_iso_inv, :inverse, new_iso)
   if any(WW->(WW===W), patches(C)) 
@@ -313,7 +318,7 @@ function _have_common_ancestor(
 end
 
 function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedSpec)
-  U === V && return true
+  U === V && return true, V
   if ambient_scheme(U) === V
     return true, V
   elseif original(V) === U
@@ -332,7 +337,7 @@ function _have_common_ancestor(
 end
 
 function _have_common_ancestor(U::SimplifiedSpec, V::SimplifiedSpec)
-  U === V && return true
+  U === V && return true, V
   if original(U) === V
     return true, V
   elseif original(V) === U
