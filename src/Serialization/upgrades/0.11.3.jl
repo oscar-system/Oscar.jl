@@ -21,7 +21,7 @@ push!(upgrade_scripts, UpgradeScript(
                     upgraded_dict[key] = value
                 elseif value isa Dict{Symbol, Any}
                     upgraded_dict[key] = upgrade_0_11_3(s, value)
-                else
+                else  # not a string or a dictionary, so must be a vector
                     values = []
                     for v in value
                         if v isa String
@@ -37,10 +37,11 @@ push!(upgrade_scripts, UpgradeScript(
         end
 
         if dict[:type] == string(backref_sym)
-            backref = s.objs[UUID(dict[:id])]
+            backrefed_object = s.objs[UUID(dict[:id])]
 
-            # data no longer uses backref and is part of the update
-            backref isa String && return backref
+            # if the backref points to a string, just use that string
+            # instead of the backref
+            backrefed_object isa String && return backrefed_object
 
             return dict
         end
@@ -50,7 +51,7 @@ push!(upgrade_scripts, UpgradeScript(
 
         # apply upgrade to vector entries
         # we only do this here since upgrade_0_11_13 is only defined for dicts
-        # we could make this it's own function outside of this script
+        # we could make this its own function outside of this script
         if dict[:type] == "Vector"
             upgraded_vector = []
             entry_type = nothing
@@ -63,13 +64,17 @@ push!(upgrade_scripts, UpgradeScript(
                     if haskey(entry, :id)
                         s.objs[UUID(entry[:id])] = result
                     end
+                    @assert entry_type === nothing || entry_type == entry[:type]
                     entry_type = entry[:type]
                 end
 
                 push!(upgraded_vector, result)
             end
 
-            # no update at this level
+            # if the objects in the vector are not basic, they are represented
+            # here by dicts, and we do nothing else; if the objects are basic,
+            # they are represented by strings, and we'll add the `entry_type`
+            # to the vector data below...
             upgraded_vector[1] isa Dict && return Dict(
                 :type => "Vector",
                 :id => dict[:id],
