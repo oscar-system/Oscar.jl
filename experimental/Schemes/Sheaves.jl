@@ -216,10 +216,10 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       Y::AbsCoveredScheme
     )
-    return Y === X && some_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
+    return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-    return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
+    return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
   # The following is implemented for the sake of completeness for boundary cases. 
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
@@ -379,10 +379,10 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       Y::AbsCoveredScheme
     )
-    return Y === X && some_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
+    return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-    return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
+    return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
   # The following is implemented for the sake of completeness for boundary cases. 
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)

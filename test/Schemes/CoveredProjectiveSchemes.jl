@@ -56,3 +56,37 @@ end
   @test is_smooth(Z)
 end
 
+@testset "K3 surface reconstructed" begin 
+  IP1 = projective_space(GF(29), ["s", "t"])
+
+  O1 = twisting_sheaf(IP1, -1)
+  O4 = twisting_sheaf(IP1, -4)
+  O6 = twisting_sheaf(IP1, -6)
+
+  E = direct_sum([O4, O6, O1])
+
+  X_proj = projectivization(E, var_names=["x", "y", "z"])
+
+  X = covered_scheme(X_proj)
+
+  U = affine_charts(X)[3]
+  (x, y, t) = gens(OO(U))
+  ft = y^2 - (x^3 + 21*x + (28*t^7+18))
+  I = IdealSheaf(X, U, [ft])
+
+  # The fabulous K3-surface. Almost.
+  S = subscheme(I)
+
+  sing_S, inc_sing = singular_locus(S)
+
+  I_sing = image_ideal(inc_sing)
+
+  @test scheme(I_sing) === S
+
+  Y1_proj = blow_up(I_sing)
+  Y1 = covered_scheme(Y1_proj)
+  simplify!(Y1)
+  sing_Y1, inc_Y1 = singular_locus(Y1)
+  I_sing_Y1 = image_ideal(inc_Y1)
+  @test !is_smooth(Y1)
+end

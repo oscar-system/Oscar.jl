@@ -5,6 +5,8 @@
     dP2 = NormalToricVariety([[1, 0], [0, 1], [-1, 0], [-1, -1], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 5], [5, 1]])
     dP3 = NormalToricVariety([[1, 0], [1, 1], [0, 1], [-1, 0], [-1, -1], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 1]])
     set_coordinate_names(dP3, ["x1", "e1", "x2", "e3", "x3", "e2"])
+    dP1v2 = del_pezzo_surface(1)
+    dP2v2 = del_pezzo_surface(2)
     dP3v2 = del_pezzo_surface(3)
 
     @testset "Should fail" begin
@@ -26,9 +28,33 @@
         @test is_projective_space(dP3) == false
     end
 
-    @testset "Constructors" begin
-      phi = map_from_torusinvariant_weil_divisor_group_to_class_group(dP3v2)
-      @test vcat([phi(x).coeff for x in gens(torusinvariant_weil_divisor_group(dP3v2))]) == matrix(ZZ, [[1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 1, 1], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
-      @test coordinate_names(dP3v2) == ["x1", "x2", "x3", "e1", "e2", "e3"]
+    @testset "Standard constructor" begin
+        @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP1v2)) == matrix(ZZ, [[1, 1], [1, 1], [1, 0], [0, -1]])
+        @test transpose(matrix(ZZ,rays(dP1v2))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP1v2))
+        @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP1v2)) == character_lattice(dP1v2)
+        @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP1v2)) == torusinvariant_weil_divisor_group(dP1v2)
+        @test domain(map_from_cartier_divisor_group_to_picard_group(dP1v2)) == cartier_divisor_group(dP1v2)
+        @test codomain(map_from_cartier_divisor_group_to_picard_group(dP1v2)) == picard_group(dP1v2)
+        @test domain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(dP1v2)) == cartier_divisor_group(dP1v2)
+        @test codomain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(dP1v2)) == torusinvariant_weil_divisor_group(dP1v2)
+        @test coordinate_names(dP1v2) == ["x1", "x2", "x3", "e1"]
+        @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP2v2)) == matrix(ZZ, [[1, 1, 1], [1, 1, 0], [1, 0, 1], [0, -1, 0], [0, 0, -1]])
+        @test transpose(matrix(ZZ,rays(dP2v2))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP2v2))
+        @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP2v2)) == character_lattice(dP2v2)
+        @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP2v2)) == torusinvariant_weil_divisor_group(dP2v2)
+        @test domain(map_from_cartier_divisor_group_to_picard_group(dP2v2)) == cartier_divisor_group(dP2v2)
+        @test codomain(map_from_cartier_divisor_group_to_picard_group(dP2v2)) == picard_group(dP2v2)
+        @test domain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(dP2v2)) == cartier_divisor_group(dP2v2)
+        @test codomain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(dP2v2)) == torusinvariant_weil_divisor_group(dP2v2)
+        @test coordinate_names(dP2v2) == ["x1", "x2", "x3", "e1", "e2"]
+        @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP3v2)) == matrix(ZZ, [[1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 1, 1], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
+        @test transpose(matrix(ZZ,rays(dP3v2))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP3v2))
+        @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP3v2)) == character_lattice(dP3v2)
+        @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(dP3v2)) == torusinvariant_weil_divisor_group(dP3v2)
+        @test domain(map_from_cartier_divisor_group_to_picard_group(dP3v2)) == cartier_divisor_group(dP3v2)
+        @test codomain(map_from_cartier_divisor_group_to_picard_group(dP3v2)) == picard_group(dP3v2)
+        @test domain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(dP3v2)) == cartier_divisor_group(dP3v2)
+        @test codomain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(dP3v2)) == torusinvariant_weil_divisor_group(dP3v2)
+        @test coordinate_names(dP3v2) == ["x1", "x2", "x3", "e1", "e2", "e3"]
     end
 end

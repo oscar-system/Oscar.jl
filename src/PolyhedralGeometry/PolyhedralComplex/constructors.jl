@@ -52,6 +52,23 @@ julia> vr = [0 0; 1 0; 1 1; 0 1]
 julia> PC = PolyhedralComplex(IM, vr)
 A polyhedral complex in ambient dimension 2
 ```
+
+Polyhedral complex with rays and lineality:
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+A polyhedral complex in ambient dimension 3
+
+julia> lineality_dim(PC)
+1
+```
 """
 function PolyhedralComplex{T}(
                 polyhedra::IncidenceMatrix, 

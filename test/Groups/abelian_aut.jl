@@ -84,6 +84,9 @@ end
   T = discriminant_group(root_lattice(:D, 13))
   Tsub, _ = sub(T, 4*gens(T))
   @test order(orthogonal_group(Tsub)) == 1
+  L = Zlattice(gram=ZZ[1 0 0; 0 0 2; 0 2 0])
+  @test order(orthogonal_group(discriminant_group(L)))==6
+  # a test for odd lattices
 end
 
 @testset "Orthogonal groups of non-semiregular torquadmod" begin

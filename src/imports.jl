@@ -8,10 +8,14 @@ using Test
 # our packages
 import AbstractAlgebra
 import AlgebraicSolving
+# we currently need to load Polymake before GAP to avoid the crashe mentioned in
+# https://github.com/oscar-system/Oscar.jl/pull/1902
+# Once there is a GAP_pkg_browse that links to the correct ncurses we might 
+# switch this back.
+import Polymake
 import GAP
 import Hecke
 import Nemo
-import Polymake
 import Singular
 
 # import stuff from Base for which we want to provide extra methods

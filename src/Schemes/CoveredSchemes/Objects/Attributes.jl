@@ -159,11 +159,32 @@ end
 
 @attr function singular_locus(X::AbsCoveredScheme)
   D = IdDict{AbsSpec, Ideal}()
-  for U in affine_charts(X)
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  for U in covering
     _, inc_sing = singular_locus(U)
     D[U] = image_ideal(inc_sing)
   end
   Ising = IdealSheaf(X, D)
   inc = CoveredClosedEmbedding(X, Ising)
   return domain(inc), inc
+end
+
+@attr function ideal_sheaf_of_singular_locus(
+    X::AbsCoveredScheme;
+  )
+  D = IdDict{AbsSpec, Ideal}()
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  for U in covering
+    _, inc_sing = singular_locus(U)
+    D[U] = image_ideal(inc_sing)
+  end
+  Ising = IdealSheaf(X, D, check=false)
+  return Ising
+end
+
+function simplified_covering(X::AbsCoveredScheme)
+  if !has_attribute(X, :simplified_covering)
+    simplify!(X)
+  end
+  return get_attribute(X, :simplified_covering)::Covering
 end

@@ -18,6 +18,8 @@ Pages = ["auxiliary.md"]
 facets(P::Polyhedron)
 vertices(P::Polyhedron)
 rays(P::Polyhedron)
+rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types
+minimal_faces(P::Polyhedron{T}) where T<:scalar_types
 affine_hull(P::Polyhedron{T}) where T<:scalar_types
 ambient_dim(P::Polyhedron)
 dim(P::Polyhedron)

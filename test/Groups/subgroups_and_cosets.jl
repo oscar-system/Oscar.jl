@@ -154,6 +154,8 @@ end
    @test order(C) == length(collect(C))
   
    @test length(right_transversal(G, H)) == index(G, H)
+   @test_throws ArgumentError right_transversal(H, G)
+   @test_throws ArgumentError left_transversal(H, G)
 
    @testset "set comparison for cosets in PermGroup" begin
       G=symmetric_group(5)
@@ -207,6 +209,7 @@ end
 
    H = sub(G, [cperm(G,[1,2,3]), cperm(G,[2,3,4])])[1]
    L = right_cosets(G,H)
+   @test_throws ArgumentError right_cosets(H, G)
    T = right_transversal(G,H)
    @test length(L)==10
    @test length(T)==10
@@ -219,6 +222,7 @@ end
    @test representative(rc1) != representative(rc)
    @test rc1 == rc
    L = left_cosets(G,H)
+   @test_throws ArgumentError left_cosets(H, G)
    T = left_transversal(G,H)
    @test length(L)==10
    @test length(T)==10

@@ -53,6 +53,8 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     the above notation extends naturally to elements of  $K[x]^p$ and $K[x]_>^p$, respectively. There is one particularity:
 	Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
+## Default Orderings
+
 !!! note
     The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
     Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
@@ -85,6 +87,11 @@ julia> S, _ = grade(R, [1, 2, 3])
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
 ```
+
+## Monomials, Terms, and More
+
+Here are examples which indicate how to recover monomials, terms, and
+more from a given polynomial.
 
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -245,7 +252,7 @@ reduce_with_quotients_and_unit(g::T, F::Vector{T};
 	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
 ```
 
-## Gröbner and Standard Bases
+## Computing Gröbner/Standard Bases
 
 Still keeping the notation introduced at the beginning of this section, let $G$ be a subset of $K[x]_>$.
 Then the *leading ideal* of $G$ is the ideal of $K[x]$ defined by

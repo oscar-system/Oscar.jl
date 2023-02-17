@@ -82,16 +82,20 @@
          else
              @test generator_matrix(lineality_space(PCL)) == L
          end
+
          @test lineality_dim(PCFL) == 1
          @test f_vector(PCL) == [0, 4, 4, 1]
-         @test nrays(PCFL) == 1
-         @test nvertices(PCFL) == 3
+         # Since there is lineality, there are no rays or vertices
+         @test nrays(PCFL) == 0
+         @test nvertices(PCFL) == 0
          @test npolyhedra(PCL) == 9
          @test codim(PCF) == 0
          @test is_embedded(PC)
          
-         @test vertices(PCFLN) == [P2[i, :] for i in 1:3]
-         @test rays(PCFLN) == [P2[4, :]]
+         mfPCFLN = minimal_faces(PCFLN)
+         @test mfPCFLN.base_points == [P2[i, :] for i in 1:3]
+         rmlPCFLN = rays_modulo_lineality(PCFLN)
+         @test rmlPCFLN.rays_modulo_lineality == [P2[4, :]]
          @test lineality_space(PCFLN) == [L[1, :]]
          # TODO: include when index methods have been been implemented
          # @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I

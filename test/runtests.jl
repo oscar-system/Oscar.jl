@@ -2,6 +2,18 @@ using Oscar
 using Test
 using Documenter
 
+import Random
+
+if haskey(ENV, "JULIA_PKGEVAL") ||
+    get(ENV, "CI", "") == "true" ||
+    haskey(ENV, "OSCAR_RANDOM_SEED")
+  seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
+  @info string(@__FILE__)*" -- fixed SEED $seed"
+else
+  seed = rand(UInt32)
+  @info string(@__FILE__)*" -- SEED $seed"
+end
+Oscar.set_seed!(seed)
 
 import Oscar.Nemo.AbstractAlgebra
 include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
@@ -42,6 +54,7 @@ include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
 include("Modules/MPolyQuo.jl")
 include("Modules/homological-algebra_test.jl")
+include("Rings/ReesAlgebra.jl")
 
 include("InvariantTheory/runtests.jl")
 

@@ -38,7 +38,14 @@
     end
 
     @testset "Standard constructors" begin
-        @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1], [1], [1]])
+        @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)) == matrix(ZZ, [[1], [1], [1]])
+        @test transpose(matrix(ZZ,rays(P2v2))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2v2))
+        @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2v2)) == character_lattice(P2v2)
+        @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2v2)) == torusinvariant_weil_divisor_group(P2v2)
+        @test domain(map_from_cartier_divisor_group_to_picard_group(P2v2)) == cartier_divisor_group(P2v2)
+        @test codomain(map_from_cartier_divisor_group_to_picard_group(P2v2)) == picard_group(P2v2)
+        @test domain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(P2v2)) == cartier_divisor_group(P2v2)
+        @test codomain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(P2v2)) == torusinvariant_weil_divisor_group(P2v2)
         @test coordinate_names(P2v2) == ["x1", "x2", "x3"]
     end
 

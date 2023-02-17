@@ -56,10 +56,5 @@ lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)
 nrays(C::Cone)
-rays(C::Cone)
-```
-
-### Visualization
-```@docs
-visualize(C::Cone)
-```
+rays(C::Cone{T}) where T<:scalar_types
+rays_modulo_lineality(C::Cone{T}) where T<:scalar_types

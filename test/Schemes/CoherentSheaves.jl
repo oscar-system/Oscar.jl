@@ -70,3 +70,104 @@ end
   U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
 end
+
+@testset "pullbacks of modules" begin
+  # Note: The PullbackSheafs are not yet fully functional!!!
+  IP = projective_space(QQ, 2)
+  S = ambient_coordinate_ring(IP)
+  X = covered_scheme(IP)
+  (x,y,z) = gens(S)
+  f = x^3 + y^3 + z^3
+  I = ideal(S, f)
+  II = IdealSheaf(IP, I)
+  inc = oscar.CoveredClosedEmbedding(X, II)
+  C = domain(inc)
+  L = twisting_sheaf(IP, 2)
+  LC = oscar.PullbackSheaf(inc, L)
+  U = affine_charts(C)
+  @test LC(U[1]) isa FreeMod
+  V = PrincipalOpenSubset(U[1], one(OO(U[1])))
+  @test LC(V) isa FreeMod
+  rho = LC(U[1], V)
+  @test rho isa ModuleFPHom
+  VV = simplify(V)
+  rho = LC(U[1], VV)
+  @test rho isa ModuleFPHom
+
+  # Test pullbacks along blowup maps.
+  # This is particularly simple, because the underlying CoveringMorphism 
+  # of the projection map is given on the default_covering of its domain.
+  J = ideal(S, [x-z, y])
+  JJ = IdealSheaf(IP, J)
+  JJC = pullback(inc, JJ)
+  IP_Bl_C = blow_up(JJC)
+  Bl_C = covered_scheme(IP_Bl_C)
+  p = covered_projection_to_base(IP_Bl_C)
+  p_star = pullback(p)
+  p_star_LC = p_star(LC)
+
+  for U in affine_charts(Bl_C)
+    @test p_star_LC(U) isa FreeMod
+  end
+
+  U = first(affine_charts(Bl_C))
+  V = simplify(U)
+  @test p_star_LC(V) isa FreeMod
+  @test p_star_LC(U, V) isa ModuleFPHom
+end
+
+@testset "projectivization of vector bundles" begin
+  IP = projective_space(QQ, ["x", "y", "z", "w"])
+  S = ambient_coordinate_ring(IP)
+  (x,y,z,w) = gens(S)
+  f = x^4 + y^4 + z^4 + w^4
+  IPC = subscheme(IP, f)
+  C = covered_scheme(IPC)
+  TC = tangent_sheaf(C)
+  IPTC = oscar.projectivization(TC)
+  Y = covered_scheme(IPTC)
+  @test is_smooth(Y)
+
+  L = twisting_sheaf(IPC, 2)
+
+  PL = oscar.projectivization(L)
+  p = covered_projection_to_base(PL)
+  @test patches(codomain(covering_morphism(p))) == patches(default_covering(C))
+end
+
+@testset "projectivization of vector bundles with several components" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+
+  I = ideal(R, [x-1, y]) * ideal(R, [x]) # A line and a plane, disjoint.
+
+  X = CoveredScheme(Spec(R, I))
+
+  @test is_smooth(X)
+
+  T = tangent_sheaf(X) # A locally free sheaf with different ranks on the two components.
+
+  @test trivializing_covering(T) isa Covering
+
+  PT = oscar.projectivization(T)
+  PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
+end
+
+
+@testset "direct sums of sheaves" begin
+  IP = projective_space(QQ, ["x", "y", "z", "w"])
+  S = ambient_coordinate_ring(IP)
+  (x, y, z, w) = gens(S)
+  f = x^4 + y^4 + z^4 + w^4
+  IPX = subscheme(IP, f)
+  X = covered_scheme(IPX)
+  L1 = twisting_sheaf(IPX, 1)
+  L2 = twisting_sheaf(IPX, 2)
+
+  E = DirectSumSheaf(X, [L1, L2])
+
+  for U in affine_charts(X)
+    @test E(U) isa FreeMod
+    V = PrincipalOpenSubset(U, one(OO(U)))
+    @test E(U, V).(gens(E(U))) == gens(E(V))
+  end
+end

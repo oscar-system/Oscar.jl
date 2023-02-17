@@ -101,7 +101,7 @@ end
   I = ideal(R, f)
   S = powers_of_element(x)
   Spec(R,S)
-  S = complement_of_ideal(I)
+  S = complement_of_prime_ideal(I)
   Spec(R,I)
   X = subscheme(A3, I)
   set_name!(X, "X")

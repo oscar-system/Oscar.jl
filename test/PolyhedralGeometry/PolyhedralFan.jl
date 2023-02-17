@@ -36,7 +36,10 @@
         @test nrays(F1) == 3
         @test dim(F1) == 2
         @test ambient_dim(F1) == 3
-        @test nrays(F2) == 2
+        @test nrays(F2) == 0
+        @test lineality_dim(F2) == 1
+        RMLF2 = rays_modulo_lineality(F2)
+        @test length(RMLF2[:rays_modulo_lineality]) == 2
         @test maximal_cones(F1) isa SubObjectIterator{Cone{T}}
         @test dim.(maximal_cones(F1)) == [2,2]
         @test ray_indices(maximal_cones(F1)) == incidence1
@@ -53,7 +56,7 @@
         @test cones(F2, 2) isa SubObjectIterator{Cone{T}}
         @test size(cones(F2, 2)) == (2,)
         @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
-        @test rays.(cones(F2, 2)) == [[[1, 0, 0]], [[0, 0, 1]]]
+        @test rays.(cones(F2, 2)) == [[], []]
         @test isnothing(cones(F2, 1))
         @test ray_indices(cones(F1, 2)) == incidence1
 
@@ -68,7 +71,11 @@
         @test f_vector(NFsquare) == [4, 4]
         @test rays(F1NR) == collect(eachrow(I3))
         @test ray_indices(maximal_cones(F1NR)) == incidence1
-        @test rays(F2NR) == collect(eachrow(R))
+        @test nrays(F2NR) == 0
+        @test lineality_dim(F2NR) == 1
+        RMLF2NR = rays_modulo_lineality(F2NR)
+        @test length(RMLF2NR[:rays_modulo_lineality]) == 2
+        @test RMLF2NR[:rays_modulo_lineality] == collect(eachrow(R))
         @test lineality_space(F2NR) == collect(eachrow(L))
         @test ray_indices(maximal_cones(F2NR)) == incidence2
     end

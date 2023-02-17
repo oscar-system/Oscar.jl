@@ -41,7 +41,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
-julia> U = complement_of_ideal(I);
+julia> U = complement_of_prime_ideal(I);
 
 julia> Spec(R, U)
 Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
@@ -64,7 +64,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
-julia> U = complement_of_ideal(ideal(R, [y]));
+julia> U = complement_of_prime_ideal(ideal(R, [y]));
 
 julia> Spec(R, I, U)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
@@ -214,7 +214,7 @@ end
 #
 #julia> I = ideal(R, [x]);
 #
-#julia> U = complement_of_ideal(I);
+#julia> U = complement_of_prime_ideal(I);
 #
 #julia> X = Spec(R, U)
 #Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
@@ -239,7 +239,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedR
 #
 #julia> I = ideal(R, [x]);
 #
-#julia> U = complement_of_ideal(ideal(R, [y]));
+#julia> U = complement_of_prime_ideal(ideal(R, [y]));
 #
 #julia> X = Spec(R, I, U)
 #Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)

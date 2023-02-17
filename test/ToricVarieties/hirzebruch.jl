@@ -45,8 +45,15 @@
         @test is_projective_space(F5) == false
     end
 
-    @testset "Constructor" begin
-      @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(F5v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(F5v2))]) == matrix(ZZ, [[0, 1], [1, 0], [0, 1], [1, 5]])
-      @test coordinate_names(F5v2) == ["t1", "x1", "t2", "x2"]
+    @testset "Standard constructor" begin
+        @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(F5v2)) == matrix(ZZ, [[1, 0], [0, 1], [1, 0], [5, 1]])
+        @test transpose(matrix(ZZ,rays(F5v2))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5v2))
+        @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5v2)) == character_lattice(F5v2)
+        @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5v2)) == torusinvariant_weil_divisor_group(F5v2)
+        @test domain(map_from_cartier_divisor_group_to_picard_group(F5v2)) == cartier_divisor_group(F5v2)
+        @test codomain(map_from_cartier_divisor_group_to_picard_group(F5v2)) == picard_group(F5v2)
+        @test domain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(F5v2)) == cartier_divisor_group(F5v2)
+        @test codomain(map_from_cartier_divisor_group_to_torusinvariant_divisor_group(F5v2)) == torusinvariant_weil_divisor_group(F5v2)
+        @test coordinate_names(F5v2) == ["t1", "x1", "t2", "x2"]
     end
 end

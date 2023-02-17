@@ -120,7 +120,7 @@ The keyword `algorithm` can be set to
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
 !!! note
-    See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
+    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, and `f4` for restrictions on the input data when using these versions of the standard basis algorithm.
 
 !!! note
     The returned standard basis is reduced if `ordering` is `global` and `complete_reduction = true`.
@@ -189,7 +189,7 @@ The keyword `algorithm` can be set to
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
 !!! note
-    See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
+    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
 
 !!! note
     The returned Gröbner basis is reduced if `complete_reduction = true`.
@@ -241,20 +241,30 @@ with respect to the ordering
 wdegrevlex([x, y], [1, 3])
 ```
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (a, b, c, d, e, f, g) = PolynomialRing(QQ, ["a", "b", "c", "d", "e", "f", "g"]);
 
-julia> f1 = 3*x^3*y+x^3+x*y^3+y^2*z^2
-3*x^3*y + x^3 + x*y^3 + y^2*z^2
+julia> V = [-3*a^2+2*f*b+3*f*d, (3*g*b+3*g*e)*a-3*f*c*b,
+               -3*g^2*a^2-c*b^2*a-g^2*f*e-g^4, e*a-f*b-d*c];
 
-julia> f2 = 2*x^3*z-x*y-x*z^3-y^4-z^2
-2*x^3*z - x*y - x*z^3 - y^4 - z^2
+julia> I = ideal(R, V);
 
-julia> f3 = 2*x^2*y*z-2*x*y^2+x*z^2-y^4
-2*x^2*y*z - 2*x*y^2 + x*z^2 - y^4
+julia> o = degrevlex([a, b, c])*degrevlex([d, e, f, g]);
 
-julia> I = ideal(R, [f1, f2, f3])
-ideal(3*x^3*y + x^3 + x*y^3 + y^2*z^2, 2*x^3*z - x*y - x*z^3 - y^4 - z^2, 2*x^2*y*z - 2*x*y^2 + x*z^2 - y^4)
+julia> G = groebner_basis(I, ordering = o, algorithm = :hilbert);
+
+julia> length(G)
+296
+
+julia> total_degree(G[296])
+30
+```
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = [3*x^3*y+x^3+x*y^3+y^2*z^2, 2*x^3*z-x*y-x*z^3-y^4-z^2,
+               2*x^2*y*z-2*x*y^2+x*z^2-y^4];
+
+julia> I = ideal(R, V);
 
 julia> G = groebner_basis(I, ordering = lex(R), algorithm = :fglm);
 

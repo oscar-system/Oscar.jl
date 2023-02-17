@@ -41,7 +41,7 @@ the maximal cones of the face fan of `P` are the cones over the facets of `P`.
 By definition, this bounded polyhedron's number of facets equals the amount of
 maximal cones of its face fan.
 ```jldoctest
-julia> C = cross(3);
+julia> C = cross_polytope(3);
 
 julia> FF = face_fan(C)
 A polyhedral fan in ambient dimension 3

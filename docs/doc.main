@@ -109,7 +109,6 @@
        "PolyhedralGeometry/Polyhedra/constructions.md",
        "PolyhedralGeometry/Polyhedra/polymake.md",
        "PolyhedralGeometry/Polyhedra/auxiliary.md",
-       "PolyhedralGeometry/Polyhedra/visualization.md",
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
@@ -134,7 +133,7 @@
 	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/homological_algebra.md",
      ],
-     "Gröbner Bases" => [
+     "Gröbner/Standard Bases" => [
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
 	"CommutativeAlgebra/GroebnerBases/groebner_bases_integers.md",
@@ -176,6 +175,11 @@
         "ToricVarieties/Subvarieties.md",
         "ToricVarieties/AlgebraicCycles.md",
         "ToricVarieties/ToricMorphisms.md",
+     ],
+     "Toric Schemes" => [
+         "Experimental/ToricSchemes/intro.md",
+         "Experimental/ToricSchemes/AffineToricSchemes.md",
+         "Experimental/ToricSchemes/NormalToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",

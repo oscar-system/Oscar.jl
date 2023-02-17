@@ -11,7 +11,7 @@ Compute the vanishing sets of an abstract toric variety `v` by use of the cohomC
     denominator_contributions = contributing_denominators(variety)
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)
-        list_of_polyhedra = [turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
+        list_of_polyhedra = Polyhedron{fmpq}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
         push!(vs, ToricVanishingSet(variety, list_of_polyhedra, i-1))
     end
     return vs::Vector{ToricVanishingSet}

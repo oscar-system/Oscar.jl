@@ -109,10 +109,10 @@ is_left(c::GroupCoset)
 is_bicoset(C::GroupCoset)
 acting_domain(C::GroupCoset)
 representative(C::GroupCoset)
-right_cosets(G::GAPGroup, H::GAPGroup)
-left_cosets(G::GAPGroup, H::GAPGroup)
-right_transversal(G::T, H::T) where T<: GAPGroup
-left_transversal(G::T, H::T) where T<: GAPGroup
+right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
 GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
 double_cosets(G::T, H::T, K::T; check::Bool) where T<: GAPGroup

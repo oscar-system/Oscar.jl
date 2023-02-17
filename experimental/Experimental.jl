@@ -27,3 +27,4 @@ include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 
 include("JuLie.jl")
+include("Schemes/ToricSchemes/include.jl")

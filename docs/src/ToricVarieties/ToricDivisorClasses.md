@@ -43,6 +43,10 @@ Equality of toric divisor classes can be tested via `==`.
 
 To check if a toric divisor class is trivial, one can invoke `is_trivial`.
 
+```@docs
+is_effective(tdc::ToricDivisorClass)
+```
+
 
 ## Attributes
 
