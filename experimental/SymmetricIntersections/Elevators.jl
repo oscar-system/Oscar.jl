@@ -13,7 +13,7 @@ of `L` any set of indices for which the sum of the corresponding elements in `L`
 is `d`. The set of all `d`-elevations of `L` is called the `d`-elevator of `L`.
 For any `d`-elevations `e` of `L`, `d` is called the degree of `e`.
 
-If `(L, f)` consists of a list `L` of objects of the same type and a `mathbb Z`-
+If `(L, f)` consists of a list `L` of objects of the same type and a ``\mathbb Z``-
 valued function `f` such that `f(L)` is a sorted list of integers, the `d`-elevator
 of `(L, f)` is defined to be the `d`-elevator of `f(L)`.
 """
