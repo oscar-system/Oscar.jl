@@ -217,14 +217,14 @@ end
 
 function _blowup_ideal(id::MPolyIdeal{T}, center_gens::Vector{T}, irr::MPolyIdeal{T}, sri::MPolyIdeal{T}, lin::MPolyIdeal{U}; index::Integer = 1) where {T,U<:MPolyElem{fmpq}}
     @warn "The function _blowup_ideal is experimental; absence of bugs and proper results are not guaranteed"
-
+    
     id_gens = gens(id)
     R = base_ring(id)
-
+    
     if any(g -> parent(g) != R, center_gens)
         throw(ArgumentError("The generators of the blowup center must reside in the parent ring of the given ideal"))
     end
-
+    
     if base_ring(irr) != R
         throw(ArgumentError("The given irrelevant ideal must share the parent ring of the given ideal"))
     end
@@ -234,42 +234,42 @@ function _blowup_ideal(id::MPolyIdeal{T}, center_gens::Vector{T}, irr::MPolyIdea
     # if base_ring(lin) != R.R # Replace with getter function once it exists
     #     throw(ArgumentError("The given ideal of linear relations must share the (underlying ungraded) parent ring of the given ideal"))
     # end
-
+    
     S, S_gens = PolynomialRing(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:length(center_gens)]; [string(v) for v in gens(R)]], cached = false)
     (_e, new_gs...) = S_gens[1:length(center_gens) + 1]
     ring_map = hom(R, S, S_gens[length(center_gens) + 2:end])
     
     result_id = ideal([[ring_map(poly) for poly in id_gens]; [g * _e - center_gen for (g, center_gen) in zip(new_gs, map(ring_map, center_gens))]])
-
+    
     result_irr = ideal([ring_map(gens(irr)[i]) * new_gs[j] for i in 1:length(gens(irr)) for j in 1:length(new_gs)])
     result_sri = ideal([map(ring_map, gens(sri)); prod(new_gs)])
     result_lin = lin
-
+    
     return result_id, result_irr, result_sri, result_lin, S, S_gens
 end
 export _blowup_ideal
 
 function _blowup_ideal_sequence(id::MPolyIdeal{T}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{T}, sri::MPolyIdeal{T}, lin::MPolyIdeal{U}; index::Integer = 1, proper::Bool = true) where {T,U<:MPolyElem{fmpq}}
     @warn "The function _blowup_ideal_sequence is experimental; absence of bugs and proper results are not guaranteed"
-
+    
     (cur_ids, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_index) = ([id], irr, sri, lin, nothing, gens(base_ring((id))), index)
-
+    
     for center in centers
         if !(all(ind -> 1 <= ind <= length(cur_S_gens), center))
             throw(ArgumentError("The given indices for the center generators are out of bounds"))
         end
-
+        
         next_ids = MPolyIdeal{<:MPolyElem{fmpq}}[]
         for cur_id in cur_ids
             (next_id, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens) = _blowup_ideal(cur_id, map(ind -> cur_S_gens[ind], center), cur_irr, cur_sri, cur_lin, index = cur_index)
             all_ids = map(pair -> pair[2], primary_decomposition(next_id))
             append!(next_ids, filter(id -> !(cur_S_gens[1] in gens(id)), all_ids))
         end
-
+        
         cur_ids = next_ids
         cur_index += 1
     end
-
+    
     return cur_ids, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens
 end
 export _blowup_ideal_sequence
