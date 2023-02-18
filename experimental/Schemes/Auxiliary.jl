@@ -150,6 +150,10 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   phi = covering_morphism(f)
   C = domain(phi)
   D = codomain(phi)
+  
+  # Check the cache
+  res_cache = restriction_cache(f)
+  haskey(res_cache, DD) && return res_cache[DD]
 
   # First check the trivial case that we can just compose.
   if haskey(refinements(Y), (D, DD))
@@ -162,9 +166,6 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
 
   # DD needs to be a refinement of D; otherwise quit.
   all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
-
-  res_cache = restriction_cache(f)
-  haskey(res_cache, DD) && return res_cache[DD]
 
   OOX = OO(X)
   OOY = OO(Y)
