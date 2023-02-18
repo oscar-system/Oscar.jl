@@ -27,7 +27,8 @@ sets attributes for the constructed variety. The benefit of such setters is incr
 a price. In the case at hand, it might lead to possible inconsistencies, despite our best efforts to prevent this from happening.
 
 The default is `set_attributes = true`, that is our constructors set attributes upon construction. If not desired, it can be switched off by
-passing `set_attributes = false` as last argument.
+passing `set_attributes = false` as last argument. Note however, that the constructors of `del_pezzo_surface`, `hirzebruch_surface`,
+`projective_space` and `weighted_projective_space ` *always* make a default/standard choice for the grading of the Cox ring.
 
 
 ### Affine Toric Varieties
