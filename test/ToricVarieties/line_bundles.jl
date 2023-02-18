@@ -24,15 +24,9 @@ using Test
     end
     
     @testset "Basic attributes" begin
-        if set_attributes
-            @test degree(l) == -6
-            @test degree(l^(-1)) == 6
-            @test degree(l*l) == -12
-        else
-            @test degree(l) == 10
-            @test degree(l^(-1)) == -10
-            @test degree(l*l) == 20
-        end
+        @test degree(l) == -6
+        @test degree(l^(-1)) == 6
+        @test degree(l*l) == -12
         @test divisor_class(l).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
         @test dim(toric_variety(l)) == 2
     end

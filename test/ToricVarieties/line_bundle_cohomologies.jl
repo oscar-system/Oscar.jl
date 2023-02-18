@@ -16,13 +16,8 @@ using Test
     R,_ = PolynomialRing(QQ, 3)
     
     @testset "Cohomology with cohomCalg on dP3" begin
-        if set_attributes
-            @test cohomology(l, 0) == 0
-            @test all_cohomologies(l) == [0, 16, 0]
-        else
-            @test cohomology(l, 0) == 6
-            @test all_cohomologies(l) == [6, 3, 0]
-        end
+        @test cohomology(l, 0) == 0
+        @test all_cohomologies(l) == [0, 16, 0]
     end
     
     @testset "Cohomology with cohomCalg on F5" begin
@@ -37,15 +32,9 @@ using Test
         @test contains(vs[1], structure_sheaf(dP3)) == false
         @test contains(vs[2], structure_sheaf(dP3)) == true
         @test contains(vs[3], structure_sheaf(dP3)) == true
-        if set_attributes
-            @test contains(vs[1], l) == true
-            @test contains(vs[2], l) == false
-            @test contains(vs[3], l) == true
-        else
-            @test contains(vs[1], l) == false
-            @test contains(vs[2], l) == false
-            @test contains(vs[3], l) == true
-        end
+        @test contains(vs[1], l) == true
+        @test contains(vs[2], l) == false
+        @test contains(vs[3], l) == true
     end
     
     @testset "Toric vanishing sets of P2" begin
@@ -71,12 +60,7 @@ using Test
         @test length(basis_of_global_sections(anticanonical_bundle(dP3)^2)) == 19
         @test length(basis_of_global_sections_via_rational_functions(canonical_bundle(dP3))) == 0
         @test length(basis_of_global_sections(canonical_bundle(dP3))) == 0
-        if set_attributes
-            @test length(basis_of_global_sections_via_rational_functions(l)) == 0
-            @test length(basis_of_global_sections(l)) == 0
-        else
-            @test length(basis_of_global_sections_via_rational_functions(l)) == 6
-            @test length(basis_of_global_sections(l)) == 6
-        end
+        @test length(basis_of_global_sections_via_rational_functions(l)) == 0
+        @test length(basis_of_global_sections(l)) == 0
     end
 end
