@@ -76,9 +76,6 @@ For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding`
 ``ι : Z ↪ X``, compute the strict transform ``Z'`` of ``Z`` along ``p`` and 
 return a triple ``(Z', j, π)`` containing the `CoveredClosedEmbedding` 
 ``j : Z' ↪ Y`` and the induced projection ``π : Z' → Z``.
-
-!!! note The projection is not yet implemented! Instead, `nothing` is returned 
-as the third item.
 """
 function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   Y = domain(p)
@@ -134,7 +131,7 @@ function strict_transform(p::BlowupMorphism, I::IdealSheaf)
     ID[U] = pbJ
   end
 
-  I_trans = IdealSheaf(Y, ID, check=false) # TODO: Set to false
+  I_trans = IdealSheaf(Y, ID, check=false) 
   return I_trans
 end
 

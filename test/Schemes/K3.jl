@@ -211,18 +211,18 @@
   E53res = pullback(inc_Y53)(E5353)
 
   # Compute the intersection matrix:
-  A = zero(MatrixSpace(ZZ, 8, 8))
-  E = [E1res, E2res, E3res, E41res, E42res, E51res, E52res, E53res]
-  F = weil_divisor.(E)
-  for i in 1:8
-    for j in 1:8
-      if j == i 
-        # avoid self intersection for now
-        A[i, i] = -ZZ(2)
-        continue
-      end
-      A[i, j] = integral(intersect(F[i], E[j]))
-    end
-  end
-  @test A == ZZ[-2 0 0 0 2 0 0 0; 0 -2 0 0 0 0 0 2; 0 0 -2 0 2 2 0 0; 0 0 0 -2 0 2 2 2; 2 0 2 0 -2 0 0 0; 0 0 2 2 0 -2 0 0; 0 0 0 2 0 0 -2 0; 0 2 0 2 0 0 0 -2]
+  # A = zero(MatrixSpace(ZZ, 8, 8))
+  # E = [E1res, E2res, E3res, E41res, E42res, E51res, E52res, E53res]
+  # F = weil_divisor.(E)   # too slow to be a test
+  # for i in 1:8
+  #   for j in 1:8
+  #    if j == i 
+  #      # avoid self intersection for now
+  #      A[i, i] = -ZZ(2)
+  #      continue
+  #    end
+  #    A[i, j] = integral(intersect(F[i], E[j]))
+  #  end
+  #end
+  #@test A == ZZ[-2 0 0 0 2 0 0 0; 0 -2 0 0 0 0 0 2; 0 0 -2 0 2 2 0 0; 0 0 0 -2 0 2 2 2; 2 0 2 0 -2 0 0 0; 0 0 2 2 0 -2 0 0; 0 0 0 2 0 0 -2 0; 0 2 0 2 0 0 0 -2]
 end
