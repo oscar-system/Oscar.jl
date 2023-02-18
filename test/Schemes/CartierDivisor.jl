@@ -61,7 +61,6 @@ end
   S = ambient_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, x^2*y^3*(x+y+z))
-  set_name!(X, "ℙ²")
   C = oscar.effective_cartier_divisor(IP2, gens(I)[1])
   CW = oscar.weil_divisor(C)
   @test length(components(CW)) == 3
