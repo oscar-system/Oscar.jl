@@ -62,6 +62,7 @@ jobs:
         uses: julia-actions/julia-runtest@latest
         with:
           coverage: ${{ matrix.julia-version == '1.6' }}
+          depwarn: error
       - name: "Process code coverage"
         uses: julia-actions/julia-processcoverage@v1
         with:
