@@ -55,3 +55,17 @@ end
   @test iszero(D-D)
   @test 3*(C + D) == 3*C + 3*D
 end
+
+@testset "conversion of Cartier to Weil divisors" begin
+  IP2 = projective_space(QQ, ["x", "y", "z"])
+  S = ambient_coordinate_ring(IP2)
+  (x,y,z) = gens(S)
+  I = ideal(S, x^2*y^3*(x+y+z))
+  C = oscar.effective_cartier_divisor(IP2, gens(I)[1])
+  CW = oscar.weil_divisor(C)
+  @test length(components(CW)) == 3
+  @test 1 in collect(values(CW.C.coefficients))
+  @test 2 in collect(values(CW.C.coefficients))
+  @test 3 in collect(values(CW.C.coefficients))
+  @test 3*weil_divisor(C) == weil_divisor(3*C)
+end

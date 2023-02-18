@@ -154,7 +154,7 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                          check=check
                         ),
                  compose(restrict(ginv, V2, domain(h2), check=check), 
-                         compose(h2, restrict(f, domain(h1), U2), check=check), 
+                         compose(h2, restrict(f, domain(h1), U2, check=check), check=check), 
                          check=check
                         ),
                  check=check

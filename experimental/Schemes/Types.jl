@@ -56,8 +56,8 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 
   function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     S = base_ring(Q)
+    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
     I = modulus(Q)
     r = ngens(S)-1
@@ -444,7 +444,7 @@ identifications given by the glueings in the `default_covering`.
         G = default_covering(X)[W, U]
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
-        g_res = restrict(g, U, V_direct)
+        g_res = restrict(g, U, V_direct, check=false)
         return pullback(compose(g_res, inverse(incV)))
         ### deprecated code below; see comment above
         function rho_func2(a::RingElem)
@@ -476,7 +476,7 @@ identifications given by the glueings in the `default_covering`.
         f, g = glueing_morphisms(G)
         VV_flat = intersect(V_flat, codomain(f))
         VU = preimage(f, VV_flat)
-        fres = restrict(f, VU, VV_flat)
+        fres = restrict(f, VU, VV_flat, check=false)
         inc_V_flat_inv = inverse(inc_V_flat)
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
@@ -597,7 +597,6 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = StructureSheafOfRings(X)
 
-    ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]

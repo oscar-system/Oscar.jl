@@ -150,11 +150,22 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   phi = covering_morphism(f)
   C = domain(phi)
   D = codomain(phi)
-  # DD needs to be a refinement of D; otherwise quit.
-  all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
-
+  
+  # Check the cache
   res_cache = restriction_cache(f)
   haskey(res_cache, DD) && return res_cache[DD]
+
+  # First check the trivial case that we can just compose.
+  if haskey(refinements(Y), (D, DD))
+    return compose(phi, refinements(Y)[(D, DD)])
+  end
+
+  # Then check whether we can nevertheless build the composition manually
+  success, psi = is_refinement(D, DD)
+  success && return compose(phi, psi)
+
+  # DD needs to be a refinement of D; otherwise quit.
+  all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
 
   OOX = OO(X)
   OOY = OO(Y)
@@ -262,14 +273,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     x_img = gens(OO(X))
     x_img = pullback(inverse(iso_X)).(x_img)
     x_img = OO(XYZ).(x_img)
-    phi = restrict(iso_Y, YX, XYZ)
+    phi = restrict(iso_Y, YX, XYZ, check=false)
     x_img = pullback(phi).(x_img)
     g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
     
     y_img = gens(OO(Y))
     y_img = pullback(inverse(iso_Y)).(y_img)
     y_img = OO(XYZ).(y_img)
-    psi = restrict(iso_X, XY, XYZ)
+    psi = restrict(iso_X, XY, XYZ, check=false)
     y_img = pullback(psi).(y_img)
     f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
     return SimpleGlueing(X, Y, f, g, check=false)
@@ -307,14 +318,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
   YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
 
-  fres = restrict(f, UXY, VYX)
-  gres = restrict(g, VYX, UXY)
+  fres = restrict(f, UXY, VYX, check=false)
+  gres = restrict(g, VYX, UXY, check=false)
 
   x_img = gens(OO(X))
   x_img = pullback(inverse(iso_X)).(x_img)
   x_img = OO(UXY).(x_img)
   x_img = pullback(gres).(x_img)
-  phi = restrict(iso_Y, YX, VYX)
+  phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
   gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img))
 
@@ -322,7 +333,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(inverse(iso_Y)).(y_img)
   y_img = OO(VYX).(y_img)
   y_img = pullback(fres).(y_img)
-  psi = restrict(iso_X, XY, UXY)
+  psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)
   ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
 

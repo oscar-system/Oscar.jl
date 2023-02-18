@@ -82,17 +82,35 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   X = codomain(p)
   Z = domain(inc)
   codomain(inc) === X || error("maps must have the same codomain")
+  I_trans = strict_transform(p, image_ideal(inc))
+  inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, 
+                                       covering=simplified_covering(Y), # Has been set by the previous call
+                                       check=false)
+  inc_cov = covering_morphism(inc_Z_trans)
+
+  Z_trans = domain(inc_Z_trans)
+  pr_res = restrict(projection(p), inc_Z_trans, inc)
+  return Z_trans, inc_Z_trans, pr_res
+end
+
+function strict_transform(p::BlowupMorphism, I::IdealSheaf)
+  X = scheme(I)
+  Y = domain(p) 
+  X === codomain(p) || error("ideal sheaf is not defined on the codomain of the morphism")
+
   ID = IdDict{AbsSpec, Ideal}()
   pr = projection(p)
   p_cov = covering_morphism(pr)
   CY = domain(p_cov)
   # We first apply elim_part to all the charts.
-  CY_simp, phi, psi = simplify(CY)
-  # register the simplification in Y
-  push!(coverings(Y), CY_simp)
-  refinements(Y)[(CY_simp, CY)] = phi
-  refinements(Y)[(CY, CY_simp)] = psi
-  CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
+# CY_simp, phi, psi = simplify(CY)
+# # register the simplification in Y
+# push!(coverings(Y), CY_simp)
+# refinements(Y)[(CY_simp, CY)] = phi
+# refinements(Y)[(CY, CY_simp)] = psi
+# CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
+  CY_simp = (CY === default_covering(Y) ? simplified_covering(Y) : CY)
+  phi = (CY === default_covering(Y) ? Y[CY_simp, CY] : identity_map(CY_simp))
 
   # compose the covering morphisms
   p_cov_simp = compose(phi, p_cov)
@@ -101,21 +119,94 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   for U in patches(CY_simp)
     p_res = p_cov_simp[U]
     V = codomain(p_res)
-    J = image_ideal(inc)(V)
+    J = I(V)
+    #g = maps_with_given_codomain(inc, V)
     pbJ = ideal(OO(U), pullback(p_res).(gens(J)))
     pbJ_sat = saturated_ideal(pbJ)
     pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
     pbJ = ideal(OO(U), [g for g in OO(U).(gens(pbJ_sat)) if !iszero(g)])
+    if length(gens(pbJ))==0 
+        error("output of saturation invalid; faulty exceptional divisor?")
+    end
     ID[U] = pbJ
   end
 
-  I_trans = IdealSheaf(Y, ID, check=false)
-  inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, covering=CY_simp, check=false)
-  inc_cov = covering_morphism(inc_Z_trans)
+  I_trans = IdealSheaf(Y, ID, check=false) 
+  return I_trans
+end
 
-  Z_trans = domain(inc_Z_trans)
-  pr_res = restrict(projection(p), inc_Z_trans, inc)
-  return Z_trans, inc_Z_trans, pr_res
+function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
+  X = scheme(C)
+  Y = domain(p) 
+  X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
+
+  ID = IdDict{AbsSpec, RingElem}()
+  pr = projection(p)
+  p_cov = covering_morphism(pr)
+  CY = domain(p_cov)
+  CX = trivializing_covering(C)
+  p_cov_ref = restrict(pr, CX)::CoveringMorphism
+  CY_ref = domain(p_cov_ref)
+#  # We first apply elim_part to all the charts.
+#  CY_simp, phi, psi = simplify(CY_ref)
+#  # register the simplification in Y
+#  push!(coverings(Y), CY_simp)
+#  refinements(Y)[(CY_simp, CY)] = phi
+#  refinements(Y)[(CY, CY_simp)] = psi
+
+  # compose the covering morphisms
+#  p_cov_simp = compose(phi, p_cov_ref)
+  p_cov_simp = p_cov_ref
+  CY_simp = CY_ref
+  E = exceptional_divisor(p)
+  multipl = -1
+  for U in patches(CY_simp)
+    p_res = p_cov_simp[U]
+    V = codomain(p_res)
+    length(C(V))==1 || error("ideal for divisor is not principal")
+    h = C(V)[1]
+    pbh = pullback(p_res)(h)
+    if isunit(pbh) 
+      ID[U] = one(OO(U))
+      continue
+    end
+    k = 0
+    e = first(E(U))
+    if isunit(e)
+      ID[U] = pbh
+      continue
+    end
+    # Warning! Successive division by e only gives the correct result in this 
+    # particular situation! The equation for e must be irreducible, etc.
+    success, b = divides(pbh, e)
+    while success
+      k = k + 1
+      pbh = b
+      success, b = divides(b, e)
+    end
+    ID[U] = pbh
+    if multipl != -1
+      k == multipl || error("multiplicities differ in different charts")
+    end
+    multipl = k
+  end
+
+  multipl = (multipl == -1 ? 0 : multipl)
+
+  C_trans = EffectiveCartierDivisor(Y, ID, check=false) # TODO: Set to false
+  return C_trans # TODO: Do we want to also return the exceptional component multipl*E ?
+end
+
+function strict_transform(p::BlowupMorphism, C::CartierDivisor)
+  X = codomain(p)
+  Y = domain(p) 
+  X === scheme(C) || error("cartier divisor not defined on the codomain of the map")
+  kk = coefficient_ring(C)
+  result = CartierDivisor(Y, kk)
+  for c in components(C)
+    result = result + C[c]*strict_transform(p, c)
+  end
+  return result
 end
 
 @Markdown.doc """
@@ -130,7 +221,6 @@ For a diagram
   Z' ↪ Y
        ↓ f
   Z ↪  X
-
 with `inc_dom` and `inc_cod` the respective horizontal maps 
 we assume ``f(Z') ⊂ Z``, compute and return the restriction ``f : Z' → Z``.
 """

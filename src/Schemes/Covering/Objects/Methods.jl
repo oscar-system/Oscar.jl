@@ -243,31 +243,17 @@ structure of their `patches`. Due to these limitations, only special
 cases are implemented; see the source code for details.
 """
 function common_refinement(C::Covering, D::Covering)
-  # Check the easy cases: C is a refinement of D or the other way around.
-  if all(x->has_ancestor_in(patches(D), x), patches(C))
-    # C is a refinement of D
-    E = C
-    phi = identity_map(E)
-    map_dict = IdDict{AbsSpec, AbsSpecMor}()
-    for U in patches(C)
-      f, _ = _find_chart(U, D)
-      map_dict[U] = f
-    end
-    psi = CoveringMorphism(E, D, map_dict, check=false)
-    return E, phi, psi
-  elseif all(x->has_ancestor_in(patches(C), x), patches(D))
-    # D is a refinement of C
-    E = D
-    psi = identity_map(E)
-    map_dict = IdDict{AbsSpec, AbsSpecMor}()
-    for U in patches(E)
-      f, _ = _find_chart(U, C)
-      map_dict[U] = f
-    end
-    phi = CoveringMorphism(E, C, map_dict, check=false)
-    return E, phi, psi
-  end 
-  
+  if C === D 
+    phi = identity_map(C)
+    return C, phi, phi
+  end
+
+  success, phi = is_refinement(C, D)
+  success && return C, identity_map(C), phi
+
+  success, phi = is_refinement(D, C)
+  success && return D, phi, identity_map(D)
+
   error("case not implemented")
   # We still need to adjust the code below.
   dirty_C = copy(patches(C))
@@ -306,4 +292,17 @@ end
 function has_ancestor_in(L::Vector, U::AbsSpec)
   return has_ancestor(x->any(y->(y===x), L), U)
 end
+
+function is_refinement(D::Covering, C::Covering)
+  if !all(x->has_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
+    return false, nothing
+  end
+  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(D)
+    f, _ = _find_chart(U, C)
+    map_dict[U] = f
+  end
+  return true, CoveringMorphism(D, C, map_dict, check=false)
+end
+
 

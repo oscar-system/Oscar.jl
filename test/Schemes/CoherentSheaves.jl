@@ -154,7 +154,6 @@ end
   PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
 end
 
-
 @testset "direct sums of sheaves" begin
   IP = projective_space(QQ, ["x", "y", "z", "w"])
   S = ambient_coordinate_ring(IP)

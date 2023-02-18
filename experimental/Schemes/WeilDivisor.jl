@@ -17,10 +17,8 @@ stored as a formal linear combination over some ring ``R`` of
     CoveredSchemeType<:AbsCoveredScheme, 
     CoefficientRingType<:AbstractAlgebra.Ring, 
     CoefficientRingElemType<:AbstractAlgebra.RingElem
-   }
-  X::CoveredSchemeType # the parent
-  R::CoefficientRingType # the ring of coefficients
-  coefficients::IdDict{IdealSheaf, CoefficientRingElemType} # the formal linear combination
+   } <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType}
+  C::AlgebraicCycle{CoveredSchemeType, CoefficientRingType, CoefficientRingElemType}
 
   function WeilDivisor(
       X::AbsCoveredScheme,
@@ -28,23 +26,29 @@ stored as a formal linear combination over some ring ``R`` of
       coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
-    # TODO: Do we want to require that the different effective divisors 
-    # have the same underlying covering? Probably not.
-    for D in keys(coefficients)
-      space(D) === X || error("component of divisor does not lie in the given scheme")
-      parent(coefficients[D]) === R || error("coefficients do not lie in the given ring")
-    end
     if check
-      is_integral(X) || error("scheme must be integral") # activate once the test is implemented!
-      #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
-    return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
+    return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(AlgebraicCycle(X, R, coefficients, check=check))
+  end
+
+  function WeilDivisor(C::AlgebraicCycle; check::Bool=true)
+    X = scheme(C)
+    if check
+      for D in keys(coefficient_dict(C))
+        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
+      end
+    end
+    return new{typeof(X), coefficient_ring_type(C), coefficient_ring_elem_type(C)}(C)
   end
 end
+
+### forwarding of all essential functionality
+underlying_cycle(D::WeilDivisor) = D.C
 
 @attr function dim(I::IdealSheaf)
   dims = [dim(I(U)) for U in affine_charts(scheme(I))]
@@ -59,34 +63,6 @@ coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
 coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
-### getter methods
-@Markdown.doc """
-    scheme(D::WeilDivisor)
-
-Return the `CoveredScheme` ``X`` on which `D` is defined.
-"""
-scheme(D::WeilDivisor) = D.X
-
-getindex(D::WeilDivisor, I::IdealSheaf) = (D.coefficients)[I]
-
-@Markdown.doc """
-    components(D::WeilDivisor)
-
-Return the irreducible components ``Eⱼ`` of the divisor 
-``D = Σⱼ aⱼ ⋅ Eⱼ``.
-"""
-components(D::WeilDivisor) = [ Z for Z in keys(D.coefficients)]
-coefficient_dict(D::WeilDivisor) = D.coefficients
-coefficient_ring(D::WeilDivisor) = D.R
-
-set_name!(X::WeilDivisor, name::String) = set_attribute!(X, :name, name)
-name(X::WeilDivisor) = get_attribute(X, :name)::String
-has_name(X::WeilDivisor) = has_attribute(X, :name)
-
-function setindex!(D::WeilDivisor, c::RingElem, I::IdealSheaf)
-  parent(c) === coefficient_ring(D) || error("coefficient does not belong to the correct ring")
-  coefficient_dict(D)[I] = c
-end
 
 @Markdown.doc """
     WeilDivisor(X::CoveredScheme, R::Ring)
@@ -97,6 +73,10 @@ in `R`.
 function WeilDivisor(X::AbsCoveredScheme, R::Ring)
   D = IdDict{IdealSheaf, elem_type(R)}()
   return WeilDivisor(X, R, D)
+end
+
+function zero(W::WeilDivisor)
+  return WeilDivisor(scheme(W), coefficient_ring(W))
 end
 
 # provide non-camelcase methods
@@ -163,50 +143,17 @@ function Base.show(io::IO, D::WeilDivisor)
 end
 
 function +(D::T, E::T) where {T<:WeilDivisor}
-  X = scheme(D)
-  X === scheme(E) || error("divisors do not live on the same scheme")
-  R = coefficient_ring(D)
-  R === coefficient_ring(E) || error("coefficient rings do not coincide")
-  dict = IdDict{IdealSheaf, elem_type(R)}()
-  for I in keys(coefficient_dict(D))
-    dict[I] = D[I]
-  end
-  for I in keys(coefficient_dict(E))
-    if haskey(dict, I)
-      c = D[I] + E[I]
-      if iszero(c) 
-        delete!(dict, I)
-      else 
-        dict[I] = c
-      end
-    else
-      dict[I] = E[I]
-    end
-  end
-  return WeilDivisor(X, R, dict, check=false)
+  return WeilDivisor(underlying_cycle(D) + underlying_cycle(E), check=false)
 end
 
 function -(D::T) where {T<:WeilDivisor}
-  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
-  for I in keys(coefficient_dict(D))
-    dict[I] = -D[I]
-  end
-  return WeilDivisor(scheme(D), coefficient_ring(D), dict, check=false)
+  return WeilDivisor(-underlying_cycle(D), check=false)
 end
 
 -(D::T, E::T) where {T<:WeilDivisor} = D + (-E)
 
 function *(a::RingElem, E::WeilDivisor)
-  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(E))}()
-  for I in keys(coefficient_dict(E))
-    c = a*E[I]
-    if iszero(c)
-      delete!(dict, I)
-    else
-      dict[I] = c
-    end
-  end
-  return WeilDivisor(scheme(E), coefficient_ring(E), dict, check=false)
+  return WeilDivisor(a*underlying_cycle(E), check=false)
 end
 
 *(a::Int, E::WeilDivisor) = coefficient_ring(E)(a)*E
@@ -215,18 +162,7 @@ end
 +(D::WeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
 
 function ==(D::WeilDivisor, E::WeilDivisor) 
-  keys(coefficient_dict(D)) == keys(coefficient_dict(E)) || return false
-  for I in keys(coefficient_dict(D))
-    if haskey(coefficient_dict(E), I)
-      D[I] == E[I] || return false
-    else
-      iszero(D[I]) || return false
-    end
-  end
-  for I in keys(coefficient_dict(E))
-    !(I in keys(coefficient_dict(D))) && !(iszero(E[I])) && return false
-  end
-  return true
+  return underlying_cycle(D) == underlying_cycle(E)
 end
 
 #function intersection(D::T, E::T) where {T<:WeilDivisor}
