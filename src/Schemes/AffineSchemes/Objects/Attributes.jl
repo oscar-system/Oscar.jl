@@ -461,12 +461,14 @@ with coordinates
   J = radical(pre_saturated_ideal(I))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
   return domain(inc), inc
+  return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
   J = radical(modulus(OO(X)))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
   return domain(inc), inc
+  return Spec(base_ring(J), J)
 end
 
 ## to make reduced_scheme agnostic for quotient ring
@@ -574,7 +576,7 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
   I = radical(I)
   set_attribute!(X, :is_smooth, false)
-  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
 end
 
@@ -649,7 +651,7 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
     # TODO: Already compute intermediate radicals?
   end
   I = radical(I)
-  inc = ClosedEmbedding(X, ideal(OO(X), [g for g in OO(X).(gens(I))]))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
 end
 
@@ -683,7 +685,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     d = dim(X)
     R = base_ring(I)
     n = nvars(R) 
-    M = (issubset(P[1], radical(P[1])) ? _jacobi_matrix_modulus_reduced(X) : _jacobi_matrix_modulus(X))
+    M = _jacobi_matrix_modulus(X)
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
@@ -712,14 +714,6 @@ end
 ## cheaper version of jacobi_matrix specifically for Jacobi matrix of modulus
 ## compute *some* representative of the jacobian matrix of gens(modulus),
 ## forgetting about the denominators (contribution killed by modulus anyway)
-
-function _jacobi_matrix_modulus_reduced(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
-  g = gens(radical(modulus(underlying_quotient(OO(X)))))
-  L = base_ring(underlying_quotient(OO(X)))
-  n = nvars(L)
-  M = matrix(L, n, length(g),[derivative(f,i) for i=1:n for f in g])
-  return M
-end
 
 function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   g = gens(modulus(underlying_quotient(OO(X))))
