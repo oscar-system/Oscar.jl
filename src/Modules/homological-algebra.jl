@@ -556,16 +556,14 @@ julia> V = gens(R)
  y
  z
 
-julia> K = koszul_complex(V)
-K_4 ----> K_3 ----> K_2 ----> K_1 ----> K_0 ----> K_-1
+julia> K = koszul_complex(V);
 
 julia> matrix(map(K, 2))
 [-y    x   0]
 [-z    0   x]
 [ 0   -z   y]
 
-julia> Kd = hom(K, free_module(R, 1))
-Kd^-1 ----> Kd^0 ----> Kd^1 ----> Kd^2 ----> Kd^3 ----> Kd^4
+julia> Kd = hom(K, free_module(R, 1));
 
 julia> matrix(map(Kd, 1))
 [-y   -z    0]
