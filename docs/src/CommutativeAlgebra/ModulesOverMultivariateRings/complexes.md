@@ -53,7 +53,8 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = chain_complex([a, b]; seed = 3);
+julia> C = chain_complex([a, b]; seed = 3)
+C_5 ----> C_4 ----> C_3
 
 julia> range(C)
 5:-1:3
@@ -64,7 +65,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 1 generator
 1 -> x^4*e[1]
 
-julia> map(C, 5)
+julia> delta = map(C, 5)
 Map with following data
 Domain:
 =======
@@ -78,6 +79,9 @@ Subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 1 generator
 1 -> x^3*e[1]
+
+julia> matrix(delta)
+[x^2]
 ```
 
 ## Operations on Complexes
