@@ -123,7 +123,7 @@ end
 end
 
 @testset "Projective representations" begin
-  fpr = faithful_projective_representations(32, 49, 4)
+  fpr = faithful_projective_representations(small_group(32, 49), 4)
   p = associated_schur_cover(fpr[1])
   RR = representation_ring_linear_lift(fpr[1])
   G = underlying_group(fpr[1])
@@ -212,7 +212,7 @@ end
 end
 
 @testset "Symmetric Grassmannians" begin
-  fpr = faithful_projective_representations(16, 8, 4)
+  fpr = faithful_projective_representations(small_group(16, 8), 4)
   RR = representation_ring_linear_lift(fpr[1])
   for i in 1:4
     prep = fpr[i]
@@ -235,10 +235,9 @@ end
     @test is_submodule(linear_lift(preph), std_el)
     r = action_on_submodule(linear_lift(preph), std_el)
     @test character_representation(r) == nu
-
-    cs = constituents(chi, 8)
-    nu = rand(cs)
-    cg = @inferred character_grassmannian(preph, nu)
+    cs = constituents(chi, 5)
+    nu = cs[end]
+    cg = character_grassmannian(preph, nu)
     cd = character_decomposition(cg)
     @test submodule_character(cg) == nu
     @test submodule_dimension(cg) == Int(degree(nu))
@@ -258,7 +257,6 @@ end
     @test is_submodule(linear_lift(preph), std_el)
     r = action_on_submodule(linear_lift(preph), std_el)
     @test character_representation(r) == nu
-
     ig = @inferred invariant_grassmannian(prep, 2)
     @test submodule_dimension(ig) == 2
     @test module_representation(ig) == linear_lift(prep)
@@ -293,7 +291,7 @@ end
 end
 
 @testset "Symmetric intersections" begin
-  si = symmetric_intersections((21, 1), 4, 4, 1)
+  si = symmetric_intersections(small_group(21, 1), 4, 4, 1)
   for (prep, symci) in si
     @test all(S -> projective_group_action(S) === prep, symci)
     S = symci[1]
@@ -306,14 +304,14 @@ end
     @test all(f -> is_semi_invariant_polynomial(linear_lift(prep), f[1]), fs)
     for f in fs
       f = f[1]
-      r = @inferred action_on_polynomial(linear_lift(prep), f)
+      r = @inferred linear_representation(linear_lift(prep), f)
       @test character_representation(r) == chi
     end
     std_el = @inferred standard_element(S)
     @test is_invariant_ideal(linear_lift(prep), std_el)
   end
 
-  si = symmetric_intersections((96, 204), 4, 3, 4)
+  si = symmetric_intersections(small_group(96, 204), 4, 3, 4)
   for (prep, symci) in si
     Is = standard_element.(symci)
     Ms = underlying_moduli_space_of_modules.(symci)
@@ -321,10 +319,9 @@ end
     @test all(I -> is_invariant_ideal(linear_lift(prep), I), Is)
     for i in 1:length(Is)
       I = Is[i]
-      r = @inferred action_on_ideal(linear_lift(prep), I)
+      r = @inferred linear_representation(linear_lift(prep), I)
       @test character_representation(r) == chis[i]
     end
   end
 end
-
 

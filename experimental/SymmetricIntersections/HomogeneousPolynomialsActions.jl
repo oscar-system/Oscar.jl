@@ -1,6 +1,4 @@
-export action_on_ideal,
-       action_on_polynomial,
-       is_invariant_ideal,
+export is_invariant_ideal,
        is_semi_invariant_polynomial,
        projective_group_action,
        pullback,
@@ -13,10 +11,14 @@ export action_on_ideal,
 @doc Markdown.doc"""
     is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec -> Bool
 
-Given a linear representation `rep` on a finite vector space `V` and a
+Given a linear representation `rep` of a group `E` on a finite vector space `V` and a
 homogeneous polynomial `f` of degree `d` in the ($\mathbb Z$-graded) polynomial
 algebra `R` associated to `V`, return whether `f` is semi-invariant under the induced
 action on `R_d`.
+
+`f` is said to be semi-invariant if for all $e \in E$, the image of `f` under the action
+of `e` given by `rep` is a scalar multiple of `f`. In other words, the vector span
+of `f` in `R_d` is `E`-invariant under the actions induced by `rep`.
 """ 
 function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec
   @req is_homogeneous(f) "f must be a homogeneous polynomial"
@@ -37,14 +39,14 @@ function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_de
 end
 
 @doc Markdown.doc"""
-    action_on_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec -> LinRep
+    linear_representation(rep::LinRep, f::S) where S <: MPolyElem_dec -> LinRep
 
 Given a linear representation `rep` on a finite vector space `V` and a semi-invariant
 homogeneous polynomial `f` of degree `d` in the ($\mathbb Z$-graded) polynomial
 algebra `R` associated to `V`, return the 1-dimensional linear representation
 corresponding to the induced action on `f`.
 """ 
-function action_on_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec
+function linear_representation(rep::LinRep, f::S) where S <: MPolyElem_dec
   @req is_homogeneous(f) "f must be a homogeneous polynomial"
   R = parent(f)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
@@ -71,10 +73,6 @@ Given a linear representation `rep` on a finite vector space `V` and a
 homogeneous ideal `I` in the ($\mathbb Z$-graded) polynomial algebra `R`
 associated to `V`, return whether `I` is invariant under the induced action on
 `R`.
-
-A homogeneous ideal `I` is invariant under a linear action of a group on its
-associated polynomial algebra `R` if and only if the `d`-homogeneous component
-`I_d` of `I` is invariant under the corresponding action on `R_d`.
 """ 
 function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
   R = base_ring(I)
@@ -93,15 +91,15 @@ function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyEle
 end
 
 @doc Markdown.doc"""
-    action_on_ideal(rep::LinRep, I::S)
+    linear_representation(rep::LinRep, I::S)
                               where S <: MPolyIdeal{<: MPolyElem_dec} -> LinRep
 
 Given a linear representation `rep` on a finite dimensional vector space `V` and an invariant
 homogeneous polynomial `I` in the ($\mathbb Z$-graded) polynomial algebra `R`
-associated to `V`, such that `I = I_d` for some posiitve integer `d, return the
+associated to `V`, such that `I = I_d` for some positive integer `d`, return the
 linear representation corresponding to the induced action on `I`.
 """ 
-function action_on_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
+function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficients of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
@@ -169,7 +167,7 @@ end
                                              -> MPolyIdeal_dec
 
 Given a parametrizing space `symci` for ideal defining symmetric intersections,
-return an specific ideal in `symci` made up of all possible samples.
+return an specific ideal in `symci` made from all possible samples.
 """
 function standard_element(symci::SymmetricIntersections)
   std_el = standard_element(symci.para)
@@ -259,11 +257,10 @@ function Base.show(io::IO, symci::SymmetricIntersections)
 end
 
 @doc Markdown.doc"""
-    symmetric_intersections(id::Tuple{Int, Int}, n::Int, d::Int, t::Int)
     symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
                               -> Vector{Tuple{ProjRep, Vector{SymmetricIntersections}}}
                               
-Given a small group `G` of ID `id` and three integers `n`, `d` and `t`, return a
+Given a small group `G` and three integers `n`, `d` and `t`, return a
 parametrisation for the ideals defining intersections of `t` hypersurfaces
 of the same degree `d` inside $\mathbb P^{n-1}$, which are invariant under the action of
 `G` on the latter projective space.
@@ -284,6 +281,4 @@ function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   end
   return res
 end
-
-symmetric_intersections(id::Tuple{Int, Int}, n::Int, d::Int, t::Int) = symmetric_intersections(small_group(id[1], id[2]), n, d, t)
 

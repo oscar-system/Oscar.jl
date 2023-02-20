@@ -7,16 +7,6 @@ export associated_bounds,
        number_of_elevations,
        underlying_iterator,
        underlying_list
-"""
-Given a sorted list of integers `L` and an integer `d`, I call a `d`-elevation
-of `L` any set of indices for which the sum of the corresponding elements in `L`
-is `d`. The set of all `d`-elevations of `L` is called the `d`-elevator of `L`.
-For any `d`-elevations `e` of `L`, `d` is called the degree of `e`.
-
-If `(L, f)` consists of a list `L` of objects of the same type and a ``\mathbb Z``-
-valued function `f` such that `f(L)` is a sorted list of integers, the `d`-elevator
-of `(L, f)` is defined to be the `d`-elevator of `f(L)`.
-"""
 
 ###############################################################################
 #
@@ -24,50 +14,58 @@ of `(L, f)` is defined to be the `d`-elevator of `f(L)`.
 #
 ###############################################################################
 
-function _iterate_size(L::Vector{fmpz}, lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
-  is_empty(L) && return Int(0)
+# we need to select `d` indices among 1,...,length(lbs) and the number of
+# times each index i can be chosen should be between lbs[i] and ubs[i]
+function _iterate_size(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
+  is_empty(lbs) && return 0
   if d == 0
-    any(bb -> bb > 0, lbs) ? (return Int(0)) : (return Int(1))
+    return any(bb -> bb > 0, lbs) ? 0 : 1
   end
 
-  @assert length(L) == length(lbs) == length(ubs)
-  @assert length(unique(L)) == 1
+  @assert length(lbs) == length(ubs)
 
-  if length(L) == 1
-    (lbs[1] <= d <= ubs[1]) ? (return Int(1)) : (return Int(0))
+  if length(lbs) == 1
+    return (lbs[1] <= d <= ubs[1]) ? 1 : 0
   end
 
   absd = d-sum(lbs)
   if absd == 0
-    return Int(1)
+    return 1
   elseif absd < 0
-    return Int(0)
+    return 0
   else
-    ubs = sort([ubs[i]-lbs[i] for i in 1:length(L)])
-    return _iterate_size_no_lbs(L, ubs, absd)
+    ubs = sort([ubs[i]-lbs[i] for i in 1:length(lbs)])
+    return _iterate_size_no_lbs(ubs, absd)
   end
-
 end
 
-function _iterate_size_no_lbs(L::Vector{fmpz}, ubs::Vector{Int}, d::Int)
-  if length(L) == 1
-    d <= ubs[1] ? (return Int(1)) : (return Int(0))
+# same as before where we have removed the lower bounds condition
+function _iterate_size_no_lbs(ubs::Vector{Int}, d::Int)
+  if length(ubs) == 1
+    return d <= ubs[1] ? 1 : 0
   end
 
   if all(k -> k >= d, ubs)
-    return binomial(d+length(L)-1, d)
+    return binomial(d+length(ubs)-1, d)
   end
 
-  s = Int(0)
+  s = 0
   for i in 0:min(d, ubs[1])
-    s += _iterate_size_no_lbs(L[2:end], ubs[2:end], d-i)
+    s += _iterate_size_no_lbs(ubs[2:end], d-i)
   end
 
   return s
 end
 
+# given an elevator context EC for a list L, with attached function f and with
+# attributed degree d (degree of the elevations), this function returns the
+# number of d-elevations of (L, f) as well as the type of sums with respect to
+# f(L). The type of a sum is given by a partition of d on the elements of
+# f(L). Several distinct indices could correspond to the same integers
+# in f(L), and while enumerating EC, we want to know which partition of d on the
+# elements of f(L) we have to consider.
 @attr Tuple{Int, Vector{Vector{fmpz}}} function _num_sum(EC::ElevCtx{T, U}) where {T, U}
-  len = Int(0)
+  len = 0
   sumsum = Vector{fmpz}[]
   it = underlying_iterator(EC)
   L = underlying_list(EC)
@@ -102,18 +100,18 @@ end
         _iter += j
         continue
       end
-      aug = Int(0)
+      aug = 0
       for k in max(1, _lbs[j]):min(Hecke.multiplicity(ms, val[1]), _ubs[j])
         if k == Hecke.multiplicity(ms, val[1])
           _p = any(i -> lbs[i] > 0, [i for i in _iter+j+1:length(lbs) if L[i] == val[1]]) ? Int(0) : Int(1)
         else
-          _p = Int(1)
+          _p = 1
         end
         ms2 = MSet(s[k+1:end])
         val2 = sort(unique(ms2))
         for l in val2
           idx = filter(m -> LL[m] == l, j+1:length(LL))
-          _p *= _iterate_size(LL[idx], _lbs[idx], _ubs[idx], Hecke.multiplicity(ms2, l))
+          _p *= _iterate_size(_lbs[idx], _ubs[idx], Hecke.multiplicity(ms2, l))
         end
         len += _p
         aug += _p
@@ -184,12 +182,13 @@ associated_bounds(EC::ElevCtx) = EC.bounds
 # Here we create an iterator to avoid to keep stored all the elevations.
 @doc Markdown.doc"""
     elevator(L::Vector{T}, f::U, d::Int;
-             lbs::Vector{Int} = [0 for i in 1:length(L)],
+             lbs::Vector{Int} = Int[0 for i in 1:length(L)],
              ubs::Vector{Int} = nothing) where {T, U} -> ElevCtx
 
 Given a list `L` and a $\mathbb Z$-valued function `f` on `L` such that
 $f(L)$ is a sorted list of integers, return the `d`-elevator associated to
-`(L, f)`.
+`(L, f)`. We call `d`-elevator of `(L, f)` the list of all sets of indices for `L`
+such that the sum of the corresponding elements in `f(L)` is `d`.
 
 If `f` is not provided, `L` must be a list of integers and the function
 returns the usual `d`-elevator of `L`.
@@ -197,6 +196,8 @@ returns the usual `d`-elevator of `L`.
 One can provide lower bounds and upper bounds on the number of times which index
 can be repeatedly taken to construct an elevation. By default, there is
 no bound.
+
+Note that the `d`-elevations of `(L, f)` are ordered lexicographically.
 """
 function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 1:length(L)], ubs::Vector{Int} = Int[-1 for i in 1:length(L)]) where {T, U}
   fL = f.(L)
@@ -226,7 +227,6 @@ function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 
 
   it = solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, B, C, D)
   el = ElevCtx(L, d, it, f, (lbs, ubs))
-  _num_sum(el)
   return el
 end
 
@@ -238,6 +238,9 @@ elevator(L::Vector{Int}, d::Int; lbs::Vector{Int} = [0 for i in 1:length(L)], ub
 #
 ###############################################################################
 
+# for a d-elevator of (L,f), return the first `d`-elevation of (L, f) associated
+# to the partition sumtype of d on the elements of f(L). The order considered by
+# default is the lexicographic order
 function _first(EC::ElevCtx, sumtype::Vector{fmpz})
   @assert sum(sumtype) == degree_of_elevations(EC)
   @assert any(s -> s == sumtype, _possible_sums(EC))
@@ -257,6 +260,10 @@ function _first(EC::ElevCtx, sumtype::Vector{fmpz})
   return s
 end
 
+# given lower bounds and upper bounds conditions on the set of
+# indices 1,..., length(lbs), and an integer d, it returns the first
+# (in the lexicographic order) length-d vector of indices matching these
+# restrictions
 function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   if any(i -> lbs[i] > ubs[i], 1:length(lbs))
     return Int[]
@@ -283,8 +290,12 @@ function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   return sort(s)
 end
 
+# we keep track of the first elevation
 @attr Vector{Int} _first(EC::ElevCtx) = _first(EC, _possible_sums(EC)[1])
 
+# for a d-elevator of (L,f), return the last d-elevation of (L, f) associated
+# to the partition sumtype of d on the elements of f(L). The order considered
+# is the lexicographic order.
 function _last(EC::ElevCtx, sumtype::Vector{fmpz})
   @assert sum(sumtype) == degree_of_elevations(EC)
   @assert any(s -> s == sumtype, _possible_sums(EC))
@@ -304,6 +315,10 @@ function _last(EC::ElevCtx, sumtype::Vector{fmpz})
   return s
 end
 
+# given lower bounds and upper bounds conditions on the set of
+# indices 1,..., length(lbs), and an integer d, it returns the last
+# (in the lexicographic order) length-d vector of indices matching these
+# restrictions
 function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   if any(i -> lbs[i] > ubs[i], 1:length(lbs))
     return Int[]
@@ -330,6 +345,7 @@ function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   return sort(s)
 end
 
+# we keep track of the last elevation
 @attr Vector{Int} _last(EC::ElevCtx) = _last(EC, _possible_sums(EC)[end])
 
 function _next(EC::ElevCtx, elev::Vector{Int})
@@ -362,6 +378,13 @@ function _next(EC::ElevCtx, elev::Vector{Int})
   return s
 end
 
+# given lower bounds and upper bounds conditions on the set of
+# indices 1,..., length(lbs), and a length-d vector satisfying these
+# restrctions, it returns the next (in the lexicographic order)
+# length-d vector of indices matching these restrictions. I elh
+# was the last one, that it returns first matching length-d vectors
+# as well as "true", meaning that it had cycled back to the first. If
+# it has not cycled, then it returns the next vector and "false".
 function _next_homog(lbs::Vector{Int}, ubs::Vector{Int}, elh::Vector{Int})
   d = length(elh)
 
@@ -388,6 +411,8 @@ function _next_homog(lbs::Vector{Int}, ubs::Vector{Int}, elh::Vector{Int})
   return s, false
 end
 
+# same as before, but we do not have cycles here (since we cover them
+# earlier), and we have taken away the lower bounds conditions.
 function _next_homog_no_lbs(ubs::Vector{Int}, elhn::Vector{Int})
   if length(elhn) == 1
     j = findfirst(j -> j > elhn[1] && ubs[j] != 0, 1:length(ubs))

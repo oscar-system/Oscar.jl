@@ -1,10 +1,9 @@
 import Oscar: elem_type
 
-"""
-We work always with finite groups and splitting fields of characteristic zero.
-So by default, we take `QQAb` which is algebraically close of characteristic
-zero.
-"""
+# We work always with finite groups and splitting fields of characteristic zero.
+# So by default, we take as splitting field the `e`-th cyclotomic field where
+# `e` is the exponent of the group we work with.
+
 
 export CharacterGrassmannian,
        DeterminantGrassmannian,
@@ -24,6 +23,16 @@ export CharacterGrassmannian,
 #
 ###############################################################################
 
+@doc Markdown.doc"""
+  Given a sorted list of integers `L` and an integer `d`, we call a `d`-elevation
+  of `L` any set of indices for which the sum of the corresponding elements in `L`
+  is `d`. The set of all `d`-elevations of `L` is called the `d`-elevator of `L`.
+  For any `d`-elevations `e` of `L`, `d` is called the degree of `e`.
+
+  If `(L, f)` consists of a list `L` of objects of the same type and a $\mathbb Z$-
+  valued function `f` such that `f(L)` is a sorted list of integers, the `d`-elevator
+  of `(L, f)` is defined to be the `d`-elevator of `f(L)`.
+"""
 @attributes mutable struct ElevCtx{T, U}
   L::Vector{T}
   d::Int
@@ -51,12 +60,14 @@ end
 ### Representation ring
 
 """
+A structure encoding a representation ring.
+
 Here a representation ring is a "parent" for linear representation, used to store
-the underlying group, a splitting field (`QQAb` by default), a set of generators
-for the group, the character table, the irreducible characters and, iteratively,
-representations affording some of the irreducible characters (only the one needed
-so far). There could be less accessors since irreducible characters store the character
-tale which store the group and the field, by it is easily accessed like this.
+the underlying group, a splitting field, a set of generators for the group, the
+character table, the irreducible characters and, iteratively, representations
+affording some of the irreducible characters (only the one needed so far). We could
+drop some of these since irreducible characters store the character table which
+itself stores the group, but it is easily accessed like this.
 """
 @attributes mutable struct RepRing{S, T}
   field::S
@@ -83,7 +94,7 @@ elem_type(::Type{RepRing{S, T}}) where {S, T} = LinRep{S, T, Oscar.elem_type(S)}
 
 """
 Linear representations: an object of a representation ring, which is used as a parent
-via caching. We also store the character. Representations are represented by an homomorphism
+via caching. We also store the character. Representations are represented by a homomorphism
 from the cached underlying group of their representation ring, to a matrix group whose matrices
 have entries in the cached splitting field of the representation ring.
 """
@@ -105,8 +116,8 @@ end
 ### Projective representation of finite groups
 
 """
-Projective representations of a group are represented by a linear lift to a
-Schur cover of the group. We store the underlying group and the linear lift.
+Projective representations of a group are represented by a linear lift along a
+Schur cover of the group. We store the underlying Schur cover and the linear lift.
 """
 @attributes mutable struct ProjRep{S, T, U, V}
   LR::LinRep{S, T, U}

@@ -1,4 +1,4 @@
-GG = GAP.Globals
+const GG = GAP.Globals
 
 import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective
 
@@ -53,10 +53,10 @@ export action_on_submodule,
 """
 Here are some tools for representation theory and projective representations.
 We use representation rings as parent object and we represent projective
-representations of a group `G` by a linear lift of a Schur cover of `G`.
+representations of a group `G` by a linear lift along a Schur cover of `G`.
 Here we use by default as splitting field the cyclotomic field of degree the
-exponent of the asscoiated gorup, but a priori functions should work if one
-allow representation ring to be constructed over another splitting field.
+exponent of the asscoiated group, but a priori functions should work if one
+allows representation ring to be constructed over another splitting field.
 
 Note that all this code is well supported for finite groups and splitting
 fields of characteristic zero, i.e. `QQAb` or appropriate cyclotomic fields
@@ -376,7 +376,7 @@ such that $chi(e)$ is a primitive root of unity times the degree of `chi`.
 """
 function center_of_character(chi::Oscar.GAPGroupClassFunction)
   E = chi.table.GAPGroup
-  _H = GG.CenterOfCharacter(chi.values)::GAP.GAP_jll.GapObj
+  _H = GG.CenterOfCharacter(chi.values)::GAP.GapObj
   H = typeof(E)(_H)
   ok, j = is_subgroup(E, H)
   @assert ok
@@ -456,7 +456,7 @@ end
                                 where {S, T, U, V <: MatElem{U}} -> LinRep{S, T, U}
 
 Return the linear representation in `RR` associated to the matrix representation
-`mr`. `chi` must be correspond to the character afforded by this representation.
+`mr`. `chi` must correspond to the character afforded by this representation.
 If not provided, `chi` is automatically computed.
 
 Note: here matrices in `mr` should correspond to the cached set of
@@ -579,7 +579,7 @@ end
 # This is an import of the `repsn` GAP package: while they do construct the
 # homomorphism without context, here we insist on the fact that the representation
 # "belongs to" the given representation ring, whenever it makes sense. Then,
-# since we have a fixed underlying group and an parent object for the entries of
+# since we have a fixed underlying group and a parent object for the entries of
 # the matrices in the image, both stored in `RR`, we translate the homomorphism
 # constructed in GAP to match properly the data here. We also add an extra caching
 # in `RR` to avoid having to reconstruct irreducible representations already computed.
@@ -612,12 +612,12 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   H = generators_underlying_group(RR)
 
   # the GAP function which we rely on
-  rep = GG.IrreducibleAffordingRepresentation(chi.values)::GAP.GAP_jll.GapObj
+  rep = GG.IrreducibleAffordingRepresentation(chi.values)::GAP.GapObj
 
   # we compute certain images than we will convert then.
   # we use them then to construct the mapping in 
   # `_linear_representation`
-  _Mat = GAP.GAP_jll.GapObj[GG.Image(rep, h.X) for h in H]
+  _Mat = GAP.GapObj[GG.Image(rep, h.X) for h in H]
   Mat = AbstractAlgebra.Generic.MatSpaceElem{elem_type(F)}[]
   for _M in _Mat
     rM = eltype(Mat)[transpose(matrix(F.(m))) for m in _M]
@@ -646,7 +646,7 @@ function affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPGroupClassFun
 
   # The blocks for the block diagonal representation. The
   # easiest way for us is to start by looking at the 
-  # irreducible constituent of chi and their multiplicities
+  # irreducible constituents of chi and their multiplicities
   # and then we take the direct sum of the corresponding
   # irreducible affording representations with the given multiplicities
   blocks = [c[2] for c in cd for i in 1:c[1]]
@@ -1164,7 +1164,7 @@ end
   projectively faithful representations of a Schur cover associated to those
   faithful projective representations
 """
-function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
+function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   # we start by computing a Schur cover and we turn it into an Oscar object
   G_gap = G.X
   f_gap = GG.EpimorphismSchurCover(G_gap)
@@ -1182,11 +1182,13 @@ function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
   fff = inv(GAPGroupHomomorphism(H, E, fff_gap))
   f = GAPGroupHomomorphism(H, G, f_gap)
   pschur = compose(fff, f)
-  @assert is_surjective(f)
+  @assert is_surjective(pschur)
 
-  # now we need to enumerate of characters of E of degree dim, modulo
-  # multiplication by a linear character and up to the bounds
-  # fixed by `setup`
+  # now we need to enumerate all characters of E of degree dim, which are
+  # projectively faithful with respect to `pschur`, i.e. their center
+  # should be equal to the kernel of `pschur` (which is isomorphic to the
+  # Schur multiplier of G). We classify them up to multiplication by
+  # linear characters of E.
   RR = representation_ring(E)
   ct = character_table_underlying_group(RR)
   _Irr = irreducible_characters_underlying_group(RR)
@@ -1206,7 +1208,7 @@ function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
     if !is_projective(chi, pschur) || !is_faithful(chi, pschur)
       continue
     end
-    if any(lin -> lin*chi in chars, lins) # afforded by representations with similar reductions
+    if any(lin -> lin*chi in chars, lins) # afforded by representations with similar reductions to G
       continue
     end
     push!(chars, chi)
@@ -1218,13 +1220,11 @@ function _has_pfr(G::T, dim::Int) where T <: Oscar.GAPGroup
 end
 
 @doc Markdown.doc"""
-    faithful_projective_representations(o::Int, n::Int, dim::Int)
     faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
                                                              -> Vector{ProjRep}
 
-Given a small group `G` of ID `[o,n]`, return a set of representatives
-of equivalences classes of faithful projective representations of `G` of complex
-dimension `dim`.
+Given a small group `G`, return a set of representatives of equivalences classes
+of faithful projective representations of `G` of complex dimension `dim`.
 """
 function faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
   bool, RR, sum_index, p = _has_pfr(G, dim)
@@ -1244,8 +1244,6 @@ function faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
   end
   return pfr
 end
-
-faithful_projective_representations(o::Int, n::Int, d::Int) = faithful_projective_representations(small_group(o, n), d)
 
 ###############################################################################
 #
