@@ -247,7 +247,7 @@ x
 julia> RQL(x)
 x
 
-julia> f = phi(x)*inv(phi(y))
+julia> f = phi(x)/phi(y)
 x/y
 
 julia> g = RQL(x, y)
@@ -255,7 +255,7 @@ x/y
 
 julia> X, Y = gens(RQL);
 
-julia> h = X*inv(Y)
+julia> h = X/Y
 x/y
 
 julia> f == g == h
@@ -343,7 +343,7 @@ x
 julia> parent(f)
 Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
 
-julia> g = f*inv(phi(y))
+julia> g = f/phi(y)
 x/y
 
 julia> r = numerator(f*g)

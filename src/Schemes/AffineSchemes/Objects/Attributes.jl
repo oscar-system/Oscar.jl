@@ -429,14 +429,33 @@ julia> Y = Spec(R,J,U)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
 
 julia> reduced_scheme(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
+
+with coordinates
+
+	y, y)
 
 julia> reduced_scheme(Y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0], morphism from
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+
+to
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+
+with coordinates
+
+	x, y)
 
 ```
 """
-
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
@@ -531,9 +550,9 @@ julia> Y = Spec(R,I,U)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
 
 julia> singular_locus(Y)
-(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], morphism from
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], morphism from
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
 
 to
 

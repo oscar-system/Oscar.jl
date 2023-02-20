@@ -400,6 +400,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
       X::DomainType,
       Y::CodomainType,
       f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
+      ideal_sheaf::IdealSheaf=IdealSheaf(Y, f),
       check::Bool=true
     ) where {
              DomainType<:CoveredScheme,
@@ -409,8 +410,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
             }
     ff = CoveredSchemeMorphism(X, Y, f, check=check)
     #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
-    I = IdealSheaf(Y, f)
-    return new{DomainType, CodomainType, BaseMorType}(ff, I)
+    return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
   end
 end
 
@@ -421,12 +421,13 @@ underlying_morphism(phi::CoveredClosedEmbedding) = phi.f
 image_ideal(phi::CoveredClosedEmbedding) = phi.I
 
 ### user facing constructors
-function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
+function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf; 
+        covering::Covering=default_covering(X), check::Bool=true)
   space(I) == X || error("ideal sheaf is not defined on the correct scheme")
   mor_dict = IdDict{AbsSpec, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
   rev_dict = IdDict{AbsSpec, AbsSpec}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.
   patch_list = Vector{AbsSpec}()
-  for U in affine_charts(X)
+  for U in patches(covering)
     inc = ClosedEmbedding(U, I(U))
     V = domain(inc)
     if !isempty(V)
@@ -436,17 +437,18 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
     end
   end
   glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
-  for (U, V) in keys(glueings(default_covering(X)))
-    G = default_covering(X)[U, V]
-    (U in keys(rev_dict) && V in keys(rev_dict)) || continue # No need to glue empty sets
-    (isempty(intersect(rev_dict[U], glueing_domains(G)[1])) || isempty(intersect(rev_dict[V], glueing_domains(G)[2]))) && continue # No need to glue stuff trivially
-    GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V], check=false)
-    glueing_dict[(rev_dict[U], rev_dict[V])] = GG
+  for Unew in keys(mor_dict)
+    U = codomain(mor_dict[Unew])
+    for Vnew in keys(mor_dict)
+      V = codomain(mor_dict[Vnew])
+      glueing_dict[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+                                               RestrictionDataClosedEmbedding(covering[U, V], Unew, Vnew)
+                                              )
+    end
   end
-  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict))
-  cov_inc = CoveringMorphism(default_covering(Z), default_covering(X), mor_dict)
-  return CoveredClosedEmbedding(Z, X, cov_inc)
+
+  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict, check=check))
+  cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=check)
+  return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=check)
 end
-
-
 

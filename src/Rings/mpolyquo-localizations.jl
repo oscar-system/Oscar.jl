@@ -1525,7 +1525,6 @@ base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
 pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
-getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 ### Additional constructors
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
@@ -1609,8 +1608,12 @@ function quo(
     L::MPolyQuoLocalizedRing,
     I::MPolyQuoLocalizedIdeal
   )
-  base_ring(I) == L || error("ideal does not belong to the correct ring")
-  W, _ = quo(localized_ring(L), modulus(L) + pre_image_ideal(I))
+  base_ring(I) === L || error("ideal does not belong to the correct ring")
+  R = base_ring(L)
+  J = modulus(underlying_quotient(L))
+  J = ideal(R, vcat([g for g in gens(J) if !iszero(g)], 
+                    [g for g in lifted_numerator.(gens(pre_image_ideal(I))) if !(g in J)]))
+  W, _ = quo(localized_ring(L), localized_ring(L)(J))
   return W, hom(L, W, gens(W), check=false)
 end
 
@@ -1677,3 +1680,16 @@ function _is_integral_domain(R::Ring)
   is_domain_type(typeof(R)) && return true
   error("method not implemented for rings of type $(typeof(R))")
 end
+
+### Some auxiliary functions
+
+@attr MPolyQuoLocalizedIdeal function radical(I::MPolyQuoLocalizedIdeal)
+  W = base_ring(I)
+  J = pre_image_ideal(I)
+  return ideal(W, [g for g in W.(gens(radical(J))) if !iszero(g)])
+end
+
+@attr function dim(I::MPolyQuoLocalizedIdeal)
+  return dim(pre_image_ideal(I))
+end
+

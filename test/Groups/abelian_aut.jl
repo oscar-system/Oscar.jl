@@ -24,7 +24,7 @@
   @test all(autA(matrix(f)) == f for f in gens(autA))
   @test all(defines_automorphism(domain(autA),matrix(f)) for f in gens(autA))
 
-  A,_ = sub(A,[A[1],A[3],A[3]+A[2],A[2]-A[3]])
+  A,_ = sub(A,[A[1],A[3],A[3]+A[2],A[2]-A[3]], false)
   Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)

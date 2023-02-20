@@ -1,6 +1,7 @@
 using JSON
 using UUIDs
 
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
@@ -23,7 +24,6 @@ function DeserializerState()
     return DeserializerState(Dict{UUID, Any}())
 end
 
-
 const backref_sym = Symbol("#backref")
 
 ################################################################################
@@ -35,7 +35,7 @@ function get_version_info()
     )
     return result
 end
-const versionInfo = get_version_info()
+const oscarSerializationVersion = get_version_info()
 
 
 ################################################################################
@@ -86,11 +86,14 @@ end
 
 
 
-
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
+    if is_basic_serialization_type(T) && s.depth != 0
+        return save_internal(s, obj)
+    end
+
+    if !isprimitivetype(T) && !Base.issingletontype(T)
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
@@ -118,9 +121,18 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         s.depth -= 1
     end
     if s.depth == 0
-        result[:_ns] = versionInfo
+        result[:_ns] = oscarSerializationVersion
     end
     return result
+end
+
+function load_type_dispatch(s::DeserializerState,
+                            ::Type{T}, str::String; parent=nothing) where T
+    @assert is_basic_serialization_type(T)
+    if parent !== nothing
+        load_internal_with_parent(s, T, str, parent)
+    end
+    return load_internal(s, T, str)
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
@@ -151,7 +163,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     else
         result = load_internal(s, T, dict[:data])
     end
-    
+
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
     end
@@ -160,18 +172,7 @@ end
 
 function load_unknown_type(s::DeserializerState,
                            dict::Dict;
-                           parent=nothing,
-                           check_namespace=false)
-    if check_namespace
-        haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
-        _ns = dict[:_ns]
-        if haskey(_ns, :polymake)
-            # If this is a polymake file
-            return load_from_polymake(dict)
-        end
-        haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
-    end
-
+                           parent=nothing)
     if dict[:type] == string(backref_sym)
         return s.objs[UUID(dict[:id])]
     end
@@ -204,6 +205,34 @@ function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) wher
     return T(fields...)
 end
 
+################################################################################
+# Include serialization implementations for various types
+
+include("basic_types.jl")
+include("containers.jl")
+include("PolyhedralGeometry.jl")
+include("Combinatorics.jl")
+include("Fields.jl")
+include("ToricGeometry.jl")
+include("Rings.jl")
+include("polymake.jl")
+include("TropicalGeometry.jl")
+include("QuadForm.jl")
+
+################################################################################
+# Include upgrade scripts
+
+include("upgrades/main.jl")
+
+function get_file_version(dict::Dict{Symbol, Any})
+    ns = dict[:_ns]
+    version_dict = ns[:Oscar][2]
+    return get_version_number(version_dict)
+end
+
+function get_version_number(dict::Dict{Symbol, Any})
+    return VersionNumber(dict[:major], dict[:minor], dict[:patch])
+end
 
 ################################################################################
 # Interacting with IO streams and files
@@ -297,25 +326,28 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
+    haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
+    _ns = jsondict[:_ns]
+    if haskey(_ns, :polymake)
+        # If this is a polymake file
+        return load_from_polymake(jsondict)
+    end
+    haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
+
+    file_version = get_file_version(jsondict)
+
+    if file_version < VERSION_NUMBER
+        jsondict = upgrade(jsondict, file_version)
+    end
+
     if type !== nothing
         return load_type_dispatch(state, type, jsondict; parent=parent)
     end
-    return load_unknown_type(state, jsondict; parent=parent, check_namespace=true)
+    return load_unknown_type(state, jsondict; parent=parent)
 end
 
-function load(filename::String; parent::Any = nothing, type::Any =  nothing)
+function load(filename::String; parent::Any = nothing, type::Any = nothing)
     open(filename) do file
         return load(file; parent=parent, type=type)
     end
 end
-
-include("basic_types.jl")
-include("containers.jl")
-include("PolyhedralGeometry.jl")
-include("Combinatorics.jl")
-include("Fields.jl")
-include("ToricGeometry.jl")
-include("Rings.jl")
-include("polymake.jl")
-include("TropicalGeometry.jl")
-include("QuadForm.jl")

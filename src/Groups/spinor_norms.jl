@@ -355,8 +355,8 @@ function det_spin_homomorphism(L::ZLat; signed=false)
     push!(GammaS, diagonal(QQ(-1)))
   end
   gens_ker = append!(sigma_sharp_gens, GammaS)
-  _, j = sub(A, gens_ker)
-  D, proj = cokernel(j)
+  _, j = sub(A, gens_ker, false)
+  D, proj = cokernel(j, false)
 
   for p in S
     if p == -1

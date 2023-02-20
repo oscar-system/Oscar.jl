@@ -1478,7 +1478,6 @@ ideal_type(L::MPolyLocalizedRing) = ideal_type(typeof(L))
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring
 is_saturated(I::MPolyLocalizedIdeal) = I.is_saturated
 ngens(I::MPolyLocalizedIdeal) = length(I.gens)
-getindex(I::MPolyLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   L = base_ring(I)
@@ -2662,4 +2661,15 @@ julia> (1+y)*x^2 in product(S, U)
 true
 ```
 """ Base.in(f::MPolyElem, U::AbsMPolyMultSet) 
+
+### Some auxiliary functions
+
+@attr MPolyLocalizedIdeal function radical(I::MPolyLocalizedIdeal)
+  J = pre_saturated_ideal(I)
+  return ideal(base_ring(I), gens(radical(J)))
+end
+
+@attr function dim(I::MPolyLocalizedIdeal)
+  return dim(saturated_ideal(I))
+end
 

@@ -91,5 +91,11 @@
                 @test original == loaded
             end
         end
+
+        @testset "Test for backwards compatibility" begin
+            loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
+            @test loaded_container == (r = fmpq(1, 2), m = fmpq[1//2 1; 0 1], t = (1, 2, 3))
+            
+        end
     end
 end

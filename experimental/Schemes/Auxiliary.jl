@@ -1,3 +1,4 @@
+export pushforward
 # This struct associates to a morphism f of type `MorphismType` 
 # the mathematical symbol f^* which, in one way or the other, 
 # denotes some pullback functor. 
@@ -40,6 +41,18 @@ function (f_star::UniversalPullbackSymbol)(M::Any)
   return pullback(f_star.f, M)
 end
 
+# We can do the same thing with pushforward and other symbols.
+struct UniversalPushforwardSymbol{MorphismType}
+  f::MorphismType
+end
+
+# The following refers a call of f_star(M) to a bivariate pushforward-method.
+# The latter is what really needs to be implemented by the programmer. 
+# Also, all parent checks, etc. are expected to happen there.
+function (f_lower_star::UniversalPushforwardSymbol)(M::Any)
+  return pushforward(f_lower_star.f, M)
+end
+
 @Markdown.doc """
     pullback(f::CoveredSchemeMorphism)
 
@@ -52,6 +65,20 @@ Hence, that method needs to be implemented.
 """
 function pullback(f::AbsCoveredSchemeMorphism)
   return UniversalPullbackSymbol{typeof(f)}(f)
+end
+
+@Markdown.doc """
+    pushforward(f::CoveredSchemeMorphism)
+
+Return a function `phi` which takes any reasonable 
+argument `M` associated to the `domain` of `f` and 
+produces ``f_*(M)``.
+
+**Note:** Internally, this simply calls `pushforward(f, M)`. 
+Hence, that method needs to be implemented.
+"""
+function pushforward(f::AbsCoveredSchemeMorphism)
+  return UniversalPushforwardSymbol{typeof(f)}(f)
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
@@ -72,9 +99,17 @@ end
 function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
+  Y === scheme(C) || error("divisor must be defined on the codomain of the map")
+  # The challenge is that phi has two coverings cov1 → cov2 on which it is defined. 
+  # The covering cov3 on which C is principalized might be different from cov2. 
+  # Thus, we need to first pass to a common refinement cov' of cov2 and cov3, 
+  # restrict f to that, obtain a new underlying covering morphism psi cov1' → cov', 
+  # and pull back along psi.
   phi = covering_morphism(f)
   triv_dict = IdDict{AbsSpec, RingElem}()
-  psi = restrict(f, trivializing_covering(C))
+  E, a, b = common_refinement(codomain(phi), trivializing_covering(C))
+  psi = restrict(f, E)
+  psi = compose(psi, b)
   triv_cov = domain(psi)
   for U in patches(triv_cov)
     V = codomain(psi[U])
@@ -115,13 +150,25 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   phi = covering_morphism(f)
   C = domain(phi)
   D = codomain(phi)
-  # DD needs to be a refinement of D; otherwise quit.
-  all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
-
+  
+  # Check the cache
   res_cache = restriction_cache(f)
   haskey(res_cache, DD) && return res_cache[DD]
 
+  # First check the trivial case that we can just compose.
+  if haskey(refinements(Y), (D, DD))
+    return compose(phi, refinements(Y)[(D, DD)])
+  end
+
+  # Then check whether we can nevertheless build the composition manually
+  success, psi = is_refinement(D, DD)
+  success && return compose(phi, psi)
+
+  # DD needs to be a refinement of D; otherwise quit.
+  all(x->has_ancestor(y->any(z->(z===y), patches(D)), x), patches(DD)) || error("second argument needs to be a refinement of the codomain covering on which the first argument is defined")
+
   OOX = OO(X)
+  OOY = OO(Y)
   # We need to do the following:
   # The covering CC has patches Vⱼ in the codomain Y of f.
   # Their preimages must be taken in every patch Uᵢ of X in 
@@ -143,7 +190,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
         # To cheaply construct the preimage of W in U, just pull back the 
         # complement equation.
         h = complement_equation(codomain(iso_W_flat))
-        UW = PrincipalOpenSubset(U, pullback(phi[U])(OOX(par, V)(h)))
+        UW = PrincipalOpenSubset(U, pullback(phi[U])(OOY(par, V)(h)))
         # Manually assemble the restriction of phi to this new patch
         ff = SpecMor(UW, W_flat, 
                      hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(gens(OO(V)))), check=false),
@@ -156,10 +203,27 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   end
   new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
   inherit_glueings!(new_domain, domain(phi))
+  _register!(new_domain, X)
 
   psi = CoveringMorphism(new_domain, DD, res_dict, check=true)
   restriction_cache(f)[DD] = psi
   return psi
+end
+
+function _register!(C::Covering, X::AbsCoveredScheme)
+  push!(coverings(X), C)
+  refinements(X)[(C, default_covering(X))] = _canonical_map(C, default_covering(X))
+  return C
+end
+
+function _canonical_map(C::Covering, D::Covering)
+  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(C)
+    f, _ = _find_chart(U, D)
+    map_dict[U] = f
+  end
+  phi = CoveringMorphism(C, D, map_dict, check=false)
+  return phi
 end
 
 # Several objects on the codomain of f : X → Y might use the same covering 
@@ -167,7 +231,7 @@ end
 # the necessary refinement on X again and again. In particular, because 
 # we do not want the pulled back modules/ideals/functions... to live on different 
 # affine patches in X while their originals were defined on the same patches in Y.
-@attr IdDict{<:Covering, <:CoveringMorphism} function restriction_cache(f::CoveredSchemeMorphism)
+@attr IdDict{<:Covering, <:CoveringMorphism} function restriction_cache(f::AbsCoveredSchemeMorphism)
   res_dict = IdDict{Covering, CoveringMorphism}()
   phi = covering_morphism(f)
   res_dict[codomain(phi)] = phi
@@ -209,14 +273,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     x_img = gens(OO(X))
     x_img = pullback(inverse(iso_X)).(x_img)
     x_img = OO(XYZ).(x_img)
-    phi = restrict(iso_Y, YX, XYZ)
+    phi = restrict(iso_Y, YX, XYZ, check=false)
     x_img = pullback(phi).(x_img)
     g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
     
     y_img = gens(OO(Y))
     y_img = pullback(inverse(iso_Y)).(y_img)
     y_img = OO(XYZ).(y_img)
-    psi = restrict(iso_X, XY, XYZ)
+    psi = restrict(iso_X, XY, XYZ, check=false)
     y_img = pullback(psi).(y_img)
     f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
     return SimpleGlueing(X, Y, f, g, check=false)
@@ -254,14 +318,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
   YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
 
-  fres = restrict(f, UXY, VYX)
-  gres = restrict(g, VYX, UXY)
+  fres = restrict(f, UXY, VYX, check=false)
+  gres = restrict(g, VYX, UXY, check=false)
 
   x_img = gens(OO(X))
   x_img = pullback(inverse(iso_X)).(x_img)
   x_img = OO(UXY).(x_img)
   x_img = pullback(gres).(x_img)
-  phi = restrict(iso_Y, YX, VYX)
+  phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
   gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img))
 
@@ -269,7 +333,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(inverse(iso_Y)).(y_img)
   y_img = OO(VYX).(y_img)
   y_img = pullback(fres).(y_img)
-  psi = restrict(iso_X, XY, UXY)
+  psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)
   ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
 
