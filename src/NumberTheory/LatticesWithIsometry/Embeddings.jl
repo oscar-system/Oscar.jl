@@ -107,7 +107,7 @@ function _is_invariant(f::TorQuadModMor, i::TorQuadModMor)
   V = domain(i)
   for a in gens(V)
     b = f(i(a))
-    haspreimage(fab, data(b))[1] || return false
+    haspreimage(i.map_ab, data(b))[1] || return false
   end
   return true
 end
@@ -233,7 +233,7 @@ end
 function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModMor,
                                                                     G::AutomorphismGroup{TorQuadMod},
                                                                     ord::Hecke.IntegerUnion,
-                                                                    f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = id_hom(codomain(Vinq)),
+                                                                    f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = id_hom(domain(Vinq)),
                                                                     l::Hecke.IntegerUnion = 0)
   if ord == 1
     if l != 0
@@ -248,7 +248,7 @@ function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQua
   g = valuation(ord, p)
   @req all(a -> haspreimage(Vinq.map_ab, data(l*a))[1], gens(q)) "lq is not contained in V"
   H0, H0inV = sub(V, [preimage(Vinq, (l*a)) for a in gens(q)])
-  Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, _restrict(f, Vinq))
+  Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, f)
   Vp = codomain(VtoVp)
 
   if dim(Qp) == 0
@@ -547,7 +547,7 @@ function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::Automorph
   return results
 end
 
-function primitive_embeddings_of_elementary_lattice(L::ZLat, M::ZLat, GL::AutomorphismGroup{TorQuadMod} = orthogonal_group(discriminant_group(L)); classification::Bool = false, check::Bool = false)
+function primitive_embeddings_of_elementary_lattice(L::ZLat, M::ZLat, GL::AutomorphismGroup{TorQuadMod} = orthogonal_group(discriminant_group(L)); classification::Bool = false, first::Bool = false, check::Bool = false)
   bool, p = is_elementary_with_prime(M)
   @req bool "M must be elementary"
   if check
@@ -601,6 +601,9 @@ function primitive_embeddings_of_elementary_lattice(L::ZLat, M::ZLat, GL::Automo
       qM2, _ = sub(qM, [proj[1](j(g)) for g in gens(perp2)])
       for N in Ns
         append!(results, _isomorphism_classes_primitive_extensions_along_elementary(N, M, qM2))
+        if first
+          return results
+        end
         GC.gc()
       end
       GC.gc()
@@ -961,7 +964,7 @@ function admissible_equivariant_primitive_extensions(A::LatticeWithIsometry,
       stab = union(stab, kerB)
       stab = TorQuadModMor[_restrict(g, j) for g in stab]
       stab = TorQuadModMor[hom(disc, disc, [disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
-      stab = Oscar._orthogonal_group(discriminant_group(C2), [compose(phi2, compose(g, inv(phi2))).map_ab.map for g in stab])
+      stab = Oscar._orthogonal_group(discriminant_group(C2)[1], [compose(phi2, compose(g, inv(phi2))).map_ab.map for g in stab])
       set_attribute!(C2, :image_centralizer_in_Oq, stab)
       push!(results, C2)
     end
