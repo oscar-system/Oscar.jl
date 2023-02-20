@@ -24,6 +24,7 @@ export
     class_lengths,
     class_multiplication_coefficient,
     class_parameters,
+    class_positions_of_center,
     class_positions_of_kernel,
     class_positions_of_pcore,
     decomposition_matrix,
@@ -781,16 +782,37 @@ julia> identifier(character_table("A5"))
 
 Return the array of integers ``i`` such that the ``i``-th conjugacy class
 of `tbl` is contained in the `p`-core of the group of `tbl`,
-see [`pcore`](@ref).
+see [`pcore(G::GAPGroup, p::IntegerUnion)`](@ref).
 
 # Examples
 ```jldoctest
-julia> println(Oscar.class_positions_of_pcore(character_table("2.A5"), 2))
+julia> println(class_positions_of_pcore(character_table("2.A5"), 2))
 [1, 2]
 
 ```
 """
 class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion) = Vector{Int}(GAP.Globals.ClassPositionsOfPCore(tbl.GAPTable, GAP.Obj(p))::GapObj)
+
+@doc Markdown.doc"""
+    pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+
+Return the `p`-core of the group of `tbl`,
+see [`pcore(G::GAPGroup, p::IntegerUnion)`](@ref),
+but computed character-theoretically (see [`class_positions_of_pcore`](@ref)).
+
+# Examples
+```jldoctest
+julia> order(pcore(character_table(symmetric_group(4)), 2)[1])
+4
+```
+"""
+function pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    t = tbl.GAPTable
+    pcorepos = GAP.Globals.ClassPositionsOfPCore(t, GAP.Obj(p))::GapObj
+    return _as_subgroup(G, GAP.Globals.NormalSubgroupClasses(t, pcorepos)::GapObj)
+end
 
 function class_positions_of_kernel(fus::Vector{Int})
   return filter(i -> fus[i] == fus[1], 1:length(fus))
@@ -1207,7 +1229,7 @@ Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values)
 
 @doc Markdown.doc"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
-           where T <: Union{IntegerUnion, ZZRingElem, mpq, QQAbElem}
+           where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
 
 Return `chi[1]`, as an instance of `T`.
 """
@@ -1328,6 +1350,24 @@ end
 Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
 
 @doc Markdown.doc"""
+    is_rational(chi::GAPGroupClassFunction)
+
+Return `true` if all values of `chi` are rational, i.e., in `QQ`,
+and `false` otherwise.
+
+```jldoctest
+julia> all(is_rational, character_table(symmetric_group(4)))
+true
+
+julia> all(is_rational, character_table(alternating_group(4)))
+false
+```
+"""
+function is_rational(chi::GAPGroupClassFunction)
+    return all(is_rational, [x.data for x in values(chi)])
+end
+
+@doc Markdown.doc"""
     is_irreducible(chi::GAPGroupClassFunction)
 
 Return `true` if `chi` is an irreducible character, and `false` otherwise.
@@ -1366,6 +1406,13 @@ end
     class_positions_of_kernel(chi::GAPGroupClassFunction)
 
 Return the array of those integers `i` such that `chi[i] == chi[1]` holds.
+
+# Examples
+```jldoctest
+julia> println(class_positions_of_kernel(character_table("2.A5")[2]))
+[1, 2]
+
+```
 """
 function class_positions_of_kernel(chi::GAPGroupClassFunction)
     deg = chi[1]
@@ -1376,6 +1423,116 @@ function class_positions_of_kernel(list::Vector{T}) where T
     length(list) == 0 && return T[]
     deg = list[1]
     return filter(i -> list[i] == deg, 1:length(list))
+end
+
+@doc Markdown.doc"""
+    kernel(chi::GAPGroupClassFunction)
+
+Return `C, f` where `C` is the kernel of `chi`
+(i.e. the largest normal subgroup of the underlying group `G` of `chi`
+such that `chi` maps each element of `C` to `chi[1]`)
+and `f` is the embedding morphism of `C` into `G`.
+
+# Examples
+```jldoctest
+julia> t = character_table(symmetric_group(4));
+
+julia> chi = t[3];  chi[1]
+2
+
+julia> C, f = kernel(chi);  order(C)
+4
+```
+"""
+function kernel(chi::GAPGroupClassFunction)
+    tbl = chi.table
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    return _as_subgroup(G, GAP.Globals.KernelOfCharacter(tbl.GAPTable, chi.values))
+end
+
+@doc Markdown.doc"""
+    class_positions_of_center(chi::GAPGroupClassFunction)
+
+Return the array of those integers `i` such that `chi[i]` is `chi[1]` times
+a root of unity.
+
+# Examples
+```jldoctest
+julia> println(class_positions_of_center(character_table("2.A5")[2]))
+[1, 2]
+
+```
+"""
+function class_positions_of_center(chi::GAPGroupClassFunction)
+    return Vector{Int}(GAP.Globals.ClassPositionsOfCentre(chi.values))
+end
+
+@doc Markdown.doc"""
+    center(chi::GAPGroupClassFunction)
+
+Return `C, f` where `C` is the center of `chi`
+(i.e. the largest normal subgroup of the underlying group `G` of `chi`
+such that `chi` maps each element of `C` to `chi[1]` times a root of unity)
+and `f` is the embedding morphism of `C` into `G`.
+
+# Examples
+```jldoctest
+julia> t = character_table(symmetric_group(4));
+
+julia> chi = t[3];  chi[1]
+2
+
+julia> C, f = center(chi);  order(C)
+4
+```
+"""
+function center(chi::GAPGroupClassFunction)
+    tbl = chi.table
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    return _as_subgroup(G, GAP.Globals.CentreOfCharacter(tbl.GAPTable, chi.values))
+end
+
+@doc Markdown.doc"""
+    det(chi::GAPGroupClassFunction)
+
+Return the determinant character of the character `chi`.
+This is defined to be the character obtained by taking the determinant
+of representing matrices of any representation affording `chi`.
+
+# Examples
+```jldoctest
+julia> t = character_table(symmetric_group(4));
+
+julia> all(chi -> det(chi) == exterior_power(chi, Int(degree(chi))), t)
+true
+```
+"""
+function det(chi::GAPGroupClassFunction)
+    values = GAP.Globals.DeterminantOfCharacter(chi.values)
+    return GAPGroupClassFunction(chi.table, values)
+end
+
+# Note that defining the determinantal order for arbitrary characters
+# is not possible in GAP.
+@doc Markdown.doc"""
+    order(::Type{T} = ZZRingElem, chi::GAPGroupClassFunction)
+          where T <: IntegerUnion
+
+Return the determinantal order of the character `chi`.
+This is defined to be the multiplicative order of `det(chi)`.
+
+# Examples
+```jldoctest
+julia> println([order(chi) for chi in character_table(symmetric_group(4))])
+ZZRingElem[2, 1, 2, 2, 1]
+```
+"""
+order(chi::GAPGroupClassFunction) = order(ZZRingElem, chi)::ZZRingElem
+
+function order(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
+    return T(GAP.Globals.Order(det(chi).values))::T
 end
 
 @doc Markdown.doc"""
