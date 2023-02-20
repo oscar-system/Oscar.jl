@@ -1,12 +1,41 @@
+export is_basic_serialization_type
 ################################################################################
 # Saving and loading vectors
 
 @registerSerializationType(Vector)
 
-function save_internal(s::SerializerState, vec::Vector)
-    return Dict(
+@doc Markdown.doc"""
+    is_basic_serialization_type(::Type)
+
+During the serialization of types of the form `Vector{T}`, entries
+of type `T` will either be serialized as strings if `is_basic_serialization_type`
+returns `true`, or serialized as a dict provided the serialization for such a `T`
+exists. If `Vector{T}` is serialized with `is_basic_serialization_type(T) = true`
+then the `entry_type` keyword is used to store the type `T` as a property of
+the vector.
+
+# Examples
+
+```jldoctest
+julia> is_basic_serialization_type(fmpz)
+true
+```
+"""
+is_basic_serialization_type(::Type) = false
+is_basic_serialization_type(::Type{fmpz}) = true
+is_basic_serialization_type(::Type{fmpq}) = true
+is_basic_serialization_type(::Type{Bool}) = true
+is_basic_serialization_type(::Type{Symbol}) = true
+is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
+
+function save_internal(s::SerializerState, vec::Vector{T}) where T
+    d = Dict{Symbol, Any}(
         :vector => [save_type_dispatch(s, x) for x in vec]
     )
+    if is_basic_serialization_type(T)
+        d[:entry_type] = encodeType(T)
+    end
+    return d
 end
 
 # deserialize with specific content type
@@ -29,6 +58,11 @@ end
 
 # deserialize without specific content type
 function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
+    if haskey(dict, :entry_type)
+        T = decodeType(dict[:entry_type])
+        
+        return [load_type_dispatch(s, T, x) for x in dict[:vector]]
+    end
     return [load_unknown_type(s, x) for x in dict[:vector]]
 end
 
@@ -36,6 +70,11 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{Vector},
                                    dict::Dict,
                                    parent)
+    if haskey(dict, :entry_type)
+        T = decodeType(dict[:entry_type])
+        
+        return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
+    end
     return [load_unknown_type(s, x; parent=parent) for x in dict[:vector]]
 end
 

@@ -21,7 +21,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   base_ring_to_flat::Hecke.Map{CoeffRingType, FlatRingType}
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
@@ -36,7 +36,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   end
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyQuoElem}
     A = base_ring(S)::MPolyQuo
     R = base_ring(A)::MPolyRing
@@ -63,7 +63,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   end
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyQuoLocalizedRingElem}
     Q = base_ring(S)::MPolyQuoLocalizedRing
     R = base_ring(Q)::MPolyRing
@@ -96,7 +96,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   end
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
+      S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyLocalizedRingElem}
     L = base_ring(S)::MPolyLocalizedRing
     R = base_ring(L)::MPolyRing
@@ -165,8 +165,8 @@ end
 
 ### Computation of induced morphisms on flattened towers of polynomial rings
 @attr function flatten(
-    f::MPolyAnyMap{AbstractAlgebra.Generic.MPolyRing{RingElemType}, 
-                   AbstractAlgebra.Generic.MPolyRing{RingElemType},
+    f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
+                   <:MPolyRing{RingElemType},
                    Nothing
                   }
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
@@ -183,8 +183,8 @@ end
 end
 
 @attr function flatten(
-    f::MPolyAnyMap{AbstractAlgebra.Generic.MPolyRing{RingElemType}, 
-                   AbstractAlgebra.Generic.MPolyRing{RingElemType}
+    f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
+                   <:MPolyRing{RingElemType}
                    # Note the missing requirement here: It allows for a non-trivial coefficient map
                   }
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
@@ -204,8 +204,8 @@ end
 
 ### Deflecting some of the basic methods for ideals in towers of polynomial rings
 function ideal_membership(
-    x::AbstractAlgebra.Generic.MPoly{RingElemType},
-    I::MPolyIdeal{AbstractAlgebra.Generic.MPoly{RingElemType}}
+    x::MPolyElem{RingElemType},
+    I::MPolyIdeal{<:MPolyElem{RingElemType}}
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
                                   <:MPolyQuoLocalizedRingElem
                                  }
@@ -216,8 +216,8 @@ function ideal_membership(
 end
 
 function coordinates(
-    x::AbstractAlgebra.Generic.MPoly{RingElemType},
-    I::MPolyIdeal{AbstractAlgebra.Generic.MPoly{RingElemType}}
+    x::MPolyElem{RingElemType},
+    I::MPolyIdeal{<:MPolyElem{RingElemType}}
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
                                   <:MPolyQuoLocalizedRingElem
                                  }
@@ -237,8 +237,8 @@ end
 
 # This first signature has to stay to avoid ambiguities.
 function kernel(
-    f::MPolyAnyMap{<:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}, 
-                   <:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}
+    f::MPolyAnyMap{<:MPolyRing{<:RingElemType}, 
+                   <:MPolyRing{<:RingElemType}
                   }
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
                                  <:MPolyQuoLocalizedRingElem
@@ -253,7 +253,7 @@ function kernel(
 end
 
 function kernel(
-    f::MPolyAnyMap{<:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}, 
+    f::MPolyAnyMap{<:MPolyRing{<:RingElemType}, 
                    <:Ring
                   }
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
@@ -272,7 +272,7 @@ function kernel(
     f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuo, 
                            <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing
                           }, # Restriction necessary to avoid ambiguities
-                   <:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}
+                   <:MPolyRing{<:RingElemType}
                   }
   ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
                                  <:MPolyQuoLocalizedRingElem
@@ -282,3 +282,16 @@ function kernel(
   f_flat = hom(domain(f), codomain(phi), phi.(f.(gens(domain(f)))))
   return kernel(f_flat)
 end
+
+### saturations
+function saturation(
+    I::MPolyIdeal{T}, J::MPolyIdeal{T}
+  ) where {T<:MPolyElem{<:Union{<:MPolyElem, MPolyQuoElem, MPolyLocalizedRingElem, 
+                                <:MPolyQuoLocalizedRingElem
+                               }}}
+  S = base_ring(I)
+  phi = flatten(S)
+  pre_res = saturation(phi(I), phi(J))
+  return ideal(S, inverse(phi).(gens(pre_res)))
+end
+

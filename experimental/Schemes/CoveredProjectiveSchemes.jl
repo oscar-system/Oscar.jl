@@ -1,5 +1,5 @@
 export ProjectiveGlueing
-export glueing_type, underlying_glueing
+export glueing_type, base_glueing
 
 export CoveredProjectiveScheme
 export base_scheme, base_covering, projective_patches, covered_scheme
@@ -10,11 +10,104 @@ export strict_transform, total_transform, weak_transform, controlled_transform
 
 export prepare_smooth_center, as_smooth_local_complete_intersection, as_smooth_lci_of_cod, _non_degeneration_cover
 
+abstract type AbsProjectiveGlueing{
+                                   GlueingType<:AbsGlueing,
+                                  }
+end
+
+### getters for the essential functionality
+base_glueing(PG::AbsProjectiveGlueing) = base_glueing(underlying_glueing(PG))
+inclusion_maps(PG::AbsProjectiveGlueing) = inclusion_maps(underlying_glueing(PG))
+glueing_domains(PG::AbsProjectiveGlueing) = glueing_domains(underlying_glueing(PG))
+patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
+glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
+
+
+@Markdown.doc """
+  LazyProjectiveGlueing(
+      X::AbsProjectiveScheme,
+      Y::AbsProjectiveScheme,
+      BG::AbsGlueing,
+      compute_function::Function, 
+      glueing_data
+    )
+
+Produce a container `pg` to host a non-computed `ProjectiveGlueing` of ``X`` with ``Y``.
+
+The arguments consist of 
+
+ * the patches ``X`` and ``Y`` to be glued;
+ * a glueing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the 
+   `ProjectiveGlueing` to be computed sits;
+ * a function `compute_function` which takes a single argument `glueing_data` 
+   of arbitrary type and actually carries out the computation; 
+ * an arbitrary struct `glueing_data` that the user can fill with whatever 
+   information is needed to properly feed their `compute_function`. 
+
+The container `pg` can then be stored as the glueing of ``X`` and ``Y``. As soon 
+as it is asked about any data on the glueing beyond its two `patches`, it will 
+invoke the internally stored `compute_function` to actually carry out the computation 
+of the glueing and then serve the incoming request on the basis of that result. 
+The latter actual `ProjectiveGlueing` will then be cached. 
+"""
+mutable struct LazyProjectiveGlueing{
+                                     GlueingType<:AbsGlueing,
+                                     GlueingDataType
+                                    } <: AbsProjectiveGlueing{GlueingType}
+  base_glueing::GlueingType
+  patches::Tuple{AbsProjectiveScheme, AbsProjectiveScheme}
+  compute_function::Function
+  glueing_data::GlueingDataType
+  underlying_glueing::AbsProjectiveGlueing
+
+  function LazyProjectiveGlueing(
+      X::AbsProjectiveScheme,
+      Y::AbsProjectiveScheme,
+      BG::AbsGlueing,
+      compute_function::Function, 
+      glueing_data
+    )
+    (base_scheme(X), base_scheme(Y)) == patches(BG) || error("glueing is incompatible with provided patches")
+    return new{typeof(BG), typeof(glueing_data)}(BG, (X, Y), compute_function, glueing_data)
+  end
+end
+
+# Essential getters
+patches(G::LazyProjectiveGlueing) = G.patches
+base_glueing(G::LazyProjectiveGlueing) = G.base_glueing
+
+# Everything else will trigger the computation
+function underlying_glueing(G::LazyProjectiveGlueing)
+  if !isdefined(G, :underlying_glueing)
+    G.underlying_glueing = G.compute_function(G.glueing_data)
+  end
+  return G.underlying_glueing
+end
+
+@Markdown.doc """
+    ProjectiveGlueing(
+        G::GlueingType, 
+        incP::IncType, incQ::IncType,
+        f::IsoType, g::IsoType;
+        check::Bool=true
+      ) where {GlueingType<:AbsGlueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
+
+The `AbsProjectiveSchemeMorphism`s `incP` and `incQ` are open embeddings over open 
+embeddings of their respective `base_scheme`s. 
+
+        PX ↩ PU ≅ QV ↪ QY
+      π ↓    ↓    ↓    ↓ π
+    G : X  ↩ U  ≅ V  ↪ Y 
+
+This creates a glueing of the projective schemes `codomain(incP)` and `codomain(incQ)` 
+over a glueing `G` of their `base_scheme`s along the morphisms of `AbsProjectiveScheme`s 
+`f` and `g`, identifying `domain(incP)` and `domain(incQ)`, respectively.
+"""
 mutable struct ProjectiveGlueing{
                                  GlueingType<:AbsGlueing,
                                  IsoType<:ProjectiveSchemeMor,
                                  IncType<:ProjectiveSchemeMor
-                                }
+                                } <: AbsProjectiveGlueing{GlueingType}
   G::GlueingType # the underlying glueing of the base schemes
   inc_to_P::IncType
   inc_to_Q::IncType
@@ -72,7 +165,7 @@ glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_
 
 ### essential getters
 
-underlying_glueing(PG::ProjectiveGlueing) = PG.G
+base_glueing(PG::ProjectiveGlueing) = PG.G
 inclusion_maps(PG::ProjectiveGlueing) = (PG.inc_to_P, PG.inc_to_Q)
 glueing_domains(PG::ProjectiveGlueing) = (domain(PG.f), domain(PG.g))
 patches(PG::ProjectiveGlueing) = (codomain(PG.inc_to_P), codomain(PG.inc_to_Q))
@@ -100,13 +193,13 @@ glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
   Y::AbsCoveredScheme # the base scheme
   BC::Covering # the reference covering of the base scheme
   patches::IdDict{AbsSpec, AbsProjectiveScheme} # the projective spaces over the affine patches in the base covering
-  glueings::IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing} # the transitions sitting over the affine patches in the glueing domains of the base scheme
+  glueings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing} # the transitions sitting over the affine patches in the glueing domains of the base scheme
 
   function CoveredProjectiveScheme(
       Y::AbsCoveredScheme,
       C::Covering,
       projective_patches::IdDict{AbsSpec, AbsProjectiveScheme},
-      projective_glueings::IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing};
+      projective_glueings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing};
       check::Bool=true
     )
     C in coverings(Y) || error("covering not listed")
@@ -135,7 +228,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   pp = Dict{AbsSpec, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
-  tr = Dict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
+  tr = Dict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   #W = SpecOpen(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
   #tr[(U, U)] = ProjectiveGlueing(Glueing(U, U, identity_map(W), identity_map(W)), 
@@ -173,7 +266,22 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
   if is_regular_sequence(gens(I))
     # construct the blowup manually
     J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r, j in i+1:r+1])
-    return subscheme(IPW, J)
+    IPY = subscheme(IPW, J)
+    # Compute the IdealSheaf for the exceptional divisor
+    ID = IdDict{AbsSpec, RingElem}()
+    Y = covered_scheme(IPY)
+    p = covered_projection_to_base(IPY)
+    p_cov = covering_morphism(p)
+    for i in 1:length(gens(I))
+      U = affine_charts(Y)[i]
+      p_res = p_cov[U]
+      W === codomain(p_res) || error("codomain not correct")
+      ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+    end
+    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+    set_attribute!(Y, :exceptional_divisor, E)
+    set_attribute!(IPY, :exceptional_divisor, E)
+    return IPY
   else
     # construct the blowup by elimination.
     CIPW = affine_cone(IPW)
@@ -187,7 +295,22 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     J = kernel(phi)
     pb = poly_to_homog(IPW) 
     Jh = ideal(S, pb.(lifted_numerator.(gens(J))))
-    return subscheme(IPW, Jh)
+    IPY = subscheme(IPW, Jh)
+    # Compute the IdealSheaf for the exceptional divisor
+    ID = IdDict{AbsSpec, RingElem}()
+    Y = covered_scheme(IPY)
+    p = covered_projection_to_base(IPY)
+    p_cov = covering_morphism(p)
+    for i in 1:length(gens(I))
+      U = affine_charts(Y)[i]
+      p_res = p_cov[U]
+      W === codomain(p_res) || error("codomain not correct")
+      ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+    end
+    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
+    set_attribute!(Y, :exceptional_divisor, E)
+    set_attribute!(IPY, :exceptional_divisor, E)
+    return IPY
   end
 end
 
@@ -198,7 +321,7 @@ function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuo
   Ip = saturated_ideal(I)
   Jp = saturated_ideal(J)
   K = saturation(Ip, Jp)
-  return ideal(A, A.(gens(K)))
+  return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
 end
 
 function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
@@ -207,41 +330,30 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 
   # It follows the generic Proj construction
-  R = base_ring(OO(W))
-  kk = coefficient_ring(R)
-  A1 = affine_space(kk, 1)
-  # Fancy way of adjoining a variable to R
-  WxA1, pW, _ = product(W, A1) 
-  r = ngens(I)
-  P = projective_space(W, r-1, var_name=var_name)
-  S = ambient_coordinate_ring(P)
-  # As usual we need to do actual computations on the affine cone
-  CP = affine_cone(P)
-  x = pullback(pW).(gens(OO(W)))
-  t = last(gens(OO(WxA1)))
-  g = pullback(pW).(gens(I))
-  phi = hom(OO(CP), OO(WxA1), vcat([b*t for b in g], x))
+  R = OO(W)
+  T, (t,) = PolynomialRing(R, ["t"])
+  S, s = grade(PolynomialRing(R, Symbol.([var_name*"$i" for i in 0:ngens(I)-1]))[1])
+  phi = hom(S, T, [t*g for g in gens(I)])
   K = kernel(phi)
-  IWh = ideal(S, poly_to_homog(P).(lifted_numerator.(gens(K))))
-  return subscheme(P, IWh)
-
-  # Deprecated code below
-  # We first blow up the smooth ambient space
-  A = ambient_affine_space(W)::AbsSpec{<:Field, <:MPolyRing}
-  J = ideal(OO(A), lifted_numerator.(gens(I)))
-  P = blow_up(A, J)
-
-  # ...and then compute the strict transform of W in there
-  S = ambient_coordinate_ring(P)
-  CP = affine_cone(P)
-  p = projection_to_base(P)
-  IW = ideal(OO(CP), pullback(p).(lifted_numerator.(gens(modulus(OO(W))))))
-  IE = ideal(OO(CP), pullback(p).(lifted_numerator.(gens(J))))
-  IWstrict = saturation(IW, IE)
-  IWh = ideal(S, poly_to_homog(P).(lifted_numerator.(gens(IWstrict))))
-  return subscheme(P, IWh)
+  K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
+  Bl_W = ProjectiveScheme(S, K)
+  set_base_scheme!(Bl_W, W)
+  # Compute the IdealSheaf for the exceptional divisor
+  ID = IdDict{AbsSpec, RingElem}()
+  Y = covered_scheme(Bl_W)
+  p = covered_projection_to_base(Bl_W)
+  p_cov = covering_morphism(p)
+  for i in 1:length(gens(I))
+    U = affine_charts(Y)[i]
+    p_res = p_cov[U]
+    W === codomain(p_res) || error("codomain not correct")
+    ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+  end
+  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+  set_attribute!(Y, :exceptional_divisor, E)
+  set_attribute!(Bl_W, :exceptional_divisor, E)
+  return Bl_W
 end
-
 
 function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   length(g) == 0 && return true
@@ -395,129 +507,121 @@ end
 #  end
 #end
 
+# This is a sample for how to use LazyProjectiveGlueings. 
+# Originally, we probably had some body of a double for-loop iterating over 
+# pairs of patches (P, Q) that we need to glue. We take that body which 
+# computes the glueing of P and Q and move 
+# it to an external function (here _compute_projective_glueing). Then we 
+# go through all the local variables in the body of the for-loop which 
+# are needed for the actual computation and create a tailor-made struct to 
+# house them. We add an extraction section in the beginning of the compute 
+# function to restore them and recreate the original setting within the 
+# for-loops. 
+#
+# Finally, we can replace the inner part of the double for-loop with the 
+# actual wrap-up of the local variables and feed everything to a constructor 
+# for a `LazyProjectiveGlueing` as documented above. 
+struct CoveredProjectiveGlueingData
+  U::AbsSpec
+  V::AbsSpec
+  P::AbsProjectiveScheme
+  Q::AbsProjectiveScheme
+  G::AbsGlueing
+  I::IdealSheaf
+end
+
+function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
+  P = gd.P
+  Q = gd.Q
+  U = gd.U
+  V = gd.V
+  G = gd.G
+  I = gd.I
+  X = scheme(I)
+  OX = StructureSheafOfRings(X)
+
+  SP = ambient_coordinate_ring(P)
+  SQ = ambient_coordinate_ring(Q)
+  UV, VU = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+
+  PUV, PUVtoP = fiber_product(OX(U, UV), P)
+  QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
+
+  # to construct the identifications of PUV with QVU we need to 
+  # express the generators of I(U) in terms of the generators of I(V)
+  # on the overlap U ∩ V. 
+  !(G isa Glueing) || error("method not implemented for this type of glueing")
+
+  # The problem is that on a SpecOpen U ∩ V
+  # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
+  # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
+  # for the generators fᵢ of I(U) and gⱼ of I(V): Even though 
+  # we can do this locally on the patches of a SpecOpen, the result 
+  # is not guaranteed to glue to global functions on the overlap.
+  # Abstractly, we know that the intersection of affine charts 
+  # in a separated scheme must be affine, but we do not have a 
+  # model of this overlap as an affine scheme and hence no computational
+  # backup. 
+
+  # fᵢ the generators of I(U)
+  # gⱼ the generators of I(V)
+  # aᵢⱼ the coefficients for fᵢ = ∑ⱼ aᵢⱼ⋅gⱼ in VU
+  # bⱼᵢ the coefficients for gⱼ = ∑ᵢ bⱼᵢ⋅fᵢ in UV
+  # sᵢ the variables for the homogeneous ring over U
+  # tⱼ the variables for the homogenesous ring over V
+  A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+  B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
+  SQVU = ambient_coordinate_ring(QVU)
+  SPUV = ambient_coordinate_ring(PUV)
+  # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
+  # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
+  fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)], check=false), check=false)
+  gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)], check=false), check=false)
+  return ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
+end
+
 function blow_up(
     I::IdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
-    var_name::String="s"
+    var_name::String="s",
+    covering::Covering=default_covering(scheme(I))
   )
   X = space(I)
   local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
-  for U in affine_charts(X)
+  for U in patches(covering)
     local_blowups[U] = blow_up(U, I(U), var_name=var_name)
   end
-  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
+  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
 
   # prepare for the projective glueings
-  C = default_covering(X)
-  for (U, V) in keys(glueings(C))
+  for (U, V) in keys(glueings(covering))
     P = local_blowups[U]
-    SP = ambient_coordinate_ring(P)
     Q = local_blowups[V]
-    SQ = ambient_coordinate_ring(Q)
-    G = C[U, V]
-    UV, VU = glueing_domains(G)
-    f, g = glueing_morphisms(G)
-
-    OX = StructureSheafOfRings(X)
-    PUV, PUVtoP = fiber_product(OX(U, UV), P)
-    QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
-
-    # to construct the identifications of PUV with QVU we need to 
-    # express the generators of I(U) in terms of the generators of I(V)
-    # on the overlap U ∩ V. 
-    !(G isa Glueing) || error("method not implemented for this type of glueing")
-
-    # The problem is that on a SpecOpen U ∩ V
-    # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
-    # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
-    # for the generators fᵢ of I(U) and gⱼ of I(V): Even though 
-    # we can do this locally on the patches of a SpecOpen, the result 
-    # is not guaranteed to glue to global functions on the overlap.
-    # Abstractly, we know that the intersection of affine charts 
-    # in a separated scheme must be affine, but we do not have a 
-    # model of this overlap as an affine scheme and hence no computational
-    # backup. 
-
-    # fᵢ the generators of I(U)
-    # gⱼ the generators of I(V)
-    # aᵢⱼ the coefficients for fᵢ = ∑ⱼ aᵢⱼ⋅gⱼ in VU
-    # bⱼᵢ the coefficients for gⱼ = ∑ᵢ bⱼᵢ⋅fᵢ in UV
-    # sᵢ the variables for the homogeneous ring over U
-    # tⱼ the variables for the homogenesous ring over V
-    A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
-    B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
-    SQVU = ambient_coordinate_ring(QVU)
-    SPUV = ambient_coordinate_ring(PUV)
-    # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
-    # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
-    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)], check=false), check=false)
-    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)], check=false), check=false)
-
-    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
+    G = covering[U, V]
+    gd = CoveredProjectiveGlueingData(U, V, P, Q, G, I)
+    projective_glueings[U, V] = LazyProjectiveGlueing(P, Q, G, _compute_projective_glueing, gd)
   end
-  return CoveredProjectiveScheme(X, default_covering(X), local_blowups, projective_glueings)
-
-
-#    # set up the maps on the patches of the overlap in U
-#    P_on_U_patches_to_Q = morphism_type(ProjectivePatchType)[]
-#    for i in 1:npatches(UV) 
-#      W = UV[i]
-#      gensUW = OO(W).(I[U])
-#      gensVW = OO(W).(pullback(f[i]).(I[V])) # TODO: Why is this conversion necessary?!
-#      transitionVU = [write_as_linear_combination(g, gensUW) for g in gensVW]
-#      PW, _ = fiber_product(W, P)
-#      SPW = homog_poly_ring(PW)
-#      push!(P_on_U_patches_to_Q, 
-#            ProjectiveSchemeMor(PW, Q, 
-#                                hom(SQ, SPW,
-#                                    pullback(f[i]),
-#                                    [dot(gens(SPW), SPW.(OO(W).(transitionVU[j]))) for j in 1:ngens(SQ)]
-#                                   )
-#                               )
-#           )
-#    end
-#    
-#    # set up the maps on the patches of the overlap in V
-#    Q_on_V_patches_to_P = morphism_type(ProjectivePatchType)[]
-#    for i in 1:npatches(VU) 
-#      W = VU[i]
-#      gensVW = OO(W).(I[V])
-#      gensUW = OO(W).(pullback(g[i]).(I[U]))
-#      transitionUV = [write_as_linear_combination(g, gensVW) for g in gensUW]
-#      QW, _ = fiber_product(W, Q)
-#      SQW = homog_poly_ring(QW)
-#      push!(Q_on_V_patches_to_P, 
-#            ProjectiveSchemeMor(QW, P, 
-#                                hom(SP, SQW,
-#                                    pullback(g[i]),
-#                                    [dot(gens(SQW), SQW.(OO(W).(transitionUV[j]))) for j in 1:ngens(SP)]
-#                                   )
-#                               )
-#           )
-#    end
-#    projective_glueings[(U, V)] = ProjectiveGlueing(G, P, Q, P_on_U_patches_to_Q, Q_on_V_patches_to_P)
-#  end
-#  tmp = Dict{affine_patch_type(X), ProjectivePatchType}()
-#  for U in patches(C)
-#    tmp[U] = local_blowups[C[U]][1]
-#  end
-#  projective_version = CoveredProjectiveScheme(X, C, tmp, projective_glueings)
-# 
-#  ### At this point we're done with the projective version of the blowup.
-#  # It remains to construct the associated CoveredScheme and the ideal sheaf 
-#  # of the exceptional divisor.
-#  covered_version = as_covered_scheme(projective_version)
-#  projection_map = covered_projection_to_base(projective_version)
-#  SpecType = affine_patch_type(covered_version)
-#  E_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
-#  for i in 1:length(local_blowups)
-#    merge!(E_dict, ideal_dict(local_blowups[i][4]))
-#  end
-#  exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict)
-# 
-#  # Manually construct the ideal sheaf in each one of the charts of the blowup. 
-#  return projective_version, covered_version, projection_map, exc_div
+  Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_glueings)
+  Y = covered_scheme(Bl_I)
+  # Assemble the exceptional divisor as a Cartier divisor
+  ID = IdDict{AbsSpec, RingElem}()
+  p = covered_projection_to_base(Bl_I)
+  p_cov = covering_morphism(p)
+  for U in patches(domain(p_cov)) # These coincide with the patches on which the local E's are defined
+    V = codomain(p_cov[U])
+    if !has_attribute(local_blowups[V], :exceptional_divisor)
+      error("exceptional divisor was not cached on local blowup.")
+    end
+    E_loc = get_attribute(local_blowups[V], :exceptional_divisor)::EffectiveCartierDivisor
+    g = E_loc(U)
+    isone(length(g)) || error("exceptional divisor must be given by one equation in these charts.")
+    ID[U] = first(E_loc(U))
+  end
+  pr = BlowupMorphism(Bl_I, I)
+  pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+  return pr
 end
 
 # The following is a wrap-up of local variables necessary to compute glueings
@@ -613,6 +717,8 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
   return SimpleGlueing(UW, VW, ff, gg, check=false)
+  pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov))
+  return pr
 end
 
 @attr function covered_scheme(P::CoveredProjectiveScheme)

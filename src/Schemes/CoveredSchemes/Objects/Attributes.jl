@@ -140,7 +140,7 @@ function dim(X::AbsCoveredScheme)
       # supremum of all components. Thus we can only infer 
       # non-equidimensionality in case this is already visible
       # from comparing the diffent charts
-      set_attribute(X, :is_equidimensional, false)
+      set_attribute!(X, :is_equidimensional, false)
     end
   end
   return get_attribute(X, :dim)::Int
@@ -157,7 +157,9 @@ end
   return domain(inc), inc
 end
 
-@attr function singular_locus(X::AbsCoveredScheme)
+@attr function singular_locus(
+    X::AbsCoveredScheme;
+  )
   D = IdDict{AbsSpec, Ideal}()
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   for U in covering
@@ -176,7 +178,7 @@ end
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   for U in covering
     _, inc_sing = singular_locus(U)
-    D[U] = image_ideal(inc_sing)
+    D[U] = radical(image_ideal(inc_sing))
   end
   Ising = IdealSheaf(X, D, check=false)
   return Ising

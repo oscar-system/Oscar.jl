@@ -100,11 +100,13 @@ end
   J = ideal(S, [x-z, y])
   JJ = IdealSheaf(IP, J)
   JJC = pullback(inc, JJ)
-  IP_Bl_C = blow_up(JJC)
-  Bl_C = covered_scheme(IP_Bl_C)
-  p = covered_projection_to_base(IP_Bl_C)
+  blow_down_map = blow_up(JJC)
+  Bl_C = domain(blow_down_map)
+  p = projection(blow_down_map)
   p_star = pullback(p)
   p_star_LC = p_star(LC)
+  @test p_star_LC isa Oscar.AbsCoherentSheaf
+  @test scheme(p_star_LC) === Bl_C
 
   for U in affine_charts(Bl_C)
     @test p_star_LC(U) isa FreeMod
@@ -151,7 +153,6 @@ end
   PT = oscar.projectivization(T)
   PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
 end
-
 
 @testset "direct sums of sheaves" begin
   IP = projective_space(QQ, ["x", "y", "z", "w"])
