@@ -216,9 +216,20 @@ action of `g`, ie. an array where each entry is mapped.
 """
 function action(C::GModule, g, v::Array)
   @assert parent(g) == Group(C)
-  F, mF = fp_group(C)
+
   ac = action(C)
+  f = findfirst(isequal(g), gens(Group(C)))
+  if f !== nothing
+    return map(ac[f], v)
+  end
+
   iac = inv_action(C)
+  f = findfirst(isequal(inv(g)), gens(Group(C)))
+  if f !== nothing
+    return map(iac[f], v)
+  end
+
+  F, mF = fp_group(C)
   for i = word(preimage(mF, g))
     if i > 0
       v = map(ac[i], v)
@@ -240,6 +251,17 @@ end
 The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
+  ac = action(C)
+  G = Group(C)
+  f = findfirst(isequal(g), gens(G))
+  if f !== nothing
+    return ac[f]
+  end
+  iac = inv_action(C)
+  f = findfirst(isequal(inv(g)), gens(G))
+  if f !== nothing
+    return iac[f]
+  end
   v = gens(Module(C))
   return hom(Module(C), Module(C), action(C, g, v))
 end
@@ -655,6 +677,7 @@ function H_two(C::GModule)
   #now map the action generators (for gens(G)) to the gens for the RWS
   ac = []
   iac = []
+  @show :action
   for g = gens(FF)
     f = id
     for i = word(preimage(mF, mFF(g)))
@@ -665,7 +688,8 @@ function H_two(C::GModule)
       end
     end
     push!(ac, f)
-    push!(iac, inv(f))
+    #should we inv(f) or build inv f as a product as above???
+    @time push!(iac, inv(f))
   end
 
   c = CollectCtx(R)
@@ -693,7 +717,8 @@ function H_two(C::GModule)
     pro = []
     inj = []
   else
-    D, pro, inj = direct_product([M for i=1:n]..., task = :both)
+    @show :prod
+    @time D, pro, inj = direct_product([M for i=1:n]..., task = :both)
   end
   
 
@@ -729,6 +754,7 @@ function H_two(C::GModule)
 
   E = D
   all_T = []
+  #need zero home this is too slow
   Z = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
   for i = 1:length(R)
     r = R[i]
@@ -1853,9 +1879,12 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
                     = cu_i otimes g_j
   =#                  
 
+  @assert isdefined(C.M, :hnf)
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
+  @assert isdefined(indC, :hnf)
   AbstractAlgebra.set_attribute!(indC, :induce => (h, g))
   ac = []
+  iac = []
   for s = gens(G)
     sigma = ra(s)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
@@ -1865,8 +1894,20 @@ function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(ac, hom(indC, indC, [x for x = im_q]))
+
+    s = inv(s)
+    sigma = ra(s)
+    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    @assert all(x->x in iU, u)
+    im_q = []
+    for q = gens(indC)
+      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    end
+    push!(iac, hom(indC, indC, [x for x = im_q]))
+
   end
   iC = GModule(G, [x for x = ac])
+  iC.iac = [x for x = iac]
   if D === nothing
     return iC, g, pro, inj
   end
@@ -1908,13 +1949,14 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   f = divexact(absolute_degree(K), e)
   @vprint :GaloisCohomology 1 "the local mult. group as a Z[G] module for e=$e and f = $f\n"
   @vprint :GaloisCohomology 2 " .. the automorphism group ..\n"
-  global last_bla = (K, k)
+
   G, mG = automorphism_group(PermGroup, K, k)
 
   if e == 1 && !full
     @vprint :GaloisCohomology 2 " .. unramified, only the free part ..\n"
 #    @show :unram
     A = abelian_group([0])
+    Hecke.assure_has_hnf(A)
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
       mG,
@@ -1936,6 +1978,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
       gkk = setprecision(gk^order(k), pr)
     end
     A = abelian_group([0, order(u)])
+    Hecke.assure_has_hnf(A)
     h = Map[]
     for g = gens(G)
       im = [A[1]+preimage(mu, mk(mG(g)(pi)*inv(pi)))[1]*A[2], preimage(mu, mk(mG(g)(gk)))[1]*A[2]]
@@ -1997,6 +2040,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
 
   @vprint :GaloisCohomology 2 " .. the module ..\n"
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
+  Hecke.assure_has_hnf(Q)
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
 
@@ -2023,7 +2067,11 @@ end
 
 function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
   q, mq = quo(C.M, image(mDC)[1])
-  return GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac]), mq
+  S = GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac])
+  if isdefined(C, :iac)
+    S.iac = [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.iac]
+  end
+  return S, mq
 end
 
 
@@ -2040,9 +2088,13 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert task in [:sum, :prod, :both, :none]
   G = C[1].G
   @assert all(x->x.G == G, C)
-  mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
+  @time mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
 
-  mC = gmodule(G, [hom(mM, mM, [sum(inj[i](action(C[i], g, pro[i](h))) for i=1:length(C)) for h = gens(mM)]) for g = gens(G)])
+  @time mC = gmodule(G, [direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
+  @time mC.iac = [direct_sum(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
+#  @time mC = gmodule(G, [sum(pro[i] * action(C[i], g) * inj[i] for i=1:length(C)) for g = gens(G)])
+#  @time mC.iac = [sum(pro[i] * action(C[i], inv(g)) * inj[i] for i=1:length(C)) for g = gens(G)]
+#  @time mC.iac = [hom(mM, mM, [sum(inj[i](action(C[i], inv(g), pro[i](h))) for i=1:length(C)) for h = gens(mM)]) for g = gens(G)]
 
   if task == :none
     return mC
@@ -2161,9 +2213,10 @@ function debeerst(M::GrpAbFinGen, sigma::Map{GrpAbFinGen, GrpAbFinGen})
   fl, mSK = is_subgroup(S, K)
   @assert fl
 
+
   _K, _mK = snf(K)
   _S, _mS = snf(S)
-  @assert rank(_S) == ngens(_S) 
+  @assert istrivial(_S) || rank(_S) == ngens(_S) 
   @assert rank(_K) == ngens(_K) 
 
   m = matrix(GrpAbFinGenMap(_mS * mSK * inv((_mK))))
@@ -2172,11 +2225,15 @@ function debeerst(M::GrpAbFinGen, sigma::Map{GrpAbFinGen, GrpAbFinGen})
   # elt in S * U^-1 U m V V^-1 = elt_in K
   # elt in S * U^-1 snf = elt_in * V
   s, U, V = snf_with_transform(m)
-  r = maximum(findall(x->isone(s[x,x]), 1:ngens(_S)))
+  if istrivial(S)
+    r = 0
+  else
+    r = maximum(findall(x->isone(s[x,x]), 1:ngens(_S)))
+  end
 
   mu = hom(_S, _S, inv(U))
   mv = hom(_K, _K, V)
-  @assert all(i-> M(_mS(mu(gen(_S, i)))) == s[i,i] * M(_mK(mv(gen(_K, i)))), 1:ngens(S))
+  @assert istrivial(S) || all(i-> M(_mS(mu(gen(_S, i)))) == s[i,i] * M(_mK(mv(gen(_K, i)))), 1:ngens(S))
   b = [_mK(mv(x)) for x = gens(_K)]
 
   Q, mQ = quo(S, image(sigma -id_hom(M), K)[1])
@@ -2272,20 +2329,6 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticN
   return MapFromFunc(to, from, L, domain(mu))
 end
 
-mutable struct IdelClassCohomology
-  k::AnticNumberField
-  L::Vector # Completions: LocalField, map
-  C::Vector # MultGrp    : GModule, AutMap, UnitGroupMap (U -> LocalField)
-  D::Vector # Induced
-  iEt::GModule # inf data
-  F::Tuple{GModule, Vector{<:Map}} # the sum of iEt and D
-  h::Map #S-Units -> F
-  S::Vector # prime ideals
-
- 
-end
-
-
 """
 Following Debeerst:
   Algorithms for Tamagawa Number Conjectures. Dissertation, University of Kassel, June 2011.
@@ -2343,6 +2386,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   U, mU = sunit_group_fac_elem(S)
   z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
   E = gmodule(G, mU, mG)
+  Hecke.assure_has_hnf(E.M)
   @hassert :GaloisCohomology -1 is_consistent(E)
 
   if is_totally_real(k)
@@ -2428,7 +2472,9 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     psi = hom(V, U, im_psi)
     @assert is_bijective(psi)
     F = abelian_group([0 for i=2:length(x)])
+    Hecke.assure_has_hnf(F)
     W, pro, inj = direct_product(V, F, task = :both)
+    @assert isdefined(W, :hnf)
 
     ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, [inj[1](preimage(psi, x[i])) - inj[2](F[i-1]) for i=2:length(x)]))
     Et = gmodule(G_inf, [ac])
@@ -2464,19 +2510,20 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   C = [gmodule(x[1], prime_field(x[1])) for x = L];
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), C)
   D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, (mU*Hecke.extend_easy(L[i][2], C[i][3], codomain(mU)))) for i=1:length(S)]
-#  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, (mU*z*L[i][2]*pseudo_inv(C[i][3]))) for i=1:length(S)]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), D)
   @hassert :GaloisCohomology 1 all(x->is_G_lin(U, D[x][1], D[x][2], g->action(E, g)), 1:length(D))
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. the big product and the quotient\n"
+  @assert isdefined(iEt[1].M, :hnf)
+  @assert all(x->isdefined(x[1].M, :hnf), D)
 
   F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
   @hassert :GaloisCohomology 1 is_consistent(F[1])
 
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(S));
-  q, mq = quo(F[1], h)
-  q, _mq = simplify(q)
-  mq = GrpAbFinGenMap(mq * pseudo_inv(_mq))
+  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 2 mq = GrpAbFinGenMap(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
   function idel(a::GrpAbFinGenElem)
     a = preimage(mq, a) # in F
@@ -2504,9 +2551,48 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   return q, idel
 end
 
+function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
+  or = Set([o])
+  done = false
+  while !done
+    sz = length(or)
+    done = true
+    for f = C.ac
+      while true
+        or = union(or, [f(x) for x = or])
+        if length(or) == sz
+          break
+        end
+        done = false
+        sz = length(or)
+      end
+    end
+  end
+  return collect(or)
+end
+
+function direct_sum(G::GrpAbFinGen, H::GrpAbFinGen, V::Vector{<:Map{GrpAbFinGen, GrpAbFinGen}})
+  dG = get_attribute(G, :direct_product)
+  dH = get_attribute(H, :direct_product)
+
+  if dG === nothing || dH === nothing
+    error("both groups need to be direct products")
+  end
+  @assert length(V) == length(dG) == length(dH)
+
+  @assert all(i -> domain(V[i]) == dG[i] && codomain(V[i]) == dH[i], 1:length(V))
+  h = hom(G, H, cat([matrix(V[i]) for i=1:length(V)]..., dims=(1,2)), check = !true)
+  return h
+
+end
+
 function Oscar.simplify(C::GModule{PermGroup, GrpAbFinGen})
   s, ms = snf(C.M)
-  return GModule(s, C.G, [GrpAbFinGenMap(ms*x*pseudo_inv(ms)) for x = C.ac]), ms
+  S = GModule(s, C.G, [GrpAbFinGenMap(ms*x*pseudo_inv(ms)) for x = C.ac])
+  if isdefined(C, :iac)
+    S.iac = [GrpAbFinGenMap(ms*x*pseudo_inv(ms)) for x = C.iac]
+  end
+  return S, ms
 end
 
 end # module GrpCoh
