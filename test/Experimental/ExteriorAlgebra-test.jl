@@ -22,7 +22,7 @@ exterior_algebra_naive(ResidueField(ZZ,1180591620717411303449), 2);
 
 exterior_algebra_naive(ResidueRing(ZZ,4), 3)  # Coeffs not integral domain
 
-
+@test_throws  ArgumentError  exterior_algebra_naive(QQ, String[]); # empty name list
 @test_throws  ArgumentError  exterior_algebra_naive(QQ, ["x", "y", "x"]); # duplicate name
 
 
@@ -79,6 +79,8 @@ exterior_algebra_singular(ResidueField(ZZ,1180591620717411303449), 2);
 
 @test_throws MethodError exterior_algebra_singular(ZZ, 3)  # Coeffs not field
 @test_throws MethodError exterior_algebra_singular(ResidueRing(ZZ,4), 3)  # Coeffs not field
+
+@test_throws  ArgumentError  exterior_algebra_singular(QQ, String[]); # empty name list
 @test_throws  ArgumentError  exterior_algebra_singular(QQ, ["x", "y", "x"]); # duplicate name
 
 
