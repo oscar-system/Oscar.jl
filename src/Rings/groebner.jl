@@ -1362,3 +1362,26 @@ function _extend_mon_order(ordering::MonomialOrdering,
   m_hom[2:end, 2:end] = m
   return matrix_ordering(homogenized_ring, m_hom)
 end
+
+# compute weights such that F is a homogeneous system w.r.t. these weights
+function _find_weights(F::Vector{P}) where {P <: MPolyElem}
+  nrows = maximum(length, F) - 1
+  ncols = ngens(parent(first(F)))
+  mat_space = MatrixSpace(ZZ, nrows, ncols)
+
+  # TODO: maybe find a simpler way to build these matrices
+  exponent_diffs = [[i > length(e) ? zeros(Int, ncols) : e[i] - e[1] for i in 1:nrows]
+                    for e in (collect).((exponents).(F))]
+  matrices = [mat_space(permutedims(reduce(hcat, e))) for e in exponent_diffs]
+
+  # vector in the kernel of M should lie in the kernel of all of the matrices
+  M = sum([rand(-1000:1000)*m for m in matrices])
+  KM = kernel(M)[2]
+  k = sum([rand(-1000:1000)*v for v in eachrow(collect(KM))])
+
+  if all(ent -> ent != 0, k) && all(iszero, [mat * k for mat in matrices])
+    return (Int).(k)
+  else 
+    return zeros(Int, ncols)
+  end
+end
