@@ -97,6 +97,16 @@ non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
 is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
 ```
 
+## Koszul Complex
+
+```@docs
+koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyElem
+```
+
+```@docs
+koszul_complex(V::Vector{T}) where T <: MPolyElem
+```
+
 ## Koszul Homology
 
 ```@docs
@@ -110,7 +120,6 @@ The computation of depth in OSCAR relies on expressing depth in terms of  Koszul
 ```@docs
 depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
 ```
-
 
 
 
