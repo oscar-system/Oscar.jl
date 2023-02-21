@@ -155,3 +155,8 @@ The coordinate ring of ``R(M)`` is computed in the following function.
 ```@docs
 matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
 ```
+
+
+```@docs
+    automorphism_group(m::Matroid)
+```
