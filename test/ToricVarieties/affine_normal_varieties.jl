@@ -3,10 +3,10 @@ using Test
 
 @testset "Affine normal toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    antv = AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1]); set_attributes)
+    antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]); set_attributes)
     antv2 = NormalToricVariety(Oscar.positive_hull([1 1; -1 1]); set_attributes)
-    antv3 = AffineNormalToricVariety(antv2; set_attributes)
-    antv4 = AffineNormalToricVariety(Oscar.positive_hull([1 0]); set_attributes)
+    antv3 = affine_normal_toric_variety(antv2; set_attributes)
+    antv4 = affine_normal_toric_variety(Oscar.positive_hull([1 0]); set_attributes)
     antv5 = affine_space(NormalToricVariety, 2; set_attributes)
     antv6 = NormalToricVariety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
     

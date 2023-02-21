@@ -11,7 +11,7 @@ its toric origin.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
@@ -36,7 +36,7 @@ the underlying affine toric variety.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
@@ -61,7 +61,7 @@ the cone of the underlying affine toric variety.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
@@ -86,7 +86,7 @@ of the cone of the underlying affine toric variety.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
@@ -115,7 +115,7 @@ affine toric variety.
 julia> C = positive_hull([-1 1; 1 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)

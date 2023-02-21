@@ -23,9 +23,8 @@ end
 # 2: Generic constructors
 ######################
 
-
 @doc Markdown.doc"""
-    AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
+    affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
 
 Construct the affine normal toric variety $U_{C}$ corresponding to a polyhedral
 cone `C`.
@@ -36,11 +35,11 @@ Set `C` to be the positive orthant in two dimensions.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 ```
 """
-function AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
+function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = AffineNormalToricVariety(pmntv)
@@ -57,6 +56,7 @@ function AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
     
     return variety
 end
+export affine_normal_toric_variety
 
 
 @doc Markdown.doc"""
@@ -191,7 +191,7 @@ end
 
 
 @doc Markdown.doc"""
-    AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
+    affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 
 For internal design, we make a strict distinction between
 normal toric varieties and affine toric varieties.
@@ -203,11 +203,11 @@ this method turns it into an affine toric variety.
 julia> v = NormalToricVariety(positive_hull([1 0; 0 1]))
 A normal, affine toric variety
 
-julia> affineVariety = AffineNormalToricVariety(v)
+julia> affineVariety = affine_normal_toric_variety(v)
 A normal, affine toric variety
 ```
 """
-function AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
+function affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
     is_affine(v) || error("Cannot construct affine toric variety from non-affine input")
     variety = AffineNormalToricVariety(pm_object(v))
     

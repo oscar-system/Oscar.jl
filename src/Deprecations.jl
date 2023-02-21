@@ -21,3 +21,17 @@
 @deprecate birkhoff(n::Integer; even::Bool = false) birkhoff_polytope(n; even=even)
 @deprecate cross(args...) cross_polytope(args...)
 @deprecate gelfand_tsetlin(lambda::AbstractVector) gelfand_tsetlin_polytope(lambda)
+
+
+# Deprecate after 0.11.4
+function AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
+    Base.depwarn("'AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
+    "'affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
+    affine_normal_toric_variety(C; set_attributes = set_attributes)
+end
+
+function AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
+    Base.depwarn("'AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)' is deprecated, use "*
+    "'affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
+    affine_normal_toric_variety(v; set_attributes = set_attributes)
+end
