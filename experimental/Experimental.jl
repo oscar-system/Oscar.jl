@@ -28,3 +28,5 @@ include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
 include("Schemes/ToricSchemes/include.jl")
+
+include("ExteriorAlgebra/ExteriorAlgebra.jl")
