@@ -58,6 +58,11 @@ Here is a summary of the naming convention followed in OSCAR:
 
 ## Code formatting
 
+### Editor configuration
+
+Please check if your editor can be configured to honor our `.editorconfig`
+file, see <https://editorconfig.org> for more information about this.
+
 ### Unicode
 
 As most modern programming languages, Julia allows the use of Unicode, e.g.,

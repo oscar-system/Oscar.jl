@@ -1,4 +1,5 @@
 export depth, fitting_ideal, is_flat, is_regular_sequence, koszul_homology, non_flat_locus 
+export koszul_matrix, koszul_complex
 
 ###############################################################################
 # functionality supporting computations in homological algebra.
@@ -495,4 +496,103 @@ function depth(I::MPolyIdeal{T}, M::SubQuo{T}) where T <: MPolyElem
  return Singular.LibHomolog.depth(SG, I.gens.S)
 end
 
+##############################################################################
+#
+# Koszul Complex
+#
+##############################################################################
+
+@doc Markdown.doc"""
+     koszul_matrix(V::Vector{T}, p::Int) where T <: MPolyElem
+
+If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the matrix representing
+the `p`-th map of the Koszul complex $K(f_1, \dots, f_r)$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x
+ y
+ z
+
+julia> koszul_matrix(V, 3)
+[z   -y   x]
+
+julia> koszul_matrix(V, 2)
+[-y    x   0]
+[-z    0   x]
+[ 0   -z   y]
+
+julia> koszul_matrix(V, 1)
+[x]
+[y]
+[z]
+```
+"""
+function koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyElem
+  @assert 1 <= i <= length(V)
+  R = parent(V[1])
+  @assert all(x->parent(x) == R, V)
+  I = ideal(R, V)
+  singular_assure(I)
+  return transpose(map_entries(R, Singular.LibHomolog.KoszulMap(I.gens.S, i)))
+end
+
+@doc Markdown.doc"""
+     koszul_complex(V::Vector{T}) where T <: MPolyElem
+
+If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the Koszul complex $K(f_1, \dots, f_r)$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x
+ y
+ z
+
+julia> K = koszul_complex(V);
+
+julia> matrix(map(K, 2))
+[-y    x   0]
+[-z    0   x]
+[ 0   -z   y]
+
+julia> Kd = hom(K, free_module(R, 1));
+
+julia> matrix(map(Kd, 1))
+[-y   -z    0]
+[ x    0   -z]
+[ 0    x    y]
+```
+"""
+function koszul_complex(V::Vector{T}) where T <: MPolyElem
+  R  = parent(V[1])
+  @assert all(x->parent(x) == R, V)
+  n = length(V)
+  KM = [koszul_matrix(V, i) for i=n:-1:1]
+  
+  F = free_module(R, 0)
+  G = free_module(R, 1)
+  delta = hom(F, G, zero_matrix(R, rank(F), rank(G)))
+  KK = [delta]
+  
+  for i=1:n
+       F = codomain(delta)
+       G = free_module(R, ncols(KM[i]))
+       delta = hom(F, G, KM[i])
+       push!(KK, delta)
+  end
+
+  F = G
+  G = free_module(R, 0)
+  push!(KK, hom(F, G, zero_matrix(R, rank(F), rank(G))))
+    
+  return chain_complex(KK, seed = -1)
+end
 

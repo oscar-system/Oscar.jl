@@ -38,6 +38,7 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   p = map(P, 0)
   FM = P[0]
   r = rank(FM)
+  r == length(var_names) || error("wrong number of variable names given")
   sym_FM, s = PolynomialRing(R, Symbol.(var_names))
   sym_F, t = PolynomialRing(R, [Symbol("t$i") for i in 1:rank(F)])
   imgs = Vector{elem_type(sym_F)}()
@@ -57,7 +58,6 @@ function rees_algebra(M::FreeMod;
   R = base_ring(M)
   r = rank(M)
   S, s = PolynomialRing(R, Symbol.(var_names))
-  #S, _ = grade(S_tmp)
   return S
 end
 

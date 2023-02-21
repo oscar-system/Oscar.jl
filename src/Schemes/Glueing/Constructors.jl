@@ -34,7 +34,7 @@ to
 
 with coordinates
 
-	1//x, y//x
+	1/x, y/x
 
 julia> typeof(G)<:SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
 true
@@ -95,7 +95,7 @@ end
 # Restrictions of Glueings to closed subschemes                        #
 ########################################################################
 function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
-  return restrict(underlying_glueing(G), X, Y)
+  return restrict(underlying_glueing(G), X, Y, check=check)
 end
 
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
@@ -154,7 +154,7 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                          check=check
                         ),
                  compose(restrict(ginv, V2, domain(h2), check=check), 
-                         compose(h2, restrict(f, domain(h1), U2), check=check), 
+                         compose(h2, restrict(f, domain(h1), U2, check=check), check=check), 
                          check=check
                         ),
                  check=check

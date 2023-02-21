@@ -625,7 +625,7 @@ function (M::SubQuo{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocaliz
   v = coordinates(f, M) # This is not the cheapest way, but the only one for which 
                         # the constructors in the module code are sufficiently generic.
                         # Clean this up!
-  return sum([a*M[i] for (i, a) in v])
+  return sum([a*M[i] for (i, a) in v]; init=zero(M))
 end
 
 function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}

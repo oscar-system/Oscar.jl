@@ -266,6 +266,46 @@ function quo(
   return P, hom(L, P, gens(P))
 end
 
+@Markdown.doc """
+    localization(RQ::MPolyQuo, U::AbsMPolyMultSet)
+
+Given a quotient `RQ` of a multivariate polynomial ring `R` with projection map
+`p : R -> RQ`, say, and given a multiplicatively closed subset `U` of `R`, return the 
+localization of `RQ` at `p(U)`, together with the localization map.
+
+# Examples
+
+```jldoctest
+julia> T, t = PolynomialRing(QQ, "t");
+
+julia> K, a =  NumberField(2*t^2-1, "a");
+
+julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+
+julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia> P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia> U = complement_of_prime_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia> RQ, _ = quo(R, I);
+
+julia> RQL, iota = localization(RQ, U);
+
+julia> RQL
+Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+
+julia> iota
+Map from
+Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
+```
+""" localization(A::MPolyQuo, U::AbsMPolyMultSet)
+
+###localization is an Abstract Algebra alias for Localization
+
 function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
   L = MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, Localization(S)[1])
   return L, MapFromFunc((x->L(lift(x))), Q, L)
@@ -495,6 +535,39 @@ For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representati
 """
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
+
+@Markdown.doc """
+    is_unit(f::MPolyQuoLocalizedRingElem) 
+
+Return `true`, if `f` is a unit of `parent(f)`, `true` otherwise.
+
+# Examples
+
+```jldoctest
+julia> T, t = PolynomialRing(QQ, "t");
+
+julia> K, a =  NumberField(2*t^2-1, "a");
+
+julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+
+julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
+ideal(2*x^2 - y^3, 2*x^2 - y^5)
+
+julia> P = ideal(R, [y-1, x-a])
+ideal(y - 1, x - a)
+
+julia> U = complement_of_prime_ideal(P)
+complement of ideal(y - 1, x - a)
+
+julia> RQ, p = quo(R, I);
+
+julia> RQL, iota = Localization(RQ, U);
+
+julia> is_unit(iota(p(x)))
+true
+```
+""" is_unit(f::MPolyQuoLocalizedRingElem)
+
 function is_unit(f::MPolyQuoLocalizedRingElem) 
   lifted_numerator(f) in inverted_set(parent(f)) && return true
   R=localized_ring(parent(f))
@@ -689,12 +762,24 @@ end
 # * Division routines can be used for the ring R[S⁻¹] with subsequent
 #   conversion. 
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
+  success, c = divides(parent(b), b)
+  !success && error("$b does not divide $a")
+  return c
 end
 
-function Base.:(//)(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
+  success, c = divides(a, b)
+  !success && error("$b does not divide $a")
+  return c
+end
+
+function divexact(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
+  return a/b
+end
+
+function divexact(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
+  return a/b
 end
 
 function ==(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
@@ -936,7 +1021,13 @@ function MPolyQuoLocalizedRingHom(
   return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
-hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a, check=check)
+hom(L::MPolyQuoLocalizedRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, a, check=check)
+
+function hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
+  R = base_ring(L)
+  res = hom(R, S, a)
+  MPolyQuoLocalizedRingHom(L, S, res, check=check)
+end
 
 ### implementing the Oscar map interface
 function identity_map(W::T) where {T<:MPolyQuoLocalizedRing} 
@@ -977,6 +1068,19 @@ function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom)
     f(x) == g(x) || return false
   end
   return true
+end
+
+### printing
+function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  println(io, "$(domain(phi)) → $(codomain(phi));")
+  for i in 1:ngens(R)-1
+    println(io, " $(R[i]) ↦ $(psi(R[i])),")
+  end
+  n = ngens(R)
+  println(io, " $(R[n]) ↦ $(psi(R[n]))")
+  return
 end
 
 ### helper_ring
@@ -1413,13 +1517,14 @@ end
  
 ### required getter functions
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
+gens(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
+getindex(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
 pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
-getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 ### Additional constructors
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
@@ -1483,13 +1588,32 @@ function ideal(
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
 end
 
+### printing
+function Base.show(io::IO, I::MPolyQuoLocalizedIdeal)
+  if length(gens(I)) == 0
+    print(io, "zero ideal in $(base_ring(I))")
+    return
+  end
+  str = "ideal in $(base_ring(I)) generated by [$(first(gens(I)))"
+  for i in 2:ngens(I)
+    str = str * ", $(gens(I, i))"
+  end
+  str = str * "]"
+  print(io, str)
+  return
+end
+
 ### Further constructors for quotient rings
 function quo(
     L::MPolyQuoLocalizedRing,
     I::MPolyQuoLocalizedIdeal
   )
-  base_ring(I) == L || error("ideal does not belong to the correct ring")
-  W, _ = quo(localized_ring(L), modulus(L) + pre_image_ideal(I))
+  base_ring(I) === L || error("ideal does not belong to the correct ring")
+  R = base_ring(L)
+  J = modulus(underlying_quotient(L))
+  J = ideal(R, vcat([g for g in gens(J) if !iszero(g)], 
+                    [g for g in lifted_numerator.(gens(pre_image_ideal(I))) if !(g in J)]))
+  W, _ = quo(localized_ring(L), localized_ring(L)(J))
   return W, hom(L, W, gens(W), check=false)
 end
 
@@ -1556,3 +1680,16 @@ function _is_integral_domain(R::Ring)
   is_domain_type(typeof(R)) && return true
   error("method not implemented for rings of type $(typeof(R))")
 end
+
+### Some auxiliary functions
+
+@attr MPolyQuoLocalizedIdeal function radical(I::MPolyQuoLocalizedIdeal)
+  W = base_ring(I)
+  J = pre_image_ideal(I)
+  return ideal(W, [g for g in W.(gens(radical(J))) if !iszero(g)])
+end
+
+@attr function dim(I::MPolyQuoLocalizedIdeal)
+  return dim(pre_image_ideal(I))
+end
+

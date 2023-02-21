@@ -29,6 +29,23 @@ end
  @test is_regular_sequence(W, M) == false
 end
 
+@testset "mpoly_affine_homological-algebra.koszul_matrix" begin
+ R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+ V = gens(R)
+ KM = koszul_matrix(V, 1)
+ @test nrows(KM) == 2
+ @test KM[1] == R[1]
+end
+
+@testset "mpoly_affine_homological-algebra.koszul_complex" begin
+ R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+ V = gens(R)
+ K = koszul_complex(V)
+ KM = matrix(map(K, 2))
+ @test ncols(KM) == 2
+ @test KM[1, 1] == -R[2]
+end
+
 @testset "mpoly_affine_homological-algebra.koszul_homology" begin
  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
  F = free_module(R, 1)

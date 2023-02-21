@@ -243,6 +243,7 @@ end
 _ambient_dim(x::AbstractVector) = length(x)
 _ambient_dim(x::AbstractMatrix) = size(x, 2)
 _ambient_dim(x::AbstractVector{<:AbstractVector}) = _ambient_dim(x[1])
+_ambient_dim(x::MatElem) = ncols(x)
 
 """
     decompose_vdata(A::AbstractMatrix)

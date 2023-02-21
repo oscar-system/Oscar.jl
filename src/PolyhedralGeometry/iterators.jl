@@ -348,6 +348,62 @@ unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("un
 _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 
 ################################################################################
+
+# Lineality often causes certain collections to be empty;
+# the following definition allows to easily construct a working empty SOI
+
+_empty_access() = nothing
+
+function _empty_subobjectiterator(::Type{T}, Obj::Polymake.BigObject) where T
+    return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
+end
+
+for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
+    M = Symbol(f)
+    @eval begin
+        function $M(::Val{_empty_access}, P::Polymake.BigObject; homogenized=false)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+            typename = scalar_regexp[1]
+            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + homogenized)
+        end
+    end
+end
+
+for f in ("_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
+    M = Symbol(f)
+    @eval begin
+        $M(::Val{_empty_access}, P::Polymake.BigObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+    end
+end
+
+for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
+    M = Symbol(f)
+    @eval begin
+        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+            typename = scalar_regexp[1]
+            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
+        end
+    end
+end
+
+for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
+    M = Symbol(f)
+    @eval begin
+        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+            typename = scalar_regexp[1]
+            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
+        end
+    end
+end
+
+_matrix_for_polymake(::Val{_empty_access}) = _point_matrix
+
+################################################################################
 ######## Unify matrices
 ################################################################################
 

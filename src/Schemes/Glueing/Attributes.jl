@@ -71,7 +71,7 @@ patches(G::SimpleGlueing) = (G.X, G.Y)
 glueing_morphisms(G::SimpleGlueing) = (G.f, G.g)
 glueing_domains(G::SimpleGlueing) = (G.U, G.V)
 
-@attr SimpleGlueing function inverse(G::SimpleGlueing)
+@attr AbsGlueing function inverse(G::SimpleGlueing)
   Ginv = SimpleGlueing(G.Y, G.X, G.g, G.f, check=false)
   set_attribute!(Ginv, :inverse, G)
   return Ginv

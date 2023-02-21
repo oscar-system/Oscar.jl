@@ -152,24 +152,6 @@
         @test relative_interior_point(Q0) == [1//3, 1//3]
     end
 
-    @testset "linear programs" begin
-        LP1 = LinearProgram(square,[1,3])
-        LP2 = LinearProgram(square,[2,2]; k=3, convention = :min)
-        LP3 = LinearProgram(Pos,[1,2,3])
-        @test LP1 isa LinearProgram{T}
-        @test LP2 isa LinearProgram{T}
-        @test LP3 isa LinearProgram{T}
-
-        @test solve_lp(LP1)==(4,[1,1])
-        @test solve_lp(LP2)==(-1,[-1,-1])
-        if T == fmpq
-            str = ""
-        else
-            str = "pm::QuadraticExtension<pm::Rational>\n"
-        end
-        @test string(solve_lp(LP3))==string("(", str, "inf, nothing)")
-    end
-
     @testset "volume" begin
         if T == nf_elem
             @test volume(square) isa Oscar.nf_scalar
@@ -218,16 +200,34 @@
                 @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
             end
             @test Polyhedron(facets(A)) == A
-            b1 = birkhoff(3)
-            b2 = birkhoff(3, even = true)
+            b1 = birkhoff_polytope(3)
+            b2 = birkhoff_polytope(3, even = true)
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
             @test nvertices(b1) == nvertices(b2) * 2
             
-            P = gelfand_tsetlin([3,2,1])
+            P = gelfand_tsetlin_polytope([3,2,1])
             p = project_full(P)
             @test p isa Polyhedron{T}
             @test volume(P) == 0
             @test volume(p) == 1
+
+            rsph = rand_spherical_polytope(3, 15)
+            @test rsph isa Polyhedron{T}
+            @test is_simplicial(rsph)
+            @test nvertices(rsph) == 15
+
+            rsph_r = rand_spherical_polytope(3, 10; distribution=:exact)
+            @test map(x->dot(x,x), vertices(rsph_r)) == ones(fmpq,10)
+            @test is_simplicial(rsph_r)
+            @test nvertices(rsph_r) == 10
+
+            prec = 20
+            rsph_prec = rand_spherical_polytope(3, 20; precision=prec)
+            @test rsph_prec isa Polyhedron{T}
+            @test is_simplicial(rsph_prec)
+            @test nvertices(rsph_prec) == 20
+            @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< fmpq(2)^-(prec-1))
+
         end
         
     end
@@ -298,6 +298,8 @@
             @test faces(D, 0) == convex_hull.(T, V)
             @test isempty(affine_hull(D))
             @test relative_interior_point(D) == [0, 0, 0]
+            
+            @test platonic_solid("dodecahedron") == D
             
         end
         

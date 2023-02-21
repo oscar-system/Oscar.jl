@@ -67,21 +67,28 @@ export is_basepoint_free
 @doc Markdown.doc"""
     is_effective(td::ToricDivisor)
 
-Determine whether the toric divisor `td` is effective.
+Determine whether the toric divisor `td` is effective,
+i.e. if all of its coefficients are non-negative.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+julia> P2 = projective_space(NormalToricVariety,2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
-A torus-invariant, prime divisor on a normal toric variety
+julia> td = ToricDivisor(P2, [1,-1,0])
+A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_effective(td)
+false
+
+julia> td2 = ToricDivisor(P2, [1,2,3])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> is_effective(td2)
 true
 ```
 """
-@attr Bool is_effective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE
+@attr Bool is_effective(td::ToricDivisor) = all(c -> (c >= 0), coefficients(td))
 export is_effective
 
 
