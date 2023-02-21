@@ -3,12 +3,12 @@ using Test
 
 @testset "Normal toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)); set_attributes)
+    ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)); set_attributes)
     set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"])
-    ntv2 = NormalToricVariety(Oscar.cube(2); set_attributes)
+    ntv2 = normal_toric_variety(Oscar.cube(2); set_attributes)
     ntv3 = NormalToricVarietyFromGLSM(matrix(ZZ, [[1, 1, 1]]); set_attributes)
     ntv4 = NormalToricVarietiesFromStarTriangulations(convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1]); set_attributes)
-    ntv5 = NormalToricVariety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))); set_attributes)
+    ntv5 = normal_toric_variety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))); set_attributes)
     
     @testset "Basic properties" begin
         @test is_complete(ntv) == true

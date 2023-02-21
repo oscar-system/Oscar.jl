@@ -60,7 +60,7 @@ export affine_normal_toric_variety
 
 
 @doc Markdown.doc"""
-    NormalToricVariety(C::Cone; set_attributes::Bool = true)
+    normal_toric_variety(C::Cone; set_attributes::Bool = true)
 
 Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
 polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
@@ -71,11 +71,11 @@ Set `C` to be the positive orthant in two dimensions.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> ntv = NormalToricVariety(C)
+julia> ntv = normal_toric_variety(C)
 A normal, affine toric variety
 ```
 """
-function NormalToricVariety(C::Cone; set_attributes::Bool = true)
+function normal_toric_variety(C::Cone; set_attributes::Bool = true)
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv)
@@ -91,10 +91,11 @@ function NormalToricVariety(C::Cone; set_attributes::Bool = true)
     
     return variety
 end
+export normal_toric_variety
 
 
 @doc Markdown.doc"""
-NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+    normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
 as vector of vectors. By default, this method assumes that the input is not
@@ -120,21 +121,21 @@ julia> max_cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
  [3, 4]
  [4, 1]
 
-julia> NormalToricVariety(ray_generators, max_cones)
+julia> normal_toric_variety(ray_generators, max_cones)
 A normal toric variety
 
-julia> NormalToricVariety(ray_generators, max_cones, non_redundant = true)
+julia> normal_toric_variety(ray_generators, max_cones; non_redundant = true)
 A normal toric variety
 ```
 """
-function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
     fan = PolyhedralFan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
-    return NormalToricVariety(fan; set_attributes = set_attributes)
+    return normal_toric_variety(fan; set_attributes = set_attributes)
 end
 
 
 @doc Markdown.doc"""
-    NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
+    normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
 
 Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
 
@@ -147,11 +148,11 @@ A polyhedron in ambient dimension 2
 julia> nf = normal_fan(square)
 A polyhedral fan in ambient dimension 2
 
-julia> ntv = NormalToricVariety(nf)
+julia> ntv = normal_toric_variety(nf)
 A normal toric variety
 ```
 """
-function NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
+function normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
     variety = NormalToricVariety(pmntv)
@@ -177,12 +178,12 @@ Set `P` to be a square.
 julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
-julia> ntv = NormalToricVariety(square)
+julia> ntv = normal_toric_variety(square)
 A normal toric variety
 ```
 """
-function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
-    variety = NormalToricVariety(normal_fan(P))
+function normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
+    variety = normal_toric_variety(normal_fan(P))
     if set_attributes
         set_attribute!(variety, :polyhedron, P)
     end
@@ -200,7 +201,7 @@ this method turns it into an affine toric variety.
 
 # Examples
 ```jldoctest
-julia> v = NormalToricVariety(positive_hull([1 0; 0 1]))
+julia> v = normal_toric_variety(positive_hull([1 0; 0 1]))
 A normal, affine toric variety
 
 julia> affineVariety = affine_normal_toric_variety(v)
@@ -349,7 +350,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
     tr,_ = pseudo_inv(lattice_gens)
     ray_gens = ray_gens * transpose(tr)
     mc = IncidenceMatrix(subsets(Vector{Int}(1:length(w)), length(w)-1))
-    variety = NormalToricVariety(PolyhedralFan(ray_gens, mc; non_redundant=true ))
+    variety = normal_toric_variety(PolyhedralFan(ray_gens, mc; non_redundant=true ))
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
@@ -389,7 +390,7 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 function hirzebruch_surface(r::Int; set_attributes::Bool = true)
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
-    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
@@ -470,7 +471,7 @@ function del_pezzo_surface(b::Int; set_attributes::Bool = true)
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
         cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
     end
-    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
     
     # make standard choice for weights of the cox ring
     if b == 1
@@ -573,7 +574,7 @@ Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by
 function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
     # compute the blow-up variety
     new_fan = starsubdivision(fan(v), n)
-    new_variety = NormalToricVariety(new_fan; set_attributes = set_attributes)
+    new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     
     # extract the old and new rays
     # the new cones are in general given by first (in general) permuting the old rays and then adding a new ray (not necessarily at the last position)
@@ -649,7 +650,7 @@ Multivariate Polynomial Ring in 6 variables x1, x2, x3, y1, ..., y3 over Rationa
 ```
 """
 function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
-    product = NormalToricVariety(fan(v)*fan(w); set_attributes = set_attributes)
+    product = normal_toric_variety(fan(v)*fan(w); set_attributes = set_attributes)
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product
 end
@@ -703,7 +704,7 @@ function NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attribute
     max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
     
     # construct the varieties
-    return [NormalToricVariety(PolyhedralFan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
+    return [normal_toric_variety(PolyhedralFan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
 end
 export NormalToricVarietiesFromStarTriangulations
 

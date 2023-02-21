@@ -3,9 +3,9 @@ using Test
 
 @testset "Closed subvarieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    antv = NormalToricVariety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
+    antv = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
     
-    ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)); set_attributes)
+    ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)); set_attributes)
     (x1, x2, y1, y2) = gens(cox_ring(ntv));
     sv1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
     sv2 = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2, y2])

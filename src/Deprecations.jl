@@ -35,3 +35,29 @@ function AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = 
     "'affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
     affine_normal_toric_variety(v; set_attributes = set_attributes)
 end
+
+function NormalToricVariety(C::Cone; set_attributes::Bool = true)
+    Base.depwarn("'NormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
+    "'normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :NormalToricVariety)
+    normal_toric_variety(C; set_attributes = set_attributes)
+end
+
+function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+    Base.depwarn("'NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; "*
+    "non_redundant::Bool = false, set_attributes::Bool = true)' is deprecated, use "*
+    "'normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; "*
+    "non_redundant::Bool = false, set_attributes::Bool = true)' instead.", :NormalToricVariety)
+    normal_toric_variety(rays, max_cones; non_redundant = non_redundant, set_attributes = set_attributes)
+end
+
+function NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
+    Base.depwarn("'NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)' is deprecated, use"*
+    "'normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)' instead.", :NormalToricVariety)
+    normal_toric_variety(PF; set_attributes = set_attributes)
+end
+
+function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
+    Base.depwarn("'NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)' is deprecated, use"*
+    "'normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)' instead.", :NormalToricVariety)
+    normal_toric_variety(P; set_attributes = set_attributes)
+end

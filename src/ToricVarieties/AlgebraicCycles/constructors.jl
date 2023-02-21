@@ -149,7 +149,7 @@ cycles of a closed subvariety of a normal toric variety.
 
 # Examples
 ```jldoctest
-julia> ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)))
+julia> ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))
 A normal toric variety
 
 julia> set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"]);
