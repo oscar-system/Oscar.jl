@@ -1012,7 +1012,7 @@ function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem
       w = evaluate(b, poly_m)
       C = collect(terms(w))
       for c in C
-        m2[i, indexin([collect(monomials(c))[1]], bsp)[1]] += collect(coeffs(c))[1]
+        m2[i, indexin([collect(monomials(c))[1]], bsp)[1]] += collect(coefficients(c))[1]
       end
     end
     push!(coll, m2)
