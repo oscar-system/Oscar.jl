@@ -4,7 +4,7 @@ using Test
 @testset "Toric schemes" begin
   
   C = positive_hull([-1 1; 1 1])
-  antv = AffineNormalToricVariety(C)
+  antv = affine_normal_toric_variety(C)
   affine_toric_scheme = ToricSpec(antv)
   
   @testset "A simplicial (and not smooth) affine toric scheme" begin

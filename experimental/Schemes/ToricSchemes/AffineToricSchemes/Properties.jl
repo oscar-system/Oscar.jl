@@ -10,7 +10,7 @@ If so, the function returns `true` and otherwise
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
@@ -22,7 +22,7 @@ true
 julia> C2 = positive_hull([-1 1; 1 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv2 = AffineNormalToricVariety(C2)
+julia> antv2 = affine_normal_toric_variety(C2)
 A normal, affine toric variety
 
 julia> affine_toric_scheme2 = ToricSpec(antv2)
@@ -48,7 +48,7 @@ If so, the function returns `true` and otherwise
 julia> C = positive_hull([-1 1; 1 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)

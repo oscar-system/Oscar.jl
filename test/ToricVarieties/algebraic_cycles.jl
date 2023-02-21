@@ -3,7 +3,7 @@ using Test
 
 @testset "Algebraic cycles (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    antv = AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1]))
+    antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]))
     
     P3 = projective_space(NormalToricVariety, 3; set_attributes)
     sv0 = ClosedSubvarietyOfToricVariety(P3, [gens(cox_ring(P3))[1]^2])

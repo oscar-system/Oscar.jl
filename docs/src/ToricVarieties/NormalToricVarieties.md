@@ -12,8 +12,8 @@ Pages = ["NormalToricVarieties.md"]
 
 We introduce two main types of normal toric varieties, distinguishing between
 the affine and non-affine case:
-- `AffineNormalToricVariety` is the toric variety associated to a cone $\sigma$, denoted by $U_{\sigma}$ in [CLS11](@cite)
-- `NormalToricVariety` is the toric variety associated to a polyhedral fan $\Sigma$, denoted by $X_{\Sigma}$ in [CLS11](@cite)
+- `AffineNormalToricVariety` is the type for toric varieties associated to a cone $\sigma$, denoted by $U_{\sigma}$ in [CLS11](@cite)
+- `NormalToricVariety` is the type for toric varieties associated to a polyhedral fan $\Sigma$, denoted by $X_{\Sigma}$ in [CLS11](@cite)
 
 !!! warning
     The lattice is always assumed to be the standard lattice $\mathbb{Z}^n$.
@@ -34,9 +34,9 @@ passing `set_attributes = false` as last argument. Note however, that the constr
 ### Affine Toric Varieties
 
 ```@docs
-AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
+affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
 NormalToricVariety(C::Cone; set_attributes::Bool = true)
-AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
+affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 ```
 
 ### Normal Toric Varieties

@@ -12,7 +12,7 @@ Return the dimension of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> dim(antv)
 1
@@ -33,7 +33,7 @@ Return the dimension of the torus factor of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> dim_of_torusfactor(antv)
 1
@@ -59,7 +59,7 @@ Return the Euler characteristic of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> euler_characteristic(antv)
 1
@@ -118,7 +118,7 @@ question is not yet finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> set_coordinate_names(antv, ["u"])
 
@@ -181,7 +181,7 @@ This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> coefficient_ring(antv) == QQ
 true
@@ -200,7 +200,7 @@ the normal toric variety `v`. The default is `x1, ..., xn`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> coordinate_names(antv)
 1-element Vector{String}:
@@ -463,7 +463,7 @@ ideal comes from the dual cone.
 julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> R, _ = PolynomialRing(QQ, 4);
@@ -493,7 +493,7 @@ ideal comes from the dual cone.
 julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> toric_ideal(antv)
@@ -510,7 +510,7 @@ end
 
 @attr MPolyIdeal function toric_ideal(ntv::NormalToricVariety)
     is_affine(ntv) || error("Cannot construct affine toric variety from non-affine input")
-    return toric_ideal(AffineNormalToricVariety(ntv))
+    return toric_ideal(affine_normal_toric_variety(ntv))
 end
 export toric_ideal
 
@@ -1007,7 +1007,7 @@ Return the cone of the affine normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> cone(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
+julia> cone(affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1])))
 A polyhedral cone in ambient dimension 2
 ```
 """
@@ -1042,7 +1042,7 @@ julia> affine_open_covering(p2)
 @attr Vector{AffineNormalToricVariety} function affine_open_covering(v::AbstractNormalToricVariety)
     charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
     for i in 1:pm_object(v).N_MAXIMAL_CONES
-        charts[i] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
+        charts[i] = affine_normal_toric_variety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
     end
     return charts
 end
