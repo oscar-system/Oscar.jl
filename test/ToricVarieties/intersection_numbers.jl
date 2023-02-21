@@ -5,9 +5,9 @@ using Test
     
     antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]); set_attributes)
     
-    antv2 = NormalToricVariety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
+    antv2 = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
     
-    v = NormalToricVariety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]]; set_attributes)
+    v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]]; set_attributes)
     
     dP1 = del_pezzo_surface(1; set_attributes)
     c0 = CohomologyClass(dP1, gens(cohomology_ring(dP1))[1])

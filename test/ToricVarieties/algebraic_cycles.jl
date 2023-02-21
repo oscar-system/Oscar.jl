@@ -8,7 +8,7 @@ using Test
     P3 = projective_space(NormalToricVariety, 3; set_attributes)
     sv0 = ClosedSubvarietyOfToricVariety(P3, [gens(cox_ring(P3))[1]^2])
     
-    ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)))
+    ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))
     (xx1, xx2, yy1, yy2) = gens(cox_ring(ntv));
     sv1 = ClosedSubvarietyOfToricVariety(ntv, [xx1])
     sv2 = ClosedSubvarietyOfToricVariety(ntv, [xx1^2+xx1*xx2+xx2^2, yy2])

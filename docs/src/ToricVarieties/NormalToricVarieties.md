@@ -35,16 +35,16 @@ passing `set_attributes = false` as last argument. Note however, that the constr
 
 ```@docs
 affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
-NormalToricVariety(C::Cone; set_attributes::Bool = true)
+normal_toric_variety(C::Cone; set_attributes::Bool = true)
 affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 ```
 
 ### Normal Toric Varieties
 
 ```@docs
-NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
-NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
-NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
+normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
+normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 ```
 
 ### Famous Toric Vareties

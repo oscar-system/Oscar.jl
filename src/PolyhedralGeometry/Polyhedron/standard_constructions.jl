@@ -905,7 +905,7 @@ The normal toric variety associated with its face fan is smooth.
 julia> S = fano_simplex(3)
 A polyhedron in ambient dimension 3
 
-julia> X = NormalToricVariety(face_fan(S))
+julia> X = normal_toric_variety(face_fan(S))
 A normal toric variety
 
 julia> is_smooth(X)

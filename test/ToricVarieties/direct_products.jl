@@ -3,8 +3,8 @@ using Test
 
 @testset "Direct products (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    F5 = NormalToricVariety([[1, 0], [0, 1], [-1, 5], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 1]]; set_attributes)
-    P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)); set_attributes)
+    F5 = normal_toric_variety([[1, 0], [0, 1], [-1, 5], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 1]]; set_attributes)
+    P2 = normal_toric_variety(normal_fan(Oscar.simplex(2)); set_attributes)
     variety = F5 * P2
     
     @testset "Properties of a direct product of two toric varieties" begin
