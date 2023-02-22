@@ -6,12 +6,12 @@ using Test
     antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]))
     
     P3 = projective_space(NormalToricVariety, 3; set_attributes)
-    sv0 = ClosedSubvarietyOfToricVariety(P3, [gens(cox_ring(P3))[1]^2])
+    sv0 = closed_subvariety_of_toric_variety(P3, [gens(cox_ring(P3))[1]^2])
     
     ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))
     (xx1, xx2, yy1, yy2) = gens(cox_ring(ntv));
-    sv1 = ClosedSubvarietyOfToricVariety(ntv, [xx1])
-    sv2 = ClosedSubvarietyOfToricVariety(ntv, [xx1^2+xx1*xx2+xx2^2, yy2])
+    sv1 = closed_subvariety_of_toric_variety(ntv, [xx1])
+    sv2 = closed_subvariety_of_toric_variety(ntv, [xx1^2+xx1*xx2+xx2^2, yy2])
     ac0 = rational_equivalence_class(ToricLineBundle(ntv, [1, 1]))
     
     F5 = hirzebruch_surface(5; set_attributes)

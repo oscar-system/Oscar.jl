@@ -215,7 +215,7 @@ julia> length(components(ac*ac))
     gs = gens(cox_ring(toric_variety(ac)))
     mons = [m for m in monomials(representative(ac))]
     expos = [[e for e in AbstractAlgebra.exponent_vectors(m)][1] for m in mons]
-    return [ClosedSubvarietyOfToricVariety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
+    return [closed_subvariety_of_toric_variety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
 end
 export components
 

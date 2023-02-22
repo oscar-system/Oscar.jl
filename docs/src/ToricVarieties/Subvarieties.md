@@ -25,7 +25,8 @@ varieties.
 ### General constructors
 
 ```@docs
-ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
+closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
+closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal)
 ```
 
 
