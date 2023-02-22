@@ -3,7 +3,7 @@ using Test
 
 @testset "Cyclic Quotient Singularities" begin
     
-    cyc = CyclicQuotientSingularity(2, 1)
+    cyc = cyclic_quotient_singularity(2, 1)
     
     @testset "Basic properties" begin
         @test is_affine(cyc) == true
