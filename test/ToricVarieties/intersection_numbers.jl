@@ -40,7 +40,7 @@ using Test
         @test length(gens(chow_ring(v).I)) == 5
     end
     
-    @testset "Properties, attributes and arithmetics of cohomology classes" begin
+    @testset "Properties, attributes and arithmetic of cohomology classes" begin
         @test is_trivial(c1) == false
         @test nrows(exponents(c1)) == 3
         @test length(coefficients(c1)) == 3

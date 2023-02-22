@@ -600,7 +600,7 @@ identifications given by the glueings in the `default_covering`.
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
-      # Transfering from another chart did not work. That means 
+      # Transferring from another chart did not work. That means 
       # I(U) is already prescribed on some refinement of U. We 
       # need to gather that information from all the patches involved
       # and assemble the ideal from there.

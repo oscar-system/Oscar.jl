@@ -864,7 +864,7 @@ Compute Delta_w
 Tuples (r_S, r) where r is an element of Delta_w and r_S is the
 orthogonal projection of `r` to `S`.
 
-Correponds to Algorithm 5.8 in [Shi15](@cite)
+Corresponds to Algorithm 5.8 in [Shi15](@cite)
 but this implementation is different.
 """
 # legacy function needed for precomputations

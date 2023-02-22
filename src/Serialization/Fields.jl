@@ -327,7 +327,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: AbstractAlgebra.Generic.Rat},
                                    dict::Dict,
                                    parent:: AbstractAlgebra.Generic.RationalFunctionField)
-    # this line is need to ensure the neccessary backrefs are loaded
+    # this line is need to ensure the necessary backrefs are loaded
     _ = load_unknown_type(s, dict[:frac_elem_parent])
     forced_parent = base_ring(AbstractAlgebra.Generic.fraction_field(parent))
     num = load_unknown_type(s, dict[:num]; parent=forced_parent)

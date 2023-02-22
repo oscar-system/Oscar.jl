@@ -187,14 +187,14 @@ end
 
 ################################################################################
 #
-#  Rational solutions of one-dimensional homogenous ideals
+#  Rational solutions of one-dimensional homogeneous ideals
 #
 ################################################################################
 
 """
     rational_solutions(I::MPolyIdeal{<:MPolyElem_dec}) -> Vector{Vector}
 
-Given a one-dimensional homogenous ideal, return all projective rational
+Given a one-dimensional homogeneous ideal, return all projective rational
 elements of the vanishing set.
 """
 function rational_solutions(I::MPolyIdeal{<:MPolyElem_dec})

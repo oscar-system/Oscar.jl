@@ -13,7 +13,7 @@ using Test
         @test_throws ArgumentError tm1 * tm1
     end
     
-    @testset "Arithmetics of toric morphisms" begin
+    @testset "Arithmetic of toric morphisms" begin
         @test (tm1 == tm2) == false
         @test (tm2 + tm2 == 2*tm2) == true
         @test (tm2 + tm2 == fmpz(2)*tm2) == true

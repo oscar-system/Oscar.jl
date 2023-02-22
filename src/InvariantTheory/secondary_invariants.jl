@@ -392,7 +392,7 @@ end
 #
 ################################################################################
 
-# Gat96, Algorithim 3.16 and DK15, Algorithm 3.7.2
+# Gat96, Algorithm 3.16 and DK15, Algorithm 3.7.2
 @doc Markdown.doc"""
     semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
     relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)

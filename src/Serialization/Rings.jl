@@ -327,7 +327,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring::SeriesRing)
     # cache parent inside serializer state in case the coefficient ring
     # needs to be checked against the coefficient ring of the passed parent
-    # to ensure neccessary backrefs are loaded
+    # to ensure necessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = base_ring(parent_ring)
@@ -360,7 +360,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring::SeriesRing)
     # cache parent inside serializer state in case parent needs
     # to be checked against the passed parent
-    # to ensure neccessary backrefs are loaded
+    # to ensure necessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = base_ring(parent_ring)
@@ -466,7 +466,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring)
     # cache parent inside serializer state in case parent needs
     # to be checked against the passed parent
-    # to ensure neccessary backrefs are loaded
+    # to ensure necessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = base_ring(parent_ring)

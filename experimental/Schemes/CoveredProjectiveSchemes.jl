@@ -185,7 +185,7 @@ glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
 #
 # of projective schemes over Uᵢ∩ Uⱼ for all pairs (i,j).
 #
-# These structs are designed to accomodate blowups of 
+# These structs are designed to accommodate blowups of 
 # covered schemes along arbitrary centers, as well as 
 # projective bundles. 
 
