@@ -76,7 +76,7 @@ true
     map2 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(toric_variety(l))
     image = map2(preimage(map1, class)).coeff
     coeffs = vec([fmpz(x) for x in image])
-    td = ToricDivisor(toric_variety(l), coeffs)
+    td = toric_divisor(toric_variety(l), coeffs)
     set_attribute!(td, :is_cartier, true)
     return td
 end

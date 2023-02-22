@@ -719,7 +719,7 @@ julia> torusinvariant_prime_divisors(p2)
     for i in 1:rank(ti_divisors)
         coeffs = zeros(Int, rank(ti_divisors))
         coeffs[i] = 1
-        push!(prime_divisors, ToricDivisor(v, coeffs))
+        push!(prime_divisors, toric_divisor(v, coeffs))
     end
     return prime_divisors
 end

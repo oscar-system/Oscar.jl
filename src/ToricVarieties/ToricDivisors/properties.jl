@@ -8,7 +8,7 @@ Checks if the divisor `td` is Cartier.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_cartier(td)
@@ -29,7 +29,7 @@ Determine whether the toric divisor `td` is principal.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_principal(td)
@@ -53,7 +53,7 @@ Determine whether the toric divisor `td` is basepoint free.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_basepoint_free(td)
@@ -75,13 +75,13 @@ i.e. if all of its coefficients are non-negative.
 julia> P2 = projective_space(NormalToricVariety,2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(P2, [1,-1,0])
+julia> td = toric_divisor(P2, [1,-1,0])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_effective(td)
 false
 
-julia> td2 = ToricDivisor(P2, [1,2,3])
+julia> td2 = toric_divisor(P2, [1,2,3])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_effective(td2)
@@ -101,7 +101,7 @@ Determine whether the toric divisor `td` is integral.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_integral(td)
@@ -121,7 +121,7 @@ Determine whether the toric divisor `td` is ample.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_ample(td)
@@ -141,7 +141,7 @@ Determine whether the toric divisor `td` is very ample.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_very_ample(td)
@@ -161,7 +161,7 @@ Determine whether the toric divisor `td` is nef.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_nef(td)
@@ -181,7 +181,7 @@ Determine whether the toric divisor `td` is Q-Cartier.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_q_cartier(td)
@@ -202,7 +202,7 @@ Determine whether the toric divisor `td` is a prime divisor.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(F4, [1,0,0,0])
+julia> td = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_prime(td)

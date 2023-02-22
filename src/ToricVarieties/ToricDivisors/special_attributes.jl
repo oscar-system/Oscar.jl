@@ -16,7 +16,7 @@ julia> trivial_divisor(v)
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor trivial_divisor(v::AbstractNormalToricVariety) = ToricDivisor(v, zeros(fmpz, nrays(v)))
+@attr ToricDivisor trivial_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, zeros(fmpz, nrays(v)))
 export trivial_divisor
 
 
@@ -34,7 +34,7 @@ julia> anticanonical_divisor(v)
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = ToricDivisor(v, fill(fmpz(1), nrays(v)))
+@attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, fill(fmpz(1), nrays(v)))
 export anticanonical_divisor
 
 
@@ -52,5 +52,5 @@ julia> canonical_divisor(v)
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor canonical_divisor(v::AbstractNormalToricVariety) = ToricDivisor(v, fill(fmpz(-1), nrays(v)))
+@attr ToricDivisor canonical_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, fill(fmpz(-1), nrays(v)))
 export canonical_divisor

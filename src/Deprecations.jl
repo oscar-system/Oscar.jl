@@ -132,4 +132,11 @@ function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariet
     "'closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, "*
     "defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})' instead.", :ClosedSubvarietyOfToricVariety)
     closed_subvariety_of_toric_variety(toric_variety, defining_polynomials)
-  end
+end
+
+function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}' "*
+    "is deprecated, use 'toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) "*
+    "where {T <: IntegerUnion}' instead.", :ToricDivisor)
+    toric_divisor(v, coeffs)
+end
