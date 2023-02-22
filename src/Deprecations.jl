@@ -61,3 +61,5 @@ function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
     "'normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)' instead.", :NormalToricVariety)
     normal_toric_variety(P; set_attributes = set_attributes)
 end
+
+@deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
