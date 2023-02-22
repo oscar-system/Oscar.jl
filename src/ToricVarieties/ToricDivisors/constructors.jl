@@ -63,17 +63,17 @@ export toric_divisor
 ######################
 
 @doc Markdown.doc"""
-    DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+    divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor associated to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> DivisorOfCharacter(projective_space(NormalToricVariety, 2), [1, 2])
+julia> divisor_of_character(projective_space(NormalToricVariety, 2), [1, 2])
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+function divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
     if length(character) != rank(character_lattice(v))
         throw(ArgumentError("Character must consist of $(rank(character_lattice(v))) integers"))
     end
@@ -82,7 +82,7 @@ function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T})
     coeffs = [fmpz(x) for x in transpose(f(char).coeff)][:, 1]
     return toric_divisor(v, coeffs)
 end
-export DivisorOfCharacter
+export divisor_of_character
 
 
 ########################
