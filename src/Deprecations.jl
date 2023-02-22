@@ -63,3 +63,4 @@ function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
 end
 
 @deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
+@deprecate NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)

@@ -714,7 +714,7 @@ export normal_toric_varieties_from_star_triangulations
 ############################
 
 @doc Markdown.doc"""
-    NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true)
+    normal_toric_varieties_from_glsm(charges::fmpz_mat; set_attributes::Bool = true)
 
 Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
 originally sparked interest in the physics community in toric varieties.
@@ -742,16 +742,16 @@ julia> charges = [[1, 1, 1]]
 1-element Vector{Vector{Int64}}:
  [1, 1, 1]
 
-julia> NormalToricVarietyFromGLSM(charges)
+julia> normal_toric_varieties_from_glsm(charges)
 1-element Vector{NormalToricVariety}:
  A normal toric variety
 ```
 
 For convenience, we also support:
-- NormalToricVarietyFromGLSM(charges::Vector{Vector{Int}})
-- NormalToricVarietyFromGLSM(charges::Vector{Vector{fmpz}})
+- normal_toric_varieties_from_glsm(charges::Vector{Vector{Int}})
+- normal_toric_varieties_from_glsm(charges::Vector{Vector{fmpz}})
 """
-function NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true)
+function normal_toric_varieties_from_glsm(charges::fmpz_mat; set_attributes::Bool = true)
     # compute the map from Div_T -> Cl
     source = free_abelian_group(ncols(charges))
     range = free_abelian_group(nrows(charges))
@@ -776,8 +776,8 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = tr
     p = convex_hull(pts)
     return normal_toric_varieties_from_star_triangulations(p; set_attributes = set_attributes)
 end
-NormalToricVarietyFromGLSM(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = NormalToricVarietyFromGLSM(matrix(ZZ, charges); set_attributes = set_attributes)
-export NormalToricVarietyFromGLSM
+normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
+export normal_toric_varieties_from_glsm
 
 
 ############################
