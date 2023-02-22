@@ -15,7 +15,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
+julia> cc = cohomology_class(d)
 A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> toric_variety(cc)
@@ -39,7 +39,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
+julia> cc = cohomology_class(d)
 A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> coefficients(cc)
@@ -66,7 +66,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
+julia> cc = cohomology_class(d)
 A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> exponents(cc)
@@ -93,7 +93,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
+julia> cc = cohomology_class(d)
 A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> polynomial(cc)
@@ -118,7 +118,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
+julia> cc = cohomology_class(d)
 A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> R, _ = PolynomialRing(QQ, 5)

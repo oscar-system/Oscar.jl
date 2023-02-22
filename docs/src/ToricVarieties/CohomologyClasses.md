@@ -15,9 +15,10 @@ Pages = ["CohomologyClasses.md"]
 ### General constructors
 
 ```@docs
-CohomologyClass(d::ToricDivisor)
-CohomologyClass(c::ToricDivisorClass)
-CohomologyClass(l::ToricLineBundle)
+cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoElem)
+cohomology_class(d::ToricDivisor)
+cohomology_class(c::ToricDivisorClass)
+cohomology_class(l::ToricLineBundle)
 ```
 
 ### Addition, subtraction and scalar multiplication

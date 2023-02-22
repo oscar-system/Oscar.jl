@@ -62,7 +62,7 @@ export volume_form
 
 @attr function _intersection_form_via_exponents(v::NormalToricVariety)
     # extract the cohomology classes corresponding to the torus-invariant prime divisors
-    generators = [CohomologyClass(d) for d in torusinvariant_prime_divisors(v)]
+    generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
     
     # find combinations of those classes that we have to integrate
     S, _ = PolynomialRing(QQ, ["g$(i)" for i in 1:length(generators)], cached=false)
