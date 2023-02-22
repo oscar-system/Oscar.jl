@@ -52,7 +52,7 @@ julia> polynomial(ac)
 ```
 """
 polynomial(ac::RationalEquivalenceClass) = ac.p
-export p
+export polynomial
 
 
 @doc Markdown.doc"""
