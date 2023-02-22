@@ -864,7 +864,8 @@ end
 @doc Markdown.doc"""
     automorphism_group(m::Matroid)
 
-Given a matroid `m` return it's automorphism group as a `PermGroup`
+Given a matroid `m` return its automorphism group as a `PermGroup`.
+The group acts on the elements of `m`.
 
 # Example
 ```jldoctest
