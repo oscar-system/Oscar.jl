@@ -1365,23 +1365,34 @@ end
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
 function _find_weights(F::Vector{P}) where {P <: MPolyElem}
-  nrows = maximum(length, F) - 1
+  nrows = sum((length).(F)) - length(F)
   ncols = ngens(parent(first(F)))
   mat_space = MatrixSpace(ZZ, nrows, ncols)
 
-  # TODO: maybe find a simpler way to build these matrices
-  exponent_diffs = [[i > length(e) ? zeros(Int, ncols) : e[i] - e[1] for i in 1:nrows]
-                    for e in (collect).((exponents).(F))]
-  matrices = [mat_space(permutedims(reduce(hcat, e))) for e in exponent_diffs]
+  exp_diffs = permutedims(reduce(hcat, [e[i] - e[1] for e in
+                                          (collect).((exponents).(F))
+                                          for i in 2:length(e)]))
+  K = kernel(mat_space(exp_diffs))[2]
 
-  # vector in the kernel of M should lie in the kernel of all of the matrices
-  M = sum([rand(-1000:1000)*m for m in matrices])
-  KM = kernel(M)[2]
-  k = sum([rand(-1000:1000)*v for v in eachrow(collect(KM))])
-
-  if all(ent -> ent != 0, k) && all(iszero, [mat * k for mat in matrices])
-    return (Int).(k)
-  else 
-    return zeros(Int, ncols)
+  # Here we try to find a vector with strictly positive entries in K
+  # this method to find such a vector is taken from
+  # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
+  Pol = Polyhedron(-K,  zeros(Int, ncols))
+  !is_feasible(Pol) && return zeros(Int, ncols)
+  pos_vec = zeros(Int, ncols)
+  for i in 1:ncols
+    ei = [j == i ? 1 : 0 for j in 1:ncols]
+    obj_func = ei * K
+    L = LinearProgram(Pol, obj_func)
+    m, v = solve_lp(L)
+    if isnothing(v)
+      Pol_new = intersect(Pol, Polyhedron(ei*K, [1]))
+      L = LinearProgram(Pol_new, obj_func)
+      v = optimal_vertex(L)
+    end
+    pos_vec += K*(v.p)
   end
+  ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
+  @assert iszero(mat_space(exp_diffs) * ret)
+  return ret
 end
