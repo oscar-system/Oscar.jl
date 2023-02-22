@@ -8,7 +8,7 @@ using Test
     F5 = hirzebruch_surface(5; set_attributes)
     
     l = ToricLineBundle(dP3, [1, 2, 3, 4])
-    l2 = ToricLineBundle(DivisorOfCharacter(F5, [1, 2]))
+    l2 = ToricLineBundle(divisor_of_character(F5, [1, 2]))
     l3 = ToricLineBundle(P2, [1])
     
     vs = vanishing_sets(dP3)

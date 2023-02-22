@@ -140,3 +140,5 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T
     "where {T <: IntegerUnion}' instead.", :ToricDivisor)
     toric_divisor(v, coeffs)
 end
+
+@deprecate DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion} divisor_of_character(v, character)

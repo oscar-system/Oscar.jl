@@ -15,7 +15,7 @@ using Test
     ac0 = rational_equivalence_class(ToricLineBundle(ntv, [1, 1]))
     
     F5 = hirzebruch_surface(5; set_attributes)
-    ac1 = rational_equivalence_class(DivisorOfCharacter(F5, [1, 2]))
+    ac1 = rational_equivalence_class(divisor_of_character(F5, [1, 2]))
     
     dP1 = del_pezzo_surface(1; set_attributes)
     (u1, u2, u3, u4) = gens(cohomology_ring(dP1))

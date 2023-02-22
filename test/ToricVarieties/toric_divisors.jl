@@ -8,7 +8,7 @@ using Test
     P2 = projective_space(NormalToricVariety, 2; set_attributes)
     
     D=toric_divisor(F5, [0, 0, 0, 0])
-    D2 = DivisorOfCharacter(F5, [1, 2])
+    D2 = divisor_of_character(F5, [1, 2])
     D3 = toric_divisor(dP3, [1, 0, 0, 0, 0, 0])
     D4 = canonical_divisor(dP3)
     D5 = anticanonical_divisor(dP3)
