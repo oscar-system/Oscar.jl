@@ -280,7 +280,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bo
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :class_group, free_abelian_group(1))
     set_attribute!(variety, :picard_group, free_abelian_group(1))
-    weights = matrix(ZZ,hcat([1 for i in 1:d+1]))
+    weights = matrix(ZZ,ones(Int,d+1,1))
     set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,d+1)))
