@@ -157,7 +157,7 @@ exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer,
     :exponents, :monomials, :leading_monomial, :terms, :leading_term, :tail]
 
 for i in names(Hecke)
-  i in exclude && continue
+  (i in exclude || !isdefined(Hecke, i)) && continue
   eval(Meta.parse("import Hecke." * string(i)))
   eval(Expr(:export, i))
 end
