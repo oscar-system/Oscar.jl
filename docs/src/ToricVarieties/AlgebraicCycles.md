@@ -61,17 +61,17 @@ the cones in the fan of the toric variety.
 ### General constructors
 
 ```@docs
-RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors
 
 ```@docs
-RationalEquivalenceClass(d::ToricDivisor)
-RationalEquivalenceClass(c::ToricDivisorClass)
-RationalEquivalenceClass(l::ToricLineBundle)
-RationalEquivalenceClass(cc::CohomologyClass)
-RationalEquivalenceClass(cc::ClosedSubvarietyOfToricVariety)
+rational_equivalence_class(d::ToricDivisor)
+rational_equivalence_class(c::ToricDivisorClass)
+rational_equivalence_class(l::ToricLineBundle)
+rational_equivalence_class(cc::CohomologyClass)
+rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
 ```
 
 ### Addition, subtraction and scalar multiplication

@@ -17,7 +17,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> toric_variety(ac)
@@ -44,7 +44,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> polynomial(ac)
@@ -74,7 +74,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> R, _ = PolynomialRing(QQ, 5)
@@ -130,7 +130,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> ac*ac
@@ -164,7 +164,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> coefficients(ac*ac)
@@ -200,7 +200,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> length(components(ac*ac))
@@ -239,7 +239,7 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
+julia> ac = rational_equivalence_class(d)
 A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> cohomology_class(ac)
