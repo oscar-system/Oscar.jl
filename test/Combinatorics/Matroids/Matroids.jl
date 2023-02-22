@@ -338,5 +338,10 @@
         @test is_minor(N,NN)
         @test !is_minor(NN,N)
         @test !is_minor(fano_matroid(), uniform_matroid(2,4))
-   end
+    end
+
+    @testset "matroid automorphism" begin
+        M = uniform_matroid(3, 5)
+        @test order(automorphism_group(M)) == 120
+    end
 end

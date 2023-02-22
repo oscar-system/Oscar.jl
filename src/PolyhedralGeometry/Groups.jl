@@ -317,6 +317,6 @@ return values are the same as for
 except that groups are returned instead of generators of groups.
 """
 function automorphism_group(IM::IncidenceMatrix; action = :all)
-    result = automorphism_group_generators(P; action = action)
+    result = automorphism_group_generators(IM; action = action)
     return _gens_to_group(result)
 end
