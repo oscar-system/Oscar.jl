@@ -2107,7 +2107,7 @@ Sort:
 =#    
 
 #TODO: what do we need to return?
-# - mG (if we cache this in the field, not neccessary)
+# - mG (if we cache this in the field, not necessary)
 # - the local stuff?
 # - the S-Units?
 # - ???

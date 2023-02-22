@@ -2485,7 +2485,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
       #each subfield causes, possibly, several invariants...
       # (prod(g[b]) for b = bs)
       # are the conjugates of a primitive element, need possibly a shift
-      # prod(g[b] .+ i) (acording to Klueners)
+      # prod(g[b] .+ i) (according to Klueners)
       # so the elem. symm (or the power sums) of the above need to be in Z
       # furthermore, all roots of this poly are in K, so beta = g(alpha)
       # this gives more invariants... 

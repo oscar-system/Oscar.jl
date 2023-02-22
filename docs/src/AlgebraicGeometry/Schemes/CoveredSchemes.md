@@ -54,7 +54,7 @@ An `AbsCoveredScheme` may have different properties such as
 
 ## The modeling of covered schemes and their expected behaviour 
 
-Any `AbsCoveredScheme` may posess several `Covering`s. This is necessary for 
+Any `AbsCoveredScheme` may possess several `Covering`s. This is necessary for 
 several reasons; for instance, a morphism $f : X \to Y$ between `AbsCoveredScheme`s 
 will in general only be given on affine patches on a refinement of the `default_covering` of `X`.
 The list of available `Covering`s can be obtained using 

@@ -1,7 +1,7 @@
 ########################################################################
 # RingFlattening
 #
-# A struct to accomodate all the information necessary for using 
+# A struct to accommodate all the information necessary for using 
 # flattenings of polynomial rings efficiently to render them effectively
 # computable. 
 #
@@ -78,7 +78,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
     T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
-    T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transfered. 
+    T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
     L_to_T_flat_loc = hom(L, T_flat_loc, gens(T_flat_loc)[ngens(S)+1:end])
 
     I_flat = ideal(T_flat_loc, L_to_T_flat_loc.(gens(I)))
@@ -108,7 +108,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
     T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
-    S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transfered. 
+    S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
     L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end])
 
     R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])

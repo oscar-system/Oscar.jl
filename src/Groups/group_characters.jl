@@ -1227,7 +1227,7 @@ function Base.getindex(chi::GAPGroupClassFunction, i::Int)
   return QQAbElem(vals[i])
 end
 
-# arithmetics with class functions
+# arithmetic with class functions
 function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     chi.table === psi.table || error("character tables must be identical")
 #T check_parent?

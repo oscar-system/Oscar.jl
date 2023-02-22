@@ -48,7 +48,6 @@ GrpAb: Z
 grading_group(R::MPolyRing_dec) = R.D
 
 @doc Markdown.doc"""
-
     is_graded(R::MPolyRing_dec)
 
 Return `true` if `R` is graded, `false` otherwise.
@@ -2443,16 +2442,16 @@ end
 
 ################################################################################
 #
-#  Random homogenous polynomials
+#  Random homogeneous polynomials
 #
 ################################################################################
 
-#create homogenous polynomials in graded rings
+#create homogeneous polynomials in graded rings
 #TODO: make this work for non-standard gradings
 @doc Markdown.doc"""
     rand(S::MPolyRing_dec, term_range, deg_range, v...)
 
-Create a random homogenous polynomial with a random number of
+Create a random homogeneous polynomial with a random number of
 terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
 and random coefficients via `v...`.
 """

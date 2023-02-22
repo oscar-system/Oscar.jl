@@ -102,7 +102,7 @@ export ToricCoveredScheme
     end
     
     # TODO: Improve the gluing (lazy gluing) or try to use the Hasse diagram.
-    # TOOD: For now, we conjecture, that the composition of the computed glueings is sufficient to deduce all glueings.
+    # TODO: For now, we conjecture, that the composition of the computed glueings is sufficient to deduce all glueings.
     fill_transitions!(cov)
     X = CoveredScheme(cov)
     return new{typeof(base_ring(X)), typeof(X)}(X, ntv)

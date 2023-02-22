@@ -39,7 +39,7 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
         script_version = version(upgrade_script)
 
         if dict_version < script_version
-            # TODO: use a macro from Hecke that will allow user to surpress
+            # TODO: use a macro from Hecke that will allow user to suppress
             # such a message
             @info("upgrading serialized data....", maxlog=1)
             s = DeserializerState()

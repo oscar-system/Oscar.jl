@@ -38,7 +38,7 @@ function timo(f::fmpq_poly, p_all::Vector{Int})
     d = Dict{Int, Vector{Int}}()
     for i=1:length(gg)
       #= aut(x) -> eval of polynomials/ Q which takes forever
-         replace by computation in Qp() of apropriate precision - much
+         replace by computation in Qp() of appropriate precision - much
          faster
          Also: the discriminant should give a upper bound on the valuation
          this can get the precision

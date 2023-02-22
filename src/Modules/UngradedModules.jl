@@ -3314,7 +3314,7 @@ function presentation(SQ::SubQuo)
   #from Hans:
   # as a complex R^b has index 0
   #              R^a           1
-  # so 0 has index -2, hense seed has to be -2
+  # so 0 has index -2, hence seed has to be -2
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
   G = FreeMod(R, length(q))
   set_attribute!(G, :name => "br^$(length(q))")

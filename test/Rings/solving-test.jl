@@ -39,7 +39,7 @@
     @test res[2].elim == x^2+1
     @test res[2].denom == 2*x
 
-    # isssue 1743
+    # issue 1743
     R, (x1, x2) = PolynomialRing(QQ, ["x1", "x2"])
     I = ideal(R, [x1 + fmpz(2)^100, x2 + fmpz(2)^100])
     sols = Vector{fmpq}[[-1267650600228229401496703205376, -1267650600228229401496703205376]]
@@ -70,7 +70,7 @@ end
   @test issetequal(pts, Vector{elem_type(k)}[k.([a, 1]), k.([-a, 1])])
 end
 
-@testset "Rational solutions for homogenous ideals" begin
+@testset "Rational solutions for homogeneous ideals" begin
   Q, x = proj_space(QQ, 2)
   i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
   @test length(rational_solutions(i)) == 1

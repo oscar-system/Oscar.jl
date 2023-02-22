@@ -483,7 +483,7 @@ end
 ### TODO: The following two functions (singular_locus, 
 ###       singular_locus_reduced) need to be made type-sensitive 
 ###       and reduced=true needs to be set automatically for varieties 
-###       as soon as not only schemes, but also varieties as separte
+###       as soon as not only schemes, but also varieties as separate
 ###       type have been introduced in OSCAR
 ### TODO: Make singular locus also available for projective schemes and
 ###       for covered schemes (using the workhorse here...).
@@ -667,7 +667,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   empty = typeof(X)[]
   result = empty
 
-# equidimensional decompositon to allow Jacobi criterion on each component
+# equidimensional decomposition to allow Jacobi criterion on each component
   P = Ideal[]
 
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 

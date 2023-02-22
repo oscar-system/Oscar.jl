@@ -218,7 +218,7 @@ end
 
 ### half-generic implementation of the arithmetic
 # Note that we need one minimal concrete type for the return values, 
-# so the implementation can not be truely generic. 
+# so the implementation can not be truly generic. 
 
 function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
   X = scheme(D)
