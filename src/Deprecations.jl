@@ -142,3 +142,16 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T
 end
 
 @deprecate DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion} divisor_of_character(v, character)
+
+function ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}' "*
+    "is deprecated, use 'toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) "*
+    "where {T <: IntegerUnion}' instead.", :ToricDivisorClass)
+    toric_divisor_class(v, coeffs)
+end
+
+function ToricDivisorClass(td::ToricDivisor)
+    Base.depwarn("'ToricDivisorClass(td::ToricDivisor)' is deprecated, use "*
+    "'toric_divisor_class(td::ToricDivisor) instead.", :ToricDivisorClass)
+    toric_divisor_class(td)
+end

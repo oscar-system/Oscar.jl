@@ -24,7 +24,7 @@ using Test
     dP3 = del_pezzo_surface(3; set_attributes)
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
     ac3 = rational_equivalence_class(canonical_bundle(dP3))
-    ac4 = rational_equivalence_class(ToricDivisorClass(dP3, [4, 3, 2, 1]))
+    ac4 = rational_equivalence_class(toric_divisor_class(dP3, [4, 3, 2, 1]))
     
     @testset "Should fail" begin
         @test_throws ArgumentError rational_equivalence_class(antv, [1, 2, 3])

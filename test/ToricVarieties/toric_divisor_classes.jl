@@ -7,14 +7,14 @@ using Test
     dP3 = del_pezzo_surface(3; set_attributes)
     P2 = projective_space(NormalToricVariety, 2; set_attributes)
     
-    DC = ToricDivisorClass(F5, [fmpz(0), fmpz(0)])
-    DC2 = ToricDivisorClass(F5, [1, 2])
-    DC3 = ToricDivisorClass(dP3, [4, 3, 2, 1])
+    DC = toric_divisor_class(F5, [fmpz(0), fmpz(0)])
+    DC2 = toric_divisor_class(F5, [1, 2])
+    DC3 = toric_divisor_class(dP3, [4, 3, 2, 1])
     DC4 = canonical_divisor_class(dP3)
     DC5 = anticanonical_divisor_class(dP3)
     DC6 = trivial_divisor_class(dP3)
-    DC7 = ToricDivisorClass(P2, [1])
-    DC8 = ToricDivisorClass(P2, [-1])
+    DC7 = toric_divisor_class(P2, [1])
+    DC8 = toric_divisor_class(P2, [-1])
     
     @testset "Basic properties" begin
         @test is_trivial(toric_divisor(DC2)) == false
