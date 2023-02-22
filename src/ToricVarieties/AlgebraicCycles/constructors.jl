@@ -83,7 +83,7 @@ Construct the algebraic cycle corresponding to the toric divisor class `c`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> tdc = ToricDivisorClass(P2, [2])
+julia> tdc = toric_divisor_class(P2, [2])
 A divisor class on a normal toric variety
 
 julia> rational_equivalence_class(tdc)
