@@ -12,7 +12,7 @@ Return the normal toric variety of the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
@@ -36,7 +36,7 @@ Return the coefficients of the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
@@ -63,7 +63,7 @@ Return the exponents of the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
@@ -90,7 +90,7 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
@@ -115,7 +115,7 @@ to the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)

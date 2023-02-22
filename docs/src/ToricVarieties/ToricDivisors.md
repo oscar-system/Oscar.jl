@@ -22,7 +22,7 @@ correspond to the rays of the underlying fan.
 
 ```@docs
 DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
-ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Addition, subtraction and scalar multiplication

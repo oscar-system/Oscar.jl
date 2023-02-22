@@ -7,18 +7,18 @@ using Test
     dP3 = del_pezzo_surface(3; set_attributes)
     P2 = projective_space(NormalToricVariety, 2; set_attributes)
     
-    D=ToricDivisor(F5, [0, 0, 0, 0])
+    D=toric_divisor(F5, [0, 0, 0, 0])
     D2 = DivisorOfCharacter(F5, [1, 2])
-    D3 = ToricDivisor(dP3, [1, 0, 0, 0, 0, 0])
+    D3 = toric_divisor(dP3, [1, 0, 0, 0, 0, 0])
     D4 = canonical_divisor(dP3)
     D5 = anticanonical_divisor(dP3)
     D6 = trivial_divisor(dP3)
-    D7 = ToricDivisor(P2, [1,1,0])
-    D8 = ToricDivisor(P2, [1,-1,0])
-    D9 = ToricDivisor(P2, [0,-1,0])
+    D7 = toric_divisor(P2, [1,1,0])
+    D8 = toric_divisor(P2, [1,-1,0])
+    D9 = toric_divisor(P2, [0,-1,0])
     
     @testset "Should fail" begin
-        @test_throws ArgumentError ToricDivisor(F5, [0, 0, 0])
+        @test_throws ArgumentError toric_divisor(F5, [0, 0, 0])
         @test_throws ArgumentError D+D3
         @test_throws ArgumentError D-D3
     end

@@ -15,7 +15,7 @@ anymore and the polyhedron becomes empty.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> td0 = ToricDivisor(F4, [0,0,0,0])
+julia> td0 = toric_divisor(F4, [0,0,0,0])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_feasible(polyhedron(td0))
@@ -24,13 +24,13 @@ true
 julia> dim(polyhedron(td0))
 0
 
-julia> td1 = ToricDivisor(F4, [1,0,0,0])
+julia> td1 = toric_divisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
 julia> is_feasible(polyhedron(td1))
 true
 
-julia> td2 = ToricDivisor(F4, [-1,0,0,0])
+julia> td2 = toric_divisor(F4, [-1,0,0,0])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_feasible(polyhedron(td2))
@@ -51,7 +51,7 @@ Identify the coefficients of a toric divisor in the group of torus invariant Wei
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> D = ToricDivisor(F4, [1, 2, 3, 4])
+julia> D = toric_divisor(F4, [1, 2, 3, 4])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> coefficients(D)
@@ -77,7 +77,7 @@ Return the toric variety of a torus-invariant Weil divisor.
 ```jldoctest
 julia> F4 = hirzebruch_surface(4);
 
-julia> D = ToricDivisor(F4, [1, 2, 3, 4]);
+julia> D = toric_divisor(F4, [1, 2, 3, 4]);
 
 julia> toric_variety(D)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor

@@ -50,7 +50,7 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, ToricDivisor(v, [1, 2, 3]))
+julia> l = ToricLineBundle(v, toric_divisor(v, [1, 2, 3]))
 A toric line bundle on a normal toric variety
 ```
 """

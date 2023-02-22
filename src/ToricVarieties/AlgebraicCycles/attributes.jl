@@ -14,7 +14,7 @@ equivalence class of algebraic cycles.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)
@@ -41,7 +41,7 @@ rational equivalence class of algebraic cycles.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)
@@ -71,7 +71,7 @@ ring if desired.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)
@@ -127,7 +127,7 @@ Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)
@@ -161,7 +161,7 @@ Return the coefficients of `polynomial(ac)`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)
@@ -197,7 +197,7 @@ class is identical to the one given to this method.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)
@@ -236,7 +236,7 @@ equilvalence class of algebraic cycles.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> ac = rational_equivalence_class(d)

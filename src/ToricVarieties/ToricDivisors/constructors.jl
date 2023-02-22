@@ -22,7 +22,7 @@ end
 ######################
 
 @doc Markdown.doc"""
-    ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+    toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear
  combination of the torus invariant prime divisors of `v`. The coefficients of this
@@ -30,11 +30,11 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear
 
 # Examples
 ```jldoctest
-julia> ToricDivisor(projective_space(NormalToricVariety, 2), [1, 1, 2])
+julia> toric_divisor(projective_space(NormalToricVariety, 2), [1, 1, 2])
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+function toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
     # check input
     if length(coeffs) != pm_object(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors"))
@@ -55,7 +55,7 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T
     # return the result
     return td
 end
-export ToricDivisor
+export toric_divisor
 
 
 ######################
@@ -80,7 +80,7 @@ function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T})
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))
     coeffs = [fmpz(x) for x in transpose(f(char).coeff)][:, 1]
-    return ToricDivisor(v, coeffs)
+    return toric_divisor(v, coeffs)
 end
 export DivisorOfCharacter
 
@@ -94,7 +94,7 @@ function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
         throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     new_coeffiicients = coefficients(td1) + coefficients(td2)
-    return ToricDivisor(toric_variety(td1), new_coeffiicients)
+    return toric_divisor(toric_variety(td1), new_coeffiicients)
 end
 
 
@@ -103,11 +103,11 @@ function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
         throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     new_coeffiicients = coefficients(td1) - coefficients(td2)
-    return ToricDivisor(toric_variety(td1), new_coeffiicients)
+    return toric_divisor(toric_variety(td1), new_coeffiicients)
 end
 
 
-Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = ToricDivisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
+Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
 
 
 ######################
