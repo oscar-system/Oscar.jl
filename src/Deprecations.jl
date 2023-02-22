@@ -101,3 +101,21 @@ function RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)
     "'rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)' instead.", :RationalEquivalenceClass)
     rational_equivalence_class(sv)
 end
+
+function CohomologyClass(d::ToricDivisor)
+    Base.depwarn("'CohomologyClass(d::ToricDivisor)' is deprecated, use "*
+    "'cohomology_class(d::ToricDivisor)' instead.", :CohomologyClass)
+    cohomology_class(d)
+end
+
+function CohomologyClass(c::ToricDivisorClass)
+    Base.depwarn("'CohomologyClass(c::ToricDivisorClass)' is deprecated, use "*
+    "'cohomology_class(c::ToricDivisorClass)' instead.", :CohomologyClass)
+    cohomology_class(c)
+end
+
+function CohomologyClass(l::ToricLineBundle)
+    Base.depwarn("'CohomologyClass(l::ToricLineBundle)' is deprecated, use "*
+    "'cohomology_class(l::ToricLineBundle)' instead.", :CohomologyClass)
+    cohomology_class(l)
+end

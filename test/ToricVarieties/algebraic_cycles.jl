@@ -19,7 +19,7 @@ using Test
     
     dP1 = del_pezzo_surface(1; set_attributes)
     (u1, u2, u3, u4) = gens(cohomology_ring(dP1))
-    ac2 = rational_equivalence_class(CohomologyClass(dP1, u1))
+    ac2 = rational_equivalence_class(cohomology_class(dP1, u1))
     
     dP3 = del_pezzo_surface(3; set_attributes)
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))

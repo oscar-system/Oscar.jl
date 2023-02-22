@@ -18,7 +18,7 @@ julia> (x1, x2, x3, e1, e2, e3) = gens(cohomology_ring(dP3))
  e2
  e3
 
-julia> c = CohomologyClass(dP3, e3*e3 + e3)
+julia> c = cohomology_class(dP3, e3*e3 + e3)
 A cohomology class on a normal toric variety given by e3^2 + e3
 
 julia> integrate(c)
@@ -34,7 +34,7 @@ julia> (x1, x2, x3, x4) = gens(cohomology_ring(F3))
  t2
  x2
 
-julia> c = CohomologyClass(F3, x1*x2 + x3*x4)
+julia> c = cohomology_class(F3, x1*x2 + x3*x4)
 A cohomology class on a normal toric variety given by 2//3*x2^2
 
 julia> integrate(c)

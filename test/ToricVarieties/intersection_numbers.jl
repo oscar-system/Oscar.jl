@@ -10,12 +10,12 @@ using Test
     v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]]; set_attributes)
     
     dP1 = del_pezzo_surface(1; set_attributes)
-    c0 = CohomologyClass(dP1, gens(cohomology_ring(dP1))[1])
+    c0 = cohomology_class(dP1, gens(cohomology_ring(dP1))[1])
     
     dP3 = del_pezzo_surface(3; set_attributes)
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
-    c1 = CohomologyClass(dP3, x1)
-    c2 = CohomologyClass(dP3, e1)
+    c1 = cohomology_class(dP3, x1)
+    c2 = cohomology_class(dP3, e1)
     
     product_space = hirzebruch_surface(5; set_attributes) * projective_space(NormalToricVariety, 2; set_attributes)
     
@@ -50,12 +50,12 @@ using Test
     end
     
     @testset "Intersection numbers on dP3" begin
-        @test integrate(CohomologyClass(dP3, e1*e1)) == -1
-        @test integrate(CohomologyClass(dP3, e2*e2)) == -1
-        @test integrate(CohomologyClass(dP3, e3*e3)) == -1
-        @test integrate(CohomologyClass(dP3, x1*x1)) == -1
-        @test integrate(CohomologyClass(dP3, x2*x2)) == -1
-        @test integrate(CohomologyClass(dP3, x3*x3)) == -1
+        @test integrate(cohomology_class(dP3, e1*e1)) == -1
+        @test integrate(cohomology_class(dP3, e2*e2)) == -1
+        @test integrate(cohomology_class(dP3, e3*e3)) == -1
+        @test integrate(cohomology_class(dP3, x1*x1)) == -1
+        @test integrate(cohomology_class(dP3, x2*x2)) == -1
+        @test integrate(cohomology_class(dP3, x3*x3)) == -1
         @test integrate(c1) == 0
         @test integrate(c1^2+c1-3//4*c1*c1) == -1//4
         @test length(intersection_form(dP3)) == 21
