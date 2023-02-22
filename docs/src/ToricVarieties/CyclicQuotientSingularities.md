@@ -25,7 +25,7 @@ For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
 ## Constructors
 
 ```@docs
-CyclicQuotientSingularity(n::fmpz, q::fmpz)
+cyclic_quotient_singularity(n::T, q::T) where {T <: IntegerUnion}
 ```
 
 

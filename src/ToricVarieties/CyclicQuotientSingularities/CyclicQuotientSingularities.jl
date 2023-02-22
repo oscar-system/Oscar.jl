@@ -24,14 +24,14 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    CyclicQuotientSingularity(n::fmpz, q::fmpz)
+    cyclic_quotient_singularity(n::fmpz, q::fmpz)
 
 Return the cyclic quotient singularity for the parameters $n$ and $q$, with
 $0<q<n$ and $q, n$ coprime.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7, 5)
+julia> cqs = cyclic_quotient_singularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> is_affine(cqs)
@@ -41,7 +41,7 @@ julia> is_smooth(cqs)
 false
 ```
 """
-function CyclicQuotientSingularity(n::fmpz, q::fmpz)
+function cyclic_quotient_singularity(n::T, q::T) where {T <: IntegerUnion}
     n > 0 || error("n (=$(n)) must be positive")
     q > 0 || error("q (=$(q)) must be positive")
     q < n || error("q must be smaller than n (q=$(q) >= n=$(n))")
@@ -49,7 +49,7 @@ function CyclicQuotientSingularity(n::fmpz, q::fmpz)
     pmntv = Polymake.fulton.CyclicQuotient(N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q))
     return CyclicQuotientSingularity(pmntv, Dict())
 end
-CyclicQuotientSingularity(n::Int64, q::Int64) = CyclicQuotientSingularity(fmpz(n), fmpz(q))
+export cyclic_quotient_singularity
 
 
 @doc Markdown.doc"""
@@ -66,7 +66,7 @@ differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7, 5)
+julia> cqs = cyclic_quotient_singularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> cf = continued_fraction_hirzebruch_jung(cqs)
@@ -99,7 +99,7 @@ differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7, 5)
+julia> cqs = cyclic_quotient_singularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
@@ -130,7 +130,7 @@ differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7, 5)
+julia> cqs = cyclic_quotient_singularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> v = continued_fraction_hirzebruch_jung(cqs)

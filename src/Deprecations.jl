@@ -119,3 +119,9 @@ function CohomologyClass(l::ToricLineBundle)
     "'cohomology_class(l::ToricLineBundle)' instead.", :CohomologyClass)
     cohomology_class(l)
 end
+
+function CyclicQuotientSingularity(n::T, q::T) where {T <: IntegerUnion}
+    Base.depwarn("'CyclicQuotientSingularity(n::fmpz, q::fmpz)' is deprecated, use "*
+    "'cyclic_quotient_singularity(n::fmpz, q::fmpz)' instead.", :CyclicQuotientSingularity)
+    cyclic_quotient_singularity(n, q)
+end
