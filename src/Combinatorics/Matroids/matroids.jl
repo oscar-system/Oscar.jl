@@ -872,20 +872,7 @@ julia> M = uniform_matroid(2, 4)
 Matroid of rank 2 on 4 elements
 
 julia> automorphism_group(M)
-Group([ (2,3)(4,5)(9,10), (2,4)(3,5)(7,8), (1,2)(5,6)(8,9) ])
+Group([ (3,4), (1,2), (2,3) ])
 ```
 """
-function automorphism_group(m::Matroid)
-    m_groundset = matroid_groundset(m)
-    m_bases = bases(m)
-    n_bases = length(m_bases)
-    n_vertices = n_bases + length(m_groundset)
-    
-    g = Graph{Undirected}(n_vertices)
-    for (i, base) in enumerate(m_bases)
-        for element in base
-            add_edge!(g, i, element + n_bases)
-        end
-    end
-    return automorphism_group(g)
-end
+automorphism_group(m::Matroid) = automorphism_group(IncidenceMatrix(bases(m));action=:on_cols)
