@@ -661,7 +661,7 @@ end
 ############################
 
 @doc Markdown.doc"""
-    NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true)
+    normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
 
 Returns the list of toric varieties obtained from fine regular
 star triangulations of the polyhedron P. With this we can
@@ -672,7 +672,7 @@ compute the two phases of the famous conifold transition.
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
 A polyhedron in ambient dimension 3
 
-julia> (v1, v2) = NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+julia> (v1, v2) = normal_toric_varieties_from_star_triangulations(P::Polyhedron)
 2-element Vector{NormalToricVariety}:
  A normal toric variety
  A normal toric variety
@@ -684,7 +684,7 @@ julia> stanley_reisner_ideal(v2)
 ideal(x1*x3)
 ```
 """
-function NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true)
+function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
     # triangulate the polyhedron
     trias = star_triangulations(P)
     
@@ -706,7 +706,7 @@ function NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attribute
     # construct the varieties
     return [normal_toric_variety(PolyhedralFan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
 end
-export NormalToricVarietiesFromStarTriangulations
+export normal_toric_varieties_from_star_triangulations
 
 
 ############################
@@ -774,7 +774,7 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = tr
     
     # construct polyhedron
     p = convex_hull(pts)
-    return NormalToricVarietiesFromStarTriangulations(p; set_attributes = set_attributes)
+    return normal_toric_varieties_from_star_triangulations(p; set_attributes = set_attributes)
 end
 NormalToricVarietyFromGLSM(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = NormalToricVarietyFromGLSM(matrix(ZZ, charges); set_attributes = set_attributes)
 export NormalToricVarietyFromGLSM

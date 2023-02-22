@@ -62,7 +62,7 @@ weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attribut
 ```@docs
 blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
-NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true)
+normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
 NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true)
 ```
 
