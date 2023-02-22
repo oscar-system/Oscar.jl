@@ -159,7 +159,7 @@ julia> (x1, x2, y1, y2) = gens(cox_ring(ntv))
  y1
  y2
 
-julia> sv = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2, y2])
+julia> sv = closed_subvariety_of_toric_variety(ntv, [x1^2+x1*x2+x2^2, y2])
 A closed subvariety of a normal toric variety
 
 julia> rational_equivalence_class(sv)

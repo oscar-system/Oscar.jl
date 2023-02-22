@@ -7,15 +7,15 @@ using Test
     
     ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)); set_attributes)
     (x1, x2, y1, y2) = gens(cox_ring(ntv));
-    sv1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
-    sv2 = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2, y2])
+    sv1 = closed_subvariety_of_toric_variety(ntv, [x1])
+    sv2 = closed_subvariety_of_toric_variety(ntv, [x1^2+x1*x2+x2^2, y2])
     
     P3 = projective_space(NormalToricVariety, 3; set_attributes)
-    sv3 = ClosedSubvarietyOfToricVariety(P3, [gens(cox_ring(P3))[1]^2])
+    sv3 = closed_subvariety_of_toric_variety(P3, [gens(cox_ring(P3))[1]^2])
     
     @testset "Should fail" begin
-        @test_throws ArgumentError ClosedSubvarietyOfToricVariety(ntv, [x1 - y1])
-        @test_throws ArgumentError ClosedSubvarietyOfToricVariety(antv, [gens(cox_ring(antv))[1]])
+        @test_throws ArgumentError closed_subvariety_of_toric_variety(ntv, [x1 - y1])
+        @test_throws ArgumentError closed_subvariety_of_toric_variety(antv, [gens(cox_ring(antv))[1]])
     end
     
     @testset "Basic properties" begin
