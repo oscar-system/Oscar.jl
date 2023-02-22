@@ -12,23 +12,23 @@ using Test
     (xx1, xx2, yy1, yy2) = gens(cox_ring(ntv));
     sv1 = ClosedSubvarietyOfToricVariety(ntv, [xx1])
     sv2 = ClosedSubvarietyOfToricVariety(ntv, [xx1^2+xx1*xx2+xx2^2, yy2])
-    ac0 = RationalEquivalenceClass(ToricLineBundle(ntv, [1, 1]))
+    ac0 = rational_equivalence_class(ToricLineBundle(ntv, [1, 1]))
     
     F5 = hirzebruch_surface(5; set_attributes)
-    ac1 = RationalEquivalenceClass(DivisorOfCharacter(F5, [1, 2]))
+    ac1 = rational_equivalence_class(DivisorOfCharacter(F5, [1, 2]))
     
     dP1 = del_pezzo_surface(1; set_attributes)
     (u1, u2, u3, u4) = gens(cohomology_ring(dP1))
-    ac2 = RationalEquivalenceClass(CohomologyClass(dP1, u1))
+    ac2 = rational_equivalence_class(CohomologyClass(dP1, u1))
     
     dP3 = del_pezzo_surface(3; set_attributes)
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
-    ac3 = RationalEquivalenceClass(canonical_bundle(dP3))
-    ac4 = RationalEquivalenceClass(ToricDivisorClass(dP3, [4, 3, 2, 1]))
+    ac3 = rational_equivalence_class(canonical_bundle(dP3))
+    ac4 = rational_equivalence_class(ToricDivisorClass(dP3, [4, 3, 2, 1]))
     
     @testset "Should fail" begin
-        @test_throws ArgumentError RationalEquivalenceClass(antv, [1, 2, 3])
-        @test_throws ArgumentError RationalEquivalenceClass(toric_variety(ac1), [1, 2, 3])
+        @test_throws ArgumentError rational_equivalence_class(antv, [1, 2, 3])
+        @test_throws ArgumentError rational_equivalence_class(toric_variety(ac1), [1, 2, 3])
         @test_throws ArgumentError ac1 + ac3
         @test_throws ArgumentError ac1 - ac3
         @test_throws ArgumentError ac1 * ac3
@@ -48,7 +48,7 @@ using Test
         @test polynomial(ac1) == 0
         @test parent(representative(ac1)) == cox_ring(toric_variety(ac1))
         @test is_trivial(cohomology_class(3*ac2)) == false
-        @test is_trivial(RationalEquivalenceClass(sv2)) == false
+        @test is_trivial(rational_equivalence_class(sv2)) == false
         @test length(coefficients(ac1)) == 0
         @test length(components(ac4-ac3)) == 4
         @test is_trivial(ac0*sv1) == false

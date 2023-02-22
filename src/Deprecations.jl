@@ -64,3 +64,40 @@ end
 
 @deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
 @deprecate NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)
+
+function RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}'"*
+    " is deprecated, use 'rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) "*
+    "where {T <: IntegerUnion}' instead.", RationalEquivalenceClass)
+    rational_equivalence_class(v, coefficients)
+end
+
+function RationalEquivalenceClass(d::ToricDivisor)
+    Base.depwarn("'RationalEquivalenceClass(d::ToricDivisor)' is deprecated, use "*
+    "'rational_equivalence_class(d::ToricDivisor)' instead.", :RationalEquivalenceClass)
+    rational_equivalence_class(d)
+end
+
+function RationalEquivalenceClass(c::ToricDivisorClass)
+    Base.depwarn("'RationalEquivalenceClass(c::ToricDivisorClass)' is deprecated, use "*
+    "'rational_equivalence_class(c::ToricDivisorClass)' instead.", :RationalEquivalenceClass)
+    rational_equivalence_class(c)
+end
+
+function RationalEquivalenceClass(l::ToricLineBundle)
+    Base.depwarn("'RationalEquivalenceClass(l::ToricLineBundle)' is deprecated, use "*
+    "'rational_equivalence_class(l::ToricLineBundle)' instead.", :RationalEquivalenceClass)
+    rational_equivalence_class(l)
+end
+
+function RationalEquivalenceClass(cc::CohomologyClass)
+    Base.depwarn("'RationalEquivalenceClass(cc::CohomologyClass)' is deprecated, use "*
+    "'rational_equivalence_class(cc::CohomologyClass)' instead.", :RationalEquivalenceClass)
+    rational_equivalence_class(cc)
+end
+
+function RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)
+    Base.depwarn("'RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)' is deprecated, use "*
+    "'rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)' instead.", :RationalEquivalenceClass)
+    rational_equivalence_class(sv)
+end
