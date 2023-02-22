@@ -342,6 +342,6 @@
 
     @testset "matroid automorphism" begin
         M = uniform_matroid(3, 5)
-        @test automorphism_group(M) == 
+        @test order(automorphism_group(M)) == 120
     end
 end
