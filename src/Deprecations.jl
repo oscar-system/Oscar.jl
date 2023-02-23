@@ -207,3 +207,5 @@ function ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbF
     "where {T <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
     toric_morphism(domain, grid_morphism, codomain = codomain)
 end
+
+@deprecate ToricIdentityMorphism(v::AbstractNormalToricVariety) toric_identity_morphism(v)
