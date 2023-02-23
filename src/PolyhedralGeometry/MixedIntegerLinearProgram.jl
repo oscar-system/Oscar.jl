@@ -136,7 +136,7 @@ objective function of `MILP`, or `nothing` if no such point exists.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
@@ -181,7 +181,7 @@ on convention.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
@@ -217,7 +217,7 @@ may be `inf` or `-inf` in which case `v` is `nothing`.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program

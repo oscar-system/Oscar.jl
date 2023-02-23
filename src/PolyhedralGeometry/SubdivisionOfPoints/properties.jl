@@ -211,7 +211,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
  1  1  2
 
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
-A subdivision of points in ambient dimension 3
+Subdivision of points in ambient dimension 3
 
 julia> maximal_cells(IncidenceMatrix, SOP)
 1×6 IncidenceMatrix

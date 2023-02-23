@@ -11,16 +11,16 @@ in this divisor class is linearly equivalent to an effective toric divisor.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety,2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> tdc = toric_divisor_class(P2, [1])
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 
 julia> is_effective(tdc)
 true
 
 julia> tdc2 = toric_divisor_class(P2, [-1])
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 
 julia> is_effective(tdc2)
 false

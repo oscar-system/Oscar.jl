@@ -13,10 +13,10 @@ the other moves it across. In the latter case there are no global sections
 anymore and the polyhedron becomes empty.
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td0 = toric_divisor(F4, [0,0,0,0])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_feasible(polyhedron(td0))
 true
@@ -25,13 +25,13 @@ julia> dim(polyhedron(td0))
 0
 
 julia> td1 = toric_divisor(F4, [1,0,0,0])
-A torus-invariant, prime divisor on a normal toric variety
+Torus-invariant, prime divisor on a normal toric variety
 
 julia> is_feasible(polyhedron(td1))
 true
 
 julia> td2 = toric_divisor(F4, [-1,0,0,0])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> is_feasible(polyhedron(td2))
 false
@@ -49,10 +49,10 @@ Identify the coefficients of a toric divisor in the group of torus invariant Wei
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> D = toric_divisor(F4, [1, 2, 3, 4])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> coefficients(D)
 4-element Vector{fmpz}:
@@ -80,7 +80,7 @@ julia> F4 = hirzebruch_surface(4);
 julia> D = toric_divisor(F4, [1, 2, 3, 4]);
 
 julia> toric_variety(D)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function toric_variety(td::ToricDivisor)

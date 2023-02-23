@@ -124,7 +124,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -164,7 +164,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> all_triangulations(c)
 2-element Vector{Vector{Vector{Int64}}}:
@@ -223,7 +223,7 @@ point.
 A two-dimensional polyhedron has only one star triangulation.
 ```jldoctest
 julia> hex = convex_hull([-1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> star_triangulations(hex)
 ([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
@@ -237,7 +237,7 @@ julia> star_triangulations(hex; full=true, regular=true)
 A three-dimensional example with two star triangulations.
 ```jldoctest
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> star_triangulations(P)
 ([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1], [[[1, 2, 3, 4], [1, 2, 4, 5]], [[1, 2, 3, 5], [1, 3, 4, 5]]])
@@ -277,7 +277,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -320,7 +320,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> regular_triangulations(c)
 2-element Vector{Vector{Vector{Int64}}}:
@@ -360,7 +360,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -404,7 +404,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> regular_triangulation(c)
 1-element Vector{Vector{Vector{Int64}}}:
@@ -431,10 +431,10 @@ only using the vertices of `P`.
 Compute the secondary polytope of the cube.
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> sc = secondary_polytope(c)
-A polyhedron in ambient dimension 8
+Polyhedron in ambient dimension 8
 ```
 """
 function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
@@ -450,7 +450,7 @@ Compute whether a triangulation is regular.
 Compute whether a triangulation of the square is regular.
 ```jldoctest
 julia> c = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 
@@ -486,7 +486,7 @@ julia> C = cube(2);
 julia> cells = IncidenceMatrix([[1,2,3],[2,3,4]]);
 
 julia> S = SubdivisionOfPoints(C, cells)
-A subdivision of points in ambient dimension 2
+Subdivision of points in ambient dimension 2
 ```
 """
 SubdivisionOfPoints(P::Polyhedron, cells::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), cells)
@@ -511,7 +511,7 @@ julia> C = cube(2);
 julia> weights = [0,0,1,2];
 
 julia> S = SubdivisionOfPoints(C, weights)
-A subdivision of points in ambient dimension 2
+Subdivision of points in ambient dimension 2
 ```
 """
 SubdivisionOfPoints(P::Polyhedron, weights::AbstractVector) = SubdivisionOfPoints(vertices(P), weights)
@@ -534,7 +534,7 @@ Compute the gkz vector of one of the two regular triangulations of the square.
 julia> C = cube(2);
 
 julia> Triang = SubdivisionOfPoints(C,[[1,2,3],[2,3,4]])
-A subdivision of points in ambient dimension 2
+Subdivision of points in ambient dimension 2
 
 julia> gkz_vector(Triang)
 pm::Vector<pm::Rational>

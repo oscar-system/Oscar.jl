@@ -17,12 +17,12 @@ via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
 6-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
 ```
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
@@ -104,7 +104,7 @@ lets one access a basis for the lineality space `L` of `P`.
 The polyhedron `P` is just a line through the origin:
 ```jldoctest
 julia> P = convex_hull([0 0], nothing, [1 0])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> lineality_dim(P)
 1
@@ -138,7 +138,7 @@ The iterator `lineality_basis` gives a basis of the lineality space `L`.
 # Examples
 ```jldoctest
 julia> P = convex_hull([0 0 1], [0 1 0], [1 0 0])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> rmlP = rays_modulo_lineality(P)
 (rays_modulo_lineality = RayVector{fmpq}[[0, 1, 0]], lineality_basis = RayVector{fmpq}[[1, 0, 0]])
@@ -233,7 +233,7 @@ of `P`.
 The two-dimensional positive orthant has two rays.
 ```jldoctest
 julia> PO = convex_hull([0 0],[1 0; 0 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> nrays(PO)
 2
@@ -364,12 +364,12 @@ julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
 6-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
+ Polyhedron in ambient dimension 3
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
@@ -469,7 +469,7 @@ affine subspace contained in `P`.
 Polyhedron with one lineality direction.
 ```jldoctest
 julia> C = convex_hull([0 0], [1 0], [1 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> lineality_dim(C)
 1
@@ -596,7 +596,7 @@ Return the integer points contained in the interior of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{fmpz}}:
@@ -626,7 +626,7 @@ Return the integer points contained in the boundary of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = polarize(cube(3))
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> boundary_lattice_points(c)
 6-element SubObjectIterator{PointVector{fmpz}}:
@@ -770,7 +770,7 @@ julia> vertices(P)
  [-1, -1]
 
 julia> recession_cone(P)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> rays(recession_cone(P))
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -811,7 +811,7 @@ julia> R, x = PolynomialRing(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -853,7 +853,7 @@ julia> R, x = PolynomialRing(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
@@ -875,13 +875,13 @@ Check whether `P` is very ample.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> is_very_ample(c)
 true
 
 julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> is_very_ample(P)
 false
@@ -952,7 +952,7 @@ Check whether `P` is normal.
 The 3-cube is normal.
 ```jldoctest
 julia> C = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> is_normal(C)
 true
@@ -992,7 +992,7 @@ Check whether `P` is simple.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> is_simple(c)
 true
@@ -1105,7 +1105,7 @@ contained in any facet.
 The square $[-1,1]^3$ has the origin as a relative interior point.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> relative_interior_point(square)
 2-element PointVector{fmpq}:
@@ -1250,9 +1250,9 @@ print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io
 function Base.show(io::IO, H::Halfspace)
     n = length(normal_vector(H))
     if iszero(normal_vector(H)) && negbias(H) >= 0
-        print(io, "The trivial Halfspace, R^$n")
+        print(io, "The trivial half-space, R^$n")
     else
-        print(io, "The Halfspace of R^$n described by\n")
+        print(io, "The half-space of R^$n described by\n")
         print_constraints(H; io=io)
     end
 end
@@ -1261,9 +1261,9 @@ function Base.show(io::IO, H::Hyperplane)
     n = length(normal_vector(H))
     b = negbias(H)
     if iszero(b) && iszero(normal_vector(H))
-        print(io, "The trivial Hyperplane, R^$n")
+        print(io, "The trivial hyperplane, R^$n")
     else
-        print(io, "The Hyperplane of R^$n described by\n")
+        print(io, "The hyperplane of R^$n described by\n")
         print_constraints(H; io = io)
     end
 end

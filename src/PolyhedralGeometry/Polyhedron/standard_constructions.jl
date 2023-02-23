@@ -17,7 +17,7 @@ Use `even = true` to get the vertices only for the even permutation matrices.
 # Examples
 ```jldoctest
 julia> b = birkhoff_polytope(3)
-A polyhedron in ambient dimension 9
+Polyhedron in ambient dimension 9
 
 julia> vertices(b)
 6-element SubObjectIterator{PointVector{fmpq}}:
@@ -47,7 +47,7 @@ is the distance between the vertex barycenter and `v`.
 # Examples
 ```jldoctest
 julia> c = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> vertices(pyramid(c,5))
 5-element SubObjectIterator{PointVector{fmpq}}:
@@ -79,7 +79,7 @@ vertex barycenter of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> vertices(bipyramid(c,2))
 6-element SubObjectIterator{PointVector{fmpq}}:
@@ -110,7 +110,7 @@ attain their minimum at the `i`-th vertex.
 Build the normal cones at the first vertex of the square (in this case [-1,-1]).
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> vertices(square)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -120,7 +120,7 @@ julia> vertices(square)
  [1, 1]
 
 julia> nc = normal_cone(square, 1)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -151,7 +151,7 @@ julia> V = [1 2 3];
 julia> G = symmetric_group(3);
 
 julia> P = orbit_polytope(V, G)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> vertices(P)
 6-element SubObjectIterator{PointVector{fmpq}}:
@@ -260,7 +260,7 @@ julia> f = x^3*y + 3x*y^2 + 1
 x^3*y + 3*x*y^2 + 1
 
 julia> NP = newton_polytope(f)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> vertices(NP)
 3-element SubObjectIterator{PointVector{fmpq}}:
@@ -297,7 +297,7 @@ julia> UH1 = convex_hull([0 0],[1 0],[0 1]);
 julia> UH2 = convex_hull([0 0],[0 1],[1 0]);
 
 julia> PO = intersect(UH1, UH2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> rays(PO)
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -323,7 +323,7 @@ julia> P = cube(2);
 julia> Q = cross_polytope(2);
 
 julia> M = minkowski_sum(P, Q)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> nvertices(M)
 8
@@ -352,10 +352,10 @@ Return the Cartesian product of `P` and `Q`.
 The Cartesian product of a triangle and a line segment is a triangular prism.
 ```jldoctest
 julia> T=simplex(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> S=cube(1)
-A polyhedron in ambient dimension 1
+Polyhedron in ambient dimension 1
 
 julia> length(vertices(product(T,S)))
 6
@@ -372,10 +372,10 @@ Return the Cartesian product of `P` and `Q` (see also `product`).
 The Cartesian product of a triangle and a line segment is a triangular prism.
 ```jldoctest
 julia> T=simplex(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> S=cube(1)
-A polyhedron in ambient dimension 1
+Polyhedron in ambient dimension 1
 
 julia> length(vertices(T*S))
 6
@@ -392,10 +392,10 @@ Return the convex_hull of `P` and `Q`.
 The convex hull of the following two line segments in $R^3$ is a tetrahedron.
 ```jldoctest
 julia> L₁ = convex_hull([-1 0 0; 1 0 0])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> L₂ = convex_hull([0 -1 0; 0 1 0])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> T=convex_hull(L₁,L₂);
 
@@ -425,7 +425,7 @@ julia> P = cube(2);
 julia> Q = cross_polytope(2);
 
 julia> M = minkowski_sum(P, Q)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> nvertices(M)
 8
@@ -451,7 +451,7 @@ This example confirms the statement for the 6-dimensional cube and $k = 2$.
 julia> C = cube(6);
 
 julia> SC = 2*C
-A polyhedron in ambient dimension 6
+Polyhedron in ambient dimension 6
 
 julia> volume(SC)//volume(C)
 64
@@ -475,7 +475,7 @@ This example confirms the statement for the 6-dimensional cube and $k = 2$.
 julia> C = cube(6);
 
 julia> SC = C*2
-A polyhedron in ambient dimension 6
+Polyhedron in ambient dimension 6
 
 julia> volume(SC)//volume(C)
 64
@@ -500,7 +500,7 @@ julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 julia> v = [-100, -200, -300];
 
 julia> S = P + v
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> vertices(S)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -535,7 +535,7 @@ julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 julia> v = [-100, -200, -300];
 
 julia> S = v + P
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> vertices(S)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -558,7 +558,7 @@ along with the origin in $\mathbb{R}^d$, scaled by $n$.
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
 ```jldoctest
 julia> s = simplex(7)
-A polyhedron in ambient dimension 7
+Polyhedron in ambient dimension 7
 
 julia> facets(s)
 8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
@@ -572,7 +572,7 @@ julia> facets(s)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
 
 julia> t = simplex(7, 5)
-A polyhedron in ambient dimension 7
+Polyhedron in ambient dimension 7
 
 julia> facets(t)
 8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
@@ -604,7 +604,7 @@ Here we print the facets of a non-scaled and a scaled 3-dimensional cross
 polytope:
 ```jldoctest
 julia> C = cross_polytope(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> facets(C)
 8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
@@ -618,7 +618,7 @@ x₁ - x₂ - x₃ ≦ 1
 -x₁ - x₂ - x₃ ≦ 1
 
 julia> D = cross_polytope(3, 2)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> facets(D)
 8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
@@ -661,7 +661,7 @@ below.
 # Examples
 ```jldoctest
 julia> T = platonic_solid("icosahedron")
-A polyhedron in ambient dimension 3 with nf_elem type coefficients
+Polyhedron in ambient dimension 3 with nf_elem type coefficients
 
 julia> nfacets(T)
 20
@@ -717,7 +717,7 @@ exact; Vertex-facet-incidences are correct in all cases.
 # Examples
 ```jldoctest
 julia> T = archimedean_solid("cuboctahedron")
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> sum([nvertices(F) for F in faces(T, 2)] .== 3)
 8
@@ -829,10 +829,10 @@ whose evaluation on `P` does not exceed 1.
 # Examples
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> P = polarize(square)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> vertices(P)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -856,13 +856,13 @@ ambient space.
 
 ```jldoctest
 julia> P = convex_hull([1 0 0; 0 0 0])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> is_fulldimensional(P)
 false
 
 julia> p = project_full(P)
-A polyhedron in ambient dimension 1
+Polyhedron in ambient dimension 1
 
 julia> is_fulldimensional(p)
 true
@@ -878,13 +878,13 @@ Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `la
 
 ```jldoctest
 julia> P = gelfand_tsetlin_polytope([5,3,2])
-A polyhedron in ambient dimension 6
+Polyhedron in ambient dimension 6
 
 julia> is_fulldimensional(P)
 false
 
 julia> p = project_full(P)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> is_fulldimensional(p)
 true
@@ -903,10 +903,10 @@ The normal toric variety associated with its face fan is smooth.
 
 ```jldoctest
 julia> S = fano_simplex(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> X = normal_toric_variety(face_fan(S))
-A normal toric variety
+Normal toric variety
 
 julia> is_smooth(X)
 true
@@ -922,7 +922,7 @@ the cross polytope together with the all-ones and minus all-ones vector.
 
 ```jldoctest
 julia> DP = del_pezzo_polytope(4)
-A polyhedron in ambient dimension 4
+Polyhedron in ambient dimension 4
 
 julia> f_vector(DP)
 4-element Vector{fmpz}:
@@ -946,7 +946,7 @@ moment curve in dimension $d$.
 # Examples
 ```jldoctest
 julia> cp = cyclic_polytope(3, 20)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> nvertices(cp)
 20
@@ -979,13 +979,13 @@ Almost surely this is a simplicial polytope.
 # Examples
 ```jldoctest
 julia> rsph = rand_spherical_polytope(3, 20)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> is_simplicial(rsph)
 true
 
 julia> rsph = rand_spherical_polytope(3, 4; precision=5, seed=132)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{fmpq}:
@@ -995,7 +995,7 @@ julia> map(x->dot(x,x), vertices(rsph))
  8281//8192
 
 julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{fmpq}:

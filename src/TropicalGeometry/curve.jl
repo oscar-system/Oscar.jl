@@ -66,13 +66,13 @@ julia> VR = [0 0; 1 0; -1 0; 0 1]
   0  1
 
 julia> PC = PolyhedralComplex{fmpq}(IM, VR)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 
 julia> TC = TropicalCurve(PC)
-A min tropical curve in 2-dimensional Euclidean space
+min tropical curve in 2-dimensional Euclidean space
 
 julia> abs_TC = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 ```
 """
 function TropicalCurve(PC::PolyhedralComplex, M::Union{typeof(min),typeof(max)}=min)
@@ -99,7 +99,7 @@ Return the graph of an abstract tropical curve `tc`.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> graph(tc)
 6×4 IncidenceMatrix
@@ -128,7 +128,7 @@ Return the number of nodes of an abstract tropical curve `tc`.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> n_nodes(tc)
 4
@@ -142,9 +142,9 @@ end
 
 function Base.show(io::IO, tc::TropicalCurve{M,EMB}) where {M,EMB}
     if EMB
-        print(io, "A "*string(M)*" tropical curve in $(ambient_dim(tc))-dimensional Euclidean space")
+        print(io, string(M)*" tropical curve in $(ambient_dim(tc))-dimensional Euclidean space")
     else
-        print(io, "An abstract "*string(M)*" tropical curve")
+        print(io, "Abstract "*string(M)*" tropical curve")
     end
 end
 
@@ -166,12 +166,12 @@ Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 ```
 """
 function DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB}
@@ -200,12 +200,12 @@ Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical cur
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 
 julia> coefficients(dtc)
 4-element Vector{Int64}:
@@ -227,12 +227,12 @@ Compute the degree of  a divisor `dtc` on an abstract tropical curve.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 
 julia> degree(dtc)
 3
@@ -250,12 +250,12 @@ Check whether a divisor `dtc` on an abstract tropical curve is effective.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 
 julia> is_effective(dtc)
 true
@@ -274,15 +274,15 @@ Given a divisor `dtc` and vertex labelled `position`, compute the linearly equiv
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 
 julia> chip_firing_move(dtc,1)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [-3, 2, 2, 2])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [-3, 2, 2, 2])
 ```
 """
 function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
@@ -334,15 +334,15 @@ The divisor `dtc` must have positive coefficients apart from `vertex`.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 
 julia> v_reduced(dtc,1)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [3, 0, 0, 0])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [3, 0, 0, 0])
 ```
 """
 function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
@@ -386,17 +386,17 @@ Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> coeffs1 = [0, 1, 1, 1];
 
 julia> dtc1 = DivisorOnTropicalCurve(tc,coeffs1)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 
 julia> coeffs2 = [3,0,0,0];
 
 julia> dtc2 = DivisorOnTropicalCurve(tc,coeffs2)
-DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [3, 0, 0, 0])
+DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [3, 0, 0, 0])
 
 julia> is_linearly_equivalent(dtc1, dtc2)
 true
@@ -456,7 +456,7 @@ julia> IM1=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg)])
 [4, 5]
 
 julia> TC1 = TropicalCurve(IM1)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> structure_tropical_jacobian(TC1)
 (General) abelian group with relation matrix
@@ -471,7 +471,7 @@ julia> IM2=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg2)])
 [2, 3]
 
 julia> TC2 = TropicalCurve(IM2)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> structure_tropical_jacobian(TC2)
 (General) abelian group with relation matrix
@@ -486,7 +486,7 @@ julia> IM3 = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
 [1, 5]
 
 julia> TC3=TropicalCurve(IM3)
-An abstract min tropical curve
+Abstract min tropical curve
 
 julia> G = structure_tropical_jacobian(TC3)
 (General) abelian group with relation matrix

@@ -32,10 +32,10 @@ julia> f = x^2+y^2+2
 x^2 + y^2 + (2)
 
 julia> hyp1 = TropicalHypersurface(f)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> pc = underlying_polyhedral_complex(hyp1)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 ``` 
 """
 function underlying_polyhedral_complex(TV::TropicalVarietySupertype)
@@ -69,13 +69,13 @@ julia> f2 = x^2+y^2+RR(-6)
 x^2 + y^2 + (-6)
 
 julia> hyp1 = TropicalHypersurface(f1)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> hyp2 = TropicalHypersurface(f2)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> tv12 = intersect(hyp1, hyp2)
-A min tropical variety of dimension 1 embedded in 2-dimensional Euclidean space
+min tropical variety of dimension 1 embedded in 2-dimensional Euclidean space
 ```
 """
 function intersect(T1::TropicalVarietySupertype{M, EMB}, T2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
@@ -310,9 +310,9 @@ julia> tropicalLine = TropicalHypersurface(f);
 
 julia> maximal_polyhedra(tropicalLine)
 3-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
 ```
 """
 function maximal_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}

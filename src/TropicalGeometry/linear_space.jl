@@ -50,7 +50,7 @@ julia> val = TropicalSemiringMap(ZZ)
 The trivial valuation on Integer Ring
 
 julia> TropicalLinearSpace(I,val)
-TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 6, #undef)
+TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 6, #undef)
 ```
 """
 function TropicalLinearSpace(I::MPolyIdeal, val)
@@ -76,7 +76,7 @@ julia> R = TropicalSemiring(min);
 julia> plv = [R(e) for e in [2,1,1,0,0,zero(R)]];
 
 julia> L = TropicalLinearSpace(plv, 2, 4)
-TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
+TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 4, #undef)
 
 julia> f_vector(L)
 2-element Vector{Int64}:
@@ -114,7 +114,7 @@ julia> val = TropicalSemiringMap(Kt,t);
 julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
 
 julia> TropicalLinearSpace(A, val)
-TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
+TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 4, #undef)
 
 julia> p = 3;
 
@@ -125,7 +125,7 @@ julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
 [9   7   1   2]
 
 julia> TropicalLinearSpace(A,val)
-TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
+TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 4, #undef)
 ```
 """
 function TropicalLinearSpace(A::MatElem, val)

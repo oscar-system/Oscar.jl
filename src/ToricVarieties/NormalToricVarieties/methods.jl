@@ -15,7 +15,7 @@ toric variety `v` is both complete and simplicial.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-A normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
 julia> betti_number(P3,0)
 1

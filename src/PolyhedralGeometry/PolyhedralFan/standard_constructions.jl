@@ -13,7 +13,7 @@ direction.
 julia> C = cube(3);
 
 julia> NF = normal_fan(C)
-A polyhedral fan in ambient dimension 3
+Polyhedral fan in ambient dimension 3
 
 julia> rays(NF)
 6-element SubObjectIterator{RayVector{fmpq}}:
@@ -44,7 +44,7 @@ maximal cones of its face fan.
 julia> C = cross_polytope(3);
 
 julia> FF = face_fan(C)
-A polyhedral fan in ambient dimension 3
+Polyhedral fan in ambient dimension 3
 
 julia> n_maximal_cones(FF) == nfacets(C)
 true

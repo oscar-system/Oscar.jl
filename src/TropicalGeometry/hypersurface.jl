@@ -45,9 +45,9 @@ end
 
 function Base.show(io::IO, th::TropicalHypersurface{M, EMB}) where {M, EMB}
     if EMB
-        print(io, "A $(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidean space")
+        print(io, "$(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidean space")
     else
-        print(io, "An abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
+        print(io, "Abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
     end
 end
 
@@ -74,7 +74,7 @@ julia> f = x+y+1
 x + y + (1)
 
 julia> Tf = TropicalHypersurface(f)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}}) where T
@@ -137,10 +137,10 @@ julia> Kxy, (x,y) = K["x", "y"]
 julia> f = 7*x+y+49;
 
 julia> TropicalHypersurface(f, min)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> TropicalHypersurface(f, max)
-A max tropical hypersurface embedded in 2-dimensional Euclidean space
+max tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
@@ -170,7 +170,7 @@ The 7-adic valuation on Rational Field
 julia> f = 7*x1+x2+49;
 
 julia> TropicalHypersurface(f, val)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::MPolyRingElem, val::TropicalSemiringMap)
@@ -233,7 +233,7 @@ julia> f = x+y+1;
 julia> tropicalLine = TropicalHypersurface(f);
 
 julia> dual_subdivision(tropicalLine)
-A subdivision of points in ambient dimension 3
+Subdivision of points in ambient dimension 3
 ```
 """
 function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}

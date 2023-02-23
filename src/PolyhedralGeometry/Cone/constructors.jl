@@ -43,7 +43,7 @@ To construct the positive orthant as a `Cone`, you can write:
 julia> R = [1 0; 0 1];
 
 julia> PO = positive_hull(R)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 ```
 
 To obtain the upper half-space of the plane:
@@ -53,7 +53,7 @@ julia> R = [0 1];
 julia> L = [1 0];
 
 julia> HS = positive_hull(R, L)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 ```
 """
 function positive_hull(::Type{T}, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
@@ -99,7 +99,7 @@ avoid unnecessary redundancy checks.
 # Examples
 ```jldoctest
 julia> C = cone_from_inequalities([0 -1; -1 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> rays(C)
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -135,7 +135,7 @@ pm_object(C::Cone) = C.pm_cone
 ###############################################################################
 
 function Base.show(io::IO, C::Cone{T}) where T<:scalar_types
-    print(io, "A polyhedral cone in ambient dimension $(ambient_dim(C))")
+    print(io, "Polyhedral cone in ambient dimension $(ambient_dim(C))")
     T != fmpq && print(io, " with $T type coefficients")
 end
 
