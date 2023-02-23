@@ -7,9 +7,9 @@ using Test
     dP3 = del_pezzo_surface(3; set_attributes)
     F5 = hirzebruch_surface(5; set_attributes)
     
-    l = ToricLineBundle(dP3, [1, 2, 3, 4])
-    l2 = ToricLineBundle(divisor_of_character(F5, [1, 2]))
-    l3 = ToricLineBundle(P2, [1])
+    l = toric_line_bundle(dP3, [1, 2, 3, 4])
+    l2 = toric_line_bundle(divisor_of_character(F5, [1, 2]))
+    l3 = toric_line_bundle(P2, [1])
     
     vs = vanishing_sets(dP3)
     vs2 = vanishing_sets(P2)

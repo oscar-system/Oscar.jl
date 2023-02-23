@@ -15,8 +15,10 @@ Pages = ["ToricLineBundles.md"]
 ### Generic constructors
 
 ```@docs
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
-ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
+toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+toric_line_bundle(d::ToricDivisor)
 ```
 
 ### Tensor products

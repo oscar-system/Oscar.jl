@@ -155,3 +155,23 @@ function ToricDivisorClass(td::ToricDivisor)
     "'toric_divisor_class(td::ToricDivisor) instead.", :ToricDivisorClass)
     toric_divisor_class(td)
 end
+
+function ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}'"*
+    " is deprecated, use 'toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}' "*
+    "instead.", :ToricLineBundle)
+    toric_line_bundle(v, c)
+end
+
+function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+    Base.depwarn("'ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)'"*
+    " is deprecated, use 'toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)' "*
+    "instead.", :ToricLineBundle)
+    toric_line_bundle(v, d)
+end
+
+function ToricLineBundle(d::ToricDivisor)
+    Base.depwarn("'ToricLineBundle(d::ToricDivisor)'"*
+    " is deprecated, use 'toric_line_bundle(d::ToricDivisor)' instead", :ToricLineBundle)
+    toric_line_bundle(d)
+end

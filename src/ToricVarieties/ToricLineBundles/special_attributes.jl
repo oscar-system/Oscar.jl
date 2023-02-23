@@ -17,7 +17,7 @@ julia> structure_sheaf(v)
 A toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = ToricLineBundle(v, zero(picard_group(v)))
+@attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = toric_line_bundle(v, zero(picard_group(v)))
 export structure_sheaf
 
 
@@ -36,7 +36,7 @@ julia> anticanonical_bundle(v)
 A toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(ToricLineBundle(v, d) for d in torusinvariant_prime_divisors(v))
+@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(toric_line_bundle(v, d) for d in torusinvariant_prime_divisors(v))
 export anticanonical_bundle
 
 

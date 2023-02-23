@@ -12,7 +12,7 @@ Return the divisor class which defines the toric line bundle `l`.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 
 julia> divisor_class(l)
@@ -37,7 +37,7 @@ Return the toric variety over which the toric line bundle `l` is defined.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 
 julia> toric_variety(l)
@@ -60,7 +60,7 @@ Return a divisor corresponding to the toric line bundle `l`.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 
 julia> toric_divisor(l)
@@ -93,7 +93,7 @@ Return the degree of the toric line bundle `l`.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 
 julia> degree(l)
@@ -120,7 +120,7 @@ Return a basis of the global sections of the toric line bundle `l` in terms of r
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 
 julia> basis_of_global_sections_via_rational_functions(l)
@@ -159,7 +159,7 @@ For convenience, this method can also be called via
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 
 julia> basis_of_global_sections_via_homogeneous_component(l)

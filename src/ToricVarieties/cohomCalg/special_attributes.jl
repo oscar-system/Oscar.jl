@@ -39,7 +39,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> all_cohomologies(ToricLineBundle(dP3, [1, 2, 3, 4]))
+julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
 3-element Vector{fmpz}:
  0
  16
@@ -173,7 +173,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> cohomology(ToricLineBundle(dP3, [4, 1, 1, 1]), 0)
+julia> cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 12
 ```
 """

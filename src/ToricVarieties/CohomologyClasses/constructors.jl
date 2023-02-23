@@ -98,7 +98,7 @@ corresponding to the toric line bundle `l`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(P2, [2])
+julia> l = toric_line_bundle(P2, [2])
 A toric line bundle on a normal toric variety
 
 julia> polynomial(cohomology_class(l))

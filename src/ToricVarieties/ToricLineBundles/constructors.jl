@@ -7,7 +7,12 @@ abstract type ToricCoherentSheaf end
 @attributes mutable struct ToricLineBundle <: ToricCoherentSheaf
     toric_variety::AbstractNormalToricVariety
     divisor_class::GrpAbFinGenElem
-    ToricLineBundle(variety::AbstractNormalToricVariety, divisor_class::GrpAbFinGenElem) = new(variety, divisor_class)
+    function ToricLineBundle(toric_variety::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+        if parent(class) !== picard_group(toric_variety)
+            throw(ArgumentError("The class must belong to the Picard group of the toric variety"))
+        end
+        return new(toric_variety, class)
+    end
 end
 export ToricLineBundle
 
@@ -17,7 +22,27 @@ export ToricLineBundle
 ########################
 
 @doc Markdown.doc"""
-    ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
+    toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+
+Construct the line bundle on the abstract normal toric variety `v` with class `c`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
+A toric line bundle on a normal toric variety
+```
+"""
+function toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+    return ToricLineBundle(v, class)
+end
+export toric_line_bundle
+
+
+@doc Markdown.doc"""
+    toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`.
 
@@ -26,11 +51,11 @@ Construct the line bundle on the abstract normal toric variety `v` with class `c
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 ```
 """
-function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{T}) where {T <: IntegerUnion}
+function toric_line_bundle(v::AbstractNormalToricVariety, input_class::Vector{T}) where {T <: IntegerUnion}
     class = picard_group(v)(input_class)
     return ToricLineBundle(v, class)
 end
@@ -41,7 +66,7 @@ end
 ########################
 
 @doc Markdown.doc"""
-    ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+    toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
 
 Construct the toric variety associated to a (Cartier) torus-invariant divisor `d` on the normal toric variety `v`.
 
@@ -50,11 +75,11 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, toric_divisor(v, [1, 2, 3]))
+julia> l = toric_line_bundle(v, toric_divisor(v, [1, 2, 3]))
 A toric line bundle on a normal toric variety
 ```
 """
-function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+function toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
     if !is_cartier(d)
         throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle"))
     end
@@ -64,7 +89,24 @@ function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
     set_attribute!(l, :toric_divisor, d)
     return l
 end
-ToricLineBundle(d::ToricDivisor) = ToricLineBundle(toric_variety(d), d)
+
+@doc Markdown.doc"""
+    toric_line_bundle(d::ToricDivisor)
+
+Construct the toric variety associated to a (Cartier) torus-invariant divisor `d`.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> d = toric_divisor(v, [1, 2, 3]);
+
+julia> l = toric_line_bundle(d)
+A toric line bundle on a normal toric variety
+```
+"""
+toric_line_bundle(d::ToricDivisor) = toric_line_bundle(toric_variety(d), d)
 
 
 ########################
@@ -75,10 +117,10 @@ function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
     if toric_variety(l1) !== toric_variety(l2)
         throw(ArgumentError("The line bundles must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
-    return ToricLineBundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
+    return toric_line_bundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
 end
-Base.:inv(l::ToricLineBundle) = ToricLineBundle(toric_variety(l), (-1)*divisor_class(l))
-Base.:^(l::ToricLineBundle, p::fmpz) = ToricLineBundle(toric_variety(l), p * divisor_class(l))
+Base.:inv(l::ToricLineBundle) = toric_line_bundle(toric_variety(l), (-1)*divisor_class(l))
+Base.:^(l::ToricLineBundle, p::fmpz) = toric_line_bundle(toric_variety(l), p * divisor_class(l))
 Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
 
 
