@@ -28,19 +28,19 @@ morphisms are exactly the toric morphisms.
 ### Generic constructors without specified codomain
 
 ```@docs
-ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}) where {T <: IntegerUnion}
-ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}) where {T <: IntegerUnion}
-ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat)
-ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap)
+toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}) where {T <: IntegerUnion}
+toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}) where {T <: IntegerUnion}
+toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat)
+toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap)
 ```
 
 ### Generic constructors with specified codomain
 
 ```@docs
-ToricMorphism(v1::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
-ToricMorphism(v1::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
-ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::AbstractNormalToricVariety)
-ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety)
+toric_morphism(v1::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
+toric_morphism(v1::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
+toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::AbstractNormalToricVariety)
+toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety)
 ```
 
 ### Special constructors

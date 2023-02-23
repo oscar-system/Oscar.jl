@@ -5,7 +5,7 @@ using Test
     
     source = projective_space(NormalToricVariety, 1; set_attributes)
     target = hirzebruch_surface(2; set_attributes)
-    tm1 = ToricMorphism(source, matrix(ZZ, [[0, 1]]), target)
+    tm1 = toric_morphism(source, matrix(ZZ, [[0, 1]]), target)
     tm2 = ToricIdentityMorphism(target)
     tm3 = ToricIdentityMorphism(hirzebruch_surface(4; set_attributes))
     

@@ -18,7 +18,7 @@ export ToricMorphism
 
 
 @doc Markdown.doc"""
-    ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
+    toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
 As optional argument, the codomain of the morphism can be specified.
@@ -32,25 +32,26 @@ julia> mapping_matrix = [[0, 1]]
 1-element Vector{Vector{Int64}}:
  [0, 1]
 
-julia> ToricMorphism(domain, mapping_matrix)
+julia> toric_morphism(domain, mapping_matrix)
 A toric morphism
 ```
 """
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
+function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
     (length(mapping_matrix) > 0 && length(mapping_matrix[1]) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
     if codomain == nothing
-      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(length(mapping_matrix[1])), matrix(ZZ, mapping_matrix)), codomain)
+      return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(length(mapping_matrix[1])), matrix(ZZ, mapping_matrix)), codomain)
     else
-      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
+      return toric_morphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
     end
 end
-export ToricMorphism
+export toric_morphism
 
 
 @doc Markdown.doc"""
-    ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
+    toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
+As optional argument, the codomain of the morphism can be specified.
 
 # Examples
 ```jldoctest
@@ -61,25 +62,25 @@ julia> mapping_matrix = [0 1]
 1×2 Matrix{Int64}:
  0  1
 
-julia> ToricMorphism(domain, mapping_matrix)
+julia> toric_morphism(domain, mapping_matrix)
 A toric morphism
 ```
 """
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
+function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
     (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
     if codomain == nothing
-      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), matrix(ZZ, mapping_matrix)), codomain)
+      return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), matrix(ZZ, mapping_matrix)), codomain)
     else
-      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
+      return toric_morphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
     end
 end
-export ToricMorphism
 
 
 @doc Markdown.doc"""
-    ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+    toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
+As optional argument, the codomain of the morphism can be specified.
 
 # Examples
 ```jldoctest
@@ -92,25 +93,26 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> mapping_matrix = matrix(ZZ, [0 1])
 [0   1]
 
-julia> ToricMorphism(domain, mapping_matrix, codomain)
+julia> toric_morphism(domain, mapping_matrix, codomain)
 A toric morphism
 ```
 """
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
     (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
     if codomain == nothing
-      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), mapping_matrix), codomain)
+      return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), mapping_matrix), codomain)
     else
-      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), mapping_matrix), codomain)
+      return toric_morphism(domain, hom(character_lattice(domain), character_lattice(codomain), mapping_matrix), codomain)
     end
 end
-export ToricMorphism
+export toric_morphism
 
 
 @doc Markdown.doc"""
-    function ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+    function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism from the `domain` to the `codomain` with map given by the `grid_morphism`.
+As optional argument, the codomain of the morphism can be specified.
 
 # Examples
 ```jldoctest
@@ -132,11 +134,11 @@ Codomain:
 =========
 Abelian group with structure: Z^2
 
-julia> ToricMorphism(domain, grid_morphism, codomain)
+julia> toric_morphism(domain, grid_morphism, codomain)
 A toric morphism
 ```
 """
-function ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
     # avoid empty mapping
     (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
 
@@ -165,7 +167,6 @@ function ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbF
       return ToricMorphism(domain, grid_morphism, image, codomain)
     end
 end
-export ToricMorphism
 
 
 ####################################################
@@ -203,7 +204,7 @@ function Base.:+(tm1::ToricMorphism, tm2::ToricMorphism)
     if codomain(tm1) !== codomain(tm2)
         throw(ArgumentError("The toric morphism must be defined with identically the same codomain"))
     end
-    return ToricMorphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
+    return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
 end
 
 
@@ -214,13 +215,13 @@ function Base.:-(tm1::ToricMorphism, tm2::ToricMorphism)
     if codomain(tm1) !== codomain(tm2)
         throw(ArgumentError("The toric morphism must be defined with identically the same codomain"))
     end
-    return ToricMorphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
+    return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
 end
 
 
 function Base.:*(c::T, tm::ToricMorphism) where T <: IntegerUnion
   new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
-  return ToricMorphism(domain(tm), new_grid_morphism, codomain(tm))
+  return toric_morphism(domain(tm), new_grid_morphism, codomain(tm))
 end
 
 
@@ -232,7 +233,7 @@ function Base.:*(tm1::ToricMorphism, tm2::ToricMorphism)
     if codomain(tm1) !== domain(tm2)
         throw(ArgumentError("The codomain of the first toric morphism must be identically the same as the domain of the second morphism"))
     end
-    return ToricMorphism(domain(tm1), grid_morphism(tm1) * grid_morphism(tm2), codomain(tm2))
+    return toric_morphism(domain(tm1), grid_morphism(tm1) * grid_morphism(tm2), codomain(tm2))
 end
 
 
