@@ -114,8 +114,8 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
 
   Zx = Hecke.Globals.Zx
 
-  @vprint :Subfields, 1, "Starting subfield computation...\n"
-  @vprint :Subfields, 2, "for $f\n"
+  @vprint :Subfields 1 "Starting subfield computation...\n"
+  @vprint :Subfields 2 "for $f\n"
 
   d = numerator(discriminant(FF))
   rt = roots(d, ComplexField(20))
@@ -132,12 +132,12 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
     end
   end
 
-  @vprint :Subfields, 2, "substituting t = $t\n"
+  @vprint :Subfields 2 "substituting t = $t\n"
 
 
   K, a = number_field(g, cached = false)
 
-  @vprint :Subfields, 2, "now looking for a nice prime...\n"
+  @vprint :Subfields 2 "now looking for a nice prime...\n"
   p, _ = find_prime(defining_polynomial(K), pStart = 200)
 
   d = lcm(map(degree, collect(keys(factor(g, GF(p)).fac))))
@@ -303,8 +303,8 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
 
   prec = (2,1)
 
-  @vprint :Subfields, 1, "Computing subfields of the number field...\n"
-  @vprint :Subfields, 2, "obtaining roots with minimal prec $prec\n"
+  @vprint :Subfields 1 "Computing subfields of the number field...\n"
+  @vprint :Subfields 2 "obtaining roots with minimal prec $prec\n"
   @vtime :Subfields  2  R = roots(C, prec)
   
   F = parent(R[1]) # should be Qq<<t>>
@@ -327,7 +327,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
 
     a = mkK(gen(k))
     A = parent(K.pol)(a)
-    @vprint :Subfields, 2, "embedding polynomial: $A\n"
+    @vprint :Subfields 2 "embedding polynomial: $A\n"
     ts = gen(Zx)
     local bs
     r = copy(rc)
