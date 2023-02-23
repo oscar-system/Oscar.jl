@@ -1302,46 +1302,54 @@ deglex([x, y, z])
 function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        ordering::MonomialOrdering,
                                        complete_reduction::Bool = false,
-                                       weights::Vector{Int} = ones(Int, ngens(base_ring(I)))) where {P <: MPolyElem}
+                                       weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+                                       hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
   
   all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
   isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
   is_global(ordering) || error("Destination ordering must be global.")
   haskey(I.gb, ordering) && return I.gb[ordering]
-  if isempty(I.gb) && iszero(characteristic(base_ring(I))) 
-    p = 32771
-    while true
-      p = Hecke.next_prime(p)
+  if isnothing(hilbert_numerator)
+    if isempty(I.gb) && iszero(characteristic(base_ring(I))) 
+      p = 32771
+      while true
+        p = Hecke.next_prime(p)
         
-      base_field = GF(p)
-      ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
-                      weights)
-      I_mod_p_gens =
-      try
-        [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
-      catch e
-        # this precise error is thrown if the chosen prime p divides one
-        # of the denominators of the coefficients of the generators of I.
-        # In this case we simply choose the next prime and try again.
-        if e == ErrorException("Unable to coerce") 
-          continue
-        else
-          rethrow(e)
-        end
+        base_field = GF(p)
+        ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
+                        weights)
+        I_mod_p_gens =
+          try
+            [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
+          catch e
+            # this precise error is thrown if the chosen prime p divides one
+            # of the denominators of the coefficients of the generators of I.
+            # In this case we simply choose the next prime and try again.
+            if e == ErrorException("Unable to coerce") 
+              continue
+            else
+              rethrow(e)
+            end
+          end
+        G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
+        break
       end
-      G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
-      break
+    else
+      G = groebner_assure(I)
     end
+
+    if characteristic(base_ring(I)) > 0 && ordering == default_ordering(base_ring(I))
+      return G
+    end
+    singular_assure(G)
+    h = Singular.hilbert_series(G.S, weights)
   else
-    G = groebner_assure(I)
+    # Quoting from the documentation of Singular.hilbert_series:
+    # The coefficient vector is returned as a `Vector{Int32}`, and the last element is not actually part of the coefficients of Q(t).
+    # what?
+    h = (Int32).([coeff(hilbert_numerator, i) for i in 0:degree(hilbert_numerator)+1])
   end
 
-  if characteristic(base_ring(I)) > 0 && ordering == default_ordering(base_ring(I))
-    return G
-  end
-
-  singular_assure(G)
-  h = Singular.hilbert_series(G.S, weights)
   singular_assure(I.gens, ordering)
   singular_ring = I.gens.Sx
   J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
