@@ -169,8 +169,8 @@
 
     
     @testset "matroid_stratum_matrix_coordinates_given_ring" begin
-      @test MS1[2] isa MPolyLocalizedRing
-      @test length(gens(modulus(MS2[2]::MPolyQuoLocalizedRing))) == 4
+      @test MS1[2] isa MPolyLocRing
+      @test length(gens(modulus(MS2[2]::MPolyQuoLocRing))) == 4
     end
 
 
@@ -314,10 +314,10 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
    
     
     @testset "matroid_realization_space_given_ring" begin
-      @test MS1[2] isa MPolyLocalizedRing 
-      @test length(unique!(gens(modulus(MS2[2]::MPolyQuoLocalizedRing)))) == 4  
-      @test MS4a[2] isa MPolyLocalizedRing 
-      @test MS4b[2] isa MPolyLocalizedRing 
+      @test MS1[2] isa MPolyLocRing 
+      @test length(unique!(gens(modulus(MS2[2]::MPolyQuoLocRing)))) == 4  
+      @test MS4a[2] isa MPolyLocRing 
+      @test MS4b[2] isa MPolyLocRing 
     end
 
     Mnoninteger = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d']], ['a', 'b', 'c', 'd'])
@@ -328,8 +328,8 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
     GrMnonZ = Oscar.matroid_stratum_matrix_coordinates(Mnoninteger, ['a','b'], ZZ)
     RMnonZ = Oscar.matroid_realization_space(Mnoninteger2, ['a','b','c'], ZZ)
     @testset "matroid_realization_space_given_ring" begin
-        @test GrMnonZ[2] isa MPolyQuoLocalizedRing
-        @test RMnonZ[2] isa MPolyLocalizedRing 
+        @test GrMnonZ[2] isa MPolyQuoLocRing
+        @test RMnonZ[2] isa MPolyLocRing 
     end
 
     

@@ -181,7 +181,7 @@ function Base.hash(a::ProjSpcElem, u::UInt=UInt(123432))
   return hash(a.v, u)
 end
 
-function Oscar.evaluate(f::MPolyElem, a::ProjSpcElem)
+function Oscar.evaluate(f::MPolyRingElem, a::ProjSpcElem)
   return evaluate(f, a.v)
 end
 

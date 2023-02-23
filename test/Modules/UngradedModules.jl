@@ -27,7 +27,7 @@ end
 	@test v == Vector(F(v))
 
 	M = sub(F, [F(v), F([z, R(1), R(0)])], :none)
-	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)], :none)
+	N = quo(M, [SubquoModuleElem([x+y^2, y^3*z^2+1], M)], :none)
 	AN, ai = ambient_module(N, :with_morphism)
 	@test AN.quo === N.quo
 	for i=1:ngens(N)
@@ -41,10 +41,10 @@ end
 	@test !(F([R(1), R(0), R(0)]) in M)
 	@test N[1] in M
 
-	M = SubQuo(F, [x*F[1]])
-	N = SubQuo(F, [y*F[1]])
+	M = SubquoModule(F, [x*F[1]])
+	N = SubquoModule(F, [y*F[1]])
 	G = FreeMod(R,3,"f")
-	M_2 = SubQuo(G, [x*G[1]])
+	M_2 = SubquoModule(G, [x*G[1]])
 	@test !is_canonically_isomorphic(M,N)
 	is_iso, phi = is_canonically_isomorphic_with_map(M,M_2)
 	@test is_iso
@@ -62,8 +62,8 @@ end
   B = R[4*x*y^3 (2*x+y)]
   F2 = FreeMod(R,2)
 
-  M1 = SubQuo(F2, A1, B)
-  M2 = SubQuo(F2, A2, B)
+  M1 = SubquoModule(F2, A1, B)
+  M2 = SubquoModule(F2, A2, B)
 
   A1 = R[x R(1); y x^2]
   A2 = R[x y]
@@ -74,26 +74,26 @@ end
   @test M1 == P
   @test image(i)[1] == M1
 
-  P,i = intersect(SubQuo(F2, A1, B1), SubQuo(F2, A2, B1))
+  P,i = intersect(SubquoModule(F2, A1, B1), SubquoModule(F2, A2, B1))
   @test is_welldefined(i)
   @test is_injective(i)
-  @test SubQuo(F2, res, B1) == P #macaulay2
+  @test SubquoModule(F2, res, B1) == P #macaulay2
 
   A1 = R[x y; x^2 y^2]
   A2 = R[x+x^2 y+y^2]
-  P,i = intersect(SubQuo(F2, A1,B1), SubQuo(F2, A2,B1))
+  P,i = intersect(SubquoModule(F2, A1,B1), SubquoModule(F2, A2,B1))
   @test is_welldefined(i)
   @test is_injective(i)
-  @test SubQuo(F2, A2, B1) == P
+  @test SubquoModule(F2, A2, B1) == P
 
   #Test that no obvious zeros are in the generator set
   F = free_module(R,1)
   AM = R[x;]
   BM = R[x^2; y^3; z^4]
-  M = SubQuo(F, AM, BM)
+  M = SubquoModule(F, AM, BM)
   AN = R[y;]
   BN = R[x^2; y^3; z^4]
-  N = SubQuo(F, AN, BN)
+  N = SubquoModule(F, AN, BN)
   P,_ = intersect(M, N)
   for g in gens(P)
 	@test !iszero(ambient_representative(g))
@@ -115,7 +115,7 @@ end
 	relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x x*y], R[3*x*y 7*x*y; 42 7]]
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; x*y^4-x^3*y+y^4-x^2*y -x*y^3+x^3; -y^4+x^2*y x*y^3-x^3; x^2*y^3+x*y^3+y^3 -x^2*y^2-x*y^2], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[x^5-x*y^4+x^3*y+x*y^3 x^11-x^2*y-x*y; -x^5*y^7+x*y^11+2*x^5*y^6-x^3*y^8-3*x*y^10+2*x^5*y^5+2*x^3*y^7-3*x^5*y^4+2*x^3*y^6+5*x*y^8+2*x^5*y^3-3*x^3*y^5-5*x*y^7+2*x^3*y^4+2*x*y^6 -x^11*y^7+2*x^11*y^6+2*x^11*y^5-3*x^11*y^4+2*x^11*y^3+x^2*y^8-2*x^2*y^7+x*y^8-2*x^2*y^6-2*x*y^7+3*x^2*y^5-2*x*y^6-2*x^2*y^4+3*x*y^5-2*x*y^4], R[-13*y R(0); -377 -2639*x; -39 -273*x; -13*y-39 -273*x; -13 -91*x; y^2-42*x -294*x^2+21*x*y; 9*y^2-x+26*y+78 -7*x^2+189*x*y+546*x; -y^2+3*x 21*x^2-21*x*y]]
 	for (A,B,true_pres_mat) in zip(generator_matrices, relation_matrices, true_pres_matrices)
-		SQ = SubQuo(A,B)
+		SQ = SubquoModule(A,B)
 		pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
 		F = FreeMod(R,ncols(pres_mat))
 		@test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
@@ -135,7 +135,7 @@ end
 	relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x+y x+y; x*y x*y], R[x+y x+y; y x; x y]]
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; -x^2*y^4+x^4*y x^2*y^3-x^4], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[-x^4+y^4-x^2-y^2 -x^10+x+R(1)], R[R(0) -x^2+y^2; -2*x^2 -x^9*y+x+1; -2*x*y^2 -x^8*y^3+y^2+x; -2*x*y^2+2*y^2 -x^8*y^3+x^7*y^3+y^2-1]]
 	for (A,B,true_pres_mat) in zip(generator_matrices, relation_matrices, true_pres_matrices)
-		SQ = SubQuo(A,B)
+		SQ = SubquoModule(A,B)
 		pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
 		F = FreeMod(R,ncols(pres_mat))
 		@test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
@@ -151,7 +151,7 @@ end
 	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
-	M = SubQuo(A, B)
+	M = SubquoModule(A, B)
 	free_res = free_resolution(M, length=1)
     @test is_complete(free_res) == false
     free_res[2]
@@ -164,7 +164,7 @@ end
 	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))
 
-	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	N = SubquoModule(R[x+2*x^2; x+y], R[z^4;])
 	tensor_resolution = tensor_product(N,free_res)
 	@test range(tensor_resolution) == range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
@@ -178,7 +178,7 @@ end
 		end
 	end
 
-	N = SubQuo(R[x+2*x^2*z; x+y-z], R[z^4;])
+	N = SubquoModule(R[x+2*x^2*z; x+y-z], R[z^4;])
 	tensor_resolution = tensor_product(free_res,N)
 	@test range(tensor_resolution) == range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
@@ -192,7 +192,7 @@ end
 		end
 	end
 
-	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	N = SubquoModule(R[x+2*x^2; x+y], R[z^4;])
 	hom_resolution = hom(N,free_res)
 	@test range(hom_resolution) == range(free_res)
 	for i in Hecke.map_range(hom_resolution)
@@ -204,7 +204,7 @@ end
 		end
 	end
 
-	N = SubQuo(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
+	N = SubquoModule(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
 	hom_resolution = hom(free_res,N)
 	@test last(range(hom_resolution)) == first(range(free_res))
 	@test first(range(hom_resolution)) == last(range(free_res))
@@ -242,7 +242,7 @@ end
 	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
-	M = SubQuo(A, B)
+	M = SubquoModule(A, B)
 	F = free_module(R, 1)
 	Q, _ = quo(F, [x*F[1]])
 	G = free_module(R, 2)
@@ -283,31 +283,31 @@ end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	F = FreeMod(R, 1)
 
-	J = SubQuo(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
-	@test leading_module(J) == SubQuo(F, [x*F[1], y*F[1]])
+	J = SubquoModule(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
+	@test leading_module(J) == SubquoModule(F, [x*F[1], y*F[1]])
 
-	J = SubQuo(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
-	@test leading_module(J) == SubQuo(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
+	J = SubquoModule(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
+	@test leading_module(J) == SubquoModule(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
 
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	F = FreeMod(R, 2)
 	lp = lex(gens(base_ring(F)))*lex(gens(F))
 
-	M = SubQuo(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
-	@test leading_module(M,lp) == SubQuo(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
+	M = SubquoModule(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
+	@test leading_module(M,lp) == SubquoModule(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
 
 	R, x = PolynomialRing(QQ, ["x_"*string(i) for i=1:4])
 	F = FreeMod(R, 1)
 	lp = lex(gens(base_ring(F)))*lex(gens(F))
 
-	J = SubQuo(F, [(x[1]+x[2]+R(1))*F[1], (x[1]+x[2]+2*x[3]+2*x[4]+1)*F[1],(x[1]+x[2]+x[3]+x[4]+1)*F[1]])
+	J = SubquoModule(F, [(x[1]+x[2]+R(1))*F[1], (x[1]+x[2]+2*x[3]+2*x[4]+1)*F[1],(x[1]+x[2]+x[3]+x[4]+1)*F[1]])
 	@test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O
 	@test haskey(J.groebner_basis, lp)
 
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	F = FreeMod(R, 1)
 	lp = lex(gens(base_ring(F)))*lex(gens(F))
-	I = SubQuo(F, [(x-1)*F[1], (y^2-1)*F[1]])
+	I = SubquoModule(F, [(x-1)*F[1], (y^2-1)*F[1]])
 	f = (x*y^2+y)*F[1]
 	@test Oscar.reduce(f, I) == (y+1)*F[1]
 
@@ -316,7 +316,7 @@ end
 
 	A = R[x+1 y*z+x^2; (y+2*z) z^3]
 	B = R[2*z*(x*z+y^2) (x*z)^5]
-	M = SubQuo(F, A, B)
+	M = SubquoModule(F, A, B)
 	gb = groebner_basis(M)
 	P = sum(Oscar.SubModuleOfFreeModule(F, gb), Oscar.SubModuleOfFreeModule(F, gb.quo_GB))
 	Q = Oscar.SubModuleOfFreeModule(F, groebner_basis(M.sum))
@@ -370,16 +370,16 @@ end
 	end
 end
 
-@testset "iszero(SubQuo)" begin
+@testset "iszero(SubquoModule)" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	A = R[x^2+2*x*y y^2*x-2*x^2*y;-y x*y]
 	B = R[x^2 y^2*x;-y x*y]
-	@test iszero(SubQuo(A,B))
+	@test iszero(SubquoModule(A,B))
 	for k=1:3
 		A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
 		B = matrix([randpoly(R,0:15,2,2) for i=1:2,j=1:2])
-		@test iszero(SubQuo(A,A))
-		@test !iszero(SubQuo(A,B)) # could go wrong
+		@test iszero(SubquoModule(A,A))
+		@test !iszero(SubquoModule(A,B)) # could go wrong
 	end
 end
 
@@ -387,12 +387,12 @@ end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	A1 = R[x*y R(0)]
 	B1 = R[R(0) R(1)]
-	M1 = SubQuo(A1,B1)
+	M1 = SubquoModule(A1,B1)
 	M2,i2,p2 = simplify(M1)
 	for k=1:5
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M1)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M1)
 		@test elem == i2(p2(elem))
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M2)])), M2)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M2)])), M2)
 		@test elem == p2(i2(elem))
 	end
 
@@ -412,12 +412,12 @@ end
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-	M1 = SubQuo(A1,B1)
+	M1 = SubquoModule(A1,B1)
 	M2,i2,p2 = simplify(M1)
 	for k=1:5
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M1)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M1)
 		@test elem == i2(p2(elem))
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:ngens(M2)])), M2)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:ngens(M2)])), M2)
 		@test elem == p2(i2(elem))
 	end
 
@@ -428,13 +428,13 @@ end
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-	M1 = SubQuo(A1,B1)
+	M1 = SubquoModule(A1,B1)
 	M2,i2,p2 = simplify(M1)
 
 	for k=1:5
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:3])), M1)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:3])), M1)
 		@test elem == i2(p2(elem))
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M2)])), M2)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M2)])), M2)
 		@test elem == p2(i2(elem))
 	end
 
@@ -443,12 +443,12 @@ end
 	@test is_bijective(i2)
 	@test is_bijective(p2)
 
-	M1 = SubQuo(B1,A1)
+	M1 = SubquoModule(B1,A1)
 	M2,i2,p2 = simplify(M1)
 	for k=1:5
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:2])), M1)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:2])), M1)
 		@test elem == i2(p2(elem))
-		elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M2)])), M2)
+		elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M2)])), M2)
 		@test elem == p2(i2(elem))
 	end
 
@@ -462,38 +462,38 @@ end
   R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
   F3 = FreeMod(R,3)
-  M1 = SubQuo(F3,R[x^2*y^3-x*y y^3 x^2*y; 2*x^2 3*y^2*x 4],R[x^4*y^5 x*y y^4])
-  N1 = SubQuo(F3,R[x^4*y^5-4*x^2 x*y-6*y^2*x y^4-8],R[x^4*y^5 x*y y^4])
+  M1 = SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y; 2*x^2 3*y^2*x 4],R[x^4*y^5 x*y y^4])
+  N1 = SubquoModule(F3,R[x^4*y^5-4*x^2 x*y-6*y^2*x y^4-8],R[x^4*y^5 x*y y^4])
   Q1,p1 = quo(M1,N1,:cache_morphism)
 
-  @test Q1 == SubQuo(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
+  @test Q1 == SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
   @test p1 == find_morphism(M1, Q1)
   for k=1:5
-    elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)  
+    elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)  
     @test p1(elem) == transport(Q1, elem)
   end
 
   F2 = FreeMod(R,2)
-  M2 = SubQuo(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
-  elems = [SubQuoElem(sparse_row(R[x*y -x*y^2 x*y]), M2), SubQuoElem(sparse_row(R[x R(0) R(-1)]), M2)]
+  M2 = SubquoModule(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
+  elems = [SubquoModuleElem(sparse_row(R[x*y -x*y^2 x*y]), M2), SubquoModuleElem(sparse_row(R[x R(0) R(-1)]), M2)]
   Q2,p2 = quo(M2,elems,:cache_morphism)
 
-  @test Q2 == SubQuo(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],
+  @test Q2 == SubquoModule(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],
             R[x^3-y^2 y^4-x-y; x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y])
   for k=1:5
-    elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M2)
+    elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M2)
     @test p2(elem) == transport(Q2, elem)
   end
 
-  M3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1 x^4 2*x*y; y^4 3*x -1],R[y^2 x^3 y^2])
-  #N3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 x^4-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
-  N3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 2*x*y-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
+  M3 = SubquoModule(F3,R[x^2*y+13*x*y+2x-1 x^4 2*x*y; y^4 3*x -1],R[y^2 x^3 y^2])
+  #N3 = SubquoModule(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 x^4-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
+  N3 = SubquoModule(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 2*x*y-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
   Q3,p3 = quo(M3,N3,:cache_morphism)
 
   @test iszero(quo(M3,M3, :none))
   @test iszero(Q3)
   for k=1:5
-    elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
+    elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
     @test p3(elem) == transport(Q3, elem)
     @test iszero(p3(elem))
   end
@@ -503,27 +503,27 @@ end
   R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
   F2 = FreeMod(R,2)
-  M1 = SubQuo(F2,R[x^2*y+x*y x*y^2-x; x+x*y^2 y^3],R[x^2 y^3-x])
+  M1 = SubquoModule(F2,R[x^2*y+x*y x*y^2-x; x+x*y^2 y^3],R[x^2 y^3-x])
   S1,i1 = sub(M1, [M1(sparse_row(R[1 1])),M1(sparse_row(R[y -x]))], :cache_morphism)
 
-  @test S1 == SubQuo(F2,R[x*y^2+x^3-x^2 x*y^3-x*y-x^2; x^2*y+x*y^2+x*y-x^2+x x*y^2],R[x^2 y^3-x])
+  @test S1 == SubquoModule(F2,R[x*y^2+x^3-x^2 x*y^3-x*y-x^2; x^2*y+x*y^2+x*y-x^2+x x*y^2],R[x^2 y^3-x])
   @test i1 == find_morphism(S1, M1)
   for k=1:5
       elem = S1(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
       @test i1(elem) == transport(M1, elem)
   end
 
-  M2 = SubQuo(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
+  M2 = SubquoModule(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
   S2,i2 = sub(M2,[M2(sparse_row(R[x*y -x*y^2 x*y])),M2(sparse_row(R[x 0 -1]))], :cache_morphism)
 
-  @test S2 == SubQuo(F2,R[x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y],R[x^3-y^2 y^4-x-y])
+  @test S2 == SubquoModule(F2,R[x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y],R[x^3-y^2 y^4-x-y])
   @test i2 == find_morphisms(S2, M2)[1]
   for k=1:5
       elem = S2(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
       @test i2(elem) == transport(M2, elem)
   end
 
-  M3 = SubQuo(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
+  M3 = SubquoModule(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
   elems = [M3(sparse_row(R[0 6 0])),M3(sparse_row(R[9 0 -x])),M3(sparse_row(R[0 0 -42]))]
   S3,i3 = sub(M3,elems,:cache_morphism)
 
@@ -550,11 +550,11 @@ end
 
 	function free_module_SQ(ring,n)
 		F = FreeMod(ring,n)
-		return SubQuo(F,gens(F))
+		return SubquoModule(F,gens(F))
 	end
 
 	function free_module_SQ(F::FreeMod)
-		return SubQuo(F,gens(F))
+		return SubquoModule(F,gens(F))
 	end
 
 	# test if Hom(R^n,R^m) gives R^(m*n): (there is a dedicated function for free modules but this is a simple test for the function for subquos)
@@ -570,10 +570,10 @@ end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	A1 = R[x^2+1 x*y; x^2+y^3 x*y]
 	B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
-	M1 = SubQuo(A1, B1)
+	M1 = SubquoModule(A1, B1)
 	A2 = R[x;]
 	B2 = R[y^3;]
-	M2 = SubQuo(A2,B2)
+	M2 = SubquoModule(A2,B2)
 	SQ = hom(M1,M2)[1]
 	for v in gens(SQ)
 		@test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
@@ -582,10 +582,10 @@ end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	A1 = R[x^2+1 x*y; x^2+y^3 x*y]
 	B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
-	M1 = SubQuo(A1, B1)
+	M1 = SubquoModule(A1, B1)
 	A2 = R[x;]
 	B2 = R[y^3;]
-	M2 = SubQuo(A2,B2)
+	M2 = SubquoModule(A2,B2)
 	SQ = hom(M1,M2,:matrices)[1]
 	for v in gens(SQ)
 		@test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
@@ -603,7 +603,7 @@ end
 	for k=1:10
 		A = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 		B = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-		N = SubQuo(A,B)
+		N = SubquoModule(A,B)
 
 		@test iszero(hom(N,Z)[1])
 		@test iszero(hom(Z,N)[1])
@@ -615,8 +615,8 @@ end
 		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
 		B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-		N = SubQuo(A1,B1)
-		M = SubQuo(A2,B2)
+		N = SubquoModule(A1,B1)
+		M = SubquoModule(A2,B2)
 		HomNM = k <= 5 ? hom(N,M)[1] : hom(N,M,:matrices)[1]
 		for l=1:10
 			v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
@@ -642,20 +642,20 @@ end
 		A2 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
 		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 
-		M1 = SubQuo(F2,A1,B1)
-		M2 = SubQuo(F3,A2,B2)
+		M1 = SubquoModule(F2,A1,B1)
+		M2 = SubquoModule(F3,A2,B2)
 
 		M,pure_M = tensor_product(M1,M2, task=:map)
 		phi = hom_tensor(M,M,[identity_map(M1),identity_map(M2)])
 
 		for _=1:3
-			v = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M)])), M)
+			v = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M)])), M)
 			@test phi(v) == v
 		end
 
 		A3 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
 		#B3 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-		M3 = SubQuo(Oscar.SubModuleOfFreeModule(F2,A3))
+		M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2,A3))
 
 		N,pure_N = tensor_product(M3,F4, task=:map)
 
@@ -664,7 +664,7 @@ end
 		F4_to_M2 = FreeModuleHom(F4,M2, matrix([randpoly(R,0:2,2,2) for i=1:ngens(F4), j=1:ngens(M2)]))
 
 		phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
-		u1 = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M3)])), M3)
+		u1 = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M3)])), M3)
 		u2 = F4(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(F4)])))
 		@test phi(pure_N((u1,u2))) == pure_M((M3_to_M1(u1),F4_to_M2(u2)))
 	end
@@ -678,11 +678,11 @@ end
 
 	A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
-	M1 = SubQuo(F2,A1,B1)
+	M1 = SubquoModule(F2,A1,B1)
 
 	A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
-	M2 = SubQuo(F3,A2,B2)
+	M2 = SubquoModule(F3,A2,B2)
 
 	sum_M, emb = direct_sum(M1,M2)
 
@@ -713,11 +713,11 @@ end
 
 	A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
-	N1 = SubQuo(F2,A1,B1)
+	N1 = SubquoModule(F2,A1,B1)
 
 	A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
-	N2 = SubQuo(F3,A2,B2)
+	N2 = SubquoModule(F3,A2,B2)
 
 	prod_N = direct_product(N1,N2,task=:none)
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
@@ -778,7 +778,7 @@ end
 	A = R[x*y x^2+y^2; y^2 x*y;x^2+1 1]
 	B = R[2*x^2 x+y; x^2+y^2-1 x^2+2*x*y]
 	F = FreeMod(R,2)
-	M = SubQuo(F,A,B)
+	M = SubquoModule(F,A,B)
 
 	monomials = [x,y]
 	coeff_generator = ([c1,c2] for c1 in coeffs for c2 in coeffs)
@@ -786,8 +786,8 @@ end
 		v = sparse_row(R, [(i,sum(coefficients[i][j]*monomials[j] for j=1:2)) for i=1:3])
 		v_as_FreeModElem = sum([v[i]*repres(M[i]) for i=1:ngens(M)])
 
-		elem1 = SubQuoElem(v_as_FreeModElem,M) 
-		elem2 = SubQuoElem(v,M)
+		elem1 = SubquoModuleElem(v_as_FreeModElem,M) 
+		elem2 = SubquoModuleElem(v,M)
 
 		@test elem1 == elem2
 	end
@@ -814,7 +814,7 @@ end
 
 	#1) H: N --> M where N is a cokernel, H should be an isomorphism
 	F2 = FreeMod(R,2)
-	M = SubQuo(F2,A1,B1)
+	M = SubquoModule(F2,A1,B1)
 	N, H = present_as_cokernel(M, :cache_morphism)
 	Hinv = H.inverse_isomorphism
 	@test is_welldefined(H)
@@ -889,9 +889,9 @@ end
 	@test ImH == M
 
 	#3) H:N --> M neither injective nor surjective, also: tests 'restrict_domain()'
-	MM = SubQuo(F2,A1,B1)
-	M, iM, iSQ = sum(MM, SubQuo(F2,A2,B1))
-	NN, p, i = direct_product(MM,SubQuo(A2,B2), task = :both)
+	MM = SubquoModule(F2,A1,B1)
+	M, iM, iSQ = sum(MM, SubquoModule(F2,A2,B1))
+	NN, p, i = direct_product(MM,SubquoModule(A2,B2), task = :both)
 	i1,i2 = i[1],i[2]
 	p1,p2 = p[1],p[2]
 	nn = ngens(NN)
@@ -928,8 +928,8 @@ end
 
 
 	#4) H: M --> N random map created via the hom() function
-	N = SubQuo(F2,A1,B1)
-	M = SubQuo(F2,A2,B2)
+	N = SubquoModule(F2,A1,B1)
+	M = SubquoModule(F2,A2,B2)
 	HomNM = hom(N,M)[1]
 	u1 = R[x^2*y^2 4*x^2*y^2 0 5*x*y^2]
 	H = HomNM(sparse_row(u1))
@@ -967,8 +967,8 @@ end
 		B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:1])
 		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 
-		N = SubQuo(A1,B1)
-		M = SubQuo(A2,B2)
+		N = SubquoModule(A1,B1)
+		M = SubquoModule(A2,B2)
 		HomNM = hom(N,M)[1]
 		if iszero(HomNM)
 			continue
@@ -976,7 +976,7 @@ end
 		H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
 		H = element_to_homomorphism(H)
 
-		u = [SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
+		u = [SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
 		image_of_u = sub(M,map(x -> H(x),u), :none)
 		preimage_test_module = image_of_u + sub(M,[M[1]], :none)
 		_,emb = preimage(H,preimage_test_module,:with_morphism)
@@ -987,7 +987,7 @@ end
 @testset "change of base rings" begin
   R, (x,y) = QQ["x", "y"]
   U = MPolyPowersOfElement(x)
-  S = MPolyLocalizedRing(R, U)
+  S = MPolyLocRing(R, U)
   F = FreeMod(R, 2)
   FS, mapF = change_base_ring(S, F)
   @test 1//x*mapF(x*F[1]) == FS[1]
@@ -998,7 +998,7 @@ end
 
   A = R[x y]
   B = R[x^2 x*y]
-  M = SubQuo(F, A, B)
+  M = SubquoModule(F, A, B)
   MS, mapM = change_base_ring(S, M)
   @test iszero(mapM(M[1]))
 

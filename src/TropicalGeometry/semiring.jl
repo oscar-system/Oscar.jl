@@ -507,7 +507,7 @@ function AbstractAlgebra.expressify(@nospecialize(a::PolyElem{<:TropicalSemiring
 end
 
 # As above, now for multivariate polynomials
-function AbstractAlgebra.expressify(a::MPolyElem{<:TropicalSemiringElem}, x = symbols(parent(a)); context = nothing)
+function AbstractAlgebra.expressify(a::MPolyRingElem{<:TropicalSemiringElem}, x = symbols(parent(a)); context = nothing)
   if iszero(a)
     return expressify(zero(base_ring(a)), context = context)
   end

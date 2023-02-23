@@ -1,6 +1,6 @@
 ################################################################################
 #
-#  Domains of type MPolyQuo
+#  Domains of type MPolyQuoRing
 #
 ################################################################################
 
@@ -33,9 +33,9 @@ function _check_imgs_quo(R, S::Ring, imgs, coeff_map = nothing)
 end
 
 @doc Markdown.doc"""
-    hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+    hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 
-    hom(A::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
+    hom(A::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
 
 Given a homomorphism `coeff_map` from `C` to `S`, where `C` is the 
 coefficient ring of the base ring of `A`, and given a vector `images` of `ngens(A)` 
@@ -75,7 +75,7 @@ Codomain:
 Multivariate Polynomial Ring in s, t over Rational Field
 ```
 """
-function hom(R::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
@@ -88,7 +88,7 @@ function hom(R::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = tr
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
 end
 
-function hom(R::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
+function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
@@ -106,11 +106,11 @@ end
 #
 ################################################################################
 
-function _evaluate_plain(F::MPolyAnyMap{<: MPolyQuo}, u)
+function _evaluate_plain(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   return evaluate(lift(u), _images(F))
 end
 
-function _evaluate_general(F::MPolyAnyMap{<: MPolyQuo}, u)
+function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), lift(u),
                                      parent = domain(F)), F.img_gens)
@@ -127,16 +127,16 @@ end
 
 # one more intermediate function
 
-function _evaluate_help(F::MPolyAnyMap{<: MPolyQuo, <: Any, Nothing}, g)
+function _evaluate_help(F::MPolyAnyMap{<: MPolyQuoRing, <: Any, Nothing}, g)
   return _evaluate_plain(F, g)
 end
 
-function _evaluate_help(F::MPolyAnyMap{<: MPolyQuo}, g)
+function _evaluate_help(F::MPolyAnyMap{<: MPolyQuoRing}, g)
   return _evaluate_general(F, g)
 end
 
 # The two main evaluation methods
-function (F::MPolyAnyMap{<: MPolyQuo})(g)
+function (F::MPolyAnyMap{<: MPolyQuoRing})(g)
   if g isa elem_type(domain(F))
     if coefficient_map(F) === nothing
       return _evaluate_plain(F, g)

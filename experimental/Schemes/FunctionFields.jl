@@ -28,15 +28,15 @@ end
   return true
 end
 
-@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuo}) 
+@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoRing}) 
   return is_prime(modulus(OO(X)))
 end
 
-@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) 
+@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyLocRing}) 
   return true
 end
 
-@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}) 
+@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoLocRing}) 
   return is_prime(modulus(OO(X)))
 end
 
@@ -172,23 +172,23 @@ isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 # Conversion of rational functions on arbitrary patches                #
 ########################################################################
 
-function (KK::VarietyFunctionField)(a::MPolyQuoElem, b::MPolyQuoElem; check::Bool=true)
+function (KK::VarietyFunctionField)(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
   return KK(lift(a), lift(b), check=check)
 end
 
-function (KK::VarietyFunctionField)(a::MPolyQuoLocalizedRingElem, 
-                                    b::MPolyQuoLocalizedRingElem; 
+function (KK::VarietyFunctionField)(a::MPolyQuoLocRingElem, 
+                                    b::MPolyQuoLocRingElem; 
                                     check::Bool=true)
   return KK(lifted_numerator(a)*lifted_denominator(b), lifted_denominator(a)*lifted_numerator(b), check=check)
 end
 
-function (KK::VarietyFunctionField)(a::MPolyLocalizedRingElem, 
-                                    b::MPolyLocalizedRingElem; 
+function (KK::VarietyFunctionField)(a::MPolyLocRingElem, 
+                                    b::MPolyLocRingElem; 
                                     check::Bool=true)
   return KK(numerator(a)*denominator(b), denominator(a)*numerator(b), check=check)
 end
 
-function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true)
+function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::Bool=true)
   R = parent(a)
   R === parent(b) || error("rings are not compatible")
   R === ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
@@ -216,7 +216,7 @@ end
 
 @Markdown.doc """
     function move_representative(
-        a::MPolyElem, b::MPolyElem,
+        a::MPolyRingElem, b::MPolyRingElem,
         V::AbsSpec, U::AbsSpec,
         C::Covering
       )
@@ -228,7 +228,7 @@ one in ``Quot(P')`` where ``P'`` is the ambient coordinate ring of another patch
 **Note:** This is only guaranteed to work for irreducible schemes! 
 """
 function move_representative(
-    a::MPolyElem, b::MPolyElem,
+    a::MPolyRingElem, b::MPolyRingElem,
     V::AbsSpec, U::AbsSpec,
     C::Covering
   )
@@ -314,7 +314,7 @@ end
 (KK::VarietyFunctionField)() = zero(KK)
 (KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
-(KK::VarietyFunctionField)(a::MPolyElem) = KK(a, one(parent(a)), check=false)
+(KK::VarietyFunctionField)(a::MPolyRingElem) = KK(a, one(parent(a)), check=false)
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)

@@ -77,18 +77,18 @@ function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::MPolyQuoElem, X::AbsSpec{<:Ring, <:MPolyQuo})
+function is_non_zero_divisor(f::MPolyQuoRingElem, X::AbsSpec{<:Ring, <:MPolyQuoRing})
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))
   J = ideal(R, lift(f))
   return I == quotient(I, J)
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyLocRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
   I = ideal(OO(X), [zero(OO(X))])
   zero_ideal = Oscar.pre_image_ideal(I)
   J = Oscar.pre_image_ideal(ideal(OO(X), [f]))

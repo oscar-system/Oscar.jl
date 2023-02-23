@@ -3,12 +3,12 @@ export is_binomial, is_cellular, is_unital, binomial_primary_decomposition,
        cellular_decomposition, cellular_associated_primes, cellular_minimal_associated_primes, cellular_hull, cellular_primary_decomposition
 export cellular_decomposition_macaulay
 @doc Markdown.doc"""
-    is_binomial(f::MPolyElem)
+    is_binomial(f::MPolyRingElem)
 
 Return `true` if `f` consists of at most 2 terms,
 `false` otherwise.
 """
-function is_binomial(f::MPolyElem)
+function is_binomial(f::MPolyRingElem)
   return length(f) <= 2
 end
 
@@ -25,7 +25,7 @@ function is_binomial(I::MPolyIdeal)
   return _isbinomial(gens(groebner_basis(I, complete_reduction = true)))
 end
 
-function _isbinomial(v::Vector{<: MPolyElem})
+function _isbinomial(v::Vector{<: MPolyRingElem})
   return all(is_binomial, v)
 end
 
@@ -182,7 +182,7 @@ function _cellular_decomposition(I::MPolyIdeal)
   return decomp
 end
 
-function _isunital(gens::Vector{<: MPolyElem})
+function _isunital(gens::Vector{<: MPolyRingElem})
   R = base_ring(gens[1])
   for i = 1:length(gens)
     if length(gens[i]) <= 1

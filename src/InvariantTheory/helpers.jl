@@ -22,7 +22,7 @@ end
 
 # Extend the already computed power products by powers of C.base[i].
 # Only used internally.
-function extend!(C::PowerProductCache{S, T}, d::Int, i::Int, remember_exponents::Bool = true) where {S, T <: MPolyElem}
+function extend!(C::PowerProductCache{S, T}, d::Int, i::Int, remember_exponents::Bool = true) where {S, T <: MPolyRingElem}
   @assert d >= 0
   @assert 1 <= i && i <= length(C.base)
 
@@ -82,7 +82,7 @@ end
 # products will be stored in the dictionary C.exponent_vectors, that is, if
 # C.base = [ f_1, ..., f_k ] and we compute f = f_1^e_1 \cdots f_k^e_k, then
 # C.exponent_vectors[f] = [ e_1, ..., e_k ].
-function all_power_products_of_degree!(C::PowerProductCache{S, T}, d::Int, remember_exponents::Bool = true) where {S, T <: MPolyElem}
+function all_power_products_of_degree!(C::PowerProductCache{S, T}, d::Int, remember_exponents::Bool = true) where {S, T <: MPolyRingElem}
   @assert d >= 0
 
   # Degree d has already been computed?
@@ -115,7 +115,7 @@ end
 # f = f_1^e_1 \cdots f_n^e_k \cdot g_1^e_{k + 1} \cdots g_m^{e_{k + m}} was
 # computed, then D[f] = [ e_1, ..., e_{k + m} ] where e_l in { 0, 1 } for l > k.
 # (If remember_exponents is false, the dictionary is empty.)
-function generators_for_given_degree!(C::PowerProductCache{S, T}, module_gens::Vector{T}, d::Int, remember_exponents::Bool = true) where {S, T <: MPolyElem}
+function generators_for_given_degree!(C::PowerProductCache{S, T}, module_gens::Vector{T}, d::Int, remember_exponents::Bool = true) where {S, T <: MPolyRingElem}
   @assert !isempty(module_gens)
   @assert all(!iszero, module_gens)
 
@@ -167,7 +167,7 @@ end
 # Adds f to the span of the polynomials in BasisOfPolynomials.
 # Returns true iff the rank of the span increased, i.e. if f was not an element
 # of the span.
-function add_to_basis!(B::BasisOfPolynomials, f::MPolyElem)
+function add_to_basis!(B::BasisOfPolynomials, f::MPolyRingElem)
   @assert B.R === parent(f)
 
   c = ncols(B.M)
@@ -188,7 +188,7 @@ function add_to_basis!(B::BasisOfPolynomials, f::MPolyElem)
   return Hecke._add_row_to_rref!(B.M, srow)
 end
 
-function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPolyElem}
+function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPolyRingElem}
   enum_mons = Dict{Vector{Int}, Int}()
   c = 0
   for f in polys
@@ -202,7 +202,7 @@ function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPoly
   return enum_mons
 end
 
-function polys_to_smat(polys::Vector{PolyElemT}, monomial_to_column::Dict{Vector{Int}, Int}; copy = true) where {PolyElemT <: MPolyElem}
+function polys_to_smat(polys::Vector{PolyElemT}, monomial_to_column::Dict{Vector{Int}, Int}; copy = true) where {PolyElemT <: MPolyRingElem}
   @assert !isempty(polys)
   K = coefficient_ring(parent(polys[1]))
   M = sparse_matrix(K)

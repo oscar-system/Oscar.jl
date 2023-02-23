@@ -26,10 +26,10 @@
 #
 # Finally note that the same strategy works for
 # - MPolyRing
-# - MPolyQuo
-# - MPolyRing_dec
+# - MPolyQuoRing
+# - MPolyDecRing
 
-const _DomainTypes = Union{MPolyRing, MPolyQuo}
+const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
 
 @attributes mutable struct MPolyAnyMap{
     D <: _DomainTypes,
@@ -106,8 +106,8 @@ end
 
 # if the codomain is graded, the images must be homogeneous?!
 _isgraded(::NCRing) = false
-_isgraded(R::MPolyRing_dec) = is_graded(R) # filtered not considered graded
-_isgraded(R::MPolyQuo) = _isgraded(base_ring(R))
+_isgraded(R::MPolyDecRing) = is_graded(R) # filtered not considered graded
+_isgraded(R::MPolyQuoRing) = _isgraded(base_ring(R))
 
 function _check_homo(S::NCRing, images)
   if _isgraded(S)
@@ -123,7 +123,7 @@ end
 
 _nvars(R::MPolyRing) = nvars(R)
 
-_nvars(R::MPolyQuo) = nvars(base_ring(R))
+_nvars(R::MPolyQuoRing) = nvars(base_ring(R))
 
 function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map})
   if isdefined(f, :temp_ring)
@@ -243,14 +243,14 @@ end
 #
 ################################################################################
 
-function morphism_type(::Type{D}, ::Type{C}) where {D <: Union{MPolyRing, MPolyQuo}, C <: NCRing}
+function morphism_type(::Type{D}, ::Type{C}) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing}
   return MPolyAnyMap{D, C, Nothing, elem_type(C)}
 end
 
-morphism_type(::D, ::C) where {D <: Union{MPolyRing, MPolyQuo}, C <: NCRing} = morphism_type(D, C)
+morphism_type(::D, ::C) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing} = morphism_type(D, C)
 
-function morphism_type(::Type{D}, ::Type{C}, f::Type{F}) where {D <: Union{MPolyRing, MPolyQuo}, C <: NCRing, F}
+function morphism_type(::Type{D}, ::Type{C}, f::Type{F}) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F}
   return MPolyAnyMap{D, C, F, elem_type(C)}
 end
 
-morphism_type(::D, ::C, ::F) where {D <: Union{MPolyRing, MPolyQuo}, C <: NCRing, F} = morphism_type(D, C, F)
+morphism_type(::D, ::C, ::F) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F} = morphism_type(D, C, F)

@@ -142,7 +142,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> collect(B)
-4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -170,7 +170,7 @@ with generators
 gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> collect(B)
-2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+2-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
  x[1]^2 + x[2]^2
  x[3]^2
 ```
@@ -247,7 +247,7 @@ AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a
 relative to a character
 
 julia> collect(B)
-4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -271,7 +271,7 @@ PermGroupElem[(1,2)]
 relative to a character
 
 julia> collect(B)
-2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  x[1]^3 - x[2]^3
  x[1]^2*x[2] - x[1]*x[2]^2
 

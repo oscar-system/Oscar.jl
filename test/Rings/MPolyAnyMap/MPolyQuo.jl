@@ -1,4 +1,4 @@
-@testset "MPolyAnyMap/MPolyQuo" begin
+@testset "MPolyAnyMap/MPolyQuoRing" begin
   Qsqrt2, = quadratic_field(-1)
   Zx, _ = ZZ["x"]
   Zxy, _ = ZZ["x", "y"]

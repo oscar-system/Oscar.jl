@@ -11,7 +11,7 @@ function Orderings.revlex(F::ModuleFP)
 end
 
 @doc Markdown.doc"""
-    cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+    cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyRingElem
 
 Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
 and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
@@ -33,7 +33,7 @@ julia> cmp(lex(F)*lex(R), x*F[1], x*F[1])
 0
 ```
 """
-function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyRingElem
   A = coordinates(a)
   B = coordinates(b)
   @assert length(A.pos) == 1
@@ -52,12 +52,12 @@ function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) whe
 end
 
 @doc Markdown.doc"""
-    permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+    permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
 
 Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
 `ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
 """
-function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
   ff = coordinates(f)
   p = collect((i, j) for i in ff.pos for j in 1:length(f[i]))
   sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
@@ -65,7 +65,7 @@ function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::Module
   return p
 end
 
-function Orderings.index_of_leading_term(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+function Orderings.index_of_leading_term(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
   p = Orderings.permutation_of_terms(f, ord)
   isempty(p) && throw(ArgumentError("zero element does not have a leading term"))
   return p[1]
@@ -73,7 +73,7 @@ end
 
 
 # expressify wrt arbitrary permutation
-function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, Vector{Tuple{Int, Int}}}; context = nothing)
+function expressify(a::OscarPair{<:FreeModElem{<:MPolyRingElem}, Vector{Tuple{Int, Int}}}; context = nothing)
   f = a.first
   x = symbols(base_ring(parent(f)))
   e = generator_symbols(parent(f))
@@ -91,14 +91,14 @@ function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, Vector{Tuple{Int, I
   end
   return s
 end
-@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:Vector{Tuple{Int, Int}}}
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyRingElem}, <:Vector{Tuple{Int, Int}}}
 
 # expressify wrt ordering
-function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
+function expressify(a::OscarPair{<:FreeModElem{<:MPolyRingElem}, <:ModuleOrdering}; context = nothing)
   perm = Orderings.permutation_of_terms(a.first, a.second)
   return expressify(OscarPair(a.first, perm); context = context)
 end
-@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyRingElem}, <:ModuleOrdering}
 
 @doc Markdown.doc"""
     coefficients(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
@@ -109,14 +109,14 @@ function coefficients(f::FreeModElem; ordering::ModuleOrdering = default_orderin
   return GeneralPermutedIterator{:coefficients}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:FreeModElem{<:MPolyElem}}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:FreeModElem{<:MPolyRingElem}}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
   return coeff(a.elem[i], j), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients, T}) where T <: FreeModElem{<:MPolyElem{C}} where C
+function Base.eltype(a::GeneralPermutedIterator{:coefficients, T}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
   return C
 end
 
@@ -130,14 +130,14 @@ function coefficients_and_exponents(f::FreeModElem; ordering::ModuleOrdering = d
   return GeneralPermutedIterator{:coefficients_and_exponents}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:FreeModElem{<:MPolyElem}}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:FreeModElem{<:MPolyRingElem}}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
   return (coeff(a.elem[i], j), (exponent_vector(a.elem[i], j), i)), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, T}) where T <: FreeModElem{<:MPolyElem{C}} where C
+function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, T}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
   return Tuple{C, Tuple{Vector{Int}, Int}}
 end
 
@@ -152,14 +152,14 @@ function exponents(f::FreeModElem; ordering::ModuleOrdering = default_ordering(p
   return GeneralPermutedIterator{:exponents}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:exponents, <:FreeModElem{<:MPolyElem}}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:exponents, <:FreeModElem{<:MPolyRingElem}}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
   return (exponent_vector(a.elem[i], j), i), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:exponents, T}) where T <: FreeModElem{<:MPolyElem}
+function Base.eltype(a::GeneralPermutedIterator{:exponents, T}) where T <: FreeModElem{<:MPolyRingElem}
   return Tuple{Vector{Int}, Int}
 end
 
@@ -172,14 +172,14 @@ function terms(f::FreeModElem; ordering::ModuleOrdering = default_ordering(paren
   return GeneralPermutedIterator{:terms}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:terms, <:FreeModElem{<:MPolyElem}}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:terms, <:FreeModElem{<:MPolyRingElem}}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
   return term(a.elem[i], j)*parent(a.elem)[i], state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: FreeModElem{<:MPolyElem}
+function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: FreeModElem{<:MPolyRingElem}
   return T
 end
 
@@ -192,14 +192,14 @@ function monomials(f::FreeModElem; ordering::ModuleOrdering = default_ordering(p
   return GeneralPermutedIterator{:monomials}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:monomials, <:FreeModElem{<:MPolyElem}}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:monomials, <:FreeModElem{<:MPolyRingElem}}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
   return monomial(a.elem[i], j)*parent(a.elem)[i], state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: FreeModElem{<:MPolyElem}
+function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: FreeModElem{<:MPolyRingElem}
   return T
 end
 

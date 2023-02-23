@@ -3,7 +3,7 @@
     #test ring by extracting the characteristic_polynomial
     for M in (uniform_matroid(4,4), uniform_matroid(3,5), fano_matroid(), vamos_matroid())
         A = chow_ring(M)
-        @test A isa MPolyQuo
+        @test A isa MPolyQuoRing
         proper_flats = flats(M)[2:size(flats(M))[1]-1]
         e = matroid_groundset(M)[1]
         a = sum([A[i] for i in _select([e],[],proper_flats)])

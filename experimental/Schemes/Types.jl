@@ -37,7 +37,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   projection_to_base::SchemeMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
 
-  function ProjectiveScheme(S::MPolyRing_dec)
+  function ProjectiveScheme(S::MPolyDecRing)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     n = ngens(S)-1
     A = coefficient_ring(S)
@@ -45,7 +45,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(S::MPolyRing_dec, I::MPolyIdeal{T}) where {T<:RingElem}
+  function ProjectiveScheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:RingElem}
     for f in gens(I)
       parent(f) == S || error("elements do not belong to the correct ring")
     end
@@ -55,7 +55,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
+  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
     S = base_ring(Q)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)

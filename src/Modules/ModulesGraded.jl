@@ -31,7 +31,7 @@ The string `name` specifies how the basis vectors are printed.
 julia> R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1])
 (Multivariate Polynomial Ring in x, y over Rational Field graded by 
   x -> [1]
-  y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+  y -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y])
 
 julia> free_module_dec(R,3)
 Decorated free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by 
@@ -141,7 +141,7 @@ rank(F::FreeMod_dec) = rank(forget_decoration(F))
 Return the vector of degrees of the standard unit vectors.
 """
 decoration(F::FreeMod_dec) = F.d
-decoration(R::MPolyRing_dec) = R.D
+decoration(R::MPolyDecRing) = R.D
 
 @doc Markdown.doc"""
     is_graded(F::FreeMod_dec)
@@ -373,7 +373,7 @@ end
 
 # Weight vector or function?
 # Should we already grade ModuleGens?
-# Should it be possible to construct ungraded SubQuo with graded elements? (I.e. should the constructors
+# Should it be possible to construct ungraded SubquoModule with graded elements? (I.e. should the constructors
 # accept AbstractFreeMod and AbstractFreeModElem instead of FreeMod and FreeModElem?)
 # proceed with FreeModHom_dec?
 

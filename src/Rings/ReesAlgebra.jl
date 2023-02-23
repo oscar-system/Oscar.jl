@@ -61,7 +61,7 @@ function rees_algebra(M::FreeMod;
   return S
 end
 
-function rees_algebra(M::SubQuo; 
+function rees_algebra(M::SubquoModule; 
     var_names::Vector{String}=["s$i" for i in 0:ngens(M)-1],
     check::Bool=true
   )
@@ -102,7 +102,7 @@ end
 
 ### The following function is implemented along the lines of Proposition 1.3 of [1] in 
 # its published version.
-function _versal_morphism_to_free_module(M::SubQuo)
+function _versal_morphism_to_free_module(M::SubquoModule)
   R = base_ring(M)
   R1 = FreeMod(R, 1)
   M_double_dual, psi = double_dual(M, cod=R1)
@@ -113,12 +113,12 @@ function _versal_morphism_to_free_module(M::SubQuo)
   return compose(psi, g_dual)
 end
 
-function proj(S::MPolyRing_dec)
+function proj(S::MPolyDecRing)
   is_standard_graded(S) || error("ring must be standard graded")
   return ProjectiveScheme(S)
 end
 
-function proj(Q::MPolyQuo{<:MPolyElem_dec})
+function proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
   S = base_ring(Q)
   is_standard_graded(S) || error("ring must be standard graded")
   return ProjectiveScheme(Q)
@@ -131,19 +131,19 @@ end
 ### Auxiliary deflections for MPolyQuos to make arithmetic work in the Rees algebras
 
 function simplify!(
-    a::MPolyQuoElem{AbstractAlgebra.Generic.MPoly{T}}
-  ) where {T<:Union{<:MPolyElem, <:MPolyQuoElem, 
-                    <:MPolyLocalizedRingElem,
-                    <:MPolyQuoLocalizedRingElem}
+    a::MPolyQuoRingElem{AbstractAlgebra.Generic.MPoly{T}}
+  ) where {T<:Union{<:MPolyRingElem, <:MPolyQuoRingElem, 
+                    <:MPolyLocRingElem,
+                    <:MPolyQuoLocRingElem}
           }
   return a
 end
 
 function iszero(
-    a::MPolyQuoElem{AbstractAlgebra.Generic.MPoly{T}}
-  ) where {T<:Union{<:MPolyElem, <:MPolyQuoElem, 
-                    <:MPolyLocalizedRingElem,
-                    <:MPolyQuoLocalizedRingElem}
+    a::MPolyQuoRingElem{AbstractAlgebra.Generic.MPoly{T}}
+  ) where {T<:Union{<:MPolyRingElem, <:MPolyQuoRingElem, 
+                    <:MPolyLocRingElem,
+                    <:MPolyQuoLocRingElem}
           }
   phi = flatten(base_ring(parent(a)))
   I = phi(modulus(parent(a)))
@@ -151,10 +151,10 @@ function iszero(
 end
 
 function isone(
-    a::MPolyQuoElem{AbstractAlgebra.Generic.MPoly{T}}
-  ) where {T<:Union{<:MPolyElem, <:MPolyQuoElem, 
-                    <:MPolyLocalizedRingElem,
-                    <:MPolyQuoLocalizedRingElem}
+    a::MPolyQuoRingElem{AbstractAlgebra.Generic.MPoly{T}}
+  ) where {T<:Union{<:MPolyRingElem, <:MPolyQuoRingElem, 
+                    <:MPolyLocRingElem,
+                    <:MPolyQuoLocRingElem}
           }
   phi = flatten(base_ring(parent(a)))
   I = phi(modulus(parent(a)))
@@ -162,11 +162,11 @@ function isone(
 end
 
 
-function ==(a::MPolyQuoElem{AbstractAlgebra.Generic.MPoly{T}},
-            b::MPolyQuoElem{AbstractAlgebra.Generic.MPoly{T}}
-           ) where {T<:Union{<:MPolyElem, <:MPolyQuoElem, 
-                             <:MPolyLocalizedRingElem,
-                             <:MPolyQuoLocalizedRingElem}
+function ==(a::MPolyQuoRingElem{AbstractAlgebra.Generic.MPoly{T}},
+            b::MPolyQuoRingElem{AbstractAlgebra.Generic.MPoly{T}}
+           ) where {T<:Union{<:MPolyRingElem, <:MPolyQuoRingElem, 
+                             <:MPolyLocRingElem,
+                             <:MPolyQuoLocRingElem}
                    }
   phi = flatten(base_ring(parent(a)))
   I = phi(modulus(parent(a)))

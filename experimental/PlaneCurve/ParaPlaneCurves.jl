@@ -184,14 +184,14 @@ julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"])
   w -> [1]
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[v, w, x, y, z])
+  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[v, w, x, y, z])
 
 julia> M = matrix(R, 2, 4, [v w x y; w x y z])
 [v   w   x   y]
 [w   x   y   z]
 
 julia> V = minors(M, 2)
-6-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+6-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  v*x - w^2
  v*y - w*x
  w*y - x^2
@@ -205,7 +205,7 @@ julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_anticanonical_map(RNC)
-3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+3-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  x
  -y
  z
@@ -234,7 +234,7 @@ julia> M = matrix(R, 2, 3, [w x y; x y z])
 [x   y   z]
 
 julia> V = minors(M, 2)
-3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+3-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  w*y - x^2
  w*z - x*y
  x*z - y^2
@@ -245,7 +245,7 @@ julia> TC = ProjCurve(I)
 Projective curve defined by the ideal(w*y - x^2, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_It_Proj_Odd(TC)
-2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  y
  -z
 ```
@@ -287,7 +287,7 @@ julia> M = matrix(R, 2, 4, [v w x y; w x y z])
 [w   x   y   z]
 
 julia> V = minors(M, 2)
-6-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+6-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  v*x - w^2
  v*y - w*x
  w*y - x^2
@@ -301,7 +301,7 @@ julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_It_Proj_Even(RNC)
-(MPolyElem_dec{fmpq, fmpq_mpoly}[x, -y, z], Projective plane curve defined by -y(1)*y(3) + y(2)^2)
+(MPolyDecRingElem{fmpq, fmpq_mpoly}[x, -y, z], Projective plane curve defined by -y(1)*y(3) + y(2)^2)
 ```
 """
 function rat_normal_curve_It_Proj_Even(C::ProjCurve)
@@ -315,7 +315,7 @@ function rat_normal_curve_It_Proj_Even(C::ProjCurve)
 end
 
 @doc Markdown.doc"""
-    invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyElem}
+    invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyRingElem}
 
 Return a dictionary where `image` represents the image of the birational map
 given by `phi`, and `inverse` represents its inverse, where `phi` is a
@@ -324,7 +324,7 @@ space of dimension `size(phi) - 1`.
 Note that the entries of `inverse` should be considered as
 representatives of elements in `R/image`, where `R` is the basering.
 """
-function invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyElem}
+function invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyRingElem}
     S = parent(phi[1])
     I = ideal(S, phi)
     singular_assure(I)

@@ -86,9 +86,9 @@ end
 @registerSerializationType(fmpz_mpoly)
 @registerSerializationType(fq_nmod_mpoly)
 @registerSerializationType(nmod_mpoly)
-@registerSerializationType(MPolyElem)
+@registerSerializationType(MPolyRingElem)
 
-function save_internal(s::SerializerState, p::MPolyElem)
+function save_internal(s::SerializerState, p::MPolyRingElem)
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)
     terms = []
@@ -107,7 +107,7 @@ function save_internal(s::SerializerState, p::MPolyElem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: MPolyRingElem}, dict::Dict)
     R = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
@@ -122,7 +122,7 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: MPolyElem},
+                                   ::Type{<: MPolyRingElem},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
     coeff_ring = coefficient_ring(parent_ring)

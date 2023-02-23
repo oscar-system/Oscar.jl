@@ -16,7 +16,7 @@ end
 ########################################################################
 function restrict(
     f::SpecOpenRingElem, 
-    V::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing};
+    V::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
   check && isempty(V) && return zero(OO(V))
@@ -36,7 +36,7 @@ end
 
 function restrict(
     f::SpecOpenRingElem, 
-    V::AbsSpec{<:Ring, <:MPolyLocalizedRing};
+    V::AbsSpec{<:Ring, <:MPolyLocRing};
     check::Bool=true
   )
   check && isempty(V) && return zero(OO(V))
@@ -168,7 +168,7 @@ end
 ########################################################################
 # Additional methods for compatibility and coherence                   #
 ########################################################################
-function (R::MPolyQuo)(a::RingElem, b::RingElem; check::Bool=true)
+function (R::MPolyQuoRing)(a::RingElem, b::RingElem; check::Bool=true)
   return R(a)*inv(R(b))
 end
 
@@ -187,7 +187,7 @@ end
 function restriction_map(
     U::SpecOpen, 
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
-    h::MPolyElem; 
+    h::MPolyRingElem; 
     check::Bool=true
   )
   Y = ambient_scheme(U)
@@ -309,7 +309,7 @@ end
 
 # Automatically find a hypersurface equation h such that X = D(h) in
 # the ambient scheme Y of U.
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}},
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
@@ -342,7 +342,7 @@ end
 
 # For f = p//q and d this computes a decomposition p', q', d^k, k 
 # such that f = p'//(q'⋅d^k) and q' and d have no common factors. 
-function pull_from_denominator(f::MPolyQuoLocalizedRingElem, d::MPolyElem)
+function pull_from_denominator(f::MPolyQuoLocRingElem, d::MPolyRingElem)
   p = lifted_numerator(f)
   q = lifted_denominator(f)
   (i, o) = ppio(q, d)
@@ -351,7 +351,7 @@ function pull_from_denominator(f::MPolyQuoLocalizedRingElem, d::MPolyElem)
   return b*p, o, pod, k
 end
 
-function pull_from_denominator(f::MPolyLocalizedRingElem, d::MPolyElem)
+function pull_from_denominator(f::MPolyLocRingElem, d::MPolyRingElem)
   p = numerator(f)
   q = denominator(f)
   (i, o) = ppio(q, d)
@@ -365,7 +365,7 @@ function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
   if check
     all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
   end
-  function mymap(f::MPolyQuoLocalizedRingElem)
+  function mymap(f::MPolyQuoLocRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
   end
   return Hecke.MapFromFunc(mymap, OO(X), OO(U))

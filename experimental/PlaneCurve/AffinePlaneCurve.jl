@@ -162,7 +162,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   # We factorize the polynomial we obtain (which is a polynomial where only
   # the second variable appears).
   Z = factor(gen(B, 1))
-  Y = Vector{Oscar.MPolyElem}()
+  Y = Vector{Oscar.MPolyRingElem}()
   L = Vector{S}[]
   # For the linear factors of g, we add the constant coefficient to the list Y.
   # The constant coefficient is stored as a mpoly to be used later in evaluate.

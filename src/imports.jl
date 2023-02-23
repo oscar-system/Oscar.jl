@@ -83,7 +83,7 @@ import AbstractAlgebra:
     MatElem,
     matrix,
     MatSpace,
-    MPolyElem,
+    MPolyRingElem,
     MPolyRing,
     NCRing,
     NCRingElem,

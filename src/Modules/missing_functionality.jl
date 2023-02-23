@@ -13,13 +13,13 @@ Base.eltype(::Type{Singular.smodule}) = Singular.svector
 Base.length(L::Singular.smodule) = ngens(L)
 
 # the default module ordering assumes that we're computing in a global ring
-function default_ordering(F::FreeMod{T}) where {T<:MPolyLocalizedRingElem}
+function default_ordering(F::FreeMod{T}) where {T<:MPolyLocRingElem}
   return default_ordering(base_ring_module(F))
 end
 
 # missing functionality to write an element f ∈ I of an ideal as 
 # a linear combination of the generators of I
-function coordinates(f::MPolyElem, I::MPolyIdeal)
+function coordinates(f::MPolyRingElem, I::MPolyIdeal)
   iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
@@ -39,10 +39,10 @@ function coordinates(f::MPolyElem, I::MPolyIdeal)
 end
 
 ### This is a dirty hack to bring the `coordinates` command to 
-# MPolyQuo ideals. Should be replaced by something better!
+# MPolyQuoRing ideals. Should be replaced by something better!
 # I tried to at least cache the ideal K via attributes, but 
 # even that is not possible.
-function coordinates(f::MPolyQuoElem, I::MPolyQuoIdeal)
+function coordinates(f::MPolyQuoRingElem, I::MPolyQuoIdeal)
   Q = base_ring(I)
   f in I || error("element is not in the ideal")
   J = modulus(Q)
@@ -51,7 +51,7 @@ function coordinates(f::MPolyQuoElem, I::MPolyQuoIdeal)
   return Q.(coordinates(lift(f), K)[1, 1:ngens(I)])
 end
 
-function lift(f::MPolyElem, I::MPolyIdeal, o::MonomialOrdering)
+function lift(f::MPolyRingElem, I::MPolyIdeal, o::MonomialOrdering)
   iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
@@ -71,10 +71,10 @@ end
 ### TODO: The following should not be necessary in the first place! 
 # If the module code is supposed to run over arbitrary rings, it also 
 # has to be possible to do without orderings. Up to now, defining 
-# a FreeMod over an MPolyQuoLocalizedRing requires me to implement this! Why????
-#=function default_ordering(F::FreeMod{T}) where {T<:MPolyQuoLocalizedRingElem}
+# a FreeMod over an MPolyQuoLocRing requires me to implement this! Why????
+#=function default_ordering(F::FreeMod{T}) where {T<:MPolyQuoLocRingElem}
   return default_ordering(base_ring_module(F))
 end=#
     
-subquo_type(::Type{RingType}) where {RingType<:Ring} = SubQuo{elem_type(RingType)}
+subquo_type(::Type{RingType}) where {RingType<:Ring} = SubquoModule{elem_type(RingType)}
 subquo_type(R::RingType) where {RingType<:Ring} = subquo_type(typeof(R))

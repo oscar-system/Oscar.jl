@@ -62,7 +62,7 @@ The data structures for algebraic curves in OSCAR are still under development
 and subject to change. Here is the current constructor for projective plane curves:
 
 ```@docs
-ProjPlaneCurve(f::MPolyElem{T}) where {T <: FieldElem}
+ProjPlaneCurve(f::MPolyRingElem{T}) where {T <: FieldElem}
 ```
 
 ## The Genus of a Plane Curve

@@ -4,10 +4,10 @@
   R, _ = quo(P, I)
   FR = FreeMod(R, 2, cached=false)
   M = oscar._as_poly_module(FR)
-  @test M isa SubQuo{<:MPolyElem}
-  @test FR isa FreeMod{<:MPolyQuoElem}
+  @test M isa SubquoModule{<:MPolyRingElem}
+  @test FR isa FreeMod{<:MPolyQuoRingElem}
   FP = oscar._poly_module(FR)
-  @test FP isa FreeMod{<:MPolyElem}
+  @test FP isa FreeMod{<:MPolyRingElem}
 
   M = FreeMod(R, 1, cached=false)
   psi = hom(FR, M, [2*M[1], M[1]])
@@ -110,7 +110,7 @@ end
   @test iszero(p[10])
 end
 
-@testset "kernels of FreeMod -> SubQuo" begin
+@testset "kernels of FreeMod -> SubquoModule" begin
   # kernels of homomorphisms 
   R, (x,y,z) = QQ["x", "y", "z"]
   A, _ = quo(R, ideal(R, [z]))

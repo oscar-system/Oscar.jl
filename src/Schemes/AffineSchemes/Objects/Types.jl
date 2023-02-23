@@ -42,11 +42,11 @@ over a base ring ``𝕜`` of type `BaseRingType`.
   OO::RingType
   kk::BaseRingType
 
-  function Spec(OO::MPolyQuoLocalizedRing)
+  function Spec(OO::MPolyQuoLocRing)
     kk = coefficient_ring(base_ring(OO))
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
-  function Spec(OO::MPolyLocalizedRing)
+  function Spec(OO::MPolyLocRing)
     kk = coefficient_ring(base_ring(OO))
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
@@ -54,7 +54,7 @@ over a base ring ``𝕜`` of type `BaseRingType`.
     kk = coefficient_ring(OO)
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
-  function Spec(OO::MPolyQuo)
+  function Spec(OO::MPolyQuoRing)
     kk = coefficient_ring(base_ring(OO))
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
@@ -78,5 +78,5 @@ end
 # (3) Auxiliary types
 ###########################################
 
-StdSpec = AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+StdSpec = AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
 

@@ -16,8 +16,8 @@ Pages = ["subquotients.md"]
 # Subquotients
 
 A subquotient  is a submodule of a quotient of a free module. In this section, the expression
-*subquotient* refers to a subquotient over a ring of type `MPolyRing`, `MPolyQuo`,
-`MPolyLocalizedRing`, or `MPolyQuoLocalizedRing`. That is, given a ring $R$ of one of these
+*subquotient* refers to a subquotient over a ring of type `MPolyRing`, `MPolyQuoRing`,
+`MPolyLocRing`, or `MPolyQuoLocRing`. That is, given a ring $R$ of one of these
 types, a subquotient $M$ over $R$ is a module of type
 
 $M = (\text{im } a + \text{im } b)/\text{im } b,$
@@ -54,11 +54,11 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 All OSCAR types for the finitely presented modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 The subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
-they are modelled as objects of the concrete type `SubQuo{T} <: AbstractSubQuo{T}`.
+they are modelled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
-    constructions in commutative algebra. The `SubQuo` type is designed so that it allows
+    constructions in commutative algebra. The `SubquoModule` type is designed so that it allows
 	for the caching of such maps when executing functions. The `tensor_product`
 	function discussed in this section provides an example.
 
@@ -99,7 +99,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F, A, B)
+julia> M = SubquoModule(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -115,7 +115,7 @@ julia> F === ambient_free_module(M)
 true
 
 julia> gens(M)
-2-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
  x*e[1]
  y*e[1]
 
@@ -151,17 +151,17 @@ by Submodule with 3 generators
 All OSCAR types for elements of finitely presented modules considered here belong to the
 abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
 For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
-and its concrete descendant `SubQuoElem{T}` which implements an element $m$ of a subquotient
+and its concrete descendant `SubquoModuleElem{T}` which implements an element $m$ of a subquotient
 $M$ over a ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
 This object specifies the coefficients of an $R$-linear combination of the generators of $M$
 giving $m$. To create an element, enter the coefficients as a sparse row or a vector: 
 
 ```@julia
-(M::SubQuo{T})(c::SRow{T}) where T
+(M::SubquoModule{T})(c::SRow{T}) where T
 ```
 
 ```@julia
-(M::SubQuo{T})(c::Vector{T}) where T
+(M::SubquoModule{T})(c::Vector{T}) where T
 ```
 
 Alternatively, directly write the element as an $R$-linear combination of generators of $M$.
@@ -184,7 +184,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F, A, B)
+julia> M = SubquoModule(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -216,7 +216,7 @@ Given an element `f` of the ambient free module of a subquotient `M` such that `
 the function below creates the represented element:
 
 ```@julia
-(M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
+(M::SubquoModule{T})(f::FreeModElem{T}; check::Bool = true) where T
 ```
 
 By default (`check = true`), it is tested whether `f` indeed represents an element of `M`.
@@ -240,7 +240,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(F, A, B)
+julia> M = SubquoModule(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -268,7 +268,7 @@ julia> fm = ambient_representative(m)
 (x*z + y)*e[1]
 
 julia> typeof(m)
-SubQuoElem{fmpq_mpoly}
+SubquoModuleElem{fmpq_mpoly}
 
 julia> typeof(fm)
 FreeModElem{fmpq_mpoly}
@@ -289,49 +289,49 @@ julia> typeof(f)
 FreeModElem{fmpq_mpoly}
 
 julia> typeof(M(f))
-SubQuoElem{fmpq_mpoly}
+SubquoModuleElem{fmpq_mpoly}
 
 ```
 
 The zero element of a subquotient is obtained as follows:
 
 ```@docs
-zero(M::SubQuo)
+zero(M::SubquoModule)
 ```
 
 Whether a given element of a subquotient is zero can be tested as follows:
 
 ```@docs
-is_zero(m::SubQuoElem)
+is_zero(m::SubquoModuleElem)
 ```
 
 ## Tests on Subqotients
 
 ```@docs
-==(M::SubQuo{T}, N::SubQuo{T}) where T
+==(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
 
 ```@docs
-is_subset(M::SubQuo{T}, N::SubQuo{T}) where T
+is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
 
 ```@docs
-is_zero(M::SubQuo)
+is_zero(M::SubquoModule)
 ```
 
 ## Basic Operations on Subquotients
 
 
 ```@docs
-:+(M::SubQuo{T},N::SubQuo{T}) where T
+:+(M::SubquoModule{T},N::SubquoModule{T}) where T
 ```
 
 ```@docs
-sum(M::SubQuo{T},N::SubQuo{T}) where T
+sum(M::SubquoModule{T},N::SubquoModule{T}) where T
 ```
 
 ```@docs
-intersect(M::SubQuo{T}, N::SubQuo{T}) where T
+intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
 
 ## Submodules and Quotients
@@ -352,7 +352,7 @@ For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom
 as well as the following constructors:
 
 ```@docs
-hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
 Given a homomorphism of type `SubQuoHom`, a matrix `A` representing it

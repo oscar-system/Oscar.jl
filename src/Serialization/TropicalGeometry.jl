@@ -40,7 +40,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: TropicalHypersurface},
                        dict::Dict)
-  polynomial = load_type_dispatch(s, MPolyElem, dict[:tropical_polynomial])
+  polynomial = load_type_dispatch(s, MPolyRingElem, dict[:tropical_polynomial])
   return TropicalHypersurface(polynomial)
 end
 

@@ -23,7 +23,7 @@ export ClosedSubvarietyOfToricVariety
 ##############################################################
 
 @doc Markdown.doc"""
-    closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
+    closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})
 
 Construct the closed subvariety of a simplicial normal toric variety.
 The defining data for the closed subvariety is a list of homogeneous
@@ -43,7 +43,7 @@ julia> closed_subvariety_of_toric_variety(f2, [t1])
 A closed subvariety of a normal toric variety
 ```
 """
-closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
+closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
 export closed_subvariety_of_toric_variety
 
 

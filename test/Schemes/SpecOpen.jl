@@ -196,14 +196,14 @@ end
   R, (x, y) = QQ["x", "y", "z"]
   # Spec{..., MPolyRing}
   A2 = Spec(R)
-  # Spec{..., MPolyQuo}
+  # Spec{..., MPolyQuoRing}
   Vxy = subscheme(A2, x*y)
-  # Spec{MPolyLocalizedRing}
+  # Spec{MPolyLocRing}
   A2_minus_Vxy = hypersurface_complement(A2, x*y)
   A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
   # SpecOpen{Spec{...,MPolyRing},...}
   A2_minus_origin = SpecOpen(A2, [x,y])
-  # SpecOpen{Spec{MPolyQuo},...}
+  # SpecOpen{Spec{MPolyQuoRing},...}
   Vxy_minus_origin = SpecOpen(Vxy, [x,y])
   # PrincipalOpenSubset{MPolyQuoLocalized....}
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
@@ -268,14 +268,14 @@ end
   R, (x, y) = QQ["x", "y", "z"]
   # Spec{..., MPolyRing}
   A2 = Spec(R)
-  # Spec{..., MPolyQuo}
+  # Spec{..., MPolyQuoRing}
   Vxy = subscheme(A2, x*y)
-  # Spec{MPolyLocalizedRing}
+  # Spec{MPolyLocRing}
   A2_minus_Vxy = hypersurface_complement(A2, x*y)
   A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
   # SpecOpen{Spec{...,MPolyRing},...}
   A2_minus_origin = SpecOpen(A2, [x,y])
-  # SpecOpen{Spec{MPolyQuo},...}
+  # SpecOpen{Spec{MPolyQuoRing},...}
   Vxy_minus_origin = SpecOpen(Vxy, [x,y])
   # PrincipalOpenSubset{MPolyQuoLocalized....}
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
@@ -342,14 +342,14 @@ end
   R, (x, y) = QQ["x", "y", "z"]
   # Spec{..., MPolyRing}
   A2 = Spec(R)
-  # Spec{..., MPolyQuo}
+  # Spec{..., MPolyQuoRing}
   Vxy = subscheme(A2, x*y)
-  # Spec{MPolyLocalizedRing}
+  # Spec{MPolyLocRing}
   A2_minus_Vxy = hypersurface_complement(A2, x*y)
   A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
   # SpecOpen{Spec{...,MPolyRing},...}
   A2_minus_origin = SpecOpen(A2, [x,y])
-  # SpecOpen{Spec{MPolyQuo},...}
+  # SpecOpen{Spec{MPolyQuoRing},...}
   Vxy_minus_origin = SpecOpen(Vxy, [x,y])
   # PrincipalOpenSubset{MPolyQuoLocalized....}
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))

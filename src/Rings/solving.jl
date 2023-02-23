@@ -60,7 +60,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    _rational_solutions(I::Ideal{T} where T <: MPolyElem, <keyword arguments>)
+    _rational_solutions(I::Ideal{T} where T <: MPolyRingElem, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return
 the rational roots of the ideal.
@@ -149,7 +149,7 @@ julia> map(r->map(p->evaluate(p, r), gens(I)), rat_sols)
  [0, 0, 0]
 ```
 """
-function rational_solutions(I::MPolyIdeal{<:MPolyElem})
+function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
   gb = groebner_basis(I, ordering = lex(base_ring(I)))
   R = base_ring(I)
   if 1 in gb
@@ -192,12 +192,12 @@ end
 ################################################################################
 
 """
-    rational_solutions(I::MPolyIdeal{<:MPolyElem_dec}) -> Vector{Vector}
+    rational_solutions(I::MPolyIdeal{<:MPolyDecRingElem}) -> Vector{Vector}
 
 Given a one-dimensional homogeneous ideal, return all projective rational
 elements of the vanishing set.
 """
-function rational_solutions(I::MPolyIdeal{<:MPolyElem_dec})
+function rational_solutions(I::MPolyIdeal{<:MPolyDecRingElem})
   @req dim(I) == 1 "Dimension must be 1"
   #TODO: make this work for non-standard gradings
   S = base_ring(I)

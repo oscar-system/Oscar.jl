@@ -29,7 +29,7 @@
       @test iszero(evaluate(f, w))
     end
   end
-  @test RM isa MPolyQuo
+  @test RM isa MPolyQuoRing
   M_dual, ev = oscar.dual(M)
   RM_dual = oscar.rees_algebra(M_dual)
   @test is_projective(M_dual)[1]
@@ -43,7 +43,7 @@
     end
   end
 
-  @test RM_dual isa MPolyQuo
+  @test RM_dual isa MPolyQuoRing
   M_double_dual, psi = oscar.double_dual(M)
 
   @test is_isomorphism(psi)

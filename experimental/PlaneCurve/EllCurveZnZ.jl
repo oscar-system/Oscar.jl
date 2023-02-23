@@ -208,13 +208,13 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    rand_pair_EllCurve_Point(R::Oscar.MPolyRing_dec{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
+    rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
 
 Return a pair composed of an elliptic plane curve `E` with equation in `R`,
 and a point `P` on `E`.
 """
 function rand_pair_EllCurve_Point(
-    R::Oscar.MPolyRing_dec{S},
+    R::Oscar.MPolyDecRing{S},
     PP::Oscar.Geometry.ProjSpc{S},
 ) where {S<:Nemo.fmpz_mod}
     A = base_ring(R)

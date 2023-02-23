@@ -4,7 +4,7 @@
 ###
 
 @doc Markdown.doc"""
-    valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
+    valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
 
 Return the valued weighted degree of a polynomial `f` with respect to valuation
 `val` and weight vector `w`. In other words, returns the tropicalized
@@ -36,7 +36,7 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 
 ```
 """
-function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
+function valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
   # compute the weighted degrees shifted by the coefficient valuations
   vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))]
 
@@ -77,7 +77,7 @@ export valued_weighted_degree
 
 
 @doc Markdown.doc"""
-    initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
+    initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
 
 Return the initial form of `f` with respect to valuation `val` and weight `w`.
 If convention==min (default), it is computed in the min convention. If
@@ -133,7 +133,7 @@ julia> initial(f,val_t,w)       # polynomial over QQ
 1
 ```
 """
-function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
+function initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
   # compute the maximal weighted degrees
   # todo (optional):
   # currently, we iterate over the entire polynomial to compute the (terms with) maximal valuated weighted degrees

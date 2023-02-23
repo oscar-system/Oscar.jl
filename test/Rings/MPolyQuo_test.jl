@@ -1,4 +1,4 @@
-@testset "MPolyQuo" begin
+@testset "MPolyQuoRing" begin
   R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
   f = y^2+y+x^2
@@ -47,7 +47,7 @@ end
   @test K(2) * x == Kx(2) * x
 end
 
-@testset "MPolyQuo.ideals" begin
+@testset "MPolyQuoRing.ideals" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   Q, _ = quo(R, ideal(R, [x*y, x*z]))
   (x, y, z) = map(Q, (x, y, z))
@@ -175,6 +175,6 @@ end
   S, (s0, s1, s2) = PolynomialRing(L, ["s0", "s1", "s2"])
   I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
   Q, _ = quo(S, I)
-  @test Q isa MPolyQuo
+  @test Q isa MPolyQuoRing
 end
 

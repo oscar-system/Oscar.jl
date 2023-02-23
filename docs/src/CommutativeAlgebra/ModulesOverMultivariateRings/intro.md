@@ -14,8 +14,8 @@ Pages = ["intro.md"]
 
 Our focus in this section is on finitely presented modules over rings from the following list:
 - multivariate polynomial rings (OSCAR type `MPolyRing`),
-- quotients of multivariate polynomial rings  (OSCAR type `MPolyQuo`), and
-- localizations of the above rings (OSCAR types `MPolyLocalizedRing`, `MPolyQuoLocalizedRing`).
+- quotients of multivariate polynomial rings  (OSCAR type `MPolyQuoRing`), and
+- localizations of the above rings (OSCAR types `MPolyLocRing`, `MPolyQuoLocRing`).
 Hence, if not mentioned otherwise, the word *module* refers to a finitely presented module over a
 ring of one of the above types. Offering a sparse way of implementing free modules, the
 OSCAR type `FreeMod` provides the basis for implementing all modules discussed here. More concretely,

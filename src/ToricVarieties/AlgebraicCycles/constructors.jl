@@ -4,8 +4,8 @@
 
 @attributes mutable struct RationalEquivalenceClass
     v::AbstractNormalToricVariety
-    p::MPolyQuoElem
-    RationalEquivalenceClass(v::AbstractNormalToricVariety, p::MPolyQuoElem) = new(v, p)
+    p::MPolyQuoRingElem
+    RationalEquivalenceClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = new(v, p)
 end
 export RationalEquivalenceClass
 
@@ -124,7 +124,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1, x2, x3) = gens(cohomology_ring(P2))
-3-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{fmpq, fmpq_mpoly}}}:
  x1
  x2
  x3
@@ -153,7 +153,7 @@ A normal toric variety
 julia> set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"]);
 
 julia> (x1, x2, y1, y2) = gens(cox_ring(ntv))
-4-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+4-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  x1
  x2
  y1
@@ -172,7 +172,7 @@ function rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
     mons = [[m for m in monomials(p)][1] for p in gens(defining_ideal(sv))]
     expos = [matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(mons[k])]) for k in 1:length(mons)]
     coeffs = [1 for i in 1:length(mons)]
-    new_mons = MPolyQuoElem{fmpq_mpoly}[]
+    new_mons = MPolyQuoRingElem{fmpq_mpoly}[]
     for k in 1:length(mons)
       mon = 1
       for j in 1:ncols(expos[k])

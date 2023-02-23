@@ -16,8 +16,8 @@ Pages = ["AffineSchemes.md"]
 Let ``\mathbb k`` be a commutative noetherian base ring
 (in practice: an algebraic extension of ``\mathbb Q`` or ``\mathbb F_p``).
 We support functionality for affine schemes ``X = \mathrm{Spec}(R)`` over ``\mathbb k``.
-Currently, we support rings ``R`` of type `MPolyRing`, `MPolyQuo`,
-`MPolyLocalizedRing`, and `MPolyQuoLocalizedRing`
+Currently, we support rings ``R`` of type `MPolyRing`, `MPolyQuoRing`,
+`MPolyLocRing`, and `MPolyQuoLocRing`
 defined over the integers, a finite field or algebraic field extensions of ``\mathbb Q``
 
 
@@ -25,8 +25,8 @@ defined over the integers, a finite field or algebraic field extensions of ``\ma
 
 ### General constructors
 
-Besides `Spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`, or 
-`MPolyQuoLocalizedRing`, we have the following constructors:
+Besides `Spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or 
+`MPolyQuoLocRing`, we have the following constructors:
 ```@docs
 Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)

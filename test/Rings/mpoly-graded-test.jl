@@ -1,4 +1,4 @@
-@testset "MPolyQuo.graded" begin
+@testset "MPolyQuoRing.graded" begin
   R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   Q = quo(R, ideal([x^2, y]))[1];
   h = homogeneous_components(Q[1])
@@ -23,7 +23,7 @@ function _random_poly(RR, n)
   return pols
 end
 
-function _homogeneous_polys(polys::Vector{<:MPolyElem})
+function _homogeneous_polys(polys::Vector{<:MPolyRingElem})
   R = parent(polys[1])
   D = []
   _monomials = [zero(R)]
@@ -125,7 +125,7 @@ end
 
         hom_polys = _homogeneous_polys(polys)
         I = ideal(hom_polys)
-        R_quo = Oscar.MPolyQuo(RR, I)
+        R_quo = Oscar.MPolyQuoRing(RR, I)
         @test base_ring(R_quo) == RR
         @test modulus(R_quo) == I
         f = R_quo(polys[2])

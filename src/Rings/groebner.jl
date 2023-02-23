@@ -154,7 +154,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
   elseif algorithm == :fglm
     _compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    if base_ring(I) isa MPolyRing_dec
+    if base_ring(I) isa MPolyDecRing
       J, target_ordering  = I, ordering
     else
       gens_hom = homogenization(gens(I), "w")
@@ -468,7 +468,7 @@ end
 
 # syzygies #######################################################
 @doc Markdown.doc"""
-    syzygy_generators(G::Vector{<:MPolyElem})
+    syzygy_generators(G::Vector{<:MPolyRingElem})
 
 Return generators for the syzygies on the polynomials given as elements of `G`.
 
@@ -484,7 +484,7 @@ julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
  (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
 ```
 """
-function syzygy_generators(a::Vector{<:MPolyElem})
+function syzygy_generators(a::Vector{<:MPolyRingElem})
   I = ideal(a)
   singular_assure(I)
   s = Singular.syz(I.gens.S)
@@ -496,7 +496,7 @@ end
 # leading ideal #######################################################
 @doc Markdown.doc"""
     leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) 
-                                where T <: MPolyElem
+                                where T <: MPolyRingElem
 
 Return the leading ideal of `G` with respect to `ordering`.
 
@@ -512,15 +512,15 @@ julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(R))
 ideal(x*y^2, x^3)
 ```
 """
-function leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) where { T <: MPolyElem }
+function leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) where { T <: MPolyRingElem }
     return ideal(parent(G[1]), [leading_monomial(f; ordering = ordering) for f in G])
 end
 
-function leading_ideal(I::IdealGens{T}) where { T <: MPolyElem }
+function leading_ideal(I::IdealGens{T}) where { T <: MPolyRingElem }
     return ideal(base_ring(I), [leading_monomial(f; ordering = I.ord) for f in I])
 end
 
-function leading_ideal(I::IdealGens{T}, ordering::MonomialOrdering) where T <: MPolyElem
+function leading_ideal(I::IdealGens{T}, ordering::MonomialOrdering) where T <: MPolyRingElem
     return ideal(base_ring(I), [leading_monomial(f; ordering = ordering) for f in I])
 end
 
@@ -644,13 +644,13 @@ end
 
 @doc Markdown.doc"""
 	reduce(g::T, F::Vector{T}; 
-           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
 If `ordering` is global, return the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
 	reduce(G::Vector{T}, F::Vector{T};
-           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
 Return a `Vector` which contains, for each element `g` of `G`, a remainder as above.
 
@@ -679,7 +679,7 @@ julia> reduce(g, [f1, f2], ordering = lex(R))
 -3*x^10 + x^6 + x^5
 ```
 """
-function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyRingElem}
 	@assert parent(f) == parent(F[1])
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
@@ -688,7 +688,7 @@ function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_orderin
 	return redv[1]
 end
 
-function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyRingElem}
 	@assert parent(F[1]) == parent(G[1])
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
@@ -698,12 +698,12 @@ end
 
 @doc Markdown.doc"""
 	reduce_with_quotients_and_unit(g::T, F::Vector{T};
-           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
 Return the unit, the quotients and the remainder in a weak standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
 	reduce_with_quotients_and_unit(G::Vector{T}, F::Vector{T};
-           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
 Return a `Vector` which contains, for each element `g` of `G`, a unit, quotients, and a remainder as above.
 
@@ -741,7 +741,7 @@ julia> U*G == Q*[f1, f2, f3]+H
 true
 ```
 """
-function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyRingElem}
 	@assert parent(f) == parent(F[1])
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
@@ -750,7 +750,7 @@ function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOr
 	return u, q, r[1]
 end
 
-function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyRingElem}
 	@assert parent(F[1]) == parent(G[1])
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
@@ -871,13 +871,13 @@ end
 
 @doc Markdown.doc"""
 	reduce_with_quotients(g::T, F::Vector{T}; 
-           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
 If `ordering` is global, return the quotients and the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the quotients and the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
 	reduce_with_quotients(G::Vector{T}, F::Vector{T}; 
-           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
 Return a `Vector` which contains, for each element `g` of `G`, quotients and a remainder as above.
 
@@ -921,7 +921,7 @@ julia> G == Q*[f1, f2]+H
 true
 ```
 """
-function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyRingElem}
 	@assert parent(f) == parent(F[1])
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
@@ -930,7 +930,7 @@ function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = 
 	return q, r[1]
 end
 
-function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyRingElem}
 	@assert parent(F[1]) == parent(G[1])
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
@@ -949,12 +949,12 @@ end
 
 @doc Markdown.doc"""
     normal_form(g::T, I::MPolyIdeal; 
-      ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyElem
+      ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyRingElem
 
 Compute the normal form of `g` mod `I` with respect to `ordering`.
 
     normal_form(G::Vector{T}, I::MPolyIdeal; 
-      ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyElem
+      ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyRingElem
 
 Return a `Vector` which contains for each element `g` of `G` a normal form as above.
 
@@ -998,14 +998,14 @@ julia> normal_form(A, J)
  4*a - 2*c^2 - c + 5
 ```
 """
-function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyElem }
+function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyRingElem }
     singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
     N = normal_form_internal(I, J, ordering)
     return N[1]
 end
 
-function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
+function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
     singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
     normal_form_internal(I, J, ordering)
@@ -1255,7 +1255,7 @@ end
 @doc Markdown.doc"""
     groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                   ordering::MonomialOrdering,
-                                  complete_reduction::Bool = false) where {P <: MPolyElem_dec}
+                                  complete_reduction::Bool = false) where {P <: MPolyDecRingElem}
 
 
 Compute a Gröbner basis of `I` with respect to `ordering` using a
@@ -1288,7 +1288,7 @@ deglex([x, y, z])
 
 function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        ordering::MonomialOrdering,
-                                       complete_reduction::Bool = false) where {P <: MPolyElem_dec}
+                                       complete_reduction::Bool = false) where {P <: MPolyDecRingElem}
   
   all(is_homogeneous, gens(I)) || error("I must be given by generators homogeneous with respect to its underlying ring")
   isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
@@ -1345,7 +1345,7 @@ end
 
 # Helper functions for groebner_basis_with_hilbert
 
-function _extract_weights(T::MPolyRing_dec)
+function _extract_weights(T::MPolyDecRing)
   if !is_z_graded(T)
     error("Ring must be graded by the Integers.")
   end
@@ -1353,7 +1353,7 @@ function _extract_weights(T::MPolyRing_dec)
 end
 
 function _extend_mon_order(ordering::MonomialOrdering,
-                           homogenized_ring::MPolyRing_dec)
+                           homogenized_ring::MPolyDecRing)
 
   nvars = ngens(ordering.R)
   m = canonical_matrix(ordering)

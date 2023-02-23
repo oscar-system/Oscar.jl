@@ -105,7 +105,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function test_equality(p::T, l::T) where T <: (
-    MPolyElem{S} where S <:Union{
+    MPolyRingElem{S} where S <:Union{
         fmpq, fmpz, nmod, padic, Oscar.TropicalSemiringElem
     })
     P = parent(p)
@@ -163,7 +163,7 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function test_equality(p::T, l:: T) where T  <: Union{
-    MPolyElem{S}, PolyElem{S}} where S <: Union{
+    MPolyRingElem{S}, PolyElem{S}} where S <: Union{
         AbstractAlgebra.Generic.Frac{fmpq_poly},
         AbstractAlgebra.Generic.Rat{fmpq, fmpq_poly},
         fmpq_poly}
@@ -186,7 +186,7 @@ end
 
 
 function test_equality(p::T, l::T) where T <: (
-    MPolyElem{S} where S <: Union{
+    MPolyRingElem{S} where S <: Union{
         Hecke.NfRelNSElem{nf_elem},
         Hecke.NfRelElem{nf_elem},
         NfAbsNSElem,

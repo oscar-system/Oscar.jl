@@ -1,4 +1,4 @@
-export singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
+export singular_coeff_ring, MPolyQuoRing, MPolyQuoRingElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify, default_ordering
 export is_subset
 export saturated_ideal
@@ -8,7 +8,7 @@ export saturated_ideal
 #
 ##############################################################################
 
-@attributes mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
+@attributes mutable struct MPolyQuoRing{S} <: AbstractAlgebra.Ring
   I::MPolyIdeal{S}
   ordering::MonomialOrdering
   SQR::Singular.PolyRing # Singular quotient ring
@@ -17,7 +17,7 @@ export saturated_ideal
   #= ordering, gb assure =#
   #= the current design decision is to fix the ordering to be default_ordering(R) =#
   #= that is, the user is not allowed to change this with the outer constructor quo =#
-  function MPolyQuo(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
+  function MPolyQuoRing(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
     @assert base_ring(I) === R
     r = new{elem_type(R)}()
     r.I = I
@@ -26,7 +26,7 @@ export saturated_ideal
   end
 end
 
-function groebner_assure(r::MPolyQuo)
+function groebner_assure(r::MPolyQuoRing)
   if isdefined(r, :SQRGB)
     return true
   end
@@ -40,29 +40,29 @@ function groebner_assure(r::MPolyQuo)
   return true
 end
 
-function show(io::IO, Q::MPolyQuo)
+function show(io::IO, Q::MPolyQuoRing)
   Hecke.@show_name(io, Q)
   Hecke.@show_special(io, Q)
   io = IOContext(io, :compact => true)
   print(io, "Quotient of $(base_ring(Q)) by $(modulus(Q))")
 end
 
-gens(Q::MPolyQuo) = [Q(x) for x = gens(base_ring(Q))]
-ngens(Q::MPolyQuo) = ngens(base_ring(Q))
-gen(Q::MPolyQuo, i::Int) = Q(gen(base_ring(Q), i))
-Base.getindex(Q::MPolyQuo, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
-base_ring(Q::MPolyQuo) = base_ring(Q.I)
-coefficient_ring(Q::MPolyQuo) = coefficient_ring(base_ring(Q))
-modulus(Q::MPolyQuo) = Q.I
-oscar_groebner_basis(Q::MPolyQuo) = groebner_assure(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuo) = groebner_assure(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuo) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuo) = groebner_assure(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuo) = singular_quotient_ring(Q)
-singular_origin_ring(Q::MPolyQuo) = base_ring(singular_origin_groebner_basis(Q))
-oscar_origin_ring(Q::MPolyQuo) = base_ring(Q)
+gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
+ngens(Q::MPolyQuoRing) = ngens(base_ring(Q))
+gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
+Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
+base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
+coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
+modulus(Q::MPolyQuoRing) = Q.I
+oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
+singular_poly_ring(Q::MPolyQuoRing) = singular_quotient_ring(Q)
+singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
+oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
-default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
+default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 
 ##############################################################################
 #
@@ -72,24 +72,24 @@ default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
 
 #TODO: think: do we want/ need to keep f on the Singular side to avoid conversions?
 #      or use Bill's divrem to speed things up?
-mutable struct MPolyQuoElem{S} <: RingElem
+mutable struct MPolyQuoRingElem{S} <: RingElem
   f::S
-  P::MPolyQuo{S}
+  P::MPolyQuoRing{S}
 
-  function MPolyQuoElem(f::S, P::MPolyQuo{S}) where {S}
+  function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}) where {S}
     @assert parent(f) === base_ring(P)
     return new{S}(f, P)
   end
 end
 
-@enable_all_show_via_expressify MPolyQuoElem
+@enable_all_show_via_expressify MPolyQuoRingElem
 
-function AbstractAlgebra.expressify(a::MPolyQuoElem; context = nothing)
+function AbstractAlgebra.expressify(a::MPolyQuoRingElem; context = nothing)
   return expressify(a.f, context = context)
 end
 
-function Base.deepcopy_internal(a::MPolyQuoElem, dict::IdDict)
-  return MPolyQuoElem(Base.deepcopy_internal(a.f, dict), a.P)
+function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
+  return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P)
 end
 
 ##############################################################################
@@ -106,9 +106,9 @@ end
   gens::IdealGens{T}
   dim::Int
   gb::IdealGens{T}
-  qRing::MPolyQuo
+  qRing::MPolyQuoRing
 
-  function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
+  function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
     singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
     r = new{T}()
     r.gens = IdealGens(Ox, si)
@@ -119,7 +119,7 @@ end
     return r
   end
 
-  function MPolyQuoIdeal(Ox::MPolyQuo{T}, I::MPolyIdeal{T}) where T <: MPolyElem
+  function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
     base_ring(Ox) === base_ring(I) || error("base rings must match")
     r = new{T}()
     r.gens = IdealGens(Ox, gens(I))
@@ -127,7 +127,7 @@ end
     r.dim = -1
     return r
   end
-  function MPolyQuoIdeal(Ox::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
+  function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
     r = new{T}()
     r.gens = IdealGens(Ox, V)
     r.qRing = Ox
@@ -207,7 +207,7 @@ julia> a = ideal(A, [x-y])
 ideal(x - y)
 
 julia> gens(a)
-1-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+1-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
  x - y
 ```
 """
@@ -398,8 +398,8 @@ end
 
 # The following is to streamline the programmer's
 # interface for the use of the four standard rings
-# for the schemes `MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`,
-# and `MPolyQuoLocalizedRing` together with their ideals.
+# for the schemes `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`,
+# and `MPolyQuoLocRing` together with their ideals.
 # We return the preimage of the given ideal under the
 # canonical map from the underlying free polynomial ring.
 @attr function saturated_ideal(I::MPolyQuoIdeal)
@@ -440,12 +440,12 @@ function is_zero(a::MPolyQuoIdeal)
 end
 
 @doc Markdown.doc"""
-    ideal(A::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
+    ideal(A::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
 
 Given a (graded) quotient ring `A=R/I` and a vector `V` of (homogeneous) polynomials in `R`,
 create the ideal of `A` which is generated by the images of the entries of `V`.
 
-    ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
+    ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MPolyRingElem
 
 Given a (graded) quotient ring `A` and a vector `V` of (homogeneous) elements of `A`,
 create the ideal of `A` which is generated by the entries of `V`.
@@ -468,7 +468,7 @@ julia> J = ideal(B, [x^2-y^2])
 ideal(x^2 - y^2)
 ```
 """
-function ideal(A::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
+function ideal(A::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
   #@assert length(V) > 0
   if length(V) == 0
     return MPolyQuoIdeal(A, elem_type(base_ring(A))[])
@@ -478,7 +478,7 @@ function ideal(A::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
   end
   return MPolyQuoIdeal(A, V)
 end
-function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
+function ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MPolyRingElem
   #@assert length(V) > 0
   if length(V) == 0
     return MPolyQuoIdeal(A, ideal(base_ring(A), elem_type(base_ring(A))[]))
@@ -489,57 +489,57 @@ function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
   return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
 end
 
-function ideal(A::MPolyQuo{T}, x::T) where T <: MPolyElem
+function ideal(A::MPolyQuoRing{T}, x::T) where T <: MPolyRingElem
   return ideal(A,[x])
 end
 
-function ideal(A::MPolyQuo{T}, x::MPolyQuoElem{T}) where T <: MPolyElem
+function ideal(A::MPolyQuoRing{T}, x::MPolyQuoRingElem{T}) where T <: MPolyRingElem
   return ideal(A,[x])
 end
 ##################################################################
 
-parent_type(::MPolyQuoElem{S}) where S = MPolyQuo{S}
-parent_type(::Type{MPolyQuoElem{S}}) where S = MPolyQuo{S}
-elem_type(::MPolyQuo{S})  where S= MPolyQuoElem{S}
-elem_type(::Type{MPolyQuo{S}})  where S= MPolyQuoElem{S}
+parent_type(::MPolyQuoRingElem{S}) where S = MPolyQuoRing{S}
+parent_type(::Type{MPolyQuoRingElem{S}}) where S = MPolyQuoRing{S}
+elem_type(::MPolyQuoRing{S})  where S= MPolyQuoRingElem{S}
+elem_type(::Type{MPolyQuoRing{S}})  where S= MPolyQuoRingElem{S}
 
-canonical_unit(a::MPolyQuoElem) = one(parent(a))
+canonical_unit(a::MPolyQuoRingElem) = one(parent(a))
 
-parent(a::MPolyQuoElem) = a.P
+parent(a::MPolyQuoRingElem) = a.P
 
-function check_parent(a::MPolyQuoElem, b::MPolyQuoElem)
+function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.P == b.P || error("wrong parents")
   return true
 end
 
-+(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f+b.f, a.P)
++(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
 
--(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f-b.f, a.P)
+-(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f-b.f, a.P)
 
--(a::MPolyQuoElem) = MPolyQuoElem(-a.f, a.P)
+-(a::MPolyQuoRingElem) = MPolyQuoRingElem(-a.f, a.P)
 
-*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && simplify(MPolyQuoElem(a.f*b.f, a.P))
+*(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
-^(a::MPolyQuoElem, b::Base.Integer) = simplify(MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P))
+^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
 
-*(a::MPolyQuoElem, b::fmpq) = simplify(MPolyQuoElem(a.f * b, a.P))
+*(a::MPolyQuoRingElem, b::fmpq) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
-*(a::MPolyQuoElem, b::fmpz) = simplify(MPolyQuoElem(a.f * b, a.P))
+*(a::MPolyQuoRingElem, b::fmpz) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
-*(a::fmpq, b::MPolyQuoElem) = simplify(MPolyQuoElem(a * b.f, b.P))
+*(a::fmpq, b::MPolyQuoRingElem) = simplify(MPolyQuoRingElem(a * b.f, b.P))
 
-*(a::fmpz, b::MPolyQuoElem) = simplify(MPolyQuoElem(a * b.f, b.P))
+*(a::fmpz, b::MPolyQuoRingElem) = simplify(MPolyQuoRingElem(a * b.f, b.P))
 
-#*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f*b.f, a.P)
+#*(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f*b.f, a.P)
 #
-#^(a::MPolyQuoElem, b::Base.Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
+#^(a::MPolyQuoRingElem, b::Base.Integer) = MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P)
 
-function Oscar.mul!(a::MPolyQuoElem, b::MPolyQuoElem, c::MPolyQuoElem)
+function Oscar.mul!(a::MPolyQuoRingElem, b::MPolyQuoRingElem, c::MPolyQuoRingElem)
   a.f = b.f*c.f
   return a
 end
 
-function Oscar.addeq!(a::MPolyQuoElem, b::MPolyQuoElem)
+function Oscar.addeq!(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.f += b.f
   return a
 end
@@ -561,7 +561,7 @@ julia> a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
 ideal(x^3*y^4 - x + y, x*y^2 + x*y)
 
 julia> gens(a)
-2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
  x^3*y^4 - x + y
  x*y^2 + x*y
 
@@ -569,7 +569,7 @@ julia> simplify(a)
 ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 
 julia> gens(a)
-2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
  x^2*y^3 - x + y
  x*y^2 + x*y
 ```
@@ -590,7 +590,7 @@ end
 #######################################################
 
 @doc Markdown.doc"""
-    ideal_membership(f::MPolyQuoElem{T}, a::MPolyQuoIdeal{T}) where T
+    ideal_membership(f::MPolyQuoRingElem{T}, a::MPolyQuoIdeal{T}) where T
 
 Return `true` if `f` is contained in `a`, `false` otherwise. Alternatively, use `f in a`.
 
@@ -610,7 +610,7 @@ julia> f in a
 true
 ```
 """
-function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
+function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
   groebner_assure(b)
   SR = singular_poly_ring(base_ring(b))
@@ -618,7 +618,7 @@ function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
   return Singular.iszero(Singular.reduce(SR(as), b.gb.gens.S))
 end
 
-Base.:in(a::MPolyQuoElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
+Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
 
 
 @doc Markdown.doc"""
@@ -678,7 +678,7 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 end
 
 @doc Markdown.doc"""
-    simplify(f::MPolyQuoElem)
+    simplify(f::MPolyQuoRingElem)
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
@@ -700,7 +700,7 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoElem)
+function simplify(f::MPolyQuoRingElem)
   R  = parent(f)
   OR = oscar_origin_ring(R)
   SR = singular_origin_ring(R)
@@ -712,7 +712,7 @@ end
 
 
 @doc Markdown.doc"""
-    ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
+    ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 
 Return `true` if `f` is equal to `g`, `false` otherwise.
 
@@ -732,7 +732,7 @@ julia> f == g
 true
 ```
 """
-function ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
+function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   check_parent(f, g)
   simplify(f)
   simplify(g)
@@ -745,7 +745,7 @@ end
 Create the quotient ring `R/I` and return the new
 ring as well as the projection map `R` $\to$ `R/I`.
 
-    quo(R::MPolyRing, V::Vector{MPolyElem}) -> MPolyQuoRing, Map
+    quo(R::MPolyRing, V::Vector{MPolyRingElem}) -> MPolyQuoRing, Map
 
 As above, where `I` is the ideal of `R` generated by the polynomials in `V`.
 
@@ -759,7 +759,7 @@ julia> A
 Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y)
 
 julia> typeof(A)
-MPolyQuo{fmpq_mpoly}
+MPolyQuoRing{fmpq_mpoly}
 
 julia> typeof(x)
 fmpq_mpoly
@@ -772,7 +772,7 @@ julia> p(x)
 x
 
 julia> typeof(p(x))
-MPolyQuoElem{fmpq_mpoly}
+MPolyQuoRingElem{fmpq_mpoly}
 ```jldoctest
 ```
 julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
@@ -791,64 +791,64 @@ Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
 
 julia> typeof(B)
-MPolyQuo{MPolyElem_dec{fmpq, fmpq_mpoly}}
+MPolyQuoRing{MPolyDecRingElem{fmpq, fmpq_mpoly}}
 ```
 """
 function quo(R::MPolyRing, I::MPolyIdeal)
-  q = MPolyQuo(R, I)
-  function im(a::MPolyElem)
+  q = MPolyQuoRing(R, I)
+  function im(a::MPolyRingElem)
     parent(a) !== R && error("Element not in the domain of the map")
-    return MPolyQuoElem(a, q)
+    return MPolyQuoRingElem(a, q)
   end
-  function pr(a::MPolyQuoElem)
+  function pr(a::MPolyQuoRingElem)
     return a.f
   end
   return q, MapFromFunc(im, pr, R, q)
 end
 
-function quo(R::MPolyRing, I::Vector{<:MPolyElem})
+function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
   return quo(R, ideal(I))
 end
 
-function quo(R::MPolyRing, f::MPolyElem...)
+function quo(R::MPolyRing, f::MPolyRingElem...)
   return quo(R, ideal(collect(f)))
 end
 
-lift(a::MPolyQuoElem) = a.f
+lift(a::MPolyQuoRingElem) = a.f
 
-(Q::MPolyQuo)() = MPolyQuoElem(base_ring(Q)(), Q)
+(Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
-function (Q::MPolyQuo)(a::MPolyQuoElem)
+function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
   parent(a) !== Q && error("Parent mismatch")
   return a
 end
 
-function (Q::MPolyQuo{S})(a::S) where {S <: MPolyElem}
+function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
   base_ring(Q) === parent(a) || error("Parent mismatch")
-  return MPolyQuoElem(a, Q)
+  return MPolyQuoRingElem(a, Q)
 end
 
-function (Q::MPolyQuo)(a::MPolyElem)
+function (Q::MPolyQuoRing)(a::MPolyRingElem)
   return Q(base_ring(Q)(a))
 end
 
-function (Q::MPolyQuo)(a::Singular.spoly)
+function (Q::MPolyQuoRing)(a::Singular.spoly)
   @assert singular_poly_ring(Q) == parent(a)
-  return MPolyQuoElem(base_ring(Q)(a), Q)
+  return MPolyQuoRingElem(base_ring(Q)(a), Q)
 end
 
-function (S::Singular.PolyRing)(a::MPolyQuoElem)
+function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
   Q = parent(a)
   @assert singular_poly_ring(Q) == S
   return S(a.f)
 end
 
-(Q::MPolyQuo)(a) = MPolyQuoElem(base_ring(Q)(a), Q)
+(Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
-zero(Q::MPolyQuo) = Q(0)
-one(Q::MPolyQuo) = Q(1)
+zero(Q::MPolyQuoRing) = Q(0)
+one(Q::MPolyQuoRing) = Q(1)
 
-function is_invertible_with_inverse(a::MPolyQuoElem)
+function is_invertible_with_inverse(a::MPolyQuoRingElem)
   # TODO:
   # Eventually, the code below should be replaced
   # by a call to `coordinates` over the ring `parent(a)`.
@@ -867,9 +867,9 @@ function is_invertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
+is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
 
-function inv(a::MPolyQuoElem)
+function inv(a::MPolyQuoRingElem)
   fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
@@ -941,7 +941,7 @@ function matrix(R::MPolyRing, M::Singular.Module)
   return matrix(sparse_matrix(R, M))
 end
 
-function divides(a::MPolyQuoElem, b::MPolyQuoElem)
+function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   check_parent(a, b)
   iszero(a) && iszero(b) && return (true, zero(parent(a)))
   iszero(b) && error("cannot divide by zero")
@@ -964,7 +964,7 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
 end
 
 #TODO: find a more descriptive, meaningful name
-function _kbase(Q::MPolyQuo)
+function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
@@ -975,7 +975,7 @@ end
 
 #TODO: the reverse map...
 # problem: the "canonical" reps are not the monomials.
-function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
+function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   R = base_ring(Q)
   @assert K == base_ring(R)
   l = _kbase(Q)
@@ -994,9 +994,9 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
   return V, MapFromFunc(im, V, Q)
 end
 
-# To fix printing of fraction fields of MPolyQuo
+# To fix printing of fraction fields of MPolyQuoRing
 function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.Frac{T};
-    context = nothing) where {T <: MPolyQuoElem}
+    context = nothing) where {T <: MPolyQuoRingElem}
   n = numerator(a, false)
   d = denominator(a, false)
   if isone(d)
@@ -1013,8 +1013,8 @@ end
 #
 ################################################################################
 
-function grading(R::MPolyQuo)
-  if base_ring(R) isa MPolyRing_dec
+function grading(R::MPolyQuoRing)
+  if base_ring(R) isa MPolyDecRing
     return grading(base_ring(R))
   else
     error("Underlying polynomial ring must be graded")
@@ -1022,15 +1022,15 @@ function grading(R::MPolyQuo)
 end
 
 @doc Markdown.doc"""
-    degree(f::MPolyQuoElem{<:MPolyElem_dec})
+    degree(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given a homogeneous element `f` of a graded affine algebra, return the degree of `f`.
 
-    degree(::Type{Vector{Int}}, f::MPolyQuoElem{<:MPolyElem_dec})
+    degree(::Type{Vector{Int}}, f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given a homogeneous element `f` of a $\mathbb Z^m$-graded affine algebra, return the degree of `f`, converted to a vector of integer numbers.
 
-    degree(::Type{Int}, f::MPolyQuoElem{<:MPolyElem_dec})
+    degree(::Type{Int}, f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return the degree of `f`, converted to an integer number.
 
@@ -1067,39 +1067,39 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(a::MPolyQuoElem{<:MPolyElem_dec})
+function degree(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   simplify(a)
   @req !iszero(a) "Element must be non-zero"
   return degree(a.f)
 end
 
-function degree(::Type{Int}, a::MPolyQuoElem{<:MPolyElem_dec})
+function degree(::Type{Int}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
   @assert is_z_graded(base_ring(parent(a)))
   return Int(degree(a)[1])
 end
 
-function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
+function degree(::Type{Vector{Int}}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
   @assert is_zm_graded((base_ring(parent(a))))
   d = degree(a)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-is_filtered(q::MPolyQuo) = is_filtered(base_ring(q))
-is_graded(q::MPolyQuo) = is_graded(base_ring(q))
+is_filtered(q::MPolyQuoRing) = is_filtered(base_ring(q))
+is_graded(q::MPolyQuoRing) = is_graded(base_ring(q))
 
 @doc Markdown.doc"""
-    homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
+    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 
 Given an element `f` of a graded affine algebra, and given an element `g` of the
 grading group of that algebra, return the homogeneous component of `f` of degree `g`.
 
-    homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
+    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
 
 Given an element `f` of a $\mathbb  Z^m$-graded affine algebra `A`, say, and given
 a vector `g` of $m$ integers, convert `g` into an element of the grading group of `A`,
 and return the homogeneous component of `f` whose degree is that element.
 
-    homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
+    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::IntegerUnion)
 
 Given an element `f` of a $\mathbb  Z$-graded affine algebra `A`, say, and given
 an integer `g`, convert `g` into an element of the grading group of `A`,
@@ -1118,23 +1118,23 @@ julia> homogeneous_component(f, 4)
 z^4
 ```
 """
-function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
   simplify(a)
   return homogeneous_component(a.f, d)
 end
 
-function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
+function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, g::IntegerUnion)
   @assert is_z_graded(base_ring(parent(a)))
   return homogeneous_component(a, grading_group(base_ring(parent(a)))([g]))
 end
 
-function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
+function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
   @assert is_zm_graded(base_ring(parent(a)))
   return homogeneous_component(a, grading_group(base_ring(parent(a)))(g))
 end
 
 @doc Markdown.doc"""
-    homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
+    homogeneous_components(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
 
@@ -1148,19 +1148,19 @@ julia> f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}} with 2 entries:
+Dict{GrpAbFinGenElem, MPolyQuoRingElem{MPolyDecRingElem{fmpq, fmpq_mpoly}}} with 2 entries:
   [4] => z^4
   [3] => y^2*z
 ```
 """
-function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
+function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   simplify(a)
   h = homogeneous_components(a.f)
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
 @doc Markdown.doc"""
-    is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+    is_homogeneous(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
@@ -1180,13 +1180,13 @@ julia> f
 z^4
 ```
 """
-function is_homogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
+function is_homogeneous(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   simplify(a)
   return is_homogeneous(a.f)
 end
 
 @doc Markdown.doc"""
-    grading_group(A::MPolyQuo{<:MPolyElem_dec})
+    grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
 
 If `A` is, say, `G`-graded, return `G`.
 
@@ -1200,16 +1200,16 @@ julia> grading_group(A)
 GrpAb: Z
 ```
 """
-function grading_group(A::MPolyQuo{<:MPolyElem_dec})
+function grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
   return grading_group(base_ring(A))
 end
 
-function hash(w::MPolyQuoElem, u::UInt)
+function hash(w::MPolyQuoRingElem, u::UInt)
   simplify(w)
   return hash(w.f, u)
 end
 
-function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   D = parent(d)
@@ -1262,26 +1262,26 @@ end
 ### Tests on graded quotient rings
 ##################################
 
-function is_standard_graded(A::MPolyQuo)
+function is_standard_graded(A::MPolyQuoRing)
   return is_standard_graded(base_ring(A))
 end
 
-function is_z_graded(A::MPolyQuo)
+function is_z_graded(A::MPolyQuoRing)
   return is_z_graded(base_ring(A))
 end
 
-function is_zm_graded(A::MPolyQuo)
+function is_zm_graded(A::MPolyQuoRing)
   return is_zm_graded(base_ring(A))
 end
 
-function is_positively_graded(A::MPolyQuo)
+function is_positively_graded(A::MPolyQuoRing)
   return is_positively_graded(base_ring(A))
 end
 
 ##################################
 #######################################################
 @doc Markdown.doc"""
-    minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
+    minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `a` of a graded affine algebra over a field,
 return an array containing a minimal set of generators of `a`.
@@ -1300,14 +1300,14 @@ julia> A, p = quo(R, ideal(R, [x-y]));
 julia> a = ideal(A, [p(x) for x in V]);
 
 julia> minimal_generating_set(a)
-2-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{fmpq, fmpq_mpoly}}}:
  x
  z^2
 ```
 """
-function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
-  # MPolyRing_dec are forced to be homogeneous though.
+  # MPolyDecRing are forced to be homogeneous though.
 
   Q = base_ring(I)
 
@@ -1344,15 +1344,15 @@ end
 #
 ################################################################################
 
-function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where {S, T <: RingElem}
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{T}) where {S, T <: RingElem}
   if AbstractAlgebra.promote_rule(S, T) === S
-    return MPolyQuoElem{S}
+    return MPolyQuoRingElem{S}
   else
     return Union{}
   end
 end
 
-@attr function _is_integral_domain(A::MPolyQuo)
+@attr function _is_integral_domain(A::MPolyQuoRing)
   return is_prime(modulus(A))
 end
 

@@ -157,7 +157,7 @@ function ==(C::CartierDivisor, D::CartierDivisor)
 end
 
 
-function effective_cartier_divisor(IP::AbsProjectiveScheme, f::MPolyElem_dec)
+function effective_cartier_divisor(IP::AbsProjectiveScheme, f::MPolyDecRingElem)
   parent(f) === ambient_coordinate_ring(IP) || error("element does not belong to the correct ring")
   d = total_degree(f)
   X = covered_scheme(IP)
@@ -169,7 +169,7 @@ function effective_cartier_divisor(IP::AbsProjectiveScheme, f::MPolyElem_dec)
   return C
 end
 
-function cartier_divisor(IP::AbsProjectiveScheme, f::MPolyElem_dec)
+function cartier_divisor(IP::AbsProjectiveScheme, f::MPolyDecRingElem)
   return one(ZZ)*effective_cartier_divisor(IP, f)
 end
 

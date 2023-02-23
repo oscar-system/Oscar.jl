@@ -29,7 +29,7 @@ presentation(M::ModuleFP)
 ## Syzygies and Free Resolutions
 
 ```@docs
-free_resolution(M::SubQuo{<:MPolyElem}; 
+free_resolution(M::SubquoModule{<:MPolyRingElem}; 
     ordering::ModuleOrdering = default_ordering(M),
     length::Int=0, algorithm::Symbol=:fres
   )
@@ -76,7 +76,7 @@ tor(M::ModuleFP, N::ModuleFP, i::Int)
 ## Fitting Ideals
 
 ```@docs
-fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
+fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem
 ```
 
 ## Flatness
@@ -84,33 +84,33 @@ fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
 Checking flatness in OSCAR relies on characterizing flatness in terms of Fitting ideals.
 
 ```@docs
-is_flat(M::ModuleFP{T}) where T <: MPolyElem
+is_flat(M::ModuleFP{T}) where T <: MPolyRingElem
 ```
 
 ```@docs
-non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
+non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem
 ```
 
 ## Regular Sequence Test
 
 ```@docs
-is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
+is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 ```
 
 ## Koszul Complex
 
 ```@docs
-koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyElem
+koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyRingElem
 ```
 
 ```@docs
-koszul_complex(V::Vector{T}) where T <: MPolyElem
+koszul_complex(V::Vector{T}) where T <: MPolyRingElem
 ```
 
 ## Koszul Homology
 
 ```@docs
-koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyElem
+koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
 ```
 
 ## Depth
@@ -118,7 +118,7 @@ koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyElem
 The computation of depth in OSCAR relies on expressing depth in terms of  Koszul cohomology. 
 
 ```@docs
-depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
+depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 ```
 
 

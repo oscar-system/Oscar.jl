@@ -88,7 +88,7 @@ const rng = Oscar.get_seeded_rng()
 
   R, (x, y) = QQ["x", "y"]
   U = MPolyPowersOfElement(R, [x])
-  L = MPolyLocalizedRing(R, U)
+  L = MPolyLocRing(R, U)
   I = ideal(L, [y*(y-x)])
   J = ideal(L, [x*(y-x)])
   @test y in quotient(I, J)
@@ -98,7 +98,7 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^3- 2
   I = ideal(R, [f])
   U = MPolyComplementOfPrimeIdeal(I)
-  L = MPolyLocalizedRing(R, U)
+  L = MPolyLocRing(R, U)
   I = ideal(L, [f^4])
   J = ideal(L, [f^2])
   @test f^2 in quotient(I, J)
@@ -109,7 +109,7 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^2- 2
   I = ideal(R, [f])
   U = MPolyComplementOfKPointIdeal(R, [1, 1])
-  L = MPolyLocalizedRing(R, U)
+  L = MPolyLocRing(R, U)
   I = ideal(L, [y^2*f^4])
   J = ideal(L, [x*f^2])
   @test f^2 in quotient(I, J)
@@ -170,7 +170,7 @@ end
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-function test_elem(W::MPolyLocalizedRing) 
+function test_elem(W::MPolyLocRing) 
   f = rand(rng, W, 0:3, 0:4, 0:3)
   return f
 end
@@ -311,7 +311,7 @@ end
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, [x, y^2+1])
   U = MPolyComplementOfPrimeIdeal(I)
-  L = MPolyLocalizedRing(R, U)
+  L = MPolyLocRing(R, U)
   J = ideal(L,[y*(x^2+(y^2+1)^2)])
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat

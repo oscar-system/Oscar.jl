@@ -326,7 +326,7 @@ end
 
 function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     var_name::String="s"
-  ) where {RingType<:Union{MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}}
+  ) where {RingType<:Union{MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}}
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 
   # It follows the generic Proj construction
@@ -395,7 +395,7 @@ end
 #    verbose::Bool=false,
 #    check::Bool=true,
 #    is_regular_sequence::Bool=false
-#  ) where {RingElemType<:MPolyElem}
+#  ) where {RingElemType<:MPolyRingElem}
 #
 #  # some internal function
 #  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
@@ -786,7 +786,7 @@ end
 end
 
 
-# function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
+# function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 	#(IOw: Exc Div ^\infty)
 	
 #        X = domain(f)
@@ -807,7 +807,7 @@ end
 #
 #
 #
-#function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
+#function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #	#IOw
 #	
 #        X = domain(f)
@@ -822,7 +822,7 @@ end
 #
 #
 #### NOT TESTED YET
-#function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
+#function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #
 #	X = domain(f)
 #        Y = codomain(f)
@@ -842,7 +842,7 @@ end
 #end
 #
 #### NOT TESTED YET
-#function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyElem}
+#function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
 #	#(IOw : Exc Div ^i)
 #
 #	X = domain(f)
@@ -868,7 +868,7 @@ end
 #    P::ProjectiveScheme, 
 #    E::IdealSheaf, 
 #    I::Vector{PolyType}
-#  ) where {PolyType<:MPolyElem}
+#  ) where {PolyType<:MPolyRingElem}
 #  X = as_covered_scheme(P)
 #  C = covering(E) 
 #  C in coverings(X) || error("covering not found")
@@ -941,7 +941,7 @@ end
 #  return I
 #end
 #
-#function prepare_smooth_center(X::Spec, f::Vector{PolyType}; check::Bool=true) where {PolyType<:MPolyElem}
+#function prepare_smooth_center(X::Spec, f::Vector{PolyType}; check::Bool=true) where {PolyType<:MPolyRingElem}
 #  X_dict = as_smooth_local_complete_intersection(X, verbose=true)
 #  return X_dict
 #end
@@ -1082,7 +1082,7 @@ end
 ##
 ## Output: 
 ##   the following lists with index i
-##   loc_list::Vector{Vector{MPolyElem}} A list of partial
+##   loc_list::Vector{Vector{MPolyRingElem}} A list of partial
 ##               factorizations of polynomials that need to
 ##               be localized in order to arrive at the i-th 
 ##               patch.
@@ -1299,7 +1299,7 @@ end
 #    rec_depth::Int=0
 #  ) where{
 #          SpecType<:Spec,
-#          PolyType<:MPolyElem,
+#          PolyType<:MPolyRingElem,
 #          MatrixType
 #         }
 #  recstring = prod(["#" for i in 0:rec_depth])

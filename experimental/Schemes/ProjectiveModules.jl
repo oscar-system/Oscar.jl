@@ -1,6 +1,6 @@
 export is_projective, annihilator
 
-function annihilator(M::SubQuo)
+function annihilator(M::SubquoModule)
   R = base_ring(M)
   F = FreeMod(R, 1)
   I = ideal(R, [one(R)])
@@ -17,7 +17,7 @@ end
 iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
 
 @Markdown.doc """
-    is_projective(M::SubQuo)
+    is_projective(M::SubquoModule)
 
 Given a subquotient ``M = (A + B)/B`` over a ring ``R`` return a triple 
 `(success, π, σ)` where `success` is `true` or `false` depending on 
@@ -26,7 +26,7 @@ where ``π`` is a projection onto ``M`` and ``σ`` a section of ``π``
 so that ``Rʳ ≅ M ⊕ N`` splits as a direct sum via the projector 
 ``σ ∘ π``.
 """
-function is_projective(M::SubQuo; check::Bool=true)
+function is_projective(M::SubquoModule; check::Bool=true)
   ### Assemble a presentation of M over its base ring
   # TODO: Eventually replace by the methods for free 
   # presentation from the module package. 
@@ -83,7 +83,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
   if !(one(R) in I)
     # If I is not the unit ideal, it might still be the case that this holds true for the 
     # restriction to the components of Spec(R). 
-    R isa Union{MPolyRing, MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing} || error("method not implemented")
+    R isa Union{MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing} || error("method not implemented")
     # TODO: Work this out without schemes on the purely algebraic side.
     # This is a temporary hotfix to address a particular boundary case, see #1882. 
     # The code below is also not generic and should eventually be adjusted.
@@ -238,12 +238,12 @@ end
 # helper functions to unify the interface
 _lifted_denominator(a::RingElem) = one(parent(a))
 _lifted_denominator(a::AbsLocalizedRingElem) = denominator(a)
-_lifted_denominator(a::MPolyQuoElem) = one(base_ring(parent(a)))
-_lifted_denominator(a::MPolyQuoLocalizedRingElem) = lifted_denominator(a)
+_lifted_denominator(a::MPolyQuoRingElem) = one(base_ring(parent(a)))
+_lifted_denominator(a::MPolyQuoLocRingElem) = lifted_denominator(a)
 _lifted_numerator(a::RingElem) = a
 _lifted_numerator(a::AbsLocalizedRingElem) = numerator(a)
-_lifted_numerator(a::MPolyQuoElem) = lift(a)
-_lifted_numerator(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)
+_lifted_numerator(a::MPolyQuoRingElem) = lift(a)
+_lifted_numerator(a::MPolyQuoLocRingElem) = lifted_numerator(a)
 
 ########################################################################
 # Various localization routines for localizing at powers of elements   #
@@ -251,16 +251,16 @@ _lifted_numerator(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)
 # This deserves special constructors, because we can deliver maps for  # 
 # lifting which is not possible in general.                            #
 ########################################################################
-function Localization(A::MPolyQuo, f::MPolyQuoElem)
+function Localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
   R = base_ring(A)
   U = MPolyPowersOfElement(R, [lift(f)])
-  W = MPolyLocalizedRing(R, U)
-  L = MPolyQuoLocalizedRing(R, modulus(A), U, A, W)
-  function func(a::MPolyQuoElem)
+  W = MPolyLocRing(R, U)
+  L = MPolyQuoLocRing(R, modulus(A), U, A, W)
+  function func(a::MPolyQuoRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a, check=false)
   end
-  function func_inv(a::MPolyQuoLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                                  <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -275,16 +275,16 @@ function Localization(A::MPolyQuo, f::MPolyQuoElem)
   return L, MapFromFunc(func, func_inv, A, L)
 end
 
-function Localization(A::MPolyLocalizedRing, f::MPolyLocalizedRingElem)
+function Localization(A::MPolyLocRing, f::MPolyLocRingElem)
   R = base_ring(A)
   d = numerator(f)
   U = MPolyPowersOfElement(R, [d])
-  L = MPolyLocalizedRing(R, U*inverted_set(A))
-  function func(a::MPolyLocalizedRingElem)
+  L = MPolyLocRing(R, U*inverted_set(A))
+  function func(a::MPolyLocRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a, check=false)
   end
-  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -296,16 +296,16 @@ function Localization(A::MPolyLocalizedRing, f::MPolyLocalizedRingElem)
   return L, MapFromFunc(func, func_inv, A, L)
 end
 
-function Localization(A::MPolyQuoLocalizedRing, f::MPolyQuoLocalizedRingElem)
+function Localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
   R = base_ring(A)
   d = lifted_numerator(f)
   U = MPolyPowersOfElement(R, [d])
-  L = MPolyQuoLocalizedRing(R, modulus(underlying_quotient(A)), U*inverted_set(A))
-  function func(a::MPolyQuoLocalizedRingElem)
+  L = MPolyQuoLocRing(R, modulus(underlying_quotient(A)), U*inverted_set(A))
+  function func(a::MPolyQuoLocRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a)
   end
-  function func_inv(a::MPolyQuoLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")

@@ -105,7 +105,7 @@ export polynomial
 
 
 @doc Markdown.doc"""
-    polynomial(c::CohomologyClass, ring::MPolyQuo)
+    polynomial(c::CohomologyClass, ring::MPolyQuoRing)
 
 Returns the polynomial in `ring` corresponding
 to the cohomology class `c`.
@@ -142,7 +142,7 @@ julia> polynomial(R_quo, cc)
 6*x3 + x4 + 7*x5
 ```
 """
-function polynomial(ring::MPolyQuo, c::CohomologyClass)
+function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
     p = polynomial(c)
     if iszero(p)
         return zero(ring)

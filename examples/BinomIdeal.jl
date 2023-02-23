@@ -67,7 +67,7 @@ function saturate(I::Singular.sideal,J::Singular.sideal)
 		If=Iff
 	end
 end
-function is_binomial(f::MPolyElem)
+function is_binomial(f::MPolyRingElem)
   return length(f) <= 2
 end
 function isBinomial(f::Singular.spoly)

@@ -317,7 +317,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapO
    ind = [GAP.Globals.IndeterminateNumberOfUnivariateRationalFunction(x)
           for x in indets]::Vector{Int}
 
-   f = function(x::MPolyElem{T})
+   f = function(x::MPolyRingElem{T})
       extrep = []
       for (c, l) in zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.exponent_vectors(x))
         v = []

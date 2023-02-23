@@ -86,7 +86,7 @@ Rational Field
 
 julia> PP = proj_space(K, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 ```
 

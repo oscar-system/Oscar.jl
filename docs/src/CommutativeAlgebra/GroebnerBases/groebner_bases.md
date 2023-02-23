@@ -82,7 +82,7 @@ julia> S, _ = grade(R, [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
-  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
@@ -239,17 +239,17 @@ In the global case, they always return fully reduced remainders.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ```@docs
 reduce_with_quotients(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 		  
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ## Computing Gröbner/Standard Bases
@@ -354,7 +354,7 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 
 
 ```@docs
-leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyElem
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyRingElem
 leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 ```
 
@@ -367,7 +367,7 @@ $g$, $I$, and $>$ (and does not depend on the choice of Gröbner basis). We refe
 a remainder as the *normal form*  of $g$ mod $I$, with respect to $>$.
 
 ```@docs
-normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyElem
+normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyRingElem
 ```
 
 ## Syzygies
@@ -375,6 +375,6 @@ normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(b
 We refer to the section on modules for more on syzygies.
 
 ```@docs
-syzygy_generators(G::Vector{<:MPolyElem})
+syzygy_generators(G::Vector{<:MPolyRingElem})
 ```
 

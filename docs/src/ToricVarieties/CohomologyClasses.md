@@ -15,7 +15,7 @@ Pages = ["CohomologyClasses.md"]
 ### General constructors
 
 ```@docs
-cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoElem)
+cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
 cohomology_class(d::ToricDivisor)
 cohomology_class(c::ToricDivisorClass)
 cohomology_class(l::ToricLineBundle)
@@ -51,7 +51,7 @@ toric_variety(c::CohomologyClass)
 coefficients(c::CohomologyClass)
 exponents(c::CohomologyClass)
 polynomial(c::CohomologyClass)
-polynomial(ring::MPolyQuo, c::CohomologyClass)
+polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 ```
 
 
