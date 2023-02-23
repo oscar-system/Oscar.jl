@@ -752,14 +752,14 @@ end
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -768,7 +768,7 @@ end
   return M
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -1315,7 +1315,7 @@ function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::FreeMod)
   return MR, ident
 end
 
-function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
+function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubquoModule)
   R = domain(f)
   S = codomain(f)
   base_ring(I) === R || error("ideal is not defined over the correct ring")
@@ -1438,7 +1438,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   OOX = OO(X)
   MU = M(U)
   MU isa FreeMod && return [U]
-  MU::SubQuo
+  MU::SubquoModule
   A = _presentation_matrix(MU)
   if iszero(A) 
     # Trivial shortcut in the recursion. 
@@ -1534,7 +1534,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
       M_gens = amb_res.(v)
       rest_gens = [M_gens[k] for k in 1:length(M_gens) if k!=j]
       rels = [amb_res(w) for w in relations(MU)]
-      MV = SubQuo(F, rest_gens, rels)
+      MV = SubquoModule(F, rest_gens, rels)
       img_gens = elem_type(F)[]
       for k in 1:j-1
         push!(img_gens, M_gens[k])
@@ -1590,7 +1590,7 @@ function projectivization(E::AbsCoherentSheaf;
   X = scheme(E)
   check && (is_locally_free(E) || error("coherent sheaf must be locally free"))
   C = trivializing_covering(E)
-  algebras = IdDict{AbsSpec, Union{MPolyQuo, MPolyRing}}()
+  algebras = IdDict{AbsSpec, Union{MPolyQuoRing, MPolyRing}}()
   on_patches = IdDict{AbsSpec, AbsProjectiveScheme}()
 
   # Fill in the names of the variables in case there are none provided.

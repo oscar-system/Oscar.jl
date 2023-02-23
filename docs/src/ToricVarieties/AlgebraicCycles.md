@@ -110,7 +110,7 @@ equivalence classes in the Chow ring.
 ```@docs
 toric_variety(ac::RationalEquivalenceClass)
 polynomial(ac::RationalEquivalenceClass)
-polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
+polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
 ```
 
 ### Representatives

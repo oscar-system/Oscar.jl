@@ -7,7 +7,7 @@ export Variety
 mutable struct Variety
   I::Oscar.MPolyIdeal
 
-  function Variety(I::Oscar.MPolyIdeal{<:MPolyElem{<:FieldElem}})
+  function Variety(I::Oscar.MPolyIdeal{<:MPolyRingElem{<:FieldElem}})
     return new(I)
   end
 end

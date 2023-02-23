@@ -5,7 +5,7 @@ export Localization, MPolyElemLoc, ideal, singular_assure, numerator,
 # Constructors for localized polynomial ring and its elements                 #
 ###############################################################################
 
-function _sort_helper(p::MPolyElem)
+function _sort_helper(p::MPolyRingElem)
   return var_index(leading_term(p))
 end
 
@@ -71,7 +71,7 @@ struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
   end
 end
 
-function MPolyElemLoc(f::MPolyElem{T}, m::Oscar.MPolyIdeal) where {T}
+function MPolyElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
   R = parent(f)
   return MPolyElemLoc{T}(f//R(1), Localization(R, m), false)
 end
@@ -127,7 +127,7 @@ end
 (W::MPolyRingLoc)(i::Int) = W(W.base_ring(i))
 (W::MPolyRingLoc)(i::RingElem) = W(W.base_ring(i))
 
-function (W::MPolyRingLoc{T})(f::MPolyElem) where {T}
+function (W::MPolyRingLoc{T})(f::MPolyRingElem) where {T}
   return MPolyElemLoc{T}(f//one(parent(f)), W)
 end
 

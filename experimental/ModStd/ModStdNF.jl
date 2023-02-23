@@ -170,7 +170,7 @@ function Hecke.modular_lift(f::Vector{IdealGens{nmod_mpoly}}, me::Hecke.modular_
   return g
 end
 
-function homogenize(f::MPolyElem, S::MPolyRing)
+function homogenize(f::MPolyRingElem, S::MPolyRing)
   d = total_degree(f)
   g = MPolyBuildCtx(S)
   for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))

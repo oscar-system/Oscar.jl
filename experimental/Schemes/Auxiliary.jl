@@ -340,7 +340,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   return SimpleGlueing(X, Y, ff, gg, check=false)
 end
 
-ngens(Q::MPolyQuoLocalizedRing) = ngens(base_ring(Q))
+ngens(Q::MPolyQuoLocRing) = ngens(base_ring(Q))
 
 @Markdown.doc """
     inherit_glueings!(ref::Covering, orig::Covering)

@@ -20,7 +20,7 @@ end
 # Coercion                                                             #
 ########################################################################
 (R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
-(R::SpecOpenRing)(f::MPolyQuoLocalizedRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(f::MPolyQuoLocRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
 
 (R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
 
@@ -62,9 +62,9 @@ the numerator and denominator of ``f`` have to be elements of
 the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyLocalizedRing}, 
+    X::AbsSpec{<:Ring, <:MPolyLocRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
-  ) where {RET<:MPolyElem}
+  ) where {RET<:MPolyRingElem}
 
   a = numerator(f)
   b = denominator(f)
@@ -82,7 +82,7 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}, 
+    X::AbsSpec{<:Ring, <:MPolyQuoLocRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
   ) where {RET<:RingElem}
 
@@ -97,7 +97,7 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuo}, 
+    X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
@@ -186,7 +186,7 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuo}, 
+    X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
     f::Vector{AbstractAlgebra.Generic.Frac{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0

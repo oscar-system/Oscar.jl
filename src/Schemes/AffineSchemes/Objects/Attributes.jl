@@ -154,7 +154,7 @@ function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
+@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return Spec(ambient_coordinate_ring(X))
 end
 
@@ -256,7 +256,7 @@ julia> Y = subscheme(X, [x])
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
 julia> (xY, yY) = coordinates(Y)
-2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
  x
  y
 
@@ -311,11 +311,11 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
   return dim(saturated_ideal(modulus(OO(X))))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing})
   # the following line is supposed to refer the problem to the
   # algebra side of the problem
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
@@ -325,7 +325,7 @@ end
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuo})
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoRing})
   return dim(modulus(OO(X)))
 end
 
@@ -456,7 +456,7 @@ with coordinates
 
 ```
 """
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
@@ -464,7 +464,7 @@ with coordinates
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
   J = radical(modulus(OO(X)))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
   return domain(inc), inc
@@ -763,9 +763,9 @@ true
 ```
 """
 @attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuo}) = modulus(OO(X))
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = saturated_ideal(modulus(OO(X)))
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
+@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = saturated_ideal(modulus(OO(X)))
 
 
 ########################################################################
@@ -775,9 +775,9 @@ ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = saturated_id
 OO(X::Spec) = X.OO
 base_ring(X::Spec) = X.kk
 ambient_coordinate_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
-ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
-ambient_coordinate_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
-ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyLocRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoLocRing}) = base_ring(OO(X))
 ambient_coordinate_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
 
 
@@ -797,9 +797,9 @@ base_ring_elem_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}
 base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
 
 poly_type(::Type{SpecType}) where {BRT, RT<:MPolyRing, SpecType<:AbsSpec{BRT, RT}} = elem_type(RT)
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuo{T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoRing{T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
 poly_type(X::AbsSpec) = poly_type(typeof(X))
 
 ring_type(::Type{Spec{BRT, RT}}) where {BRT, RT} = RT

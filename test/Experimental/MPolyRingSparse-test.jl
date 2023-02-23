@@ -27,36 +27,36 @@
       isa(symbols(S), Vector{Symbol})
 
       for j = 1:num_vars
-         @test isa(varlist[j], MPolyElem)
-         @test isa(gens(S)[j], MPolyElem)
+         @test isa(varlist[j], MPolyRingElem)
+         @test isa(gens(S)[j], MPolyRingElem)
       end
 
       f = rand(S, 0:5, 0:100, 0:0, -100:100)
 
-      @test isa(f, MPolyElem)
+      @test isa(f, MPolyRingElem)
 
-      @test isa(S(2), MPolyElem)
+      @test isa(S(2), MPolyRingElem)
 
-      @test isa(S(R(2)), MPolyElem)
+      @test isa(S(R(2)), MPolyRingElem)
 
-      @test isa(S(f), MPolyElem)
+      @test isa(S(f), MPolyRingElem)
 
       V = [R(rand(-100:100)) for i in 1:5]
 
       W1 = [[rand(0:100) for i in 1:num_vars] for j in 1:5]
 
       f1 = S(V, W1)
-      @test isa(f1, MPolyElem)
+      @test isa(f1, MPolyRingElem)
 
       Va = [rand(-100:100) for i in 1:5]
       f1a = S(Va, W1)
 
-      @test isa(f1a, MPolyElem)
+      @test isa(f1a, MPolyRingElem)
 
       Vb = [ZZ(rand(-100:100)) for i in 1:5]
       f1b = S(Vb, W1)
 
-      @test isa(f1b, MPolyElem)
+      @test isa(f1b, MPolyRingElem)
 
       f2 = S()
       fit!(f2, 5)

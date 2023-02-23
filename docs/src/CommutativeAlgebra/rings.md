@@ -234,12 +234,12 @@ we follow the former book.
 ### Types
 
 Multivariate rings with gradings are modelled by objects of type
-`MPolyRing_dec{T, S}  :< MPolyRing{T}`, with elements of type
+`MPolyDecRing{T, S}  :< MPolyRing{T}`, with elements of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
 
 !!! note
-    The types `MPolyRing_dec{T, S}` and `MPolyRingElem_dec{T, S}` are
+    The types `MPolyDecRing{T, S}` and `MPolyRingElem_dec{T, S}` are
     also meant to eventually model multivariate rings with filtrations
 	and their elements.
 
@@ -247,7 +247,7 @@ multivariate ring, and  `T` is the element type of its coefficient ring as above
 The following function allows one to distinguish between graded and filtered rings:
 
 ```@docs
-is_graded(R::MPolyRing_dec)
+is_graded(R::MPolyDecRing)
 ```
 
 ### Constructors for Graded Rings
@@ -274,19 +274,19 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
 ## Tests on Graded Rings
 
 ```@docs
-is_standard_graded(R::MPolyRing_dec)
+is_standard_graded(R::MPolyDecRing)
 ```
 
 ```@docs
-is_z_graded(R::MPolyRing_dec)
+is_z_graded(R::MPolyDecRing)
 ```
 
 ```@docs
-is_zm_graded(R::MPolyRing_dec)
+is_zm_graded(R::MPolyDecRing)
 ```
 
 ```@docs
-is_positively_graded(R::MPolyRing_dec)
+is_positively_graded(R::MPolyDecRing)
 ```
 
 ## Data Associated to Multivariate Rings
@@ -327,11 +327,11 @@ julia> ngens(R)
 In the graded case, we additionally have:
 
 ```@docs
-grading_group(R::MPolyRing_dec)
+grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
-homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem)
+homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
 ```
 
 ## Elements of Multivariate Rings
@@ -358,13 +358,13 @@ julia> S, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> g = 3*x^2+y*z
 3*x^2 + y*z
 
 julia> typeof(g)
-MPolyElem_dec{fmpq, fmpq_mpoly}
+MPolyDecRingElem{fmpq, fmpq_mpoly}
 
 julia> g == S(f)
 true
@@ -459,19 +459,19 @@ julia> total_degree(f)
 Further functionality is available in the graded case:
 
 ```@docs
-homogeneous_components(f::MPolyElem_dec{T, S}) where {T, S}
+homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 ```
 
 ```@docs
-homogeneous_component(f::MPolyElem_dec, g::GrpAbFinGenElem)
+homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
 ```
 
 ```@docs
-is_homogeneous(f::MPolyElem_dec)
+is_homogeneous(f::MPolyDecRingElem)
 ```
 
 ```@docs
-degree(f::MPolyElem_dec)
+degree(f::MPolyDecRingElem)
 ```
 
 ## Homomorphisms From Multivariate Rings
@@ -490,6 +490,6 @@ refer to `R` and `S`, respectively.
 
 !!! note
     The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
-    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
-    `U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
+    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
 

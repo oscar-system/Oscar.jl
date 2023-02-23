@@ -15,7 +15,7 @@ function _rand_polys_nonzero(R, n)
   return polys
 end
 
-function _eq(A::Oscar.SubQuo_dec, B::Oscar.SubQuo_dec)
+function _eq(A::Oscar.SubquoDecModule, B::Oscar.SubquoDecModule)
   if A.F != B.F
     return false
   end
@@ -282,7 +282,7 @@ end
         =#
 
         I = ideal([hom_pols[t] for t = 1:3])
-        R_quo = Oscar.MPolyQuo(RR, I)
+        R_quo = Oscar.MPolyQuoRing(RR, I)
 
         free_resolution(I)
         free_resolution(R_quo)

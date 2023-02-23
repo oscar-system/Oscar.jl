@@ -65,7 +65,7 @@ end
   U = affine_charts(X)
   TC1 = incTC(U[1])
   @test TC1 === incTC(U[1])
-  @test incTC(U[1]) isa SubQuo
+  @test incTC(U[1]) isa SubquoModule
   U21 = PrincipalOpenSubset(U[2], dehomogenize(IP, 1)(x))
   U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))

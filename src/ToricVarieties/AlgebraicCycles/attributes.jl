@@ -56,7 +56,7 @@ export polynomial
 
 
 @doc Markdown.doc"""
-    polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
+    polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
 
 On a simplicial and complete toric variety, the Chow ring
 is isomorphic to a certain quotient of the Cox ring. This
@@ -98,7 +98,7 @@ julia> polynomial(R_quo, ac)
 6*x3 + x4 + 7*x5
 ```
 """
-function polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
+function polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
     p = polynomial(ac)
     if iszero(p)
         return zero(ring)
@@ -140,7 +140,7 @@ julia> representative(ac*ac)
 34*x2*x3
 ```
 """
-@attr MPolyElem_dec{fmpq, fmpq_mpoly} function representative(ac::RationalEquivalenceClass)
+@attr MPolyDecRingElem{fmpq, fmpq_mpoly} function representative(ac::RationalEquivalenceClass)
     if is_trivial(ac)
         return zero(cox_ring(toric_variety(ac)))
     end

@@ -431,7 +431,7 @@ include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")
 include("Rings/groebner.jl")
 include("Rings/solving.jl")
-include("Rings/MPolyQuo.jl")
+include("Rings/MPolyQuoRing.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")
 
@@ -441,7 +441,7 @@ include("Rings/special_ideals.jl")
 
 include("Rings/MPolyMap/MPolyAnyMap.jl")
 include("Rings/MPolyMap/MPolyRing.jl")
-include("Rings/MPolyMap/MPolyQuo.jl")
+include("Rings/MPolyMap/MPolyQuoRing.jl")
 include("Rings/MPolyMap/AffineAlgebras.jl")
 
 include("Rings/mpoly-local.jl")

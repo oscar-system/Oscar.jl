@@ -19,7 +19,7 @@ julia> M = matrix(R, 2, 3, [w x y; x y z])
 [x   y   z]
 
 julia> V = minors(M, 2)
-3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+3-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  w*y - x^2
  w*z - x*y
  x*z - y^2
@@ -82,7 +82,7 @@ julia> T, _ = grade(S)
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -93,7 +93,7 @@ Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
 julia> PP = proj_space(QQ, 3)
 (Projective space of dim 3 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2], x[3]])
+, MPolyDecRingElem{fmpq, fmpq_mpoly}[x[0], x[1], x[2], x[3]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
 (0 : 2 : 0 : 5)
@@ -142,7 +142,7 @@ julia> T, _ = grade(S)
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -176,7 +176,7 @@ julia> T, _ = grade(S)
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -210,7 +210,7 @@ julia> T, _ = grade(S)
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -235,7 +235,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyElem}
+    invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyRingElem}
 
 Return a dictionary where `image` represents the image of the birational map
 given by `phi`, and `inverse` represents its inverse, where `phi` is a
@@ -244,7 +244,7 @@ space of dimension `size(phi) - 1`.
 Note that the entries of `inverse` should be considered as
 representatives of elements in `R/image`, where `R` is the basering.
 """
-function invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyElem}
+function invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyRingElem}
     s = parent(phi[1])
     I = ideal(s, phi)
     singular_assure(I)

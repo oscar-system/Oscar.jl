@@ -126,10 +126,10 @@ function CyclicQuotientSingularity(n::T, q::T) where {T <: IntegerUnion}
     cyclic_quotient_singularity(n, q)
 end
 
-function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
+function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})
     Base.depwarn("ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, "*
-    "defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}) is deprecated, use "*
+    "defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}) is deprecated, use "*
     "'closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, "*
-    "defining_polynomials::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})' instead.", :ClosedSubvarietyOfToricVariety)
+    "defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})' instead.", :ClosedSubvarietyOfToricVariety)
     closed_subvariety_of_toric_variety(toric_variety, defining_polynomials)
   end

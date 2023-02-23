@@ -16,7 +16,7 @@ base_ring(F::LazyPolyRing) = F.base_ring
 
 ## LazyPoly
 
-struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyElem{T}
+struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyRingElem{T}
     parent::PR
     p::SLP.LazyRec
 end

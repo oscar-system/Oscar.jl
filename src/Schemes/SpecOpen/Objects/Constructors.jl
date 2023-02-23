@@ -46,13 +46,13 @@ function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyRing})
   return EmptyScheme(base_ring(X))
 end
 
-function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuo})
+function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuoRing})
   ambient_coordinate_ring(X) == ambient_coordinate_ring(Z) || error("X and Z do not compare")
   return SpecOpen(X, modulus(OO(Z)))
 end
 
 function complement(X::AbsSpec, 
-    Z::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing};
+    Z::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
   check && (is_closed_embedding(Z, X) || error("not a closed embedding"))

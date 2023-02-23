@@ -32,5 +32,5 @@ curve_components(C::ProjCurve)
 is_irreducible(C::ProjCurve)
 reduction(C::ProjCurve)
 jacobi_ideal(C::ProjCurve)
-invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyElem}
+invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyRingElem}
 ```

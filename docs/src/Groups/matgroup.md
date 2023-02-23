@@ -48,7 +48,7 @@ alternating_form(B::MatElem{T}) where T <: FieldElem
 symmetric_form(B::MatElem{T}) where T <: FieldElem
 hermitian_form(B::MatElem{T}) where T <: FieldElem
 quadratic_form(B::MatElem{T}) where T <: FieldElem
-quadratic_form(f::MPolyElem{T}) where T <: FieldElem
+quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem
 corresponding_bilinear_form(B::SesquilinearForm)
 corresponding_quadratic_form(B::SesquilinearForm)
 gram_matrix(f::SesquilinearForm)

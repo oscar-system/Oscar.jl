@@ -42,17 +42,17 @@ ideal_sheaf(X::ProjectiveScheme, I::MPolyIdeal) = IdealSheaf(X, I)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
-    g::MPolyElem_dec
+    g::MPolyDecRingElem
   )
   return IdealSheaf(X, [g])
 end
 
-ideal_sheaf(X::ProjectiveScheme, g::MPolyElem_dec) = IdealSheaf(X, g)
+ideal_sheaf(X::ProjectiveScheme, g::MPolyDecRingElem) = IdealSheaf(X, g)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
     g::Vector{RingElemType}
-  ) where {RingElemType<:MPolyElem_dec}
+  ) where {RingElemType<:MPolyDecRingElem}
   X_covered = covered_scheme(X)
   r = fiber_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
@@ -63,7 +63,7 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
-ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec} = IdealSheaf(X, g)
+ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyDecRingElem} = IdealSheaf(X, g)
 
 
 # this constructs the zero ideal sheaf
@@ -356,7 +356,7 @@ end
 #    verbose::Bool=false,
 #    check::Bool=true,
 #    codimension::Int=dim(U)-dim(subscheme(U, g)) # this assumes both U and its subscheme to be equidimensional
-#  ) where {T<:MPolyElem}
+#  ) where {T<:MPolyRingElem}
 #  verbose && println("preparing $g as a local complete intersection on $U")
 #  f = numerator.(gens(localized_modulus(OO(U))))
 #  f = [a for a in f if !iszero(a)]
@@ -468,9 +468,9 @@ function order_on_divisor(
 #    L, map = Localization(OO(U), 
 #                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
 #                         )
-#    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#    typeof(L)<:Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                        <:MPolyComplementOfPrimeIdeal},
-#                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#                     MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                           <:MPolyComplementOfPrimeIdeal}
 #                    } || error("localization was not successful")
 # 
@@ -669,7 +669,7 @@ function (phi::MPolyAnyMap{D, C})(I::MPolyIdeal) where {D<:MPolyRing, C<:Ring}
   return ideal(S, phi.(gens(I)))
 end
 
-function (phi::MPolyAnyMap{D, C})(I::MPolyQuoIdeal) where {D<:MPolyQuo, C<:Ring}
+function (phi::MPolyAnyMap{D, C})(I::MPolyQuoIdeal) where {D<:MPolyQuoRing, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
   R = domain(phi)
   S = codomain(phi)

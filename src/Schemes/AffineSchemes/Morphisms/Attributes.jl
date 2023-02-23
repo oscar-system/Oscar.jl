@@ -138,7 +138,7 @@ complement_scheme(f::OpenInclusion) = f.Z
 
 function preimage(
     phi::AbsSpecMor,
-    Z::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
+    Z::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                                <:MPolyPowersOfElement}};
     check::Bool=true
   )
@@ -160,7 +160,7 @@ function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=tr
 end
 
 function preimage(f::AbsSpecMor,
-    Z::AbsSpec{<:Ring, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any,
+    Z::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                                             <:MPolyPowersOfElement}};
     check::Bool=true)
   return hypersurface_complement(domain(f), pullback(f).(denominators(inverted_set(OO(Z)))))

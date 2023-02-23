@@ -55,11 +55,11 @@ function underlying_scheme(X::SpaceGerm)
   return X.X
 end
 
-@attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyQuoLocalizedRing})
+@attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyQuoLocRing})
       return Spec(underlying_quotient(OO(X)))
 end
 
-@attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocalizedRing})
+@attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocRing})
     R = ambient_coordinate_ring(X)
     return Spec(R)
 end
@@ -75,20 +75,20 @@ end
 
 Oscar.ring(X::AbsSpaceGerm) = OO(X)
 
-function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
+function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocRing})
     return modulus(OO(X))
 end
 
-function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
+function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyLocRing})
     return ideal(OO(X),[zero(OO(X))])
 end
 
-@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
+@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocRing})
     Y,_ = germ_at_point(localized_ring(OO(X)))
     return Y
 end
 
-@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
+@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocRing})
     return X
 end
 
@@ -219,14 +219,14 @@ function germ_at_point(A::MPolyRing, a::Vector)
   return Y, restr_map
 end
 
-function germ_at_point(A::MPolyQuo, I::Ideal)
+function germ_at_point(A::MPolyQuoRing, I::Ideal)
   X = Spec(A)
   Y = SpaceGerm(X, I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(A::MPolyQuo, a::Vector)
+function germ_at_point(A::MPolyQuoRing, a::Vector)
   X = Spec(A)
   Y = SpaceGerm(X, a)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
@@ -237,13 +237,13 @@ end
 ## for convenience of users thinking in terms of local rings
 #########################################################################################
 
-LocalRing = Union{MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+LocalRing = Union{MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
                                         <:MPolyComplementOfKPointIdeal},
-                  MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                  MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
                                      <:MPolyComplementOfKPointIdeal},
-                  MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                  MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
                                         <:MPolyComplementOfPrimeIdeal},
-                  MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                  MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
                                      <:MPolyComplementOfPrimeIdeal}
                  }
 
@@ -266,7 +266,7 @@ end
 #       intersect with explicit fallback to Spec and change of return type
 ##############################################################################
 
-function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing})
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   point(X) == point(Y) || return false
@@ -274,20 +274,20 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGe
   return issubset(IY,modulus(OO(X)))
 end
 
-function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing})
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   point(X) == point(Y) || return false
   return iszero(modulus(OO(Y)))
 end
 
-function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing})
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocRing})
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   return point(X) == point(Y)
 end
 
-function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing})
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocRing})
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   return point(X) == point(Y)
@@ -306,7 +306,7 @@ function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
   I = intersect(modulus(underlying_quotient(OO(X))),modulus(underlying_quotient(OO(Y))))
-  Z,_ = germ_at_point(MPolyQuoLocalizedRing(R, I ,inverted_set(OO(X))))
+  Z,_ = germ_at_point(MPolyQuoLocRing(R, I ,inverted_set(OO(X))))
   return Z
 end
 

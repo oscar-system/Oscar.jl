@@ -18,7 +18,7 @@ end
 # Generic fractions on PrincipalOpenSubsets                            #
 ########################################################################
 @Markdown.doc """
-    generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
+    generic_fraction(a::MPolyLocRingElem, U::PrincipalOpenSubset)
 
 Given a regular function ``a ∈ 𝒪(U)`` on a principal open 
 subset ``U ⊂ X`` of an affine scheme ``X``, return a 
@@ -27,13 +27,13 @@ of ``U``) which represents ``a``
 in the sense that the maximal extension of its restriction 
 to ``U`` returns ``a``.
 """
-function generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
+function generic_fraction(a::MPolyLocRingElem, U::PrincipalOpenSubset)
   X = ambient_scheme(U)
   parent(a) == OO(U) || error("domains are not compatible")
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
-function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
+function generic_fraction(a::MPolyQuoLocRingElem, U::PrincipalOpenSubset)
   X = ambient_scheme(U)
   parent(a) == OO(U) || error("domains are not compatible")
   return lifted_numerator(a)//lifted_denominator(a)

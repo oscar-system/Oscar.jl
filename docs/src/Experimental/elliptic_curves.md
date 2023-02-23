@@ -59,7 +59,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
 Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
@@ -112,7 +112,7 @@ The addition of points is not well defined for projective elliptic curves over a
 ```@docs
 sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
 IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
-rand_pair_EllCurve_Point(R::Oscar.MPolyRing_dec{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
+rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
 ```
 
 ### Primality proving
@@ -135,14 +135,14 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
+  z -> [1], MPolyDecRingElem{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
 Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = proj_space(A, 2)
 (Projective space of dim 2 over Integers modulo 4453
-, MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
+, MPolyDecRingElem{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
 (1 : 3 : 1)

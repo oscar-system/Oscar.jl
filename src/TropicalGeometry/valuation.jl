@@ -262,7 +262,7 @@ simulate_valuation(I,val_2)
 function simulate_valuation(I::MPolyIdeal, val::TropicalSemiringMap)
   return ideal(simulate_valuation(gens(I),val))
 end
-function simulate_valuation(G::Vector{<:MPolyElem}, val::TropicalSemiringMap)
+function simulate_valuation(G::Vector{<:MPolyRingElem}, val::TropicalSemiringMap)
 
   # if the valuation is trivial, then nothing needs to be done
   if is_valuation_trivial(val)
@@ -345,11 +345,11 @@ function desimulate_valuation(vvI::MPolyIdeal,val::TropicalSemiringMap)
   return ideal([g for g in desimulate_valuation(gens(vvI),val) if !iszero(g)])
 end
 
-function desimulate_valuation(vvG::Vector{<:MPolyElem}, val::TropicalSemiringMap)
+function desimulate_valuation(vvG::Vector{<:MPolyRingElem}, val::TropicalSemiringMap)
   return [desimulate_valuation(vvg,val) for vvg in vvG]
 end
 
-function desimulate_valuation(vvg::MPolyElem, val::TropicalSemiringMap)
+function desimulate_valuation(vvg::MPolyRingElem, val::TropicalSemiringMap)
   Rx = parent(vvg)
   R = coefficient_ring(Rx)
   x = copy(symbols(Rx))
@@ -425,7 +425,7 @@ tighten_simulation(f,val_s)
 tighten_simulation(s^3*f,val_s)
 tighten_simulation(t^3*f,val_s)
 =======#
-function tighten_simulation(f::MPolyElem,val::TropicalSemiringMap)
+function tighten_simulation(f::MPolyRingElem,val::TropicalSemiringMap)
   @assert !iszero(f)
   # return f if f = p-t or t-p
   Rtx = parent(f)

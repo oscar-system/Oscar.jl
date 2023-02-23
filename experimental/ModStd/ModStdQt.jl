@@ -8,7 +8,7 @@ function __init__()
   Hecke.add_verbose_scope(:ModStdQt)
 end
 
-function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)
+function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)
   n = evaluate(numerator(f), v)
   d = evaluate(denominator(f), v)
   if iszero(d) 
@@ -133,7 +133,7 @@ mutable struct MPolyInterpolateCtx{T}
   I::InterpolateCtx#{T}
   status::Symbol
 
-  function MPolyInterpolateCtx(F::FracField{<:MPolyElem{S}}, pt::MPolyPt) where {S}
+  function MPolyInterpolateCtx(F::FracField{<:MPolyRingElem{S}}, pt::MPolyPt) where {S}
     r = new{S}()
     r.parent = F
     r.R = base_ring(F)
@@ -161,7 +161,7 @@ end
 mutable struct Vals{T}
   v::Vector{Vector{T}}
   nd::Vector{Tuple{<:PolyElem{T}, <:PolyElem{T}}}
-  G::RingElem # can be Generic.Frac{<:MPolyElem{T}} or PolyElem
+  G::RingElem # can be Generic.Frac{<:MPolyRingElem{T}} or PolyElem
   function Vals(v::Vector{Vector{S}}) where {S}
     r = new{S}()
     r.v = v
@@ -450,7 +450,7 @@ function ref_ff!(M::MatElem)
   return rk
 end
 
-function Hecke.content(M::MatrixElem{<:MPolyElem})
+function Hecke.content(M::MatrixElem{<:MPolyRingElem})
   m = []
   for idx = eachindex(M)
     l = length(M[idx]) # should be 0 iff entry is zero
@@ -476,7 +476,7 @@ end
 A generic fraction free row echelon form for matrices over multivariate
   polynomial ring. Removes the row-contents, but dose not clean-up upwards.
 """
-function ref_ff_rc!(M::MatElem{<:MPolyElem})
+function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
   rk = 0
   for i=1:nrows(M)
     c = content(M[i, :])
@@ -531,7 +531,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyElem})
 end
 
 @doc Markdown.doc"""
-    factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
+    factor_absolute(f::MPolyRingElem{Generic.Frac{fmpq_mpoly}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute
 factorisation, ie. a factorisation in K[X] where K is the
@@ -571,7 +571,7 @@ julia> parent(f[2][1])
 Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
 ```  
 """
-function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
+function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{fmpq_mpoly}})
   Qtx = parent(f)                 # Q[t1,t2][x1,x2]
   Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
   Rx, x = PolynomialRing(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]

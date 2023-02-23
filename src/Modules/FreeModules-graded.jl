@@ -3,8 +3,8 @@ export presentation, grading_group, ModuleOrdering
 
 abstract type ModuleFP_dec{T} end
 
-const Ring_dec = Union{MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
-const RingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
+const Ring_dec = Union{MPolyDecRing, MPolyQuoRing{<:Oscar.MPolyDecRingElem}}
+const RingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRingElem}}
 #TODO: "fix" to allow QuoElem s as well...
 # this requires
 #  re-typeing of FreeModule
@@ -180,8 +180,8 @@ function +(a::FreeModuleElem_dec, b::FreeModuleElem_dec)
    return FreeModuleElem_dec(a.r+b.r, a.parent)
 end
 
-*(a::MPolyElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
-*(a::MPolyElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(parent(b).R(a)*b.r, b.parent)
+*(a::MPolyDecRingElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
+*(a::MPolyRingElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(parent(b).R(a)*b.r, b.parent)
 *(a::Int, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
 *(a::Integer, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
 *(a::fmpq, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
@@ -410,7 +410,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
     end
     function pr_func(x)
       @assert parent(x) == G
-      #assume S == SubQuoElem_dec which cannot be asserted here, the type if defined too late
+      #assume S == SubquoDecModuleElem which cannot be asserted here, the type if defined too late
       c = coordinates(x.a, sub(G, a))
       return FreeModuleElem_dec(c, F)
     end
@@ -491,7 +491,7 @@ function homogeneous_components(h::T) where {T <: Map_dec}
   return c
 end
 
-@attributes mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
+@attributes mutable struct SubquoDecModule{T} <: ModuleFP_dec{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeModule_dec{T}
   sub::BiModArray
@@ -500,14 +500,14 @@ end
   std_sub::BiModArray
   std_quo::BiModArray
 
-  function SubQuo_dec(F::FreeModule_dec{R}, O::Vector{<:FreeModuleElem_dec}) where {R}
+  function SubquoDecModule(F::FreeModule_dec{R}, O::Vector{<:FreeModuleElem_dec}) where {R}
     r = new{R}()
     r.F = F
     r.sub = BiModArray(O, F, singular_module(F))
     r.sum = r.sub
     return r
   end
-  function SubQuo_dec(S::SubQuo_dec, O::Vector{<:FreeModuleElem_dec{L}}) where {L}
+  function SubquoDecModule(S::SubquoDecModule, O::Vector{<:FreeModuleElem_dec{L}}) where {L}
     r = new{L}()
     r.F = S.F
     r.sub = S.sub
@@ -515,7 +515,7 @@ end
     r.sum = BiModArray(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
     return r
   end
-  function SubQuo_dec(F::FreeModule_dec{R}, s::Singular.smodule) where {R}
+  function SubquoDecModule(F::FreeModule_dec{R}, s::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     r.sub = BiModArray(F, s)
@@ -525,7 +525,7 @@ end
     end
     return r
   end
-  function SubQuo_dec(F::FreeModule_dec{R}, s::Singular.smodule, t::Singular.smodule) where {R}
+  function SubquoDecModule(F::FreeModule_dec{R}, s::Singular.smodule, t::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     r.sub = BiModArray(F, s)
@@ -541,7 +541,7 @@ end
   end
 end
 
-function show(io::IO, SQ::SubQuo_dec)
+function show(io::IO, SQ::SubquoDecModule)
   @show_name(io, SQ)
   @show_special(io, SQ)
 
@@ -557,17 +557,17 @@ end
   FreeModule F. It represents $(A+B)/B$, so elements are given as elements
   in $A+B$
 """
-struct SubQuoElem_dec{T}
+struct SubquoDecModuleElem{T}
  a::FreeModuleElem_dec{T}
- parent::SubQuo_dec
+ parent::SubquoDecModule
 end
 
-elem_type(::SubQuo_dec{T}) where {T} = SubQuoElem_dec{T}
-parent_type(::SubQuoElem_dec{T}) where {T} = SubQuo_dec{T}
-elem_type(::Type{SubQuo_dec{T}}) where {T} = SubQuoElem_dec{T}
-parent_type(::Type{SubQuoElem_dec{T}}) where {T} = SubQuo_dec{T}
+elem_type(::SubquoDecModule{T}) where {T} = SubquoDecModuleElem{T}
+parent_type(::SubquoDecModuleElem{T}) where {T} = SubquoDecModule{T}
+elem_type(::Type{SubquoDecModule{T}}) where {T} = SubquoDecModuleElem{T}
+parent_type(::Type{SubquoDecModuleElem{T}}) where {T} = SubquoDecModule{T}
 
-function sum_gb_assure(SQ::SubQuo_dec)
+function sum_gb_assure(SQ::SubquoDecModule)
   singular_assure(SQ.sum)
   if SQ.sum.S.isGB
     return
@@ -583,55 +583,55 @@ function groebner_basis(F::BiModArray)
   return BiModArray(F.F, Singular.std(F.S))
 end
 
-function show(io::IO, b::SubQuoElem_dec)
+function show(io::IO, b::SubquoDecModuleElem)
   print(io, b.a)
 end
 
-parent(b::SubQuoElem_dec) = b.parent
+parent(b::SubquoDecModuleElem) = b.parent
 
-function (R::SubQuo_dec)(a::FreeModuleElem_dec; check::Bool = true)
+function (R::SubquoDecModule)(a::FreeModuleElem_dec; check::Bool = true)
   if check
     b = convert(R.sum.SF, a)
     sum_gb_assure(R)
     c = _reduce(b, R.sum.S)
     iszero(c) || error("not in the module")
   end
-  return SubQuoElem_dec(a, R)
+  return SubquoDecModuleElem(a, R)
 end
 
-function (R::SubQuo_dec)(a::SubQuoElem_dec)
+function (R::SubquoDecModule)(a::SubquoDecModuleElem)
   if parent(a) == R
     return a
   end
   error("illegal coercion")
 end
 
-+(a::SubQuoElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a.a+b.a, a.parent)
--(a::SubQuoElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a.a-b.a, a.parent)
--(a::SubQuoElem_dec) = SubQuoElem_dec(-a.a, a.parent)
-*(a::MPolyElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
-*(a::MPolyElem, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
-*(a::Int, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
-*(a::Integer, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
-*(a::fmpq, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
-==(a::SubQuoElem_dec, b::SubQuoElem_dec) = iszero(a-b)
++(a::SubquoDecModuleElem, b::SubquoDecModuleElem) = SubquoDecModuleElem(a.a+b.a, a.parent)
+-(a::SubquoDecModuleElem, b::SubquoDecModuleElem) = SubquoDecModuleElem(a.a-b.a, a.parent)
+-(a::SubquoDecModuleElem) = SubquoDecModuleElem(-a.a, a.parent)
+*(a::MPolyDecRingElem, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
+*(a::MPolyRingElem, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
+*(a::Int, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
+*(a::Integer, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
+*(a::fmpq, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
+==(a::SubquoDecModuleElem, b::SubquoDecModuleElem) = iszero(a-b)
 
 function sub(F::FreeModule_dec, O::Vector{<:FreeModuleElem_dec})
   all(is_homogeneous, O) || error("generators have to be homogeneous")
-  s = SubQuo_dec(F, O)
+  s = SubquoDecModule(F, O)
 end
 
-function sub(F::FreeModule_dec, O::Vector{<:SubQuoElem_dec})
+function sub(F::FreeModule_dec, O::Vector{<:SubquoDecModuleElem})
   all(is_homogeneous, O) || error("generators have to be homogeneous")
-  return SubQuo_dec(F, [x.a for x = O])
+  return SubquoDecModule(F, [x.a for x = O])
 end
 
-function sub(F::FreeModule_dec, s::SubQuo_dec)
+function sub(F::FreeModule_dec, s::SubquoDecModule)
   @assert !isdefined(s, :quo)
   return s
 end
 
-function sub(S::SubQuo_dec, O::Vector{<:SubQuoElem_dec})
+function sub(S::SubquoDecModule, O::Vector{<:SubquoDecModuleElem})
   t = sub(S.F, O)
   if isdefined(S, :quo)
     return quo(t, collect(S.quo))
@@ -641,37 +641,37 @@ function sub(S::SubQuo_dec, O::Vector{<:SubQuoElem_dec})
 end
 
 function quo(F::FreeModule_dec, O::Vector{<:FreeModuleElem_dec})
-  S = SubQuo_dec(F, basis(F))
-  return SubQuo_dec(S, O)
+  S = SubquoDecModule(F, basis(F))
+  return SubquoDecModule(S, O)
 end
 
-function quo(F::FreeModule_dec, O::Vector{<:SubQuoElem_dec})
-  S = SubQuo_dec(F, basis(F))
-  return SubQuo_dec(S, [x.a for x = O])
+function quo(F::FreeModule_dec, O::Vector{<:SubquoDecModuleElem})
+  S = SubquoDecModule(F, basis(F))
+  return SubquoDecModule(S, [x.a for x = O])
 end
 
-function quo(F::SubQuo_dec, O::Vector{<:FreeModuleElem_dec})
+function quo(F::SubquoDecModule, O::Vector{<:FreeModuleElem_dec})
   all(is_homogeneous, O) || error("generators have to be homogeneous")
   @assert parent(O[1]) == F.F
   if isdefined(F, :quo)
     F.sub[Val(:S), 1]
     [F.quo[Val(:O), i] for i = 1:length(F.quo.O)]
     s = Singular.smodule{elem_type(base_ring(F.quo.SF))}(base_ring(F.quo.SF), [convert(F.quo.SF, x) for x = [O; F.quo.O]]...)
-    return SubQuo_dec(F.F, F.sub.S, s)
+    return SubquoDecModule(F.F, F.sub.S, s)
   end
-  return SubQuo_dec(F, O)
+  return SubquoDecModule(F, O)
 end
 
-function quo(S::SubQuo_dec, O::Vector{<:SubQuoElem_dec})
-  return SubQuo_dec(S, [x.a for x = O])
+function quo(S::SubquoDecModule, O::Vector{<:SubquoDecModuleElem})
+  return SubquoDecModule(S, [x.a for x = O])
 end
 
-function quo(S::SubQuo_dec, T::SubQuo_dec)
+function quo(S::SubquoDecModule, T::SubquoDecModule)
 #  @assert !isdefined(T, :quo)
-  return SubQuo_dec(S, T.sum.O)
+  return SubquoDecModule(S, T.sum.O)
 end
 
-function quo(F::FreeModule_dec, T::SubQuo_dec)
+function quo(F::FreeModule_dec, T::SubquoDecModule)
   @assert !isdefined(T, :quo)
   return quo(F, gens(T))
 end
@@ -686,27 +686,27 @@ function syzygie_module(F::BiModArray; sub = 0)
     z = grading_group(base_ring(F.F))[0]
     G = FreeModule(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
   end
-  return SubQuo_dec(G, s)
+  return SubquoDecModule(G, s)
 end
 
-function gens(F::SubQuo_dec)
-  return map(x->SubQuoElem_dec(x, F), collect(F.sub))
+function gens(F::SubquoDecModule)
+  return map(x->SubquoDecModuleElem(x, F), collect(F.sub))
 end
 
-function gen(F::SubQuo_dec, i::Int)
-  return SubQuoElem_dec(F.sub[Val(:O), i], F)
+function gen(F::SubquoDecModule, i::Int)
+  return SubquoDecModuleElem(F.sub[Val(:O), i], F)
 end
 
-ngens(F::SubQuo_dec) = length(F.sub)
-base_ring(SQ::SubQuo_dec) = base_ring(SQ.F)
+ngens(F::SubquoDecModule) = length(F.sub)
+base_ring(SQ::SubquoDecModule) = base_ring(SQ.F)
 
-zero(SQ::SubQuo_dec) = SubQuoElem_dec(zero(SQ.F), SQ)
+zero(SQ::SubquoDecModule) = SubquoDecModuleElem(zero(SQ.F), SQ)
 
-function Base.iszero(F::SubQuo_dec)
+function Base.iszero(F::SubquoDecModule)
   return all(iszero, gens(F))
 end
 
-function Base.getindex(F::SubQuo_dec, i::Int)
+function Base.getindex(F::SubquoDecModule, i::Int)
   i == 0 && return zero(F)
   return gen(F, i)
 end
@@ -731,9 +731,9 @@ function *(a::FreeModuleElem_dec, b::Vector{FreeModuleElem_dec})
 end
 
 grading_group(F::FreeModule_dec) = grading_group(F.R)
-grading_group(SQ::SubQuo_dec) = grading_group(SQ.F)
+grading_group(SQ::SubquoDecModule) = grading_group(SQ.F)
 
-function presentation(SQ::SubQuo_dec)
+function presentation(SQ::SubquoDecModule)
   #A+B/B is generated by A and B
   #the relations are A meet B? written wrt to A
   s = syzygie_module(SQ.sum)
@@ -783,7 +783,7 @@ end
 mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::Hecke.MapHeader
   im::Vector
-  function SubQuoHom_dec(D::SubQuo_dec, C::ModuleFP_dec, im::Vector)
+  function SubQuoHom_dec(D::SubquoDecModule, C::ModuleFP_dec, im::Vector)
     first = true
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
@@ -801,7 +801,7 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
         @assert deg == degree(b[i]) - degree(im[i])
       end
     end
-    r = new{SubQuo_dec, typeof(C)}()
+    r = new{SubquoDecModule, typeof(C)}()
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
@@ -841,7 +841,7 @@ end
 # tensor and hom functors for chain complex
 # dual: ambig: hom(M, R) or hom(M, Q(R))?
 
-function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
+function coordinates(a::FreeModuleElem_dec, SQ::SubquoDecModule)
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
@@ -866,9 +866,9 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
 end
 
 
-hom(D::SubQuo_dec, C::ModuleFP_dec, A::Vector) = SubQuoHom_dec(D, C, A)
+hom(D::SubquoDecModule, C::ModuleFP_dec, A::Vector) = SubQuoHom_dec(D, C, A)
 
-function image(f::SubQuoHom_dec, a::SubQuoElem_dec)
+function image(f::SubQuoHom_dec, a::SubquoDecModuleElem)
   i = zero(codomain(f))
   D = domain(f)
   b = coordinates(a.a, D)
@@ -900,7 +900,7 @@ function preimage(f::SubQuoHom_dec, a::FreeModuleElem_dec)
 end
 
 (f::SubQuoHom_dec)(a::FreeModuleElem_dec) = image(f, a)
-(f::SubQuoHom_dec)(a::SubQuoElem_dec) = image(f, a)
+(f::SubQuoHom_dec)(a::SubquoDecModuleElem) = image(f, a)
 
 function degree(h::SubQuoHom_dec)
   b = gens(domain(h))
@@ -913,7 +913,7 @@ function degree(h::SubQuoHom_dec)
 end
 #ishom, homcompo missing
 
-function degree(a::FreeModuleElem_dec, C::SubQuo_dec)
+function degree(a::FreeModuleElem_dec, C::SubquoDecModule)
   if !isdefined(C, :quo)
     return degree(a)
   end
@@ -925,7 +925,7 @@ function degree(a::FreeModuleElem_dec, C::SubQuo_dec)
   return degree(convert(C.F, x))
 end
 
-function is_homogeneous(a::SubQuoElem_dec)
+function is_homogeneous(a::SubquoDecModuleElem)
   C = parent(a)
   if !isdefined(C, :quo)
     return is_homogeneous(a.a)
@@ -938,7 +938,7 @@ function is_homogeneous(a::SubQuoElem_dec)
   return is_homogeneous(convert(C.F, x))
 end
 
-function iszero(a::SubQuoElem_dec)
+function iszero(a::SubquoDecModuleElem)
   C = parent(a)
   if !isdefined(C, :quo)
     return iszero(a.a)
@@ -951,7 +951,7 @@ function iszero(a::SubQuoElem_dec)
   return iszero(x)
 end
 
-function degree(a::SubQuoElem_dec)
+function degree(a::SubquoDecModuleElem)
   C = parent(a)
   if !isdefined(C, :quo)
     return degree(a.a)
@@ -1001,7 +1001,7 @@ function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
     return s, hom(s, G, gens(G))
   end
   g = map(h, basis(G))
-  if isa(codomain(h), SubQuo_dec)
+  if isa(codomain(h), SubquoDecModule)
     g = [x.a for x = g]
     if isdefined(codomain(h), :quo)
       append!(g, collect(codomain(h).quo))
@@ -1010,7 +1010,7 @@ function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
   #TODO allow sub-quo here as well
   b = BiModArray(g)
   k = syzygie_module(b)
-  if isa(codomain(h), SubQuo_dec)
+  if isa(codomain(h), SubquoDecModule)
     s = collect(k.sub)
     k = sub(G, [FreeModuleElem_dec(x.r[1:dim(G)], G) for x = s])
   else
@@ -1051,7 +1051,7 @@ function free_resolution(F::FreeModule_dec)
   return presentation(F)
 end
 
-function free_resolution(S::SubQuo_dec, limit::Int = -1)
+function free_resolution(S::SubquoDecModule, limit::Int = -1)
   p = presentation(S)
   mp = [map(p, j) for j=1:length(p)]
   D = grading_group(S)
@@ -1115,7 +1115,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
-  function im(x::SubQuoElem_dec)
+  function im(x::SubquoDecModuleElem)
     @assert parent(x) == H
     return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.a))(preimage(map(p1, 2), g))) for g = gens(M)])
   end
@@ -1128,7 +1128,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
     g = hom(Rs0, Rt0, [preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)])
 
     return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
-    return SubQuoElem_dec(emb[1](preimage(mH_s0_t0, g)), H)
+    return SubquoDecModuleElem(emb[1](preimage(mH_s0_t0, g)), H)
   end
   return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
 end
@@ -1297,17 +1297,17 @@ function free_module(F::FreeModule_dec)
   return F
 end
 
-function free_module(F::SubQuo_dec)
+function free_module(F::SubquoDecModule)
   return F.F
 end
 
 gens(F::FreeModule_dec, G::FreeModule_dec) = gens(F)
-gens(F::SubQuo_dec, G::FreeModule_dec) = [x.a for x = gens(F)]
+gens(F::SubquoDecModule, G::FreeModule_dec) = [x.a for x = gens(F)]
 rels(F::FreeModule_dec) = elem_type(F)[]
-rels(F::SubQuo_dec) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
+rels(F::SubquoDecModule) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
 
 @doc Markdown.doc"""
-    tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubQuo_dec, Map
+    tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubquoDecModule, Map
 
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
 If `task` is set to ":map", a map $\phi$ is returned that
@@ -1335,7 +1335,7 @@ end
 #################################################
 #
 #################################################
-function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec, MPolyIdeal{<:MPolyElem_dec}}}
+function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubquoDecModule, MPolyIdeal{<:MPolyDecRingElem}}}
 
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
@@ -1382,7 +1382,7 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
   X = FreeModule(base_ring(W), deg)
   set_attribute!(X, :show => show_homo_comp, :data => (F, d))
 
-  function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubQuoElem_dec}}
+  function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubquoDecModuleElem}}
     #TODO: add X() and some sane setting of coeffs in FreeElems
     @assert elem_type(F) == typeof(g)
     @assert parent(g) == F

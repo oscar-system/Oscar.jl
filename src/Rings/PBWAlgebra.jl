@@ -343,7 +343,7 @@ function (R::PBWAlgRing)(cs::AbstractVector, es::AbstractVector{Vector{Int}})
   return finish(z)
 end
 
-function (R::PBWAlgRing)(a::MPolyElem)
+function (R::PBWAlgRing)(a::MPolyRingElem)
   @assert parent(a) == R.poly_ring
   z = build_ctx(R)
   for (c, e) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
@@ -354,7 +354,7 @@ end
 
 ####
 
-function _unsafe_coerce(R::Union{MPolyRing, Singular.PluralRing}, a::Union{MPolyElem, Singular.spluralg}, rev::Bool)
+function _unsafe_coerce(R::Union{MPolyRing, Singular.PluralRing}, a::Union{MPolyRingElem, Singular.spluralg}, rev::Bool)
   z = MPolyBuildCtx(R)
   for (c, e) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     push_term!(z, base_ring(R)(c), rev ? reverse(e) : e)
@@ -447,7 +447,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   return R, [PBWAlgElem(R, x) for x in gs]
 end
 
-function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyElem{T}}
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyRingElem{T}}
   n = nvars(r)
   gs = gens(r)
   relm = strictly_upper_triangular_matrix([gs[i]*gs[j] for i in 1:n-1 for j in i+1:n])
@@ -458,7 +458,7 @@ function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::Mono
   return pbw_algebra(r, relm, ord)
 end
 
-function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyElem{T}}
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyRingElem{T}}
   rel2 = Tuple{Int, Int, U}[(var_index(i[1]), var_index(i[2]), i[3]) for i in rel]
   return pbw_algebra(r, rel2, ord)
 end

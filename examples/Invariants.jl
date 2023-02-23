@@ -33,7 +33,7 @@ julia> f^g
 2*x + y^2 + 3
 ```
 """
-function ^(f::MPolyElem, s::Oscar.PermGroupElem)
+function ^(f::MPolyRingElem, s::Oscar.PermGroupElem)
   G = parent(s)
   @assert ngens(parent(f)) == degree(G)
 
@@ -78,7 +78,7 @@ end
 
 # Reynolds operator ([S, Section 2.1])
 # Naive implementation straight from the definition
-reynolds(G::Oscar.GAPGroup, f::MPolyElem) = sum(g -> f^g, G) / order(G)
+reynolds(G::Oscar.GAPGroup, f::MPolyRingElem) = sum(g -> f^g, G) / order(G)
 
 
 function minpoly(g::GAP.GapObj)

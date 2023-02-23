@@ -317,7 +317,7 @@ julia> G = MatrixGroup(3, K, [M1, M2]);
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-2-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+2-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  1
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
@@ -351,7 +351,7 @@ julia> G = MatrixGroup(5, QQ, [M]);
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+12-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  1
  x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
  x[3]^2 + x[4]^2 + x[5]^2
@@ -366,7 +366,7 @@ julia> secondary_invariants(IR)
  x[1]*x[3]^5 - x[2]*x[3]^5 + x[2]*x[3]^4*x[4] + 2*x[1]*x[3]^3*x[4]^2 - 2*x[2]*x[3]^3*x[4]^2 + 2*x[2]*x[3]^2*x[4]^3 + x[1]*x[3]*x[4]^4 - x[2]*x[3]*x[4]^4 + x[2]*x[4]^5 - x[1]*x[3]^4*x[5] - 2*x[1]*x[3]^2*x[4]^2*x[5] - x[1]*x[4]^4*x[5] + 2*x[1]*x[3]^3*x[5]^2 - 2*x[2]*x[3]^3*x[5]^2 + 2*x[2]*x[3]^2*x[4]*x[5]^2 + 2*x[1]*x[3]*x[4]^2*x[5]^2 - 2*x[2]*x[3]*x[4]^2*x[5]^2 + 2*x[2]*x[4]^3*x[5]^2 - 2*x[1]*x[3]^2*x[5]^3 - 2*x[1]*x[4]^2*x[5]^3 + x[1]*x[3]*x[5]^4 - x[2]*x[3]*x[5]^4 + x[2]*x[4]*x[5]^4 - x[1]*x[5]^5
 
 julia> irreducible_secondary_invariants(IR)
-8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+8-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
  x[3]^2 + x[4]^2 + x[5]^2
  x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
@@ -421,7 +421,7 @@ julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c i
 group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
 
 julia> semi_invariants(RS2, chi)
-1-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+1-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  x[1] - x[2]
 
 ```

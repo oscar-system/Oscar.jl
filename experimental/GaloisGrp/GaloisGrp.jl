@@ -720,7 +720,7 @@ function upper_bound(G::GaloisCtx, ::typeof(power_sum), i::Int, ts::fmpz_poly = 
   return parent(b)(degree(G.f))*b^i
 end
 
-function Hecke.orbit(G::Oscar.PermGroup, f::MPolyElem)
+function Hecke.orbit(G::Oscar.PermGroup, f::MPolyRingElem)
   s = Set([f])
   while true
     n = Set(x^g for x = s for g = gens(G))
@@ -737,7 +737,7 @@ function Hecke.evaluate(I::SLPoly, p, a::Vector)
   return evaluate(I, [a[p(i)] for i=1:length(a)])
 end
 
-probable_orbit(G::Oscar.PermGroup, f::MPolyElem) = orbit(G, f)
+probable_orbit(G::Oscar.PermGroup, f::MPolyRingElem) = orbit(G, f)
 
 """
 `slprogram`s can be compiled into "normal" Julia functions, but there is

@@ -1,6 +1,6 @@
 #module MPolyModule
 
-export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
+export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyRingElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
        leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
@@ -116,21 +116,21 @@ function Base.getindex(R::MPolyRing, i::Int)
   return gen(R, i)
 end
 
-ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyElem} = ngens(base_ring(F))
+ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
 
 function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyElem}
   return F(gen(base_ring(F)))
 end
 
-function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyElem}
+function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
   return F(gen(base_ring(F), i))
 end
 
-function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyElem, MPolyElem}}
+function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyElem, MPolyRingElem}}
   return map(F, gens(base_ring(F)))
 end
 
-function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyElem}
+function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
   i == 0 && return zero(F)
   return gen(F, i)
 end
@@ -202,7 +202,7 @@ mutable struct BiPolyArray{S}
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
       Sx = base_ring(S)
-      if T <: MPolyQuo
+      if T <: MPolyQuoRing
           r = new{typeof(Ox).parameters[1]}()
       else
           r = new{elem_type(T)}()
@@ -250,7 +250,7 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::T, S::Singular.sideal, isReduced::Bool = false) where {T <: NCRing}
-      if T <: MPolyQuo
+      if T <: MPolyQuoRing
           r = new{typeof(Ox).parameters[1]}()
           r.ord = Ox.ordering
       else
@@ -585,7 +585,7 @@ Fields:
   gb::Dict{MonomialOrdering, IdealGens{S}}
   dim::Int
 
-  function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyElem}
+  function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyRingElem}
     return MPolyIdeal(IdealGens(R, g, keep_ordering = false))
   end
 
@@ -688,7 +688,7 @@ function oscar_assure(B::IdealGens)
   oscar_assure(B.gens)
 end
 
-function Base.copy(f::MPolyElem)
+function Base.copy(f::MPolyRingElem)
     Ox = parent(f)
     g = MPolyBuildCtx(Ox)
     for (c,e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
@@ -703,7 +703,7 @@ function map_entries(R, M::Singular.smatrix)
   return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
 end
 
-function syzygy_module(a::Vector{MPolyElem})
+function syzygy_module(a::Vector{MPolyRingElem})
   #only graded modules exist
   error("not implemented yet")
 end
@@ -732,34 +732,34 @@ function (F::Generic.FreeModule)(s::Singular.svector)
 end
 
 @doc Markdown.doc"""
-    jacobi_matrix(f::MPolyElem)
+    jacobi_matrix(f::MPolyRingElem)
 
 Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
-function jacobi_matrix(f::MPolyElem)
+function jacobi_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return matrix(R, n, 1, [derivative(f, i) for i=1:n])
 end
 
 @doc Markdown.doc"""
-    jacobi_ideal(f::MPolyElem)
+    jacobi_ideal(f::MPolyRingElem)
 
 Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
 """
-function jacobi_ideal(f::MPolyElem)
+function jacobi_ideal(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
 @doc Markdown.doc"""
-    jacobi_matrix(g::Vector{<:MPolyElem})
+    jacobi_matrix(g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
 this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
-function jacobi_matrix(g::Vector{<:MPolyElem})
+function jacobi_matrix(g::Vector{<:MPolyRingElem})
   R = parent(g[1])
   n = nvars(R)
   @assert all(x->parent(x) == R, g)
@@ -777,7 +777,7 @@ end
 # basic maps
 #
 ##########################
-function im_func(f::MPolyElem, S::MPolyRing, i::Vector{Int})
+function im_func(f::MPolyRingElem, S::MPolyRing, i::Vector{Int})
   O = base_ring(S)
   g = MPolyBuildCtx(S)
   for (c, e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
@@ -827,7 +827,7 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
   end
 end
 
-(f::MPolyHom_vars)(g::MPolyElem) = image(f, g)
+(f::MPolyHom_vars)(g::MPolyRingElem) = image(f, g)
 
 function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Vector{Int})
   return MPolyHom_vars{typeof(R), typeof(S)}(R, S, i)
@@ -847,11 +847,11 @@ end
 
 #TODO: return a matrix??
 @doc Markdown.doc"""
-    coordinates(a::Vector{<:MPolyElem}, b::Vector{<:MPolyElem})
+    coordinates(a::Vector{<:MPolyRingElem}, b::Vector{<:MPolyRingElem})
 
 Tries to write the entries of `b` as linear combinations of `a`.
 """
-function coordinates(a::Vector{<:MPolyElem}, b::Vector{<:MPolyElem})
+function coordinates(a::Vector{<:MPolyRingElem}, b::Vector{<:MPolyRingElem})
   ia = ideal(a)
   ib = ideal(b)
   singular_assure(ia)
@@ -861,7 +861,7 @@ function coordinates(a::Vector{<:MPolyElem}, b::Vector{<:MPolyElem})
   return [F(c[x]) for x = 1:Singular.ngens(c)]
 end
 
-function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
+function coordinates(a::Vector{<:MPolyRingElem}, b::MPolyRingElem)
   return coordinates(a, [b])[1]
 end
 
@@ -879,7 +879,7 @@ function _push_monomial_expr!(prod::Expr, x::AbstractVector, e::AbstractVector)
 end
 
 # expressify wrt to an arbitrary permutation
-function expressify(a::OscarPair{<:MPolyElem, Vector{Int}}; context = nothing)
+function expressify(a::OscarPair{<:MPolyRingElem, Vector{Int}}; context = nothing)
   f = a.first
   x = symbols(parent(f))
   s = Expr(:call, :+)
@@ -894,14 +894,14 @@ function expressify(a::OscarPair{<:MPolyElem, Vector{Int}}; context = nothing)
   end
   return s
 end
-@enable_all_show_via_expressify OscarPair{<:MPolyElem, Vector{Int}}
+@enable_all_show_via_expressify OscarPair{<:MPolyRingElem, Vector{Int}}
 
 # expressify wrt to an ordering
-function expressify(a::OscarPair{<:MPolyElem, <:MonomialOrdering}; context = nothing)
+function expressify(a::OscarPair{<:MPolyRingElem, <:MonomialOrdering}; context = nothing)
   perm = permutation_of_terms(a.first, a.second)
   return expressify(OscarPair(a.first, perm); context = context)
 end
-@enable_all_show_via_expressify OscarPair{<:MPolyElem, <:MonomialOrdering}
+@enable_all_show_via_expressify OscarPair{<:MPolyRingElem, <:MonomialOrdering}
 
 @doc Markdown.doc"""
     GeneralPermutedIterator{S, T, P}
@@ -931,26 +931,26 @@ end
 
 
 @doc Markdown.doc"""
-    coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    coefficients(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the coefficients of `f` with respect to the order `ordering`.
 """
-function coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function coefficients(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:coefficients}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:MPolyElem}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   return coeff(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients, <:MPolyElem{C}}) where C
+function Base.eltype(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem{C}}) where C
   return C
 end
 
 @doc Markdown.doc"""
-    coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    coefficients_and_exponents(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator whose elements are tuples of coefficients of `f` and exponent
 vectors (as `Vector{Int}`) with respect to the order `ordering`.
@@ -972,126 +972,126 @@ julia> collect(ans)
  (1, [2, 0])
 ```
 """
-function coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function coefficients_and_exponents(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:coefficients_and_exponents}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyElem}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyRingElem}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   return (coeff(a.elem, a.perm[state]), exponent_vector(a.elem, a.perm[state])), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyElem{C}}) where C
+function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyRingElem{C}}) where C
   return Tuple{C, Vector{Int}}
 end
 
 @doc Markdown.doc"""
-    exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    exponents(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the exponent vectors (as `Vector{Int}`) of `f` with
 respect to the order `ordering`.
 """
-function exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function exponents(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:exponents}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:exponents, <:MPolyElem}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   return exponent_vector(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyElem})
+function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem})
   return Vector{Int}
 end
 
 @doc Markdown.doc"""
-    monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    monomials(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the monomials of `f` with respect to the order `ordering`.
 """
-function monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function monomials(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:monomials}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:monomials, <:MPolyElem}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:monomials, <:MPolyRingElem}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   return monomial(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: MPolyElem
+function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: MPolyRingElem
   return T
 end
 
 @doc Markdown.doc"""
-    terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    terms(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the terms of `f` with respect to the order `ordering`.
 """
-function terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function terms(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:terms}(f, permutation_of_terms(f, ordering))
 end
 
-function Base.iterate(a::GeneralPermutedIterator{:terms, <:MPolyElem}, state = 0)
+function Base.iterate(a::GeneralPermutedIterator{:terms, <:MPolyRingElem}, state = 0)
   state += 1
   state <= length(a.perm) || return nothing
   return term(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: MPolyElem
+function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: MPolyRingElem
   return T
 end
 
 @doc Markdown.doc"""
-    leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    leading_coefficient(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading coefficient of `f` with respect to the order `ordering`.
 """
-function leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function leading_coefficient(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return coeff(f, index_of_leading_term(f, ordering))
 end
 
 @doc Markdown.doc"""
-    leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    leading_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading exponent vector (as `Vector{Int}`) of `f` with
 respect to the order `ordering`.
 """
-function leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function leading_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return AbstractAlgebra.exponent_vector(f, index_of_leading_term(f, ordering))
 end
 
 @doc Markdown.doc"""
-    leading_coefficient_and_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    leading_coefficient_and_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading coefficient of `f` with respect to the order `ordering`.
 """
-function leading_coefficient_and_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function leading_coefficient_and_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   i = index_of_leading_term(f, ordering)
   return (coeff(f, i), AbstractAlgebra.exponent_vector(f, i))
 end
 
 @doc Markdown.doc"""
-    leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    leading_monomial(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading monomial of `f` with respect to the order `ordering`.
 """
-function leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function leading_monomial(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return monomial(f, index_of_leading_term(f, ordering))
 end
 
 @doc Markdown.doc"""
-    leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    leading_term(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading term of `f` with respect to the order `ordering`.
 """
-function leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function leading_term(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return term(f, index_of_leading_term(f, ordering))
 end
 
-function _delete_index(f::MPolyElem, i::Int)
+function _delete_index(f::MPolyRingElem, i::Int)
   z = MPolyBuildCtx(parent(f))
   for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     i -= 1
@@ -1103,11 +1103,11 @@ function _delete_index(f::MPolyElem, i::Int)
 end
 
 @doc Markdown.doc"""
-    tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+    tail(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the tail of `f` with respect to the order `ordering`.
 """
-function tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+function tail(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   # f - leading_term(f) is too easy and might have problems with inexact
   i = index_of_leading_term(f, ordering)
   return _delete_index(f, i)
@@ -1118,7 +1118,7 @@ end
 ##############################################################################
 
 #=
-function factor(f::MPolyElem)
+function factor(f::MPolyRingElem)
   I = ideal(parent(f), [f])
   fS = Singular.factor(I.gens[Val(:S), 1])
   R = parent(f)
@@ -1127,7 +1127,7 @@ end
 =#
 
 # generic fallback since this is not implemented specifically anywhere yet
-function is_irreducible(a::MPolyElem)
+function is_irreducible(a::MPolyRingElem)
   af = factor(a)
   return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
 end
@@ -1135,24 +1135,24 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+    divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyRingElem{S} where S <: RingElem
 Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
 for each polynomial in b, and a polynomial ri such that
 a[i] = sum_i b[i]*qi + ri.
 """
-function divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+function divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyRingElem{S} where S <: RingElem
   return [divrem(x, b) for x in a]
 end
 
 ################################################################################
 
-function Base.:*(f::MPolyElem, I::MPolyIdeal)
+function Base.:*(f::MPolyRingElem, I::MPolyIdeal)
   R = base_ring(I)
   R == parent(f) || error("base rings do not match")
   return ideal(R, f.*gens(I))
 end
 
-*(I::MPolyIdeal, f::MPolyElem) = f*I
+*(I::MPolyIdeal, f::MPolyRingElem) = f*I
 
 ################################################################################
 

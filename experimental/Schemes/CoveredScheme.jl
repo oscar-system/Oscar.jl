@@ -142,7 +142,7 @@ affine_refinements(C::Covering) = C.affine_refinements
   return result
 end
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   CX = affine_cone(X)
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)

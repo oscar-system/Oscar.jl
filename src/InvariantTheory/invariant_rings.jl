@@ -100,25 +100,25 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
     end
   end
 
-  right_action_by_M = (f::MPolyElem{T}) -> evaluate(f, vars)
+  right_action_by_M = (f::MPolyRingElem{T}) -> evaluate(f, vars)
 
   return MapFromFunc(right_action_by_M, R, R)
 end
 
 right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M.elm)
-right_action(f::MPolyElem{T}, M::MatrixElem{T}) where T = right_action(parent(f), M)(f)
-right_action(f::MPolyElem{T}, M::MatrixGroupElem{T}) where T = right_action(f, M.elm)
+right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where T = right_action(parent(f), M)(f)
+right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where T = right_action(f, M.elm)
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
   n = nvars(R)
   @assert n == degree(parent(p))
 
-  right_action_by_p = (f::MPolyElem{T}) -> on_indeterminates(f, p)
+  right_action_by_p = (f::MPolyRingElem{T}) -> on_indeterminates(f, p)
 
   return MapFromFunc(right_action_by_p, R, R)
 end
 
-right_action(f::MPolyElem, p::PermGroupElem) = right_action(parent(f), p)(f)
+right_action(f::MPolyRingElem, p::PermGroupElem) = right_action(parent(f), p)(f)
 
 ################################################################################
 #
@@ -147,7 +147,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT
 end
 
 @doc Markdown.doc"""
-     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
 In the non-modular case, return the image of `f` under the Reynolds operator
 projecting onto `IR`.
@@ -183,7 +183,7 @@ Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]
  x[2]
  x[3]
@@ -215,7 +215,7 @@ Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characte
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+3-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
  x[1]
  x[2]
  x[3]
@@ -233,7 +233,7 @@ julia> reynolds_operator(IR, f)
 0
 ```
 """
-function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
   @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
@@ -243,7 +243,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
   return IR.reynolds_operator(f)
 end
 
-function reynolds_operator(IR::InvRing, f::MPolyElem)
+function reynolds_operator(IR::InvRing, f::MPolyRingElem)
   @assert parent(f) === polynomial_ring(IR).R
   return reynolds_operator(IR, polynomial_ring(IR)(f))
 end
@@ -273,7 +273,7 @@ end
 
 @doc Markdown.doc"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
-       where {FldT, GrpT, T <: MPolyElem}
+       where {FldT, GrpT, T <: MPolyRingElem}
 
 In the case of characteristic zero, return the image of `f` under the twisted
 Reynolds operator projecting onto the isotypic component of the polynomial ring
@@ -326,11 +326,11 @@ julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
 ```
 """
-function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyElem}
+function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyRingElem}
   return reynolds_operator(IR, chi)(f)
 end
 
-function reynolds_operator(IR::InvRing, f::MPolyElem, chi::GAPGroupClassFunction)
+function reynolds_operator(IR::InvRing, f::MPolyRingElem, chi::GAPGroupClassFunction)
   @assert parent(f) === polynomial_ring(IR).R
   return reynolds_operator(IR, polynomial_ring(IR)(f), chi)
 end
@@ -378,7 +378,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> basis(IR, 6)
-4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -399,12 +399,12 @@ with generators
 gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
-2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+2-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
  x[1]^2 + x[2]^2
  x[3]^2
 
 julia> basis(IR, 3)
-2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+2-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
@@ -438,7 +438,7 @@ julia> G = MatrixGroup(3, K, [ M1, M2 ]);
 julia> IR = invariant_ring(G);
 
 julia> basis(IR, 6, trivial_character(G))
-4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -454,7 +454,7 @@ julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c i
 group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
 
 julia> basis(R, 3, chi)
-2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
  x[1]^3 - x[2]^3
  x[1]^2*x[2] - x[1]*x[2]^2
 

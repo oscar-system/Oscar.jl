@@ -15,7 +15,7 @@ julia> ngens(cohomology_ring(p2))
 3
 ```
 """
-@attr MPolyQuo function cohomology_ring(v::AbstractNormalToricVariety)
+@attr MPolyQuoRing function cohomology_ring(v::AbstractNormalToricVariety)
     if !is_simplicial(v) || !is_complete(v)
         throw(ArgumentError("The cohomology ring is only supported for simplicial and complete toric varieties"))
     end
@@ -101,7 +101,7 @@ julia> length(intersection_form(F3))
 function intersection_form(v::NormalToricVariety)
     intersection_dict = _intersection_form_via_exponents(v)
     monoms_of_prime_divisors = gens(cox_ring(v))
-    intersection_dict_for_user = Dict{MPolyElem, fmpq}()
+    intersection_dict_for_user = Dict{MPolyRingElem, fmpq}()
     for (expos, v) in intersection_dict
         monom = prod(monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors))
         intersection_dict_for_user[monom] = v

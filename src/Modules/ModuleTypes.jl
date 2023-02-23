@@ -1,5 +1,5 @@
 export ModuleFP, ModuleFPElem, ModuleFPHom, FreeMod,
-       FreeModElem, SubQuo, SubQuoElem, FreeModuleHom, SubQuoHom,
+       FreeModElem, SubquoModule, SubquoModuleElem, FreeModuleHom, SubQuoHom,
        FreeMod_dec, FreeModElem_dec, FreeModuleHom_dec, FreeResolution
 
 @doc Markdown.doc"""
@@ -211,7 +211,7 @@ end
 
 
 @doc Markdown.doc"""
-    SubQuo{T} <: ModuleFP{T}
+    SubquoModule{T} <: ModuleFP{T}
 
 The type of subquotient modules.
 A subquotient module $M$ is a module where $M = A + B / B$ where $A$ and $B$ are 
@@ -221,9 +221,9 @@ free module are stored.
 One can construct ordinary submodules of free modules by not giving $B$.
 Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
-`SubQuo{T}` is a subtype of `ModuleFP{T}`.
+`SubquoModule{T}` is a subtype of `ModuleFP{T}`.
 """
-@attributes mutable struct SubQuo{T} <: AbstractSubQuo{T}
+@attributes mutable struct SubquoModule{T} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
   sub::SubModuleOfFreeModule
@@ -235,7 +235,7 @@ option is set in suitable functions.
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom} # TODO is it possible to make ModuleFPHom to SubQuoHom?
 
-  function SubQuo{R}(F::FreeMod{R}) where {R}
+  function SubquoModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
     r = new{R}()
     r.F = F
@@ -250,7 +250,7 @@ end
 
 
 @doc Markdown.doc"""
-    SubQuoElem{T}
+    SubquoModuleElem{T}
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
 is given by a sparse row (`SRow`) which specifies the coefficients of an $R$-linear 
@@ -271,7 +271,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubQuo(A, B)
+julia> M = SubquoModule(A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -281,25 +281,25 @@ by Submodule with 4 generators
 3 -> y^2*e[1]
 4 -> z^4*e[1]
 
-julia> f = SubQuoElem(sparse_row(R, [(1,z),(2,one(R))]),M)
+julia> f = SubquoModuleElem(sparse_row(R, [(1,z),(2,one(R))]),M)
 (x*z + y)*e[1]
 
 julia> g = z*M[1] + one(R)*M[2]
 (x*z + y)*e[1]
 
 julia> typeof(g)
-SubQuoElem{fmpq_mpoly}
+SubquoModuleElem{fmpq_mpoly}
 
 julia> f == g
 true
 ```
 """
-struct SubQuoElem{T} <: AbstractSubQuoElem{T} 
+struct SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
   coeffs::SRow{T}
   repres::FreeModElem{T}
-  parent::SubQuo
+  parent::SubquoModule
 
-  function SubQuoElem{R}(v::SRow{R}, SQ::SubQuo) where {R}
+  function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R}
     @assert length(v) <= ngens(SQ.sub)
     if isempty(v)
       r = new{R}(v, zero(SQ.F), SQ)
@@ -309,7 +309,7 @@ struct SubQuoElem{T} <: AbstractSubQuoElem{T}
     return r
   end
 
-  function SubQuoElem{R}(a::FreeModElem{R}, SQ::SubQuo) where {R}
+  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule) where {R}
     @assert a.parent === SQ.F
     r = new{R}(coordinates(a,SQ), a, SQ)
     return r
@@ -329,7 +329,7 @@ mutable struct SubQuoHom{
   ring_map::RingMapType
 
   # Constructors for maps without change of base ring
-  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -341,7 +341,7 @@ mutable struct SubQuoHom{
     return r
   end
 
-  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::SubQuo, im::Vector) where {T1,T2,RingMapType}
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -349,11 +349,11 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = Vector{SubQuoElem}(im)
+    r.im = Vector{SubquoModuleElem}(im)
     return r
   end
 
-  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -367,7 +367,7 @@ mutable struct SubQuoHom{
 
   # Constructors for maps with change of base ring
   function SubQuoHom{T1,T2,RingMapType}(
-      D::SubQuo, 
+      D::SubquoModule, 
       C::FreeMod, 
       im::Vector, 
       h::RingMapType
@@ -385,8 +385,8 @@ mutable struct SubQuoHom{
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
-      D::SubQuo, 
-      C::SubQuo, 
+      D::SubquoModule, 
+      C::SubquoModule, 
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
@@ -397,13 +397,13 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = Vector{SubQuoElem}(im)
+    r.im = Vector{SubquoModuleElem}(im)
     r.ring_map = h
     return r
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
-      D::SubQuo, 
+      D::SubquoModule, 
       C::ModuleFP, 
       im::Vector, 
       h::RingMapType
@@ -426,8 +426,8 @@ end
 ###############################################################################
 # Graded modules
 ###############################################################################
-const CRing_dec = Union{MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
-const CRingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
+const CRing_dec = Union{MPolyDecRing, MPolyQuoRing{<:Oscar.MPolyDecRingElem}}
+const CRingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRingElem}}
 #TODO: other name for CRing_dec -> which?
 
 @doc Markdown.doc"""
@@ -479,8 +479,8 @@ end
 
 
 
-const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubQuo_dec{T} will be included
-const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will be included
+const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubquoDecModule{T} will be included
+const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubquoDecModuleElem{T} will be included
 
 
 @doc Markdown.doc"""
@@ -569,7 +569,7 @@ function FreeModuleHom(
   ) where {T<:RingElem, S<:ModuleFP}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
   hom.matrix = mat
   return hom
 end
@@ -591,7 +591,7 @@ function FreeModuleHom(
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
   hom.matrix = mat
   return hom
 end

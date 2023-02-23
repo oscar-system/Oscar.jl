@@ -136,7 +136,7 @@ function make_polynomial_ring(Bs::Vector{Vector{Int}}, B::Vector{Int},
     
     MC = bases_matrix_coordinates(Bs, B)
     R, x = PolynomialRing(F, :"x"=>MC)
-    xdict = Dict{Vector{Int}, MPolyElem}([MC[i] => x[i] for i in 1:length(MC)])
+    xdict = Dict{Vector{Int}, MPolyRingElem}([MC[i] => x[i] for i in 1:length(MC)])
     return R, x, xdict
 end
 
@@ -148,7 +148,7 @@ end
 function make_coordinate_matrix_no_identity(d::Int, n::Int,
                                             MC::Vector{Vector{Int}},
                                             R::MPolyRing, x::Vector{T},
-                                            xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+                                            xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
     S = MatrixSpace(R, d, n-d)
     X = S()
@@ -165,7 +165,7 @@ end
 
 # M and N have same number of rows, and M has #B columns, both have entries in ring R
 function interlace_columns(M::MatrixElem{T}, N::MatrixElem{T}, B::Vector{Int},
-                           R::MPolyRing, x::Vector{T}) where T <: MPolyElem 
+                           R::MPolyRing, x::Vector{T}) where T <: MPolyRingElem 
     
     M_nrows, M_ncols = size(M)
     N_nrows, N_ncols = size(N)
@@ -187,7 +187,7 @@ end
 function make_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
                                 B::Vector{Int},
                                 R::MPolyRing, x::Vector{T},
-                                xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+                                xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
     Id = identity_matrix(R,d)
     Xpre = make_coordinate_matrix_no_identity(d, n, MC, R, x, xdict)
@@ -198,17 +198,17 @@ end
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
 
-function bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyElem}
+function bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
 
-#function bases_determinants(X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:MPolyElem}
+#function bases_determinants(X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:MPolyRingElem}
 
     #d::Int, n::Int, Bs::Vector{Vector{Int}},
     #MC::Vector{Vector{Int}},
     #B::Vector{Int}, R::MPolyRing, x::Vector{T},
-    #xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+    #xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
     #X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
     
@@ -221,7 +221,7 @@ end
 # function localizing_semigroup(d::Int, n::Int, Bs::Vector{Vector{Int}},
 #                               MC::Vector{Vector{Int}}, B::Vector{Int},
 #                               R::MPolyRing, x::Vector{T},
-#                               xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+#                               xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
 
     
 #     basesX = bases_determinants(X,Bs)
@@ -251,7 +251,7 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
                                                        B::Vector{Int},
                                                        R::MPolyRing,
                                                        x::Vector{T},
-                                                       xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+                                                       xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
 
     Bs = bases(M)
@@ -326,14 +326,14 @@ function realization_polynomial_ring(Bs::Vector{Vector{Int}}, A::Vector{Int},
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
     R, x = PolynomialRing(F, :"x"=>MR)
-    xdict = Dict{Vector{Int}, MPolyElem}(MR[i] => x[i] for i in 1:length(MR))
+    xdict = Dict{Vector{Int}, MPolyRingElem}(MR[i] => x[i] for i in 1:length(MR))
     return R, x, xdict
 end
 
 
 function matrix_realization_small(d::Int, n::Int, MC::Vector{Vector{Int}},
                                   R::MPolyRing, x::Vector{T},
-                                  xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+                                  xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
 
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
@@ -366,7 +366,7 @@ end
 
 function realization_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
                                        A::Vector{Int}, R::MPolyRing, x::Vector{T},
-                                       xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+                                       xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
     
     if d == 1
@@ -383,7 +383,7 @@ end
 
 
 
-function realization_bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyElem}
+function realization_bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
@@ -393,7 +393,7 @@ end
 function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
                                               F::AbstractAlgebra.Ring, A::Vector{Int},
                                               R::MPolyRing, x::Vector{T},
-                                              xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+                                              xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
     Bs = bases(M)
     NBs = nonbases(M)

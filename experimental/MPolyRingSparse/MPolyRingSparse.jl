@@ -54,7 +54,7 @@ end
 
 const MPolySparseID = CacheDictType{Tuple{Ring, Vector{Symbol}, Symbol}, Ring}()
 
-mutable struct MPolySparse{T <: RingElement} <: AbstractAlgebra.MPolyElem{T}
+mutable struct MPolySparse{T <: RingElement} <: AbstractAlgebra.MPolyRingElem{T}
     coeffs::Vector{T}
     exps::Vector{Vector{Tuple{Int,Int}}}
     length::Int
@@ -560,7 +560,7 @@ function sparse_to_dense(as::MPolySparse{T}...) where {T <: RingElement}
     return dense_as, SparseToDenseData{T}(vmap, sparse_R, dense_R)
 end
 
-function dense_to_sparse(data::SparseToDenseData{T}, dense_as::MPolyElem{T}...) where {T <: RingElement}
+function dense_to_sparse(data::SparseToDenseData{T}, dense_as::MPolyRingElem{T}...) where {T <: RingElement}
     sparse_R = data.sparse_R
     vmap = data.vmap
     as = map(function (da)

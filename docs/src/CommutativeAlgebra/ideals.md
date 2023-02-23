@@ -79,7 +79,7 @@ codim(I::MPolyIdeal)
 In the graded case, we have:
 
 ```@docs
-minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
+minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 ```
     
 ## Operations on Ideals
@@ -133,7 +133,7 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyElem
+eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
 ```
 
 ## Tests on Ideals
@@ -149,7 +149,7 @@ is_one(I::MPolyIdeal)
 ```
 
 ```@docs
-is_monomial(f::MPolyElem)
+is_monomial(f::MPolyRingElem)
 ```
 
 ### Containment of Ideals
@@ -247,15 +247,15 @@ equidimensional_hull_radical(I::MPolyIdeal)
 Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
 
 ```@docs
-homogenization(f::MPolyElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+homogenization(f::MPolyRingElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
 ```
 
 ```@docs
-homogenization(f::MPolyElem, var::String, pos::Int=1)
+homogenization(f::MPolyRingElem, var::String, pos::Int=1)
 ```
 
 ```@docs
-dehomogenization(F::MPolyElem_dec, pos::Int)
+dehomogenization(F::MPolyDecRingElem, pos::Int)
 ```
 
 

@@ -22,7 +22,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
   function RingFlattening(
       S::MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyElem}
+    ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
     S_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
@@ -37,8 +37,8 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
   function RingFlattening(
       S::MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyQuoElem}
-    A = base_ring(S)::MPolyQuo
+    ) where {RingElemType <: MPolyQuoRingElem}
+    A = base_ring(S)::MPolyQuoRing
     R = base_ring(A)::MPolyRing
     I = modulus(A)::MPolyIdeal
     kk = coefficient_ring(R)::Field
@@ -64,11 +64,11 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
   function RingFlattening(
       S::MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyQuoLocalizedRingElem}
-    Q = base_ring(S)::MPolyQuoLocalizedRing
+    ) where {RingElemType <: MPolyQuoLocRingElem}
+    Q = base_ring(S)::MPolyQuoLocRing
     R = base_ring(Q)::MPolyRing
-    L = localized_ring(Q)::MPolyLocalizedRing
-    A = underlying_quotient(Q)::MPolyQuo
+    L = localized_ring(Q)::MPolyLocRing
+    A = underlying_quotient(Q)::MPolyQuoRing
     U = inverted_set(Q)::AbsMultSet
     I = modulus(Q)::MPolyLocalizedIdeal
     kk = coefficient_ring(R)::Field
@@ -97,8 +97,8 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
   function RingFlattening(
       S::MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyLocalizedRingElem}
-    L = base_ring(S)::MPolyLocalizedRing
+    ) where {RingElemType <: MPolyLocRingElem}
+    L = base_ring(S)::MPolyLocRing
     R = base_ring(L)::MPolyRing
     U = inverted_set(L)::AbsMultSet
     kk = coefficient_ring(R)::Field
@@ -169,8 +169,8 @@ end
                    <:MPolyRing{RingElemType},
                    Nothing
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   S = domain(f)
@@ -187,8 +187,8 @@ end
                    <:MPolyRing{RingElemType}
                    # Note the missing requirement here: It allows for a non-trivial coefficient map
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   S = domain(f)
@@ -204,10 +204,10 @@ end
 
 ### Deflecting some of the basic methods for ideals in towers of polynomial rings
 function ideal_membership(
-    x::MPolyElem{RingElemType},
-    I::MPolyIdeal{<:MPolyElem{RingElemType}}
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                  <:MPolyQuoLocalizedRingElem
+    x::MPolyRingElem{RingElemType},
+    I::MPolyIdeal{<:MPolyRingElem{RingElemType}}
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                  <:MPolyQuoLocRingElem
                                  }
           }
   parent(x) === base_ring(I) || return base_ring(I)(x) in I
@@ -216,10 +216,10 @@ function ideal_membership(
 end
 
 function coordinates(
-    x::MPolyElem{RingElemType},
-    I::MPolyIdeal{<:MPolyElem{RingElemType}}
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                  <:MPolyQuoLocalizedRingElem
+    x::MPolyRingElem{RingElemType},
+    I::MPolyIdeal{<:MPolyRingElem{RingElemType}}
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                  <:MPolyQuoLocRingElem
                                  }
           }
   phi = flatten(parent(x))
@@ -240,8 +240,8 @@ function kernel(
     f::MPolyAnyMap{<:MPolyRing{<:RingElemType}, 
                    <:MPolyRing{<:RingElemType}
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   f_flat = flatten(f)
@@ -256,8 +256,8 @@ function kernel(
     f::MPolyAnyMap{<:MPolyRing{<:RingElemType}, 
                    <:Ring
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   phi = flatten(domain(f))
@@ -269,13 +269,13 @@ function kernel(
 end
 
 function kernel(
-    f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuo, 
-                           <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing
+    f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuoRing, 
+                           <:MPolyLocRing, <:MPolyQuoLocRing
                           }, # Restriction necessary to avoid ambiguities
                    <:MPolyRing{<:RingElemType}
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   phi = flatten(codomain(f))
@@ -286,8 +286,8 @@ end
 ### saturations
 function saturation(
     I::MPolyIdeal{T}, J::MPolyIdeal{T}
-  ) where {T<:MPolyElem{<:Union{<:MPolyElem, MPolyQuoElem, MPolyLocalizedRingElem, 
-                                <:MPolyQuoLocalizedRingElem
+  ) where {T<:MPolyRingElem{<:Union{<:MPolyRingElem, MPolyQuoRingElem, MPolyLocRingElem, 
+                                <:MPolyQuoLocRingElem
                                }}}
   S = base_ring(I)
   phi = flatten(S)

@@ -56,7 +56,7 @@ Papers offering details on theory and algorithms as well as examples include:
 ### Binomiality Test
 
 ```@docs
-is_binomial(f::MPolyElem)
+is_binomial(f::MPolyRingElem)
 is_binomial(I::MPolyIdeal)
 ```
 ```jldoctest

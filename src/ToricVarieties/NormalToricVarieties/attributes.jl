@@ -562,7 +562,7 @@ julia> coordinate_ring_of_torus(p2)
 Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
-@attr MPolyQuo function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+@attr MPolyQuoRing function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
     S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
     return coordinate_ring_of_torus(S, v)
 end

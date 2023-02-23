@@ -421,16 +421,16 @@ function Base.show(io::IO, R::StructureSheafOfRings)
 end
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(
-    a::Union{MPolyElem, MPolyQuoElem, 
-             MPolyLocalizedRingElem, MPolyQuoLocalizedRingElem}, 
+    a::Union{MPolyRingElem, MPolyQuoRingElem, 
+             MPolyLocRingElem, MPolyQuoLocRingElem}, 
     U::PrincipalOpenSubset)
   parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
   return OO(U)(a, check=false)
 end
 
 function restrict(
-    a::Union{MPolyElem, MPolyQuoElem, 
-             MPolyLocalizedRingElem, MPolyQuoLocalizedRingElem}, 
+    a::Union{MPolyRingElem, MPolyQuoRingElem, 
+             MPolyLocRingElem, MPolyQuoLocRingElem}, 
     U::SpecOpen)
   parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
   return OO(U)(a)

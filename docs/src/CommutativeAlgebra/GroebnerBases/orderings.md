@@ -109,7 +109,7 @@ true
 The `cmp` function should be used for comparing two monomials with regard to a monomial ordering.
 
 ```@docs
-cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
+cmp(ord::MonomialOrdering, a::MPolyRingElem, b::MPolyRingElem)
 ```
 
 ## Matrix Orderings
@@ -342,7 +342,7 @@ $I\cap C[x_\sigma]$ with respect to the restriction of $>$ to the set of monomia
 ## Tests on Monomial Orderings
 
 ```@docs
-is_elimination_ordering(ord::MonomialOrdering, V::Vector{<:MPolyElem})
+is_elimination_ordering(ord::MonomialOrdering, V::Vector{<:MPolyRingElem})
 ```
 
 ```@docs

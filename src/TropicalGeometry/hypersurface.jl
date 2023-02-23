@@ -121,7 +121,7 @@ end
 # end
 
 @doc Markdown.doc"""
-    TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+    TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
 on which a function `valuation` is defined such as `PadicField(7,2)`),
@@ -143,7 +143,7 @@ julia> TropicalHypersurface(f, max)
 A max tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
-function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+function TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
     tropf = tropical_polynomial(f,M)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -154,7 +154,7 @@ function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min
 end
 
 @doc Markdown.doc"""
-    TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+    TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Construct the tropical hypersurface from a polynomial `f` and a map to the
 tropical semiring `val`.
@@ -173,7 +173,7 @@ julia> TropicalHypersurface(f, val)
 A min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
-function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap)
+function TropicalHypersurface(f::MPolyRingElem, val::TropicalSemiringMap)
     tropf = tropical_polynomial(f,val)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -185,7 +185,7 @@ end
 
 
 # @doc Markdown.doc"""
-#     tropical_variety(f::MPolyElem, M::Union{typeof(min),typeof(max)})
+#     tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
 
 # Return the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
 # If M=min, the tropical hypersurface will obey the min-convention.
@@ -205,7 +205,7 @@ end
 
 # julia> tropical_variety(f,max)
 # """
-# function tropical_variety(f::MPolyElem, M::Union{typeof(min),typeof(max)})
+# function tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
 #     return TropicalHypersurface{M}(f)
 # end
 

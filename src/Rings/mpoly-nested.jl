@@ -18,7 +18,7 @@ export denest, renest
 # the product of the two outputs should be equal to the input
 function _remove_denominators(
   S::Union{MPolyRing, PolyRing},
-  f::Union{MPolyElem, PolyElem})
+  f::Union{MPolyRingElem, PolyElem})
 
   R = parent(f)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -45,7 +45,7 @@ end
 # the output is equal to the input
 function _restore_numerators(
   R::Union{MPolyRing, PolyRing},
-  g::Union{MPolyElem, PolyElem})
+  g::Union{MPolyRingElem, PolyElem})
 
   S = parent(g)                   # Q[x1, x2, t1, t2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -81,9 +81,9 @@ end
 
 
 function Oscar.gcd(
-  a::AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}},
-  b::AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}}
-) where T <: Union{PolyElem, MPolyElem}
+  a::AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
+  b::AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}}
+) where T <: Union{PolyElem, MPolyRingElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -97,7 +97,7 @@ end
 function Oscar.gcd(
   a::AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}},
   b::AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}
-) where T <: Union{PolyElem, MPolyElem}
+) where T <: Union{PolyElem, MPolyRingElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -123,9 +123,9 @@ function _convert_frac_fac(R, u, fac)
 end
 
 function Oscar.factor(
-  a::Union{AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}},
+  a::Union{AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
            AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}}
-) where T <: Union{PolyElem, MPolyElem}
+) where T <: Union{PolyElem, MPolyRingElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -135,9 +135,9 @@ function Oscar.factor(
 end
 
 function Oscar.factor_squarefree(
-  a::Union{AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}},
+  a::Union{AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
            AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}}
-) where T <: Union{PolyElem, MPolyElem}
+) where T <: Union{PolyElem, MPolyRingElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -177,7 +177,7 @@ end
 # denest for poly elem
 
 function _denest_recursive(r::MPolyBuildCtx, f::PolyElem{T},
-                           e0::Vector{Int}) where T <: Union{PolyElem, MPolyElem}
+                           e0::Vector{Int}) where T <: Union{PolyElem, MPolyRingElem}
   for i in degree(f):-1:0
     _denest_recursive(r, coeff(f, i), vcat(e0, [i]))
   end
@@ -189,27 +189,27 @@ function _denest_recursive(r::MPolyBuildCtx, f::PolyElem, e0::Vector{Int})
   end
 end
 
-function _denest_recursive(r::MPolyBuildCtx, f::MPolyElem{T},
-                           e0::Vector{Int}) where T <: Union{PolyElem, MPolyElem}
+function _denest_recursive(r::MPolyBuildCtx, f::MPolyRingElem{T},
+                           e0::Vector{Int}) where T <: Union{PolyElem, MPolyRingElem}
   for (c1, e1) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     _denest_recursive(r, c1, vcat(e0, e1))
   end
 end
 
-function _denest_recursive(r::MPolyBuildCtx, f::MPolyElem, e0::Vector{Int})
+function _denest_recursive(r::MPolyBuildCtx, f::MPolyRingElem, e0::Vector{Int})
   for (c1, e1) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(r, c1, vcat(e0, e1))
   end
 end
 
 @doc Markdown.doc"""
-    denest(S::MPolyRing, f::Union{PolyElem, MPolyElem})
+    denest(S::MPolyRing, f::Union{PolyElem, MPolyRingElem})
 
 Return an element of `S` resulting from denesting a element `f` of an
 iterated polynomial ring. The ring `S` should have the same base ring and
 number of variables as `denest(parent(f))`.
 """
-function denest(S::MPolyRing, f::Union{PolyElem, MPolyElem})
+function denest(S::MPolyRing, f::Union{PolyElem, MPolyRingElem})
   r = MPolyBuildCtx(S)
   _denest_recursive(r, f, Int[])
   return finish(r)
@@ -219,7 +219,7 @@ end
 
 function _renest_recursive_coeff(R::Union{MPolyRing{T}, PolyRing{T}},
                                  off::Int, idxs::Vector{Int},
-                                 gcoeffs, gexps) where T <: Union{PolyElem, MPolyElem}
+                                 gcoeffs, gexps) where T <: Union{PolyElem, MPolyRingElem}
   return _renest_recursive(base_ring(R), off, idxs, gcoeffs, gexps)
 end
 
@@ -266,12 +266,12 @@ function _renest_recursive(R::MPolyRing, off::Int, idxs::Vector{Int}, gcoeffs, g
 end
 
 @doc Markdown.doc"""
-    renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)
+    renest(R::Union{PolyRing, MPolyRing}, g::MPolyRingElem)
 
 Return an element of iterated polynomial ring `R` from its denested
 counterpart. The return satisfies `f == renest(R, denest(denest(R), f))`.
 """
-function renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)
+function renest(R::Union{PolyRing, MPolyRing}, g::MPolyRingElem)
   gcoeffs = collect(AbstractAlgebra.coefficients(g))
   gexps = collect(AbstractAlgebra.exponent_vectors(g))
   return _renest_recursive(R, 1, collect(1:length(gcoeffs)), gcoeffs, gexps)
@@ -287,14 +287,14 @@ end
 function Oscar.gcd(
    a::AbstractAlgebra.Generic.Poly{T},
    b::AbstractAlgebra.Generic.Poly{T}
-) where T <: Union{PolyElem, MPolyElem}
+) where T <: Union{PolyElem, MPolyRingElem}
    return _nested_gcd(a, b)
 end
 
 function Oscar.gcd(
    a::AbstractAlgebra.Generic.MPoly{T},
    b::AbstractAlgebra.Generic.MPoly{T}
-) where T <: Union{PolyElem, MPolyElem}
+) where T <: Union{PolyElem, MPolyRingElem}
    return _nested_gcd(a, b)
 end
 
@@ -307,14 +307,14 @@ function _convert_iter_fac(R, fac::Fac)
   return Rfac
 end
 
-function Oscar.factor(a::Union{PolyElem{T}, MPolyElem{T}}) where
-                                                T <: Union{PolyElem, MPolyElem}
+function Oscar.factor(a::Union{PolyElem{T}, MPolyRingElem{T}}) where
+                                                T <: Union{PolyElem, MPolyRingElem}
   A = denest(denest(parent(a)), a)
   return _convert_iter_fac(parent(a), factor(A))
 end
 
-function Oscar.factor_squarefree(a::Union{PolyElem{T}, MPolyElem{T}}) where
-                                                T <: Union{PolyElem, MPolyElem}
+function Oscar.factor_squarefree(a::Union{PolyElem{T}, MPolyRingElem{T}}) where
+                                                T <: Union{PolyElem, MPolyRingElem}
   A = denest(denest(parent(a)), a)
   return _convert_iter_fac(parent(a), factor_squarefree(A))
 end
