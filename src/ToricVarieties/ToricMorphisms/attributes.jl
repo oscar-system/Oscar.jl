@@ -8,7 +8,7 @@ Return the domain of the toric morphism `tm`.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> domain(ToricIdentityMorphism(F4))
+julia> domain(toric_identity_morphism(F4))
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
@@ -26,7 +26,7 @@ Return the codomain of the toric morphism `tm`.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> codomain(ToricIdentityMorphism(F4))
+julia> codomain(toric_identity_morphism(F4))
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
@@ -44,7 +44,7 @@ Return the image of the toric morphism `tm`.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> image(ToricIdentityMorphism(F4))
+julia> image(toric_identity_morphism(F4))
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
@@ -62,7 +62,7 @@ Return the underlying grid morphism of the toric morphism `tm`.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> grid_morphism(ToricIdentityMorphism(F4))
+julia> grid_morphism(toric_identity_morphism(F4))
 Map with following data
 Domain:
 =======
@@ -87,7 +87,7 @@ map of the torusinvariant Weil divisors.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> morphism_on_torusinvariant_weil_divisor_group(ToricIdentityMorphism(F4))
+julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
 Map with following data
 Domain:
 =======
@@ -124,7 +124,7 @@ map of the Cartier divisors.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> morphism_on_torusinvariant_cartier_divisor_group(ToricIdentityMorphism(F4))
+julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
 Map with following data
 Domain:
 =======
@@ -156,7 +156,7 @@ map of the Class groups.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> morphism_on_class_group(ToricIdentityMorphism(F4))
+julia> morphism_on_class_group(toric_identity_morphism(F4))
 Map with following data
 Domain:
 =======
@@ -188,7 +188,7 @@ map of the Picard groups.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> morphism_on_picard_group(ToricIdentityMorphism(F4))
+julia> morphism_on_picard_group(toric_identity_morphism(F4))
 Map with following data
 Domain:
 =======

@@ -46,7 +46,7 @@ toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap
 ### Special constructors
 
 ```@docs
-ToricIdentityMorphism(variety::AbstractNormalToricVariety)
+toric_identity_morphism(variety::AbstractNormalToricVariety)
 ```
 
 

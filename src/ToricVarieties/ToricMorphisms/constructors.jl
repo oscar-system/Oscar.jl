@@ -174,23 +174,23 @@ end
 ####################################################
 
 @doc Markdown.doc"""
-    ToricIdentityMorphism(variety::AbstractNormalToricVariety)
+    toric_identity_morphism(variety::AbstractNormalToricVariety)
 
 Construct the toric identity morphism from `variety` to `variety`.
 
 # Examples
 ```jldoctest
-julia> ToricIdentityMorphism(hirzebruch_surface(2))
+julia> toric_identity_morphism(hirzebruch_surface(2))
 A toric morphism
 ```
 """
-function ToricIdentityMorphism(variety::AbstractNormalToricVariety)
+function toric_identity_morphism(variety::AbstractNormalToricVariety)
     r = rank(character_lattice(variety))
     identity_matrix = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:r] for i in 1:r])
     grid_morphism = hom(character_lattice(variety), character_lattice(variety), identity_matrix)
     return ToricMorphism(variety, grid_morphism, variety, variety)
 end
-export ToricIdentityMorphism
+export toric_identity_morphism
 
 
 ####################################################
