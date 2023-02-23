@@ -18,6 +18,9 @@
 end
 export ToricVanishingSet
 
+toric_vanishing_set(v::AbstractNormalToricVariety, ps::Vector{Polyhedron{fmpq}}, i::Int) = ToricVanishingSet(v, ps)
+export toric_vanishing_set
+
 
 ######################
 # 2: Display
