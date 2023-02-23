@@ -2,7 +2,7 @@
 # format to the next file format version. Thus to upgrade a file to
 # the latest format, one needs to apply all possible upgrade scripts in
 # successive order as determined by their version until finally the file has
-# been upgraded to the lastest format.
+# been upgraded to the latest format.
 
 struct UpgradeScript
     version::VersionNumber # version to be upgraded to
