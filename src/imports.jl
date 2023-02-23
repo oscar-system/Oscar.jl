@@ -48,6 +48,7 @@ import Base:
     zero
 
 import AbstractAlgebra:
+    @alias,
     @attr,
     @attributes,
     @show_name,
@@ -83,7 +84,7 @@ import AbstractAlgebra:
     MatElem,
     matrix,
     MatSpace,
-    MPolyRingElem,
+    MPolyElem,
     MPolyRing,
     NCRing,
     NCRingElem,
@@ -101,6 +102,13 @@ import AbstractAlgebra:
     SetMap,
     symbols,
     total_degree
+
+# FIXME/TODO: clean up the following once AbstractAlgebra provides the new name
+if isdefined(AbstractAlgebra, :MPolyRingElem)
+  import AbstractAlgebra: MPolyRingElem
+else
+  @alias MPolyRingElem MPolyElem
+end
 
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:

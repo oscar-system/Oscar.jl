@@ -54,7 +54,7 @@ end
 
 const MPolySparseID = CacheDictType{Tuple{Ring, Vector{Symbol}, Symbol}, Ring}()
 
-mutable struct MPolySparse{T <: RingElement} <: AbstractAlgebra.MPolyRingElem{T}
+mutable struct MPolySparse{T <: RingElement} <: MPolyRingElem{T}
     coeffs::Vector{T}
     exps::Vector{Vector{Tuple{Int,Int}}}
     length::Int

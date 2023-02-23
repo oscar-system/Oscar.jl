@@ -81,8 +81,8 @@ end
 
 
 function Oscar.gcd(
-  a::AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
-  b::AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}}
+  a::MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
+  b::MPolyRingElem{AbstractAlgebra.Generic.Frac{T}}
 ) where T <: Union{PolyElem, MPolyRingElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
@@ -123,7 +123,7 @@ function _convert_frac_fac(R, u, fac)
 end
 
 function Oscar.factor(
-  a::Union{AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
+  a::Union{MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
            AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}}
 ) where T <: Union{PolyElem, MPolyRingElem}
 
@@ -135,7 +135,7 @@ function Oscar.factor(
 end
 
 function Oscar.factor_squarefree(
-  a::Union{AbstractAlgebra.MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
+  a::Union{MPolyRingElem{AbstractAlgebra.Generic.Frac{T}},
            AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}}
 ) where T <: Union{PolyElem, MPolyRingElem}
 
