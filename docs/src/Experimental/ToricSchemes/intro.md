@@ -41,3 +41,7 @@ We aim for a robust interface between toric varieties and schemes.
 Please direct questions about this part of OSCAR to the following people:
 * [Martin Bies](https://martinbies.github.io/),
 * [Matthias Zach](https://www.mathematik.uni-kl.de/en/agag/people/members/seite).
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

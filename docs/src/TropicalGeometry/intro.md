@@ -11,6 +11,19 @@ Pages = ["intro.md"]
 
 This page lists the OSCAR features for tropical geometry, which are still at the very beginning of their development. For notation we refer to [MS15](@cite) and [Jos21](@cite).
 
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Lars Kastner](https://lkastner.github.io/),
+* [Marta Panizzut](https://martapanizzut.github.io/),
+* [Yue Ren](https://www.yueren.de/).
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).
+
+
 ## Tropical semirings
 
 ```@docs

@@ -45,3 +45,7 @@ We follow [CLS11](@cite). Our long term goals include the following:
 Please direct questions about this part of OSCAR to the following people:
 * [Martin Bies](https://martinbies.github.io/),
 * [Lars Kastner](https://lkastner.github.io/).
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).
