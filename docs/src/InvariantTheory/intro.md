@@ -65,3 +65,15 @@ and the survey article
 - [DJ98](@cite)
 
 provide details on theory and algorithms as well as references.
+
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker),
+* [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn),
+* [Johannes Schmitt](https://joschmitt.eu/).
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

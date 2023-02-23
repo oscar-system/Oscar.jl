@@ -40,3 +40,13 @@ adjacent_chamber(D::K3Chamber, v::fmpz_mat)
 separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
 has_zero_entropy
 ```
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Simon Brandhorst](https://www.math.uni-sb.de/ag/brandhorst/index.php?lang=en).
+* [Matthias Zach](https://www.mathematik.uni-kl.de/en/agag/people/members),
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

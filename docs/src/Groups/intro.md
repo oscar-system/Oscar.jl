@@ -26,3 +26,14 @@ The groups part of OSCAR provides functionality for handling
 General textbooks offering details on theory and algorithms include:
 - [Hup67](@cite)
 - [HEO05](@cite)
+
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Thomas Breuer](https://www.math.rwth-aachen.de/homes/Thomas.Breuer/),
+* [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn).
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

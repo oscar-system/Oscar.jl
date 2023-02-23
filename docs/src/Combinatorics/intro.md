@@ -7,24 +7,20 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["standard_constructions.md"]
+Pages = ["intro.md"]
 ```
 
-# Standard Constructions in Algebraic Geometry
-
-This page documents a collection of standard constructions in algebraic geometry
-available in OSCAR.
-
-## Grassmann Plücker Ideal
-```@docs
-grassmann_pluecker_ideal
-```
+# Introduction
 
 
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker).
+* Simplicial complexes: [Michael Joswig](https://page.math.tu-berlin.de/~joswig/),
+* Graphs: [Lars Kastner](https://lkastner.github.io/),
+* Matroids:
+    * [Benjamin Schröter](https://www.math.uni-frankfurt.de/~schroete/)
+    * [Lukas Kühne](https://www.math.uni-bielefeld.de/~lkuehne/).
 
 You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
 
