@@ -49,7 +49,7 @@
    Q1 = quadratic_form(B1)
    @test Q1==Q
    @test gram_matrix(Q1)!=B1
-   @test defining_polynomial(Q1) isa AbstractAlgebra.Generic.MPolyRingElem
+   @test defining_polynomial(Q1) isa MPolyRingElem
    pf = defining_polynomial(Q1)
    @test defining_polynomial(Q1)==parent(pf)[1]*parent(pf)[2]+(z+2)*parent(pf)[3]*parent(pf)[4]
 # I can't test simply pf==p, because it returns FALSE. The line

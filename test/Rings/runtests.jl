@@ -22,7 +22,7 @@ include("FunctionField-test.jl")
 include("AbelianClosure.jl")
 
 include("MPolyAnyMap/MPolyRing.jl")
-include("MPolyAnyMap/MPolyQuoRing.jl")
+include("MPolyAnyMap/MPolyQuo.jl")
 include("MPolyAnyMap/AffineAlgebras.jl")
 include("MPolyAnyMap/flattenings.jl")
 
