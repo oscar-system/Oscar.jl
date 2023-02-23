@@ -12,7 +12,7 @@ using Test
     (xx1, xx2, yy1, yy2) = gens(cox_ring(ntv));
     sv1 = closed_subvariety_of_toric_variety(ntv, [xx1])
     sv2 = closed_subvariety_of_toric_variety(ntv, [xx1^2+xx1*xx2+xx2^2, yy2])
-    ac0 = rational_equivalence_class(ToricLineBundle(ntv, [1, 1]))
+    ac0 = rational_equivalence_class(toric_line_bundle(ntv, [1, 1]))
     
     F5 = hirzebruch_surface(5; set_attributes)
     ac1 = rational_equivalence_class(divisor_of_character(F5, [1, 2]))

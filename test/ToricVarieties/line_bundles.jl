@@ -6,11 +6,11 @@ using Test
     dP1 = del_pezzo_surface(1; set_attributes)
     dP3 = del_pezzo_surface(3; set_attributes)
     
-    l = ToricLineBundle(dP3, [1, 2, 3, 4])
+    l = toric_line_bundle(dP3, [1, 2, 3, 4])
     l2 = canonical_bundle(dP3)
     l3 = anticanonical_bundle(dP3)
-    l4 = ToricLineBundle(dP3, trivial_divisor(dP3))
-    l5 = ToricLineBundle(dP1, [fmpz(1), fmpz(2)])
+    l4 = toric_line_bundle(dP3, trivial_divisor(dP3))
+    l5 = toric_line_bundle(dP1, [fmpz(1), fmpz(2)])
     
     @testset "Should fail" begin
         @test_throws ArgumentError l * l5
