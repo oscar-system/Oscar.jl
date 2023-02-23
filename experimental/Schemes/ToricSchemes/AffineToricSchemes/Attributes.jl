@@ -9,10 +9,10 @@ its toric origin.
 # Examples
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
@@ -34,16 +34,16 @@ the underlying affine toric variety.
 # Examples
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
 
 julia> affine_normal_toric_variety(affine_toric_scheme)
-A normal, affine toric variety
+Normal, affine toric variety
 ```
 """
 affine_normal_toric_variety(X::ToricSpec) = X.antv
@@ -59,16 +59,16 @@ the cone of the underlying affine toric variety.
 # Examples
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
 
 julia> cone(affine_toric_scheme)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 ```
 """
 cone(X::ToricSpec) = cone(affine_normal_toric_variety(X))
@@ -84,16 +84,16 @@ of the cone of the underlying affine toric variety.
 # Examples
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
 
 julia> dual_cone(affine_toric_scheme)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> polarize(cone(affine_toric_scheme)) == dual_cone(affine_toric_scheme)
 true
@@ -113,16 +113,16 @@ affine toric variety.
 # Examples
 ```jldoctest
 julia> C = positive_hull([-1 1; 1 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[-1, 1], [1, 1]]
 
 julia> dc = dual_cone(affine_toric_scheme)
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> rays(dc)
 2-element SubObjectIterator{RayVector{fmpq}}:

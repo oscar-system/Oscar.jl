@@ -40,7 +40,7 @@ julia> f2 = hirzebruch_surface(2);
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 
 julia> closed_subvariety_of_toric_variety(f2, [t1])
-A closed subvariety of a normal toric variety
+Closed subvariety of a normal toric variety
 ```
 """
 closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
@@ -63,7 +63,7 @@ julia> f2 = hirzebruch_surface(2);
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 
 julia> closed_subvariety_of_toric_variety(f2, ideal([t1]))
-A closed subvariety of a normal toric variety
+Closed subvariety of a normal toric variety
 ```
 """
 closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal) = ClosedSubvarietyOfToricVariety(toric_variety, defining_ideal)
@@ -75,7 +75,7 @@ export closed_subvariety_of_toric_variety
 ######################s
 
 function Base.show(io::IO, c::ClosedSubvarietyOfToricVariety)
-    properties_string = ["A closed"]
+    properties_string = ["Closed"]
     push_attribute_if_exists!(properties_string, c, :is_empty, "empty")
     push!(properties_string, "subvariety of a normal toric variety")
     join(io, properties_string, ", ", " ")

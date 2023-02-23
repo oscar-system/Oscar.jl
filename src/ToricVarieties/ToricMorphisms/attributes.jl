@@ -6,10 +6,10 @@ Return the domain of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> domain(toric_identity_morphism(F4))
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 domain(tm::ToricMorphism) = tm.domain
@@ -24,10 +24,10 @@ Return the codomain of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> codomain(toric_identity_morphism(F4))
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 codomain(tm::ToricMorphism) = tm.codomain
@@ -42,10 +42,10 @@ Return the image of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> image(toric_identity_morphism(F4))
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 image(tm::ToricMorphism) = tm.image
@@ -60,7 +60,7 @@ Return the underlying grid morphism of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> grid_morphism(toric_identity_morphism(F4))
 Map with following data
@@ -85,7 +85,7 @@ map of the torusinvariant Weil divisors.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
 Map with following data
@@ -122,7 +122,7 @@ map of the Cartier divisors.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
 Map with following data
@@ -154,7 +154,7 @@ map of the Class groups.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
 Map with following data
@@ -186,7 +186,7 @@ map of the Picard groups.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
 Map with following data

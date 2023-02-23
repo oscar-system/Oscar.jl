@@ -26,7 +26,7 @@ As optional argument, the codomain of the morphism can be specified.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = [[0, 1]]
 1-element Vector{Vector{Int64}}:
@@ -56,7 +56,7 @@ As optional argument, the codomain of the morphism can be specified.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = [0 1]
 1×2 Matrix{Int64}:
@@ -85,10 +85,10 @@ As optional argument, the codomain of the morphism can be specified.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> codomain = hirzebruch_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = matrix(ZZ, [0 1])
 [0   1]
@@ -117,10 +117,10 @@ As optional argument, the codomain of the morphism can be specified.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> codomain = hirzebruch_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 [0   1]

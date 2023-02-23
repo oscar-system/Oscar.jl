@@ -28,7 +28,7 @@ julia> ngens(chow_ring(p2))
 3
 
 julia> v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]])
-A normal toric variety
+Normal toric variety
 
 julia> is_complete(v)
 false

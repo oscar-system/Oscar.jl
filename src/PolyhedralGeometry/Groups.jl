@@ -51,7 +51,7 @@ The quadrangle one obtains from moving one vertex of the square out along the
 diagonal has eight combinatorial symmetries, but only two linear symmetries.
 ```jldoctest
 julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> G = combinatorial_symmetries(quad)
 Group([ (2,4), (1,2)(3,4) ])
@@ -82,7 +82,7 @@ vertices (or rather vertex indices) of $P$.
 The 3-dimensional cube has 48 linear symmetries.
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> G = linear_symmetries(c)
 Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
@@ -95,7 +95,7 @@ The quadrangle one obtains from moving one vertex of the square out along the
 diagonal has two linear symmetries.
 ```jldoctest
 julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> G = linear_symmetries(quad)
 Group([ (2,4) ])
@@ -136,7 +136,7 @@ permuting the vertices, and `:on_facets` for the facets.
 Compute the automorphisms of the 3dim cube:
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> automorphism_group_generators(c)
 Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
@@ -160,7 +160,7 @@ Compute the automorphisms of a non-quadratic quadrangle. Since it has less
 symmetry than the square, it has less linear symmetries.
 ```jldoctest
 julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> automorphism_group_generators(quad)
 Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
@@ -221,7 +221,7 @@ The optional parameter `action` takes three values:
 Compute the automorphisms of the incidence matrix of the 3dim cube:
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> IM = vertex_indices(facets(c))
 6×8 IncidenceMatrix

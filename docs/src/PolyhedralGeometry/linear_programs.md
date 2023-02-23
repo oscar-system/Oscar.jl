@@ -41,10 +41,10 @@ Computationally, this means first defining a linear program:
 
 ```jldoctest
 julia> P = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
-The linear program
+Linear program
    min{c⋅x + k | x ∈ P}
 where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[3 -2 4]

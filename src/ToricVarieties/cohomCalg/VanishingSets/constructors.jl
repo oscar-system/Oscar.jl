@@ -27,5 +27,5 @@ export toric_vanishing_set
 ######################s
 
 function Base.show(io::IO, tvs::ToricVanishingSet)
-    join(io, "A toric vanishing set for cohomology index $(cohomology_index(tvs))")
+    join(io, "Toric vanishing set for cohomology index $(cohomology_index(tvs))")
 end

@@ -30,10 +30,10 @@ reside in the cohomology ring of `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
-A cohomology class on a normal toric variety given by x1
+Cohomology class on a normal toric variety given by x1
 ```
 """
 cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = CohomologyClass(v, p)
@@ -49,13 +49,13 @@ corresponding to the toric divisor `d`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(P2, [1, 2, 3])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cohomology_class(d)
-A cohomology class on a normal toric variety given by 6*x3
+Cohomology class on a normal toric variety given by 6*x3
 ```
 """
 function cohomology_class(d::ToricDivisor)
@@ -75,13 +75,13 @@ corresponding to the toric divisor class `c`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> tdc = toric_divisor_class(P2, [2])
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 
 julia> cohomology_class(tdc)
-A cohomology class on a normal toric variety given by 2*x3
+Cohomology class on a normal toric variety given by 2*x3
 ```
 """
 cohomology_class(c::ToricDivisorClass) = cohomology_class(toric_divisor(c))
@@ -96,10 +96,10 @@ corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = toric_line_bundle(P2, [2])
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 
 julia> polynomial(cohomology_class(l))
 2*x3
@@ -168,5 +168,5 @@ end
 ######################s
 
 function Base.show(io::IO, cc::CohomologyClass)
-    join(io, "A cohomology class on a normal toric variety given by $(string(polynomial(cc)))")
+    join(io, "Cohomology class on a normal toric variety given by $(string(polynomial(cc)))")
 end

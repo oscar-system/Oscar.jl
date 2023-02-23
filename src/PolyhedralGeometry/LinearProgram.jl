@@ -49,7 +49,7 @@ pm_object(lp::LinearProgram) = lp.polymake_lp
 function Base.show(io::IO, LP::LinearProgram)
     c=dehomogenize(LP.polymake_lp.LINEAR_OBJECTIVE)
     k=LP.polymake_lp.LINEAR_OBJECTIVE[1]
-    print(io, "The linear program\n")
+    print(io, "Linear program\n")
     if LP.convention == :max
       print(io, "   max")
     elseif LP.convention == :min
@@ -117,10 +117,10 @@ The following example constructs a linear program over the three dimensional cub
 obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
 ```jldoctest
 julia> C=cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3])
-The linear program
+Linear program
    max{c⋅x + k | x ∈ P}
 where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]
@@ -159,10 +159,10 @@ The following example constructs a linear program over the three dimensional cub
 obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 ```jldoctest
 julia> C=cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
-The linear program
+Linear program
    min{c⋅x + k | x ∈ P}
 where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]

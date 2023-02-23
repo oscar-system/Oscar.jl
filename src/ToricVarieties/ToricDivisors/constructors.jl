@@ -31,7 +31,7 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear
 # Examples
 ```jldoctest
 julia> toric_divisor(projective_space(NormalToricVariety, 2), [1, 1, 2])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
@@ -70,7 +70,7 @@ Construct the torus invariant divisor associated to a character of the normal to
 # Examples
 ```jldoctest
 julia> divisor_of_character(projective_space(NormalToricVariety, 2), [1, 2])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
@@ -125,7 +125,7 @@ end
 
 function Base.show(io::IO, td::ToricDivisor)
     # initiate properties string
-    properties_string = ["A torus-invariant"]
+    properties_string = ["Torus-invariant"]
     
     q_car_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_cartier, "q_cartier")
     push_attribute_if_exists!(properties_string, td, :is_cartier, "cartier"; callback=q_car_cb!)

@@ -22,10 +22,10 @@ Construct the rational equivalence class of algebraic cycles corresponding to a 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> rational_equivalence_class(P2, [1, 2, 3, 4, 5, 6])
-A rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
+Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
 ```
 """
 function rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
@@ -53,13 +53,13 @@ Construct the rational equivalence class of algebraic cycles corresponding to th
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(P2, [1, 2, 3])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> rational_equivalence_class(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)
+Rational equivalence class on a normal toric variety represented by 6V(x3)
 ```
 """
 function rational_equivalence_class(d::ToricDivisor)
@@ -81,13 +81,13 @@ Construct the algebraic cycle corresponding to the toric divisor class `c`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> tdc = toric_divisor_class(P2, [2])
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 
 julia> rational_equivalence_class(tdc)
-A rational equivalence class on a normal toric variety represented by 2V(x3)
+Rational equivalence class on a normal toric variety represented by 2V(x3)
 ```
 """
 rational_equivalence_class(c::ToricDivisorClass) = rational_equivalence_class(toric_divisor(c))
@@ -101,10 +101,10 @@ Construct the toric algebraic cycle corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = toric_line_bundle(P2, [2])
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 
 julia> polynomial(rational_equivalence_class(l))
 2*x3
@@ -121,7 +121,7 @@ Construct the toric algebraic cycle corresponding to the cohomology class `cc`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1, x2, x3) = gens(cohomology_ring(P2))
 3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{fmpq, fmpq_mpoly}}}:
@@ -130,10 +130,10 @@ julia> (x1, x2, x3) = gens(cohomology_ring(P2))
  x3
 
 julia> cc = CohomologyClass(P2, x1+x2)
-A cohomology class on a normal toric variety given by x1 + x2
+Cohomology class on a normal toric variety given by x1 + x2
 
 julia> rational_equivalence_class(cc)
-A rational equivalence class on a normal toric variety represented by 2V(x3)
+Rational equivalence class on a normal toric variety represented by 2V(x3)
 ```
 """
 rational_equivalence_class(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(chow_ring(toric_variety(cc)), cc))
@@ -148,7 +148,7 @@ cycles of a closed subvariety of a normal toric variety.
 # Examples
 ```jldoctest
 julia> ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))
-A normal toric variety
+Normal toric variety
 
 julia> set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"]);
 
@@ -160,10 +160,10 @@ julia> (x1, x2, y1, y2) = gens(cox_ring(ntv))
  y2
 
 julia> sv = closed_subvariety_of_toric_variety(ntv, [x1^2+x1*x2+x2^2, y2])
-A closed subvariety of a normal toric variety
+Closed subvariety of a normal toric variety
 
 julia> rational_equivalence_class(sv)
-A rational equivalence class on a normal toric variety represented by 2V(x2,y2)
+Rational equivalence class on a normal toric variety represented by 2V(x2,y2)
 ```
 """
 function rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
@@ -267,7 +267,7 @@ end
 
 function Base.show(io::IO, ac::RationalEquivalenceClass)
     if is_trivial(ac)
-        join(io, "A trivial rational equivalence class on a normal toric variety")
+        join(io, "Trivial rational equivalence class on a normal toric variety")
     else
       # otherwise, extract properties to represent the rational equivalence class
       r = representative(ac)
@@ -286,9 +286,9 @@ function Base.show(io::IO, ac::RationalEquivalenceClass)
           end
           tmp = join(m, ",")
           if i == 1 && coeffs[i] == 1
-              push!(properties_string, "A rational equivalence classon a normal toric variety represented by V($tmp)")
+              push!(properties_string, "Rational equivalence classon a normal toric variety represented by V($tmp)")
           elseif i == 1 && coeffs[i] != 1
-              push!(properties_string, "A rational equivalence class on a normal toric variety represented by $(coeffs[i])V($tmp)")
+              push!(properties_string, "Rational equivalence class on a normal toric variety represented by $(coeffs[i])V($tmp)")
           elseif i > 1 && coeffs[i] == 1
               push!(properties_string, "+V($tmp)")
           elseif i > 1 && coeffs[i] > 0 && coeffs[i] != 1

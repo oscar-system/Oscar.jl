@@ -33,10 +33,10 @@ cone `C`.
 Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 ```
 """
 function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
@@ -69,10 +69,10 @@ polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
 Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
 julia> ntv = normal_toric_variety(C)
-A normal, affine toric variety
+Normal, affine toric variety
 ```
 """
 function normal_toric_variety(C::Cone; set_attributes::Bool = true)
@@ -122,10 +122,10 @@ julia> max_cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
  [4, 1]
 
 julia> normal_toric_variety(ray_generators, max_cones)
-A normal toric variety
+Normal toric variety
 
 julia> normal_toric_variety(ray_generators, max_cones; non_redundant = true)
-A normal toric variety
+Normal toric variety
 ```
 """
 function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
@@ -143,13 +143,13 @@ Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `P
 Take `PF` to be the normal fan of the square.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> nf = normal_fan(square)
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 
 julia> ntv = normal_toric_variety(nf)
-A normal toric variety
+Normal toric variety
 ```
 """
 function normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
@@ -176,10 +176,10 @@ from the affine relations of the lattice points in `P`, if `P` is very ample.
 Set `P` to be a square.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> ntv = normal_toric_variety(square)
-A normal toric variety
+Normal toric variety
 ```
 """
 function normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
@@ -202,10 +202,10 @@ this method turns it into an affine toric variety.
 # Examples
 ```jldoctest
 julia> v = normal_toric_variety(positive_hull([1 0; 0 1]))
-A normal, affine toric variety
+Normal, affine toric variety
 
 julia> affineVariety = affine_normal_toric_variety(v)
-A normal, affine toric variety
+Normal, affine toric variety
 ```
 """
 function affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
@@ -235,7 +235,7 @@ Constructs the (toric) affine space of dimension `d`.
 # Examples
 ```jldoctest
 julia> affine_space(NormalToricVariety, 2)
-A normal, affine, 2-dimensional toric variety
+Normal, affine, 2-dimensional toric variety
 ```
 """
 function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
@@ -267,7 +267,7 @@ Construct the projective space of dimension `d`.
 # Examples
 ```jldoctest
 julia> projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
@@ -317,7 +317,7 @@ Construct the weighted projective space corresponding to the weights `w`.
 # Examples
 ```jldoctest
 julia> weighted_projective_space(NormalToricVariety, [2,3,1])
-A normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
 ```
 """
 function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
@@ -384,7 +384,7 @@ Constructs the r-th Hirzebruch surface.
 # Examples
 ```jldoctest
 julia> hirzebruch_surface(5)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function hirzebruch_surface(r::Int; set_attributes::Bool = true)
@@ -441,7 +441,7 @@ Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
 # Examples
 ```jldoctest
 julia> del_pezzo_surface(3)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function del_pezzo_surface(b::Int; set_attributes::Bool = true)
@@ -558,10 +558,10 @@ Return the blowup of the normal toric variety `v` on its i-th minimal torus orbi
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
-A normal toric variety
+Normal toric variety
 
 julia> cox_ring(bP2)
 Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by
@@ -620,10 +620,10 @@ do for `w`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> v1 = P2 * P2
-A normal toric variety
+Normal toric variety
 
 julia> cox_ring(v1)
 Multivariate Polynomial Ring in 6 variables xx1, xx2, xx3, yx1, ..., yx3 over Rational Field graded by
@@ -635,7 +635,7 @@ Multivariate Polynomial Ring in 6 variables xx1, xx2, xx3, yx1, ..., yx3 over Ra
   yx3 -> [0 1]
 
 julia> v2 = P2 * P2
-A normal toric variety
+Normal toric variety
 
 julia> set_coordinate_names(v2, ["x1", "x2", "x3", "y1", "y2", "y3"])
 
@@ -670,12 +670,12 @@ compute the two phases of the famous conifold transition.
 # Examples
 ```jldoctest
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> (v1, v2) = normal_toric_varieties_from_star_triangulations(P::Polyhedron)
 2-element Vector{NormalToricVariety}:
- A normal toric variety
- A normal toric variety
+ Normal toric variety
+ Normal toric variety
 
 julia> stanley_reisner_ideal(v1)
 ideal(x2*x4)
@@ -744,7 +744,7 @@ julia> charges = [[1, 1, 1]]
 
 julia> normal_toric_varieties_from_glsm(charges)
 1-element Vector{NormalToricVariety}:
- A normal toric variety
+ Normal toric variety
 ```
 
 For convenience, we also support:
@@ -785,7 +785,7 @@ export normal_toric_varieties_from_glsm
 ############################
 function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
-    properties_string = ["A normal"]
+    properties_string = ["Normal"]
     
     affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
     

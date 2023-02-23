@@ -29,10 +29,10 @@ Construct the line bundle on the abstract normal toric variety `v` with class `c
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
@@ -49,10 +49,10 @@ Construct the line bundle on the abstract normal toric variety `v` with class `c
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = toric_line_bundle(v, [fmpz(2)])
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::AbstractNormalToricVariety, input_class::Vector{T}) where {T <: IntegerUnion}
@@ -73,10 +73,10 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = toric_line_bundle(v, toric_divisor(v, [1, 2, 3]))
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
@@ -98,12 +98,12 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(v, [1, 2, 3]);
 
 julia> l = toric_line_bundle(d)
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
 toric_line_bundle(d::ToricDivisor) = toric_line_bundle(toric_variety(d), d)
@@ -140,7 +140,7 @@ end
 function Base.show(io::IO, line_bundle::ToricLineBundle)
 
     # initiate properties string
-    properties_string = ["A toric"]
+    properties_string = ["Toric"]
 
     # collect known properties
     if has_attribute(line_bundle, :toric_divisor)

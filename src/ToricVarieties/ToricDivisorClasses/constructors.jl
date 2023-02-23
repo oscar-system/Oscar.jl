@@ -28,10 +28,10 @@ element of the class group of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 ```
 """
 toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
@@ -47,10 +47,10 @@ specify an element of the class group of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([fmpz(1)]))
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 ```
 """
 toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([fmpz(c) for c in coeffs]))
@@ -68,13 +68,13 @@ Construct the toric divisor class associated to the element ... of the class gro
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(P2, [1, 2, 3])
-A torus-invariant, non-prime divisor on a normal toric variety
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> tdc = toric_divisor_class(td)
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 ```
 """
 function toric_divisor_class(td::ToricDivisor)
@@ -121,5 +121,5 @@ end
 ######################s
 
 function Base.show(io::IO, td::ToricDivisorClass)
-    join(io, "A divisor class on a normal toric variety")
+    join(io, "Divisor class on a normal toric variety")
 end

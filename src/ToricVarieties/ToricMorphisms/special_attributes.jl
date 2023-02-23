@@ -6,7 +6,7 @@ This method returns the quotient morphism from the Cox variety to the toric vari
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_from_cox_variety(F4)
 A toric morphism
@@ -30,10 +30,10 @@ This method returns the Cox variety of the toric variety in question.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> cox_variety(F4)
-A normal toric variety
+Normal toric variety
 ```
 """
 @attr AbstractNormalToricVariety function cox_variety(variety::AbstractNormalToricVariety)

@@ -38,7 +38,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
 
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
-A subdivision of points in ambient dimension 3
+Subdivision of points in ambient dimension 3
 ```
 """
 function SubdivisionOfPoints{T}(points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
@@ -67,7 +67,7 @@ We use the MOAE points, but give a weight vector instead of cells:
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
-A subdivision of points in ambient dimension 3
+Subdivision of points in ambient dimension 3
 
 julia> n_maximal_cells(SOP)
 1
@@ -104,6 +104,6 @@ end
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, SOP::SubdivisionOfPoints{T}) where T<:scalar_types
-    print(io, "A subdivision of points in ambient dimension $(ambient_dim(SOP))")
+    print(io, "Subdivision of points in ambient dimension $(ambient_dim(SOP))")
     T != fmpq && print(io, " with $T type coefficients")
 end
