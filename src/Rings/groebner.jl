@@ -1393,6 +1393,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyElem}
     pos_vec += K*(v.p)
   end
   ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
+  ret = (x -> div(x, gcd(ret))).(ret) 
   @assert iszero(mat_space(exp_diffs) * ret)
   return ret
 end
