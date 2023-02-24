@@ -2180,13 +2180,10 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert task in [:sum, :prod, :both, :none]
   G = C[1].G
   @assert all(x->x.G == G, C)
-  @time mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
+  mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
 
-  @time mC = gmodule(G, [direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
-  @time mC.iac = [direct_sum(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
-#  @time mC = gmodule(G, [sum(pro[i] * action(C[i], g) * inj[i] for i=1:length(C)) for g = gens(G)])
-#  @time mC.iac = [sum(pro[i] * action(C[i], inv(g)) * inj[i] for i=1:length(C)) for g = gens(G)]
-#  @time mC.iac = [hom(mM, mM, [sum(inj[i](action(C[i], inv(g), pro[i](h))) for i=1:length(C)) for h = gens(mM)]) for g = gens(G)]
+  mC = gmodule(G, [direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
+  mC.iac = [direct_sum(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
 
   if task == :none
     return mC
