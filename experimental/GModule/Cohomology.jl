@@ -251,6 +251,8 @@ end
 The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
+  @assert parent(g) == Group(C)
+
   ac = action(C)
   G = Group(C)
   f = findfirst(isequal(g), gens(G))
@@ -262,8 +264,19 @@ function action(C::GModule, g)
   if f !== nothing
     return iac[f]
   end
-  v = gens(Module(C))
-  return hom(Module(C), Module(C), action(C, g, v))
+
+  F, mF = fp_group(C)
+  h = id_hom(C.M)
+  for i = word(preimage(mF, g))
+    if i > 0
+      h = h*ac[i]
+#      v = map(ac[i], v)
+    else
+      h = h*ac[-i]
+#      v = map(iac[-i], v)
+    end
+  end
+  return h
 end
 
 #Main goal: cohomology computations.
@@ -396,6 +409,11 @@ function H_zero_tate(C::GModule)
 
   z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), q, AllCoChains{0,elem_type(G),elem_type(M)}())
   set_attribute!(C, :H_zero_tate => z)
+
+  if isfinite(G) && isa(q, GrpAbFinGen)
+    q.exponent = order(G)
+  end
+
   return q, z
 end
 
@@ -536,6 +554,43 @@ function H_one(C::GModule)
 end
 
 
+function confluent_fp_group_pc(G::Oscar.GAPGroup)
+   g = isomorphism(PcGroup, G)
+   P = codomain(g)
+   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(P.X), GAP.Obj("g"))
+   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   H = FPGroup(GAPWrap.Image(f))
+   R = relations(H)
+   ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
+   for r = R
+     push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(r[1].X)), 
+                map(Int, GAP.Globals.LetterRepAssocWord(r[2].X))))
+  end
+  i = 0
+  ex = []
+  for r = ru
+    i += 1
+    @assert length(r[2]) == 0
+    if r[1][1] == r[1][2] #order relation!
+      j = 3
+      while j <= length(r[1]) && r[1][j] == r[1][1]
+        j += 1
+      end
+      ru[i] = (r[1][1:j-1], -1 .* reverse(r[1][j:end]))
+      r = ru[i]
+      push!(ex, ([-r[1][1]], [r[1][1] for i=2:length(r[1])]))
+    else #conjugator rel
+      @assert r[1][1] < 0 && -r[1][1] == r[1][3]
+      @assert r[1][2] < 0 && -r[1][2] == r[1][4]
+      ru[i] = ([r[1][3], r[1][4]], vcat([r[1][4], r[1][3]], -1 .* reverse(r[1][5:end])))
+    end
+  end
+  append!(ru, ex)
+
+  return H, GAPGroupHomomorphism(H, P, GAP.Globals.InverseGeneralMapping(f))*inv(g), ru
+end
+
+
 """
 Computes an isomorphic fp-group and a confluent system of
 relations given as pairs of words.
@@ -661,35 +716,42 @@ UNIVERSAL COVERS OF FINITE GROUPS
 https://arxiv.org/pdf/1910.11453.pdf
 almost the same as Holt
 =#
-function H_two(C::GModule)
+function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
   z = get_attribute(C, :H_two)
-  if false && z !== nothing
+  if !redo && z !== nothing
     return domain(z[1]), z[1], z[2]
   end
+
   G = Group(C)
   M = Module(C)
+
+  @vprint :GroupCohomology 1 "starting H^2 for group of size $(order(G)) and module with $(ngens(M)) gens\n"
+
   id = hom(M, M, gens(M), check = false)
   Ac = action(C)
   iAc = inv_action(C)
 
   F, mF = fp_group(C) #mF: F -> G
-  FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
+
+  if !force_rws && (isa(G, PcGroup) || is_solvable(G))
+    @vprint :GroupCohomology 2 "using pc-presentation ...\n"
+    FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
+    use_pc = true
+  else
+    @vprint :GroupCohomology 2 "using generic rws ...\n"
+    FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
+    FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
+    use_pc = false
+  end
   #now map the action generators (for gens(G)) to the gens for the RWS
   ac = []
   iac = []
-  @show :action
-  for g = gens(FF)
-    f = id
-    for i = word(preimage(mF, mFF(g)))
-      if i < 0
-        f = f*iAc[-i]
-      else
-        f = f*Ac[i]
-      end
-    end
+  @vprint :GroupCohomology 2 "computing action for the gens in the rws..\n"
+  @vtime :GroupCohomology 2 for g = gens(FF)
+    f = action(C, mFF(g))
     push!(ac, f)
     #should we inv(f) or build inv f as a product as above???
-    @time push!(iac, inv(f))
+    @vtime :GroupCohomology 3 push!(iac, inv(f))
   end
 
   c = CollectCtx(R)
@@ -712,13 +774,14 @@ function H_two(C::GModule)
     push!(pos, n)
   end
 
+  @vprint :GroupCohomology 1 "need $n-tails\n"
+
   if n == 0
     D = sub(M, elem_type(M)[])[1]
     pro = []
     inj = []
   else
-    @show :prod
-    @time D, pro, inj = direct_product([M for i=1:n]..., task = :both)
+    D, pro, inj = direct_product([M for i=1:n]..., task = :both)
   end
   
 
@@ -731,6 +794,9 @@ function H_two(C::GModule)
   # at the beginning, module at the end, the tail.
   # collect will call the extra function c.f if set in the
   # CollectCtx
+  # if use_rws we investigate all overlaps
+  # otherwise, we know it a pc-presentation and thus fewer tests
+  # are needed.
   function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
     #w = ABC and B == r[1], B -> r[2] * tail[r]
     # -> A r[2] C C(tail)
@@ -754,8 +820,10 @@ function H_two(C::GModule)
 
   E = D
   all_T = []
-  #need zero home this is too slow
+  #need zero hom this is too slow
   Z = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
+
+  @vprint :GroupCohomology 2 "building relations...\n"
   for i = 1:length(R)
     r = R[i]
     for j=1:length(R)
@@ -764,7 +832,23 @@ function H_two(C::GModule)
       #we want overlaps, all of them:
       #r[1] = AB, s[1] = BC this is what we need to find...
       #(then we call collect on r[2]C and As[2] they should agree)
-      for l=1:min(length(s[1]), length(r[1]))
+      #if use_pc, then l can only be 1:
+      #From Holt: those are the r[1] we need
+      # (i i .. i)
+      #   (i .. i i) 
+      # (i .. i)
+      #      (i j)
+      # (i j)
+      #  ( j ... j)
+      # (i j)
+      #   (j i)
+      if use_pc
+        l_max = 1
+      else
+        l_max = min(length(s[1]), length(r[1]))
+      end
+
+      for l=1:l_max
         if r[1][end-l+1:end] == s[1][1:l]
           #TODO  AB    -> Ss  s,t are tails
           #       BC   -> Tt
@@ -789,12 +873,14 @@ function H_two(C::GModule)
           if pos[j] > 0
             c.T += pro[pos[j]]
           end
-          @assert z1 == z2
+          @hassert :GroupCohomology 1 z1 == z2
           push!(all_T, T-c.T)
         end
       end
     end
   end
+
+  @vprint :GroupCohomology 2 "found $(length(all_T)) relations\n"
 
   if length(all_T) == 0
     Q = sub(M, elem_type(M)[])[1]
@@ -802,10 +888,15 @@ function H_two(C::GModule)
   else
     Q, jinj = direct_product([M for i in all_T]..., task = :sum)
   end
-  mm = reduce(+, [all_T[i]*jinj[i] for i = 1:length(all_T)], init = hom(D, Q, elem_type(Q)[Q[0] for i=1:ngens(D)]))
-  E, mE = kernel(mm)
-  @assert all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
-  @assert all(x->iszero(mm(mE(x))), gens(E))
+  if length(all_T) == 0
+    mm = hom(D, Q, elem_type(Q)[Q[0] for i=1:ngens(D)], check = false)
+  else
+    mm = sum(all_T[i]*jinj[i] for i = 1:length(all_T))
+  end
+  @vprint :GroupCohomology 2 "computing 2-cycles...\n"
+  @vtime :GroupCohomology 2 E, mE = kernel(mm)
+  @hassert :GroupCohomology 1 all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
+  @hassert :GroupCohomology 1 all(x->iszero(mm(mE(x))), gens(E))
 
 
   if length(ac) == 0
@@ -860,9 +951,10 @@ function H_two(C::GModule)
 
     CC += (T-S)*inj[pos[i]]
   end
-  i, mi = image(CC)
-#  @show intersect(i, E)
-  H2, mH2 = quo(E, i)
+  @vprint :GroupCohomology 2 "now the 2-boundaries...\n"
+  @vtime :GroupCohomology 2 i, mi = image(CC)
+  @vprint :GroupCohomology 2 "and the quotient...\n"
+  @vtime :GroupCohomology 2 H2, mH2 = quo(E, i)
   if isfinite(G) && isa(H2, GrpAbFinGen)
     H2.exponent = order(G)
   end
@@ -2569,6 +2661,19 @@ function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
     end
   end
   return collect(or)
+end
+
+function can_simp(C::GModule{PermGroup, GrpAbFinGen})
+  for i=1:10
+    o = Oscar.orbit(C, rand(gens(C.M)))
+    if length(o) == order(group(C))
+      s, ms = sub(C.M, o)
+      if rank(s) == length(o)
+        return true, simplify(quo(C, ms)[1])[1]
+      end
+    end
+  end
+  return false, C
 end
 
 function direct_sum(G::GrpAbFinGen, H::GrpAbFinGen, V::Vector{<:Map{GrpAbFinGen, GrpAbFinGen}})
