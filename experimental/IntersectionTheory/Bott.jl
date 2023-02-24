@@ -49,11 +49,11 @@ abstract type TnVarietyT{P} <: Variety end
 The type of a torus-equivariant bundle, represented by its localizations to the
 fixed points of the base variety.
 """
-mutable struct TnBundle{P, V <: TnVarietyT{P}} <: Bundle
+@attributes mutable struct TnBundle{P, V <: TnVarietyT{P}} <: Bundle
   parent::V
   rank::Int
   loc::Function
-  @declare_other
+
   function TnBundle(X::V, r::Int) where V <: TnVarietyT
     P = V.parameters[1]
     new{P, V}(X, r)
@@ -69,12 +69,12 @@ end
 
 The type of a variety with a torus action, represented by the fixed points.
 """
-mutable struct TnVariety{P} <: TnVarietyT{P}
+@attributes mutable struct TnVariety{P} <: TnVarietyT{P}
   dim::Int
   points::Vector{Pair{P, Int}}
   T::TnBundle
   bundles::Vector{TnBundle}
-  @declare_other
+
   function TnVariety(n::Int, points::Vector{Pair{P, Int}}) where P
     new{P}(n, points)
   end
@@ -109,7 +109,7 @@ end
 # the following ad hoc type represents a formal expression in chern classes of a bundle F
 struct TnBundleChern
   F::TnBundle
-  c::RingElem_dec
+  c::MPolyDecRingElem
 end
 for O in [:(+), :(-), :(*)]
   @eval $O(a::TnBundleChern, b::TnBundleChern) = (
@@ -123,13 +123,13 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 
 # create a ring to hold the chern classes of F
 function _get_ring(F::TnBundle)
-  if get_special(F, :R) === nothing
+  if get_attribute(F, :R) === nothing
     r = min(F.parent.dim, F.rank)
     R, _ = grade(PolynomialRing(QQ, _parse_symbol("c", 1:r))[1], collect(1:r))
-    set_special(R, :variety_dim => F.parent.dim)
-    set_special(F, :R => R)
+    set_attribute!(R, :variety_dim => F.parent.dim)
+    set_attribute!(F, :R => R)
   end
-  get_special(F, :R)
+  get_attribute(F, :R)
 end
 
 chern(F::TnBundle) = TnBundleChern(F, 1+sum(gens(_get_ring(F))))
@@ -184,7 +184,7 @@ function tn_grassmannian(k::Int, n::Int; weights=:int)
   Q = TnBundle(G, n-k, p -> TnRep([w[i] for i in setdiff(1:n, p)]))
   G.bundles = [S, Q]
   G.T = dual(S) * Q
-  set_special(G, :description => "Grassmannian Gr($k, $n)")
+  set_attribute!(G, :description => "Grassmannian Gr($k, $n)")
   return G
 end
 
@@ -202,7 +202,7 @@ function tn_flag(dims::Vector{Int}; weights=:int)
   w = _parse_weight(n, weights)
   Fl.bundles = [TnBundle(Fl, r, p -> TnRep([w[j] for j in p[i]])) for (i, r) in enumerate(ranks)]
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
-  set_special(Fl, :description => "Flag variety Flag$(tuple(dims...))")
+  set_attribute!(Fl, :description => "Flag variety Flag$(tuple(dims...))")
   return Fl
 end
 

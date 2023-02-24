@@ -3,9 +3,9 @@ using Oscar
 using Markdown
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
-import Oscar: AlgHom, Ring, Ring_dec, RingElem_dec
+import Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, proj, graph
 import Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, total_degree
-import AbstractAlgebra: combinations, @declare_other, get_special, set_special
+import AbstractAlgebra: combinations
 import AbstractAlgebra.Generic: FunctionalMap, Partition, partitions
 
 export betti, chern, ctop, euler, graph, todd, OO

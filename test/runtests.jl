@@ -82,6 +82,7 @@ end
 end
 # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
+<<<<<<< HEAD
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
@@ -111,6 +112,7 @@ include("Experimental/MatrixGroups-test.jl")
 include("Experimental/JuLie-test.jl")
 include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
+include("Experimental/IntersectionTheory-test.jl")
 
 include("Rings/ReesAlgebra.jl")
 

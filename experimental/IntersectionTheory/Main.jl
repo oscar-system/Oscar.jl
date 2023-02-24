@@ -8,8 +8,8 @@
 Construct a bundle on $X$ by specifying its Chern character, or its rank and
 total Chern class.
 """
-bundle(X::V, ch::RingElem_dec) where V <: AbsVarietyT = AbsBundle(X, ch)
-bundle(X::V, r::RingElement, c::RingElem_dec) where V <: AbsVarietyT = AbsBundle(X, r, c)
+bundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbsVarietyT = AbsBundle(X, ch)
+bundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbsVarietyT = AbsBundle(X, r, c)
 
 ==(F::AbsBundle, G::AbsBundle) = ch(F) == ch(G)
 
@@ -131,21 +131,21 @@ Compute the Todd class of the relative tangent bundle."""
 todd(f::AbsVarietyHom) = todd(f.T)
 
 @doc Markdown.doc"""
-    pullback(f::AbsVarietyHom, x::RingElem_dec)
+    pullback(f::AbsVarietyHom, x::MPolyDecRingElem)
     pullback(f::AbsVarietyHom, F::AbsBundle)
 Compute the pullback of a Chow ring element $x$ or a bundle $F$ by a morphism $f$.
 """
-pullback(f::AbsVarietyHom, x::RingElem_dec) = f.pullback(x)
+pullback(f::AbsVarietyHom, x::MPolyDecRingOrQuoElem) = f.pullback(x)
 pullback(f::AbsVarietyHom, F::AbsBundle) = AbsBundle(f.domain, f.pullback(ch(F)))
 
 @doc Markdown.doc"""
-    pushforward(f::AbsVarietyHom, x::RingElem_dec)
+    pushforward(f::AbsVarietyHom, x::MPolyDecRingElem)
     pushforward(f::AbsVarietyHom, F::AbsBundle)
 Compute the pushforward of a Chow ring element $x$ or a bundle $F$ by a
 morphism $f$. For abstract bundles, the pushforward is derived, e.g., for a
 bundle $F$ it is understood as the alternating sum of all direct images.
 """
-pushforward(f::AbsVarietyHom, x::RingElem_dec) = f.pushforward(x)
+pushforward(f::AbsVarietyHom, x::MPolyDecRingOrQuoElem) = f.pushforward(x)
 pushforward(f::AbsVarietyHom, F::AbsBundle) = AbsBundle(f.codomain, f.pushforward(ch(F) * todd(f))) # Grothendieck-Hirzebruch-Riemann-Roch
 
 function identity_hom(X::V) where V <: AbsVarietyT
@@ -239,7 +239,7 @@ Return the line bundle $\mathcal O_X(n)$ on $X$ if $X$ has been given a
 polarization, or a line bundle $\mathcal O_X(D)$ with first Chern class $D$.
 """
 OO(X::AbsVariety, n::RingElement) = AbsBundle(X, 1, 1+n*X.O1)
-OO(X::AbsVariety, D::RingElem_dec) = AbsBundle(X, 1, 1+D[1])
+OO(X::AbsVariety, D::MPolyDecRingElem) = AbsBundle(X, 1, 1+D[1])
 
 @doc Markdown.doc"""
     degree(X::AbsVariety)
@@ -352,8 +352,8 @@ for g in [:a_hat_genus, :l_genus]
     R = X.ring
     k == 0 && return R(1)
     p = pontryagin(X.T)[1:2k]
-    R isa MPolyRing_dec && return R($g(k).f([p[2i].f for i in 1:k]...))
-    R isa MPolyQuo && return R(R.R($g(k).f([p[2i].f.f for i in 1:k]...)))
+    R isa MPolyDecRing && return R($g(k).f([p[2i].f for i in 1:k]...))
+    R isa MPolyQuoRing && return R(base_ring(R)($g(k).f([p[2i].f.f for i in 1:k]...)))
   end
   @eval function $g(X::AbsVariety)
     !iseven(X.dim) && error("the variety is not of even dimension")
@@ -398,12 +398,13 @@ function hilbert_polynomial(F::AbsBundle)
   # extend the coefficient ring to QQ(t)
   # TODO should we use FunctionField here?
   Qt, t = PolynomialRing(QQ, "t")
-  R = parent(change_base_ring(Qt, X.ring.R.R()))
-  GR = grade(R, gradings(X.ring.R))[1]
+  @assert X.ring isa MPolyQuoRing
+  R = parent(change_base_ring(Qt, base_ring(X.ring).R()))
+  GR = grade(R, gradings(base_ring(X.ring)))[1]
   toR = x -> GR(change_base_ring(Qt, x, parent=R))
   I = ideal(toR.(gens(X.ring.I)))
   R_ = quo(GR, I)[1]
-  set_special(R_, :variety_dim => X.dim)
+  set_attribute!(R_, :variety_dim => X.dim)
   ch_O_t = 1 + _logg(1 + t * R_(toR(O1.f)))
   ch_F = R_(toR(ch(F).f))
   td = R_(toR(todd(X).f))
@@ -417,7 +418,7 @@ hilbert_polynomial(X::AbsVariety) = hilbert_polynomial(OO(X))
 function _hom(X::AbsVariety, Y::AbsVariety)
   X == Y && return identity_hom(X)
   # first handle the case where X is a (fibered) product
-  projs = get_special(X, :projections)
+  projs = get_attribute(X, :projections)
   if projs !== nothing
     for p in projs
       p.codomain == Y && return p
@@ -439,8 +440,8 @@ end
     hom(X::AbsVariety, Y::AbsVariety)
 Return a canonicallly defined morphism from $X$ to $Y$."""
 function hom(X::AbsVariety, Y::AbsVariety)
-  get_special(Y, :point) !== nothing && return hom(X, Y, [X(0)]) # Y is a point
-  get_special(X, :point) !== nothing && return hom(X, Y, repeat([X(0)], length(gens(Y.ring)))) # X is a point
+  get_attribute(Y, :point) !== nothing && return hom(X, Y, [X(0)]) # Y is a point
+  get_attribute(X, :point) !== nothing && return hom(X, Y, repeat([X(0)], length(gens(Y.ring)))) # X is a point
   _hom(X, Y)
 end
 →(X::AbsVariety, Y::AbsVariety) = hom(X, Y)
@@ -453,11 +454,11 @@ polarization, $X\times Y$ will be endowed with the polarization of the Segre
 embedding.
 """
 function *(X::AbsVariety, Y::AbsVariety)
-  prod_cache = get_special(X, :prod_cache)
+  prod_cache = get_attribute(X, :prod_cache)
   prod_cache !== nothing && Y in keys(prod_cache) && return prod_cache[Y]
   if prod_cache === nothing
     prod_cache = Dict{AbsVariety, AbsVariety}()
-    set_special(X, :prod_cache => prod_cache)
+    set_attribute!(X, :prod_cache => prod_cache)
   end
   @assert X.base == Y.base
   base = X.base
@@ -465,10 +466,11 @@ function *(X::AbsVariety, Y::AbsVariety)
   symsA, symsB = string.(gens(A)), string.(gens(B))
   a = length(symsA)
   R, x = grade(PolynomialRing(base, vcat(symsA, symsB))[1], vcat(gradings(A), gradings(B)))
-  AtoR = hom(A, R, x[1:a])
-  BtoR = hom(B, R, x[a+1:end])
-  IA = ideal(A isa MPolyQuo ? AtoR.(A.(gens(A.I))) : [R()])
-  IB = ideal(B isa MPolyQuo ? BtoR.(B.(gens(B.I))) : [R()])
+  # TODO: fails with check = true
+  AtoR = hom(A, R, x[1:a], check = false)
+  BtoR = hom(B, R, x[a+1:end], check = false)
+  IA = ideal(A isa MPolyQuoRing ? AtoR.(A.(gens(A.I))) : [R()])
+  IB = ideal(B isa MPolyQuoRing ? BtoR.(B.(gens(B.I))) : [R()])
   AXY, _ = quo(R, IA + IB)
   XY = AbsVariety(X.dim+Y.dim, AXY)
   if isdefined(X, :point) && isdefined(Y, :point)
@@ -482,11 +484,11 @@ function *(X::AbsVariety, Y::AbsVariety)
   if isdefined(X, :O1) && isdefined(Y, :O1) # Segre embedding
     XY.O1 = p.pullback(X.O1) + q.pullback(Y.O1)
   end
-  if get_special(X, :alg) == true && get_special(Y, :alg) == true
-    set_special(XY, :alg => true)
+  if get_attribute(X, :alg) == true && get_attribute(Y, :alg) == true
+    set_attribute!(XY, :alg => true)
   end
-  set_special(XY, :projections => [p, q])
-  set_special(XY, :description => "Product of $X and $Y")
+  set_attribute!(XY, :projections => [p, q])
+  set_attribute!(XY, :description => "Product of $X and $Y")
   prod_cache[Y] = XY
   return XY
 end
@@ -505,9 +507,9 @@ end
 #
 # Operators on AbsBundle
 #
-function adams(k::Int, x::RingElem_dec)
+function adams(k::Int, x::MPolyDecRingOrQuoElem)
   R = parent(x)
-  n = get_special(R, :variety_dim)
+  n = get_attribute(R, :variety_dim)
   comps = x[0:n]
   sum([ZZ(k)^i*comps[i+1] for i in 0:n])
 end
@@ -602,7 +604,7 @@ function schur_functor(λ::Partition, F::AbsBundle)
   M = [e(λ[i]-i+j) for i in 1:length(λ), j in 1:length(λ)]
   sch = det(matrix(S, M)) # Jacobi-Trudi
   R = X.ring
-  if R isa MPolyQuo
+  if R isa MPolyQuoRing
     StoX = hom(S, R.R.R, [wi.f.f for wi in w])
     return AbsBundle(X, X(R.R(StoX(sch))))
   else
@@ -626,19 +628,18 @@ Return an additive basis of the Chow ring of $X$, grouped by increasing
 degree (i.e., increasing codimension)."""
 function basis(X::AbsVariety)
   # it is important for this to be cached!
-  if get_special(X, :basis) === nothing
+  return get_attribute!(X, :basis) do
     R = X.ring
     try_trim = "Try use `trim!`."
-    !(R isa MPolyQuo) && error("the ring has no ideal. "*try_trim)
+    !(R isa MPolyQuoRing) && error("the ring has no ideal. "*try_trim)
     dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
     b = Oscar._kbase(R)
-    ans = [MPolyQuoElem[] for i in 0:X.dim]
+    ans = [MPolyQuoRingElem[] for i in 0:X.dim]
     for bi in b
       push!(ans[total_degree(bi)+1], R(bi))
     end
-    set_special(X, :basis => ans)
+    return ans
   end
-  return get_special(X, :basis)
 end
 
 @doc Markdown.doc"""
@@ -654,7 +655,7 @@ necessarily equal to the usual Betti numbers, i.e., the dimensions of
 betti(X::AbsVariety) = length.(basis(X))
 
 @doc Markdown.doc"""
-    integral(x::RingElem_dec)
+    integral(x::MPolyDecRingElem)
 
 Compute the integral of a Chow ring element.
 
@@ -662,8 +663,8 @@ If the variety $X$ has a (unique) point class `X.point`, the integral will be a
 number (an `fmpq` or a function field element). Otherwise the 0-dimensional
 part of $x$ is returned.
 """
-function integral(x::RingElem_dec)
-  X = get_special(parent(x), :variety)
+function integral(x::MPolyDecRingOrQuoElem)
+  X = get_attribute(parent(x), :variety)
   if isdefined(X, :point) && length(basis(X.dim, X)) == 1
     return constant_coefficient(div(simplify(x).f, simplify(X.point).f))
   else
@@ -691,10 +692,9 @@ Compute the dual basis of the additive basis in codimension $k$ given by
 `basis(k, X)` (the returned elements are therefore in codimension
 $\dim X-k$)."""
 function dual_basis(k::Int, X::AbsVariety)
-  d = get_special(X, :dual_basis)
-  if d === nothing
+  d = get_attribute!(X, :dual_basis) do
     d = Dict{Int, Vector{elem_type(X.ring)}}()
-    set_special(X, :dual_basis => d)
+    return d
   end
   if !(k in keys(d))
     B = basis(X)
@@ -702,7 +702,7 @@ function dual_basis(k::Int, X::AbsVariety)
     b_comp = B[X.dim-k+1]
     M = Matrix(inv(intersection_matrix(b_comp, b_k)))
     d[k] = M * b_comp
-    d[X.dim-k] = M' * b_k
+    d[X.dim-k] = transpose(M) * b_k
   end
   return d[k]
 end
@@ -716,9 +716,9 @@ dual_basis(X::AbsVariety) = [dual_basis(k, X) for k in 0:X.dim]
 # the parameter for truncation is usually the dimension, but can also be set
 # manually, which is used when computing particular Chern classes (without
 # computing the total Chern class)
-function _expp(x::RingElem_dec; truncate::Int=-1)
+function _expp(x::MPolyDecRingOrQuoElem; truncate::Int=-1)
   R = parent(x)
-  n = truncate < 0 ? get_special(R, :variety_dim) : truncate
+  n = truncate < 0 ? get_attribute(R, :variety_dim) : truncate
   comps = x[0:n]
   p = [(-1)^i * factorial(ZZ(i)) * comps[i+1] for i in 0:n]
   e = repeat([R(0)], n+1)
@@ -729,9 +729,9 @@ function _expp(x::RingElem_dec; truncate::Int=-1)
   simplify(sum(e))
 end
 
-function _logg(x::RingElem_dec)
+function _logg(x::MPolyDecRingOrQuoElem)
   R = parent(x)
-  n = get_special(R, :variety_dim)
+  n = get_attribute(R, :variety_dim)
   n == 0 && return R()
   e = x[1:n]
   p = pushfirst!(repeat([R()], n-1), -e[1])
@@ -742,10 +742,10 @@ function _logg(x::RingElem_dec)
 end
 
 # returns all the wedge from 0 to k
-function _wedge(k::Int, x::RingElem_dec)
+function _wedge(k::Int, x::MPolyDecRingOrQuoElem)
   R = parent(x)
   k == 0 && return [R(1)]
-  n = get_special(R, :variety_dim)
+  n = get_attribute(R, :variety_dim)
   wedge = repeat([R(0)], k+1)
   wedge[1] = R(1)
   wedge[2] = x
@@ -756,10 +756,10 @@ function _wedge(k::Int, x::RingElem_dec)
 end
 
 # returns all the sym from 0 to k
-function _sym(k::Int, x::RingElem_dec)
+function _sym(k::Int, x::MPolyDecRingOrQuoElem)
   R = parent(x)
   k == 0 && return [R(1)]
-  n = get_special(R, :variety_dim)
+  n = get_attribute(R, :variety_dim)
   r = min(k, Int(ZZ(QQ(constant_coefficient(x.f)))))
   wedge = _wedge(r, x)
   sym = repeat([R(0)], k+1)
@@ -771,12 +771,12 @@ function _sym(k::Int, x::RingElem_dec)
   sym
 end
 
-function _genus(x::RingElem_dec, taylor::Vector{})
+function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
   R = parent(x)
   iszero(x) && return R(1)
-  n = get_special(R, :variety_dim)
+  n = get_attribute(R, :variety_dim)
   R, (t,) = grade(PolynomialRing(QQ, ["t"])[1])
-  set_special(R, :variety_dim => n)
+  set_attribute!(R, :variety_dim, n)
   lg = _logg(R(sum(taylor[i+1] * t^i for i in 0:n)))
   comps = lg[1:n]
   lg = [leading_coefficient(comps[i].f) for i in 1:n]
@@ -784,22 +784,22 @@ function _genus(x::RingElem_dec, taylor::Vector{})
   _expp(sum(factorial(ZZ(i)) * lg[i] * comps[i] for i in 1:n))
 end
 
-function _todd(x::RingElem_dec)
-  n = get_special(parent(x), :variety_dim)
+function _todd(x::MPolyDecRingOrQuoElem)
+  n = get_attribute(parent(x), :variety_dim)
   # the Taylor series of t/(1-exp(-t))
   taylor = [(-1)^i//factorial(ZZ(i))*bernoulli(i) for i in 0:n]
   _genus(x, taylor)
 end
 
-function _l_genus(x::RingElem_dec)
-  n = get_special(parent(x), :variety_dim)
+function _l_genus(x::MPolyDecRingOrQuoElem)
+  n = get_attribute(parent(x), :variety_dim)
   # the Taylor series of sqrt(t)/tanh(sqrt(t))
   taylor = [ZZ(2)^2i//factorial(ZZ(2i))*bernoulli(2i) for i in 0:n]
   _genus(x, taylor)
 end
 
-function _a_hat_genus(x::RingElem_dec)
-  n = get_special(parent(x), :variety_dim)
+function _a_hat_genus(x::MPolyDecRingOrQuoElem)
+  n = get_attribute(parent(x), :variety_dim)
   # the Taylor series of (sqrt(t)/2)/sinh(sqrt(t)/2)
   R, t = PowerSeriesRing(QQ, 2n+1, "t")
   s = divexact(t, exp(QQ(1//2)*t)-exp(-QQ(1//2)*t))
@@ -812,7 +812,7 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd=>"c"]
   @eval function $g(n::Int)
     n == 0 && return QQ(1)
     R, p = grade(PolynomialRing(QQ, _parse_symbol($s, 1:n))[1], collect(1:n))
-    set_special(R, :variety_dim => n)
+    set_attribute!(R, :variety_dim, n)
     $_g(_logg(R(1+sum(p))))[n]
   end
 end
@@ -846,9 +846,9 @@ function section_zero_locus(F::AbsBundle; class::Bool=false)
   cZ = ctop(F)
   # return only the class of Z in the chow ring of X
   class && return cZ
-  if R isa MPolyQuo
-    I = quotient(R.I, ideal(R.R, [cZ.f]))
-    AZ = quo(R.R, I)[1]
+  if R isa MPolyQuoRing
+    I = quotient(modulus(R), ideal(base_ring(R), [cZ.f]))
+    AZ = quo(base_ring(R), I)[1]
   else
     AZ = R
   end
@@ -868,10 +868,11 @@ function section_zero_locus(F::AbsBundle; class::Bool=false)
   end
   iₓ = x -> x.f * cZ
   iₓ = map_from_func(iₓ, Z.ring, X.ring)
-  i = AbsVarietyHom(Z, X, Z.(gens(R.R)), iₓ)
+  @assert R isa MPolyQuoRing
+  i = AbsVarietyHom(Z, X, Z.(gens(base_ring(R))), iₓ)
   i.T = pullback(i, -F)
   Z.struct_map = i
-  set_special(Z, :description => "Zero locus of a section of $F")
+  set_attribute!(Z, :description, "Zero locus of a section of $F")
   return Z
 end
 
@@ -884,7 +885,7 @@ degrees $d_1,\dots,d_k$.
 complete_intersection(X::AbsVariety, degs::Int...) = complete_intersection(X, collect(degs))
 complete_intersection(X::AbsVariety, degs::Vector{Int}) = (
   Y = section_zero_locus(sum(OO(X, d) for d in degs));
-  set_special(Y, :description => "Complete intersection of degree $(tuple(degs...)) in $X");
+  set_attribute!(Y, :description => "Complete intersection of degree $(tuple(degs...)) in $X");
   Y)
 
 @doc Markdown.doc"""
@@ -910,7 +911,7 @@ function degeneracy_locus(k::Int, F::AbsBundle, G::AbsBundle; class::Bool=false)
   S = Gr.bundles[1]
   D = section_zero_locus(dual(S) * G)
   D.struct_map = D → F.parent # skip the flag variety
-  set_special(D, :description => "Degeneracy locus of rank $k from $F to $G")
+  set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
 end
 
@@ -925,8 +926,8 @@ function point(; base::Ring=QQ)
   pt.point = pt(1)
   pt.T = AbsBundle(pt, pt(0))
   pt.O1 = pt(0)
-  set_special(pt, :description => "Point")
-  set_special(pt, :point => true)
+  set_attribute!(pt, :description, "Point")
+  set_attribute!(pt, :point, true)
   return pt
 end
 
@@ -950,9 +951,9 @@ function proj(n::Int; base::Ring=QQ, symbol::String="h")
   Q = OO(P)*(n+1) - S
   P.bundles = [S, Q]
   P.struct_map = hom(P, point(base=base), [P(1)])
-  set_special(P, :description => "Projective space of dim $n")
-  set_special(P, :grassmannian => :absolute)
-  set_special(P, :alg => true)
+  set_attribute!(P, :description => "Projective space of dim $n")
+  set_attribute!(P, :grassmannian => :absolute)
+  set_attribute!(P, :alg => true)
   return P
 end
 
@@ -970,11 +971,12 @@ function proj(F::AbsBundle; symbol::String="h")
   # construct the ring
   w = vcat([1], gradings(R))
   R1, (h,) = grade(PolynomialRing(X.base, syms)[1], w)
-  pback = hom(R, R1, gens(R1)[2:end])
+  # TODO: why does this fail with check = true
+  pback = hom(R, R1, gens(R1)[2:end], check = false)
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
   # construct the ideal
   rels = [sum(pback(chern(i, F)) * h^(r-i) for i in 0:r)]
-  if R isa MPolyQuo rels = vcat(pback.(R.(gens(R.I))), rels) end
+  if R isa MPolyQuoRing rels = vcat(pback.(R.(gens(R.I))), rels) end
   APF = quo(R1, ideal(rels))[1]
   h = APF(h)
   # construct the variety
@@ -991,8 +993,8 @@ function proj(F::AbsBundle; symbol::String="h")
   if isdefined(X, :T) PF.T = pullback(p, X.T) + p.T end
   PF.bundles = [S, Q]
   PF.struct_map = p
-  set_special(PF, :description => "Projectivization of $F")
-  set_special(PF, :grassmannian => :relative)
+  set_attribute!(PF, :description => "Projectivization of $F")
+  set_attribute!(PF, :grassmannian => :relative)
   return PF
 end
 
@@ -1028,9 +1030,9 @@ function abs_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
   Gr.T = dual(S) * Q
   Gr.bundles = [S, Q]
   Gr.struct_map = hom(Gr, point(base=base), [Gr(1)])
-  set_special(Gr, :description => "Grassmannian Gr($k, $n)")
-  set_special(Gr, :grassmannian => :absolute)
-  set_special(Gr, :alg => true)
+  set_attribute!(Gr, :description => "Grassmannian Gr($k, $n)")
+  set_attribute!(Gr, :grassmannian => :absolute)
+  set_attribute!(Gr, :alg => true)
   return Gr
 end
 
@@ -1079,12 +1081,12 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   Fl.point = prod(ctop(E)^dims[i] for (i,E) in enumerate(Fl.bundles[2:end]))
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
   Fl.struct_map = hom(Fl, point(base=base), [Fl(1)])
-  set_special(Fl, :description => "Flag variety Flag$(tuple(dims...))")
-  if l == 2 set_special(Fl, :grassmannian => :absolute) end
-  set_special(Fl, :alg => true)
+  set_attribute!(Fl, :description => "Flag variety Flag$(tuple(dims...))")
+  if l == 2 set_attribute!(Fl, :grassmannian => :absolute) end
+  set_attribute!(Fl, :alg => true)
   # if all(r->r==1, ranks)
-  #   set_special(Fl, :weyl_group => WeylGroup("A$(n-1)"))
-  #   set_special(Fl, :roots => -[c[i] - c[i+1] for i in 1:n-1])
+  #   set_attribute!(Fl, :weyl_group => WeylGroup("A$(n-1)"))
+  #   set_attribute!(Fl, :roots => -[c[i] - c[i+1] for i in 1:n-1])
   # end
   return Fl
 end
@@ -1129,7 +1131,7 @@ function flag(dims::Vector{Int}, F::AbsBundle; symbol::String="c")
   gi = prod(c)[0:n]
   g = sum(gi[i+1].f * x^(n-i) for i in 0:n)
   rels = [R1(coeff(mod(f, g), i)) for i in 0:n-1]
-  if R isa MPolyQuo rels = vcat(pback.(R.(gens(R.I))), rels) end
+  if R isa MPolyQuoRing rels = vcat(pback.(R.(gens(R.I))), rels) end
   AFl = quo(R1, ideal(rels))[1]
   c = AFl.(c)
   Fl = AbsVariety(X.dim + d, AFl)
@@ -1150,9 +1152,9 @@ function flag(dims::Vector{Int}, F::AbsBundle; symbol::String="c")
     Fl.T = pullback(p, X.T) + p.T
   end
   Fl.struct_map = p
-  set_special(Fl, :description => "Relative flag variety Flag$(tuple(dims...)) for $F")
-  set_special(Fl, :section => section)
-  if l == 2 set_special(Fl, :grassmannian => :relative) end
+  set_attribute!(Fl, :description => "Relative flag variety Flag$(tuple(dims...)) for $F")
+  set_attribute!(Fl, :section => section)
+  if l == 2 set_attribute!(Fl, :grassmannian => :relative) end
   return Fl
 end
 
@@ -1165,7 +1167,7 @@ Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian $G$.
 function schubert_class(G::AbsVariety, λ::Int...) schubert_class(G, collect(λ)) end
 function schubert_class(G::AbsVariety, λ::Partition) schubert_class(G, collect(λ)) end
 function schubert_class(G::AbsVariety, λ::Vector{Int})
-  get_special(G, :grassmannian) === nothing && error("the variety is not a Grassmannian")
+  get_attribute(G, :grassmannian) === nothing && error("the variety is not a Grassmannian")
   (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
   giambelli(λ, G.bundles[2])
 end
@@ -1174,7 +1176,7 @@ end
     schubert_classes(m::Int, G::AbsVariety)
 Return all the Schubert classes in codimension $m$ on a (relative) Grassmannian $G$."""
 function schubert_classes(m::Int, G::AbsVariety)
-  get_special(G, :grassmannian) === nothing && error("the variety is not a Grassmannian")
+  get_attribute(G, :grassmannian) === nothing && error("the variety is not a Grassmannian")
   S, Q = G.bundles
   [schubert_class(G, λ) for λ in partitions(m, rank(S), rank(Q))]
 end

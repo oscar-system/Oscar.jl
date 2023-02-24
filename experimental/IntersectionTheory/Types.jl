@@ -1,3 +1,7 @@
+const MPolyDecRingOrQuo = Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
+
+const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem, MPolyQuoRingElem}
+
 abstract type Bundle end
 Base.parent(F::Bundle) = F.parent
 rank(F::Bundle) = F.rank
@@ -16,16 +20,16 @@ Base.show(io::IO, f::VarietyHom) = print(io, "$(typeof(f).name.name) from $(f.do
 abstract type AbsVarietyT <: Variety end
 
 @doc Markdown.doc"""
-    AbsBundle(X::AbsVariety, ch::RingElem_dec)
-    AbsBundle(X::AbsVariety, r, c::RingElem_dec)
+    AbsBundle(X::AbsVariety, ch::MPolyDecRingElem)
+    AbsBundle(X::AbsVariety, r, c::MPolyDecRingElem)
 The type of an abstract bundle.
 """
 mutable struct AbsBundle{V <: AbsVarietyT} <: Bundle
   parent::V
   rank::RingElement
-  ch::RingElem_dec
-  chern::RingElem_dec
-  function AbsBundle(X::V, ch::RingElem_dec) where V <: AbsVarietyT
+  ch::MPolyDecRingOrQuoElem
+  chern::MPolyDecRingOrQuoElem
+  function AbsBundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbsVarietyT
     ch = simplify(ch)
     r = constant_coefficient(ch.f)
     try r = Int(ZZ(QQ(r)))
@@ -33,7 +37,7 @@ mutable struct AbsBundle{V <: AbsVarietyT} <: Bundle
     end
     new{V}(X, r, ch)
   end
-  function AbsBundle(X::V, r::RingElement, c::RingElem_dec) where V <: AbsVarietyT
+  function AbsBundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbsVarietyT
     F = new{V}(X, r)
     F.chern = c
     return F
@@ -41,7 +45,7 @@ mutable struct AbsBundle{V <: AbsVarietyT} <: Bundle
 end
 
 @doc Markdown.doc"""
-    AbsVarietyHom(X::AbsVariety, Y::AbsVariety, fˣ::AlgHom, fₓ)
+    AbsVarietyHom(X::AbsVariety, Y::AbsVariety, fˣ::AffAlgHom, fₓ)
     AbsVarietyHom(X::AbsVariety, Y::AbsVariety, fˣ::Vector, fₓ)
 The type of an abstract variety morphism.
 """
@@ -49,18 +53,18 @@ mutable struct AbsVarietyHom{V1 <: AbsVarietyT, V2 <: AbsVarietyT} <: VarietyHom
   domain::V1
   codomain::V2
   dim::Int
-  pullback::AlgHom
+  pullback::AffAlgHom
   pushforward::FunctionalMap
-  O1::RingElem_dec
+  O1::MPolyDecRingOrQuoElem
   T::AbsBundle{V1}
-  function AbsVarietyHom(X::V1, Y::V2, fˣ::AlgHom, fₓ=nothing) where {V1 <: AbsVarietyT, V2 <: AbsVarietyT}
+  function AbsVarietyHom(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbsVarietyT, V2 <: AbsVarietyT}
     if !(fₓ isa FunctionalMap) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
       # - X is a point
       # - Y is a point or a curve
       # - all algebraic classes for Y are known
-      f_is_alg = fₓ == :alg || dim(X) == 0 || dim(Y) ≤ 1 || get_special(Y, :alg) == true
+      f_is_alg = fₓ == :alg || dim(X) == 0 || dim(Y) ≤ 1 || get_attribute(Y, :alg) == true
       fₓ = x -> (
 	if !f_is_alg
 	  @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
@@ -80,27 +84,28 @@ mutable struct AbsVarietyHom{V1 <: AbsVarietyT, V2 <: AbsVarietyT} <: VarietyHom
     return f
   end
   function AbsVarietyHom(X::V1, Y::V2, l::Vector, fₓ=nothing) where {V1 <: AbsVarietyT, V2 <: AbsVarietyT}
-    fˣ = hom(Y.ring, X.ring, l)
+    # TODO: this fails with check = false
+    fˣ = hom(Y.ring, X.ring, l, check = false)
     AbsVarietyHom(X, Y, fˣ, fₓ)
   end
 end
 
 
-mutable struct AbsVariety <: AbsVarietyT
+@attributes mutable struct AbsVariety <: AbsVarietyT
   dim::Int
-  ring::Ring_dec
+  ring::MPolyDecRingOrQuo
   base::Ring
-  point::RingElem_dec
-  O1::RingElem_dec
+  point::MPolyDecRingOrQuoElem
+  O1::MPolyDecRingOrQuoElem
   T::AbsBundle
   bundles::Vector{AbsBundle}
   struct_map::AbsVarietyHom
-  @declare_other
-  function AbsVariety(n::Int, R::Ring_dec)
-    base = R isa MPolyQuo ? base_ring(base_ring(R)) : base_ring(R)
+
+  function AbsVariety(n::Int, R::MPolyDecRingOrQuo)
+    base = R isa MPolyQuoRing ? base_ring(base_ring(R)) : base_ring(R)
     X = new(n, R, base)
-    set_special(R, :variety => X)
-    set_special(R, :variety_dim => n)
+    set_attribute!(R, :variety, X)
+    set_attribute!(R, :variety_dim, n)
     return X
   end
 end

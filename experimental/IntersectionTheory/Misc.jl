@@ -5,39 +5,39 @@
 
 # FIXME this way `simplify` can be used when the ring is not a quotient
 # it will remove all the higher degree / codimension stuff
-function Oscar.simplify(x::MPolyElem_dec)
+function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
-  n = get_special(R, :variety_dim)
+  n = get_attribute(R, :variety_dim)
   n === nothing && return x
   return sum(x[0:n])
 end
 
 # FIXME this only treat the case when the grading is ZZ
 # same for `total_degree` and `getindex` below
-function gradings(R::Ring_dec)
-  [Int(x.coeff[1]) for x in (R isa MPolyQuo ? R.R.d : R.d)]
+function gradings(R::MPolyDecRingOrQuo)
+  [Int(x.coeff[1]) for x in (R isa MPolyQuoRing ? base_ring(R).d : R.d)]
 end
 
-function total_degree(x::RingElem_dec)
+function total_degree(x::MPolyDecRingElem)
   R = parent(x)
   x = simplify(x)
   x == 0 && return 0
-  d = R isa MPolyRing_dec ? R.d : R.R.d
-  f = R isa MPolyRing_dec ? x.f : x.f.f
+  d = R isa MPolyDecRing ? R.d : R.R.d
+  f = R isa MPolyDecRing ? x.f : x.f.f
   max([Int(sum(d .* degrees(t))[1]) for t in terms(f)]...)
 end
 
-function Base.getindex(x::RingElem_dec, d::GrpAbFinGenElem)
+function Base.getindex(x::MPolyDecRingOrQuoElem, d::GrpAbFinGenElem)
   parent(x)(homogeneous_component(x, d))
 end
 
-function Base.getindex(x::RingElem_dec, d::Int)
+function Base.getindex(x::MPolyDecRingOrQuoElem, d::Int)
   R = parent(x)
-  D = R isa MPolyRing_dec ? R.D : R.R.D
+  D = grading_group(R)
   getindex(x, D([d]))
 end
 
-function Base.getindex(x::RingElem_dec, degs::Vector{GrpAbFinGenElem})
+function Base.getindex(x::MPolyDecRingOrQuoElem, degs::Vector{GrpAbFinGenElem})
   R = parent(x)
   comps = homogeneous_components(x)
   ans = typeof(x)[]
@@ -47,9 +47,9 @@ function Base.getindex(x::RingElem_dec, degs::Vector{GrpAbFinGenElem})
   ans
 end
 
-function Base.getindex(x::RingElem_dec, I::UnitRange)
+function Base.getindex(x::MPolyDecRingOrQuoElem, I::UnitRange)
   R = parent(x)
-  D = R isa MPolyRing_dec ? R.D : R.R.D
+  D = grading_group(R)
   return getindex(x, [D([n]) for n in I])
 end
 
@@ -73,10 +73,10 @@ function partitions(n::Int, k::Int=n, m::Int=-1)
 end
 
 # make combinations work for arrays
-function combinations(I::UnitRange, k::Int) combinations(collect(I), k) end
-function combinations(l::Vector, k::Int)
-  [[l[i] for i in c] for c in combinations(length(l), k)]
-end
+# function combinations(I::UnitRange, k::Int) combinations(collect(I), k) end
+# function combinations(l::Vector, k::Int)
+#   [[l[i] for i in c] for c in combinations(length(l), k)]
+# end
 
 ###############################################################################
 #
