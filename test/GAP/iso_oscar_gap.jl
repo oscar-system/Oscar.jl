@@ -196,9 +196,7 @@ end
    baserings = [QQ,                           # yields `FmpqPolyRing`
                 ZZ,                           # yields `FmpzPolyRing`
                 GF(2,2),                      # yields `FqNmodPolyRing`
-#               FqDefaultFiniteField(fmpz(2),3,:x), # yields `FqDefaultPolyRing`
-#TODO: This case fails due to a problem in AA/Nemo,
-#      see https://github.com/Nemocas/Nemo.jl/issues/1307
+                FqDefaultFiniteField(fmpz(2),3,:x), # yields `FqDefaultPolyRing`
                 FqFiniteField(fmpz(2),2,:z),  # yields `FqPolyRing`
                 GF(fmpz(2)),                  # yields `GFPFmpzPolyRing`
                 GF(2),                        # yields `GFPPolyRing`

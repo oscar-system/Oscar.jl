@@ -52,6 +52,8 @@ function _iso_gap_oscar(F::GAP.GapObj)
      return _iso_gap_oscar_ring_integers(F)
    elseif GAPWrap.IsUnivariatePolynomialRing(F)
      return _iso_gap_oscar_univariate_polynomial_ring(F)
+   elseif GAPWrap.IsPolynomialRing(F)
+     return _iso_gap_oscar_multivariate_polynomial_ring(F)
    end
 
    error("no method found")
@@ -122,6 +124,14 @@ function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
    return MapFromFunc(f, finv, RG, RO)
 end
 
+function _iso_gap_oscar_multivariate_polynomial_ring(RG::GAP.GapObj)
+   coeffs_iso = iso_gap_oscar(GAP.Globals.LeftActingDomain(RG))
+   nams = [string(x) for x in GAP.Globals.IndeterminatesOfPolynomialRing(RG)]
+   RO, x = PolynomialRing(codomain(coeffs_iso), nams)
+   finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
+
+   return MapFromFunc(f, finv, RG, RO)
+end
 
 # Use a GAP attribute for caching the mapping.
 # The following must be executed at runtime,

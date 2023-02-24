@@ -155,3 +155,23 @@ end
       @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
    end
 end
+
+@testset "multivariate polynomial rings" begin
+   baserings = [GAP.Globals.Rationals,
+                GAP.Globals.Integers,
+                GAP.Globals.GF(2),
+                GAP.Globals.GF(2, 3),
+               ]
+   @testset for R in baserings
+      PR = GAP.Globals.PolynomialRing(R, 3)
+      x, y, z = GAP.Globals.GeneratorsOfAlgebraWithOne(PR)
+      iso = Oscar.iso_gap_oscar(PR)
+      for pol in [zero(x), one(x), x, x^3+x+1, x*y+z+1]
+         img = iso(pol)
+         @test preimage(iso, img) == pol
+      end
+      @test_throws ErrorException iso(GAP.Globals.Z(2))
+      @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
+   end
+end
