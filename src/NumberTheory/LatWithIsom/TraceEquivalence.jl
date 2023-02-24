@@ -1,9 +1,9 @@
 export trace_lattice
 
 @doc Markdown.doc"""
-    trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
-                                      beta::FieldElem = gen(base_field(L)),
-                                      order::Integer = 2) where T -> LatticeWithIsometry
+    trace_lattice(L::AbstractLat{T}; alpha::FieldElem = one(base_field(L)),
+                                     beta::FieldElem = gen(base_field(L)),
+                                     order::Integer = 2) where T -> LatWithIsom
 
 Given a lattice `L` which is either a $\mathbb Z$-lattice or a hermitian lattice
 over the $E/K$ with `E` a cyclotomic field and `K` a maximal real subfield of
@@ -29,16 +29,16 @@ normalisation is automatically used by default.
 Note that the isometry `f` computed is given by its action on the ambient space of the
 trace lattice of `L`.
 """
-function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
-                                           beta::FieldElem = one(base_field(L)),
-                                           order::Integer = 2) where T
+function trace_lattice(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(base_field(L)),
+                                                beta::FieldElem = one(base_field(L)),
+                                                order::Integer = 2) where T
 
   return trace_lattice_with_map(L, alpha=alpha, beta=beta, order=order)[1]
 end
 
-function trace_lattice_with_map(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
-                                                    beta::FieldElem = gen(base_field(L)),
-                                                    order::Integer = 2) where T
+function trace_lattice_with_map(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(base_field(L)),
+                                                         beta::FieldElem = gen(base_field(L)),
+                                                         order::Integer = 2) where T
   E = base_field(L)
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
   @req order > 0 "The order must be positive"
@@ -81,7 +81,7 @@ function trace_lattice_with_map(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_
   return lattice_with_isometry(Lres, iso, ambient_representation=true), f
 end
 
-function trace_lattice(L::Hecke.AbsLat{T}, f::SpaceRes; beta::FieldElem = gen(base_field(L))) where T
+function trace_lattice(L::Hecke.AbstractLat{T}, f::SpaceRes; beta::FieldElem = gen(base_field(L))) where T
   @req codomain(f) === ambient_space(L) "f must be a map of restriction of scalars associated to the ambient space of L"
   E = base_field(L)
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
@@ -125,7 +125,7 @@ function absolute_representation_matrix(b::Hecke.NfRelElem)
   return m
 end
 
-function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
+function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
                                                     n::Integer = -1,
                                                     check::Bool = true,
                                                     ambient_representation::Bool = true)

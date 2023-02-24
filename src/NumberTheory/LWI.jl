@@ -1,7 +1,7 @@
-include("LatticesWithIsometry/Types.jl")
-include("LatticesWithIsometry/HMM.jl")
-include("LatticesWithIsometry/TraceEquivalence.jl")
-include("LatticesWithIsometry/LatticesWithIsometry.jl")
-include("LatticesWithIsometry/Enumeration.jl")
-include("LatticesWithIsometry/Embeddings.jl")
+include("LatWithIsom/Types.jl")
+include("LatWithIsom/HMM.jl")
+include("LatWithIsom/TraceEquivalence.jl")
+include("LatWithIsom/LatWithIsom.jl")
+include("LatWithIsom/Enumeration.jl")
+include("LatWithIsom/Embeddings.jl")
 

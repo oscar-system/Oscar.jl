@@ -1,10 +1,10 @@
 export admissible_triples,
-       is_admissible_triple,
-       splitting_of_hermitian_prime_power,
-       splitting_of_mixed_prime_power,
-       splitting_of_partial_mixed_prime_power,
-       splitting_of_prime_power,
-       representatives_of_hermitian_type
+export is_admissible_triple,
+export splitting_of_hermitian_prime_power,
+export splitting_of_mixed_prime_power,
+export splitting_of_partial_mixed_prime_power,
+export splitting_of_prime_power,
+export representatives_of_hermitian_type
 
 ##################################################################################
 #
@@ -20,7 +20,7 @@ export admissible_triples,
 ##################################################################################
 
 # The tuples in output are pairs of positive integers!
-function _tuples_divisors(d::T) where T <: Union{Integer, fmpz}
+function _tuples_divisors(d::IntegerUnion)
   div = divisors(d)
   return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
 end
@@ -29,7 +29,7 @@ end
 # discriminant for the genera A and B to glue to fit in C. d is
 # the determinant of C, m the maximal p-valuation of the gcd of
 # d1 and dp.
-function _find_D(d::T, m::Int, p::Int) where T <: Union{Integer, fmpz}
+function _find_D(d::IntegerUnion, m::Int, p::Int)
   @assert is_prime(p)
   @assert d != 0
 
@@ -55,13 +55,13 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d::Hecke.RationalUnion, s::fmpz, l::fmpz, p::IntegerUnion, even = true)
+function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::IntegerUnion, even = true)
   L = ZGenus[]
   if r == 0 && d == 1
     return ZGenus[genus(Zlattice(gram = matrix(QQ, 0, 0, [])))]
   end
   for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
-    gen = genera((s1,s2), d, even=even)
+    gen = Zgenera((s1,s2), d, even=even)
     filter!(G -> divides(numerator(scale(G)), s)[1], gen)
     filter!(G -> divides(p*l, numerator(level(G)))[1], gen)
     append!(L, gen)
@@ -79,7 +79,7 @@ Definition 4.13. [BH22]
 """
 function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   zg = genus(Zlattice(gram = matrix(QQ, 0, 0, [])))
-  AperpB = orthogonal_sum(A, B)
+  AperpB = direct_sum(A, B)
   (signature_tuple(AperpB) == signature_tuple(C)) || (return false)
   if ((A == zg) && (B == C)) || ((B == zg) && (A == C))
     # C can be always glued with the empty genus to obtain C
@@ -162,7 +162,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
       Br = genus(matrix(ZZ, 0, 0, []), p)
     end
   
-    ABr = orthogonal_sum(Ar, Br)
+    ABr = direct_sum(Ar, Br)
     
     for i = 1:l
       s1 = symbol(ABr, i)
@@ -202,7 +202,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   return true
 end
 
-function is_admissible_triple(A::T, B::T, C::T, p::Integer) where T <: Union{ZLat, LatticeWithIsometry}
+function is_admissible_triple(A::T, B::T, C::T, p::Integer) where T <: Union{ZLat, LatWithIsom}
   L = ZGenus[genus(D) for D = (A, B, C)]
   return is_admissible_triple(L[1], L[2], L[3], p)
 end
@@ -241,7 +241,7 @@ function admissible_triples(G::ZGenus, p::Int64)
   return L
 end
 
-admissible_triples(L::T, p::Integer) where T <: Union{ZLat, LatticeWithIsometry} = admissible_triples(genus(L), p)
+admissible_triples(L::T, p::Integer) where T <: Union{ZLat, LatWithIsom} = admissible_triples(genus(L), p)
 
 ##################################################################################
 #
@@ -251,7 +251,7 @@ admissible_triples(L::T, p::Integer) where T <: Union{ZLat, LatticeWithIsometry}
 
 # we compute ideals of E/K whose absolute norm is equal to d
 
-function _ideals_of_norm(E, d::fmpq)
+function _ideals_of_norm(E, d::QQRingElem)
   if denominator(d) == 1
     return _ideals_of_norm(E, numerator(d))
   elseif numerator(d) == 1
@@ -261,7 +261,7 @@ function _ideals_of_norm(E, d::fmpq)
   end
 end
 
-function _ideals_of_norm(E, d::fmpz)
+function _ideals_of_norm(E, d::ZZRingElem)
   isone(d) && return [1*maximal_order(E)]
   @assert E isa Hecke.NfRel
   K = base_field(E)
@@ -332,8 +332,8 @@ function _possible_signatures(s1, s2, E, rk)
 end
 
 @doc Markdown.doc"""
-    representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
-                                            -> Vector{LatticeWithIsometry}
+    representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
+                                            -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ of hermitian type (i.e. the minimal polynomial 
 of `f` is irreducible cyclotomic), and a positive integer `m`, return a set of
@@ -343,8 +343,8 @@ $(L, f)$. Note that in this case, the isometries `g`'s are of order $nm$.
 
 See Algorithm 3 of [BH22].
 """
-function representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
-  rank(Lf) == 0 && return LatticeWithIsometry[]
+function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
+  rank(Lf) == 0 && return LatWithIsom[]
 
   @req m >= 1 "m must be a positive integer"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian"
@@ -354,7 +354,7 @@ function representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
   n = order_of_isometry(Lf)
   s1, _, s2 = signature_tuple(Lf)
 
-  reps = LatticeWithIsometry[]
+  reps = LatWithIsom[]
 
   if n*m < 3
     @info "Order smaller than 3"
@@ -374,7 +374,7 @@ function representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
 
   ok || return reps
 
-  gene = []
+  gene = HermGenus[]
   E, b = cyclotomic_field_as_cm_extension(n*m)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
@@ -414,14 +414,14 @@ function representatives_of_hermitian_type(Lf::LatticeWithIsometry, m::Int = 1)
     if !is_of_same_type(Lf, lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
       continue
     end
-    append!(reps, [trace_lattice(HH) for HH in genus_representatives(H)])
+    append!(reps, LatWithIsom[trace_lattice(HH) for HH in genus_representatives(H)])
   end
   return reps
 end
 
 @doc Markdown.doc"""
     representatives_of_hermitian_type(t::Dict, m::Int = 1; check::Bool = true)
-                                          -> Vector{LatticeWithIsometry}
+                                                             -> Vector{LatWithIsom}
 
 Given a hermitian type `t` for lattices with isometry (i.e. the minimal
 polymomial of the associated isometry is irreducible cyclotomic) and an intger
@@ -435,7 +435,7 @@ See Algorithm 3 of [BH22].
 """
 function representatives_of_hermitian_type(t::Dict, m::Integer = 1; check::Bool = true)
   M = _representative(t, check = check)
-  M === nothing && return LatticeWithIsometry[]
+  M === nothing && return LatWithIsom[]
   return representatives_of_hermitian_type(M, m)
 end
 
@@ -459,7 +459,7 @@ function _representative(t::Dict; check::Bool = true)
 
   ok || reps
   
-  gene = []
+  gene = HermGenus[]
   E, b = cyclotomic_field_as_cm_extension(n, cached=false)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
@@ -500,8 +500,7 @@ function _representative(t::Dict; check::Bool = true)
 end
 
 @doc Markdown.doc"""
-    splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int)
-                                                  -> Vector{LatticeWithIsometry}
+    splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int) -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ of hermitian type with `f` of order $q^d$
 for some prime number `q`, and given another prime number $p \neq q$, return a
@@ -512,8 +511,8 @@ Note that `d` can be 0.
 
 See Algorithm 4 of [BH22].
 """
-function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int; pA::Int = -1, pB::Int = -1)
-  rank(Lf) == 0 && return LatticeWithIsometry[]
+function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -1, pB::Int = -1)
+  rank(Lf) == 0 && return LatWithIsom[]
 
   @req is_prime(p) "p must be a prime number"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
@@ -523,14 +522,14 @@ function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int; pA:
   @req ok || d == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
 
-  reps = LatticeWithIsometry[]
+  reps = LatWithIsom[]
   @info "Compute admissible triples"
   atp = admissible_triples(Lf, p)
   if pA >= 0
     filter!(t -> signature_pair(t[1])[1] == pA, atp)
   end
   if pB >= 0
-    filter!(t -> singature_pairhe(t[2][1]) == pB, atp)
+    filter!(t -> singature_pair(t[2][1]) == pB, atp)
   end
   @info "$(atp) admissible triple(s)"
   for (A, B) in atp
@@ -551,8 +550,7 @@ function splitting_of_hermitian_prime_power(Lf::LatticeWithIsometry, p::Int; pA:
 end
 
 @doc Markdown.doc"""
-    splitting_of_hermitian_prime_power(t::Dict, p::Int)
-                                                  -> Vector{LatticeWithIsometry}
+    splitting_of_hermitian_prime_power(t::Dict, p::Int) -> Vector{LatWithIsom}
 
 Given a hermitian type `t` of lattice with isometry $(L, f)$ with `f` of order
 $q^d$ for some prime number `q`, and given another prime number $p \neq q$,
@@ -571,8 +569,7 @@ function splitting_of_hermitian_prime_power(t::Dict, p::Int)
 end
 
 @doc Markdown.doc"""
-    splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
-                                                     -> Vector{LatticeWithIsometry}
+    splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0) -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ with `f` of order $q^e$ for some prime number
 `q`, a prime number $p \neq q$ and an integer $b = 0, 1$, return a set of representatives
@@ -584,8 +581,8 @@ Note that `e` can be 0.
 
 See Algorithm 5 of [BH22].
 """
-function splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
-  rank(Lf) == 0 && return LatticeWithIsometry[]
+function splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0)
+  rank(Lf) == 0 && return LatWithIsom[]
 
   @req is_prime(p) "p must be a prime number"
   @req b in [0, 1] "b must be an integer equal to 0 or 1"
@@ -595,7 +592,7 @@ function splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
 
-  reps = LatticeWithIsometry[]
+  reps = LatWithIsom[]
 
   if e == 0
     reps = splitting_of_hermitian_prime_power(Lf, p)
@@ -619,8 +616,8 @@ function splitting_of_prime_power(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
 end
 
 @doc Markdown.doc"""
-    splitting_of_partial_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
-                                                 -> Vector{LatticeWithIsometry}
+    splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
+                                                 -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ and a prime number `p`, such that
 the minimal polynomial of `f` divides $\prod_{i=0}^e\Phi_{p^dq^i}(f)$ for some
@@ -632,8 +629,8 @@ Note that `e` can be 0, while `d` has to be positive.
 
 See Algorithm 6 of [BH22].
 """
-function splitting_of_partial_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
-  rank(Lf) == 0 && return LatticeWithIsometry[]
+function splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
+  rank(Lf) == 0 && return LatWithIsom[]
 
   @req is_prime(p) "p must be a prime number"
   @req is_finite(order_of_isometry(Lf)) "Isometry must be of finite order"
@@ -654,12 +651,11 @@ function splitting_of_partial_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
   end
 
   phi = minpoly(Lf)
-  x = gen(parent(phi))
   chi = prod([cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e])
 
   @req divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
 
-  reps = LatticeWithIsometry[]
+  reps = LatWithIsom[]
 
   if e == 0
     return splitting_of_hermitian_prime_power(Lf, p)
@@ -681,8 +677,8 @@ function splitting_of_partial_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
 end
 
 @doc Markdown.doc"""
-    splitting_of_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
-                                          -> Vector{LatticeWithIsometry}
+    splitting_of_mixed_prime_power(Lf::LatWithIsom, p::Int)
+                                          -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ and a prime number `p` such that
 `f` is of order $p^dq^e$ for some prime number $q \neq p$, return a set
@@ -694,8 +690,8 @@ Note that `d` and `e` can be both zero.
 
 See Algorithm 7 of [BH22].
 """
-function splitting_of_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
-  rank(Lf) == 0 && return LatticeWithIsometry[]
+function splitting_of_mixed_prime_power(Lf::LatWithIsom, p::Int)
+  rank(Lf) == 0 && return LatWithIsom[]
 
   n = order_of_isometry(Lf)
 
@@ -717,7 +713,7 @@ function splitting_of_mixed_prime_power(Lf::LatticeWithIsometry, p::Int)
     e = 0
   end
 
-  reps = LatticeWithIsometry[]
+  reps = LatWithIsom[]
 
   x = gen(parent(minpoly(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
