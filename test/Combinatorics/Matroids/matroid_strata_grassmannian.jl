@@ -30,11 +30,11 @@
             
     end
 
-    T1, t1 = PolynomialRing(QQ, "t")
-    T2, (s2, t2) = PolynomialRing(GF(3), ["s", "t"]);
-    QT1 = FractionField(T1)
-    QT2 = FractionField(T2)
-    K, a = NumberField(t1^2 + 1, "a")
+    T1, t1 = polynomial_ring(QQ, "t")
+    T2, (s2, t2) = polynomial_ring(GF(3), ["s", "t"]);
+    QT1 = fraction_field(T1)
+    QT2 = fraction_field(T2)
+    K, a = number_field(t1^2 + 1, "a")
     
     R1, x1, xd1 = Oscar.make_polynomial_ring(bases(mb1), [1,2], ZZ)
     R2, x2, xd2 = Oscar.make_polynomial_ring(bases(mb2), [1,2,4], GF(2))
@@ -58,13 +58,13 @@
         
     end
 
-    S1 = MatrixSpace(R1, 2, 3); M1 = Oscar.make_coordinate_matrix_no_identity(2, 5, bmc1, R1, x1, xd1)
-    S2 = MatrixSpace(R2, 3, 4); M2 = Oscar.make_coordinate_matrix_no_identity(3, 7, bmc2, R2, x2, xd2)
-    S3a = MatrixSpace(R3a, 3, 5); M3a = Oscar.make_coordinate_matrix_no_identity(3, 8, bmc3a, R3a, x3a, xd3a)
-    S3b = MatrixSpace(R3b, 3, 5); M3b = Oscar.make_coordinate_matrix_no_identity(3, 8, bmc3b, R3b, x3b, xd3b)
-    S4a = MatrixSpace(R4a, 5, 2); M4a = Oscar.make_coordinate_matrix_no_identity(5, 7, bmc4a, R4a, x4a, xd4a)
-    S4b = MatrixSpace(R4b, 5, 2); M4b = Oscar.make_coordinate_matrix_no_identity(5, 7, bmc4b, R4b, x4b, xd4b)
-    S5 = MatrixSpace(R5, 2, 8); M5 = Oscar.make_coordinate_matrix_no_identity(2, 10, bmc5, R5, x5, xd5)
+    S1 = matrix_space(R1, 2, 3); M1 = Oscar.make_coordinate_matrix_no_identity(2, 5, bmc1, R1, x1, xd1)
+    S2 = matrix_space(R2, 3, 4); M2 = Oscar.make_coordinate_matrix_no_identity(3, 7, bmc2, R2, x2, xd2)
+    S3a = matrix_space(R3a, 3, 5); M3a = Oscar.make_coordinate_matrix_no_identity(3, 8, bmc3a, R3a, x3a, xd3a)
+    S3b = matrix_space(R3b, 3, 5); M3b = Oscar.make_coordinate_matrix_no_identity(3, 8, bmc3b, R3b, x3b, xd3b)
+    S4a = matrix_space(R4a, 5, 2); M4a = Oscar.make_coordinate_matrix_no_identity(5, 7, bmc4a, R4a, x4a, xd4a)
+    S4b = matrix_space(R4b, 5, 2); M4b = Oscar.make_coordinate_matrix_no_identity(5, 7, bmc4b, R4b, x4b, xd4b)
+    S5 = matrix_space(R5, 2, 8); M5 = Oscar.make_coordinate_matrix_no_identity(2, 10, bmc5, R5, x5, xd5)
     
     @testset "make_coordinate_matrix_no_identity" begin
         @test M1 == S1([x1[1] x1[3] x1[5];
@@ -96,13 +96,13 @@
 
 
 
-    S1 = MatrixSpace(R1, 2, 5); X1 = Oscar.make_coordinate_matrix(2, 5, bmc1, [1,2], R1, x1, xd1)
-    S2 = MatrixSpace(R2, 3, 7); X2 = Oscar.make_coordinate_matrix(3, 7, bmc2, [1,2,4], R2, x2, xd2)
-    S3a = MatrixSpace(R3a, 3, 8); X3a = Oscar.make_coordinate_matrix(3, 8, bmc3a, [1,2,3], R3a, x3a, xd3a)
-    S3b = MatrixSpace(R3b, 3, 8); X3b = Oscar.make_coordinate_matrix(3, 8, bmc3b, [1,2,4], R3b, x3b, xd3b)
-    S4a = MatrixSpace(R4a, 5, 7); X4a = Oscar.make_coordinate_matrix(5, 7, bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
-    S4b = MatrixSpace(R4b, 5, 7); X4b = Oscar.make_coordinate_matrix(5, 7, bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
-    S5 = MatrixSpace(R5, 2, 10); X5 = Oscar.make_coordinate_matrix(2, 10, bmc5, [5,8], R5, x5, xd5)
+    S1 = matrix_space(R1, 2, 5); X1 = Oscar.make_coordinate_matrix(2, 5, bmc1, [1,2], R1, x1, xd1)
+    S2 = matrix_space(R2, 3, 7); X2 = Oscar.make_coordinate_matrix(3, 7, bmc2, [1,2,4], R2, x2, xd2)
+    S3a = matrix_space(R3a, 3, 8); X3a = Oscar.make_coordinate_matrix(3, 8, bmc3a, [1,2,3], R3a, x3a, xd3a)
+    S3b = matrix_space(R3b, 3, 8); X3b = Oscar.make_coordinate_matrix(3, 8, bmc3b, [1,2,4], R3b, x3b, xd3b)
+    S4a = matrix_space(R4a, 5, 7); X4a = Oscar.make_coordinate_matrix(5, 7, bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
+    S4b = matrix_space(R4b, 5, 7); X4b = Oscar.make_coordinate_matrix(5, 7, bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
+    S5 = matrix_space(R5, 2, 10); X5 = Oscar.make_coordinate_matrix(2, 10, bmc5, [5,8], R5, x5, xd5)
     
     
     
@@ -208,11 +208,11 @@
         @test length(x4b) == 3
     end
 
-    S1 = MatrixSpace(R1, 2,2);  X1 = Oscar.matrix_realization_small(2,5,rbc1,R1,x1,xd1) 
-    S2 = MatrixSpace(R2, 3,3);  X2 = Oscar.matrix_realization_small(3,7,rbc2,R2,x2,xd2) 
-    S3a = MatrixSpace(R3a, 3,4);  X3a = Oscar.matrix_realization_small(3,8,rbc3a,R3a,x3a,xd3a)
-    S3b = MatrixSpace(R3b, 3,4);  X3b = Oscar.matrix_realization_small(3,8,rbc3b,R3b,x3b,xd3b)
-    S4a = MatrixSpace(R4a, 5,1);  X4a = Oscar.matrix_realization_small(5,7,rbc4a,R4a,x4a,xd4a)
+    S1 = matrix_space(R1, 2,2);  X1 = Oscar.matrix_realization_small(2,5,rbc1,R1,x1,xd1) 
+    S2 = matrix_space(R2, 3,3);  X2 = Oscar.matrix_realization_small(3,7,rbc2,R2,x2,xd2) 
+    S3a = matrix_space(R3a, 3,4);  X3a = Oscar.matrix_realization_small(3,8,rbc3a,R3a,x3a,xd3a)
+    S3b = matrix_space(R3b, 3,4);  X3b = Oscar.matrix_realization_small(3,8,rbc3b,R3b,x3b,xd3b)
+    S4a = matrix_space(R4a, 5,1);  X4a = Oscar.matrix_realization_small(5,7,rbc4a,R4a,x4a,xd4a)
     
     @testset "matrix_realization_small" begin    
         @test X1 == S1([x1[1] x1[2]; R1(1) R1(1)])
@@ -235,12 +235,12 @@
     @test Oscar.projective_identity(1) == [1]
 end
 
-S1 = MatrixSpace(R1,2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
-S2 = MatrixSpace(R2,3,7);  X2 = Oscar.realization_coordinate_matrix(3, 7, rbc2, [1,2,4,7], R2, x2, xd2)
-S3a = MatrixSpace(R3a,3,8); X3a = Oscar.realization_coordinate_matrix(3, 8, rbc3a, [1,2,3,8], R3a, x3a, xd3a)
-S3b = MatrixSpace(R3b,3,8); X3b = Oscar.realization_coordinate_matrix(3, 8, rbc3b, [2,4,5,6], R3b, x3b, xd3b)
-S4a = MatrixSpace(R4a,5,7); X4a = Oscar.realization_coordinate_matrix(5, 7, rbc4a, [2,3,4,5,6,7], R4a, x4a, xd4a)
-S4b = MatrixSpace(R4b,5,7); X4b = Oscar.realization_coordinate_matrix(5, 7, rbc4b, [1,3,4,5,6,7], R4b, x4b, xd4b)
+S1 = matrix_space(R1,2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
+S2 = matrix_space(R2,3,7);  X2 = Oscar.realization_coordinate_matrix(3, 7, rbc2, [1,2,4,7], R2, x2, xd2)
+S3a = matrix_space(R3a,3,8); X3a = Oscar.realization_coordinate_matrix(3, 8, rbc3a, [1,2,3,8], R3a, x3a, xd3a)
+S3b = matrix_space(R3b,3,8); X3b = Oscar.realization_coordinate_matrix(3, 8, rbc3b, [2,4,5,6], R3b, x3b, xd3b)
+S4a = matrix_space(R4a,5,7); X4a = Oscar.realization_coordinate_matrix(5, 7, rbc4a, [2,3,4,5,6,7], R4a, x4a, xd4a)
+S4b = matrix_space(R4b,5,7); X4b = Oscar.realization_coordinate_matrix(5, 7, rbc4b, [1,3,4,5,6,7], R4b, x4b, xd4b)
 
 
 @testset "realization_coordinate_matrix" begin

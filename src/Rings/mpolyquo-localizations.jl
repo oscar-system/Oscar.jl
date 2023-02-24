@@ -276,11 +276,11 @@ localization of `RQ` at `p(U)`, together with the localization map.
 # Examples
 
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t");
+julia> T, t = polynomial_ring(QQ, "t");
 
-julia> K, a =  NumberField(2*t^2-1, "a");
+julia> K, a =  number_field(2*t^2-1, "a");
 
-julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
 ideal(2*x^2 - y^3, 2*x^2 - y^5)
@@ -544,11 +544,11 @@ Return `true`, if `f` is a unit of `parent(f)`, `true` otherwise.
 # Examples
 
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t");
+julia> T, t = polynomial_ring(QQ, "t");
 
-julia> K, a =  NumberField(2*t^2-1, "a");
+julia> K, a =  number_field(2*t^2-1, "a");
 
-julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
 ideal(2*x^2 - y^3, 2*x^2 - y^5)
@@ -787,7 +787,7 @@ function ==(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   return lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a) in modulus(parent(a))
 end
 
-function ^(a::MPolyQuoLocRingElem, i::fmpz)
+function ^(a::MPolyQuoLocRingElem, i::ZZRingElem)
   return parent(a)(lifted_numerator(a)^i, lifted_denominator(a)^i, check=false)
 end
 
@@ -1276,7 +1276,7 @@ function is_isomorphism(
   C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
   j2 = hom(B, C, B_vars)
   G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
-  singC, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(C)), 
+  singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
 				  String.(symbols(C)),  
 				  ordering=Singular.ordering_dp(1)
 				  *Singular.ordering_dp(nvars(B)-1)
@@ -1340,14 +1340,14 @@ end
 # ring R and returns a triple consisting of the new ring, the embedding 
 # of the original one, and a list of the new variables. 
 function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
-  ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
+  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = length(gens(R))
   phi = hom(R, ext_R, gens(ext_R)[1:n])
   return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
 end
 
 function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
-  ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
+  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
   n = length(gens(R))
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
   return ext_R, phi, gens(ext_R)[(1:length(v))]
@@ -1374,7 +1374,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
 
   # set up the ring with the fewer variables 
   kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
-  Rnew, new_vars = PolynomialRing(coefficient_ring(R), kept_var_symb)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb)
 
   # and the maps to go back and forth
   subst_map_R = hom(R, R, R.(gens(l[5])))
@@ -1430,7 +1430,7 @@ function simplify(L::MPolyQuoRing)
 
   # set up the ring with the fewer variables 
   kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
-  Rnew, new_vars = PolynomialRing(coefficient_ring(R), kept_var_symb, cached=false)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb, cached=false)
 
   # and the maps to go back and forth
   subst_map_R = hom(R, R, R.(gens(l[5])))
@@ -1461,7 +1461,7 @@ function simplify(L::MPolyQuoRing)
 end
 
 function simplify(R::MPolyRing)
-  Rnew, new_vars = PolynomialRing(coefficient_ring(R), symbols(R), cached=false)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R), cached=false)
   f = hom(R, Rnew, gens(Rnew))
   finv = hom(Rnew, R, gens(R))
   return Rnew, f, finv
@@ -1628,7 +1628,7 @@ function divides(a::MPolyQuoLocRingElem, b::MPolyQuoLocRingElem)
   W = parent(a)
   W == parent(b) || error("elements do not belong to the same ring")
   F = FreeMod(W, 1)
-  A = MatrixSpace(W, 1, 1)([b])
+  A = matrix_space(W, 1, 1)([b])
   M, _ = sub(F, A)
   represents_element(a*F[1], M) || return (false, zero(W))
   x = coordinates(a*F[1], M)

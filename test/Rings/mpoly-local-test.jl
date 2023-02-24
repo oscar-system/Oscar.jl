@@ -1,5 +1,5 @@
 @testset "mpoly-loc constructors" begin
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
   m = ideal(R, [y - 1, x - 2, z - 3])
   Q = Localization(R, m)
   I = ideal(Q, [x - 2, (y - 1)^2*z])
@@ -10,7 +10,7 @@
 end
 
 @testset "mpoly-loc operations" begin
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
   m = ideal(R, [y - 1, x - 2, z - 3])
   Q = Localization(R, m)
   I = ideal(Q, [x - 2, (y - 1)^2*z])
@@ -40,7 +40,7 @@ end
 end
 
 @testset "mpoly-loc groebner" begin
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
   m = ideal(R, [y - 1, x - 2, z - 3])
   Q = Localization(R, m)
   I = ideal(Q, [x - 2, (y - 1)^2*z])

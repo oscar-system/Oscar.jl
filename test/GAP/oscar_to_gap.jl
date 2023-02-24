@@ -1,44 +1,44 @@
-@testset "fmpz" begin
+@testset "ZZRingElem" begin
     # small (GAP) integer
-    x = fmpz(17)
+    x = ZZRingElem(17)
     val = 17
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 
     # large GAP integer
-    x = fmpz(2)^65
+    x = ZZRingElem(2)^65
     val = GAP.evalstr("2^65")
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 end
 
-@testset "fmpq" begin
+@testset "QQFieldElem" begin
     # small (GAP) integer
-    x = fmpz(17)
+    x = ZZRingElem(17)
     val = 17
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 
     # large GAP integer
-    x = fmpz(2)^65
+    x = ZZRingElem(2)^65
     val = GAP.evalstr("2^65")
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 
     # non-integer rational, small numerator and denominator
-    x = fmpq(2, 3)
+    x = QQFieldElem(2, 3)
     val = GAP.evalstr("2/3")
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 
     # non-integer rational, large numerator and denominator
-    x = fmpq(fmpz(2)^65, fmpz(3)^40)
+    x = QQFieldElem(ZZRingElem(2)^65, ZZRingElem(3)^40)
     val = GAP.evalstr("2^65/3^40")
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 end
 
-@testset "fmpz_mat" begin
+@testset "ZZMatrix" begin
     # matrix of small (GAP) integers
     x = Nemo.ZZ[1 2; 3 4]
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
@@ -52,7 +52,7 @@ end
     @test GAP.Obj(x) == val
 end
 
-@testset "fmpq_mat" begin
+@testset "QQMatrix" begin
     # matrix of small (GAP) integers
     x = Nemo.QQ[1 2; 3 4]
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
@@ -66,13 +66,13 @@ end
     @test GAP.Obj(x) == val
 
     # matrix containing non-integer rationals, small numerator and denominator
-    x = Nemo.QQ[fmpq(1, 2) 2; 3 4]
+    x = Nemo.QQ[QQFieldElem(1, 2) 2; 3 4]
     val = GAP.evalstr( "[ [ 1/2, 2 ], [ 3, 4 ] ]" )
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
 
     # matrix containing non-integer rationals, large numerator and denominator
-    x = Nemo.QQ[fmpq(fmpz(2)^65, fmpz(3)^40) 2; 3 4]
+    x = Nemo.QQ[QQFieldElem(ZZRingElem(2)^65, ZZRingElem(3)^40) 2; 3 4]
     val = GAP.evalstr( "[ [ 2^65/3^40, 2 ], [ 3, 4 ] ]" )
     @test GAP.julia_to_gap(x) == val
     @test GAP.Obj(x) == val
@@ -115,7 +115,7 @@ end
 
 @testset "Set($coll)" for coll in [
                             [7, 1, 5, 3, 10],
-                            fmpz[7, 1, 5, 3, 10],
+                            ZZRingElem[7, 1, 5, 3, 10],
                             [:c,:b,:a,:b],
                             [ (1,:a), (1,:b), (2,:a), (2,:b) ],
                         ]

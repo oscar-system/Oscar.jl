@@ -25,7 +25,7 @@ end
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  R, (s,t) = PolynomialRing(kk, ["s", "t"])
+  R, (s,t) = polynomial_ring(kk, ["s", "t"])
   S, _ = grade(R, [1, 1])
 
   base_P1 = ProjectiveScheme(S)
@@ -75,7 +75,7 @@ end
   @test KK(f, g) + KK(f, g) == KK(2*f//g)
   h = KK(f, g)
   @test h[V] == f//g
-  K = FractionField(R)
+  K = fraction_field(R)
   @test K(h) == f//g
   @test KK(f, g) == KK(f//g)
 
@@ -89,8 +89,8 @@ end
   @test h*inv(h) == one(KK)
   @test isone(h*inv(h))
   @test h^2 == h*h
-  @test h^fmpz(2)==h^2
-  @test h^fmpz(2)==h^Int8(2)
+  @test h^ZZRingElem(2)==h^2
+  @test h^ZZRingElem(2)==h^Int8(2)
   @test KK(h[V]+h[V]) == h + h
   @test coefficient_ring(KK) === kk
   @test -h == KK(-h[V])
@@ -106,7 +106,7 @@ end
   @test !iszero(KK(numerator(h)))
   @test_throws ErrorException KK(f,0*f)
 
-  K = FractionField(R)
+  K = fraction_field(R)
   @test K(h) == (f+2*g-5)//g
 
   P2 = projective_space(QQ,2)

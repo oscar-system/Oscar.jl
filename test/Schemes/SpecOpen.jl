@@ -32,14 +32,14 @@ end
   set_name!(U, "U")
   @test name(U) == "U"
 
-  S, (u, v) = PolynomialRing(QQ, ["u", "v"])
+  S, (u, v) = polynomial_ring(QQ, ["u", "v"])
   Z = Spec(S)
   g = maximal_extension(Y, Z, [x//z, y])
   g = restrict(g, domain(g), SpecOpen(Z, [v]))
 
   R, (x,y,z) = QQ["x", "y", "z"]
   X = hypersurface_complement(Spec(R),x)
-  F = FractionField(R)
+  F = fraction_field(R)
   f = x//y
   g = F(x,x)
   D = domain(maximal_extension(X, f))
@@ -62,7 +62,7 @@ end
   @test npatches(f) == 4
   @test f == deepcopy(f)
   @test f^2 == f*f
-  @test f^2 == f^fmpz(2)
+  @test f^2 == f^ZZRingElem(2)
   @test isone(divexact(f,f))
   @test isunit(one(OU))
   @test !isunit(OU(x))
@@ -74,7 +74,7 @@ end
   V = domain(maximal_extension(Axy, 1//x))
   @test Axy == V
 
-  M = MatrixSpace(R,2,2)([x u; y v])
+  M = matrix_space(R,2,2)([x u; y v])
   h = det(M)
   X = subscheme(A, h)
   XU = intersect(X, U)
@@ -88,7 +88,7 @@ end
 
 @testset "SpecOpen_4" begin
   R, (x,y) = QQ["x", "y"]
-  S, (t) = PolynomialRing(QQ, ["t"])
+  S, (t) = polynomial_ring(QQ, ["t"])
   t = t[1]
 
   A = Spec(R)

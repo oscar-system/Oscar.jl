@@ -46,17 +46,17 @@ function _sparse_to_array(t::Oscar.FreeModuleElem_dec, F::Oscar.FreeModule_dec)
 end
 
 @testset "Modules" begin
-  Qx, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  Qx, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   t = gen(Hecke.Globals.Qx)
   k1, l = number_field(t + 3)
-  NFx = PolynomialRing(k1, ["x", "y", "z"])[1]
+  NFx = polynomial_ring(k1, ["x", "y", "z"])[1]
   k2 = Nemo.GF(23)
-  GFx = PolynomialRing(k2, ["x", "y", "z"])[1]
-  RNmodx = PolynomialRing(Nemo.ResidueRing(ZZ,17), :x => 1:3)[1]
+  GFx = polynomial_ring(k2, ["x", "y", "z"])[1]
+  RNmodx = polynomial_ring(Nemo.residue_ring(ZZ,17), :x => 1:3)[1]
   Rings = [Qx, NFx, GFx, RNmodx]
 
   A = abelian_group([0 3 0; 2 1 2])
-  GrpElems = elem_type(A)[A(fmpz[0, 1, 1]), A(fmpz[0, 1, 0]), A(fmpz[1, 2, 0])]
+  GrpElems = elem_type(A)[A(ZZRingElem[0, 1, 1]), A(ZZRingElem[0, 1, 0]), A(ZZRingElem[1, 2, 0])]
 
   Rings_dec = []
   v = [1, 2, 4]
@@ -72,9 +72,9 @@ end
     for (j, RR) in enumerate(decorated_rings)
       G = RR.D
       if j == 4
-        Elems = [G([convert(fmpz,x) for x = [0,4,1]]), G([convert(fmpz,x) for x = [2,1,0]]), G([convert(fmpz,x) for x = [1,0,1]])]
+        Elems = [G([convert(ZZRingElem,x) for x = [0,4,1]]), G([convert(ZZRingElem,x) for x = [2,1,0]]), G([convert(ZZRingElem,x) for x = [1,0,1]])]
       else
-        Elems = [G([convert(fmpz,1)]), G([convert(fmpz,2)]), G([convert(fmpz,3)])]
+        Elems = [G([convert(ZZRingElem,1)]), G([convert(ZZRingElem,2)]), G([convert(ZZRingElem,3)])]
       end
       
       F1, F2 = free_module(RR,3), free_module(RR, Elems)
@@ -90,9 +90,9 @@ end
 
         G = grading_group(F)
         if j == 4
-          a = G([convert(fmpz,x) for x = [1,0,1]])
+          a = G([convert(ZZRingElem,x) for x = [1,0,1]])
         else
-          a = G([convert(fmpz,5)])
+          a = G([convert(ZZRingElem,5)])
         end
         b = (F)(a)
         #@test parent(b) === F

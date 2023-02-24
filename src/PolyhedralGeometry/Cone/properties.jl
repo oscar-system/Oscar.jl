@@ -30,7 +30,7 @@ julia> R = [1 0; 0 1; 0 2];
 julia> PO = positive_hull(R);
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 ```
@@ -43,7 +43,7 @@ julia> R = [1 0; 2 3];
 julia> P = positive_hull(R);
 
 julia> rays(P)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [1, 3//2]
 
@@ -75,20 +75,20 @@ julia> C = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
 julia> rays(C)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 
 julia> RML = rays_modulo_lineality(C)
-(rays_modulo_lineality = RayVector{fmpq}[[1, 0], [0, 1]], lineality_basis = RayVector{fmpq}[])
+(rays_modulo_lineality = RayVector{QQFieldElem}[[1, 0], [0, 1]], lineality_basis = RayVector{QQFieldElem}[])
 
 julia> RML.rays_modulo_lineality
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 
 julia> RML.lineality_basis
-0-element SubObjectIterator{RayVector{fmpq}}
+0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 If the cone has lineality, the second iterator iterates over a basis for the
 space of lineality.  The following example has one generator for the positive hull plus one generator for the lineality space: 
@@ -100,13 +100,13 @@ julia> lineality_dim(C)
 1
 
 julia> rays(C)
-0-element SubObjectIterator{RayVector{fmpq}}
+0-element SubObjectIterator{RayVector{QQFieldElem}}
 
 julia> RML = rays_modulo_lineality(C)
-(rays_modulo_lineality = RayVector{fmpq}[[1, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+(rays_modulo_lineality = RayVector{QQFieldElem}[[1, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 1]])
 
 julia> RML.lineality_basis
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [0, 1]
 ```
 """                                                             
@@ -135,9 +135,9 @@ Polyhedral cone in ambient dimension 3
 julia> for f in faces(PO, 2)
        println(rays(f))
        end
-RayVector{fmpq}[[0, 1, 0], [0, 0, 1]]
-RayVector{fmpq}[[1, 0, 0], [0, 0, 1]]
-RayVector{fmpq}[[1, 0, 0], [0, 1, 0]]
+RayVector{QQFieldElem}[[0, 1, 0], [0, 0, 1]]
+RayVector{QQFieldElem}[[1, 0, 0], [0, 0, 1]]
+RayVector{QQFieldElem}[[1, 0, 0], [0, 1, 0]]
 ```
 """
 function faces(C::Cone{T}, face_dim::Int) where T<:scalar_types
@@ -269,7 +269,7 @@ julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 Polyhedral cone in ambient dimension 3
 
 julia> f_vector(C)
-2-element Vector{fmpz}:
+2-element Vector{ZZRingElem}:
  4
  4
 
@@ -277,7 +277,7 @@ julia> square = cube(2)
 Polyhedron in ambient dimension 2
 
 julia> f_vector(square)
-2-element Vector{fmpz}:
+2-element Vector{ZZRingElem}:
  4
  4
 ```
@@ -285,7 +285,7 @@ julia> f_vector(square)
 function f_vector(C::Cone)
     pmc = pm_object(C)
     ldim = pmc.LINEALITY_DIM
-    return Vector{fmpz}(vcat(fill(0, ldim), pmc.F_VECTOR))
+    return Vector{ZZRingElem}(vcat(fill(0, ldim), pmc.F_VECTOR))
 end
 
 
@@ -381,7 +381,7 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 Polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
-3-element SubObjectIterator{LinearHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+3-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
 -x₃ ≦ 0
 -x₁ + x₃ ≦ 0
 -x₂ + x₃ ≦ 0
@@ -417,7 +417,7 @@ This gives us a 1-dimensional lineality.
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
 ```
 """
@@ -441,7 +441,7 @@ $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 julia> c = Cone([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
-1-element SubObjectIterator{LinearHyperplane{fmpq}} over the Hyperplanes of R^3 described by:
+1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the Hyperplanes of R^3 described by:
 x₃ = 0
 ```
 """
@@ -454,7 +454,7 @@ _linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_S
 _linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
 @doc Markdown.doc"""
-    hilbert_basis(C::Cone{fmpq})
+    hilbert_basis(C::Cone{QQFieldElem})
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 
@@ -471,15 +471,15 @@ julia> matrix(ZZ, hilbert_basis(C))
 
 ```
 """
-function hilbert_basis(C::Cone{fmpq})
+function hilbert_basis(C::Cone{QQFieldElem})
    if is_pointed(C)
-      return SubObjectIterator{PointVector{fmpz}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
+      return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
    else
       throw(ArgumentError("Cone not pointed."))
    end
 end
 
-_hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(view(C.HILBERT_BASIS_GENERATORS[1], i, :))
+_hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(view(C.HILBERT_BASIS_GENERATORS[1], i, :))
 
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.HILBERT_BASIS_GENERATORS[1], 0) : C.HILBERT_BASIS_GENERATORS[1]
 

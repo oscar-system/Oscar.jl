@@ -1,5 +1,5 @@
 @testset "Definition forms" begin
-   T,t = PolynomialRing(GF(3),"t")
+   T,t = polynomial_ring(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
@@ -39,7 +39,7 @@
    @test !is_hermitian_form(f)
    @test_throws AssertionError f = alternating_form(B)
    Qf = corresponding_quadratic_form(f)
-   R = PolynomialRing(F,4)[1]
+   R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+(z+2)*R[3]*R[4]
    Q = quadratic_form(p)
    @test Q==Qf
@@ -53,12 +53,12 @@
    pf = defining_polynomial(Q1)
    @test defining_polynomial(Q1)==parent(pf)[1]*parent(pf)[2]+(z+2)*parent(pf)[3]*parent(pf)[4]
 # I can't test simply pf==p, because it returns FALSE. The line
- #      PolynomialRing(F,4)[1]==PolynomialRing(F,4)[1]
+ #      polynomial_ring(F,4)[1]==polynomial_ring(F,4)[1]
 # returns FALSE.
    @test_throws ArgumentError corresponding_quadratic_form(Q)
    @test_throws ArgumentError corresponding_bilinear_form(f)
 
-   R,x = PolynomialRing(F,"x")
+   R,x = polynomial_ring(F,"x")
    p = x^2*z
    Q = quadratic_form(p)
    @test is_quadratic_form(Q)
@@ -66,9 +66,9 @@
    @test is_symmetric_form(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
-   T,t = PolynomialRing(GF(2),"t")
+   T,t = polynomial_ring(GF(2),"t")
    F,z = FiniteField(t^2+t+1,"z")
-   R = PolynomialRing(F,4)[1]
+   R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
    @test is_quadratic_form(Q)
@@ -176,7 +176,7 @@ end
    @test !is_true
    @test z==nothing
 
-   T,t = PolynomialRing(GF(3),"t")
+   T,t = polynomial_ring(GF(3),"t")
    F,a = FiniteField(t^2+1,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
@@ -272,7 +272,7 @@ end
 
    #quadratic
    F = GF(5,1)
-   R = PolynomialRing(F,6)[1]
+   R = polynomial_ring(F,6)[1]
    p1 = R[1]*R[2]
    p2 = R[4]*R[5]+3*R[4]^2
    Q1 = quadratic_form(p1)
@@ -298,7 +298,7 @@ end
    @test !is_true
 
    F,a = FiniteField(2,2,"a")
-   R = PolynomialRing(F,6)[1]
+   R = polynomial_ring(F,6)[1]
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+R[6]^2
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
    Q1 = quadratic_form(p1)

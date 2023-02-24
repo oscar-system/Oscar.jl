@@ -1,14 +1,14 @@
 @testset "Rings.ZZ.constructors" begin
-   @test ZZ(123) isa Oscar.fmpz
-   @test ZZ(2348732479832498732749823) isa Oscar.fmpz
-   @test ZZ(49874359874359874359874387598374587984375897435) isa Oscar.fmpz
-   @test ZZ() isa Oscar.fmpz
-   @test ZZ(0) isa Oscar.fmpz
-   @test ZZ(-123) isa Oscar.fmpz
+   @test ZZ(123) isa Oscar.ZZRingElem
+   @test ZZ(2348732479832498732749823) isa Oscar.ZZRingElem
+   @test ZZ(49874359874359874359874387598374587984375897435) isa Oscar.ZZRingElem
+   @test ZZ() isa Oscar.ZZRingElem
+   @test ZZ(0) isa Oscar.ZZRingElem
+   @test ZZ(-123) isa Oscar.ZZRingElem
 
-   @test zero(ZZ) isa Oscar.fmpz
+   @test zero(ZZ) isa Oscar.ZZRingElem
    @test zero(ZZ) == 0
-   @test one(ZZ) isa Oscar.fmpz
+   @test one(ZZ) isa Oscar.ZZRingElem
    @test one(ZZ) == 1
 
    @test ZZ(typemin(Int)) == typemin(Int)
@@ -26,9 +26,9 @@ end
    @test sign(ZZ(2)) == 1
    @test sign(ZZ(0)) == 0
    @test sign(-ZZ(2)) == -1
-   @test sign(ZZ(2)) isa Oscar.fmpz
-   @test sign(ZZ(0)) isa Oscar.fmpz
-   @test sign(ZZ(-2)) isa Oscar.fmpz
+   @test sign(ZZ(2)) isa Oscar.ZZRingElem
+   @test sign(ZZ(0)) isa Oscar.ZZRingElem
+   @test sign(ZZ(-2)) isa Oscar.ZZRingElem
    @test abs(ZZ(2)) == 2
    @test abs(ZZ(-2)) == 2
    @test abs(ZZ(0)) == 0
@@ -63,14 +63,14 @@ end
 end
 
 @testset "Rings.ZZ.arithmetic" begin
-   @test ZZ(2) + 3 isa Oscar.fmpz
-   @test 3 + ZZ(2) isa Oscar.fmpz
-   @test ZZ(2) - 3 isa Oscar.fmpz
-   @test 3 - ZZ(2) isa Oscar.fmpz
-   @test ZZ(2)*3 isa Oscar.fmpz
-   @test 3*ZZ(2) isa Oscar.fmpz
-   @test 0*ZZ(2) isa Oscar.fmpz
-   @test ZZ(2)*0 isa Oscar.fmpz
+   @test ZZ(2) + 3 isa Oscar.ZZRingElem
+   @test 3 + ZZ(2) isa Oscar.ZZRingElem
+   @test ZZ(2) - 3 isa Oscar.ZZRingElem
+   @test 3 - ZZ(2) isa Oscar.ZZRingElem
+   @test ZZ(2)*3 isa Oscar.ZZRingElem
+   @test 3*ZZ(2) isa Oscar.ZZRingElem
+   @test 0*ZZ(2) isa Oscar.ZZRingElem
+   @test ZZ(2)*0 isa Oscar.ZZRingElem
 
    a = ZZ(2)
 
@@ -167,12 +167,12 @@ end
    @test_throws ArgumentError divexact(ZZ(2), 3)
    @test_throws ArgumentError divexact(2, ZZ(3))
 
-   @test divexact(ZZ(6), 2) isa Oscar.fmpz
-   @test divexact(6, ZZ(2)) isa Oscar.fmpz
-   @test divexact(ZZ(32783627361723381726834), 32783627361723381726834) isa Oscar.fmpz
-   @test divexact(32783627361723381726834, ZZ(32783627361723381726834)) isa Oscar.fmpz
-   @test divexact(ZZ(4243746873264873264873264876327486832468732), 4243746873264873264873264876327486832468732) isa Oscar.fmpz
-   @test divexact(32783627361723381726834, ZZ(32783627361723381726834)) isa Oscar.fmpz
+   @test divexact(ZZ(6), 2) isa Oscar.ZZRingElem
+   @test divexact(6, ZZ(2)) isa Oscar.ZZRingElem
+   @test divexact(ZZ(32783627361723381726834), 32783627361723381726834) isa Oscar.ZZRingElem
+   @test divexact(32783627361723381726834, ZZ(32783627361723381726834)) isa Oscar.ZZRingElem
+   @test divexact(ZZ(4243746873264873264873264876327486832468732), 4243746873264873264873264876327486832468732) isa Oscar.ZZRingElem
+   @test divexact(32783627361723381726834, ZZ(32783627361723381726834)) isa Oscar.ZZRingElem
 
    @test divexact(ZZ(6), 2) == 3
    @test divexact(6, ZZ(2)) == 3
@@ -181,19 +181,19 @@ end
    @test divexact(4243746873264873264873264876327486832468732, ZZ(4243746873264873264873264876327486832468732)) == 1
 
    @test divexact(ZZ(0), ZZ(2)) == 0
-   @test divexact(0, ZZ(2)) isa Oscar.fmpz
+   @test divexact(0, ZZ(2)) isa Oscar.ZZRingElem
    @test divexact(0, ZZ(2)) == 0
 end
 
 @testset "Rings.ZZ.powering" begin
-   @test ZZ(2)^2 isa Oscar.fmpz
-   @test ZZ(2)^1 isa Oscar.fmpz
-   @test ZZ(2)^0 isa Oscar.fmpz
-   @test ZZ(1)^-1 isa Oscar.fmpz
-   @test ZZ(1)^-2 isa Oscar.fmpz
-   @test ZZ(0)^2 isa Oscar.fmpz
-   @test ZZ(0)^1 isa Oscar.fmpz
-   @test ZZ(0)^0 isa Oscar.fmpz
+   @test ZZ(2)^2 isa Oscar.ZZRingElem
+   @test ZZ(2)^1 isa Oscar.ZZRingElem
+   @test ZZ(2)^0 isa Oscar.ZZRingElem
+   @test ZZ(1)^-1 isa Oscar.ZZRingElem
+   @test ZZ(1)^-2 isa Oscar.ZZRingElem
+   @test ZZ(0)^2 isa Oscar.ZZRingElem
+   @test ZZ(0)^1 isa Oscar.ZZRingElem
+   @test ZZ(0)^0 isa Oscar.ZZRingElem
 
    @test ZZ(2)^2 == 4
    @test ZZ(2)^1 == 2
@@ -219,9 +219,9 @@ end
    @test ZZ(-1)^2 == 1
    @test ZZ(-1)^1 == -1
 
-   @test ZZ(2)^62 isa Oscar.fmpz
-   @test ZZ(2)^63 isa Oscar.fmpz
-   @test ZZ(2)^64 isa Oscar.fmpz
+   @test ZZ(2)^62 isa Oscar.ZZRingElem
+   @test ZZ(2)^63 isa Oscar.ZZRingElem
+   @test ZZ(2)^64 isa Oscar.ZZRingElem
    @test ZZ(2)^62 == BigInt(2)^62
    @test ZZ(2)^63 == BigInt(2)^63
    @test ZZ(2)^64 == BigInt(2)^64
@@ -288,35 +288,35 @@ end
    @test divrem(-2, ZZ(3)) == divrem(-2, 3)
    @test divrem(-2, ZZ(-3)) == divrem(-2, -3)
 
-   @test mod(2, ZZ(3)) isa Oscar.fmpz
-   @test rem(2, ZZ(3)) isa Oscar.fmpz
-   @test div(2, ZZ(3)) isa Oscar.fmpz
-   @test divrem(2, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+   @test mod(2, ZZ(3)) isa Oscar.ZZRingElem
+   @test rem(2, ZZ(3)) isa Oscar.ZZRingElem
+   @test div(2, ZZ(3)) isa Oscar.ZZRingElem
+   @test divrem(2, ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test mod(ZZ(2), 3) isa Oscar.fmpz
-   @test rem(ZZ(2), 3) isa Oscar.fmpz
-   @test div(ZZ(2), 3) isa Oscar.fmpz
-   @test divrem(ZZ(2), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+   @test mod(ZZ(2), 3) isa Oscar.ZZRingElem
+   @test rem(ZZ(2), 3) isa Oscar.ZZRingElem
+   @test div(ZZ(2), 3) isa Oscar.ZZRingElem
+   @test divrem(ZZ(2), 3) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test mod(Int128(2), ZZ(3)) isa Oscar.fmpz
-   @test rem(Int128(2), ZZ(3)) isa Oscar.fmpz
-   @test div(Int128(2), ZZ(3)) isa Oscar.fmpz
-   @test divrem(Int128(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+   @test mod(Int128(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test rem(Int128(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test div(Int128(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test divrem(Int128(2), ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test mod(ZZ(2), Int128(3)) isa Oscar.fmpz
-   @test rem(ZZ(2), Int128(3)) isa Oscar.fmpz
-   @test div(ZZ(2), Int128(3)) isa Oscar.fmpz
-   @test divrem(ZZ(2), Int128(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+   @test mod(ZZ(2), Int128(3)) isa Oscar.ZZRingElem
+   @test rem(ZZ(2), Int128(3)) isa Oscar.ZZRingElem
+   @test div(ZZ(2), Int128(3)) isa Oscar.ZZRingElem
+   @test divrem(ZZ(2), Int128(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test mod(BigInt(2), ZZ(3)) isa Oscar.fmpz
-   @test rem(BigInt(2), ZZ(3)) isa Oscar.fmpz
-   @test div(BigInt(2), ZZ(3)) isa Oscar.fmpz
-   @test divrem(BigInt(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+   @test mod(BigInt(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test rem(BigInt(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test div(BigInt(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test divrem(BigInt(2), ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test mod(ZZ(2), BigInt(3)) isa Oscar.fmpz
-   @test rem(ZZ(2), BigInt(3)) isa Oscar.fmpz
-   @test div(ZZ(2), BigInt(3)) isa Oscar.fmpz
-   @test divrem(ZZ(2), BigInt(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+   @test mod(ZZ(2), BigInt(3)) isa Oscar.ZZRingElem
+   @test rem(ZZ(2), BigInt(3)) isa Oscar.ZZRingElem
+   @test div(ZZ(2), BigInt(3)) isa Oscar.ZZRingElem
+   @test divrem(ZZ(2), BigInt(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem}
 
    @test_throws DivideError mod(ZZ(2), ZZ(0))
    @test_throws DivideError mod(ZZ(0), ZZ(0))
@@ -387,17 +387,17 @@ end
    @test gcd(ZZ(0), 0) == 0
    @test gcd(0, ZZ(0)) == 0
 
-   @test gcd(ZZ(2), 3) isa Oscar.fmpz
-   @test gcd(2, ZZ(3)) isa Oscar.fmpz
-   @test gcd(ZZ(2), 0) isa Oscar.fmpz
-   @test gcd(0, ZZ(2)) isa Oscar.fmpz
-   @test gcd(ZZ(0), 0) isa Oscar.fmpz
-   @test gcd(0, ZZ(0)) isa Oscar.fmpz
+   @test gcd(ZZ(2), 3) isa Oscar.ZZRingElem
+   @test gcd(2, ZZ(3)) isa Oscar.ZZRingElem
+   @test gcd(ZZ(2), 0) isa Oscar.ZZRingElem
+   @test gcd(0, ZZ(2)) isa Oscar.ZZRingElem
+   @test gcd(ZZ(0), 0) isa Oscar.ZZRingElem
+   @test gcd(0, ZZ(0)) isa Oscar.ZZRingElem
 
-   @test gcd(ZZ(2), Int128(3)) isa Oscar.fmpz
-   @test gcd(ZZ(2), BigInt(3)) isa Oscar.fmpz
-   @test gcd(Int128(2), ZZ(3)) isa Oscar.fmpz
-   @test gcd(BigInt(2), ZZ(3)) isa Oscar.fmpz
+   @test gcd(ZZ(2), Int128(3)) isa Oscar.ZZRingElem
+   @test gcd(ZZ(2), BigInt(3)) isa Oscar.ZZRingElem
+   @test gcd(Int128(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test gcd(BigInt(2), ZZ(3)) isa Oscar.ZZRingElem
 
    @test lcm(ZZ(2), ZZ(3)) == 6
    @test lcm(ZZ(2), ZZ(-3)) == 6
@@ -413,12 +413,12 @@ end
    @test lcm(ZZ(0), 0) == 0
    @test lcm(0, ZZ(0)) == 0
 
-   @test lcm(ZZ(2), 3) isa Oscar.fmpz
-   @test lcm(2, ZZ(3)) isa Oscar.fmpz
-   @test lcm(ZZ(2), 0) isa Oscar.fmpz
-   @test lcm(0, ZZ(2)) isa Oscar.fmpz
-   @test lcm(ZZ(0), 0) isa Oscar.fmpz
-   @test lcm(0, ZZ(0)) isa Oscar.fmpz
+   @test lcm(ZZ(2), 3) isa Oscar.ZZRingElem
+   @test lcm(2, ZZ(3)) isa Oscar.ZZRingElem
+   @test lcm(ZZ(2), 0) isa Oscar.ZZRingElem
+   @test lcm(0, ZZ(2)) isa Oscar.ZZRingElem
+   @test lcm(ZZ(0), 0) isa Oscar.ZZRingElem
+   @test lcm(0, ZZ(0)) isa Oscar.ZZRingElem
 
    for a = -10:10
       for b = -10:10
@@ -439,29 +439,29 @@ end
       end
    end
 
-   @test gcdx(ZZ(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(2), ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(0), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(0), ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(2), ZZ(1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(1), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(-1), ZZ(-1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(2), ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(2), ZZ(0)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(0), ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(0), ZZ(0)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(2), ZZ(1)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(1), ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(-1), ZZ(-1)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test gcdx(ZZ(2), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(2), 0) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(0), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(0), 0) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(2), 1) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(1), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(ZZ(-1), -1) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(2), 3) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(2), 0) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(0), 3) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(0), 0) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(2), 1) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(1), 3) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(ZZ(-1), -1) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
 
-   @test gcdx(2, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(2, ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(0, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(0, ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(2, ZZ(1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(1, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
-   @test gcdx(-1, ZZ(-1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(2, ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(2, ZZ(0)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(0, ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(0, ZZ(0)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(2, ZZ(1)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(1, ZZ(3)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
+   @test gcdx(-1, ZZ(-1)) isa Tuple{Oscar.ZZRingElem, Oscar.ZZRingElem, Oscar.ZZRingElem}
 end
 
 @testset "Rings.ZZ.roots" begin
@@ -503,7 +503,7 @@ end
    F = factor(ZZ(-60))
 
    @test unit(F) == -1
-   @test unit(F) isa Oscar.fmpz
+   @test unit(F) isa Oscar.ZZRingElem
 
    @test length(collect(F)) == 3
    @test 2 in F
@@ -532,8 +532,8 @@ end
    @test factorial(ZZ(1)) == 1
    @test factorial(ZZ(3)) == 6
 
-   @test factorial(ZZ(0)) isa Oscar.fmpz
-   @test factorial(ZZ(3)) isa Oscar.fmpz
+   @test factorial(ZZ(0)) isa Oscar.ZZRingElem
+   @test factorial(ZZ(3)) isa Oscar.ZZRingElem
 
    @test_throws DomainError factorial(ZZ(-1))
 
@@ -553,8 +553,8 @@ end
    @test rising_factorial(ZZ(0), 3) == 0
    @test rising_factorial(ZZ(-3), 3) == -6
 
-   @test rising_factorial(ZZ(2), 3) isa Oscar.fmpz
-   @test rising_factorial(ZZ(2), 0) isa Oscar.fmpz
+   @test rising_factorial(ZZ(2), 3) isa Oscar.ZZRingElem
+   @test rising_factorial(ZZ(2), 0) isa Oscar.ZZRingElem
 
    @test_throws DomainError rising_factorial(ZZ(0), -1)
    @test_throws DomainError rising_factorial(ZZ(-3), -5)
@@ -564,8 +564,8 @@ end
    @test rising_factorial(ZZ(0), ZZ(3)) == 0
    @test rising_factorial(ZZ(-3), ZZ(3)) == -6
 
-   @test rising_factorial(ZZ(2), ZZ(3)) isa Oscar.fmpz
-   @test rising_factorial(ZZ(2), ZZ(0)) isa Oscar.fmpz
+   @test rising_factorial(ZZ(2), ZZ(3)) isa Oscar.ZZRingElem
+   @test rising_factorial(ZZ(2), ZZ(0)) isa Oscar.ZZRingElem
 
    @test_throws DomainError rising_factorial(ZZ(0), ZZ(-1))
    @test_throws DomainError rising_factorial(ZZ(-3), ZZ(-5))
@@ -588,9 +588,9 @@ end
    @test primorial(ZZ(1)) == 1
    @test primorial(ZZ(0)) == 1
 
-   @test primorial(ZZ(0)) isa fmpz
-   @test primorial(ZZ(1)) isa fmpz
-   @test primorial(ZZ(2)) isa fmpz
+   @test primorial(ZZ(0)) isa ZZRingElem
+   @test primorial(ZZ(1)) isa ZZRingElem
+   @test primorial(ZZ(2)) isa ZZRingElem
 
    @test_throws DomainError primorial(ZZ(-1))
 
@@ -608,9 +608,9 @@ end
    @test bell(ZZ(1)) == 1
    @test bell(ZZ(3)) == 5
 
-   @test bell(ZZ(0)) isa Oscar.fmpz
-   @test bell(ZZ(1)) isa Oscar.fmpz
-   @test bell(ZZ(3)) isa Oscar.fmpz
+   @test bell(ZZ(0)) isa Oscar.ZZRingElem
+   @test bell(ZZ(1)) isa Oscar.ZZRingElem
+   @test bell(ZZ(3)) isa Oscar.ZZRingElem
 
    @test_throws DomainError bell(ZZ(-1))
 
@@ -626,11 +626,11 @@ end
    @test binomial(ZZ(-1), ZZ(-1)) == 0
    @test binomial(ZZ(3), ZZ(5)) == 0
 
-   @test binomial(ZZ(3), ZZ(2)) isa Oscar.fmpz
-   @test binomial(ZZ(0), ZZ(0)) isa Oscar.fmpz
-   @test binomial(ZZ(-3), ZZ(2)) isa Oscar.fmpz
-   @test binomial(ZZ(2), ZZ(-3)) isa Oscar.fmpz
-   @test binomial(ZZ(3), ZZ(5)) isa Oscar.fmpz
+   @test binomial(ZZ(3), ZZ(2)) isa Oscar.ZZRingElem
+   @test binomial(ZZ(0), ZZ(0)) isa Oscar.ZZRingElem
+   @test binomial(ZZ(-3), ZZ(2)) isa Oscar.ZZRingElem
+   @test binomial(ZZ(2), ZZ(-3)) isa Oscar.ZZRingElem
+   @test binomial(ZZ(3), ZZ(5)) isa Oscar.ZZRingElem
 
    @test number_of_partitions(0) == 1
    @test number_of_partitions(ZZ(0)) == 1
@@ -640,11 +640,11 @@ end
    @test number_of_partitions(ZZ(-1)) == 0
 
    @test number_of_partitions(0) isa Int
-   @test number_of_partitions(ZZ(0)) isa Oscar.fmpz
+   @test number_of_partitions(ZZ(0)) isa Oscar.ZZRingElem
    @test number_of_partitions(3) isa Int
-   @test number_of_partitions(ZZ(3)) isa Oscar.fmpz
+   @test number_of_partitions(ZZ(3)) isa Oscar.ZZRingElem
    @test number_of_partitions(-1) isa Int
-   @test number_of_partitions(ZZ(-1)) isa Oscar.fmpz
+   @test number_of_partitions(ZZ(-1)) isa Oscar.ZZRingElem
 end
 
 @testset "Rings.ZZ.number_theoretical" begin
@@ -668,11 +668,11 @@ end
    @test fibonacci(ZZ(-1)) == 1
    @test fibonacci(ZZ(-2)) == -1
 
-   @test fibonacci(ZZ(1)) isa Oscar.fmpz
-   @test fibonacci(ZZ(2)) isa Oscar.fmpz
-   @test fibonacci(ZZ(3)) isa Oscar.fmpz
-   @test fibonacci(ZZ(0)) isa Oscar.fmpz
-   @test fibonacci(ZZ(-1)) isa Oscar.fmpz
+   @test fibonacci(ZZ(1)) isa Oscar.ZZRingElem
+   @test fibonacci(ZZ(2)) isa Oscar.ZZRingElem
+   @test fibonacci(ZZ(3)) isa Oscar.ZZRingElem
+   @test fibonacci(ZZ(0)) isa Oscar.ZZRingElem
+   @test fibonacci(ZZ(-1)) isa Oscar.ZZRingElem
 
    @test moebius_mu(1) == 1
    @test moebius_mu(2) == -1
@@ -744,13 +744,13 @@ end
    @test divisor_sigma(6, 1) isa Int
    @test divisor_sigma(6, 2) isa Int
 
-   @test divisor_sigma(ZZ(6), 0) isa Oscar.fmpz
-   @test divisor_sigma(ZZ(6), 1) isa Oscar.fmpz
-   @test divisor_sigma(ZZ(6), 2) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), 0) isa Oscar.ZZRingElem
+   @test divisor_sigma(ZZ(6), 1) isa Oscar.ZZRingElem
+   @test divisor_sigma(ZZ(6), 2) isa Oscar.ZZRingElem
 
-   @test divisor_sigma(ZZ(6), ZZ(0)) isa Oscar.fmpz
-   @test divisor_sigma(ZZ(6), ZZ(1)) isa Oscar.fmpz
-   @test divisor_sigma(ZZ(6), ZZ(2)) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), ZZ(0)) isa Oscar.ZZRingElem
+   @test divisor_sigma(ZZ(6), ZZ(1)) isa Oscar.ZZRingElem
+   @test divisor_sigma(ZZ(6), ZZ(2)) isa Oscar.ZZRingElem
 
    @test_throws DomainError divisor_sigma(0, 1)
    @test_throws DomainError divisor_sigma(ZZ(0), 1)
@@ -769,8 +769,8 @@ end
    @test euler_phi(1) isa Int
    @test euler_phi(2) isa Int
 
-   @test euler_phi(ZZ(1)) isa Oscar.fmpz
-   @test euler_phi(ZZ(2)) isa Oscar.fmpz
+   @test euler_phi(ZZ(1)) isa Oscar.ZZRingElem
+   @test euler_phi(ZZ(2)) isa Oscar.ZZRingElem
 
    @test_throws DomainError euler_phi(0)
    @test_throws DomainError euler_phi(ZZ(0))

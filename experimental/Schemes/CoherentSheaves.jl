@@ -691,8 +691,8 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(MatrixSpace(OO(VV), 1, 1))
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(MatrixSpace(OO(UU), 1, 1))
+    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(matrix_space(OO(VV), 1, 1))
+    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(matrix_space(OO(UU), 1, 1))
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -957,8 +957,8 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   for G in values(glueings(C))
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
-    MG[(U, V)] = one(MatrixSpace(OO(VV), n, n))
-    MG[(V, U)] = one(MatrixSpace(OO(UU), n, n))
+    MG[(U, V)] = one(matrix_space(OO(VV), n, n))
+    MG[(V, U)] = one(matrix_space(OO(UU), n, n))
   end
 
   M = SheafOfModules(X, MD, MG)

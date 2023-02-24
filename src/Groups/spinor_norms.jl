@@ -1,7 +1,7 @@
 export image_in_Oq
 
 @doc Markdown.doc"""
-    sigma_sharp(L::ZLat, p) -> Vector{Tuple{fmpz, fmpq}}
+    sigma_sharp(L::ZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
 
 Return generators for $\Sigma^\#(L\otimes \ZZ_p)$ of a lattice `L`.
 
@@ -116,7 +116,7 @@ function _sigma_sharp(rkL, detL, q, p)
 end
 
 @doc Markdown.doc"""
-    reflection(gram::fmpq_mat, v::fmpq_mat) -> fmpq_mat
+    reflection(gram::QQMatrix, v::QQMatrix) -> QQMatrix
 
 Return the matrix representation of the orthogonal reflection in the row vector `v`.
 """
@@ -132,7 +132,7 @@ function reflection(gram::MatElem, v::MatElem)
 end
 
 @doc Markdown.doc"""
-    spin(gram_diag::MatElem, isometry::MatElem, check=true) -> fmpq
+    spin(gram_diag::MatElem, isometry::MatElem, check=true) -> QQFieldElem
 
 Compute the spinor norm of `f`.
 
@@ -178,7 +178,7 @@ function spin(gram_diag::MatElem, isometry::MatElem, check=true)
 end
 
 @doc Markdown.doc"""
-    det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
+    det_spin(G::QQMatrix, T::QQMatrix, p, nu) -> Tuple{QQFieldElem, QQFieldElem}
 
 Return approximations for `(det_p, spin_p)` of the approximate isometry `T`.
 
@@ -188,12 +188,12 @@ We follow the conventions of Miranda and Morrison that the quadratic form is def
 `Q(x) = (x G x.T)/2`. Then the spinor norm of the reflection in x is Q(x).
 
 # Arguments
-- `G::fmpq_mat`: a diagonal matrix
-- `T::fmpq_mat`: an isometry up to some padic precision
+- `G::QQMatrix`: a diagonal matrix
+- `T::QQMatrix`: an isometry up to some padic precision
 - `p`: a prime number
 - `nu`: an integer giving the valuation of the approximation error of `T`
 """
-function det_spin(G::fmpq_mat, T::fmpq_mat, p, nu)
+function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
   p = ZZ(p)
   if p == 2
     delta = 1
@@ -257,7 +257,7 @@ function det_spin(G::fmpq_mat, T::fmpq_mat, p, nu)
 end
 
 #    Elements of the product over `C_2` x `\QQ_p* / (\QQ_p*)^2` at primes `p`.
-function _det_spin_group(primes::Vector{fmpz}; infinity = true)
+function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   #@assert infinity
   K, _ = Hecke.rationals_as_number_field()
   # f : QQ -> K
@@ -277,7 +277,7 @@ function _det_spin_group(primes::Vector{fmpz}; infinity = true)
   backwardmap = x -> sum([inj[i](maps[i]\(f(x))) for i in 1:length(maps)])
   forwardmap = function(x)
     elems = [f\(maps[i](proj[i](x))) for i in 1:length(grps)]
-    elems_integral = fmpz[]
+    elems_integral = ZZRingElem[]
     for i in 1:(length(elems) - 1)
       push!(elems_integral, ZZ(denominator(elems[i])^2 * elems[i]))
     end
@@ -415,7 +415,7 @@ function det_spin_homomorphism(L::ZLat; signed=false)
       # change to the user basis
       g = u * fp * inv(u)
       while true
-        R = ResidueRing(ZZ, p^(prec+3))
+        R = residue_ring(ZZ, p^(prec+3))
         conv = MapFromFunc(x -> R(numerator(x)) * R(denominator(x)^(-1)), QQ, R)
         _g = Hecke.hensel_qf(map_entries(conv, q0), change_base_ring(R, g), prec0, prec, p)
         g = change_base_ring(ZZ, _g)
@@ -436,7 +436,7 @@ end
 
 
 @doc Markdown.doc"""
-    image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism
+    image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
 
 Return the image of $O(L) \to O(L^\vee / L)$.
 
@@ -470,7 +470,7 @@ julia> order(Oq)
 
 ```
 """
-@attr function image_in_Oq(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}
+@attr function image_in_Oq(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   if rank(L) > 2 && !is_definite(L)
     # use strong approximation
@@ -483,7 +483,7 @@ julia> order(Oq)
   return sub(Oq, [Oq(g, check=false) for g in gens(G)])
 end
 
-@attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}
+@attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
   # use strong approximation

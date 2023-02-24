@@ -45,12 +45,12 @@ julia> vs = vanishing_sets(dP1)
  A toric vanishing set for cohomology index 2
 
 julia> polyhedra(vs[3])
-1-element Vector{Polyhedra{fmpq}}:
+1-element Vector{Polyhedra{QQFieldElem}}:
  A polyhedron in ambient dimension 2
 
 """
 function polyhedra(tvs::ToricVanishingSet)
-    return tvs.ps::Vector{Polyhedron{fmpq}}
+    return tvs.ps::Vector{Polyhedron{QQFieldElem}}
 end
 export polyhedra
 

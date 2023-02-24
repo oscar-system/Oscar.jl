@@ -16,8 +16,8 @@
             end
         end
 
-        @testset "Vector{gfp_fmpz_elem}" begin
-            F = GF(fmpz(77777732222322222232222222223))
+        @testset "Vector{FpFieldElem}" begin
+            F = GF(ZZRingElem(77777732222322222232222222223))
             one = F(1)
             minusone = F(-1)
             v = [one, minusone]
@@ -29,7 +29,7 @@
             end
         end
         
-        @testset "Vector{gfp_elem}" begin
+        @testset "Vector{fpFieldElem}" begin
             F = GF(7)
             one = F(1)
             minusone = F(-1)
@@ -94,7 +94,7 @@
 
         @testset "Test for backwards compatibility" begin
             loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
-            @test loaded_container == (r = fmpq(1, 2), m = fmpq[1//2 1; 0 1], t = (1, 2, 3))
+            @test loaded_container == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))
             
         end
     end

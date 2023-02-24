@@ -2,8 +2,8 @@
   r, (x, y, z) = QQ["x", "y", "z"]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
-  @test elem_type(R) == PBWAlgElem{fmpq, Singular.n_Q}
-  @test parent_type(x) == PBWAlgRing{fmpq, Singular.n_Q}
+  @test elem_type(R) == PBWAlgElem{QQFieldElem, Singular.n_Q}
+  @test parent_type(x) == PBWAlgRing{QQFieldElem, Singular.n_Q}
   @test coefficient_ring(R) == QQ
   @test coefficient_ring(x) == QQ
   @test base_ring(R) == r

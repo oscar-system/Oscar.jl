@@ -288,7 +288,7 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     R = base_ring(I)
     x = gens(R)
     kk = coefficient_ring(R)
-    A, x_ext = PolynomialRing(kk, vcat(symbols(R), [:t]))
+    A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]))
     t = last(x_ext) 
     inc = hom(R, A, x_ext[1:end-1])
     phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], )) # the homogeneous variables come first
@@ -331,8 +331,8 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
 
   # It follows the generic Proj construction
   R = OO(W)
-  T, (t,) = PolynomialRing(R, ["t"])
-  S, s = grade(PolynomialRing(R, Symbol.([var_name*"$i" for i in 0:ngens(I)-1]))[1])
+  T, (t,) = polynomial_ring(R, ["t"])
+  S, s = grade(polynomial_ring(R, Symbol.([var_name*"$i" for i in 0:ngens(I)-1]))[1])
   phi = hom(S, T, [t*g for g in gens(I)])
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
@@ -399,7 +399,7 @@ end
 #
 #  # some internal function
 #  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
-#    ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), v))
+#    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v))
 #    n = length(gens(R))
 #    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
 #    return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
@@ -448,7 +448,7 @@ end
 #    @show "processing done."
 #    return projective_version, covered_version, projection_map, exc_div
 #  else
-#    M = MatrixSpace(S, 2, ngens(S))
+#    M = matrix_space(S, 2, ngens(S))
 #    A = zero(M)
 #    for i in 1:ngens(S)
 #      A[1, i] = S[i]

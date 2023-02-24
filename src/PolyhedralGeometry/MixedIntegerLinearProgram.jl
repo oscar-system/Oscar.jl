@@ -15,7 +15,7 @@ struct MixedIntegerLinearProgram{T}
    MixedIntegerLinearProgram{T}(fr::Polyhedron{T}, milp::Polymake.BigObject, c::Symbol) where T<:scalar_types = new{T}(fr, milp, c)
 end
 
-# no default = `fmpq` here; scalar type can be derived from the feasible region
+# no default = `QQFieldElem` here; scalar type can be derived from the feasible region
 MixedIntegerLinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = MixedIntegerLinearProgram{T}(p, x...)
 
 function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; integer_variables=Int64[], k = 0, convention = :max) where T<:scalar_types
@@ -42,7 +42,7 @@ MixedIntegerLinearProgram(Q::Polyhedron{T}, objective::AbstractVector; integer_v
 MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max)  where T<:scalar_types =
    MixedIntegerLinearProgram{T}(Polyhedron{T}(A, b), c; integer_variables = integer_variables, k = k, convention = convention)
 
-MixedIntegerLinearProgram(x...) = MixedIntegerLinearProgram{fmpq}(x...)
+MixedIntegerLinearProgram(x...) = MixedIntegerLinearProgram{QQFieldElem}(x...)
 
 pm_object(milp::MixedIntegerLinearProgram) = milp.polymake_milp
 
@@ -142,7 +142,7 @@ julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
 
 julia> optimal_solution(milp)
-2-element PointVector{fmpq}:
+2-element PointVector{QQFieldElem}:
  1
  3//2
 
@@ -150,7 +150,7 @@ julia> milp = MixedIntegerLinearProgram(c, [1,1])
 A mixed integer linear program
 
 julia> optimal_solution(milp)
-2-element PointVector{fmpq}:
+2-element PointVector{QQFieldElem}:
  1
  1
 ```
@@ -223,13 +223,13 @@ julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
 
 julia> solve_milp(milp)
-(5/2, fmpq[1, 3//2])
+(5/2, QQFieldElem[1, 3//2])
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
 A mixed integer linear program
 
 julia> solve_milp(milp)
-(2, fmpq[1, 1])
+(2, QQFieldElem[1, 1])
 ```
 """
 function solve_milp(milp::MixedIntegerLinearProgram)

@@ -127,7 +127,7 @@ julia> c = cube(2,0,1)
 Polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0]
  [1, 0]
  [0, 1]
@@ -249,7 +249,7 @@ function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=fals
     zero = [0 for i in 1:ambient_dim(P)]
     contains(P, zero) || throw(ArgumentError("Input polyhedron must contain origin."))
     V = vertices(P)
-    V = [Vector{fmpq}(v) for v in V if !iszero(v)]
+    V = [Vector{QQFieldElem}(v) for v in V if !iszero(v)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, transpose(hcat(V...))))
     return pts, star_triangulations(pts; full=full, regular=regular)
 end
@@ -280,7 +280,7 @@ julia> c = cube(2,0,1)
 Polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0]
  [1, 0]
  [0, 1]
@@ -363,7 +363,7 @@ julia> c = cube(2,0,1)
 Polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0]
  [1, 0]
  [0, 1]

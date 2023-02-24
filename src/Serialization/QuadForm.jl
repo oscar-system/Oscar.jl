@@ -28,7 +28,7 @@ function save_internal(s::SerializerState, L::ZLat)
 end
 
 function load_internal(s::DeserializerState, ::Type{ZLat}, dict::Dict)
-    B = load_type_dispatch(s, fmpq_mat, dict[:basis])
-    V = load_type_dispatch(s, Hecke.QuadSpace{FlintRationalField, fmpq_mat}, dict[:ambient_space])
+    B = load_type_dispatch(s, QQMatrix, dict[:basis])
+    V = load_type_dispatch(s, Hecke.QuadSpace{QQField, QQMatrix}, dict[:ambient_space])
     return lattice(V, B)
 end

@@ -124,7 +124,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1, x2, x3) = gens(cohomology_ring(P2))
-3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{fmpq, fmpq_mpoly}}}:
+3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  x1
  x2
  x3
@@ -153,7 +153,7 @@ Normal toric variety
 julia> set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"]);
 
 julia> (x1, x2, y1, y2) = gens(cox_ring(ntv))
-4-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
  y1
@@ -172,7 +172,7 @@ function rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
     mons = [[m for m in monomials(p)][1] for p in gens(defining_ideal(sv))]
     expos = [matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(mons[k])]) for k in 1:length(mons)]
     coeffs = [1 for i in 1:length(mons)]
-    new_mons = MPolyQuoRingElem{fmpq_mpoly}[]
+    new_mons = MPolyQuoRingElem{QQMPolyRingElem}[]
     for k in 1:length(mons)
       mon = 1
       for j in 1:ncols(expos[k])
@@ -208,7 +208,7 @@ function Base.:-(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
 end
 
 
-Base.:*(c::fmpq, ac::RationalEquivalenceClass) = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
+Base.:*(c::QQFieldElem, ac::RationalEquivalenceClass) = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
 Base.:*(c::Rational{Int64}, ac::RationalEquivalenceClass) = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
 Base.:*(c::T, ac::RationalEquivalenceClass) where {T <: IntegerUnion} = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
 

@@ -40,8 +40,8 @@ If `I` is an ideal of a multivariate polynomial ring  `R`, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y])^2
 ideal(x^2, x*y, y^2)
@@ -50,7 +50,7 @@ julia> base_ring(I)
 Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> gens(I)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x^2
  x*y
  y^2
@@ -209,7 +209,7 @@ primary_decomposition(I::MPolyIdeal; alg = :GTZ)
 ### Absolute Primary Decomposition
 
 ```@docs
-absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+absolute_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
 ```
 
 ### Minimal Associated Primes
@@ -247,7 +247,7 @@ equidimensional_hull_radical(I::MPolyIdeal)
 Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
 
 ```@docs
-homogenization(f::MPolyRingElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
 ```
 
 ```@docs

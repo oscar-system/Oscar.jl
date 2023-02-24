@@ -22,7 +22,7 @@
 #
 #         sage:
 #     """
-function _mod_p_to_a_kernel(G::Union{nmod_mat, fmpz_mod_mat}, a, p)
+function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
   n = ncols(G)
   R = base_ring(G)
   E = identity_matrix(R, n)
@@ -95,7 +95,7 @@ end
 #     - ``D`` -- the normal form
 #     - ``B`` -- a transformation matrix
 #
-function _normal(G::Union{fmpz_mod_mat, nmod_mat}, p)
+function _normal(G::Union{ZZModMatrix, zzModMatrix}, p)
   if p == 2
     D1, B1 = _jordan_2_adic(G)
     D2, B2 = _normalize(D1, p)
@@ -113,7 +113,7 @@ end
 #     Return generators of the orthogonal group modulo `p` for odd `p`.
 #
 #     `G` is the gram matrix of the bilinear form.
-function _gens_form(G::Union{fmpz_mod_mat, nmod_mat}, form_constructor, p)
+function _gens_form(G::Union{ZZModMatrix, zzModMatrix}, form_constructor, p)
     R = base_ring(G)
     if ncols(G) == 0
         return typeof(G)[]
@@ -130,7 +130,7 @@ function _gens_form(G::Union{fmpz_mod_mat, nmod_mat}, form_constructor, p)
     return gensOq
 end
 
-function _gens_qf(G::Union{fmpz_mod_mat, nmod_mat}, p)
+function _gens_qf(G::Union{ZZModMatrix, zzModMatrix}, p)
   Gq = deepcopy(G)
   if p == 2
     r = ncols(G)
@@ -145,9 +145,9 @@ function _gens_qf(G::Union{fmpz_mod_mat, nmod_mat}, p)
   return gensOq
 end
 
-_gens_af(G::Union{fmpz_mod_mat, nmod_mat}, p) = _gens_form(G, alternating_form, p)
+_gens_af(G::Union{ZZModMatrix, zzModMatrix}, p) = _gens_form(G, alternating_form, p)
 
-_orthogonal_grp_gens_odd(G::Union{fmpz_mod_mat, nmod_mat},p) = _gens_form(G::Union{fmpz_mod_mat, nmod_mat}, quadratic_form, p)
+_orthogonal_grp_gens_odd(G::Union{ZZModMatrix, zzModMatrix},p) = _gens_form(G::Union{ZZModMatrix, zzModMatrix}, quadratic_form, p)
 
 #     Return generators of the orthogonal group of the bilinear form modulo `2`.
 #
@@ -161,7 +161,7 @@ _orthogonal_grp_gens_odd(G::Union{fmpz_mod_mat, nmod_mat},p) = _gens_form(G::Uni
 #
 #     - a list of `2`-adic matrices well defined modulo `2`
 #
-function _orthogonal_gens_bilinear(G::Union{fmpz_mod_mat, nmod_mat})
+function _orthogonal_gens_bilinear(G::Union{ZZModMatrix, zzModMatrix})
   r = ncols(G)
   R = base_ring(G)
   # corner cases
@@ -220,7 +220,7 @@ end
 #     OUTPUT:
 #
 #     - a list of matrices. Generators of the orthogonal group modulo `2`.
-function _orthogonal_grp_quadratic(G::Union{fmpz_mod_mat, nmod_mat})
+function _orthogonal_grp_quadratic(G::Union{ZZModMatrix, zzModMatrix})
   r = ncols(G)
   R = base_ring(G)
   # corner cases
@@ -353,7 +353,7 @@ end
 #         [2 0 0 2]
 #         [0 0 2 0]
 #     """
-function _lift(q::T, f::T, a) where T <: Union{fmpz_mod_mat, nmod_mat}
+function _lift(q::T, f::T, a) where T <: Union{ZZModMatrix, zzModMatrix}
   R = base_ring(q)
   if mod(lift(q[end,end-1]), 2) != 0
     error("The form must be odd.")
@@ -440,7 +440,7 @@ end
 #         [0 0 1 1 0]  [0 0 0 1 0]  [0 0 0 1 0]  [0 0 0 1 0]  [0 0 0 1 0]
 #         [0 0 0 0 1], [1 0 0 0 1], [0 1 0 0 1], [0 0 1 0 1], [0 0 0 1 1]
 #         ]
-function _gens_mod_p(G::Union{fmpz_mod_mat, nmod_mat}, p)
+function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
   n = ncols(G)
   R = base_ring(G)
   E = identity_matrix(R, n)
@@ -491,7 +491,7 @@ end
 #   `2` form over `\FF_2` in normal form.
 #
 # """
-function _gens_mod_2(G::Union{fmpz_mod_mat, nmod_mat})
+function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
     n = ncols(G)
     R = base_ring(G)
     E = identity_matrix(R, n)
@@ -578,7 +578,7 @@ function _gens_mod_2(G::Union{fmpz_mod_mat, nmod_mat})
     return gens
 end
 
-function _gens_pair(G::Union{fmpz_mod_mat, nmod_mat}, k, on_second)
+function _gens_pair(G::Union{ZZModMatrix, zzModMatrix}, k, on_second)
   gen = typeof(G)[]
   R = base_ring(G)
   n = ncols(G)
@@ -611,7 +611,7 @@ end
 # O(L/2^2L) ---> O(L/2 L)
 # in the case of 3 consecutive jordan blocks
 # with weird python indexing
-function _ker_gens(G::Union{fmpz_mod_mat, nmod_mat}, i1, i2, parity)
+function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
   n = nrows(G)
   R = base_ring(G)
   E = identity_matrix(R, n)
@@ -704,7 +704,7 @@ end
 #         sage: G = matrix.diagonal(R,[2*27,9,3*1,3*1,1])
 #         sage: gens = _gens(G,4)
 #     """
-function _gens(G::Union{fmpz_mod_mat, nmod_mat}, b, p)
+function _gens(G::Union{ZZModMatrix, zzModMatrix}, b, p)
     k = 1
     gens = typeof(G)[]
     while k <= b
@@ -746,13 +746,13 @@ end
 #     [  3   1], [2 0], [1 0]
 #     ]
 # """
-function _compute_gens(T::TorQuadMod)
+function _compute_gens(T::TorQuadModule)
   T.is_normal || error("T must be normal")
   isbilinear = modulus(Hecke.value_module(T))==modulus(Hecke.value_module_quadratic_form(T))
   # corner case
   invs = elementary_divisors(T)
   if length(invs) == 0
-    return fmpz_mat[]
+    return ZZMatrix[]
   end
 
   # normal form gens for the different primes
@@ -771,7 +771,7 @@ function _compute_gens(T::TorQuadMod)
   end
 
   # compute generators of the orthogonal groups
-  gensG = fmpz_mat[]
+  gensG = ZZMatrix[]
   for (p, indices) in blocks
     # compute the generators of the p-primary part
     # the whole group is the direct product of the p-primary parts
@@ -780,7 +780,7 @@ function _compute_gens(T::TorQuadMod)
       q_p = block_diagonal_matrix([QQ[1;],q_p])
     end
     b = valuation(invs[end], p)
-    R = ResidueRing(ZZ,fmpz(p)^(b+5))
+    R = residue_ring(ZZ,ZZRingElem(p)^(b+5))
     G_p = change_base_ring(ZZ, q_p*p^b)
     G_p = change_base_ring(R, G_p)
     if p != 2
@@ -809,7 +809,7 @@ end
 #
 # TODO: We have way too many generators, in both functions. There might be a way
 # to reduce the number of generators along the way!
-function _compute_gens_split_degenerate(T::TorQuadMod)
+function _compute_gens_split_degenerate(T::TorQuadModule)
   # we need a splitting T = rd + N, where rd is the radical
   # quadratic and N is a normal form.
   #
@@ -829,10 +829,10 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
 
   # we first create some blocks corresponding to the primary parts of T.
   # We then compute the orthogonal sum of those blocks, which is a nice
-  # TorQuadMod isometric to T: we get then an isometry between those two modules.
-  gensOT = fmpz_mat[]
+  # TorQuadModule isometric to T: we get then an isometry between those two modules.
+  gensOT = ZZMatrix[]
   pd = sort(prime_divisors(order(T)))
-  blocks = TorQuadModMor[primary_part(T, pd[1])[2]]
+  blocks = TorQuadModuleMor[primary_part(T, pd[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
@@ -853,7 +853,7 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
   # diagonally, we can generate its orthogonal group by taking some diagonal matrices
   # We have nothing to add since we can't map different primary parts to each other.
   orth_blocks = _compute_gens_split_degenerate_primary.(domain.(blocks))
-  gensOTorth = fmpz_mat[]
+  gensOTorth = ZZMatrix[]
   for i in 1:length(ni)
     nb = sum(ni[1:i-1])
     na = sum(ni[(i+1):end])
@@ -862,22 +862,22 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-  gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
-  gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
+  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
 
-function _compute_gens_split_degenerate_primary(T::TorQuadMod)
+function _compute_gens_split_degenerate_primary(T::TorQuadModule)
   # we want only "primary" non semi regular modules that splits their
   # radical quadratic
   if is_semi_regular(T)
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
-    gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
+    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
   end
@@ -901,13 +901,13 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
   NN, NtoNN = normal_form(N)
   @assert is_bijective(NtoNN)
   NNtoN = inv(NtoNN)
-  gensONN = TorQuadModMor[hom(NN, NN, m) for m in _compute_gens(NN)]
-  gensON = fmpz_mat[compose(compose(NtoNN, g), NNtoN).map_ab.map for g in gensONN]
+  gensONN = TorQuadModuleMor[hom(NN, NN, m) for m in _compute_gens(NN)]
+  gensON = ZZMatrix[compose(compose(NtoNN, g), NNtoN).map_ab.map for g in gensONN]
   n1 = nrows(gensON[1])
 
   # for the rd, since its quadratic form is trivial, automorphisms are just
   # automorphisms of the underlying abelian group.
-  gensOrd = fmpz_mat[]
+  gensOrd = ZZMatrix[]
   OArd = automorphism_group(abelian_group(rd))
   for f in gens(OArd)
     push!(gensOrd, matrix(f))
@@ -917,7 +917,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
   # finally, we have to consider automorphism which maps N into N+rd: these are well
   # defined because N and rd are orthogonal and the quadratic form on rd is trivial.
   R, psi = hom(abelian_group(N), abelian_group(rd), task = :map)
-  Ntord = fmpz_mat[matrix(psi(f)) for f in gens(R)]
+  Ntord = ZZMatrix[matrix(psi(f)) for f in gens(R)]
   Torth, _, _ = Hecke._orthogonal_sum_with_injections_and_projections([rd, N])
 
   # Same module with different basis
@@ -928,7 +928,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
   # of N and rd, and those acting identically on N and rd but which send N to N+rd.
   # Combining all of them together, we have generators (maybe the set is too big
   # compared to what is needed) for the orthogonal group of Torth, and so of T.
-  gensOTorth = fmpz_mat[]
+  gensOTorth = ZZMatrix[]
   for x in gensOrd
     m = block_diagonal_matrix([x, identity_matrix(ZZ, n1)])
     push!(gensOTorth, m)
@@ -942,8 +942,8 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
     M[(n2+1):end, 1:n2] = m
     push!(gensOTorth, M)
   end
-  gensOTorth = TorQuadModMor[hom(Torth, Torth, m) for m in gensOTorth]
-  gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
+  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, m) for m in gensOTorth]
+  gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   return gensOT
 end
@@ -951,7 +951,7 @@ end
 # we carry the final remaining case, where T is non semiregular and does
 # not split its radical quadratic. This should work for any module though.
 # We construct isometries by constructing iteratively partial isometries.
-function _compute_gens_non_split_degenerate(T::TorQuadMod)
+function _compute_gens_non_split_degenerate(T::TorQuadModule)
   _, i = radical_quadratic(T)
   ok, _ = has_complement(i)
   @assert !ok
@@ -960,9 +960,9 @@ function _compute_gens_non_split_degenerate(T::TorQuadMod)
     return _compute_gens_non_split_degenerate_primary(T)
   end
 
-  gensOT = fmpz_mat[]
+  gensOT = ZZMatrix[]
   pd = sort(prime_divisors(order(T)))
-  blocks = TorQuadModMor[primary_part(T, pd[1])[2]]
+  blocks = TorQuadModuleMor[primary_part(T, pd[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
@@ -980,7 +980,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadMod)
   @assert ok
 
   orth_blocks = _compute_gens_non_split_degenerate_primary.(domain.(blocks))
-  gensOTorth = fmpz_mat[]
+  gensOTorth = ZZMatrix[]
   for i in 1:length(ni)
     nb = sum(ni[1:i-1])
     na = sum(ni[(i+1):end])
@@ -989,20 +989,20 @@ function _compute_gens_non_split_degenerate(T::TorQuadMod)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-  gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
-  gensOT = fmpz_mat[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
+  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
 
-function _compute_gens_non_split_degenerate_primary(T::TorQuadMod)
+function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
   if is_semi_regular(T)
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
-    gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
+    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
   end
@@ -1021,9 +1021,9 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadMod)
 
   S, StoT = snf(T)
   n = ngens(S)
-  G = Oscar._orthogonal_group(S, fmpz_mat[])
+  G = Oscar._orthogonal_group(S, ZZMatrix[])
   s_cand = [[b for b in S if Hecke.quadratic_product(b) == Hecke.quadratic_product(a) && order(b) == order(a)] for a in Hecke.gens(S)]
-  waiting = Vector{TorQuadModElem}[[]]
+  waiting = Vector{TorQuadModuleElem}[[]]
   while length(waiting) > 0
     # f is an i-partial isometry
     f = pop!(waiting)
@@ -1053,8 +1053,8 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadMod)
     end
   end
   gene = small_generating_set(G)
-  gene = TorQuadModMor[hom(S, S, matrix(g)) for g in gene]
-  gene = fmpz_mat[compose(inv(StoT), compose(g, StoT)).map_ab.map for g in gene]
+  gene = TorQuadModuleMor[hom(S, S, matrix(g)) for g in gene]
+  gene = ZZMatrix[compose(inv(StoT), compose(g, StoT)).map_ab.map for g in gene]
   unique!(gene)
   return gene
 end

@@ -15,7 +15,7 @@ function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check
 
   d = prod(denominators(U))
   if check
-    inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+    inradical(d, I) || return false, zero(R), zero(matrix_space(R, 1, ngens(I)))
   end
   (k, f) = _minimal_power_such_that(d, (x->x in I))
   return true, f, coordinates(f, I)
@@ -26,7 +26,7 @@ function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   P = prime_ideal(U)
   candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(f in P)]
-  length(candidates) == 0 && return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  length(candidates) == 0 && return false, zero(R), zero(matrix_space(R, 1, ngens(I)))
   d = maximum([total_degree(f) for (f, i) in candidates])
   (g, j) = candidates[1]
   for (h, k) in candidates
@@ -34,7 +34,7 @@ function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
       (g, j) = (h, k)
     end
   end
-  A = zero(MatrixSpace(R, 1, ngens(I)))
+  A = zero(matrix_space(R, 1, ngens(I)))
   A[1, j] = 1
   return true, g, A
 end
@@ -44,7 +44,7 @@ function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdea
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   a = point_coordinates(U)
   candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(iszero(evaluate(f, a)))]
-  length(candidates) == 0 && return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  length(candidates) == 0 && return false, zero(R), zero(matrix_space(R, 1, ngens(I)))
   d = maximum([total_degree(f) for (f, i) in candidates])
   (g, j) = candidates[1]
   for (h, k) in candidates
@@ -52,7 +52,7 @@ function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdea
       (g, j) = (h, k)
     end
   end
-  A = zero(MatrixSpace(R, 1, ngens(I)))
+  A = zero(matrix_space(R, 1, ngens(I)))
   A[1, j] = 1
   return true, g, A
 end
@@ -72,7 +72,7 @@ function has_nonempty_intersection(U::MPolyProductOfMultSets, I::MPolyIdeal; che
   J = pre_saturated_ideal(Iloc)
   (success, g, A) = has_nonempty_intersection(MPolyProductOfMultSets(R, Usets), J, check=check)
   if !success 
-    return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+    return false, zero(R), zero(matrix_space(R, 1, ngens(I)))
   end
   T = pre_saturation_data(Iloc)
   Bext = transpose(mul(T, transpose(B)))

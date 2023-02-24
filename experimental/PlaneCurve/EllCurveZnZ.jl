@@ -21,9 +21,9 @@ export sum_Point_EllCurveZnZ,
 # Adapted from the corresponding code in Hecke.
 
 function _add(
-    P::Vector{Nemo.fmpz_mod},
-    Q::Vector{Nemo.fmpz_mod},
-    E::Vector{Nemo.fmpz_mod},
+    P::Vector{Nemo.ZZModRingElem},
+    Q::Vector{Nemo.ZZModRingElem},
+    E::Vector{Nemo.ZZModRingElem},
 )
     length(P) == 3 && length(Q) == 3 || error("arrays of size 3 required")
     length(E) == 2 || error("array of size 2 required")
@@ -79,7 +79,7 @@ end
 # Creates a pair composed of the coordinates of a point and the coefficients of
 # an elliptic curve going through that point.
 
-function _rand_point_curve(A::Nemo.FmpzModRing)
+function _rand_point_curve(A::Nemo.ZZModRing)
     n = modulus(A)
     a = A(rand(ZZ(1):n))
     P = [A(rand(ZZ(1):n)), A(rand(ZZ(1):n)), A(ZZ(1))]
@@ -91,9 +91,9 @@ end
 # Creates a list of pairs composed of a the coefficitents of an elliptic curve
 # and the coordinates of a point on it.
 
-function _rand_list(A::Nemo.FmpzModRing, N::Int)
-    E = Vector{Nemo.fmpz_mod}[]
-    P = Vector{Nemo.fmpz_mod}[]
+function _rand_list(A::Nemo.ZZModRing, N::Int)
+    E = Vector{Nemo.ZZModRingElem}[]
+    P = Vector{Nemo.ZZModRingElem}[]
     for i = 1:N
         L = _rand_point_curve(A)
         E = push!(E, L[2])
@@ -106,7 +106,7 @@ end
 # Return the coordinates of m*P and ZZ(1) when the computation is possible, and
 # returns (0, 0, 0) and the gcd otherwise.
 
-function _scalar_mult(P::Vector{Nemo.fmpz_mod}, E::Vector{Nemo.fmpz_mod}, m::fmpz)
+function _scalar_mult(P::Vector{Nemo.ZZModRingElem}, E::Vector{Nemo.ZZModRingElem}, m::ZZRingElem)
     length(P) == 3 || error("arrays of size 3 required")
     length(E) == 2 || error("array of size 2 required")
     A = parent(P[1])
@@ -136,7 +136,7 @@ end
 ################################################################################
 # Return the elliptic plane curve corresponding to the array.
 
-function _toProjEllipticCurve(R::MPolyRing{S}, E::Vector{S}) where {S<:Nemo.fmpz_mod}
+function _toProjEllipticCurve(R::MPolyRing{S}, E::Vector{S}) where {S<:Nemo.ZZModRingElem}
     length(E) == 2 || error("array of size 2 required")
     x = gen(R, 1)
     y = gen(R, 2)
@@ -148,12 +148,12 @@ end
 # Functions
 ################################################################################
 @doc Markdown.doc"""
-    ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
+    ECM(n::ZZRingElem; nbcurve::Int = 25000, multfact::ZZRingElem = factorial(ZZ(10^4)))
 
 Return a factor of `n`, obtained with the Elliptic Curve Method.
 """
-function ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
-    A = ResidueRing(ZZ, n)
+function ECM(n::ZZRingElem; nbcurve::Int = 25000, multfact::ZZRingElem = factorial(ZZ(10^4)))
+    A = residue_ring(ZZ, n)
     N = nbcurve
     L = _rand_list(A, N)
 
@@ -168,14 +168,14 @@ end
 # the sum of two points might not be a point, this is not a group operation.
 
 @doc Markdown.doc"""
-    sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
+    sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.ZZModRingElem
 
 Return, if possible, the sum of the points `P` and `Q`, and an error otherwise.
 """
 function sum_Point_EllCurveZnZ(
     P::Point_EllCurve{S},
     Q::Point_EllCurve{S},
-) where {S<:Nemo.fmpz_mod}
+) where {S<:Nemo.ZZModRingElem}
     A = parent(P.Pt[1])
     E = P.C
     E.Hecke_ec.short || error("requires short Weierstrass form")
@@ -190,11 +190,11 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
+    IntMult_Point_EllCurveZnZ(m::ZZRingElem, P::Point_EllCurve{S}) where S <: Nemo.ZZModRingElem
 
 Return, if possible, the point `mP`, and an error otherwise.
 """
-function IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where {S<:Nemo.fmpz_mod}
+function IntMult_Point_EllCurveZnZ(m::ZZRingElem, P::Point_EllCurve{S}) where {S<:Nemo.ZZModRingElem}
     E = P.C
     E.Hecke_ec.short || error("requires short Weierstrass form")
     PP = Oscar.Geometry.parent(P.Pt)
@@ -208,7 +208,7 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
+    rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.ZZModRingElem
 
 Return a pair composed of an elliptic plane curve `E` with equation in `R`,
 and a point `P` on `E`.
@@ -216,7 +216,7 @@ and a point `P` on `E`.
 function rand_pair_EllCurve_Point(
     R::Oscar.MPolyDecRing{S},
     PP::Oscar.Geometry.ProjSpc{S},
-) where {S<:Nemo.fmpz_mod}
+) where {S<:Nemo.ZZModRingElem}
     A = base_ring(R)
     n = modulus(A)
     i = 0
@@ -239,7 +239,7 @@ end
 # Cornacchia Algorithm
 ################################################################################
 
-function evenodd(n::fmpz, fac::fmpz = ZZ(2))
+function evenodd(n::ZZRingElem, fac::ZZRingElem = ZZ(2))
     res = (ZZ(1), n)
     k = fac
     g = gcd(k, n)
@@ -256,16 +256,16 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    cornacchia_algorithm(d::fmpz, m::fmpz)
+    cornacchia_algorithm(d::ZZRingElem, m::ZZRingElem)
 
 Return `true` and a solution of `x^2 + d*y^2 = m` if it exists, and false and
 `(0, 0)` otherwise.
 """
-function cornacchia_algorithm(d::fmpz, m::fmpz)
+function cornacchia_algorithm(d::ZZRingElem, m::ZZRingElem)
     (even, odd) = evenodd(m)
     D = abs(d)
-    R = ResidueRing(ZZ, odd)
-    S = ResidueRing(ZZ, min(ZZ(8), even))
+    R = residue_ring(ZZ, odd)
+    S = residue_ring(ZZ, min(ZZ(8), even))
     X = issquare_with_square_root(-R(D))
     if !X[1]
         return (false, (ZZ(0), ZZ(0)))
@@ -305,7 +305,7 @@ end
 
 # Compute reduced forms of imaginary quadratic number fields
 # based on Algo 5.3.5 in the book by Cohen
-function class_number(D::fmpz)
+function class_number(D::ZZRingElem)
     D < ZZ(0) || error("Input needs to be negative")
 
     h = 0
@@ -334,7 +334,7 @@ end
 
 function funddiscriminant(n::Int)
     D = ZZ(-3)
-    L = Vector{fmpz}()
+    L = Vector{ZZRingElem}()
     while abs(D) <= n
         if mod(D, 4) == 1 && is_squarefree(D)
             h = class_number(D)
@@ -355,8 +355,8 @@ end
 ################################################################################
 # Miller Rabin Test
 ################################################################################
-function _Miller_Rabin_witness(N::fmpz, a::fmpz, even::fmpz, odd::fmpz)
-    R = ResidueRing(ZZ, N)
+function _Miller_Rabin_witness(N::ZZRingElem, a::ZZRingElem, even::ZZRingElem, odd::ZZRingElem)
+    R = residue_ring(ZZ, N)
     x = ZZ(R(a)^odd)
     if x == ZZ(1) || x == N - ZZ(1)
         return false
@@ -374,12 +374,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    Miller_Rabin_test(N::fmpz, k::Int64 = 20)
+    Miller_Rabin_test(N::ZZRingElem, k::Int64 = 20)
 
 Given an odd number `N`, return `false` if the number is composite, and `true` if it
 is probably prime.
 """
-function Miller_Rabin_test(N::fmpz, k::Int64 = 20)
+function Miller_Rabin_test(N::ZZRingElem, k::Int64 = 20)
     !iszero(N % 2) || error("an odd number is expected")
     (even, odd) = evenodd(N - ZZ(1))
     for i = 1:k
@@ -395,13 +395,13 @@ end
 # Pollard's methods
 ################################################################################
 @doc Markdown.doc"""
-    Pollard_rho(N::fmpz, bound::Int = 50000)
+    Pollard_rho(N::ZZRingElem, bound::Int = 50000)
 
 The algorithm computes a factor of `N` using the Pollard rho algorithm
 and returns it.
 """
-function Pollard_rho(N::fmpz, bound::Int = 50000)
-    R = ResidueRing(ZZ, N)
+function Pollard_rho(N::ZZRingElem, bound::Int = 50000)
+    R = residue_ring(ZZ, N)
     x = rand(ZZ(2):N-1)
     y = rand(ZZ(2):N-1)
     d = ZZ(1)
@@ -419,11 +419,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
+    Pollard_p_1(N::ZZRingElem, B::ZZRingElem = ZZ(10)^5)
 
 The algorithm computes a factor of `N` and returns it.
 """
-function Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
+function Pollard_p_1(N::ZZRingElem, B::ZZRingElem = ZZ(10)^5)
     p = [i for i in PrimesSet(ZZ(1), B)]
     x = rand(ZZ(2):N-1)
     y = x
@@ -491,7 +491,7 @@ end
 ############ ECPP helper functions #############################################
 ################################################################################
 
-function trial_division(N::fmpz)
+function trial_division(N::ZZRingElem)
     D = Hecke.factor_trial_range(N)[1]
     V = [p^D[p] for p in keys(D)]
     t = prod(v for v in V)
@@ -502,7 +502,7 @@ end
 
 ################################################################################
 
-function find_q(N::fmpz, D::fmpz)
+function find_q(N::ZZRingElem, D::ZZRingElem)
     (bool, (x, y)) = cornacchia_algorithm(D, N)
     if !bool
         return (false, (ZZ(1), ZZ(N)))
@@ -549,8 +549,8 @@ function find_q(N::fmpz, D::fmpz)
 end
 ################################################################################
 
-function compute_ell_curve(N::fmpz, D::fmpz)
-    R = ResidueRing(ZZ, N)
+function compute_ell_curve(N::ZZRingElem, D::ZZRingElem)
+    R = residue_ring(ZZ, N)
     if D == ZZ(-3)
         return (R.([0, -1]), ZZ(1))
     elseif D == ZZ(-4)
@@ -567,7 +567,7 @@ end
 
 ################################################################################
 
-function random_point(v::Vector{fmpz_mod})
+function random_point(v::Vector{ZZModRingElem})
     R = parent(v[1])
     N = modulus(R)
     A = rand(Int, 1000)
@@ -585,7 +585,7 @@ end
 
 ################################################################################
 
-function compute_p1p2(v::Vector{fmpz_mod}, m::fmpz, q::fmpz)
+function compute_p1p2(v::Vector{ZZModRingElem}, m::ZZRingElem, q::ZZRingElem)
     (bool, P) = random_point(v)
     R = parent(v[1])
     !bool && return (false, (R.([0, 0, 0]), ZZ(1)), (R.([0, 0, 0]), ZZ(1)))
@@ -596,8 +596,8 @@ end
 
 ################################################################################
 
-function quadratic_non_residue(N::fmpz, D::fmpz)
-    R = ResidueRing(ZZ, N)
+function quadratic_non_residue(N::ZZRingElem, D::ZZRingElem)
+    R = residue_ring(ZZ, N)
     A = rand(Int, 1000)
     for a in A
         (bool, res) = issquare_with_square_root(R(a))
@@ -615,11 +615,11 @@ end
 ################################################################################
 
 function atkin_morain_step(
-    N::fmpz,
-    D::fmpz,
-    m::fmpz,
-    q::fmpz,
-    res::Vector{Tuple{fmpz,Int}} = Vector{Tuple{fmpz,Int}}(),
+    N::ZZRingElem,
+    D::ZZRingElem,
+    m::ZZRingElem,
+    q::ZZRingElem,
+    res::Vector{Tuple{ZZRingElem,Int}} = Vector{Tuple{ZZRingElem,Int}}(),
     pos::Int = 1,
 )
     (v, h) = compute_ell_curve(N, D)
@@ -650,10 +650,10 @@ end
 ################################################################################
 
 function atkin_morain(
-    N::fmpz,
-    Arr::Vector{fmpz} = Vector{fmpz}(),
+    N::ZZRingElem,
+    Arr::Vector{ZZRingElem} = Vector{ZZRingElem}(),
     pos::Int = 1,
-    res::Vector{Tuple{fmpz,Int}} = Vector{Tuple{fmpz,Int}}(),
+    res::Vector{Tuple{ZZRingElem,Int}} = Vector{Tuple{ZZRingElem,Int}}(),
 )
     N < ZZ(10)^15 && return is_prime(N)
     if length(Arr) == 0
@@ -686,12 +686,12 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    ECPP(n::fmpz)
+    ECPP(n::ZZRingElem)
 
 The algorithm returns true if the number is prime, false if not, and an error if
 it can't decide.
 """
-function ECPP(n::fmpz)
+function ECPP(n::ZZRingElem)
     n == ZZ(2) && return true
     n % 2 == 0 && return false
     !Miller_Rabin_test(n) && return false

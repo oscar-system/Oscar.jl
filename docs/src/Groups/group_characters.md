@@ -131,7 +131,7 @@ trivial_character(tbl::GAPGroupCharacterTable)
 
 ```@docs
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{fmpq}, MatrixGroup{nf_elem}})
+natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
 trivial_character(G::GAPGroup)
 ```
 

@@ -545,7 +545,7 @@ function sparse_to_dense(as::MPolySparse{T}...) where {T <: RingElement}
     vmap = sort!(unique!(map(var_index, reduce(vcat, map(vars, as))))) # vars_indices occurring in as
     N = length(vmap) > 0 ? length(vmap) : 1
 
-    dense_R, _ = PolynomialRing(base_ring(sparse_R), N; ordering=sparse_R.ord)
+    dense_R, _ = polynomial_ring(base_ring(sparse_R), N; ordering=sparse_R.ord)
     dense_as = map(function (a)
         ctx = MPolyBuildCtx(dense_R)
         for i in 1:length(a)

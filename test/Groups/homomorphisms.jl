@@ -158,7 +158,7 @@ end
        of = one(f)
 
        # ... to an element of a permutation group or to a rational number
-       for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+       for imgs in [gens(symmetric_group(4)), QQFieldElem[2, 3]]
          g1 = imgs[1]
          g2 = imgs[2]
          for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3)]
@@ -180,7 +180,7 @@ end
    end
 
    # map according to a description of the word
-   for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+   for imgs in [gens(symmetric_group(4)), QQFieldElem[2, 3]]
      g1 = imgs[1]
      g2 = imgs[2]
      for (v, w) in [

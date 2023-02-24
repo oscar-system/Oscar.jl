@@ -313,7 +313,7 @@ true
 julia> save("/tmp/p_v.json", [p, p])
 
 julia> loaded_p_v = load("/tmp/p_v.json", parent=R)
-2-element Vector{fmpq_poly}:
+2-element Vector{QQPolyRingElem}:
  x^2 - x + 1
  x^2 - x + 1
 

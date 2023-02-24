@@ -17,13 +17,13 @@ the vector.
 # Examples
 
 ```jldoctest
-julia> is_basic_serialization_type(fmpz)
+julia> is_basic_serialization_type(ZZRingElem)
 true
 ```
 """
 is_basic_serialization_type(::Type) = false
-is_basic_serialization_type(::Type{fmpz}) = true
-is_basic_serialization_type(::Type{fmpq}) = true
+is_basic_serialization_type(::Type{ZZRingElem}) = true
+is_basic_serialization_type(::Type{QQFieldElem}) = true
 is_basic_serialization_type(::Type{Bool}) = true
 is_basic_serialization_type(::Type{Symbol}) = true
 is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)

@@ -21,7 +21,7 @@ function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 end
 
 @testset "Modules: Constructors" begin
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 	F = FreeMod(R,3)
 	v = [x, x^2*y+z^3, R(-1)]
 	@test v == Vector(F(v))
@@ -53,7 +53,7 @@ end
 end
 
 @testset "Intersection of modules" begin
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 
   A1 = R[x y;
         2*x^2 3*y^2]
@@ -110,7 +110,7 @@ end
 @testset "Presentation" begin
 
 	# over Integers
-	R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(ZZ, ["x", "y", "z"])
 	generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[42*x*y 7*x^2; 6*x 9*y^2]]
 	relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x x*y], R[3*x*y 7*x*y; 42 7]]
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; x*y^4-x^3*y+y^4-x^2*y -x*y^3+x^3; -y^4+x^2*y x*y^3-x^3; x^2*y^3+x*y^3+y^3 -x^2*y^2-x*y^2], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[x^5-x*y^4+x^3*y+x*y^3 x^11-x^2*y-x*y; -x^5*y^7+x*y^11+2*x^5*y^6-x^3*y^8-3*x*y^10+2*x^5*y^5+2*x^3*y^7-3*x^5*y^4+2*x^3*y^6+5*x*y^8+2*x^5*y^3-3*x^3*y^5-5*x*y^7+2*x^3*y^4+2*x*y^6 -x^11*y^7+2*x^11*y^6+2*x^11*y^5-3*x^11*y^4+2*x^11*y^3+x^2*y^8-2*x^2*y^7+x*y^8-2*x^2*y^6-2*x*y^7+3*x^2*y^5-2*x*y^6-2*x^2*y^4+3*x*y^5-2*x*y^4], R[-13*y R(0); -377 -2639*x; -39 -273*x; -13*y-39 -273*x; -13 -91*x; y^2-42*x -294*x^2+21*x*y; 9*y^2-x+26*y+78 -7*x^2+189*x*y+546*x; -y^2+3*x 21*x^2-21*x*y]]
@@ -130,7 +130,7 @@ end
 
 
 	# over Rationals
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 	generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[x+R(1) x^10; x^2+y^2 y^4-x^4]]
 	relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x+y x+y; x*y x*y], R[x+y x+y; y x; x y]]
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; -x^2*y^4+x^4*y x^2*y^3-x^4], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[-x^4+y^4-x^2-y^2 -x^10+x+R(1)], R[R(0) -x^2+y^2; -2*x^2 -x^9*y+x+1; -2*x*y^2 -x^8*y^3+y^2+x; -2*x*y^2+2*y^2 -x^8*y^3+x^7*y^3+y^2-1]]
@@ -148,7 +148,7 @@ end
 		@test is_bijective(p)
 	end
 
-	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
 	M = SubquoModule(A, B)
@@ -239,7 +239,7 @@ end
 	# These tests are only meant to check that the ext and tor function don't throw any error
 	# These tests don't check the correctness of ext and tor
 
-	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
 	M = SubquoModule(A, B)
@@ -280,7 +280,7 @@ end
 end
 
 @testset "Gröbner bases" begin
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 	F = FreeMod(R, 1)
 
 	J = SubquoModule(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
@@ -289,14 +289,14 @@ end
 	J = SubquoModule(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
 	@test leading_module(J) == SubquoModule(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
 
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 	F = FreeMod(R, 2)
 	lp = lex(gens(base_ring(F)))*lex(gens(F))
 
 	M = SubquoModule(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
 	@test leading_module(M,lp) == SubquoModule(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
 
-	R, x = PolynomialRing(QQ, ["x_"*string(i) for i=1:4])
+	R, x = polynomial_ring(QQ, ["x_"*string(i) for i=1:4])
 	F = FreeMod(R, 1)
 	lp = lex(gens(base_ring(F)))*lex(gens(F))
 
@@ -304,14 +304,14 @@ end
 	@test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O
 	@test haskey(J.groebner_basis, lp)
 
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 	F = FreeMod(R, 1)
 	lp = lex(gens(base_ring(F)))*lex(gens(F))
 	I = SubquoModule(F, [(x-1)*F[1], (y^2-1)*F[1]])
 	f = (x*y^2+y)*F[1]
 	@test Oscar.reduce(f, I) == (y+1)*F[1]
 
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 	F = FreeMod(R, 2)
 
 	A = R[x+1 y*z+x^2; (y+2*z) z^3]
@@ -329,7 +329,7 @@ end
 @testset "Test kernel" begin
 
 	# over Integers
-	R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(ZZ, ["x", "y", "z"])
 	matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)]]
 	kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)]]
 	for (A,Ker) in zip(matrices, kernels)
@@ -347,7 +347,7 @@ end
 	end
 
 	# over Rationals
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 	matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)],
 				R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
 				13*x*y^2+12*y*z^2  4*x^2*y^2*z+8*x*y*z;
@@ -371,7 +371,7 @@ end
 end
 
 @testset "iszero(SubquoModule)" begin
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 	A = R[x^2+2*x*y y^2*x-2*x^2*y;-y x*y]
 	B = R[x^2 y^2*x;-y x*y]
 	@test iszero(SubquoModule(A,B))
@@ -384,7 +384,7 @@ end
 end
 
 @testset "simplify subquotient" begin
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 	A1 = R[x*y R(0)]
 	B1 = R[R(0) R(1)]
 	M1 = SubquoModule(A1,B1)
@@ -459,7 +459,7 @@ end
 end
 
 @testset "quotient modules" begin
-  R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   F3 = FreeMod(R,3)
   M1 = SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y; 2*x^2 3*y^2*x 4],R[x^4*y^5 x*y y^4])
@@ -500,7 +500,7 @@ end
 end
 
 @testset "submodules" begin
-  R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   F2 = FreeMod(R,2)
   M1 = SubquoModule(F2,R[x^2*y+x*y x*y^2-x; x+x*y^2 y^3],R[x^2 y^3-x])
@@ -535,7 +535,7 @@ end
 end
 
 @testset "Hom module" begin
-	R, (x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
+	R, (x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
 	f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
 	g1 = transpose(R[x0*x1 x2*x3 x4*x5])
 	M = cokernel(f1)
@@ -567,7 +567,7 @@ end
 			@test SQ == free_module_SQ(ambient_free_module(SQ))
 		end
 	end
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 	A1 = R[x^2+1 x*y; x^2+y^3 x*y]
 	B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
 	M1 = SubquoModule(A1, B1)
@@ -579,7 +579,7 @@ end
 		@test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
 	end
 
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 	A1 = R[x^2+1 x*y; x^2+y^3 x*y]
 	B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
 	M1 = SubquoModule(A1, B1)
@@ -628,7 +628,7 @@ end
 end
 
 @testset "tensoring morphisms" begin
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 
 	F2 = FreeMod(R,2)
 	F3 = FreeMod(R,3)
@@ -671,7 +671,7 @@ end
 end
 
 @testset "direct product" begin
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 	
 	F2 = FreeMod(R,2)
 	F3 = FreeMod(R,3)
@@ -772,7 +772,7 @@ end
 
 @testset "Coordinates (lift)" begin
 	Z3, a = FiniteField(3,1,"a")
-	R, (x,y) = PolynomialRing(Z3, ["x", "y"])
+	R, (x,y) = polynomial_ring(Z3, ["x", "y"])
 	coeffs = [Z3(i) for i=0:1]
 
 	A = R[x*y x^2+y^2; y^2 x*y;x^2+1 1]
@@ -794,7 +794,7 @@ end
 end
 
 @testset "module homomorphisms" begin
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
 	F3 = FreeMod(R,3)
 	F4 = FreeMod(R,4)
@@ -959,7 +959,7 @@ end
 end
 
 @testset "preimage" begin
-	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
 	for _=1:10
 		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])

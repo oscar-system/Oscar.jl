@@ -28,11 +28,11 @@ end
 
 function load_internal(s::DeserializerState, ::Type{ToricDivisor}, dict::Dict)
     tv = load_unknown_type(s, dict[:toric_variety])
-    coeffs = load_type_dispatch(s, Vector{fmpz}, dict[:coeffs])
+    coeffs = load_type_dispatch(s, Vector{ZZRingElem}, dict[:coeffs])
     all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
     index = 0
     for i in 1:length(all)
-        if Vector{fmpz}(all[i].COEFFICIENTS) == coeffs
+        if Vector{ZZRingElem}(all[i].COEFFICIENTS) == coeffs
             index = i
             break
         end

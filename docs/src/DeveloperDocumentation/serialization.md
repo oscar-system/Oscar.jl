@@ -97,18 +97,18 @@ The file `main.jl` contains the core of the serialization process, namely:
   own dedicated serialization methods.
 
 If you want to write a serialization routine for an object, the way to go is to
-implement the following two functions, here in the example for `fmpz`:
+implement the following two functions, here in the example for `ZZRingElem`:
 ```
-function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
-    return fmpz(str)
+function load_internal(s::DeserializerState, ::Type{ZZRingElem}, str::String)
+    return ZZRingElem(str)
 end
 
-function save_internal(s::SerializerState, z::fmpz)
+function save_internal(s::SerializerState, z::ZZRingElem)
     return string(z)
 end
 ```
 Then the main serialization methods will dispatch to `load_internal` and
-`save_internal` for `fmpz` instead of attempting the generic serialization.
+`save_internal` for `ZZRingElem` instead of attempting the generic serialization.
 
 Often the generic serialization will fail and it is necessary to provide a
 `save_internal` and `load_internal` function. In that case, please have a look at

@@ -57,7 +57,7 @@ mutable struct GAP_Collector{T} <: Collector{T}
 end
 
 """
-    collector(n::Int, ::Type{T} = fmpz) where T <: IntegerUnion
+    collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion
 
 Return an empty collector object for a pc group with `n` generators
 and exponents of type `T`.
@@ -72,7 +72,7 @@ julia> is_abelian(G)
 true
 ```
 """
-collector(n::Int, ::Type{T} = fmpz) where T <: IntegerUnion = GAP_Collector{T}(n)
+collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion = GAP_Collector{T}(n)
 
 
 # Provide functions for entering data into the collector.
@@ -134,7 +134,7 @@ which must be either `0` (meaning infinite order) or a positive integer..
 ```jldoctest
 julia> c = collector(2);
 
-julia> set_relative_orders!(c, fmpz[2, 0])
+julia> set_relative_orders!(c, ZZRingElem[2, 0])
 ```
 """
 function set_relative_orders!(c::Collector{T}, relords::Vector{T}) where T <: IntegerUnion

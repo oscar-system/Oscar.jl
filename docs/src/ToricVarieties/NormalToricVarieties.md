@@ -63,7 +63,7 @@ weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attribut
 blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
 normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
-normal_toric_varieties_from_glsm(charges::fmpz_mat; set_attributes::Bool = true)
+normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 ```
 
 
@@ -183,14 +183,14 @@ coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
 ```
 Along the same lines, characters can be turned into rational functions:
 ```@docs
-character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
-character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
+character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 ```
 
 
 ## Auxiliary Methods
 
 ```@docs
-binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(pts::fmpz_mat)
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, ZZMatrix})
+toric_ideal(pts::ZZMatrix)
 ```

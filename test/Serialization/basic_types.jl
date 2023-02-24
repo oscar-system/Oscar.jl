@@ -45,7 +45,7 @@ end
                 Int, Int8, Int16, Int32, Int64, Int128,
                 Float16, Float32, Float64,
                 BigInt,
-                fmpz,
+                ZZRingElem,
             )
             original = T(1)
             test_save_load_roundtrip(path, original) do loaded

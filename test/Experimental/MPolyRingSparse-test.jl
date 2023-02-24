@@ -90,9 +90,9 @@
 
    # test "getindex" syntax
    S, (y, z) = PolynomialRingSparse(R, ["y", "z"])
-   @test S isa MPolyRingSparse{fmpz_poly}
-   @test y isa MPolySparse{fmpz_poly}
-   @test z isa MPolySparse{fmpz_poly}
+   @test S isa MPolyRingSparse{ZZPolyRingElem}
+   @test y isa MPolySparse{ZZPolyRingElem}
+   @test z isa MPolySparse{ZZPolyRingElem}
 end
 
 @testset "MPolySparse.printing" begin
@@ -1016,7 +1016,7 @@ end
    @test f(x + y, 2y - x) ==
                2*x^4 - 4*x^3*y - 6*x^2*y^2 + 8*x*y^3 + 2*x + 8*y^4 + 5*y + 1
 
-   S, z = PolynomialRing(R, "z")
+   S, z = polynomial_ring(R, "z")
 
    @test evaluate(f, [z + 1, z - 1]) == 2*z^4 - 4*z^2 + 4*z + 5
    @test f(z + 1, z - 1) == 2*z^4 - 4*z^2 + 4*z + 5
@@ -1033,7 +1033,7 @@ end
    @test evaluate(f, [x, y], [x + z, x - z]) ==
                   x^4 - 2*x^2*z^2 + 5*x*z + z^4 - z^2 + z + 1
 
-   S, t = PolynomialRing(R, "t")
+   S, t = polynomial_ring(R, "t")
    T, (x1, y1, z1) = PolynomialRingSparse(QQ, ["x", "y", "z"])
    f1 = x1^2*y1^2 + 2x1*z1 + 3y1*z1 + z1 + 1
 
@@ -1127,7 +1127,7 @@ end
 end
 
 @testset "MPolySparse.change_base_ring" begin
-   F2 = ResidueRing(ZZ, 2)
+   F2 = residue_ring(ZZ, 2)
    R, varsR = PolynomialRingSparse(F2, ["x"])
    S, varsS = PolynomialRingSparse(R, ["y"])
    f = x -> x^2
@@ -1289,7 +1289,7 @@ end
       R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
       x = rand(vars_R)
 
-      R_univ, x_univ = PolynomialRing(ZZ, "x")
+      R_univ, x_univ = polynomial_ring(ZZ, "x")
 
       @test zero(R_univ) == to_univariate(R_univ, zero(R))
       @test one(R_univ) == to_univariate(R_univ, one(R))

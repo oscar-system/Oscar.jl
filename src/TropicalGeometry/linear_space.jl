@@ -40,8 +40,8 @@ Construct a tropical linear space from a degree 1 polynomial ideal `I` and a map
 # Examples
 
 ```jldoctest
-julia> R,(x1,x2,x3,x4,x5,x6) = PolynomialRing(ZZ,6)
-(Multivariate Polynomial Ring in 6 variables x1, x2, x3, x4, ..., x6 over Integer Ring, fmpz_mpoly[x1, x2, x3, x4, x5, x6])
+julia> R,(x1,x2,x3,x4,x5,x6) = polynomial_ring(ZZ,6)
+(Multivariate Polynomial Ring in 6 variables x1, x2, x3, x4, ..., x6 over Integer Ring, ZZMPolyRingElem[x1, x2, x3, x4, x5, x6])
 
 julia> I = ideal(R,[-x1+x3+x4,-x2+x3+x5,-x1+x2+x6])
 ideal(-x1 + x3 + x4, -x2 + x3 + x5, -x1 + x2 + x6)
@@ -91,7 +91,7 @@ function TropicalLinearSpace_impl(plv, rank, nElements, M)
     val = Polymake.matroid.ValuatedMatroid{M}(BASES = bases, N_ELEMENTS = nElements,VALUATION_ON_BASES = [plv[i].data for i in indexSet])
     #return Polymake.tropical.linear_space{min}(val)
     P = Polymake.tropical.linear_space{M}(val)
-    P = PolyhedralComplex{fmpq}(P)
+    P = PolyhedralComplex{QQFieldElem}(P)
     return TropicalLinearSpace{M,true}(P)
 end
 TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(min)}},rank::IntegerUnion, nElements::IntegerUnion) =

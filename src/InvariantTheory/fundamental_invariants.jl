@@ -133,7 +133,7 @@ function fundamental_invariants_via_primary_and_secondary(IR::InvRing)
   end
 
   # Use S to keep track of relations that might show up
-  S, _ = PolynomialRing(K, [ "y$i" for i = 1:length(res) + length(primary_invariants(IR)) ])
+  S, _ = polynomial_ring(K, [ "y$i" for i = 1:length(res) + length(primary_invariants(IR)) ])
   RtoS = Dict{elem_type(R), elem_type(S)}()
   for i = 1:length(res)
     RtoS[res[i]] = gen(S, i)

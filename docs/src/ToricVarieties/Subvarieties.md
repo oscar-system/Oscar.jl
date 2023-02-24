@@ -25,7 +25,7 @@ varieties.
 ### General constructors
 
 ```@docs
-closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})
+closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
 closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal)
 ```
 

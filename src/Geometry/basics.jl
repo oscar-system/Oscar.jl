@@ -27,13 +27,13 @@ function Base.show(io::IO, P::ProjSpc)
 end
 
 function proj_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
-  Sx = PolynomialRing(R, name => 0:n)[1]
+  Sx = polynomial_ring(R, name => 0:n)[1]
   Rx = grade(Sx, [1 for i=0:n])[1]
   return ProjSpc(R, n, Rx), gens(Rx)
 end
 
 function proj_space(R::AbstractAlgebra.Ring, n::Vector{<:Integer}, name::Symbol = :x)
-  Sx = PolynomialRing(R, name => 0:length(n)-1)[1]
+  Sx = polynomial_ring(R, name => 0:length(n)-1)[1]
   Rx = grade(Sx, n)[1]
   return ProjSpc(R, length(n)-1, Rx), gens(Rx)
 end
@@ -74,7 +74,7 @@ function _isprojective(a::Vector{T}) where {T}
   return !all(iszero, a)
 end
 
-function _isprojective(a::Vector{fmpz})
+function _isprojective(a::Vector{ZZRingElem})
   all(iszero, a) && return false
   return isone(gcd(a))
 end
@@ -120,7 +120,7 @@ function ==(a::ProjSpcElem{T}, b::ProjSpcElem{T}) where {T <: AbstractAlgebra.Fi
   return true
 end
 
-function ==(a::ProjSpcElem{fmpz}, b::ProjSpcElem{fmpz})
+function ==(a::ProjSpcElem{ZZRingElem}, b::ProjSpcElem{ZZRingElem})
   i = 0
   while iszero(a[i])
     iszero(b[i]) || return false
@@ -156,7 +156,7 @@ function normalize!(a::ProjSpcElem{T}) where {T <: AbstractAlgebra.FieldElem}
   return a
 end
 
-function normalize!(a::ProjSpcElem{fmpz})
+function normalize!(a::ProjSpcElem{ZZRingElem})
   #projective elements are primitive, ie. the gcd is 1
   #they can be changed only by units, so we can normalize...
   i = 0

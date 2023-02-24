@@ -12,7 +12,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 
 julia> underlying_scheme(toric_scheme)
 covered scheme with 3 affine patches in its default covering
@@ -34,7 +34,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 
 julia> normal_toric_variety(toric_scheme)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
@@ -56,7 +56,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 
 julia> fan(toric_scheme)
 Polyhedral fan in ambient dimension 2

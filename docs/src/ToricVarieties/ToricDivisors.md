@@ -29,7 +29,7 @@ toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: Inte
 
 Toric divisors can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz`.
+for scalars which are integers or of type `ZZRingElem`.
 
 ### Special divisors
 

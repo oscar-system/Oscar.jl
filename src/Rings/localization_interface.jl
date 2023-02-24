@@ -49,8 +49,8 @@ Return `true` if `f` belongs to `U`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -104,8 +104,8 @@ If, say, Rloc = R[U⁻¹], return R.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -130,8 +130,8 @@ If, say, Rloc = R[U⁻¹], return U.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -162,8 +162,8 @@ Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -230,7 +230,7 @@ end
 ### Other conversions for the sake of convenience
 (W::AbsLocalizedRing)(a::Int) = W(base_ring(W)(a))
 (W::AbsLocalizedRing)(a::Integer) = W(base_ring(W)(a))
-(W::AbsLocalizedRing)(a::fmpz) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::ZZRingElem) = W(base_ring(W)(a))
 
 
 #################################################################################
@@ -351,7 +351,7 @@ function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return numerator(a)*denominator(b) == numerator(b)*denominator(a)
 end
 
-function ^(a::AbsLocalizedRingElem, i::fmpz)
+function ^(a::AbsLocalizedRingElem, i::ZZRingElem)
   return parent(a)(numerator(a)^i, denominator(a)^i)
 end
 
@@ -604,7 +604,7 @@ end
 ### generic functions
 (f::AbsLocalizedRingHom)(a::RingElem) = f(domain(f)(a))
 (f::AbsLocalizedRingHom)(a::Integer) = f(domain(f)(a))
-(f::AbsLocalizedRingHom)(a::fmpz) = f(domain(f)(a))
+(f::AbsLocalizedRingHom)(a::ZZRingElem) = f(domain(f)(a))
 
 @Markdown.doc """
     (f::AbsLocalizedRingHom)(I::Ideal)

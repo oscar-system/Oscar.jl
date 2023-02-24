@@ -306,7 +306,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   kk = base_ring(X)
-  A = zero(MatrixSpace(kk, ngens(L), length(all_mons)))
+  A = zero(matrix_space(kk, ngens(L), length(all_mons)))
   for i in 1:ngens(L)
     for (c, m) in zip(coefficients(images[i]), monomials(images[i]))
       k = findfirst(x->(x==m), all_mons)

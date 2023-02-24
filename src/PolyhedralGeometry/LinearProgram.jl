@@ -13,7 +13,7 @@ struct LinearProgram{T}
    LinearProgram{T}(fr::Polyhedron{T}, lp::Polymake.BigObject, c::Symbol) where T<:scalar_types = new{T}(fr, lp, c)
 end
 
-# no default = `fmpq` here; scalar type can be derived from the feasible region
+# no default = `QQFieldElem` here; scalar type can be derived from the feasible region
 LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
 
 function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
@@ -37,7 +37,7 @@ LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = 
 LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
    LinearProgram{T}(Polyhedron{T}(A, b), c;  k = k, convention = convention)
 
-LinearProgram(x...) = LinearProgram{fmpq}(x...)
+LinearProgram(x...) = LinearProgram{QQFieldElem}(x...)
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
 
@@ -122,12 +122,12 @@ Polyhedron in ambient dimension 3
 julia> LP=LinearProgram(C,[1,2,-3])
 Linear program
    max{c⋅x + k | x ∈ P}
-where P is a Polyhedron{fmpq} and
+where P is a Polyhedron{QQFieldElem} and
    c=Polymake.Rational[1 2 -3]
    k=0
 
 julia> optimal_vertex(LP)
-3-element PointVector{fmpq}:
+3-element PointVector{QQFieldElem}:
  1
  1
  -1
@@ -164,7 +164,7 @@ Polyhedron in ambient dimension 3
 julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
 Linear program
    min{c⋅x + k | x ∈ P}
-where P is a Polyhedron{fmpq} and
+where P is a Polyhedron{QQFieldElem} and
    c=Polymake.Rational[1 2 -3]
    k=0
 

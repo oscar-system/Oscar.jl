@@ -59,8 +59,8 @@ julia> factorisations(zk(6))
  -1 * (sqrt(-5) + 1) * (sqrt(-5) - 1)
  -1 * 2 * -3
 
-julia> Qx, x = PolynomialRing(QQ, [:x1,:x2])
-(Multivariate Polynomial Ring in x1, x2 over Rational Field, fmpq_mpoly[x1, x2])
+julia> Qx, x = polynomial_ring(QQ, [:x1,:x2])
+(Multivariate Polynomial Ring in x1, x2 over Rational Field, QQMPolyRingElem[x1, x2])
 
 julia> R = grade(Qx, [1,2])[1]
 Multivariate Polynomial Ring in x1, x2 over Rational Field graded by

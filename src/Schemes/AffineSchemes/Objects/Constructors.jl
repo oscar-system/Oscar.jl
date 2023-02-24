@@ -17,7 +17,7 @@ This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -37,7 +37,7 @@ of the localized ring $U^{-1} R$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -60,7 +60,7 @@ localized ring $U^{-1} (R/I)$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -88,7 +88,7 @@ when in need to copy an affine spectrum.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -126,7 +126,7 @@ Spec of Multivariate Polynomial Ring in y1, y2, y3, y4, y5 over Rational Field
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
-  R, _ = PolynomialRing(kk, [variable_name * "$i" for i in 1:n])
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
   return Spec(R)
 end
 
@@ -145,7 +145,7 @@ Spec of Multivariate Polynomial Ring in y1, z2, a over Rational Field
 ```
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
-  R, _ = PolynomialRing(kk, var_symbols)
+  R, _ = polynomial_ring(kk, var_symbols)
   return Spec(R)
 end
 
@@ -164,7 +164,7 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 # Examples
 ```jldoctest
 julia> standard_spec(affine_space(QQ,5))
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(0) at the multiplicative set powers of fmpq_mpoly[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(0) at the multiplicative set powers of QQMPolyRingElem[1]
 ```
 """
 function standard_spec(X::AbsSpec)
@@ -183,7 +183,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), idea
 #
 ## Examples
 #```jldoctest
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 #
 #julia> I = ideal(R, [x]);
 #
@@ -191,7 +191,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), idea
 #Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 #
 #julia> standard_spec(X)
-#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[1]
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[1]
 #```
 #"""
 function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
@@ -210,7 +210,7 @@ end
 #
 ## Examples
 #```jldoctest
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 #
 #julia> I = ideal(R, [x]);
 #
@@ -235,7 +235,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_
 #
 ## Examples
 #```jldoctest
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 #
 #julia> I = ideal(R, [x]);
 #
@@ -272,7 +272,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -307,7 +307,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -345,13 +345,13 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1, x2, x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
 
 julia> hypersurface_complement(X, x1)
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1]
 ```
 """
 function hypersurface_complement(X::AbsSpec, f::RingElem)
@@ -413,13 +413,13 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
 
 julia> hypersurface_complement(X,[x1,x2])
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1, x2]
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1, x2]
 ```
 """
 function hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
@@ -498,7 +498,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -666,7 +666,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -675,7 +675,7 @@ julia> H = subscheme(X,ideal(R,[x1]))
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
 julia> closure(H, X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1) at the multiplicative set powers of fmpq_mpoly[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1) at the multiplicative set powers of QQMPolyRingElem[1]
 ```
 """
 function closure(X::AbsSpec, Y::AbsSpec) 

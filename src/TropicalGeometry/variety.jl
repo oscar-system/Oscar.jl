@@ -111,7 +111,7 @@ function homogenize(I::MPolyIdeal)
   Kx = base_ring(I)
   K = coefficient_ring(Kx)
   x = symbols(Kx)
-  Kxh,_ = PolynomialRing(K,vcat([:xh],x))
+  Kxh,_ = polynomial_ring(K,vcat([:xh],x))
 
   Gh = Vector{elem_type(Kx)}(undef,length(G))
   for (i,g) in enumerate(G)
@@ -135,7 +135,7 @@ todo: proper documentation
 Example:
 import Random
 K,s = RationalFunctionField(QQ,"s");
-Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
+Kx,(x1,x2,x3,x4) = polynomial_ring(K,4);
 val = TropicalSemiringMap(K,s);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
 Random.seed!(3847598273423);
@@ -367,14 +367,14 @@ facet_points(P)
 =======#
 function anchor_point(P::Polyhedron)
   # compute the sum of vertices and rays in homogenized coordinates
-  pt = convert(Vector{fmpq},sum([vertices(P)...,rays(P)...]))
+  pt = convert(Vector{QQFieldElem},sum([vertices(P)...,rays(P)...]))
   pushfirst!(pt,nvertices(P))
 
   # project to orthogonal complement of lineality space if necessary
   if lineality_dim(P)>0
     pt = Polymake.Matrix{Polymake.Rational}(vcat(transpose(pt)))
     Polymake.common.project_to_orthogonal_complement(pt, P.pm_polytope.LINEALITY_SPACE)
-    pt = convert(Matrix{fmpq}, pt)[1,:]
+    pt = convert(Matrix{QQFieldElem}, pt)[1,:]
   end
 
   # rescale until first entry is 1 and remove it

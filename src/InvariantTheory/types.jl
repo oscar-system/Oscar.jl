@@ -26,8 +26,8 @@ mutable struct SecondaryInvarsCache{T}
   end
 end
 
-mutable struct FundamentalInvarsCache{PolyElemT, PolyRingT}
-  invars::Vector{PolyElemT} # fundamental invariants
+mutable struct FundamentalInvarsCache{PolyRingElemT, PolyRingT}
+  invars::Vector{PolyRingElemT} # fundamental invariants
 
   # Graded polynomial ring in length(invars) variables such that
   # deg(gens(S)[i]) == deg(invars[i])
@@ -40,16 +40,16 @@ mutable struct FundamentalInvarsCache{PolyElemT, PolyRingT}
   # For a primary or irreducible secondary invariant f, toS[f] gives the
   # representation of f as a polynomial in the fundamental invariants.
   # This field is only set, if via_primary_and_secondary is true.
-  toS::Dict{PolyElemT, PolyElemT}
+  toS::Dict{PolyRingElemT, PolyRingElemT}
 
-  function FundamentalInvarsCache{PolyElemT, PolyRingT}() where {PolyElemT <: MPolyRingElem, PolyRingT <: MPolyRing}
-    z = new{PolyElemT, PolyRingT}()
-    z.invars = PolyElemT[]
+  function FundamentalInvarsCache{PolyRingElemT, PolyRingT}() where {PolyRingElemT <: MPolyRingElem, PolyRingT <: MPolyRing}
+    z = new{PolyRingElemT, PolyRingT}()
+    z.invars = PolyRingElemT[]
     return z
   end
 end
 
-mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
+mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
   field::FldT
   poly_ring::PolyRingT
 
@@ -58,25 +58,25 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
 
   modular::Bool
 
-  primary::PrimaryInvarsCache{PolyElemT}
-  secondary::SecondaryInvarsCache{PolyElemT}
-  fundamental::FundamentalInvarsCache{PolyElemT, PolyRingT}
+  primary::PrimaryInvarsCache{PolyRingElemT}
+  secondary::SecondaryInvarsCache{PolyRingElemT}
+  fundamental::FundamentalInvarsCache{PolyRingElemT, PolyRingT}
 
-  presentation::MPolyAnyMap{MPolyQuoRing{PolyElemT}, PolyRingT, Nothing, PolyElemT}
+  presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT}, PolyRingT, Nothing, PolyRingElemT}
 
   reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
 
-  molien_series::Generic.Frac{fmpq_poly}
+  molien_series::Generic.Frac{QQPolyRingElem}
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
 
     # We want to use divrem w.r.t. degrevlex e.g. for the computation of
     # secondary invariants and fundamental invariants
-    R, = grade(PolynomialRing(K, "x" => 1:n, cached = false, ordering = :degrevlex)[1], ones(Int, n))
+    R, = grade(polynomial_ring(K, "x" => 1:n, cached = false, ordering = :degrevlex)[1], ones(Int, n))
     PolyRingT = typeof(R)
-    PolyElemT = elem_type(R)
-    z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT}()
+    PolyRingElemT = elem_type(R)
+    z = new{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}()
     z.field = K
     z.poly_ring = R
     z.group = G
@@ -103,7 +103,7 @@ struct AllMonomials{PolyRingT}
   end
 end
 
-struct InvRingBasisIterator{InvRingT, ReynoldsT, IteratorT, PolyElemT, MatrixT}
+struct InvRingBasisIterator{InvRingT, ReynoldsT, IteratorT, PolyRingElemT, MatrixT}
   R::InvRingT
   degree::Int
   dim::Int
@@ -114,7 +114,7 @@ struct InvRingBasisIterator{InvRingT, ReynoldsT, IteratorT, PolyElemT, MatrixT}
   reynolds_operator::ReynoldsT
 
   monomials::IteratorT
-  monomials_collected::Vector{PolyElemT}
+  monomials_collected::Vector{PolyRingElemT}
   kernel::MatrixT # used iff reynolds == false
 end
 
@@ -161,7 +161,7 @@ mutable struct VectorSpaceIteratorFiniteField{FieldT, IteratorT, ElemT} <: Vecto
   basis_iterator_state::Any # I don't know the type of this and I don't think there
                        # is a "type-stable" way of finding it out
 
-  function VectorSpaceIteratorFiniteField(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, FqNmodFiniteField, FqFiniteField}, IteratorT}
+  function VectorSpaceIteratorFiniteField(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField}, IteratorT}
     VSI = new{FieldT, IteratorT, eltype(basis_iterator)}()
     VSI.field = K
     VSI.basis_iterator = basis_iterator

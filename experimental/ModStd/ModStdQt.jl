@@ -21,20 +21,20 @@ function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; Err
   return n//d
 end
 
-Oscar.normalise(f::fmpq_poly, ::Int64) = error("no normalise") #length(f)
-#Oscar.set_length!(f::fmpq_poly, ::Int64) = error("no set_length") #f
+Oscar.normalise(f::QQPolyRingElem, ::Int64) = error("no normalise") #length(f)
+#Oscar.set_length!(f::QQPolyRingElem, ::Int64) = error("no set_length") #f
 
 #=
 function points(p::Vector{T}, j::Int, z::Vector{T}, s::Vector{T}) where {T}
 
-  pp = map(fmpz, p)
-  zz = map(fmpz, z)
-  ss = map(fmpz, s)
+  pp = map(ZZRingElem, p)
+  zz = map(ZZRingElem, z)
+  ss = map(ZZRingElem, s)
 
   return [[[pp[i]^l*zz[k]+ss[i] for i=1:length(pp)] for k=1:length(z)] for l=0:j]
 end
 
-function eval(f::FracElem{fmpq_mpoly}, pt; ErrorTolerant::Bool = false)
+function eval(f::FracElem{QQMPolyRingElem}, pt; ErrorTolerant::Bool = false)
   return [[evaluate(f, x, ErrorTolerant= ErrorTolerant) for x = y] for y = pt]
 end
 =#
@@ -49,7 +49,7 @@ has a different interface:
 """
 mutable struct InterpolateCtx{T}
   C::Hecke.crt_env{T}
-  function InterpolateCtx(a::Vector{S}, parent = PolynomialRing(parent(a[1]), cached = false)[1]) where {S}
+  function InterpolateCtx(a::Vector{S}, parent = polynomial_ring(parent(a[1]), cached = false)[1]) where {S}
     bt = parent
     t = gen(bt)
     r = new{elem_type(bt)}()
@@ -78,7 +78,7 @@ end
 #does not exist in general... why
 Hecke.rem!(a::T, b::T, c::T) where {T <: RingElem} = rem(b, c)
 
-function Oscar.rational_reconstruction(f::PolyElem, I::InterpolateCtx; ErrorTolerant::Bool = false)
+function Oscar.rational_reconstruction(f::PolyRingElem, I::InterpolateCtx; ErrorTolerant::Bool = false)
   return rational_reconstruction(f, prod(I.C), ErrorTolerant = ErrorTolerant)
 end
 
@@ -113,7 +113,7 @@ mutable struct MPolyPt{T}
 end
 
 #=
-function eval(f::FracElem{fmpq_mpoly}, P::MPolyPt; ErrorTolerant::Bool = false)
+function eval(f::FracElem{QQMPolyRingElem}, P::MPolyPt; ErrorTolerant::Bool = false)
   return eval(f, points(P.pt_p, P.j, P.pt_z, P.pt_s), ErrorTolerant = ErrorTolerant)
 end
 =#
@@ -160,8 +160,8 @@ end
 
 mutable struct Vals{T}
   v::Vector{Vector{T}}
-  nd::Vector{Tuple{<:PolyElem{T}, <:PolyElem{T}}}
-  G::RingElem # can be Generic.Frac{<:MPolyRingElem{T}} or PolyElem
+  nd::Vector{Tuple{<:PolyRingElem{T}, <:PolyRingElem{T}}}
+  G::RingElem # can be Generic.Frac{<:MPolyRingElem{T}} or PolyRingElem
   function Vals(v::Vector{Vector{S}}) where {S}
     r = new{S}()
     r.v = v
@@ -273,12 +273,12 @@ function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   v.v[i][j] = c
 end
 
-function exp_groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+function exp_groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{QQMPolyRingElem}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
   Oscar.exp_groebner_assure(I, ord, complete_reduction = complete_reduction)
 end
 
-function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
-  T = fmpq
+function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{QQMPolyRingElem}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
+  T = QQFieldElem
   if ord == :degrevlex && isdefined(I, :gb)
     return I.gb
   end
@@ -287,7 +287,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
   n = ngens(base_ring(R))
   P = MPolyPt(n)
   Q = base_ring(base_ring(R))
-  Qy, _ = PolynomialRing(Q, ngens(S))
+  Qy, _ = polynomial_ring(Q, ngens(S))
   frst = true
   lst = []
   do_z = true
@@ -422,7 +422,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
   return lst, P
 end
 
-#TODO: for fmpq_mat: don't copy
+#TODO: for QQMatrix: don't copy
 function is_zero_entry(M::MatElem, i::Int, j::Int)
   return iszero(M[i,j])
 end
@@ -531,7 +531,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
 end
 
 @doc Markdown.doc"""
-    factor_absolute(f::MPolyRingElem{Generic.Frac{fmpq_mpoly}})
+    factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute
 factorisation, ie. a factorisation in K[X] where K is the
@@ -554,9 +554,9 @@ The return value is an array
 # Examples     
 
 ```julia
-julia> Qa, a = PolynomialRing(QQ, :a=>1:2);
+julia> Qa, a = polynomial_ring(QQ, :a=>1:2);
 
-julia> R, X = PolynomialRing(FractionField(Qa), :X=>1:2);
+julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
 
 julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
@@ -571,17 +571,17 @@ julia> parent(f[2][1])
 Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
 ```  
 """
-function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{fmpq_mpoly}})
+function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   Qtx = parent(f)                 # Q[t1,t2][x1,x2]
   Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
-  Rx, x = PolynomialRing(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
+  Rx, x = polynomial_ring(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
   # write f = cont*F, cont in Qt, F in Rx
   F, cont = Oscar._remove_denominators(Rx, f)
   lF = factor(F)
   an = []
   push!(an, Qtx(cont)*Oscar._restore_numerators(Qtx, lF.unit))
   K = base_ring(f)
-  Kt, t = PolynomialRing(K, "t", cached = false)
+  Kt, t = polynomial_ring(K, "t", cached = false)
   for (k, e) = lF.fac
     res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
     if res === nothing
@@ -592,8 +592,8 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{fmpq_mpoly}})
     #p is a univariate over S
     #c[i] lives in quo(p)
     #S is a FracField(MPoly(QQ, ngens(Qt)))
-    R = ResidueField(Kt, Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients(p)]))
-    RX, X = PolynomialRing(R, map(String, Qtx.S), cached = false)
+    R = residue_field(Kt, Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients(p)]))
+    RX, X = polynomial_ring(R, map(String, Qtx.S), cached = false)
     b = MPolyBuildCtx(RX)
     for i=1:length(c)
       C = R(Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients((c[i]))]))
@@ -634,18 +634,18 @@ Helper function for the absolute factorisation:
 is factored over K[X] for K the algebraic closure of Q(A). 
 The subset of variables in A is identified by the indices in `a`
 """
-function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
-  T = fmpq
+function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
+  T = QQFieldElem
   S = parent(g)
   n = length(a)
   P = MPolyPt(n)
   Q = base_ring(S)
   na = setdiff(1:ngens(S), a) 
-  Qy, y = PolynomialRing(Q, cached = false)
+  Qy, y = polynomial_ring(Q, cached = false)
 
-  F = PolynomialRing(QQ, n, cached = false)[1]
+  F = polynomial_ring(QQ, n, cached = false)[1]
   if !int
-    F = FractionField(F)
+    F = fraction_field(F)
   end
 
   frst = true
@@ -698,7 +698,7 @@ function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
         return nothing #bad evaluation
       end
       @assert length(fg) == 2
-      if isa(base_ring(fg[2][1][1]), FlintRationalField)
+      if isa(base_ring(fg[2][1][1]), QQField)
         return nothing
       end
       @assert isa(base_ring(fg[2][1][1]), AnticNumberField)
@@ -741,7 +741,7 @@ function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
     end
     if fl
       @vprint :ModStdQt 1 "success\n"
-      Qt, t = PolynomialRing(parent(res[1]), cached = false)
+      Qt, t = polynomial_ring(parent(res[1]), cached = false)
       pres = []
       i = 1
       for j=degs
@@ -808,7 +808,7 @@ function my_reduce(A, d)
   return parent(A)(parent(a)(b))
 end
 
-function Oscar.lift(f::PolyElem, g::PolyElem, a::nf_elem, b::nf_elem, V::Vector{fmpq})
+function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::nf_elem, b::nf_elem, V::Vector{QQFieldElem})
   S = base_ring(f) # should be a Frac{MPoly}
   R = base_ring(S)
 
@@ -823,7 +823,7 @@ function Oscar.lift(f::PolyElem, g::PolyElem, a::nf_elem, b::nf_elem, V::Vector{
   @assert all(x->isone(denominator(x)), coefficients(gg))
   @assert is_monic(gg)
 
-  q = ResidueField(parent(f), ff)
+  q = residue_field(parent(f), ff)
 
   if degree(g) == 0
     return lift(q(coeff(g, 0)))
@@ -894,7 +894,7 @@ end
 
 =#
 
-function cleanup(Lambda::PolyElem{T}, E::Int, c::Vector{T}, k::Int) where {T}
+function cleanup(Lambda::PolyRingElem{T}, E::Int, c::Vector{T}, k::Int) where {T}
   c = copy(c)
   t = degree(Lambda)
   i = k+2*t
@@ -922,7 +922,7 @@ end
 
 function FTBM(c::Vector{Q}, T::Int, E::Int) where {Q <: FieldElem}
   R = parent(c[1])
-  Rt, t = PolynomialRing(R, cached = false)
+  Rt, t = polynomial_ring(R, cached = false)
   L = []
   n = length(c)
   for i=0:div(n, 2*T)-1
@@ -939,7 +939,7 @@ end
 
 function MRBM(c::Vector{Q}, T::Int, E::Int) where {Q <: FieldElem}
   R = parent(c[1])
-  Rt, t = PolynomialRing(R, cached = false)
+  Rt, t = polynomial_ring(R, cached = false)
   L = Dict{elem_type(Rt), Set{Int}}()
   n = length(c)
   for i=0:div(n, 2*T)-1
@@ -993,7 +993,7 @@ end
 
 
 #####################################################################
-function ben_or(lp::Vector{Int}, a::Vector{fmpz}, P::fmpz)
+function ben_or(lp::Vector{Int}, a::Vector{ZZRingElem}, P::ZZRingElem)
   #tries to write a as a product of powers of lp
 
   K = GF(Int(P))
@@ -1091,8 +1091,8 @@ end
 
 #= from Dereje:
 
- Qt, t = PolynomialRing(QQ, :t=>1:2)
- Qtx, x = PolynomialRing(FractionField(Qt), :x => 1:3)
+ Qt, t = polynomial_ring(QQ, :t=>1:2)
+ Qtx, x = polynomial_ring(fraction_field(Qt), :x => 1:3)
 
  f1 = x[1]^2*x[2]^3*x[3] + 2*t[1]*x[1]*x[2]*x[3]^2 + 7*x[2]^3
  f2 = x[1]^2*x[2]^4*x[3] + (t[1]-7*t[2])*x[1]^2*x[2]*x[3]^2 - x[1]*x[2]^2*x[3]^2+2*x[1]^2*x[2]*x[3] - 12*x[1] + t[2]*x[2]

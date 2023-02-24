@@ -15,11 +15,11 @@ mutable struct SubField
 
   grp::PermGroup #the fix group
 
-  pe::SLPoly{fmpz} #, FlintIntegerRing} # the invariant evaluating to the PE
+  pe::SLPoly{ZZRingElem} #, ZZRing} # the invariant evaluating to the PE
   conj::Vector{PermGroupElem}        # the absolute conjugates
-  ts::fmpz_poly # tschirnhaus
+  ts::ZZPolyRingElem # tschirnhaus
 
-  exact_den::Union{fmpq, NumFieldElem} # in this field! f'(alpha)
+  exact_den::Union{QQFieldElem, NumFieldElem} # in this field! f'(alpha)
   dual_basis::Vector # symbolic: coeffs of f/t-pe
   basis::Vector # in fld, symbolic: [pe^i//exact_den for i=0:n-1]
   basis_abs::Vector
@@ -149,13 +149,13 @@ end
 function rationals_as_subfield(C::GaloisCtx)
   S = SubField()
   S.grp = C.G # Q is fixed by the entire group
-  S.exact_den = fmpq(1)
+  S.exact_den = QQFieldElem(1)
   I = SLPolyRing(ZZ, degree(C.f))
   S.pe = I(1)
   S.conj = [one(C.G)]
   S.fld = QQ
-  S.dual_basis = [fmpq(1)]
-  S.basis = [fmpq(1)]
+  S.dual_basis = [QQFieldElem(1)]
+  S.basis = [QQFieldElem(1)]
   return S
 end
 
@@ -220,7 +220,7 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   SS.fld, a = number_field(f, cached = false, check = false)
   SS.exact_den = derivative(f)(a)
   SS.basis = basis(SS.fld)
-  KT, T = PolynomialRing(SS.fld, cached = false)
+  KT, T = polynomial_ring(SS.fld, cached = false)
   SS.dual_basis = collect(coefficients(divexact(map_coefficients(SS.fld, f, parent = KT), T-a)))
   SS.coeff_field = S
   SS.conj = con
@@ -297,15 +297,15 @@ end
 #a bound on the largest conjugate of an absolute dual basis (product basis)
 function dual_basis_bound(C::GaloisCtx, S::SubField)
   if S.fld == QQ
-    return fmpz(1)
+    return ZZRingElem(1)
   end
-#  return upper_bound(fmpz, maximum(x->maximum(abs, Oscar.conjugates(x)), S.dual_basis))*dual_basis_bound(S.coeff_field)
+#  return upper_bound(ZZRingElem, maximum(x->maximum(abs, Oscar.conjugates(x)), S.dual_basis))*dual_basis_bound(S.coeff_field)
 return maximum([length_bound(C, S, x) for x = S.dual_basis])*dual_basis_bound(C, S.coeff_field)
 end
 
-function length_bound(C::GaloisCtx, S::SubField, x::Union{fmpq,NumFieldElem})
+function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldElem})
   if degree(S.fld) == 1
-    return ceil(fmpz, abs(x))
+    return ceil(ZZRingElem, abs(x))
   end
   f = parent(defining_polynomial(S.fld))(x)
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val
@@ -315,7 +315,7 @@ function Hecke.length(x::NumFieldElem, abs_tol::Int = 32, T = arb)
   return sum(x^2 for x = Oscar.conjugates(x, abs_tol, T))
 end
 
-function conjugates(C::GaloisCtx, S::SubField, a::fmpq, pr::Int = 10)
+function conjugates(C::GaloisCtx, S::SubField, a::QQFieldElem, pr::Int = 10)
   rt = roots(C, pr)
   @assert S.fld == QQ
   return [parent(rt[1])(a)]
@@ -391,13 +391,13 @@ function as_radical_extension(K::NumField, aut::Map, zeta::NumFieldElem)
   return L, hom(L, K, r, check = CHECK)
 end
 
-function Oscar.solve(f::fmpq_poly; max_prec::Int=typemax(Int))
+function Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
   return solve(numerator(f), max_prec = max_prec)
 end
 
 @doc Markdown.doc"""
-    Oscar.solve(f::fmpz_poly; max_prec::Int=typemax(Int))
-    Oscar.solve(f::fmpq_poly; max_prec::Int=typemax(Int))
+    Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int))
+    Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
 
 Compute a presentation of the roots of `f` in a radical tower.
 The necessary roots of unity are not themselves computed as radicals.
@@ -431,7 +431,7 @@ julia> solve(cyclotomic(12, x)) #zeta_12 as radical
 
 ```
 """
-function Oscar.solve(f::fmpz_poly; max_prec::Int=typemax(Int), show_radical::Bool = false)
+function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical::Bool = false)
   #if poly is not monic, the roots are scaled (by default) to
   #make them algebraically integral. This has to be compensated
   #in a couple of places...
@@ -601,7 +601,7 @@ end
 
 function dual_basis_abs(S::SubField)
   if S.fld == QQ
-    return [fmpq(1)]
+    return [QQFieldElem(1)]
   end
   d = dual_basis_abs(S.coeff_field)
   b = S.dual_basis
@@ -610,7 +610,7 @@ end
 
 function basis_abs(S::SubField)
   if S.fld == QQ
-    return [fmpq(1)]
+    return [QQFieldElem(1)]
   end
   if isdefined(S, :basis_abs)
     return S.basis_abs

@@ -218,7 +218,7 @@ end
 
 function projective_space(A::CoeffRingType, var_symb::Vector{Symbol}) where {CoeffRingType<:Ring}
   n = length(var_symb)
-  R, _ = PolynomialRing(A, var_symb)
+  R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
   I = ideal(S, [zero(S)])
   return ProjectiveScheme(S, I)
@@ -228,7 +228,7 @@ projective_space(A::CoeffRingType, var_names::Vector{String}) where {CoeffRingTy
 
 
 function projective_space(A::CoeffRingType, r::Int; var_name::String="s") where {CoeffRingType<:Ring}
-  R, _ = PolynomialRing(A, [var_name*"$i" for i in 0:r])
+  R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
   I = ideal(S, [zero(S)])
   return ProjectiveScheme(S, I)
@@ -784,7 +784,7 @@ one of the homogeneous coordinates of ``P``.
 is not a mathematical morphism and, hence, in particular 
 not an instance of `Hecke.Map`.
 
-**Note:** Since `FractionField` relies on some implementation 
+**Note:** Since `fraction_field` relies on some implementation 
 of division for the elements, we can not return the fraction 
 directly. 
 """

@@ -160,7 +160,7 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
-^(a::MatElem, b::fmpz) = Hecke._generic_power(a, b)
+^(a::MatElem, b::ZZRingElem) = Hecke._generic_power(a, b)
 
 ########################################################################
 #

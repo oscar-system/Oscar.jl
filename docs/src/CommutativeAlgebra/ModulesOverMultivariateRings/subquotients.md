@@ -84,8 +84,8 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -115,7 +115,7 @@ julia> F === ambient_free_module(M)
 true
 
 julia> gens(M)
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*e[1]
  y*e[1]
 
@@ -126,12 +126,12 @@ julia> gen(M, 2)
 y*e[1]
 
 julia> ambient_representatives_generators(M)
-2-element Vector{FreeModElem{fmpq_mpoly}}:
+2-element Vector{FreeModElem{QQMPolyRingElem}}:
  x*e[1]
  y*e[1]
 
 julia> relations(M)
-3-element Vector{FreeModElem{fmpq_mpoly}}:
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
  x^2*e[1]
  y^3*e[1]
  z^4*e[1]
@@ -169,8 +169,8 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -225,8 +225,8 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -262,16 +262,16 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> coordinates(m)
-Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
+Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
 
 julia> fm = ambient_representative(m)
 (x*z + y)*e[1]
 
 julia> typeof(m)
-SubquoModuleElem{fmpq_mpoly}
+SubquoModuleElem{QQMPolyRingElem}
 
 julia> typeof(fm)
-FreeModElem{fmpq_mpoly}
+FreeModElem{QQMPolyRingElem}
 
 julia> parent(fm) === ambient_free_module(M)
 true
@@ -286,10 +286,10 @@ julia> M(f)
 x*e[1]
 
 julia> typeof(f)
-FreeModElem{fmpq_mpoly}
+FreeModElem{QQMPolyRingElem}
 
 julia> typeof(M(f))
-SubquoModuleElem{fmpq_mpoly}
+SubquoModuleElem{QQMPolyRingElem}
 
 ```
 

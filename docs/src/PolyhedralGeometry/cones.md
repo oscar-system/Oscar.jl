@@ -45,7 +45,7 @@ secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ambient_dim(C::Cone)
 contains(C::Cone, v::AbstractVector)
 f_vector(C::Cone)
-hilbert_basis(C::Cone{fmpq})
+hilbert_basis(C::Cone{QQFieldElem})
 codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types

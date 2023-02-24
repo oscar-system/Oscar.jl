@@ -84,7 +84,7 @@ import AbstractAlgebra:
     MatElem,
     matrix,
     MatSpace,
-    MPolyElem,
+    MPolyRingElem,
     MPolyRing,
     NCRing,
     NCRingElem,
@@ -92,8 +92,8 @@ import AbstractAlgebra:
     nvars,
     ordering,
     parent_type,
-    PolyElem,
-    PolynomialRing,
+    PolyRingElem,
+    polynomial_ring,
     PolyRing,
     Ring,
     RingElem,
@@ -107,7 +107,7 @@ import AbstractAlgebra:
 if isdefined(AbstractAlgebra, :MPolyRingElem)
   import AbstractAlgebra: MPolyRingElem
 else
-  @alias MPolyRingElem MPolyElem
+  @alias MPolyRingElem MPolyRingElem
 end
 
 import AbstractAlgebra.GroupsCore
@@ -133,14 +133,14 @@ import Nemo:
     factorial,
     fibonacci,
     fits,
-    FlintIntegerRing,
-    FlintRationalField,
-    fmpq,
-    fmpq_mat,
-    fmpz,
-    fmpz_mat,
-    fq_nmod,
-    FractionField,
+    ZZRing,
+    QQField,
+    QQFieldElem,
+    QQMatrix,
+    ZZRingElem,
+    ZZMatrix,
+    fqPolyRepFieldElem,
+    fraction_field,
     height,
     is_prime,
     is_probable_prime,
@@ -148,7 +148,7 @@ import Nemo:
     is_unit,
     isqrtrem,
     jacobi_symbol,
-    MatrixSpace,
+    matrix_space,
     moebius_mu,
     number_of_partitions,
     numerator,
@@ -194,7 +194,7 @@ import Hecke:
     field_extension,
     FinField,
     FinFieldElem,
-    FqNmodFiniteField,
+    fqPolyRepField,
     free_abelian_group,
     gens,
     gram_matrix,
@@ -241,9 +241,9 @@ import Hecke:
     sub,
     subsets,
     subgroups,
-    TorQuadMod,
-    TorQuadModElem,
-    TorQuadModMor,
+    TorQuadModule,
+    TorQuadModuleElem,
+    TorQuadModuleMor,
     tr,
     trace
 

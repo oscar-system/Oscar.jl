@@ -9,11 +9,11 @@
     @test x==y
     @test A==Vector(y)
     @test typeof(Vector(y))==Vector{Int64}
-    @test typeof(Vector{fmpz}(y))==Vector{fmpz}
+    @test typeof(Vector{ZZRingElem}(y))==Vector{ZZRingElem}
     @test x==G(Vector(x))
     @test is_finiteorder(x)
     @test order(x) == lcm(15,n-8)
-    for T in [Int, BigInt, fmpz]
+    for T in [Int, BigInt, ZZRingElem]
       @test order(T, x) == lcm(15,n-8)
       @test order(T, x) isa T
     end
@@ -25,7 +25,7 @@
     @test 3^x == 4
     @test n^x == 9
 
-    for T in [Int32, Int, BigInt, fmpz]
+    for T in [Int32, Int, BigInt, ZZRingElem]
       @test x(T(n)) == T(9)
       @test typeof(x(T(n))) == T
       @test T(n)^x == T(9)
@@ -36,10 +36,10 @@
   G=symmetric_group(6)
   x=perm([2,3,4,5,6,1])
   @test x==perm(Int8[2,3,4,5,6,1])
-  @test x==perm(fmpz[2,3,4,5,6,1])
+  @test x==perm(ZZRingElem[2,3,4,5,6,1])
   @test x==perm(G,[2,3,4,5,6,1])
   @test x==perm(G,Int8[2,3,4,5,6,1])
-  @test x==perm(G,fmpz[2,3,4,5,6,1])
+  @test x==perm(G,ZZRingElem[2,3,4,5,6,1])
   @test cperm(G,Int[])==one(G)
   @test x==cperm(G,1:6)
   @test x==cperm(G,[1,2,3,4,5,6])
@@ -92,7 +92,7 @@ end
    @test eltype(PermGroup)==PermGroupElem
    @test eltype(PcGroup)==PcGroupElem
    @test eltype(FPGroup)==FPGroupElem
-   @test eltype(GL(2,3))==MatrixGroupElem{fq_nmod,fq_nmod_mat}
+   @test eltype(GL(2,3))==MatrixGroupElem{fqPolyRepFieldElem,fqPolyRepMatrix}
    @test eltype(DirectProductGroup)==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(SemidirectProductGroup)==Oscar.BasicGAPGroupElem{SemidirectProductGroup}

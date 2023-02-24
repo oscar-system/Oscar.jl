@@ -21,7 +21,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 ```
 
 

@@ -63,7 +63,7 @@ function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
 end
 
 @deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
-@deprecate NormalToricVarietyFromGLSM(charges::fmpz_mat; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)
+@deprecate NormalToricVarietyFromGLSM(charges::ZZMatrix; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)
 
 function RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
     Base.depwarn("'RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}'"*
@@ -121,16 +121,16 @@ function CohomologyClass(l::ToricLineBundle)
 end
 
 function CyclicQuotientSingularity(n::T, q::T) where {T <: IntegerUnion}
-    Base.depwarn("'CyclicQuotientSingularity(n::fmpz, q::fmpz)' is deprecated, use "*
-    "'cyclic_quotient_singularity(n::fmpz, q::fmpz)' instead.", :CyclicQuotientSingularity)
+    Base.depwarn("'CyclicQuotientSingularity(n::ZZRingElem, q::ZZRingElem)' is deprecated, use "*
+    "'cyclic_quotient_singularity(n::ZZRingElem, q::ZZRingElem)' instead.", :CyclicQuotientSingularity)
     cyclic_quotient_singularity(n, q)
 end
 
-function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})
+function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
     Base.depwarn("ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, "*
-    "defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}) is deprecated, use "*
+    "defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) is deprecated, use "*
     "'closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, "*
-    "defining_polynomials::Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}})' instead.", :ClosedSubvarietyOfToricVariety)
+    "defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})' instead.", :ClosedSubvarietyOfToricVariety)
     closed_subvariety_of_toric_variety(toric_variety, defining_polynomials)
 end
 
@@ -192,10 +192,10 @@ function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matri
     toric_morphism(domain, mapping_matrix, codomain = codomain)
 end
 
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
-    Base.depwarn("'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) "*
+function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+    Base.depwarn("'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
     "where {T <: Union{AbstractNormalToricVariety, Nothing}}' is deprecated, use "*
-    "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) "*
+    "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
     "where {T <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
     toric_morphism(domain, mapping_matrix, codomain = codomain)
 end

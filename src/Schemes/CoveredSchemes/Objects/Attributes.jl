@@ -27,7 +27,7 @@ julia> P = projective_space(QQ, 2);
 julia> Pcov = covered_scheme(P);
 
 julia> coverings(Pcov)
-1-element Vector{Covering{FlintRationalField}}:
+1-element Vector{Covering{QQField}}:
  Covering with 3 patches
 ```
 """

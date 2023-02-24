@@ -52,14 +52,14 @@ Addition and multiplication by an integer of a point on an elliptic curve can be
 #### Example
 
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
 Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
@@ -93,10 +93,10 @@ toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <:
 ```@docs
 discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
 j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
-is_torsion_point(P::Point_EllCurve{fmpq})
-torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
-torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
-order(P::Point_EllCurve{fmpq})
+is_torsion_point(P::Point_EllCurve{QQFieldElem})
+torsion_points_lutz_nagell(E::ProjEllipticCurve{QQFieldElem})
+torsion_points_division_poly(E::ProjEllipticCurve{QQFieldElem})
+order(P::Point_EllCurve{QQFieldElem})
 ```
 
 The following functions are implemented for elliptic curves over finite fields:
@@ -110,9 +110,9 @@ order(E::ProjEllipticCurve{S}) where S <: FieldElem
 The addition of points is not well defined for projective elliptic curves over a ring, that's why this case has to be considered separately. The following methods can for example be used for teaching purposes to show the steps of the Elliptic Curve Method.
 
 ```@docs
-sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
-IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
-rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
+sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.ZZModRingElem
+IntMult_Point_EllCurveZnZ(m::ZZRingElem, P::Point_EllCurve{S}) where S <: Nemo.ZZModRingElem
+rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.ZZModRingElem
 ```
 
 ### Primality proving
@@ -125,24 +125,24 @@ Projective elliptic curves over a ring are for example used in the Elliptic Curv
 julia> n = 4453
 4453
 
-julia> A = ResidueRing(ZZ, ZZ(n))
+julia> A = residue_ring(ZZ, ZZ(n))
 Integers modulo 4453
 
-julia> S, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453, AbstractAlgebra.Generic.MPoly{fmpz_mod}[x, y, z])
+julia> S, (x,y,z) = polynomial_ring(A, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453, AbstractAlgebra.Generic.MPoly{ZZModRingElem}[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
+  z -> [1], MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
 Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = proj_space(A, 2)
 (Projective space of dim 2 over Integers modulo 4453
-, MPolyDecRingElem{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
+, MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
 (1 : 3 : 1)
@@ -161,7 +161,7 @@ ERROR: 61 is not invertible in the base ring, cannot perform the sum
 The last sum is not defined, and the error which is shown when we ask for the sum gives us a factor of `4453`. The Elliptic Curve Method is implemented and can be called using:
 
 ```@docs
-ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
+ECM(n::ZZRingElem; nbcurve::Int = 25000, multfact::ZZRingElem = factorial(ZZ(10^4)))
 ```
 
 #### Elliptic Curve Primality Proving
@@ -169,7 +169,7 @@ ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
 Elliptic curves over finite fields or rings are used for the method called "Elliptic Curve Primality Proving". We implemented here the version relying on Atkin-Morain's test. The present implementation is not intended to be competitive.
 
 ```@docs
-ECPP(n::fmpz)
+ECPP(n::ZZRingElem)
 ```
 
 #### Other algorithms
@@ -177,10 +177,10 @@ ECPP(n::fmpz)
 TODO: The following algorithms are not directly related to Plane Curves, they might be moved to another section of the documentation.
 
 ```@docs
-cornacchia_algorithm(d::fmpz, m::fmpz)
-Miller_Rabin_test(N::fmpz, k::Int64 = 20)
-Pollard_rho(N::fmpz, bound::Int = 50000)
-Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
+cornacchia_algorithm(d::ZZRingElem, m::ZZRingElem)
+Miller_Rabin_test(N::ZZRingElem, k::Int64 = 20)
+Pollard_rho(N::ZZRingElem, bound::Int = 50000)
+Pollard_p_1(N::ZZRingElem, B::ZZRingElem = ZZ(10)^5)
 ```
 
 

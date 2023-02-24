@@ -20,21 +20,21 @@ Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyDecRingElem{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -65,18 +65,18 @@ Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y","z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyDecRingElem{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
@@ -146,18 +146,18 @@ Return a list whose first element is the projective plane curve defined by the g
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y","z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyDecRingElem{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> C = Oscar.ProjPlaneCurve(T(x+y+z))
 Projective plane curve defined by x + y + z
@@ -185,7 +185,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
      H = D.eq
   end
   Pts = []
-  r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
+  r, (X, Y) = polynomial_ring(R.R.base_ring, ["X", "Y"])
   Fa = dehomogenization(F, r, 3)
   Ha = dehomogenization(H, r, 3)
   if !is_constant(Fa) && !is_constant(Ha)
@@ -196,7 +196,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
         push!(Pts, Array_to_ProjSpcElem(PP, p.coord))
      end
   end
-  rr, (x,) = PolynomialRing(R.R.base_ring, ["x"])
+  rr, (x,) = polynomial_ring(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
   phiF = phi(F.f)
   phiH = phi(H.f)
@@ -268,7 +268,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
      end
   end
   R = parent(C.eq)
-  rr, (x) = PolynomialRing(R.R.base_ring, ["x"])
+  rr, (x) = polynomial_ring(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
   pF = phi(D.eq.f)
   pX = phi(FX.f)
@@ -417,7 +417,7 @@ Return the intersection multiplicity of `C` and `D` at `P`.
 function intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
    R = parent(C.eq)
-   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
+   r, (X, Y) = polynomial_ring(R.R.base_ring, ["X", "Y"])
    if P.v[3] != 0
       V = _dehom_curves_r(r, C, D, 3)
       Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
@@ -452,14 +452,14 @@ Return the arithmetic genus of `C`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
@@ -499,7 +499,7 @@ function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
    F = defining_equation(C)
    R = parent(F)
    I = ideal(R, [F])
-   if S == fmpq
+   if S == QQFieldElem
       singular_assure(I)
       return ZZ(Singular.LibNormal.genus(I.gens.S)::Int)
    else

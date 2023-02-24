@@ -16,7 +16,7 @@ A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
-6-element SubObjectIterator{Polyhedron{fmpq}}:
+6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 3
  Polyhedron in ambient dimension 3
  Polyhedron in ambient dimension 3
@@ -110,10 +110,10 @@ julia> lineality_dim(P)
 1
 
 julia> vertices(P)
-0-element SubObjectIterator{PointVector{fmpq}}
+0-element SubObjectIterator{PointVector{QQFieldElem}}
 
 julia> minimal_faces(P)
-(base_points = PointVector{fmpq}[[0, 0]], lineality_basis = RayVector{fmpq}[[1, 0]])
+(base_points = PointVector{QQFieldElem}[[0, 0]], lineality_basis = RayVector{QQFieldElem}[[1, 0]])
 ```
 """
 minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
@@ -141,14 +141,14 @@ julia> P = convex_hull([0 0 1], [0 1 0], [1 0 0])
 Polyhedron in ambient dimension 3
 
 julia> rmlP = rays_modulo_lineality(P)
-(rays_modulo_lineality = RayVector{fmpq}[[0, 1, 0]], lineality_basis = RayVector{fmpq}[[1, 0, 0]])
+(rays_modulo_lineality = RayVector{QQFieldElem}[[0, 1, 0]], lineality_basis = RayVector{QQFieldElem}[[1, 0, 0]])
 
 julia> rmlP.rays_modulo_lineality
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [0, 1, 0]
 
 julia> rmlP.lineality_basis
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0, 0]
 ```
 """
@@ -179,7 +179,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(PointVector, P)
-5-element SubObjectIterator{PointVector{fmpq}}:
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
  [-1, -1]
  [2, -1]
  [2, 1]
@@ -211,7 +211,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(P)
-5-element SubObjectIterator{PointVector{fmpq}}:
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
  [-1, -1]
  [2, -1]
  [2, 1]
@@ -283,7 +283,7 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(RayVector, PO)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 ```
@@ -313,7 +313,7 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 
@@ -363,7 +363,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
-6-element SubObjectIterator{Polyhedron{fmpq}}:
+6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 3
  Polyhedron in ambient dimension 3
  Polyhedron in ambient dimension 3
@@ -372,7 +372,7 @@ julia> facets(Polyhedron, C)
  Polyhedron in ambient dimension 3
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
 -x₁ ≦ 1
 x₁ ≦ 1
 -x₂ ≦ 1
@@ -411,7 +411,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
 -x₁ ≦ 1
 x₁ ≦ 1
 -x₂ ≦ 1
@@ -497,7 +497,7 @@ volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, pm_object(P).VOLUME)
 
 
 @doc Markdown.doc"""
-    lattice_volume(P::Polyhedron{fmpq})
+    lattice_volume(P::Polyhedron{QQFieldElem})
 
 Return the lattice volume of `P`.
 
@@ -509,7 +509,7 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron{fmpq})::fmpz = (pm_object(P)).LATTICE_VOLUME
+lattice_volume(P::Polyhedron{QQFieldElem})::ZZRingElem = (pm_object(P)).LATTICE_VOLUME
 
 
 @doc Markdown.doc"""
@@ -549,7 +549,7 @@ dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 
 @doc Markdown.doc"""
-    lattice_points(P::Polyhedron{fmpq})
+    lattice_points(P::Polyhedron{QQFieldElem})
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -558,7 +558,7 @@ Return the integer points contained in the bounded polyhedron `P`.
 julia> S = 2 * simplex(2);
 
 julia> lattice_points(S)
-6-element SubObjectIterator{PointVector{fmpz}}:
+6-element SubObjectIterator{PointVector{ZZRingElem}}:
  [0, 0]
  [0, 1]
  [0, 2]
@@ -575,12 +575,12 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron{fmpq})
+function lattice_points(P::Polyhedron{QQFieldElem})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
+    return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
 
-_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(@view P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
+_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(@view P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
 
 _point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = @view P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
@@ -588,7 +588,7 @@ _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 
 @doc Markdown.doc"""
-    interior_lattice_points(P::Polyhedron{fmpq})
+    interior_lattice_points(P::Polyhedron{QQFieldElem})
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -599,26 +599,26 @@ julia> c = cube(3)
 Polyhedron in ambient dimension 3
 
 julia> interior_lattice_points(c)
-1-element SubObjectIterator{PointVector{fmpz}}:
+1-element SubObjectIterator{PointVector{ZZRingElem}}:
  [0, 0, 0]
 
 julia> matrix(ZZ, interior_lattice_points(c))
 [0   0   0]
 ```
 """
-function interior_lattice_points(P::Polyhedron{fmpq})
+function interior_lattice_points(P::Polyhedron{QQFieldElem})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
+    return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
 
-_interior_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(@view P.INTERIOR_LATTICE_POINTS[i, 2:end])
+_interior_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(@view P.INTERIOR_LATTICE_POINTS[i, 2:end])
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized=false) = homogenized ? P.INTERIOR_LATTICE_POINTS : @view P.INTERIOR_LATTICE_POINTS[:, 2:end]
 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
-    boundary_lattice_points(P::Polyhedron{fmpq})
+    boundary_lattice_points(P::Polyhedron{QQFieldElem})
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -629,7 +629,7 @@ julia> c = polarize(cube(3))
 Polyhedron in ambient dimension 3
 
 julia> boundary_lattice_points(c)
-6-element SubObjectIterator{PointVector{fmpz}}:
+6-element SubObjectIterator{PointVector{ZZRingElem}}:
  [-1, 0, 0]
  [0, -1, 0]
  [0, 0, -1]
@@ -646,12 +646,12 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 [ 1    0    0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron{fmpq})
+function boundary_lattice_points(P::Polyhedron{QQFieldElem})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
+    return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
 
-_boundary_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(@view P.BOUNDARY_LATTICE_POINTS[i, 2:end])
+_boundary_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(@view P.BOUNDARY_LATTICE_POINTS[i, 2:end])
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject; homogenized=false) = homogenized ? P.BOUNDARY_LATTICE_POINTS : @view P.BOUNDARY_LATTICE_POINTS[:, 2:end]
 
@@ -712,7 +712,7 @@ its lineality in $x$-direction is recognized:
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
 julia> lineality_space(UH)
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
 ```
 """
@@ -737,7 +737,7 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^4 described by:
+2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
 x₃ = 2
 x₄ = 5
 ```
@@ -764,7 +764,7 @@ Return the recession cone of `P`.
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
 julia> vertices(P)
-3-element SubObjectIterator{PointVector{fmpq}}:
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, -1]
  [-1, 0]
  [-1, -1]
@@ -773,7 +773,7 @@ julia> recession_cone(P)
 Polyhedral cone in ambient dimension 2
 
 julia> rays(recession_cone(P))
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 1//2]
  [1, 1]
 ```
@@ -782,7 +782,7 @@ recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polyto
 
 
 @doc Markdown.doc"""
-    ehrhart_polynomial(P::Polyhedron{fmpq})
+    ehrhart_polynomial(P::Polyhedron{QQFieldElem})
 
 Compute the Ehrhart polynomial of `P`.
 
@@ -794,20 +794,20 @@ A polyhedron in ambient dimension 3
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
 """
-function ehrhart_polynomial(P::Polyhedron{fmpq})
-    R, x = PolynomialRing(QQ, "x")
+function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
+    R, x = polynomial_ring(QQ, "x")
     return ehrhart_polynomial(R, P)
 end
 
 
 @doc Markdown.doc"""
-    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron{fmpq})
+    ehrhart_polynomial(R::QQMPolyRing, P::Polyhedron{QQFieldElem})
 
 Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, "x")
+julia> R, x = polynomial_ring(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
@@ -817,9 +817,9 @@ julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
 ```
 """
-function ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
+function ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
     coeffs = Polymake.polytope.ehrhart_polynomial_coeff(pm_object(P))
-    return (R)(Vector{fmpq}(coeffs))
+    return (R)(Vector{QQFieldElem}(coeffs))
 end
 
 
@@ -836,20 +836,20 @@ A polyhedron in ambient dimension 3
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
 """
-function h_star_polynomial(P::Polyhedron{fmpq})
-    R, x = PolynomialRing(QQ, "x")
+function h_star_polynomial(P::Polyhedron{QQFieldElem})
+    R, x = polynomial_ring(QQ, "x")
     return h_star_polynomial(R, P)
 end
 
 
 @doc Markdown.doc"""
-    h_star_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+    h_star_polynomial(R::QQMPolyRing, P::Polyhedron)
 
 Compute the $h^*$ polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, "x")
+julia> R, x = polynomial_ring(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
@@ -859,16 +859,16 @@ julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
 ```
 """
-function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
+function h_star_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
     coeffs = pm_object(P).H_STAR_VECTOR
-    return (R)(Vector{fmpq}(coeffs))
+    return (R)(Vector{QQFieldElem}(coeffs))
 end
 
 ###############################################################################
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
-    is_very_ample(P::Polyhedron{fmpq})
+    is_very_ample(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is very ample.
 
@@ -887,7 +887,7 @@ julia> is_very_ample(P)
 false
 ```
 """
-is_very_ample(P::Polyhedron{fmpq}) = pm_object(P).VERY_AMPLE::Bool
+is_very_ample(P::Polyhedron{QQFieldElem}) = pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -927,7 +927,7 @@ contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_objec
 
 
 @doc Markdown.doc"""
-    is_smooth(P::Polyhedron{fmpq})
+    is_smooth(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is smooth.
 
@@ -940,11 +940,11 @@ julia> is_smooth(C)
 true
 ```
 """
-is_smooth(P::Polyhedron{fmpq}) = pm_object(P).SMOOTH::Bool
+is_smooth(P::Polyhedron{QQFieldElem}) = pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
-    is_normal(P::Polyhedron{fmpq})
+    is_normal(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is normal.
 
@@ -965,7 +965,7 @@ julia> is_normal(P)
 false
 ```
 """
-is_normal(P::Polyhedron{fmpq}) = pm_object(P).NORMAL::Bool
+is_normal(P::Polyhedron{QQFieldElem}) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
@@ -1035,7 +1035,7 @@ faces of $P$ of dimension $i$.
 Here we compute the f-vector of the 5-cube:
 ```jldoctest
 julia> f_vector(cube(5))
-5-element Vector{fmpz}:
+5-element Vector{ZZRingElem}:
  32
  80
  80
@@ -1043,7 +1043,7 @@ julia> f_vector(cube(5))
  10
 ```
 """
-function f_vector(P::Polyhedron)::Vector{fmpz}
+function f_vector(P::Polyhedron)::Vector{ZZRingElem}
     # the following differs from polymake's count in the unbounded case;
     # polymake takes the far face into account, too
     ldim = lineality_dim(P)
@@ -1061,14 +1061,14 @@ Undefined for unbounded polyhedra.
 # Examples
 ```jldoctest
 julia> h_vector(cross_polytope(3))
-4-element Vector{fmpz}:
+4-element Vector{ZZRingElem}:
  1
  3
  3
  1
 ```
 """
-function h_vector(P::Polyhedron)::Vector{fmpz}
+function h_vector(P::Polyhedron)::Vector{ZZRingElem}
     is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).H_VECTOR
 end
@@ -1084,12 +1084,12 @@ Undefined for unbounded polyhedra.
 # Examples
 ```jldoctest
 julia> g_vector(cross_polytope(3))
-2-element Vector{fmpz}:
+2-element Vector{ZZRingElem}:
  1
  2
 ```
 """
-function g_vector(P::Polyhedron)::Vector{fmpz}
+function g_vector(P::Polyhedron)::Vector{ZZRingElem}
     is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).G_VECTOR
 end
@@ -1108,12 +1108,12 @@ julia> square = cube(2)
 Polyhedron in ambient dimension 2
 
 julia> relative_interior_point(square)
-2-element PointVector{fmpq}:
+2-element PointVector{QQFieldElem}:
  0
  0
 
 julia> vertices(square)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [-1, -1]
  [1, -1]
  [-1, 1]

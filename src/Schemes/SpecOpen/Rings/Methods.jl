@@ -139,7 +139,7 @@ end
 function ^(a::SpecOpenRingElem, i::Integer)
   return SpecOpenRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
 end
-function ^(a::SpecOpenRingElem, i::fmpz)
+function ^(a::SpecOpenRingElem, i::ZZRingElem)
   return SpecOpenRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
 end
 
@@ -229,7 +229,7 @@ function restriction_map(
   # the terms accordingly, we derive the desired expressions for the cᵢ's.
   #W = localized_ring(OO(Y))
   W = OO(Y)
-  S, t = PolynomialRing(W, ["t$i" for i in 1:r])
+  S, t = polynomial_ring(W, ["t$i" for i in 1:r])
   ta = length(a) == 0 ? zero(S) : sum([t*a for (t, a) in zip(t, a)])
   function mysecondmap(f::SpecOpenRingElem)
     sep = [pull_from_denominator(f[i], d[i]) for i in 1:r]

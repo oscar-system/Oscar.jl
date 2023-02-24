@@ -77,7 +77,7 @@ end
 
 
 @doc Markdown.doc"""
-    toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+    toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
 As optional argument, the codomain of the morphism can be specified.
@@ -97,7 +97,7 @@ julia> toric_morphism(domain, mapping_matrix, codomain)
 A toric morphism
 ```
 """
-function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::fmpz_mat, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
+function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
     (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
     if codomain == nothing
       return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), mapping_matrix), codomain)

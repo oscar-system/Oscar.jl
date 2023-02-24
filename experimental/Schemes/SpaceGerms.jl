@@ -107,13 +107,13 @@ exception results.
 # Examples
 ```jldoctest
 julia> R, (x, y) = QQ["x","y"]
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x-1,y-3])
 ideal(x - 1, y - 3)
 
 julia> rational_point_coordinates(I)
-2-element Vector{fmpq}:
+2-element Vector{QQFieldElem}:
  1
  3
 

@@ -78,7 +78,7 @@ julia> ambient_space(Z) == X
 true
 
 julia> V = hypersurface_complement(Y, y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[y]
 
 julia> ambient_space(V) == X
 true
@@ -92,8 +92,8 @@ In each case the ambient affine space is given by `Spec(P)`.
 
 # Examples
 ```jldoctest ambient_via_spec
-julia> P, (x, y) = PolynomialRing(QQ, [:x, :y])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> P, (x, y) = polynomial_ring(QQ, [:x, :y])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> X = Spec(P)
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
@@ -120,12 +120,12 @@ julia> ambient_space(Z) == X
 true
 
 julia> U = powers_of_element(y)
-powers of fmpq_mpoly[y]
+powers of QQMPolyRingElem[y]
 
 julia> URmodI, _ = localization(RmodI, U);
 
 julia> V = Spec(URmodI)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[y]
 
 julia> ambient_space(V) == X
 true
@@ -248,7 +248,7 @@ julia> X = affine_space(QQ, [:x,:y])
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> (x, y) = coordinates(X)
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  x
  y
 
@@ -256,7 +256,7 @@ julia> Y = subscheme(X, [x])
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
 julia> (xY, yY) = coordinates(Y)
-2-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
  x
  y
 
@@ -349,7 +349,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -413,8 +413,8 @@ This command relies on [`radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> J = ideal(R,[(x-y)^2])
 ideal(x^2 - 2*x*y + y^2)
@@ -423,10 +423,10 @@ julia> X = Spec(R,J)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
 
 julia> Y = Spec(R,J,U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
 
 julia> reduced_scheme(X)
 (Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y), morphism from
@@ -442,13 +442,13 @@ with coordinates
 	y, y)
 
 julia> reduced_scheme(Y)
-(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0], morphism from
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0], morphism from
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
 
 to
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
 
 with coordinates
 
@@ -506,7 +506,7 @@ See also [`is_smooth`](@ref).
 # Examples
 ``` jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x^2 - y^2 + z^2])
 ideal(x^2 - y^2 + z^2)
@@ -544,19 +544,19 @@ with coordinates
 	0, 0, 0)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 julia> Y = Spec(R,I,U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 julia> singular_locus(Y)
-(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], morphism from
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0], morphism from
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 to
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 with coordinates
 
@@ -607,7 +607,7 @@ See also [`is_smooth`](@ref).
 # Examples
 ``` jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])
 ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
@@ -744,7 +744,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3

@@ -1,6 +1,6 @@
 @testset "groebner_basis" begin
     @testset "Cyclic5Homogenized" begin
-        Kx,(x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ,6)
+        Kx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ,6)
         Cyclic5Homogenized = ideal([x1+x2+x3+x4+x5,
                                    x1*x2+x2*x3+x3*x4+x1*x5+x4*x5,
                                    x1*x2*x3+x2*x3*x4+x1*x2*x5+x1*x4*x5+x3*x4*x5,
@@ -53,7 +53,7 @@
     end
 
     @testset "Katsura5Homogenized" begin
-        Kx,(x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ,6)
+        Kx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ,6)
         Katsura5Homogenized = ideal([-x0+x1+2*x2+2*x3+2*x4+2*x5,
                                     -x0*x1+x1^2+2*x2^2+2*x3^2+2*x4^2+2*x5^2,
                                     -x0*x2+2*x1*x2+2*x2*x3+2*x3*x4+2*x4*x5,
@@ -113,7 +113,7 @@
 
     @testset "val_t" begin
         Kt,t = RationalFunctionField(QQ,"t")
-        Ktx,(x0,x1,x2,x3,x4,x5) = PolynomialRing(Kt,6)
+        Ktx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(Kt,6)
         Cyclic5Homogenized = ideal([x1+x2+x3+x4+x5,
                                    x1*x2+x2*x3+x3*x4+x1*x5+x4*x5,
                                    x1*x2*x3+x2*x3*x4+x1*x2*x5+x1*x4*x5+x3*x4*x5,

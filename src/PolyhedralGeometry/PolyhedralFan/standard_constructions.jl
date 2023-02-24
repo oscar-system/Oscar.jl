@@ -16,7 +16,7 @@ julia> NF = normal_fan(C)
 Polyhedral fan in ambient dimension 3
 
 julia> rays(NF)
-6-element SubObjectIterator{RayVector{fmpq}}:
+6-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]

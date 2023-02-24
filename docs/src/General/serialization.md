@@ -40,7 +40,7 @@ SimplicialComplex
 ```julia
 Ideal
 Polynomial
-PolynomialRing
+polynomial_ring
 ```
 
 ### Polyhedral Geometry

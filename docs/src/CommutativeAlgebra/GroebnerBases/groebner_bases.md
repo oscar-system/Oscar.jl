@@ -66,8 +66,8 @@ Here are some illustrating OSCAR examples:
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> default_ordering(R)
 degrevlex([x, y, z])
@@ -82,7 +82,7 @@ julia> S, _ = grade(R, [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
-  z -> [3], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
@@ -94,8 +94,8 @@ Here are examples which indicate how to recover monomials, terms, and
 more from a given polynomial.
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*z^3+2*x*y+1
 2*x*y + 3*z^3 + 1
@@ -104,7 +104,7 @@ julia> terms(f)
 terms iterator of 3*z^3 + 2*x*y + 1
 
 julia> collect(ans)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  3*z^3
  2*x*y
  1
@@ -122,7 +122,7 @@ julia> coefficients_and_exponents(f)
 coefficients and exponents iterator of 3*z^3 + 2*x*y + 1
 
 julia> collect(ans)
-3-element Vector{Tuple{fmpq, Vector{Int64}}}:
+3-element Vector{Tuple{QQFieldElem, Vector{Int64}}}:
  (3, [0, 0, 3])
  (2, [1, 1, 0])
  (1, [0, 0, 0])
@@ -147,8 +147,8 @@ julia> tail(f)
 ```
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
@@ -160,7 +160,7 @@ julia> default_ordering(F)
 degrevlex([x, y])*lex([gen(1), gen(2), gen(3)])
 
 julia> collect(terms(f))
-6-element Vector{FreeModElem{fmpq_mpoly}}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  -y^10*e[1]
  4*x^3*e[2]
  5*x*y^2*e[1]
@@ -169,7 +169,7 @@ julia> collect(terms(f))
  3*e[1]
 
 julia> collect(terms(f, ordering = lex(F)*lex(R)))
-6-element Vector{FreeModElem{fmpq_mpoly}}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  5*x*y^2*e[1]
  -y^10*e[1]
  3*e[1]

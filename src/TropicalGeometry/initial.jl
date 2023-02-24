@@ -15,7 +15,7 @@ weighted degree of the i-th term of `f`.
 
 # Examples
 ```jldoctest
-julia> Kxy, (x,y) = PolynomialRing(QQ,["x", "y"]);
+julia> Kxy, (x,y) = polynomial_ring(QQ,["x", "y"]);
 
 julia> val_2 = TropicalSemiringMap(QQ,2);
 
@@ -88,7 +88,7 @@ Section 2.4 of [MS15](@cite).
 
 # Examples
 ```jldoctest
-julia> Kxy, (x,y) = PolynomialRing(QQ,["x", "y"]);
+julia> Kxy, (x,y) = polynomial_ring(QQ,["x", "y"]);
 
 julia> w = [1,1];
 
@@ -109,7 +109,7 @@ julia> Kt,t = RationalFunctionField(QQ,"t");
 
 julia> w = [1,1];
 
-julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
+julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
 
 julia> f = t*x+t*y+1;
 
@@ -121,7 +121,7 @@ julia> initial(f,val_t,w)       # polynomial over QQ
 ```jldoctest
 julia> Kt,t = RationalFunctionField(GF(32003),"t");
 
-julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
+julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
 
 julia> w = [1,1];
 
@@ -152,7 +152,7 @@ function initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturba
   else
     t = val.valued_field(val.uniformizer_field)
   end
-  kx, x = PolynomialRing(val.residue_field,[repr(x) for x in gens(parent(f))])
+  kx, x = polynomial_ring(val.residue_field,[repr(x) for x in gens(parent(f))])
   R = val.valued_ring
   pi = val.residue_map
 

@@ -14,14 +14,14 @@
     ]
   },
   "id": "7beec8c5-2ba7-4c5e-a620-ae6b233473b9",
-  "type": "fmpq_poly",
+  "type": "QQPolyRingElem",
   "data": {
     "parent": {
       "id": "0a56ad38-b634-4dfd-994f-09a757d87656",
-      "type": "FmpqPolyRing",
+      "type": "QQPolyRing",
       "data": {
         "base_ring": {
-          "type": "FlintRationalField"
+          "type": "QQField"
         },
         "symbols": {
           "id": "129320c1-e4a8-4ee1-8167-8f17178cc737",
@@ -56,7 +56,7 @@
           "1",
           "1"
         ],
-        "entry_type": "fmpq"
+        "entry_type": "QQFieldElem"
       }
     }
   }

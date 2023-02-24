@@ -322,7 +322,7 @@ end
 
    L = hall_system(symmetric_group(4))
    @test is_subgroup(symmetric_group(4),L[1])[1]
-   @test Set(order(H) for H in L)==Set(fmpz[1,3,8,24])
+   @test Set(order(H) for H in L)==Set(ZZRingElem[1,3,8,24])
    @test_throws ArgumentError hall_system(symmetric_group(5))
    
 end

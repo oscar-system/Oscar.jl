@@ -25,7 +25,7 @@ cohomology_class(l::ToricLineBundle)
 
 Cohomology classes can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz` or `fmpq`.
+for scalars which are integers or of type `ZZRingElem` or `QQFieldElem`.
 
 ### Wedge product
 
@@ -34,7 +34,7 @@ using internally the multiplication of the corresponding polynomial
 (equivalence classes) in the Cox ring.
 
 A cohomology class can be wedged `n`-times with itself via `^n`,
-where `n` can be an integer or of type `fmpz`.
+where `n` can be an integer or of type `ZZRingElem`.
 
 
 ## Properties

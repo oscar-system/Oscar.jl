@@ -10,8 +10,8 @@ struct PolyhedralComplex{T}
      PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
-# default scalar type: `fmpq`
-PolyhedralComplex(x...) = PolyhedralComplex{fmpq}(x...)
+# default scalar type: `QQFieldElem`
+PolyhedralComplex(x...) = PolyhedralComplex{QQFieldElem}(x...)
 
 PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
 
@@ -118,7 +118,7 @@ function Base.show(io::IO, PC::PolyhedralComplex{T}) where T<:scalar_types
     try
         ad = ambient_dim(PC)
         print(io, "Polyhedral complex in ambient dimension $(ad)")
-        T != fmpq && print(io, " with $T type coefficients")
+        T != QQFieldElem && print(io, " with $T type coefficients")
     catch e
         print(io, "Polyhedral complex without ambient dimension")
     end

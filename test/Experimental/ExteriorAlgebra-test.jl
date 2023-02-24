@@ -16,13 +16,13 @@ exterior_algebra(GF(3), 4);
 ### exterior_algebra(GF(1180591620717411303449), 2);  #  --> ERROR prime too big (for GF)
 
 
-exterior_algebra(ResidueField(ZZ,2), 2);
-exterior_algebra(ResidueField(ZZ,3), 4);
-exterior_algebra(ResidueField(ZZ,1180591620717411303449), 2);
+exterior_algebra(residue_field(ZZ,2), 2);
+exterior_algebra(residue_field(ZZ,3), 4);
+exterior_algebra(residue_field(ZZ,1180591620717411303449), 2);
 
 
 @test_throws MethodError exterior_algebra(ZZ, 3)  # Coeffs not field
-@test_throws MethodError exterior_algebra(ResidueRing(ZZ,4), 3)  # Coeffs not field
+@test_throws MethodError exterior_algebra(residue_ring(ZZ,4), 3)  # Coeffs not field
 
 @test_throws  ArgumentError  exterior_algebra(QQ, String[]); # empty name list
 @test_throws  ArgumentError  exterior_algebra(QQ, ["x", "y", "x"]); # duplicate name
@@ -73,11 +73,11 @@ exterior_algebra_PBWAlgQuo(GF(3), 4);
 ### exterior_algebra_PBWAlgQuo(GF(1180591620717411303449), 2);  #  --> ERROR prime too big (for GF)
 
 
-exterior_algebra_PBWAlgQuo(ResidueField(ZZ,2), 2);
-exterior_algebra_PBWAlgQuo(ResidueField(ZZ,3), 4);
-exterior_algebra_PBWAlgQuo(ResidueField(ZZ,1180591620717411303449), 2);
+exterior_algebra_PBWAlgQuo(residue_field(ZZ,2), 2);
+exterior_algebra_PBWAlgQuo(residue_field(ZZ,3), 4);
+exterior_algebra_PBWAlgQuo(residue_field(ZZ,1180591620717411303449), 2);
 
-exterior_algebra_PBWAlgQuo(ResidueRing(ZZ,4), 3)  # Coeffs not integral domain
+exterior_algebra_PBWAlgQuo(residue_ring(ZZ,4), 3)  # Coeffs not integral domain
 
 @test_throws  ArgumentError  exterior_algebra_PBWAlgQuo(QQ, String[]); # empty name list
 @test_throws  ArgumentError  exterior_algebra_PBWAlgQuo(QQ, ["x", "y", "x"]); # duplicate name

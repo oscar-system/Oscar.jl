@@ -43,7 +43,7 @@ julia> cc = cohomology_class(d)
 Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> coefficients(cc)
-3-element Vector{fmpq}:
+3-element Vector{QQFieldElem}:
  6
  1
  7
@@ -121,11 +121,11 @@ Torus-invariant, non-prime divisor on a normal toric variety
 julia> cc = cohomology_class(d)
 Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
-julia> R, _ = PolynomialRing(QQ, 5)
-(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, fmpq_mpoly[x1, x2, x3, x4, x5])
+julia> R, _ = polynomial_ring(QQ, 5)
+(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, QQMPolyRingElem[x1, x2, x3, x4, x5])
 
 julia> (x1, x2, x3, x4, x5) = gens(R)
-5-element Vector{fmpq_mpoly}:
+5-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3

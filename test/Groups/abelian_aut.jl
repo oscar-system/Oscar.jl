@@ -102,10 +102,10 @@ end
   @test order(orthogonal_group(TT2)) == 2
   @test order(orthogonal_group(r3)) == 48  # this is the order of GL_2(3)
 
-  T = TorQuadMod(matrix(QQ, 1, 1, [1//27]))
+  T = TorQuadModule(matrix(QQ, 1, 1, [1//27]))
   Tsub, _ = sub(T, 3*gens(T))
   @test order(orthogonal_group(Tsub)) == 6
-  T2 = TorQuadMod(matrix(QQ, 1, 1, [21//25]))
+  T2 = TorQuadModule(matrix(QQ, 1, 1, [21//25]))
   Tsub2, _ = sub(T2, 5*gens(T2))
   @test order(orthogonal_group(Tsub2)) == 4
   TT = direct_sum(Tsub, Tsub2)[1]

@@ -12,14 +12,14 @@
 	]
     },
     "id": "ef17af44-cc75-4e55-a8fc-707afdff9f96",
-    "type": "fmpq_poly",
+    "type": "QQPolyRingElem",
     "data": {
 	"parent": {
 	    "id": "4d26e2da-0298-4fbd-a874-7b9e18ad5e05",
-	    "type": "FmpqPolyRing",
+	    "type": "QQPolyRing",
 	    "data": {
 		"base_ring": {
-		    "type": "FlintRationalField"
+		    "type": "QQField"
 		},
 		"symbols": {
 		    "id": "73409241-b603-4251-8a53-ca83e76ed282",
@@ -42,16 +42,16 @@
 		"vector": [
 		    {
 			"id": "e184c790-cf4b-435b-9d30-218db1fa76c1",
-			"type": "fmpq",
+			"type": "QQFieldElem",
 			"data": {
 			    "num": {
 				"id": "409a9f06-c626-4563-acb2-19af1a3b183c",
-				"type": "fmpz",
+				"type": "ZZRingElem",
 				"data": "1"
 			    },
 			    "den": {
 				"id": "6e67b524-4cdf-47bf-8e30-95c3002245b1",
-				"type": "fmpz",
+				"type": "ZZRingElem",
 				"data": "1"
 			    }
 			}

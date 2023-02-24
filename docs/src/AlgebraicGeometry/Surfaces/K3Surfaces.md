@@ -29,15 +29,15 @@ See [Huy16](@cite) for the theory of K3 surfaces.
 K3_surface_automorphism_group(S::ZLat)
 borcherds_method
 K3Chamber
-chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, parent_wall::fmpz_mat=zero_matrix(ZZ, 0, 0))
+chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0))
 weyl_vector(D::K3Chamber)
 walls(::K3Chamber)
 inner_point(::K3Chamber)
 rays(::K3Chamber)
 aut(::K3Chamber)
 hom(::K3Chamber,::K3Chamber)
-adjacent_chamber(D::K3Chamber, v::fmpz_mat)
-separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
+adjacent_chamber(D::K3Chamber, v::ZZMatrix)
+separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
 has_zero_entropy
 ```
 

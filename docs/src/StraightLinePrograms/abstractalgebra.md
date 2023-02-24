@@ -44,7 +44,7 @@ julia> p2 = (p*(x*y))^6
 #6 = * #4 #5  ==>  ((3 + (2xy^2))xy)
 #7 = ^ #6  6  ==>  ((3 + (2xy^2))xy)^6
 
-julia> R, (x1, y1) = PolynomialRing(zz, ["x", "y"]); R
+julia> R, (x1, y1) = polynomial_ring(zz, ["x", "y"]); R
 Multivariate Polynomial Ring in x, y over Integers
 
 julia> q = convert(R, p2)

@@ -28,7 +28,7 @@ toric_divisor_class(td::ToricDivisor)
 
 Toric divisor classes can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz`.
+for scalars which are integers or of type `ZZRingElem`.
 
 ### Special divisor classes
 

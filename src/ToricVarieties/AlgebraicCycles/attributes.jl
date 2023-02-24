@@ -77,11 +77,11 @@ Torus-invariant, non-prime divisor on a normal toric variety
 julia> ac = rational_equivalence_class(d)
 Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
-julia> R, _ = PolynomialRing(QQ, 5)
-(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, fmpq_mpoly[x1, x2, x3, x4, x5])
+julia> R, _ = polynomial_ring(QQ, 5)
+(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, QQMPolyRingElem[x1, x2, x3, x4, x5])
 
 julia> (x1, x2, x3, x4, x5) = gens(R)
-5-element Vector{fmpq_mpoly}:
+5-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -140,7 +140,7 @@ julia> representative(ac*ac)
 34*x2*x3
 ```
 """
-@attr MPolyDecRingElem{fmpq, fmpq_mpoly} function representative(ac::RationalEquivalenceClass)
+@attr MPolyDecRingElem{QQFieldElem, QQMPolyRingElem} function representative(ac::RationalEquivalenceClass)
     if is_trivial(ac)
         return zero(cox_ring(toric_variety(ac)))
     end
@@ -168,13 +168,13 @@ julia> ac = rational_equivalence_class(d)
 Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> coefficients(ac*ac)
-1-element Vector{fmpq}:
+1-element Vector{QQFieldElem}:
  -34
 ```
 """
-@attr Vector{fmpq} function coefficients(ac::RationalEquivalenceClass)
+@attr Vector{QQFieldElem} function coefficients(ac::RationalEquivalenceClass)
     if is_trivial(ac)
-        return fmpq[]
+        return QQFieldElem[]
     end
     return [coefficient_ring(toric_variety(ac))(k) for k in AbstractAlgebra.coefficients(polynomial(ac).f)]
 end

@@ -37,7 +37,7 @@ Then either:
 -  $n$ is not part of the type, then it needs to be elsewhere, e.g. in the
    parent, or in every element, or by passing additional arguments, or ...
 
-Furthermore, if $n$ is BigInt (fmpz), so no bittype, then it cannot be part of
+Furthermore, if $n$ is BigInt (ZZRingElem), so no bittype, then it cannot be part of
 the type.
 
 For non-empty matrices, this can be compensated if the entries store enough

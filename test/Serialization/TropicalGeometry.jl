@@ -11,7 +11,7 @@
 
             @testset "Embedded" begin
                 VR = [0 0; 1 0; -1 0; 0 1]
-                PC = PolyhedralComplex{fmpq}(IM, VR)
+                PC = PolyhedralComplex{QQFieldElem}(IM, VR)
                 TC = TropicalCurve(PC)
                 test_save_load_roundtrip(path, TC) do loaded
                     loaded_PC = underlying_polyhedral_complex(loaded)

@@ -60,8 +60,8 @@ is_binomial(f::MPolyRingElem)
 is_binomial(I::MPolyIdeal)
 ```
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> f = 2*x+y
 2*x + y
@@ -100,16 +100,16 @@ cellular_decomposition(I::MPolyIdeal)
 ## Primary Decomposition of Cellular Ideals
 
 ```@docs
-cellular_hull(I::MPolyIdeal{fmpq_mpoly})
-cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly})
-cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
-cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+cellular_hull(I::MPolyIdeal{QQMPolyRingElem})
+cellular_associated_primes(I::MPolyIdeal{QQMPolyRingElem})
+cellular_minimal_associated_primes(I::MPolyIdeal{QQMPolyRingElem})
+cellular_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
 ```
 
 ## Primary Decomposition of Binomial  Ideals
 
 ```@docs
-binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+binomial_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
 ```
 
 

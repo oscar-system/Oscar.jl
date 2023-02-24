@@ -19,7 +19,7 @@ Return the Krull dimension of `A`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
@@ -42,7 +42,7 @@ space if `I` is zero-dimensional. Return `-1`, otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
 
@@ -250,7 +250,7 @@ julia> hilbert_polynomial(A)
 3*t + 1
 ```
 """
-function hilbert_polynomial(A::MPolyQuoRing)::fmpq_poly
+function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
    if iszero(A.I)
        n = QQ(ngens(A))
        Qt, t = QQ["t"]
@@ -355,7 +355,7 @@ julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
-  x[3] -> [1 -1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+  x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
@@ -379,7 +379,7 @@ Domain:
 =======
 GrpAb: Z^2
 
-julia> G = abelian_group(fmpz_mat([1 -1]));
+julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
 Element of
@@ -513,7 +513,7 @@ end
 #   else
 #      VAR = [_make_variable("t", i) for i = 1:m]
 #   end
-#   S, _ = PolynomialRing(ZZ, VAR) 
+#   S, _ = polynomial_ring(ZZ, VAR) 
 #   q = one(S)
 #   for i = 1:n
 #      e = [Int(MI[i, :][j]) for j = 1:m]
@@ -551,7 +551,7 @@ julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
-  x[3] -> [1 -1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+  x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
@@ -575,7 +575,7 @@ Domain:
 =======
 GrpAb: Z^2
 
-julia> G = abelian_group(fmpz_mat([1 -1]));
+julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
 Element of
@@ -665,7 +665,7 @@ julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
   x[1] -> [1 0]
   x[2] -> [1 0]
-  x[3] -> [1 -1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+  x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
@@ -681,7 +681,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> multi_hilbert_function(A, -7)
 22
 
-julia> G = abelian_group(fmpz_mat([1 -1]));
+julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1);
 
@@ -745,7 +745,7 @@ Given an affine algebra `A`, return `true` if `A` is reduced, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, ["x"]);
 
 julia> A, _ = quo(R, ideal(R, [x^4]));
 
@@ -769,7 +769,7 @@ return `true` if `A` is normal, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [z^2-x*y]));
 
@@ -848,7 +848,7 @@ end
 
 # helper function for the containment problem, surjectivity and preimage
 function _containment_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
-   T, _ = PolynomialRing(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
+   T, _ = polynomial_ring(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
                                                                # since we do not have block orderings in Oscar
    phi = hom(R, T, [gen(T, i) for i in 1:M])
 
@@ -898,12 +898,12 @@ the polynomial relation. Return, `(false, 0)`, otherwise.
 
 # Examples
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, "x" => 1:3);
+julia> R, x = polynomial_ring(QQ, "x" => 1:3);
 
 julia> f = x[1]^6*x[2]^6-x[1]^6*x[3]^6;
 
 julia> V = [x[1]^3*x[2]^3-x[1]^3*x[3]^3, x[1]^3*x[2]^3+x[1]^3*x[3]^3]
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  x[1]^3*x[2]^3 - x[1]^3*x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3
 
@@ -924,7 +924,7 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyRingEle
 
    # Build auxiliary objects
    (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
-   TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
+   TT, _ = polynomial_ring(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    
    # Check containment
    D = normal_form([phi(F)], J)
@@ -951,15 +951,15 @@ is giving the polynomial relation. Return, `(false, 0)`, otherwise.
 If `check` is `true` (default), the homogeneity of all given polynomials is
 checked.
 """
-function subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}; check::Bool = true) where PolyElemT <: MPolyDecRingElem
+function subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingElemT}; check::Bool = true) where PolyRingElemT <: MPolyDecRingElem
   return _subalgebra_membership_homogeneous(f, v, ideal(parent(f), [ zero(parent(f)) ]), check = check)
 end
 
-function subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}; check::Bool = true) where PolyElemT <: MPolyQuoRingElem{T} where T <: MPolyDecRingElem
+function subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingElemT}; check::Bool = true) where PolyRingElemT <: MPolyQuoRingElem{T} where T <: MPolyDecRingElem
   return _subalgebra_membership_homogeneous(f.f, [ g.f for g in v ], modulus(parent(f)), check = check)
 end
 
-function _subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}, I::MPolyIdeal{PolyElemT}; check::Bool = true) where PolyElemT <: MPolyDecRingElem
+function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true) where PolyRingElemT <: MPolyDecRingElem
   R = parent(f)
   @assert !isempty(v)
   @assert all(g -> parent(g) == R, v)
@@ -973,7 +973,7 @@ function _subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}, 
   # This is basically [GP09, p. 86, Solution 2], but we only compute a degree
   # truncated Gröbner basis
 
-  T, _ = PolynomialRing(base_ring(R), ngens(R) + length(v), ordering = :lex)
+  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v), ordering = :lex)
 
   RtoT = hom(R, T, gens(T)[1:ngens(R)])
 
@@ -996,7 +996,7 @@ function _subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}, 
   nf = GJ.Ox(gens(K.gens.S)[1])
   ###
 
-  S, _ = PolynomialRing(base_ring(R), [ "t$i" for i in 1:length(v) ])
+  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ])
   TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
 
   if leading_monomial(nf) < gen(T, ngens(R))
@@ -1027,13 +1027,13 @@ the same subalgebra as all elements in `V`.
 julia> R, (x, y) = GradedPolynomialRing(QQ, ["x", "y"]);
 
 julia> V = [x, y, x^2+y^2]
-3-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x
  y
  x^2 + y^2
 
 julia> minimal_subalgebra_generators(V)
-2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x
  y
 ```
@@ -1081,7 +1081,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
-      newOR, _ = PolynomialRing(br, [string(x) for x in gens(newSR)])
+      newOR, _ = polynomial_ring(br, [string(x) for x in gens(newSR)])
       newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
       newgens = newOR.(gens(l[1][i][2][:normap]))
       _hom = hom(A, newA, newA.(newgens))
@@ -1128,7 +1128,7 @@ See [GLS10](@cite).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]));
 
@@ -1193,7 +1193,7 @@ indicates that the delta invariant is infinite.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]));
 
@@ -1209,7 +1209,7 @@ julia> L[3]
 13
 ```
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [z^3-x*y^4]));
 
@@ -1311,13 +1311,13 @@ and Hensel lifting (`alg = :hensel`).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> f = (y^2-2)^2 + x^5
 x^5 + y^4 - 4*y^2 + 4
 
 julia> integral_basis(f, 2)
-(x^2, MPolyQuoRingElem{fmpq_mpoly}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])
+(x^2, MPolyQuoRingElem{QQMPolyRingElem}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])
 ```
 """
 function integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)

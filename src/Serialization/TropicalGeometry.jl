@@ -17,14 +17,14 @@ function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem{S}},
                        dict::Dict) where S
   parent = load_type_dispatch(s, TropicalSemiring{S}, dict[:parent])
-  return parent(load_type_dispatch(s, fmpq, dict[:data]))
+  return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{TropicalSemiringElem{S}},
                                    dict::Dict,
                                    parent::TropicalSemiring{S}) where S
-  return parent(load_type_dispatch(s, fmpq, dict[:data]))
+  return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
 end
 
 
@@ -67,7 +67,7 @@ function load_internal(s::DeserializerState,
   EMB = load_type_dispatch(s, Bool, dict[:is_embedded])
   if EMB
     return TropicalCurve(
-      load_type_dispatch(s, PolyhedralComplex{fmpq}, dict[:polyhedral_complex])
+      load_type_dispatch(s, PolyhedralComplex{QQFieldElem}, dict[:polyhedral_complex])
     )
   else
     return TropicalCurve(

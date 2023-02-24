@@ -11,11 +11,11 @@
         @test convert(Polymake.QuadraticExtension{Polymake.Rational}, nfe) == qe
         
         qet = Polymake.QuadraticExtension{Polymake.Rational}(9)
-        @test convert(Oscar.nf_scalar, qet) isa fmpq
+        @test convert(Oscar.nf_scalar, qet) isa QQFieldElem
         @test convert(Oscar.nf_scalar, qet) == 9
         @test convert(Polymake.QuadraticExtension{Polymake.Rational}, convert(Oscar.nf_scalar, qet)) == qet
         
-        @test convert(Oscar.nf_scalar, 5) isa fmpq
+        @test convert(Oscar.nf_scalar, 5) isa QQFieldElem
         @test convert(Oscar.nf_scalar, 5) == 5
         
     end
@@ -26,9 +26,9 @@
     #TODO: RayVector
     @testset "$T" for T in (PointVector, RayVector)
 
-        @test T(a) isa T{fmpq}
+        @test T(a) isa T{QQFieldElem}
 
-        @testset "$T{$U}" for U in (fmpz, fmpq, Oscar.nf_scalar)
+        @testset "$T{$U}" for U in (ZZRingElem, QQFieldElem, Oscar.nf_scalar)
 
             @test T{U} <: AbstractVector
             @test T{U} <: AbstractVector{U}
@@ -53,7 +53,7 @@
             @test_throws BoundsError A[0]
             @test_throws BoundsError A[4]
 
-            for V in [fmpz, fmpq, Oscar.nf_scalar]
+            for V in [ZZRingElem, QQFieldElem, Oscar.nf_scalar]
             
                 B = T{V}(b)
             
@@ -81,7 +81,7 @@
 
     @testset "$T" for T in (AffineHalfspace, AffineHyperplane)
         
-        for U in [fmpq]
+        for U in [QQFieldElem]
             @test T{U}(a, 0) isa T{U}
             @test T{U}(a', 0) isa T{U}
 
@@ -102,13 +102,13 @@
             @test negbias(B) == 2
         end
         
-        @test T(a, 0) isa T{fmpq}
+        @test T(a, 0) isa T{QQFieldElem}
         
     end
     
     @testset "$T" for T in (LinearHalfspace, LinearHyperplane)
         
-        for U in [fmpq]
+        for U in [QQFieldElem]
             @test T{U}(a) isa T{U}
             @test T{U}(a') isa T{U}
 
@@ -129,11 +129,11 @@
             @test negbias(B) == 0
         end
         
-        @test T(a) isa T{fmpq}
+        @test T(a) isa T{QQFieldElem}
         
     end
     
-    for U in [fmpq]
+    for U in [QQFieldElem]
         let A = LinearHalfspace{U}(a)
             @test invert(A) isa LinearHalfspace{U}
             Ai = invert(A)
@@ -147,9 +147,9 @@
         end
     end
     
-    @test Halfspace(a) isa LinearHalfspace{fmpq}
-    @test Hyperplane(a) isa LinearHyperplane{fmpq}
-    @test Halfspace(a, 0) isa AffineHalfspace{fmpq}
-    @test Hyperplane(a, 0) isa AffineHyperplane{fmpq}
+    @test Halfspace(a) isa LinearHalfspace{QQFieldElem}
+    @test Hyperplane(a) isa LinearHyperplane{QQFieldElem}
+    @test Halfspace(a, 0) isa AffineHalfspace{QQFieldElem}
+    @test Hyperplane(a, 0) isa AffineHyperplane{QQFieldElem}
 
 end

@@ -511,7 +511,7 @@ end
 function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = tbl.GAPTable
-    size = fmpz(GAPWrap.Size(gaptbl))
+    size = ZZRingElem(GAPWrap.Size(gaptbl))
     primes = [x[1] for x in collect(factor(size))]
     sort!(primes)
 
@@ -528,7 +528,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
 
     # Compute the factored centralizer orders.
-    cents = Vector{fmpz}(GAP.Globals.SizesCentralizers(gaptbl)::GapObj)
+    cents = Vector{ZZRingElem}(GAP.Globals.SizesCentralizers(gaptbl)::GapObj)
     fcents = [collect(factor(x)) for x in cents]
     d = Dict([p => fill(".", n) for p in primes]...)
     for i in 1:n
@@ -671,7 +671,7 @@ Oscar.ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTab
 number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
 
 @doc Markdown.doc"""
-    order(::Type{T} = fmpz, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
+    order(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
 
 Return the order of the group for which `tbl` is the character table.
 
@@ -682,7 +682,7 @@ julia> order(character_table(symmetric_group(4)))
 
 ```
 """
-order(tbl::GAPGroupCharacterTable) = order(fmpz, tbl)
+order(tbl::GAPGroupCharacterTable) = order(ZZRingElem, tbl)
 
 function order(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
   return T(GAPWrap.Size(tbl.GAPTable))
@@ -713,11 +713,11 @@ ordered according to the columns of `tbl`.
 # Examples
 ```jldoctest
 julia> println(orders_centralizers(character_table("A5")))
-fmpz[60, 4, 3, 5, 5]
+ZZRingElem[60, 4, 3, 5, 5]
 
 ```
 """
-@gapattribute orders_centralizers(tbl::GAPGroupCharacterTable) = Vector{fmpz}(GAP.Globals.SizesCentralizers(tbl.GAPTable)::GAP.Obj)
+@gapattribute orders_centralizers(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesCentralizers(tbl.GAPTable)::GAP.Obj)
 
 @doc Markdown.doc"""
     class_lengths(tbl::GAPGroupCharacterTable)
@@ -725,11 +725,11 @@ fmpz[60, 4, 3, 5, 5]
 # Examples
 ```jldoctest
 julia> println(class_lengths(character_table("A5")))
-fmpz[1, 15, 20, 12, 12]
+ZZRingElem[1, 15, 20, 12, 12]
 
 ```
 """
-@gapattribute class_lengths(tbl::GAPGroupCharacterTable) = Vector{fmpz}(GAP.Globals.SizesConjugacyClasses(tbl.GAPTable)::GapObj)
+@gapattribute class_lengths(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesConjugacyClasses(tbl.GAPTable)::GapObj)
 
 @doc Markdown.doc"""
     maxes(tbl::GAPGroupCharacterTable)
@@ -842,7 +842,7 @@ end
 """
     decomposition_matrix(modtbl::GAPGroupCharacterTable)
 
-Return the decomposition matrix (of type `fmpz_mat`) of the Brauer character
+Return the decomposition matrix (of type `ZZMatrix`) of the Brauer character
 table `modtbl`.
 The rows and columns are indexed by the irreducible characters of the ordinary
 character table of `modtbl` and the irreducible characters of `modtbl`,
@@ -867,7 +867,7 @@ function decomposition_matrix(modtbl::GAPGroupCharacterTable)
 end
 
 @doc Markdown.doc"""
-    class_multiplication_coefficient(::Type{T} = fmpz, tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) where T <: IntegerUnion
+    class_multiplication_coefficient(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) where T <: IntegerUnion
 
 Return the class multiplication coefficient of the classes `i`, `j`, and `k`
 of the group ``G`` with ordinary character table `tbl`,
@@ -910,7 +910,7 @@ function class_multiplication_coefficient(::Type{T}, tbl::GAPGroupCharacterTable
   return T(GAP.Globals.ClassMultiplicationCoefficient(tbl.GAPTable, i, j, k)::GAP.Obj)
 end
 
-class_multiplication_coefficient(tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) = class_multiplication_coefficient(fmpz, tbl, i, j, k)
+class_multiplication_coefficient(tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) = class_multiplication_coefficient(ZZRingElem, tbl, i, j, k)
 
 @doc Markdown.doc"""
     possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
@@ -1141,13 +1141,13 @@ function natural_character(G::PermGroup)
 end
 
 @doc Markdown.doc"""
-    natural_character(G::Union{MatrixGroup{fmpq}, MatrixGroup{nf_elem}})
+    natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
 
 Return the character that maps each element of `G` to its trace.
-We assume that the entries of the elements of `G` are either of type `fmpq`
+We assume that the entries of the elements of `G` are either of type `QQFieldElem`
 or contained in a cyclotomic field.
 """
-function natural_character(G::Union{MatrixGroup{fmpq}, MatrixGroup{nf_elem}})
+function natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
     ccl = conjugacy_classes(G)
     FF = abelian_closure(QQ)[1]
     vals = [FF(tr(representative(x))) for x in ccl]
@@ -1206,20 +1206,20 @@ Base.length(chi::GAPGroupClassFunction) = length(chi.values)
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
 
 @doc Markdown.doc"""
-    degree(::Type{T} = fmpq, chi::GAPGroupClassFunction)
-           where T <: Union{IntegerUnion, fmpz, mpq, QQAbElem}
+    degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
+           where T <: Union{IntegerUnion, ZZRingElem, mpq, QQAbElem}
 
 Return `chi[1]`, as an instance of `T`.
 """
-Nemo.degree(chi::GAPGroupClassFunction) = Nemo.degree(fmpq, chi)::fmpq
+Nemo.degree(chi::GAPGroupClassFunction) = Nemo.degree(QQFieldElem, chi)::QQFieldElem
 
-Nemo.degree(::Type{fmpq}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1].data, 0)::fmpq
+Nemo.degree(::Type{QQFieldElem}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1].data, 0)::QQFieldElem
 
-Nemo.degree(::Type{fmpz}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::fmpz
+Nemo.degree(::Type{ZZRingElem}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::ZZRingElem
 
 Nemo.degree(::Type{QQAbElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAbElem{nf_elem}
 
-Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(fmpz, chi))::T
+Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(ZZRingElem, chi))::T
 
 # access character values
 function Base.getindex(chi::GAPGroupClassFunction, i::Int)
@@ -1265,15 +1265,15 @@ end
 Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
 @doc Markdown.doc"""
-    scalar_product(::Type{T} = fmpq, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-                   where T <: Union{IntegerUnion, fmpz, fmpq, QQAbElem}
+    scalar_product(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+                   where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
 
 Return $\sum_{g \in G}$ `chi`($g$) `conj(psi)`($g$) / $|G|$,
 where $G$ is the group of both `chi` and `psi`.
 """
-scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(fmpq, chi, psi)
+scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(QQFieldElem, chi, psi)
 
-function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, fmpz, fmpq, QQAbElem}
+function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
     chi.table === psi.table || error("character tables must be identical")
     return T(GAP.Globals.ScalarProduct(chi.values, psi.values)::GAP.Obj)::T
 end
@@ -1424,10 +1424,10 @@ function character_field(chi::GAPGroupClassFunction)
       @assert length(gapgens) == 1
       gappol = GAP.Globals.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])::GapObj
       gapcoeffs = GAP.Globals.CoefficientsOfUnivariatePolynomial(gappol)::GapObj
-      v = Vector{fmpq}(gapcoeffs)
-      R, = PolynomialRing(QQ, "x")
+      v = Vector{QQFieldElem}(gapcoeffs)
+      R, = polynomial_ring(QQ, "x")
       f = R(v)
-      F, z = NumberField(f, "z"; cached = true, check = false)
+      F, z = number_field(f, "z"; cached = true, check = false)
       K, zz = Oscar.AbelianClosure.cyclotomic_field(FF, N)
 
       nfelm = QQAbElem(gapgens[1]).data
@@ -1474,7 +1474,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # The character field contains an `m`-th root of unity.
     values = chi.values
     if conj(chi) == chi
-      bound = fmpz(2)
+      bound = ZZRingElem(2)
     else
       # Compute the conductor of the largest cyclotomic field
       # that is contained in the character field of `chi`.
@@ -1483,9 +1483,9 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
       for n in reverse(sort(divisors(N)))
         if GAP.Globals.E(n)::GAP.Obj in gapfield
           if isodd(n)
-            bound = fmpz(2*n)
+            bound = ZZRingElem(2*n)
           else
-            bound = fmpz(n)
+            bound = ZZRingElem(n)
           end
           break
         end
@@ -1501,7 +1501,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # - Consider permutation characters induced from cyclic subgroups.
     tbl = chi.table
     for psi in induced_cyclic(tbl)
-      bound = gcd(bound, scalar_product(fmpz, chi, psi))
+      bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
       bound == 1 && return 1
     end
     # - Consider characters induced from other known subgroups.
@@ -1512,7 +1512,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
         @assert known "the class fusion is not stored"
         if length(class_positions_of_kernel(fus)) == 1
           psi = trivial_character(s)^(tbl)
-          bound = gcd(bound, scalar_product(fmpz, chi, psi))
+          bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
           bound == 1 && return 1
         end
       end
@@ -1524,7 +1524,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
                            schur_index(psi, false) == 1, collect(tbl))
       for i in 1:length(cand)
         for j in 1:i
-          bound = gcd(bound, scalar_product(fmpz, chi, cand[i] * cand[j]))
+          bound = gcd(bound, scalar_product(ZZRingElem, chi, cand[i] * cand[j]))
           bound == 1 && return 1
         end
       end

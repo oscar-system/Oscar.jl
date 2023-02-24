@@ -1,5 +1,5 @@
 @testset "MPolyQuoRing.graded" begin
-  R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   Q = quo(R, ideal([x^2, y]))[1];
   h = homogeneous_components(Q[1])
   @test valtype(h) === elem_type(Q)
@@ -49,20 +49,20 @@ end
 
 @testset "mpoly-graded" begin
 
-    Qx, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+    Qx, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
     t = gen(Hecke.Globals.Qx)
     k1 , l= number_field(t^5+t^2+2)
-    NFx = PolynomialRing(k1, ["x", "y", "z"])[1]
+    NFx = polynomial_ring(k1, ["x", "y", "z"])[1]
     k2 = Nemo.GF(23)
-    GFx = PolynomialRing(k2, ["x", "y", "z"])[1]
-    # TODO explain why test fails if Nemo.ResidueRing(ZZ,17) => Nemo.GF(17)
-    RNmodx=PolynomialRing(Nemo.ResidueRing(ZZ,17), :x => 1:2)[1]
+    GFx = polynomial_ring(k2, ["x", "y", "z"])[1]
+    # TODO explain why test fails if Nemo.residue_ring(ZZ,17) => Nemo.GF(17)
+    RNmodx=polynomial_ring(Nemo.residue_ring(ZZ,17), :x => 1:2)[1]
     Rings= [Qx, NFx, GFx, RNmodx]
 
     A = abelian_group([4 3 0 1;
                        0 0 0 3])
 
-    GrpElems = [A(fmpz[1,0,2,1]), A(fmpz[1,1,0,0]), A(fmpz[2,2,1,0])]
+    GrpElems = [A(ZZRingElem[1,0,2,1]), A(ZZRingElem[1,1,0,0]), A(ZZRingElem[2,2,1,0])]
 
     T, _ = grade(Qx)
     @test sprint(show, "text/plain", T(x)//T(1)) isa String
@@ -168,39 +168,39 @@ end
 end
 
 @testset "Coercion" begin
-  R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
   @test parent(Q(gens(R.R)[1])) === Q
 end
 
 @testset "Evaluation" begin
-  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   @test x(y, x) == y
 end
 
 @testset "Promotion" begin
-  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   @test x + QQ(1//2) == x + 1//2
 end
 
 @testset "Degree" begin
-  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   @test_throws ArgumentError degree(zero(R))
 
   Z = abelian_group(0)
-  R, (x,y) = filtrate(PolynomialRing(QQ, ["x", "y"])[1], [Z[1], Z[1]], (x,y) -> x[1] > y[1])
+  R, (x,y) = filtrate(polynomial_ring(QQ, ["x", "y"])[1], [Z[1], Z[1]], (x,y) -> x[1] > y[1])
   @test degree(x+y^3) == 1*Z[1]
 end
 
 @testset "Grading" begin
-  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   D = grading_group(R)
   @test is_isomorphic(D, abelian_group([0]))
 end
 
 @testset "Minimal generating set" begin
-  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
   @test minimal_generating_set(I) == [ y, x^2 ]
   @test minimal_generating_set(ideal(R, [ R() ])) == elem_type(R)[]
@@ -218,7 +218,7 @@ end
 
 begin
   R, (x,y) = QQ["x", "y"]
-  R_ext, _ = PolynomialRing(R, ["u", "v"])
+  R_ext, _ = polynomial_ring(R, ["u", "v"])
   S, (u,v) = grade(R_ext, [1,1])
   @test S(R_ext(x)) == @inferred S(x)
 end
@@ -261,7 +261,7 @@ end
   end
 
   W = [1 1 1 1 1]
-  S, _ = PolynomialRing(QQ, "t")
+  S, _ = polynomial_ring(QQ, "t")
   custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
   gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
   generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
@@ -271,7 +271,7 @@ end
 
   @test custom == gcd == generator == cocoa == indeterminate
 
-  R, x = PolynomialRing(QQ, ["x$i" for i in 1:5])
+  R, x = polynomial_ring(QQ, ["x$i" for i in 1:5])
   P, _ = grade(R)
   I = ideal(P, [prod([x[i]^e[i] for i in 1:length(x)]) for e in g])
   Q, _ = quo(P, I)

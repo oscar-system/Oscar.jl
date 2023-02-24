@@ -26,11 +26,11 @@ julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 julia> G = Glueing(U1, U2, f, g) # Construct the glueing
 Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map morphism from
 
-	Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the powers of fmpq_mpoly[x]
+	Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the powers of QQMPolyRingElem[x]
 
 to
 
-	Spec of localization of Multivariate Polynomial Ring in u, v over Rational Field at the powers of fmpq_mpoly[u]
+	Spec of localization of Multivariate Polynomial Ring in u, v over Rational Field at the powers of QQMPolyRingElem[u]
 
 with coordinates
 
@@ -48,7 +48,7 @@ julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
 julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
 
 julia> H = Glueing(U1, U2, h1, h2)
-Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map Morphism from complement of zero locus of fmpq_mpoly[x] in Spec of Multivariate Polynomial Ring in x, y over Rational Field to complement of zero locus of fmpq_mpoly[u] in Spec of Multivariate Polynomial Ring in u, v over Rational Field
+Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map Morphism from complement of zero locus of QQMPolyRingElem[x] in Spec of Multivariate Polynomial Ring in x, y over Rational Field to complement of zero locus of QQMPolyRingElem[u] in Spec of Multivariate Polynomial Ring in u, v over Rational Field
 
 julia> typeof(H)<:Glueing
 true

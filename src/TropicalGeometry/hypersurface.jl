@@ -161,8 +161,8 @@ tropical semiring `val`.
 
 # Examples
 ```jldoctest
-julia> Kx, (x1,x2) = PolynomialRing(QQ,2)
-(Multivariate Polynomial Ring in x1, x2 over Rational Field, fmpq_mpoly[x1, x2])
+julia> Kx, (x1,x2) = polynomial_ring(QQ,2)
+(Multivariate Polynomial Ring in x1, x2 over Rational Field, QQMPolyRingElem[x1, x2])
 
 julia> val = TropicalSemiringMap(QQ,7)
 The 7-adic valuation on Rational Field

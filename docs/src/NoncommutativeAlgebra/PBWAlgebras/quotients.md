@@ -84,7 +84,7 @@ julia> modulus(Q)
 two_sided_ideal(x^2, y^2, z^2)
 
 julia> gens(Q)
-3-element Vector{PBWAlgQuoElem{fmpq, Singular.n_Q}}:
+3-element Vector{PBWAlgQuoElem{QQFieldElem, Singular.n_Q}}:
  x
  y
  z
@@ -129,7 +129,7 @@ julia> f = q(y*x+z^2)
 -x*y + z^2
 
 julia> typeof(f)
-PBWAlgQuoElem{fmpq, Singular.n_Q}
+PBWAlgQuoElem{QQFieldElem, Singular.n_Q}
 
 julia> simplify!(f);
 

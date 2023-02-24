@@ -86,7 +86,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
     return -1
   end
 
-  Qt, t = PowerSeriesRing(QQ, d + 1, "t")
+  Qt, t = power_series_ring(QQ, d + 1, "t")
   F = molien_series(R, chi)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
   @assert is_integral(k)
@@ -160,17 +160,17 @@ julia> IR = invariant_ring(G)
 Invariant ring of
 Matrix group of degree 3 over Galois field with characteristic 3
 with generators
-gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> B = iterate_basis(IR, 2)
 Iterator over a basis of the component of degree 2 of
 Invariant ring of
 Matrix group of degree 3 over Galois field with characteristic 3
 with generators
-gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> collect(B)
-2-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
+2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 ```
@@ -271,7 +271,7 @@ PermGroupElem[(1,2)]
 relative to a character
 
 julia> collect(B)
-2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1]^3 - x[2]^3
  x[1]^2*x[2] - x[1]*x[2]^2
 
@@ -486,7 +486,7 @@ end
 #
 ################################################################################
 
-function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, FqNmodFiniteField, FqFiniteField}, IteratorT}
+function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField}, IteratorT}
   return VectorSpaceIteratorFiniteField(K, basis_iterator)
 end
 
