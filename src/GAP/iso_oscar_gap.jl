@@ -296,7 +296,7 @@ end
 
 function _iso_oscar_gap(RO::PolyRing{T}) where T
    coeffs_iso = iso_oscar_gap(base_ring(RO))
-   RG = GAP.Globals.polynomial_ring(codomain(coeffs_iso))::GapObj
+   RG = GAP.Globals.PolynomialRing(codomain(coeffs_iso))::GapObj
 
    f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
 
@@ -352,7 +352,7 @@ end
 
 function _iso_oscar_gap(RO::MPolyRing{T}) where T
    coeffs_iso = iso_oscar_gap(base_ring(RO))
-   RG = GAP.Globals.polynomial_ring(codomain(coeffs_iso), nvars(RO))::GapObj
+   RG = GAP.Globals.PolynomialRing(codomain(coeffs_iso), nvars(RO))::GapObj
 
    f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
 

@@ -379,15 +379,15 @@ end
 
 ################################################################################
 # Laurent Series
-@registerSerializationType(Generic.laurent_series_ring, "laurent_series_ring")
+@registerSerializationType(Generic.LaurentSeriesRing, "LaurentSeriesRing")
 
-@registerSerializationType(Generic.laurent_series_field, "laurent_series_field")
+@registerSerializationType(Generic.LaurentSeriesField, "LaurentSeriesField")
 
 @registerSerializationType(ZZLaurentSeriesRing)
 
 function save_internal(s::SerializerState, R::Union{
-    Generic.laurent_series_ring,
-    Generic.laurent_series_field,
+    Generic.LaurentSeriesRing,
+    Generic.LaurentSeriesField,
     ZZLaurentSeriesRing})
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(R)),
@@ -398,8 +398,8 @@ end
 
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{
-                           Generic.laurent_series_ring,
-                           Generic.laurent_series_field,
+                           Generic.LaurentSeriesRing,
+                           Generic.LaurentSeriesField,
                            ZZLaurentSeriesRing}},
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])

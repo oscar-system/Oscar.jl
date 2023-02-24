@@ -148,7 +148,7 @@ julia> FiniteField(2, 70, "a")
 ```
 
 ### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
-  
+
 ```jldoctest
 julia> T, t = polynomial_ring(QQ, "t")
 (Univariate Polynomial Ring in t over Rational Field, t)

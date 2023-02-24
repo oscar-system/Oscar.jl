@@ -143,7 +143,7 @@ end
                 GAP.Globals.GF(2, 3),
                ]
    @testset for R in baserings
-      PR = GAP.Globals.polynomial_ring(R)
+      PR = GAP.Globals.PolynomialRing(R)
       x = GAP.Globals.Indeterminate(R)
       iso = Oscar.iso_gap_oscar(PR)
       for pol in [zero(x), one(x), x, x^3+x+1]
@@ -163,7 +163,7 @@ end
                 GAP.Globals.GF(2, 3),
                ]
    @testset for R in baserings
-      PR = GAP.Globals.polynomial_ring(R, 3)
+      PR = GAP.Globals.PolynomialRing(R, 3)
       x, y, z = GAP.Globals.GeneratorsOfAlgebraWithOne(PR)
       iso = Oscar.iso_gap_oscar(PR)
       for pol in [zero(x), one(x), x, x^3+x+1, x*y+z+1]
