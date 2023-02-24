@@ -774,7 +774,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     push!(pos, n)
   end
 
-  @vprint :GroupCohomology 1 "need $n-tails\n"
+  @vprint :GroupCohomology 1 "need $n tails\n"
 
   if n == 0
     D = sub(M, elem_type(M)[])[1]
@@ -2663,17 +2663,40 @@ function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
   return collect(or)
 end
 
-function can_simp(C::GModule{PermGroup, GrpAbFinGen})
-  for i=1:10
-    o = Oscar.orbit(C, rand(gens(C.M)))
-    if length(o) == order(group(C))
-      s, ms = sub(C.M, o)
-      if rank(s) == length(o)
-        return true, simplify(quo(C, ms)[1])[1]
+"""
+    shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
+
+Tries to find cohomologically trivial submodules to factor out.
+Returns a cohomologically equivalent module with fewer generators and
+the quotient map.
+"""
+function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
+  local mq
+  q = C
+  first = true
+  while true
+    prog = false
+    for i=1:attempts
+      o = Oscar.orbit(q, rand(gens(q.M)))
+      if length(o) == order(group(q))
+        s, ms = sub(q.M, o)
+        if rank(s) == length(o)
+          q, _mq = quo(q, ms)
+          if first
+            mq = _mq
+            first = false
+          else
+            mq = mq*_mq
+          end
+          q, _mq = simplify(q)
+          mq = mq*inv(_mq)
+          prog = true
+          break
+        end
       end
     end
+    prog || return q, mq
   end
-  return false, C
 end
 
 function direct_sum(G::GrpAbFinGen, H::GrpAbFinGen, V::Vector{<:Map{GrpAbFinGen, GrpAbFinGen}})
