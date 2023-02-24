@@ -337,19 +337,19 @@ function load_internal_with_parent(s::DeserializerState,
 end
 
 ################################################################################
-# RealField
+# ArbField
 @registerSerializationType(ArbField)
 @registerSerializationType(arb)
 
-function save_internal(s::SerializerState, RR::Nemo.RealField)
+function save_internal(s::SerializerState, RR::Nemo.ArbField)
     return Dict(
         :precision => save_type_dispatch(s, precision(RR))
     )    
 end
 
-function load_internal(s::DeserializerState, ::Type{Nemo.RealField}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{Nemo.ArbField}, dict::Dict)
     prec = load_type_dispatch(s, Int64, dict[:precision])
-    return Nemo.RealField(prec)
+    return Nemo.ArbField(prec)
 end
 
 # elements
@@ -368,7 +368,7 @@ end
 
 
 function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
-    parent = load_type_dispatch(s, Nemo.RealField, dict[:parent])
+    parent = load_type_dispatch(s, Nemo.ArbField, dict[:parent])
     arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
     r = Nemo.arb()
     ccall((:arb_load_str, Nemo.Arb_jll.libarb),
@@ -381,7 +381,7 @@ end
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{arb},
                                    dict::Dict,
-                                   parent::Nemo.RealField)
+                                   parent::Nemo.ArbField)
     arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
     r = Nemo.arb()
     ccall((:arb_load_str, Nemo.Arb_jll.libarb),
@@ -392,7 +392,7 @@ function load_internal_with_parent(s::DeserializerState,
 end
 
 ################################################################################
-# ComplexField
+# AcbField
 
 @registerSerializationType(AcbField)
 @registerSerializationType(acb)
@@ -405,7 +405,7 @@ end
 
 function load_internal(s::DeserializerState, ::Type{AcbField}, dict::Dict)
     prec = load_type_dispatch(s, Int64, dict[:precision])
-    return ComplexField(prec)
+    return AcbField(prec)
 end
 
 function save_internal(s::SerializerState, c::acb)

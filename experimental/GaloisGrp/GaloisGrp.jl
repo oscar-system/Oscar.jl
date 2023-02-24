@@ -468,7 +468,7 @@ mutable struct ComplexRootCtx
   rt::Vector{acb}
   function ComplexRootCtx(f::ZZPolyRingElem)
     @assert ismonic(f)
-    rt = roots(f, ComplexField(20))
+    rt = roots(f, AcbField(20))
     return new(f, 20, rt)
   end
   function ComplexRootCtx(f::QQPolyRingElem)
@@ -484,7 +484,7 @@ function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = fal
   if C.C.pr >= pr
     return C.C.rt
   end
-  rt = roots(C.C.f, ComplexField(pr))
+  rt = roots(C.C.f, AcbField(pr))
   C.C.pr = pr
   n = length(rt)
   for i=1:n
@@ -572,7 +572,7 @@ function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
   @assert !iszero(dis(t))
-  rt = roots(dis, ComplexField(20))
+  rt = roots(dis, AcbField(20))
   r = Hecke.lower_bound(minimum([abs(x-t) for x = rt]), ZZRingElem)
   @assert r > 0
   ff = map_coefficients(abs, f)
@@ -1935,7 +1935,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
     if algo == :pAdic
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
     elseif algo == :Complex
-      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), ComplexField(20))
+      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), AcbField(20))
     elseif algo == :Symbolic
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)))
     else
