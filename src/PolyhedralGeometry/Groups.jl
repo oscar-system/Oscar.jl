@@ -14,25 +14,28 @@ function PermGroup_to_polymake_array(G::PermGroup)
    return result
 end
 
-function _pm_group_to_oscar_group(G)
-    gens = _pm_arr_arr_to_group_generators(G.GENERATORS)
-    return _gens_to_group(gens)
-end
 
-function _gens_to_group(gens::Vector{PermGroupElem})
-    S = parent(gens[1])
-    return sub(S, gens)[1]
+function _gens_to_group(gens:: Vector{PermGroupElem})
+    if length(gens) == 0
+        throw(ArgumentError("List of generators empty, could not deduce degree."))
+    else
+        S = parent(gens[1])
+        return sub(S, gens)[1]
+    end
 end
-function _gens_to_group(gens::Dict{Symbol, Vector{PermGroupElem}})
+function _gens_to_group(gens::Dict{Symbol,  Vector{PermGroupElem}})
     return Dict{Symbol, PermGroup}([k => _gens_to_group(v) for (k,v) in gens])
 end
 
-function _pm_arr_arr_to_group_generators(M)
-    n=length(M[1])
+
+function _pm_arr_arr_to_group_generators(M, n)
     S=symmetric_group(n)
     perm_bucket = Vector{Oscar.BasicGAPGroupElem{PermGroup}}()
     for g in M
-        push!(perm_bucket,perm(S, Polymake.to_one_based_indexing(g)))
+        push!(perm_bucket, perm(S, Polymake.to_one_based_indexing(g)))
+    end
+    if length(M) == 0
+        push!(perm_bucket, perm(S, Int[]))
     end
     return perm_bucket
 end
@@ -184,7 +187,7 @@ function automorphism_group_generators(P::Polyhedron; type = :combinatorial, act
         IM = vertex_indices(facets(P))
         if action == :all
             result = automorphism_group_generators(IM; action = action)
-            return Dict{Symbol, Vector{PermGroupElem}}(
+            return Dict{Symbol,  Vector{PermGroupElem}}(
                     :on_vertices => result[:on_cols],
                     :on_facets => result[:on_rows])
         elseif action == :on_vertices
@@ -199,7 +202,7 @@ function automorphism_group_generators(P::Polyhedron; type = :combinatorial, act
     else
         throw(ArgumentError("Action type $(type) not supported."))
     end
-    return Dict{Symbol, Vector{PermGroupElem}}(:on_vertices => vertex_action,
+    return Dict{Symbol,  Vector{PermGroupElem}}(:on_vertices => vertex_action,
             :on_facets => facet_action)
 end
 
@@ -253,16 +256,18 @@ julia> automorphism_group_generators(IM; action = :on_cols)
 """
 function automorphism_group_generators(IM::IncidenceMatrix; action = :all)
     gens = Polymake.graph.automorphisms(IM)
-    rows_action = _pm_arr_arr_to_group_generators([first(g) for g in gens])
+    rows_action = _pm_arr_arr_to_group_generators([first(g) for g in gens], Polymake.nrows(IM))
     if action == :on_rows
         return rows_action
     end
-    cols_action = _pm_arr_arr_to_group_generators([last(g) for g in gens])
+    cols_action = _pm_arr_arr_to_group_generators([last(g) for g in gens], Polymake.ncols(IM))
     if action == :on_cols
         return cols_action
     elseif action == :all
-        return Dict{Symbol, Vector{PermGroupElem}}(:on_rows => rows_action,
-                :on_cols => cols_action)
+        return Dict{Symbol,  Vector{PermGroupElem}}(
+            :on_rows => rows_action,
+            :on_cols => cols_action
+        )
     else
         throw(ArgumentError("Action $(action) not supported."))
     end
@@ -273,17 +278,17 @@ end
 function _linear_symmetries_generators(P::Polyhedron; action = :all)
     if is_bounded(P)
         gp = Polymake.polytope.linear_symmetries(vertices(P))
-        vgens = gp.PERMUTATION_ACTION.GENERATORS
+        vaction = gp.PERMUTATION_ACTION
         if action == :on_vertices
-            return _pm_arr_arr_to_group_generators(vgens)
+            return _pm_arr_arr_to_group_generators(vaction.GENERATORS, vaction.DEGREE)
         end
-        hgens = Polymake.group.induced_permutations(vgens, vertex_indices(facets(P)))
+        hgens = Polymake.group.induced_permutations(vaction.GENERATORS, vertex_indices(facets(P)))
         if action == :on_facets
-            return _pm_arr_arr_to_group_generators(hgens)
+            return _pm_arr_arr_to_group_generators(hgens, nfacets(P))
         end
-        return Dict{Symbol, Vector{PermGroupElem}}(
-                :on_vertices => _pm_arr_arr_to_group_generators(vgens),
-                :on_facets => _pm_arr_arr_to_group_generators(hgens)
+        return Dict{Symbol,  Vector{PermGroupElem}}(
+                :on_vertices => _pm_arr_arr_to_group_generators(vaction.GENERATORS, vaction.DEGREE),
+                :on_facets => _pm_arr_arr_to_group_generators(hgens, nfacets(P))
             )
     else
         throw(ArgumentError("Linear symmetries supported for bounded polyhedra only"))
