@@ -636,7 +636,7 @@ function basis(X::AbsVariety)
     b = Oscar._kbase(R)
     ans = [MPolyQuoRingElem[] for i in 0:X.dim]
     for bi in b
-      push!(ans[total_degree(bi)+1], R(bi))
+      push!(ans[_total_degree(bi)+1], R(bi))
     end
     return ans
   end

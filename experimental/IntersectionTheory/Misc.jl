@@ -18,7 +18,7 @@ function gradings(R::MPolyDecRingOrQuo)
   [Int(x.coeff[1]) for x in (R isa MPolyQuoRing ? base_ring(R).d : R.d)]
 end
 
-function total_degree(x::MPolyDecRingElem)
+function _total_degree(x::MPolyDecRingElem)
   R = parent(x)
   x = simplify(x)
   x == 0 && return 0

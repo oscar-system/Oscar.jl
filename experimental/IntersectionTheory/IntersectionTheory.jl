@@ -4,7 +4,7 @@ using Markdown
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, proj, graph
-import Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, total_degree
+import Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
 import AbstractAlgebra: combinations
 import AbstractAlgebra.Generic: FunctionalMap, Partition, partitions
 
@@ -13,7 +13,7 @@ export a_hat_genus, l_genus, pontryagin, chern_number, chern_numbers
 export intersection_matrix, dual_basis
 export pullback, pushforward
 export bundles, tangent_bundle, cotangent_bundle, canonical_bundle, canonical_class
-export symmetric_power, exterior_power, schur_functor
+export schur_functor
 export →
 export complete_intersection, section_zero_locus, degeneracy_locus
 export proj, grassmannian, flag, point, variety, bundle
