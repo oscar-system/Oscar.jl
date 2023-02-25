@@ -49,8 +49,8 @@ end
 
 @testset "VarietyHom" begin
 
-  p = point()
-  P2 = proj(2)
+  p = IntersectionTheory.point()
+  P2 = IntersectionTheory.proj(2)
   i = P2 → P2
   @test i.domain == P2
   @test i.codomain == P2

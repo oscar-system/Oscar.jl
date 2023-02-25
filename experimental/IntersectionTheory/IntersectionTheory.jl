@@ -3,7 +3,7 @@ using Oscar
 using Markdown
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
-import Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, proj, graph, variety, pushforward
+import Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, graph, variety, pushforward
 import Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
 import AbstractAlgebra: combinations
 import AbstractAlgebra.Generic: FunctionalMap, Partition, partitions
