@@ -104,10 +104,10 @@ julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 
 julia> subfields(F)
 4-element Vector{Any}:
- (Function Field over Rational Field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
- (Function Field over Rational Field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
  (Function Field over Rational Field with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over Rational Field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
  (Function Field over Rational Field with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
+ (Function Field over Rational Field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
 
 julia> galois_group(F)
 (Group([ (), (1,5)(2,3)(4,6), (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
@@ -153,8 +153,8 @@ julia> r = roots(C, 5)
 4-element Vector{qadic}:
  5*11^0 + 2*11^1 + 6*11^2 + 8*11^3 + 11^4 + O(11^5)
  6*11^0 + 8*11^1 + 4*11^2 + 2*11^3 + 9*11^4 + O(11^5)
- (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)
  (11^0 + 6*11^1 + 6*11^2 + 2*11^4 + O(11^5))*a + 9*11^0 + 4*11^1 + 6*11^2 + 7*11^3 + 11^4 + O(11^5)
+ (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)
 
 julia> r[1]^2
 3*11^0 + O(11^5)

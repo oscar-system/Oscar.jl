@@ -1902,8 +1902,8 @@ julia> describe(G)
 
 julia> roots(C, 2)
 4-element Vector{qadic}:
- (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
  (4*19^0 + 2*19^1 + O(19^2))*a + 5*19^0 + 9*19^1 + O(19^2)
+ (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
  (18*19^0 + 18*19^1 + O(19^2))*a + 12*19^0 + O(19^2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
@@ -2453,7 +2453,7 @@ functions and the coefficients of the polynomial.
 julia> Qx, x = QQ["x"];
 
 julia> i = galois_ideal(galois_group(x^4-2)[2])
-ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x4 + x2*x3, x1^2*x4^2 + x2^2*x3^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
+ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x3 + x2*x4, x1^2*x3^2 + x2^2*x4^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
 
 julia> k, _ = number_field(i);
 
