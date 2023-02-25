@@ -7,7 +7,7 @@ import Base:^
 
 export ContinuedFraction, continued_fraction, convergents, reynolds
 
-function ^(f::fmpq_mpoly, m::fmpq_mat)
+function ^(f::QQMPolyRingElem, m::QQMatrix)
   @assert nrows(m) == ncols(m) == ngens(parent(f))
   g = gens(parent(f))
   h = typeof(f)[]
@@ -18,7 +18,7 @@ function ^(f::fmpq_mpoly, m::fmpq_mat)
   return z
 end
 
-function is_approx_integral(f::fmpq_mpoly, o::fmpz)
+function is_approx_integral(f::QQMPolyRingElem, o::ZZRingElem)
   g = MPolyBuildCtx(parent(f))
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     r = c*o
@@ -32,7 +32,7 @@ function is_approx_integral(f::fmpq_mpoly, o::fmpz)
   return true, finish(g)
 end
 
-function is_approx_integral(f::fmpq_mat, o::fmpz)
+function is_approx_integral(f::QQMatrix, o::ZZRingElem)
   g = 0*f
   for i = 1:nrows(f)
     for j = i:ncols(f)
@@ -50,12 +50,12 @@ function is_approx_integral(f::fmpq_mat, o::fmpz)
 end
 
 struct ContinuedFraction
-  cf::Vector{fmpz}
-  function ContinuedFraction(a::fmpq, n::Int = typemax(Int))
-    iszero(a) && return new(fmpz[0])
-    cf = fmpz[]
+  cf::Vector{ZZRingElem}
+  function ContinuedFraction(a::QQFieldElem, n::Int = typemax(Int))
+    iszero(a) && return new(ZZRingElem[0])
+    cf = ZZRingElem[]
     while true
-      i = floor(fmpz, a)
+      i = floor(ZZRingElem, a)
       push!(cf, i)
       length(cf) >= n && return new(cf)
       a = a-i
@@ -65,10 +65,10 @@ struct ContinuedFraction
   end
 
   function ContinuedFraction(a::BigFloat, n::Int)
-    iszero(a) && return new(fmpz[0])
-    cf = fmpz[]
+    iszero(a) && return new(ZZRingElem[0])
+    cf = ZZRingElem[]
     while true
-      i = floor(fmpz, a)
+      i = floor(ZZRingElem, a)
       push!(cf, i)
       n -= 1
       n == 0 && return new(cf)
@@ -78,7 +78,7 @@ struct ContinuedFraction
     end
   end
 
-  function ContinuedFraction(a::Vector{fmpz})
+  function ContinuedFraction(a::Vector{ZZRingElem})
     return new(a)
   end
 
@@ -95,15 +95,15 @@ function Base.show(io::IO, C::ContinuedFraction)
   print(io, ">")
 end
 
-continued_fraction(a::fmpq) = ContinuedFraction(a)
-continued_fraction(a::Rational) = ContinuedFraction(fmpq(a))
+continued_fraction(a::QQFieldElem) = ContinuedFraction(a)
+continued_fraction(a::Rational) = ContinuedFraction(QQFieldElem(a))
 
-function best_approximation(a::fmpq, B::fmpz)
+function best_approximation(a::QQFieldElem, B::ZZRingElem)
  C = continued_fraction(a)
  return convergents(C, limit = B)[end]
 end
 
-function best_approximation(a::fmpq_mpoly, B::fmpz)
+function best_approximation(a::QQMPolyRingElem, B::ZZRingElem)
   b = MPolyBuildCtx(parent(a))
   for (c, v) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     push_term!(b, best_approximation(c, B), v)
@@ -111,15 +111,15 @@ function best_approximation(a::fmpq_mpoly, B::fmpz)
   return finish(b)
 end
 
-function convergents(C::ContinuedFraction; limit::fmpz = fmpz(-1), limit_terms::Int = -1)
-  h = fmpz[C.cf[1]]
-  k = fmpz[1]
+function convergents(C::ContinuedFraction; limit::ZZRingElem = ZZRingElem(-1), limit_terms::Int = -1)
+  h = ZZRingElem[C.cf[1]]
+  k = ZZRingElem[1]
 
-  length(C.cf) == 1 && return [fmpq(h[i], k[i]) for i=1:length(h)]
+  length(C.cf) == 1 && return [QQFieldElem(h[i], k[i]) for i=1:length(h)]
 
   if (limit > -1 && C.cf[2] > limit) ||
     (limit_terms > -1 && length(h) >= limit_terms)
-    return [fmpq(h[i], k[i]) for i=1:length(h)]
+    return [QQFieldElem(h[i], k[i]) for i=1:length(h)]
   end
 
   push!(h, C.cf[1]*C.cf[2]+1)
@@ -137,10 +137,10 @@ function convergents(C::ContinuedFraction; limit::fmpz = fmpz(-1), limit_terms::
     push!(h, nh)
     push!(k, nk)
   end
-  return [fmpq(h[i], k[i]) for i=1:length(h)]
+  return [QQFieldElem(h[i], k[i]) for i=1:length(h)]
 end
 
-function bound_precision!(f::fmpq_mpoly, B::fmpz)
+function bound_precision!(f::QQMPolyRingElem, B::ZZRingElem)
   for i=1:length(f)
     c = coeff(f, i)
     d = best_approximation(c, B)
@@ -152,7 +152,7 @@ end
 
 #z, zi = make_integral...
 #then [x*x*zi for x = M] is an integral rep
-function make_integral(M::Vector{fmpq_mat})
+function make_integral(M::Vector{QQMatrix})
   I = identity_matrix(ZZ, nrows(M[1]))
   d = [lcm(collect(map(denominator, m))) for m = M]
   N = [map(numerator, d[i]*M[i]) for i=1:length(M)]
@@ -176,7 +176,7 @@ function make_integral(M::Vector{fmpq_mat})
   end
 end
 
-function reynolds(f::fmpq_mpoly, M::Vector{<:MatElem}, ord::fmpz)
+function reynolds(f::QQMPolyRingElem, M::Vector{<:MatElem}, ord::ZZRingElem)
 
   ord *= lcm(map(denominator, M))
 
@@ -187,7 +187,7 @@ function reynolds(f::fmpq_mpoly, M::Vector{<:MatElem}, ord::fmpz)
   end
   i = 1
   fl = true
-  d = fmpz(1)
+  d = ZZRingElem(1)
   while true
     i += 1
     f_new = f
@@ -196,7 +196,7 @@ function reynolds(f::fmpq_mpoly, M::Vector{<:MatElem}, ord::fmpz)
       f_new = sum([f_new^m for m = J])
     end
 #    g = best_approximation(f_new, ord)
-    fl, g = is_approx_integral(f_new*fmpq(1, d), ord)
+    fl, g = is_approx_integral(f_new*QQFieldElem(1, d), ord)
     if fl
       if all(x->g^x == g, M)
         @show "used ", i, " iterations"
@@ -229,13 +229,13 @@ function Oscar.monomials(R::MPolyRing, d::Int)
   return nn
 end
 
-function action_on_monomials(R::MPolyRing, d::Int, A::Vector{fmpq_mat})
+function action_on_monomials(R::MPolyRing, d::Int, A::Vector{QQMatrix})
   g = gens(R)
   m = sort(monomials(R, d))
 
-  B = fmpq_mat[]
+  B = QQMatrix[]
   for a = A
-    bb = Vector{fmpq}[]
+    bb = Vector{QQFieldElem}[]
     h = [x^a for x = g]
     for x = m
       b = zeros(QQ, length(m))
@@ -250,7 +250,7 @@ function action_on_monomials(R::MPolyRing, d::Int, A::Vector{fmpq_mat})
   return B, m
 end
 
-function reynolds(f::fmpq_mat, M::Vector{<:MatElem}, ord::fmpz)
+function reynolds(f::QQMatrix, M::Vector{<:MatElem}, ord::ZZRingElem)
   ord *= lcm(map(denominator, M))
 
   I = one(parent(M[1]))
@@ -260,7 +260,7 @@ function reynolds(f::fmpq_mat, M::Vector{<:MatElem}, ord::fmpz)
   end
   i = 1
   fl = true
-  d = fmpz(1)
+  d = ZZRingElem(1)
   while true
     i += 1
     f_new = f
@@ -269,7 +269,7 @@ function reynolds(f::fmpq_mat, M::Vector{<:MatElem}, ord::fmpz)
       f_new = sum([f_new*m for m = J])
     end
 #    g = best_approximation(f_new, ord)
-    fl, g = is_approx_integral(f_new*fmpq(1, d), ord)
+    fl, g = is_approx_integral(f_new*QQFieldElem(1, d), ord)
     if fl
       if all(x->g*x == g, M)
         @show "used ", i, " iterations"
@@ -285,7 +285,7 @@ function reynolds(f::fmpq_mat, M::Vector{<:MatElem}, ord::fmpz)
   return f
 end
 
-function reynolds_via_linalg(f::fmpq_mpoly, A::Vector{fmpq_mat}, ord::fmpz)
+function reynolds_via_linalg(f::QQMPolyRingElem, A::Vector{QQMatrix}, ord::ZZRingElem)
   @assert length(f) == 1 #currently technical probs
 
   h, m = action_on_monomials(parent(f), total_degree(f), A)

@@ -46,7 +46,7 @@ push!(upgrade_scripts, UpgradeScript(
             return dict
         end
 
-        # this handles types like FlintRationalField that have no associated data
+        # this handles types like QQField that have no associated data
         if !haskey(dict, :data)
             # adds object to instance in case it is backrefed
             if haskey(dict, :id)
@@ -110,9 +110,9 @@ push!(upgrade_scripts, UpgradeScript(
 
         U = decodeType(dict[:type])
 
-        # Upgrades fmpq serialization
+        # Upgrades QQFieldElem serialization
         if is_basic_serialization_type(U)
-            if U === fmpq
+            if U === QQFieldElem
                 num = dict[:data][:num][:data]
                 den = dict[:data][:den][:data]
                 updated_fmpq = "$num//$den"

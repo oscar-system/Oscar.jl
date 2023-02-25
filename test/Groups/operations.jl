@@ -16,7 +16,7 @@
       oz=order(z)
 
       @test x isa PermGroupElem
-      @test ox isa fmpz
+      @test ox isa ZZRingElem
       @test inv(x) in G
       @test mul(x,y) == x*y
       @test mul!(x,x,y) == x*y
@@ -75,7 +75,7 @@ end
    @test lower_triangular_matrix(F.([2,3,1,1,0,1]))==matrix(F,3,3,[2,0,0,3,1,0,1,0,1])
    @test_throws ArgumentError lower_triangular_matrix(F.([2,3,1,1]))
 
-   R,t=PolynomialRing(F,"t")
+   R,t=polynomial_ring(F,"t")
    f = t^4+2*t^3+4*t+1
    @test f(identity_matrix(F,6))==f(1)*identity_matrix(F,6)
    @test_throws ArgumentError conjugate_transpose(x)
@@ -125,7 +125,7 @@ end
 # from file matrices/stuff_field_gen.jl
 @testset "Stuff on fields" begin
    F = GF(3)
-   R,t = PolynomialRing(F,"t")
+   R,t = polynomial_ring(F,"t")
    f = t^2+1
    f1 = Oscar._change_type(f)
    @test collect(coefficients(f1))==collect(coefficients(f))

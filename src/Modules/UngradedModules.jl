@@ -67,7 +67,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -232,14 +232,14 @@ end
 #
 ## Examples
 #```jldoctest
-#julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
-#(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+#julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+#(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 #
 #julia> F = FreeMod(R,3)
 #Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 #
 #julia> V = [x, zero(R), y]
-#3-element Vector{fmpq_mpoly}:
+#3-element Vector{QQMPolyRingElem}:
 # x
 # 0
 # y
@@ -272,8 +272,8 @@ Return the entries (with respect to the standard basis) of `v` as a sparse row.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
@@ -282,7 +282,7 @@ julia> f = x*gen(F,1)+y*gen(F,3)
 x*e[1] + y*e[3]
 
 julia> coordinates(f)
-Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
+Sparse row with positions [1, 3] and values QQMPolyRingElem[x, y]
 ```
 """
 function coordinates(v::AbstractFreeModElem)
@@ -433,7 +433,7 @@ function *(a::RingElem, b::AbstractFreeModElem)
 end
 *(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coordinates(b), parent(b))
 *(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
-*(a::fmpq, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
+*(a::QQFieldElem, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
 
 @doc Markdown.doc"""
     zero(F::AbstractFreeMod)
@@ -768,8 +768,8 @@ return a matrix `A` over `base_ring(M)` with `rank(F)` rows and
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -821,8 +821,8 @@ the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -831,7 +831,7 @@ julia> G = free_module(R, 2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
-3-element Vector{FreeModElem{fmpq_mpoly}}:
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
  y*e[1]
  x*e[1] + y*e[2]
  z*e[2]
@@ -1374,14 +1374,14 @@ The elements of `O` must live in `F`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> O = [x*F[1]+F[2],y*F[2]]
-2-element Vector{FreeModElem{fmpq_mpoly}}:
+2-element Vector{FreeModElem{QQMPolyRingElem}}:
  x*e[1] + e[2]
  y*e[2]
 
@@ -1456,8 +1456,8 @@ return the subquotient $(\text{im } A + \text{im }  B)/\text{im }  B.$
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -1520,7 +1520,7 @@ free module homomorphisms with codomain `F` represented by `A` and `B`.
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -1688,7 +1688,7 @@ Return the cokernel of `a` as an object of type `SubquoModule`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 3);
 
@@ -1712,7 +1712,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
@@ -1737,7 +1737,7 @@ by Submodule with 3 generators
 julia> N = M;
 
 julia> V = [y^2*N[1], x*N[2]]
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*y^2*e[1]
  x*y*e[1]
 
@@ -1873,8 +1873,8 @@ of the common ambient module.
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -1964,8 +1964,8 @@ Here, `ambient_module(M) == ambient_module(N)` if
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -2061,8 +2061,8 @@ Additionally, return the inclusion maps `M` $\to$ `M + N` and `N` $\to$ `M + N`.
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -2187,8 +2187,8 @@ return the sum of `M` and `N` regarded as submodules of the common ambient modul
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -2250,8 +2250,8 @@ Additionally, return the inclusion maps `M` $\cap$ `N` $\to$ `M` and `M` $\cap$ 
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -2419,7 +2419,7 @@ The result is returned as a sparse row.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A = R[x; y]
 [x]
@@ -2437,7 +2437,7 @@ julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
 
 julia> coordinates(m)
-Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
+Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
 ```
 """
 coordinates(m::SubquoModuleElem) = m.coeffs
@@ -2460,7 +2460,7 @@ Given an element `m` of a subquotient $M$, say, return
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A = R[x; y]
 [x]
@@ -2478,13 +2478,13 @@ julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
 
 julia> typeof(m)
-SubquoModuleElem{fmpq_mpoly}
+SubquoModuleElem{QQMPolyRingElem}
 
 julia> fm = ambient_representative(m)
 (x*z + y)*e[1]
 
 julia> typeof(fm)
-FreeModElem{fmpq_mpoly}
+FreeModElem{QQMPolyRingElem}
 
 julia> parent(fm) == ambient_free_module(M)
 true
@@ -2691,7 +2691,7 @@ function *(a::RingElem, b::SubquoModuleElem)
 end
 *(a::Int, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
-*(a::fmpq, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
+*(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
   if parent(a) !== parent(b)
     return false
@@ -2738,7 +2738,7 @@ If `task = :only_morphism`, return only the inclusion map.
 """
 function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
   M = SubquoModule(SubModuleOfFreeModule(F, A)) 
-  #M = SubquoModule(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
+  #M = SubquoModule(F, A, zero(matrix_space(base_ring(F), 1, rank(F))))
   emb = hom(M, F, ambient_representatives_generators(M))
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
@@ -2825,7 +2825,7 @@ If `task = :only_morphism`, return only the inclusion map.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
@@ -2911,7 +2911,7 @@ Additionally, if `N` denotes this object,
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
-  E = one(MatrixSpace(base_ring(F), rank(F), rank(F)))
+  E = one(matrix_space(base_ring(F), rank(F), rank(F)))
   Q = SubquoModule(F, E, A)
 
   return return_quo_wrt_task(F, Q, task)
@@ -2997,7 +2997,7 @@ If `task = :only_morphism`, return only the projection map.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
@@ -3149,8 +3149,8 @@ Return `true` if `M` is the zero module, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -3345,7 +3345,7 @@ Return a free presentation of $M$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A = R[x; y];
 
@@ -3489,8 +3489,8 @@ Return `true` if `a` is well-defined, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -3516,7 +3516,7 @@ by Submodule with 3 generators
 julia> N = M;
 
 julia> V = [y^2*N[1], x*N[2]]
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*y^2*e[1]
  x*y*e[1]
 
@@ -3555,8 +3555,8 @@ true
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -3570,7 +3570,7 @@ julia> M = SubquoModule(F, A, B);
 julia> N = M;
 
 julia> W = [y*N[1], x*N[2]]
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*y*e[1]
  x*y*e[1]
 
@@ -3620,8 +3620,8 @@ and codomain `N`, return a matrix `A` with `ngens(M)` rows and
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -4127,8 +4127,8 @@ Return `true` if `m` is zero, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -4218,8 +4218,8 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `do
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -4284,8 +4284,8 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `co
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -4343,7 +4343,7 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `co
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 3);
 
@@ -4380,7 +4380,7 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
@@ -4405,7 +4405,7 @@ by Submodule with 3 generators
 julia> N = M;
 
 julia> V = [y^2*N[1], x*N[2]]
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*y^2*e[1]
  x*y*e[1]
 
@@ -4478,7 +4478,7 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `do
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 3);
 
@@ -4511,7 +4511,7 @@ Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
@@ -4536,7 +4536,7 @@ by Submodule with 3 generators
 julia> N = M;
 
 julia> V = [y^2*N[1], x*N[2]]
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*y^2*e[1]
  x*y*e[1]
 
@@ -4601,8 +4601,8 @@ Return `true` if the free resolution `fr` is complete, otherwise return `false`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -4723,8 +4723,8 @@ If `length != 0`, the free resolution is only computed up to the `length`-th fre
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -4994,7 +4994,7 @@ Additionally, if `H` is that object, return the map which sends an element of `H
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = FreeMod(R, 2);
 
@@ -5022,12 +5022,12 @@ by Submodule with 2 generators
 2 -> y^2*e[2])
 
 julia> gens(H)
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
 
 julia> relations(H)
-4-element Vector{FreeModElem{fmpq_mpoly}}:
+4-element Vector{FreeModElem{QQMPolyRingElem}}:
  x*(e[1] -> e[1])
  y^2*(e[1] -> e[2])
  x*(e[2] -> e[1])
@@ -5094,7 +5094,7 @@ If `f` is an element of a module created via `hom(M,N)`, for some modules `M` an
 return the homomorphism `M` $\to$ `N` corresponding to `f`.
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = FreeMod(R, 2);
 
@@ -5111,12 +5111,12 @@ by Submodule with 2 generators
 julia> H = hom(M, M)[1];
 
 julia> gens(H)
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
 
 julia> relations(H)
-4-element Vector{FreeModElem{fmpq_mpoly}}:
+4-element Vector{FreeModElem{QQMPolyRingElem}}:
  x*(e[1] -> e[1])
  y^2*(e[1] -> e[2])
  x*(e[2] -> e[1])
@@ -5160,7 +5160,7 @@ If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
 `a`: `M` $\to$ `N` is a homomorphism, then return the element of `H` corresponding to `a`.
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = FreeMod(R, 2);
 
@@ -5177,12 +5177,12 @@ by Submodule with 2 generators
 julia> H = hom(M, M)[1];
 
 julia> gens(H)
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
 
 julia> relations(H)
-4-element Vector{FreeModElem{fmpq_mpoly}}:
+4-element Vector{FreeModElem{QQMPolyRingElem}}:
  x*(e[1] -> e[1])
  y^2*(e[1] -> e[2])
  x*(e[2] -> e[1])
@@ -5763,7 +5763,7 @@ If `task = :map`, additionally return the map which sends a tuple $(m_1,\dots, m
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
@@ -5774,21 +5774,21 @@ julia> B = R[x^2; y^3; z^4];
 julia> M = SubquoModule(F, A, B);
 
 julia> gens(M)
-2-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*e[1]
  y*e[1]
 
 julia> T, t = tensor_product(M, M; task = :map);
 
 julia> gens(T)
-4-element Vector{SubquoModuleElem{fmpq_mpoly}}:
+4-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x^2*e[1] \otimes e[1]
  x*y*e[1] \otimes e[1]
  x*y*e[1] \otimes e[1]
  y^2*e[1] \otimes e[1]
 
 julia> domain(t)
-parent of tuples of type Tuple{SubquoModuleElem{fmpq_mpoly}, SubquoModuleElem{fmpq_mpoly}}
+parent of tuples of type Tuple{SubquoModuleElem{QQMPolyRingElem}, SubquoModuleElem{QQMPolyRingElem}}
 
 julia> t((M[1], M[2]))
 x*y*e[1] \otimes e[1]
@@ -5902,7 +5902,7 @@ Return $\text{Tor}_i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A = R[x; y];
 
@@ -6036,7 +6036,7 @@ If `C` is a cochain complex, return a chain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, ["x"]);
 
 julia> F = free_module(R, 1);
 
@@ -6090,7 +6090,7 @@ If `C` is a cochain complex, return a cochain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, ["x"]);
 
 julia> F = free_module(R, 1);
 
@@ -6141,7 +6141,7 @@ Return the homology of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, ["x"]);
 
 julia> F = free_module(R, 1);
 
@@ -6156,7 +6156,7 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
 
 julia> H = homology(C)
-3-element Vector{SubquoModule{fmpq_mpoly}}:
+3-element Vector{SubquoModule{QQMPolyRingElem}}:
  Subquotient of Submodule with 1 generator
 1 -> x*e[1]
 by Submodule with 1 generator
@@ -6184,7 +6184,7 @@ Return the `i`-th homology module of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, ["x"]);
 
 julia> F = free_module(R, 1);
 
@@ -6236,7 +6236,7 @@ Return $\text{Ext}^i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = FreeMod(R, 1);
 
@@ -6841,7 +6841,7 @@ function copy_and_reshape(M::MatElem, n, m)
   julia_matrix = to_julia_matrix(M)
   julia_matrix = reshape(julia_matrix, n, m)
   R = base_ring(M)
-  mat_space = MatrixSpace(R, n, m)
+  mat_space = matrix_space(R, n, m)
   return mat_space(julia_matrix)
 end
 

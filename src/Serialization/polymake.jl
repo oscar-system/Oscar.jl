@@ -14,11 +14,11 @@ end
 
 
 const polymake2OscarTypes = Dict{String, Type}([
-    "polytope::Cone<Rational>" => Cone{fmpq},
-    "polytope::Polytope<Rational>" => Polyhedron{fmpq},
-    "fan::PolyhedralFan<Rational>" => PolyhedralFan{fmpq},
-    "fan::PolyhedralComplex<Rational>" => PolyhedralComplex{fmpq},
-    "fan::SubdivisionOfPoints<Rational>" => SubdivisionOfPoints{fmpq},
+    "polytope::Cone<Rational>" => Cone{QQFieldElem},
+    "polytope::Polytope<Rational>" => Polyhedron{QQFieldElem},
+    "fan::PolyhedralFan<Rational>" => PolyhedralFan{QQFieldElem},
+    "fan::PolyhedralComplex<Rational>" => PolyhedralComplex{QQFieldElem},
+    "fan::SubdivisionOfPoints<Rational>" => SubdivisionOfPoints{QQFieldElem},
     "topaz::SimplicialComplex" => SimplicialComplex,
     "common::GraphAdjacency<Undirected>" => Graph{Undirected},
     "common::GraphAdjacency<Directed>" => Graph{Directed},
@@ -51,7 +51,7 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
         end
         
         if Polymake.type_name(deserialized) == "Ideal"
-            return convert(MPolyIdeal{fmpq_mpoly}, deserialized)
+            return convert(MPolyIdeal{QQMPolyRingElem}, deserialized)
         else
             @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
             return deserialized

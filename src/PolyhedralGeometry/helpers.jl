@@ -1,6 +1,6 @@
 import Polymake: IncidenceMatrix
 
-const nf_scalar = Union{nf_elem, fmpq}
+const nf_scalar = Union{nf_elem, QQFieldElem}
 
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
     a, b = size(m)
@@ -20,7 +20,7 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{nf_scalar}) = Polymake.Matrix{Polymake.QuadraticExtension{Polymake.Rational}}(m)
 
-assure_matrix_polymake(m::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}}) = m
+assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}}) = m
 
 assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rational, Polymake.QuadraticExtension, Float64}, U, V, W} = Polymake.Matrix{T}(m)
 
@@ -32,20 +32,20 @@ end
 
 assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{fmpq, fmpz, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
+assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
 
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])
 
-_cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{fmpq}, typeof(x)})
+_cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{QQFieldElem}, typeof(x)})
 
-linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
+linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
-matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
+matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
 nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
 
-function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
+function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatrix{Oscar.QQFieldElem}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
     for i in eachindex(x)
         res[i] = x[i]
@@ -58,10 +58,10 @@ _isempty_halfspace(x) = isempty(x)
 
 # export nf_scalar
 
-Base.zero(::Type{nf_scalar}) = fmpq()
-# Base.one(::Type{nf_scalar}) = fmpq(1)
+Base.zero(::Type{nf_scalar}) = QQFieldElem()
+# Base.one(::Type{nf_scalar}) = QQFieldElem(1)
 
-Base.convert(::Type{nf_scalar}, x::Number) = convert(fmpq, x)
+Base.convert(::Type{nf_scalar}, x::Number) = convert(QQFieldElem, x)
 Base.convert(::Type{nf_scalar}, x::nf_elem) = x
 
 nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
@@ -76,57 +76,57 @@ function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x:
     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
 end
 
-Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::fmpq) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
+Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::QQFieldElem) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
 
 function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake.Rational})
     g = Polymake.generating_field_elements(x)
     if g.r == 0 || g.b == 0
-        return convert(fmpq, g.a)
+        return convert(QQFieldElem, g.a)
     end
-    R, a = quadratic_field(convert(fmpz,  g.r))
-    return convert(fmpq, g.a) + convert(fmpq, g.b) * a
+    R, a = quadratic_field(convert(ZZRingElem,  g.r))
+    return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
 end
 
-Base.convert(T::Type{<:Polymake.Matrix}, x::Union{fmpz_mat,fmpq_mat}) = Base.convert(T, Matrix(x))
+Base.convert(T::Type{<:Polymake.Matrix}, x::Union{ZZMatrix,QQMatrix}) = Base.convert(T, Matrix(x))
 
-Base.convert(::Type{<:Polymake.Integer}, x::fmpz) = GC.@preserve x return Polymake.new_integer_from_fmpz(x)
+Base.convert(::Type{<:Polymake.Integer}, x::ZZRingElem) = GC.@preserve x return Polymake.new_integer_from_fmpz(x)
 
-Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polymake.new_rational_from_fmpq(x)
+Base.convert(::Type{<:Polymake.Rational}, x::QQFieldElem) = GC.@preserve x return Polymake.new_rational_from_fmpq(x)
 
-Base.convert(::Type{<:Polymake.Rational}, x::fmpz) = GC.@preserve x return Polymake.new_rational_from_fmpz(x)
+Base.convert(::Type{<:Polymake.Rational}, x::ZZRingElem) = GC.@preserve x return Polymake.new_rational_from_fmpz(x)
 
-Base.convert(::Type{<:Polymake.Integer}, x::fmpq) = GC.@preserve x return Polymake.new_integer_from_fmpq(x)
+Base.convert(::Type{<:Polymake.Integer}, x::QQFieldElem) = GC.@preserve x return Polymake.new_integer_from_fmpq(x)
 
-function Base.convert(::Type{fmpz}, x::Polymake.Integer)
-    res = fmpz()
+function Base.convert(::Type{ZZRingElem}, x::Polymake.Integer)
+    res = ZZRingElem()
     GC.@preserve x Polymake.new_fmpz_from_integer(x, pointer_from_objref(res))
     return res
 end
 
-function Base.convert(::Type{fmpq}, x::Polymake.Rational)
-    res = fmpq()
+function Base.convert(::Type{QQFieldElem}, x::Polymake.Rational)
+    res = QQFieldElem()
     GC.@preserve x Polymake.new_fmpq_from_rational(x, pointer_from_objref(res))
     return res
 end
 
-function Base.convert(::Type{fmpq}, x::Polymake.Integer)
-    res = fmpq()
+function Base.convert(::Type{QQFieldElem}, x::Polymake.Integer)
+    res = QQFieldElem()
     GC.@preserve x Polymake.new_fmpq_from_integer(x, pointer_from_objref(res))
     return res
 end
 
-function Base.convert(::Type{fmpz}, x::Polymake.Rational)
-    res = fmpz()
+function Base.convert(::Type{ZZRingElem}, x::Polymake.Rational)
+    res = ZZRingElem()
     GC.@preserve x Polymake.new_fmpz_from_rational(x, pointer_from_objref(res))
     return res
 end
 
-(R::FlintRationalField)(x::Polymake.Rational) = convert(fmpq, x)
+(R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
 
-Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
-Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
-Polymake.convert_to_pm_type(::Type{Oscar.fmpz}) = Polymake.Integer
-Polymake.convert_to_pm_type(::Type{Oscar.fmpq}) = Polymake.Rational
+Polymake.convert_to_pm_type(::Type{Oscar.ZZMatrix}) = Polymake.Matrix{Polymake.Integer}
+Polymake.convert_to_pm_type(::Type{Oscar.QQMatrix}) = Polymake.Matrix{Polymake.Rational}
+Polymake.convert_to_pm_type(::Type{Oscar.ZZRingElem}) = Polymake.Integer
+Polymake.convert_to_pm_type(::Type{Oscar.QQFieldElem}) = Polymake.Rational
 
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
@@ -226,7 +226,7 @@ stack(A::AbstractVector, ::Nothing) = permutedims(A)
 stack(::Nothing, B::AbstractVector) = permutedims(B)
 stack(x, y, z...) = stack(stack(x, y), z...)
 stack(x) = stack(x, nothing)
-# stack(x::Union{fmpq_mat, fmpz_mat}, ::Nothing) = x
+# stack(x::Union{QQMatrix, ZZMatrix}, ::Nothing) = x
 #=
 function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2

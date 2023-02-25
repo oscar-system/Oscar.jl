@@ -20,7 +20,7 @@ end
 # missing functionality to write an element f ∈ I of an ideal as 
 # a linear combination of the generators of I
 function coordinates(f::MPolyRingElem, I::MPolyIdeal)
-  iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
+  iszero(f) && return zero(matrix_space(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
   f in I || error("polynomial does not belong to the ideal")
@@ -31,7 +31,7 @@ function coordinates(f::MPolyRingElem, I::MPolyIdeal)
   A_s = Matrix(a_s)
   U_s = Matrix(u_s)
   (ncols(U_s) == nrows(U_s) == 1 && iszero(U_s[1,1])) || error("no suitable ordering was used")
-  A = zero(MatrixSpace(R, 1, ngens(I)))
+  A = zero(matrix_space(R, 1, ngens(I)))
   for i in 1:ngens(I)
     A[1, i] = R(A_s[i, 1])
   end
@@ -52,7 +52,7 @@ function coordinates(f::MPolyQuoRingElem, I::MPolyQuoIdeal)
 end
 
 function lift(f::MPolyRingElem, I::MPolyIdeal, o::MonomialOrdering)
-  iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
+  iszero(f) && return zero(matrix_space(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
   Rsing = singular_poly_ring(R, o)
@@ -61,7 +61,7 @@ function lift(f::MPolyRingElem, I::MPolyIdeal, o::MonomialOrdering)
   a_s, rem_s, u_s = lift(gsing, fsing, false, false, false)
   A_s = Matrix(a_s)
   u = R(u_s[1,1])
-  A = zero(MatrixSpace(R, 1, ngens(I)))
+  A = zero(matrix_space(R, 1, ngens(I)))
   for i in 1:ngens(I)
     A[1, i] = R(A_s[i, 1])
   end

@@ -46,7 +46,7 @@ Polyhedron in ambient dimension 3
 julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
 Linear program
    min{c⋅x + k | x ∈ P}
-where P is a Polyhedron{fmpq} and
+where P is a Polyhedron{QQFieldElem} and
    c=Polymake.Rational[3 -2 4]
    k=2
 ```
@@ -59,7 +59,7 @@ julia> P = cube(3);
 julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
 
 julia> c, k = objective_function(LP)
-(fmpq[3, -2, 4], 2)
+(QQFieldElem[3, -2, 4], 2)
 
 julia> P == feasible_region(LP)
 true
@@ -74,17 +74,17 @@ julia> P = cube(3);
 julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
 
 julia> m, v = solve_lp(LP)
-(-7, fmpq[-1, 1, -1])
+(-7, QQFieldElem[-1, 1, -1])
 
 julia> ℓ = objective_function(LP; as = :function);
 
-julia> ℓ(v) == convert(fmpq, m)
+julia> ℓ(v) == convert(QQFieldElem, m)
 true
 ```
 
 !!! note "Infinite solutions"
     Note that the optimal value may be $\pm\infty$ which currently is
-    well-defined by `Polymake.jl`, but not with the `fmpq` number type. Hence
+    well-defined by `Polymake.jl`, but not with the `QQFieldElem` number type. Hence
     manual conversion is necessary, until this issue has been resolved.
 
 The optimal value and an optimal vertex may be obtained individually as well.
@@ -98,7 +98,7 @@ julia> M = optimal_value(LP)
 -7
 
 julia> V = optimal_vertex(LP)
-3-element PointVector{fmpq}:
+3-element PointVector{QQFieldElem}:
  -1
  1
  -1
@@ -114,7 +114,7 @@ solve_lp(LP::LinearProgram)
 optimal_value(lp::LinearProgram{T}) where T<:scalar_types
 optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
 load_lp(file::String)
-save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
 load_mps(file::String)
-save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
 ```

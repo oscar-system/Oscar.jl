@@ -1,4 +1,4 @@
-@testset "(MixedInteger)LinearProgram{$T}" for T in [fmpq, nf_elem]
+@testset "(MixedInteger)LinearProgram{$T}" for T in [QQFieldElem, nf_elem]
 
   pts = [1 0 0; 0 0 1]'
   Q0 = convex_hull(T, pts)
@@ -14,7 +14,7 @@
     affine_hull(point)
   end
   s = simplex(T, 2)
-  rsquare = cube(T, 2, fmpq(-3,2), fmpq(3,2))
+  rsquare = cube(T, 2, QQFieldElem(-3,2), QQFieldElem(3,2))
 
   @testset "linear programs" begin
     LP1 = LinearProgram(square,[1,3])
@@ -26,7 +26,7 @@
 
     @test solve_lp(LP1)==(4,[1,1])
     @test solve_lp(LP2)==(-1,[-1,-1])
-    if T == fmpq
+    if T == QQFieldElem
       str = ""
     else
       str = "pm::QuadraticExtension<pm::Rational>\n"
@@ -34,7 +34,7 @@
     @test string(solve_lp(LP3))==string("(", str, "inf, nothing)")
   end
 
-  if T == fmpq
+  if T == QQFieldElem
 
     @testset "mixed integer linear programs" begin
       MILP1 = MixedIntegerLinearProgram(rsquare, [1,3], integer_variables=[1])
@@ -46,7 +46,7 @@
 
       @test solve_milp(MILP1)==(11//2,[1,3//2])
       @test solve_milp(MILP2)==(-1,[-1,-1])
-      if T == fmpq
+      if T == QQFieldElem
         str = ""
       else
         str = "pm::QuadraticExtension<pm::Rational>\n"

@@ -37,7 +37,7 @@
       "type": "Tuple",
       "data": {
         "field_types": [
-          "fmpq",
+          "QQFieldElem",
           "Matrix",
           "Tuple"
         ],
@@ -56,7 +56,7 @@
                       "1//2",
                       "1"
                     ],
-                    "entry_type": "fmpq"
+                    "entry_type": "QQFieldElem"
                   }
                 },
                 {
@@ -67,7 +67,7 @@
                       "0",
                       "1"
                     ],
-                    "entry_type": "fmpq"
+                    "entry_type": "QQFieldElem"
                   }
                 }
               ]

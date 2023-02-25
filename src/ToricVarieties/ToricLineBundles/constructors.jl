@@ -51,7 +51,7 @@ Construct the line bundle on the abstract normal toric variety `v` with class `c
 julia> v = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = toric_line_bundle(v, [fmpz(2)])
+julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 ```
 """
@@ -120,8 +120,8 @@ function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
     return toric_line_bundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
 end
 Base.:inv(l::ToricLineBundle) = toric_line_bundle(toric_variety(l), (-1)*divisor_class(l))
-Base.:^(l::ToricLineBundle, p::fmpz) = toric_line_bundle(toric_variety(l), p * divisor_class(l))
-Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
+Base.:^(l::ToricLineBundle, p::ZZRingElem) = toric_line_bundle(toric_variety(l), p * divisor_class(l))
+Base.:^(l::ToricLineBundle, p::Int) = l^ZZRingElem(p)
 
 
 ########################

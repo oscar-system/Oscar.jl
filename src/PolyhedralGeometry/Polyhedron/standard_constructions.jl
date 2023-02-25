@@ -20,7 +20,7 @@ julia> b = birkhoff_polytope(3)
 Polyhedron in ambient dimension 9
 
 julia> vertices(b)
-6-element SubObjectIterator{PointVector{fmpq}}:
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 0, 0, 0, 1, 0, 0, 0, 1]
  [0, 1, 0, 1, 0, 0, 0, 0, 1]
  [0, 0, 1, 1, 0, 0, 0, 1, 0]
@@ -50,7 +50,7 @@ julia> c = cube(2)
 Polyhedron in ambient dimension 2
 
 julia> vertices(pyramid(c,5))
-5-element SubObjectIterator{PointVector{fmpq}}:
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
  [-1, -1, 0]
  [1, -1, 0]
  [-1, 1, 0]
@@ -82,7 +82,7 @@ julia> c = cube(2)
 Polyhedron in ambient dimension 2
 
 julia> vertices(bipyramid(c,2))
-6-element SubObjectIterator{PointVector{fmpq}}:
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
  [-1, -1, 0]
  [1, -1, 0]
  [-1, 1, 0]
@@ -113,7 +113,7 @@ julia> square = cube(2)
 Polyhedron in ambient dimension 2
 
 julia> vertices(square)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [-1, -1]
  [1, -1]
  [-1, 1]
@@ -123,7 +123,7 @@ julia> nc = normal_cone(square, 1)
 Polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 ```
@@ -154,7 +154,7 @@ julia> P = orbit_polytope(V, G)
 Polyhedron in ambient dimension 3
 
 julia> vertices(P)
-6-element SubObjectIterator{PointVector{fmpq}}:
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 2, 3]
  [1, 3, 2]
  [2, 1, 3]
@@ -171,11 +171,11 @@ function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
-   return Polyhedron{fmpq}(pmPolytope)
+   return Polyhedron{QQFieldElem}(pmPolytope)
 end
 
 @doc Markdown.doc"""
-    cube([::Type{T} = fmpq,] d::Int , [l::Rational = -1, u::Rational = 1])
+    cube([::Type{T} = QQFieldElem,] d::Int , [l::Rational = -1, u::Rational = 1])
 
 Construct the $[l,u]$-cube in dimension $d$.
 
@@ -190,9 +190,9 @@ julia> normalized_volume(C)
 ```
 """
 cube(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
-cube(d::Int) = cube(fmpq, d)
+cube(d::Int) = cube(QQFieldElem, d)
 cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
-cube(d::Int, l, u) = cube(fmpq, d, l, u)
+cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
 @doc Markdown.doc"""
     tetrahedron()
@@ -253,8 +253,8 @@ Compute the Newton polytope of the multivariate polynomial `poly`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y) = PolynomialRing(ZZ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Integer Ring, fmpz_mpoly[x, y])
+julia> S, (x, y) = polynomial_ring(ZZ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Integer Ring, ZZMPolyRingElem[x, y])
 
 julia> f = x^3*y + 3x*y^2 + 1
 x^3*y + 3*x*y^2 + 1
@@ -263,7 +263,7 @@ julia> NP = newton_polytope(f)
 Polyhedron in ambient dimension 2
 
 julia> vertices(NP)
-3-element SubObjectIterator{PointVector{fmpq}}:
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
  [3, 1]
  [1, 2]
  [0, 0]
@@ -277,11 +277,11 @@ end
 
 Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(normal_vector(H), negbias(H))
 
-Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(normal_vector(H), negbias(H))
+Polyhedron(H::Halfspace{Union{QQFieldElem, nf_elem}}) = Polyhedron{nf_elem}(normal_vector(H), negbias(H))
 
 Polyhedron(H::Hyperplane{T}) where T<:scalar_types = Polyhedron{T}(nothing, (normal_vector(H), [negbias(H)]))
 
-Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(nothing, (normal_vector(H), [negbias(H)]))
+Polyhedron(H::Hyperplane{Union{QQFieldElem, nf_elem}}) = Polyhedron{nf_elem}(nothing, (normal_vector(H), [negbias(H)]))
 
 @doc Markdown.doc"""
     intersect(P::Polyhedron, Q::Polyhedron)
@@ -300,7 +300,7 @@ julia> PO = intersect(UH1, UH2)
 Polyhedron in ambient dimension 2
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
 ```
@@ -400,7 +400,7 @@ Polyhedron in ambient dimension 3
 julia> T=convex_hull(L₁,L₂);
 
 julia> f_vector(T)
-2-element Vector{fmpz}:
+2-element Vector{ZZRingElem}:
  4
  4
 ```
@@ -503,7 +503,7 @@ julia> S = P + v
 Polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0, 0]
  [1, 0, 0]
  [0, 1, 0]
@@ -538,7 +538,7 @@ julia> S = v + P
 Polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0, 0]
  [1, 0, 0]
  [0, 1, 0]
@@ -549,7 +549,7 @@ julia> vertices(S)
 
 @doc Markdown.doc"""
 
-    simplex([::Type{T} = fmpq,] d::Int [,n::Rational])
+    simplex([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
 along with the origin in $\mathbb{R}^d$, scaled by $n$.
@@ -561,7 +561,7 @@ julia> s = simplex(7)
 Polyhedron in ambient dimension 7
 
 julia> facets(s)
-8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
 -x₁ ≦ 0
 -x₂ ≦ 0
 -x₃ ≦ 0
@@ -575,7 +575,7 @@ julia> t = simplex(7, 5)
 Polyhedron in ambient dimension 7
 
 julia> facets(t)
-8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
 -x₁ ≦ 0
 -x₂ ≦ 0
 -x₃ ≦ 0
@@ -587,14 +587,14 @@ x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
 simplex(::Type{T}, d::Int, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
-simplex(d::Int, n) = simplex(fmpq, d, n)
+simplex(d::Int, n) = simplex(QQFieldElem, d, n)
 simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
-simplex(d::Int) = simplex(fmpq, d)
+simplex(d::Int) = simplex(QQFieldElem, d)
 
 
 @doc Markdown.doc"""
 
-    cross_polytope([::Type{T} = fmpq,] d::Int [,n::Rational])
+    cross_polytope([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
 at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
@@ -607,7 +607,7 @@ julia> C = cross_polytope(3)
 Polyhedron in ambient dimension 3
 
 julia> facets(C)
-8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
 x₁ + x₂ + x₃ ≦ 1
 -x₁ + x₂ + x₃ ≦ 1
 x₁ - x₂ + x₃ ≦ 1
@@ -621,7 +621,7 @@ julia> D = cross_polytope(3, 2)
 Polyhedron in ambient dimension 3
 
 julia> facets(D)
-8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
 x₁ + x₂ + x₃ ≦ 2
 -x₁ + x₂ + x₃ ≦ 2
 x₁ - x₂ + x₃ ≦ 2
@@ -633,9 +633,9 @@ x₁ - x₂ - x₃ ≦ 2
 ```
 """
 cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
-cross_polytope(d::Int64, n) = cross_polytope(fmpq, d, n)
+cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
 cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
-cross_polytope(d::Int64) = cross_polytope(fmpq, d)
+cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc Markdown.doc"""
 
@@ -835,7 +835,7 @@ julia> P = polarize(square)
 Polyhedron in ambient dimension 2
 
 julia> vertices(P)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 0]
  [-1, 0]
  [0, 1]
@@ -893,7 +893,7 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
 
 @doc Markdown.doc"""
     fano_simplex(d::Int)
@@ -912,7 +912,7 @@ julia> is_smooth(X)
 true
 ```
 """
-fano_simplex(d::Int) = Polyhedron{fmpq}(Polymake.polytope.fano_simplex(d))
+fano_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.fano_simplex(d))
 
 @doc Markdown.doc"""
     del_pezzo_polytope(d::Int)
@@ -925,14 +925,14 @@ julia> DP = del_pezzo_polytope(4)
 Polyhedron in ambient dimension 4
 
 julia> f_vector(DP)
-4-element Vector{fmpz}:
+4-element Vector{ZZRingElem}:
  10
  40
  60
  30
 ```
 """
-del_pezzo_polytope(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))
+del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.delpezzo(d))
 
 
 
@@ -988,7 +988,7 @@ julia> rsph = rand_spherical_polytope(3, 4; precision=5, seed=132)
 Polyhedron in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
-4-element Vector{fmpq}:
+4-element Vector{QQFieldElem}:
  4306545//4194304
  15849//16384
  4165//4096
@@ -998,7 +998,7 @@ julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
 Polyhedron in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
-4-element Vector{fmpq}:
+4-element Vector{QQFieldElem}:
  1
  1
  1
@@ -1022,7 +1022,7 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
     opts[:precision] = convert(Int64, precision)
   end
   pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
-  return Polyhedron{fmpq}(pm_obj)
+  return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =

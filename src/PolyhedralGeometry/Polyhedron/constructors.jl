@@ -19,8 +19,8 @@ struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
     Polyhedron{T}(p::Polymake.BigObject) where T<:scalar_types = new{T}(p)
 end
 
-# default scalar type: `fmpq`
-Polyhedron(x...) = Polyhedron{fmpq}(x...)
+# default scalar type: `QQFieldElem`
+Polyhedron(x...) = Polyhedron{QQFieldElem}(x...)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
@@ -88,7 +88,7 @@ julia> dim(P)
 1
 
 julia> vertices(P)
-2-element SubObjectIterator{PointVector{fmpq}}:
+2-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 0]
  [0, 0]
 ```
@@ -123,7 +123,7 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull([::Type{T} = fmpq,] V [, R [, L]]; non_redundant::Bool = false)
+    convex_hull([::Type{T} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
@@ -197,7 +197,7 @@ function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{Abs
     end
 end
 
-convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(fmpq, V, R, L; non_redundant=non_redundant)
+convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(QQFieldElem, V, R, L; non_redundant=non_redundant)
 
 ###############################################################################
 ###############################################################################
@@ -208,7 +208,7 @@ function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
     try
         ad = ambient_dim(P)
         print(io, "Polyhedron in ambient dimension $(ad)")
-        T != fmpq && print(io, " with $T type coefficients")
+        T != QQFieldElem && print(io, " with $T type coefficients")
     catch e
         print(io, "Polyhedron without ambient dimension")
     end

@@ -14,7 +14,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> is_smooth(affine_toric_scheme)
 true
@@ -26,7 +26,7 @@ julia> antv2 = affine_normal_toric_variety(C2)
 Normal, affine toric variety
 
 julia> affine_toric_scheme2 = ToricSpec(antv2)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[-1, 1], [1, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[-1, 1], [1, 1]]
 
 julia> is_smooth(affine_toric_scheme2)
 false
@@ -52,7 +52,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[-1, 1], [1, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[-1, 1], [1, 1]]
 
 julia> is_smooth(affine_toric_scheme)
 false

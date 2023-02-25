@@ -15,7 +15,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> underlying_scheme(affine_toric_scheme)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2 over Rational Field by ideal()
@@ -40,7 +40,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> affine_normal_toric_variety(affine_toric_scheme)
 Normal, affine toric variety
@@ -65,7 +65,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> cone(affine_toric_scheme)
 Polyhedral cone in ambient dimension 2
@@ -90,7 +90,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> dual_cone(affine_toric_scheme)
 Polyhedral cone in ambient dimension 2
@@ -119,13 +119,13 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[-1, 1], [1, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[-1, 1], [1, 1]]
 
 julia> dc = dual_cone(affine_toric_scheme)
 Polyhedral cone in ambient dimension 2
 
 julia> rays(dc)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 1]
  [-1, 1]
 

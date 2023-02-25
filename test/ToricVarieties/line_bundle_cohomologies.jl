@@ -13,7 +13,7 @@ using Test
     
     vs = vanishing_sets(dP3)
     vs2 = vanishing_sets(P2)
-    R,_ = PolynomialRing(QQ, 3)
+    R,_ = polynomial_ring(QQ, 3)
     
     @testset "Cohomology with cohomCalg on dP3" begin
         @test cohomology(l, 0) == 0

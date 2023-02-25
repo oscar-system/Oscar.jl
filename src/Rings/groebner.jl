@@ -19,8 +19,8 @@ accessing `I.gb.S`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
@@ -73,8 +73,8 @@ returned in `B.S`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
@@ -127,7 +127,7 @@ The keyword `algorithm` can be set to
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"]);
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
 
 julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
@@ -196,7 +196,7 @@ The keyword `algorithm` can be set to
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [y-x^2, z-x^3]);
 
@@ -209,7 +209,7 @@ with respect to the ordering
 degrevlex([x, y, z])
 
 julia> elements(G)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  -x*z + y^2
  x*y - z
  x^2 - y
@@ -241,7 +241,7 @@ with respect to the ordering
 wdegrevlex([x, y], [1, 3])
 ```
 ```jldoctest
-julia> R, (a, b, c, d, e, f, g) = PolynomialRing(QQ, ["a", "b", "c", "d", "e", "f", "g"]);
+julia> R, (a, b, c, d, e, f, g) = polynomial_ring(QQ, ["a", "b", "c", "d", "e", "f", "g"]);
 
 julia> V = [-3*a^2+2*f*b+3*f*d, (3*g*b+3*g*e)*a-3*f*c*b,
                -3*g^2*a^2-c*b^2*a-g^2*f*e-g^4, e*a-f*b-d*c];
@@ -259,7 +259,7 @@ julia> total_degree(G[296])
 30
 ```
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> V = [3*x^3*y+x^3+x*y^3+y^2*z^2, 2*x^3*z-x*y-x*z^3-y^4-z^2,
                2*x^2*y*z-2*x*y^2+x*z^2-y^4];
@@ -304,8 +304,8 @@ See [Fau99](@cite) for more information.
 
 # Examples
 ```jldoctest
-julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"], ordering=:degrevlex)
-(Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, gfp_mpoly[x, y, z])
+julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
+(Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, fpMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
@@ -364,8 +364,8 @@ and the transformation matrix from the ideal to the standard basis. Return value
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
@@ -410,7 +410,7 @@ is a transformation matrix from `gens(I)` to `G`. That is, `gens(I)*T == G`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
+julia> R,(x,y) = polynomial_ring(QQ,["x","y"]);
 
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
@@ -445,7 +445,7 @@ is a transformation matrix from `gens(I)` to `G`. That is, `gens(I)*T == G`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
+julia> R,(x,y) = polynomial_ring(QQ,["x","y"]);
 
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
@@ -474,11 +474,11 @@ Return generators for the syzygies on the polynomials given as elements of `G`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
-3-element Vector{FreeModElem{fmpq_mpoly}}:
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
  (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
  (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
  (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
@@ -502,8 +502,8 @@ Return the leading ideal of `G` with respect to `ordering`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(R))
 ideal(x*y^2, y^5)
@@ -532,8 +532,8 @@ Return the leading ideal of `I` with respect to `ordering`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
 ideal(x*y^2 - 3*x, x^3 - 14*y^5)
@@ -564,14 +564,14 @@ This may take some time.
 
 # Examples
 ```jldoctest
-julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
+(Multivariate Polynomial Ring in a, b, c over Rational Field, QQMPolyRingElem[a, b, c])
 
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
 julia> gens(groebner_basis(J))
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  b + c - 1
  a*c - 2*a + c
 
@@ -582,7 +582,7 @@ julia> I = Singular.Ideal(SR,[SR(-1+c+b+a^3),SR(-1+b+c*a+2*a^3),SR(5+c*b+c^2*a)]
 Singular ideal over Singular Polynomial Ring (QQ),(a,b,c),(dp(3),C) with generators (a^3 + b + c - 1, 2*a^3 + a*c + b - 1, a*c^2 + b*c + 5)
 
 julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  a^3
  2*a^3 + 2*a - 2*c
  4*a - 2*c^2 - c + 5
@@ -608,7 +608,7 @@ are zero.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(GF(11), ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(GF(11), ["x", "y", "z"]);
 
 julia> I = ideal(R, [x^2, x*y - y^2]);
 
@@ -616,11 +616,11 @@ julia> J = ideal(R, [y^3])
 ideal(y^3)
 
 julia> reduce(J.gens, I.gens)
-1-element Vector{gfp_mpoly}:
+1-element Vector{fpMPolyRingElem}:
  y^3
 
 julia> reduce(J.gens, groebner_basis(I))
-1-element Vector{gfp_mpoly}:
+1-element Vector{fpMPolyRingElem}:
  0
 
 julia> reduce(y^3, [x^2, x*y-y^3])
@@ -630,7 +630,7 @@ julia> reduce(y^3, [x^2, x*y-y^3], ordering=lex(R))
 y^3
 
 julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
-1-element Vector{gfp_mpoly}:
+1-element Vector{fpMPolyRingElem}:
  y^3
 ```
 """
@@ -659,7 +659,7 @@ Return a `Vector` which contains, for each element `g` of `G`, a remainder as ab
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> reduce(y^3, [x^2, x*y-y^3])
 x*y
@@ -669,7 +669,7 @@ y^3
 ```
 
 ```jldoctest
-julia> R, (z, y, x) = PolynomialRing(QQ, ["z", "y", "x"]);
+julia> R, (z, y, x) = polynomial_ring(QQ, ["z", "y", "x"]);
 
 julia> f1 = y-x^2; f2 = z-x^3;
 
@@ -712,7 +712,7 @@ Return a `Vector` which contains, for each element `g` of `G`, a unit, quotients
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
 
@@ -733,7 +733,7 @@ julia> U
 [0   1]
 
 julia> H
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  -z^9 + z^7 + z^6 + z^4
  -3*z^7 + z^6
 
@@ -773,18 +773,18 @@ have the same number of elements as `I`, even if they are zero.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(GF(11), ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(GF(11), ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
-julia> R, (x, y) = PolynomialRing(GF(11), ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(GF(11), ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
 julia> J = ideal(R, [x+1]);
 
 julia> unit, M, res = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
-([x+1], [x], gfp_mpoly[0])
+([x+1], [x], fpMPolyRingElem[0])
 
 julia> M * gens(J) + res == unit * gens(I)
 true
@@ -793,7 +793,7 @@ julia> f = x^3*y^2-y^4-10
 x^3*y^2 + 10*y^4 + 1
 
 julia> F = [x^2*y-y^3, x^3-y^4]
-2-element Vector{gfp_mpoly}:
+2-element Vector{fpMPolyRingElem}:
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
@@ -826,7 +826,7 @@ of elements as `I`, even if they are zero.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(GF(11), ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(GF(11), ["x", "y", "z"]);
 
 julia> J = ideal(R, [x^2, x*y - y^2]);
 
@@ -841,7 +841,7 @@ with respect to the ordering
 degrevlex([x, y, z])
 
 julia> M, res = reduce_with_quotients(I.gens, gb)
-([1 0 0; 0 0 1], gfp_mpoly[y^2, 0])
+([1 0 0; 0 0 1], fpMPolyRingElem[y^2, 0])
 
 julia> M * gens(gb) + res == gens(I)
 true
@@ -850,7 +850,7 @@ julia> f = x^3*y^2-y^4-10
 x^3*y^2 + 10*y^4 + 1
 
 julia> F = [x^2*y-y^3, x^3-y^4]
-2-element Vector{gfp_mpoly}:
+2-element Vector{fpMPolyRingElem}:
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
@@ -887,7 +887,7 @@ Return a `Vector` which contains, for each element `g` of `G`, quotients and a r
 # Examples
 
 ```jldoctest
-julia> R, (z, y, x) = PolynomialRing(QQ, ["z", "y", "x"]);
+julia> R, (z, y, x) = polynomial_ring(QQ, ["z", "y", "x"]);
 
 julia> f1 = y-x^2; f2 = z-x^3;
 
@@ -913,7 +913,7 @@ julia> Q
 [y^2*x - 3*y*x^8 + y*x^3 - 3*x^10 + x^5     -3*z*y^2*x^2 - 3*y^2*x^5]
 
 julia> H
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  -3*x^10 + x^6 + x^5
  -3*x^12 + x^7
 
@@ -960,25 +960,25 @@ Return a `Vector` which contains for each element `g` of `G` a normal form as ab
 
 # Examples
 ```jldoctest
-julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
+(Multivariate Polynomial Ring in a, b, c over Rational Field, QQMPolyRingElem[a, b, c])
 
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
 julia> gens(groebner_basis(J))
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  b + c - 1
  a*c - 2*a + c
 
 julia> normal_form(-1+c+b+a^3, J)
 a^3
 
-julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
+(Multivariate Polynomial Ring in a, b, c over Rational Field, QQMPolyRingElem[a, b, c])
 
 julia> A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  a^3 + b + c - 1
  2*a^3 + a*c + b - 1
  a*c^2 + b*c + 5
@@ -987,12 +987,12 @@ julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
 julia> gens(groebner_basis(J))
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  b + c - 1
  a*c - 2*a + c
 
 julia> normal_form(A, J)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  a^3
  2*a^3 + 2*a - 2*c
  4*a - 2*c^2 - c + 5
@@ -1018,8 +1018,8 @@ Tests if a given IdealGens `F` is a standard basis w.r.t. the given monomial ord
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2+y,x*y-y])
 ideal(x^2 + y, x*y - y)
@@ -1068,8 +1068,8 @@ Tests if a given IdealGens `F` is a Gröbner basis w.r.t. the given monomial ord
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2+y,x*y-y])
 ideal(x^2 + y, x*y - y)
@@ -1104,8 +1104,8 @@ to a Gröbner basis `H` w.r.t. another monomial ordering `ordering` for `<G>`.
 
 # Examples
 ```jldoctest
-julia> R, (x1, x2, x3, x4) = PolynomialRing(GF(101), ["x1", "x2", "x3", "x4"])
-(Multivariate Polynomial Ring in x1, x2, x3, x4 over Galois field with characteristic 101, gfp_mpoly[x1, x2, x3, x4])
+julia> R, (x1, x2, x3, x4) = polynomial_ring(GF(101), ["x1", "x2", "x3", "x4"])
+(Multivariate Polynomial Ring in x1, x2, x3, x4 over Galois field with characteristic 101, fpMPolyRingElem[x1, x2, x3, x4])
 
 julia> J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
        x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
@@ -1140,7 +1140,7 @@ function _fglm(G::IdealGens, ordering::MonomialOrdering)
 	(G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
 	singular_assure(G)
 	Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
-	SR_destination, = Singular.PolynomialRing(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
+	SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
 	ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
 	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
@@ -1160,7 +1160,7 @@ Given a **zero-dimensional** ideal `I`, return a Gröbner basis of `I` with resp
 
 # Examples
 ```jldoctest
-julia> R, (a, b, c, d, e) = PolynomialRing(QQ, ["a", "b", "c", "d", "e"]);
+julia> R, (a, b, c, d, e) = polynomial_ring(QQ, ["a", "b", "c", "d", "e"]);
 
 julia> f1 = a+b+c+d+e;
 
@@ -1210,8 +1210,8 @@ Computes a reduced Gröbner basis for `I` w.r.t. `destination_ordering` using th
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2+y,x*y-y])
 ideal(x^2 + y, x*y - y)
@@ -1272,7 +1272,7 @@ resulting Hilbert series to optimize the Gröbner basis computation for
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = grade(PolynomialRing(QQ, ["x", "y", "z"])[1]);
+julia> R, (x, y, z) = grade(polynomial_ring(QQ, ["x", "y", "z"])[1]);
 
 julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
 
@@ -1300,7 +1300,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
       p = Hecke.next_prime(p)
         
       base_field = GF(p)
-      ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
+      ModP, _ = grade(polynomial_ring(base_field, "x" => 1:ngens(base_ring(I)))[1],
                       _extract_weights(base_ring(I)))
       I_mod_p_gens =
       try

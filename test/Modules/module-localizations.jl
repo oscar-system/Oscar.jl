@@ -36,7 +36,7 @@ end
   B, D = Oscar.clear_denominators(A)
   @test mul(change_base_ring(S, D), A) == B
 
-  b = MatrixSpace(S, 1, 1)((x+y)*x + 5*y//(x+y)^10)
+  b = matrix_space(S, 1, 1)((x+y)*x + 5*y//(x+y)^10)
   (success, v) = Oscar.has_solution(A, b)
   @test success
   @test v*A == b
@@ -44,7 +44,7 @@ end
   V = MPolyComplementOfPrimeIdeal(ideal(R, [x,y]))
   S, _ = Localization(V)
   A = S[x//(x+y+1); y*(x-5)^3]
-  b = MatrixSpace(S, 1, 1)((x+y)*x + 5*y//(x+y+2)^10)
+  b = matrix_space(S, 1, 1)((x+y)*x + 5*y//(x+y+2)^10)
   success, v = Oscar.has_solution(A, b)
   @test success
   @test v*A == b
@@ -61,7 +61,7 @@ end
   v_new = sum([w[i]*M[i] for i in 1:length(w)])
   @test v_new == M(v)
 
-  g = MatrixSpace(S, 1, 1)((x^2+y^3)//(x+1))
+  g = matrix_space(S, 1, 1)((x^2+y^3)//(x+1))
   N, pr = quo(G, g)
   Kpr, incKpr = kernel(pr)
   @test represents_element((x^2+y^3)*G[1], Kpr)

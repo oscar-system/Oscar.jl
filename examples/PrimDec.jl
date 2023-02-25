@@ -103,7 +103,7 @@ function decomp_internal(I::Singular.sideal, primary::Array{Singular.sideal}, co
 
     T = G.base_ring
     K, u = Singular.FunctionField(Singular.QQ, string.(u))
-    S, x_minus_u = Singular.PolynomialRing(K, string.(x_minus_u), ordering=:lex)
+    S, x_minus_u = Singular.polynomial_ring(K, string.(x_minus_u), ordering=:lex)
 
     ptr1 = Singular.libSingular.n_SetMap(base_ring(T).ptr, base_ring(S).ptr)
     Q = Singular.Ideal(S, S(0))
@@ -165,7 +165,7 @@ function reductionToZero(I::Singular.sideal, u::Vector{Singular.spoly{U}}, x_min
 
     #map to K(u)[x\u]
     K, u = Singular.FunctionField(Singular.QQ, string.(u))
-    S, x_minus_u = Singular.PolynomialRing(K, string.(x_minus_u))
+    S, x_minus_u = Singular.polynomial_ring(K, string.(x_minus_u))
     ptr1 = Singular.libSingular.n_SetMap(base_ring(T).ptr, base_ring(S).ptr)
     h = K(1)
     transitionA = vcat(0, -1*collect(1:length(u)), collect(1:length(x_minus_u)))
@@ -248,7 +248,7 @@ end
 function customLexOrdering(I:: Singular.sideal, H::Vector{T}) where T <: Singular.spoly
     R = I.base_ring;
     Hstring = ["$i" for i in H]
-    S, = Singular.PolynomialRing(R.base_ring, Hstring, ordering=:lex)
+    S, = Singular.polynomial_ring(R.base_ring, Hstring, ordering=:lex)
 
     index_H = Array{Singular.spoly}(undef, length(H))
     map_back = Array{Singular.spoly}(undef, length(H))

@@ -172,7 +172,7 @@ is_finiteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
 
 """
-    order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
+    order(::Type{T} = ZZRingElem, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 
 Return the order of `x`, as an instance of `T`.
 
@@ -191,7 +191,7 @@ function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUn
    return T(ord)
 end
 
-order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
+order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x)
 
 @gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)::Bool
 @gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GAP.Obj(val))
@@ -201,13 +201,13 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 
 @doc Markdown.doc"""
-    exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
+    exponent(::Type{T} = ZZRingElem, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
 i.e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """
-@gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X)::GapInt)
+@gapattribute exponent(x::GAPGroup) = ZZRingElem(GAP.Globals.Exponent(x.X)::GapInt)
 
 Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X)::GapInt)
 
@@ -304,7 +304,7 @@ Base.inv(x::GAPGroupElem) = group_element(parent(x), GAPWrap.Inverse(x.X))
 
 Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 
-Base.:^(x::GAPGroupElem, y::fmpz) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
+Base.:^(x::GAPGroupElem, y::ZZRingElem) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
 
@@ -507,7 +507,7 @@ end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC
 
-Base.length(C::GroupConjClass) = fmpz(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default fmpz
+Base.length(C::GroupConjClass) = ZZRingElem(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default ZZRingElem
 
 """
     representative(C::GroupConjClass)
@@ -581,7 +581,7 @@ end
 
 Return the number of conjugacy classes of elements in `G`.
 """
-@gapattribute number_conjugacy_classes(G::GAPGroup) = fmpz(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default fmpz
+@gapattribute number_conjugacy_classes(G::GAPGroup) = ZZRingElem(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default ZZRingElem
 
 """
     conjugacy_classes(G::Group)
@@ -662,7 +662,7 @@ function conjugacy_classes_subgroups(G::GAPGroup)
 end
 
 """
-    subgroup_reps(G::GAPGroup; order::fmpz = fmpz(-1))
+    subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
 
 Return a vector of representatives (under conjugation) for all subgroups of `G`.
 If given, only subgroups of a certain order are returned.
@@ -678,13 +678,13 @@ julia> subgroup_reps(G)
  Group([ (1,2,3) ])
  Group([ (1,2,3), (2,3) ])
 
-julia> subgroup_reps(G, order = fmpz(2))
+julia> subgroup_reps(G, order = ZZRingElem(2))
 1-element Vector{PermGroup}:
  Group([ (2,3) ])
 
 ```
 """
-function subgroup_reps(G::GAPGroup; order::fmpz = fmpz(-1))
+function subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
   C = GAP.Globals.ConjugacyClassesSubgroups(G.X)
   C = map(GAP.Globals.Representative, C)
   if order != -1
@@ -1394,7 +1394,7 @@ function is_pgroup_with_prime(G::GAPGroup)
   is_trivial(G) && return true, nothing
   if is_pgroup(G)
     p = GAPWrap.PrimePGroup(G.X)
-    return true, fmpz(p)  # TODO: allow specifying the type used for the prime
+    return true, ZZRingElem(p)  # TODO: allow specifying the type used for the prime
   end
   return false, nothing
 end
@@ -1415,7 +1415,7 @@ end
 
 
 """
-    prime_of_pgroup(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
+    prime_of_pgroup(::Type{T} = ZZRingElem, G::GAPGroup) where T <: IntegerUnion
 
 Return the prime ``p`` if `G` is a non-trivial ``p``-group.
 
@@ -1442,8 +1442,8 @@ function prime_of_pgroup(::Type{T}, G::GAPGroup) where T <: IntegerUnion
   return T(_prime_of_pgroup(G))
 end
 
-# set default value for first argument T to fmpz
-prime_of_pgroup(G::GAPGroup) = prime_of_pgroup(fmpz, G)
+# set default value for first argument T to ZZRingElem
+prime_of_pgroup(G::GAPGroup) = prime_of_pgroup(ZZRingElem, G)
 
 """
     has_prime_of_pgroup(G::GAPGroup)

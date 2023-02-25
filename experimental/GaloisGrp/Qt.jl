@@ -85,16 +85,16 @@ for analysis of the denominator and the infinite valuations
 =#
 
 
-function _galois_init(F::Generic.FunctionField{fmpq}; tStart::Int = -1)
+function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   f = defining_polynomial(F)
   @assert is_monic(f)
-  Zxy, (x, y) = PolynomialRing(FlintZZ, 2, cached = false)
+  Zxy, (x, y) = polynomial_ring(FlintZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
   df = f*d
 
   dd = lcm(map(denominator, coefficients(d)))
-  dd = lcm(dd, lcm(map(x->reduce(lcm, map(denominator, coefficients(numerator(x))), init=fmpz(1)), coefficients(df))))
+  dd = lcm(dd, lcm(map(x->reduce(lcm, map(denominator, coefficients(numerator(x))), init=ZZRingElem(1)), coefficients(df))))
   @assert isone(dd) #needs fixing....
   df *= dd
 
@@ -108,7 +108,7 @@ function _galois_init(F::Generic.FunctionField{fmpq}; tStart::Int = -1)
 end
 
 
-function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
+function _subfields(FF::Generic.FunctionField, f::ZZMPolyRingElem; tStart::Int = -1)
   Zxt = parent(f)
   X,T = gens(Zxt)
 
@@ -118,13 +118,13 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   @vprint :Subfields 2 "for $f\n"
 
   d = numerator(discriminant(FF))
-  rt = roots(d, ComplexField(20))
+  rt = roots(d, AcbField(20))
   t = tStart
-  local g::fmpz_poly
+  local g::ZZPolyRingElem
   while true
     t += 1
     g = evaluate(f, [gen(Zx), Zx(t)])
-    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && is_irreducible(g)
+    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), ZZRingElem) >= 2 && is_irreducible(g)
       break
     end
     if t > 10
@@ -149,7 +149,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   return C, K, p
 end
 
-function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
+function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = false)
   tStart = -1
   tr = -1
   while true
@@ -180,11 +180,11 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     rC = roots(C, (1,1))
     rS = roots(S, 1)
 
-    F, mF = ResidueField(parent(rC[1]))
-    G, mG = ResidueField(F)
+    F, mF = residue_field(parent(rC[1]))
+    G, mG = residue_field(F)
     Qt_to_G = x->G(numerator(x)(tStart))//G(denominator(x)(tStart))
 
-    H, mH = ResidueField(parent(rS[1]))
+    H, mH = residue_field(parent(rS[1]))
 
     mp = embed(H, G)
     _rC = map(x->mG(mF(x)), rC)
@@ -284,7 +284,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
 end
 
 """
-    subfields(FF:Generic.FunctionField{fmpq})
+    subfields(FF:Generic.FunctionField{QQFieldElem})
 
 For a finite extension of the univariate function field over the rationals, 
 find all subfields. The implemented algorithm proceeds by substituting
@@ -293,7 +293,7 @@ of the resulting number field and lifting this information.
 
 It is an adaptation of Klueners.
 """
-function Hecke.subfields(FF::Generic.FunctionField{fmpq})
+function Hecke.subfields(FF::Generic.FunctionField{QQFieldElem})
   C, K, p = _galois_init(FF)
   f = C.C.f
 
@@ -308,8 +308,8 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   @vtime :Subfields  2  R = roots(C, prec)
   
   F = parent(R[1]) # should be Qq<<t>>
-  Qq, mQq = ResidueField(F)
-  Fq, mFq = ResidueField(Qq)
+  Qq, mQq = residue_field(F)
+  Fq, mFq = residue_field(Qq)
 
   rc = map(ComposedFunction(mFq, mQq), R)
 
@@ -353,7 +353,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   return res
 end 
 
-function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
+function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::ZZPolyRingElem = gen(Hecke.Globals.Zx))    
 
   SL = SLPolyRing(ZZ, length(bs)*length(bs[1]))
   sx = gens(SL)
@@ -482,7 +482,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
   c = coefficients(C.C.f, 1)
   # start with the degree...
   d = C.B.val[3]
-  dd = fmpq(0)
+  dd = QQFieldElem(0)
   for i=2:length(c)
     if !iszero(c[i])
       dd = max(dd, degree(c[i], 2)+(i-1)*d)
@@ -522,7 +522,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
 
     local ff
     try
-      @vtime :Subfields 2 ff = interpolate(PolynomialRing(F)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
+      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
     catch e
       @show e
       return nothing
@@ -581,7 +581,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
   return ps, emb
 end
 
-function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Generic.RelSeries{qadic})
+function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQFieldElem}}, r::Generic.RelSeries{qadic})
 #  @show "testing", r, "against", B
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
@@ -624,7 +624,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
 end
 
-function Hecke.newton_polygon(f::Generic.Poly{<:Generic.Rat{fmpq}})
+function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{QQFieldElem}})
   pt = Tuple{Int, Int}[]
   for i=0:degree(f)
     c = coeff(f, i)
@@ -635,7 +635,7 @@ function Hecke.newton_polygon(f::Generic.Poly{<:Generic.Rat{fmpq}})
   return Hecke.lower_convex_hull(pt)
 end
 
-function valuations_of_roots(f::Generic.Poly{<:Generic.Rat{T}}) where {T}
+function valuations_of_roots(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}) where {T}
   return [(slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
@@ -643,18 +643,18 @@ Hecke.lines(P::Hecke.Polygon) = P.lines
 slope(l::Hecke.Line) = l.slope
 export slope
 
-function valuation_of_roots(f::fmpz_poly, p::fmpz)
+function valuation_of_roots(f::ZZPolyRingElem, p::ZZRingElem)
   @assert is_prime(p)
   x = gen(parent(f))
   N = Hecke.newton_polygon(f, x, p)
   return [(slope(l), length(l)) for l = Hecke.lines(N)]
 end
 
-function valuation_of_roots(f::fmpz_poly, p::Integer)
-  return valuation_of_roots(f, fmpz(p))
+function valuation_of_roots(f::ZZPolyRingElem, p::Integer)
+  return valuation_of_roots(f, ZZRingElem(p))
 end
 
-function valuation_of_roots(f::fmpq_poly, p)
+function valuation_of_roots(f::QQPolyRingElem, p)
   return valuation_of_roots(numerator(f), p)
 end
 
@@ -677,7 +677,7 @@ end
 
 function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
   d = degree(base_ring(f))
-  return [(fmpq(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
+  return [(QQFieldElem(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
 

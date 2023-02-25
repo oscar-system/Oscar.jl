@@ -49,7 +49,7 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
 ```jldoctest
 julia> K, a = FiniteField(2, 2, "a");
 
-julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> F = hom(R, R, z -> z^2, [y, x])
 Map with following data
@@ -66,7 +66,7 @@ julia> F(a * y)
 julia> Qi, i = quadratic_field(-1)
 (Imaginary quadratic field defined by x^2 + 1, sqrt(-1))
 
-julia> S, (x, y) = PolynomialRing(Qi, ["x", "y"]);
+julia> S, (x, y) = polynomial_ring(Qi, ["x", "y"]);
 
 julia> G = hom(S, S, hom(Qi, Qi, -i), [x^2, y^2])
 Map with following data
@@ -80,11 +80,11 @@ Multivariate Polynomial Ring in x, y over Imaginary quadratic field defined by x
 julia> G(x+i*y)
 x^2 - sqrt(-1)*y^2
 
-julia> R, (x, y) = PolynomialRing(ZZ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
 
 julia> f = 3*x^2+2*x+1;
 
-julia> S, (x, y) = PolynomialRing(GF(2), ["x", "y"]);
+julia> S, (x, y) = polynomial_ring(GF(2), ["x", "y"]);
 
 julia> H = hom(R, S, gens(S))
 Map with following data

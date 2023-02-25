@@ -2,7 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  R, (s,t) = PolynomialRing(kk, ["s", "t"])
+  R, (s,t) = polynomial_ring(kk, ["s", "t"])
   S, _ = grade(R, [1, 1])
 
   base_P1 = ProjectiveScheme(S)
@@ -61,13 +61,13 @@
   @test KK(f, g) + KK(f, g) == KK(2*f//g)
   h = KK(f, g)
   @test h[V] == f//g
-  K = FractionField(R)
+  K = fraction_field(R)
   @test K(h) == f//g
 
   @test KK(f+2*g-5, g) + KK(f+2*g-5, g) == KK(2*(f+2*g-5)//g)
   h = KK(f+2*g-5, g)
   @test h[V] == (f+2*g-5)//g
-  K = FractionField(R)
+  K = fraction_field(R)
   @test K(h) == (f+2*g-5)//g
 
   # create an elliptically fibered K3
@@ -95,7 +95,7 @@ end
 
 @testset "orders on divisors" begin
   kk = QQ
-  R, (s,t) = PolynomialRing(kk, ["s", "t"])
+  R, (s,t) = polynomial_ring(kk, ["s", "t"])
   X = Spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
@@ -139,7 +139,7 @@ end
   H = ideal(S, [x, y+z])
   J = ideal_sheaf(C, H)
 
-  coeff_dict = IdDict{IdealSheaf, fmpz}()
+  coeff_dict = IdDict{IdealSheaf, ZZRingElem}()
   coeff_dict[J] = ZZ(3)
   D = WeilDivisor(X, ZZ, coeff_dict)
   @test D == 3*weil_divisor(J)

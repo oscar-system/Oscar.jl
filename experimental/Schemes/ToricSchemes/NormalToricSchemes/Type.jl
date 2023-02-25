@@ -10,7 +10,7 @@ export ToricCoveredScheme
     C = maximal_cones(F)
 
     antv = affine_open_covering(ntv)
-    rings = [PolynomialRing(coefficient_ring(antv[k]), ["x_$(i)_$(k)" for i in 1:ngens(base_ring(toric_ideal(antv[k])))], cached=false)[1] for k in 1:length(antv)]
+    rings = [polynomial_ring(coefficient_ring(antv[k]), ["x_$(i)_$(k)" for i in 1:ngens(base_ring(toric_ideal(antv[k])))], cached=false)[1] for k in 1:length(antv)]
     patch_list = [ToricSpec(U, R=R) for (U, R) in zip(antv, rings)]
     cov = Covering(patch_list)
 
@@ -74,7 +74,7 @@ export ToricCoveredScheme
         end
         Idext = identity_matrix(ZZ, ncols(AX))
         Idext[l,l] = 0
-        img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(MatrixSpace(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
+        img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
         fres = hom(OO(V), OO(U), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for w in img_gens])
         
         l = 0
@@ -86,7 +86,7 @@ export ToricCoveredScheme
         end
         Idext = identity_matrix(ZZ, ncols(AY))
         Idext[l,l] = 0
-        img_gens = [solve_mixed(AY, AX[:, k], Idext, zero(MatrixSpace(ZZ, ncols(Idext), 1))) for k in 1:ncols(AX)]
+        img_gens = [solve_mixed(AY, AX[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AX)]
         gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
         
         set_attribute!(gres, :inverse, fres)

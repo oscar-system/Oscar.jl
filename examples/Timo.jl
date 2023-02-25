@@ -1,4 +1,4 @@
-function timo(f::fmpq_poly, p_all::Vector{Int})
+function timo(f::QQPolyRingElem, p_all::Vector{Int})
 
   G, S = galois_group(f)
   K = Oscar.SolveRadical._fixed_field(S, [sub(G, [one(G)])[1]])
@@ -17,7 +17,7 @@ function timo(f::fmpq_poly, p_all::Vector{Int})
   data = []
   for P = i
     @show "doin' ", minimum(P)
-    F, mF = ResidueField(order(P), P)
+    F, mF = residue_field(order(P), P)
     #the uniformizer is a generator for the local maximal order
     # over the unramifed subfield
     #the generator of the residue class field generates the

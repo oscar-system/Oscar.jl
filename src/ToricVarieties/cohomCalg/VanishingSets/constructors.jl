@@ -4,9 +4,9 @@
 
 @attributes mutable struct ToricVanishingSet
     toric_variety::AbstractNormalToricVariety
-    ps::Vector{Polyhedron{fmpq}}
+    ps::Vector{Polyhedron{QQFieldElem}}
     i::Int
-    function ToricVanishingSet(toric_variety::AbstractNormalToricVariety, ps::Vector{Polyhedron{fmpq}}, i::Int)
+    function ToricVanishingSet(toric_variety::AbstractNormalToricVariety, ps::Vector{Polyhedron{QQFieldElem}}, i::Int)
         if !all(p -> ambient_dim(p) == rank(picard_group(toric_variety)), ps)
             throw(ArgumentError("The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety"))
         end
@@ -18,7 +18,7 @@
 end
 export ToricVanishingSet
 
-toric_vanishing_set(v::AbstractNormalToricVariety, ps::Vector{Polyhedron{fmpq}}, i::Int) = ToricVanishingSet(v, ps)
+toric_vanishing_set(v::AbstractNormalToricVariety, ps::Vector{Polyhedron{QQFieldElem}}, i::Int) = ToricVanishingSet(v, ps)
 export toric_vanishing_set
 
 

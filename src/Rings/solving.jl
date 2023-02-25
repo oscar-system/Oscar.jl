@@ -20,14 +20,14 @@ is greater than zero an empty array is returned.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2-y^2, x+1])
 ideal(x^2 - y^2, x + 1)
 
 julia> real_solutions(I)
-(Vector{fmpq}[[-1, -1], [-1, 1]], AlgebraicSolving.RationalParametrization([:x, :y], fmpz[], x^2 - 1, 2*x, PolyElem[-2*x]))
+(Vector{QQFieldElem}[[-1, -1], [-1, 1]], AlgebraicSolving.RationalParametrization([:x, :y], ZZRingElem[], x^2 - 1, 2*x, PolyRingElem[-2*x]))
 ```
 """
 function real_solutions(
@@ -79,19 +79,19 @@ is greater than zero an empty array is returned.
 
 # Examples
 ```jldoctest
-julia> R,(x1,x2,x3) = PolynomialRing(QQ, ["x1","x2","x3"])
-(Multivariate Polynomial Ring in x1, x2, x3 over Rational Field, fmpq_mpoly[x1, x2, x3])
+julia> R,(x1,x2,x3) = polynomial_ring(QQ, ["x1","x2","x3"])
+(Multivariate Polynomial Ring in x1, x2, x3 over Rational Field, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
 ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
 
 julia> rat_sols = Oscar._rational_solutions(I)
-2-element Vector{Vector{fmpq}}:
+2-element Vector{Vector{QQFieldElem}}:
  [1, 0, 0]
  [1//3, 0, 1//3]
 
 julia> map(r->map(p->evaluate(p, r), I.gens), rat_sols)
-2-element Vector{Vector{fmpq}}:
+2-element Vector{Vector{QQFieldElem}}:
  [0, 0, 0]
  [0, 0, 0]
 ```
@@ -134,17 +134,17 @@ Given a zero-dimensional ideal, return all rational elements of the vanishing
 set.
 
 ```jldoctest
-julia> R, (x1,x2,x3) = PolynomialRing(QQ, ["x1","x2","x3"]);
+julia> R, (x1,x2,x3) = polynomial_ring(QQ, ["x1","x2","x3"]);
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2]);
 
 julia> rat_sols = rational_solutions(I)
-2-element Vector{Vector{fmpq}}:
+2-element Vector{Vector{QQFieldElem}}:
  [1, 0, 0]
  [1//3, 0, 1//3]
 
 julia> map(r->map(p->evaluate(p, r), gens(I)), rat_sols)
-2-element Vector{Vector{fmpq}}:
+2-element Vector{Vector{QQFieldElem}}:
  [0, 0, 0]
  [0, 0, 0]
 ```
@@ -158,7 +158,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
   @req dim(I) == 0 "Dimension must be zero"
   @assert length(gb) == ngens(base_ring(I))
   R = base_ring(I)
-  Qx, _ = PolynomialRing(base_ring(R), cached = false)
+  Qx, _ = polynomial_ring(base_ring(R), cached = false)
   rts = [elem_type(Qx)[zero(Qx) for i = gens(R)]]
   i = ngens(R)
   for f in gb
@@ -180,7 +180,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
   return [[constant_coefficient(x) for x in r] for r in rts]
 end
 
-function rational_solutions(I::MPolyIdeal{fmpq_mpoly})
+function rational_solutions(I::MPolyIdeal{QQMPolyRingElem})
   # Call msolve/AlgebraicSolving
   return _rational_solutions(I)
 end
@@ -202,7 +202,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyDecRingElem})
   #TODO: make this work for non-standard gradings
   S = base_ring(I)
   R = S.R
-  RS, _ = PolynomialRing(base_ring(R), ngens(S) - 1, cached = false)
+  RS, _ = polynomial_ring(base_ring(R), ngens(S) - 1, cached = false)
   Q = base_ring(R)
   all_S = Vector{elem_type(Q)}[]
   for i=1:ngens(S)

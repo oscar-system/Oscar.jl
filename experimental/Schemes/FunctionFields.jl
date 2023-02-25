@@ -125,7 +125,7 @@ function Base.:(//)(a::Integer, b::T) where {T<:VarietyFunctionFieldElem}
   return (parent(b))(a//representative(b))
 end
 
-function Base.:(//)(a::fmpz, b::T) where {T<:VarietyFunctionFieldElem}
+function Base.:(//)(a::ZZRingElem, b::T) where {T<:VarietyFunctionFieldElem}
   return (parent(b))(a//representative(b))
 end
 
@@ -148,7 +148,7 @@ end
 function ^(a::VarietyFunctionFieldElem, i::Integer)
   return parent(a)(representative(a)^i, check=false)
 end
-function ^(a::VarietyFunctionFieldElem, i::fmpz)
+function ^(a::VarietyFunctionFieldElem, i::ZZRingElem)
   return parent(a)(representative(a)^i, check=false)
 end
 

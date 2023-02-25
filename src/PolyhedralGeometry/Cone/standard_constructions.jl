@@ -20,7 +20,7 @@ julia> C01 = intersect(C0, C1)
 Polyhedral cone in ambient dimension 2
 
 julia> rays(C01)
-0-element SubObjectIterator{RayVector{fmpq}}
+0-element SubObjectIterator{RayVector{QQFieldElem}}
 
 julia> dim(C01)
 0
@@ -46,7 +46,7 @@ julia> Cv = polarize(C)
 Polyhedral cone in ambient dimension 2
 
 julia> rays(Cv)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 1//2]
  [0, 1]
 ```

@@ -1,7 +1,7 @@
 @testset "kernels via flattenings" begin
   R, (x,y,z) = QQ["x", "y", "z"]
 
-  S, _ = PolynomialRing(R, ["s", "t"])
+  S, _ = polynomial_ring(R, ["s", "t"])
   phi = oscar.flatten(S)
   @test vcat(phi.(gens(S)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -16,7 +16,7 @@
   @test S(gens(R)[1] - gens(R)[2]) in K
 
   R, _ = quo(R, ideal(R, sum(gens(R))))
-  S, _ = PolynomialRing(R, ["s", "t"])
+  S, _ = polynomial_ring(R, ["s", "t"])
   phi = oscar.flatten(S)
   @test vcat(phi.(gens(S)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -33,7 +33,7 @@
   R = base_ring(R)
   U = powers_of_element(sum(gens(R)))
   R, _ = localization(R, U)
-  S, _ = PolynomialRing(R, ["s", "t"])
+  S, _ = polynomial_ring(R, ["s", "t"])
   phi = oscar.flatten(S)
   @test vcat(phi.(gens(S)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -50,7 +50,7 @@
  
   I = ideal(R, first(gens(R))^2)
   R, _ = quo(R, I)
-  S, _ = PolynomialRing(R, ["s", "t"])
+  S, _ = polynomial_ring(R, ["s", "t"])
   phi = oscar.flatten(S)
   @test vcat(phi.(gens(S)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -68,7 +68,7 @@ end
 @testset "cross kernel computations" begin
   R, (x,y,z) = QQ["x", "y", "z"]
 
-  S, (s, t) = PolynomialRing(R, ["s", "t"])
+  S, (s, t) = polynomial_ring(R, ["s", "t"])
 
   f = hom(R, S, [s, s, t])
   @test x-y in kernel(f)

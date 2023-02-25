@@ -1,7 +1,7 @@
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
-abstract type AbstractNormalToricVariety <: _FanLikeType{fmpq} end
+abstract type AbstractNormalToricVariety <: _FanLikeType{QQFieldElem} end
 
 @attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
@@ -300,7 +300,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bo
         set_attribute!(variety, :dim, d)
         set_attribute!(variety, :dim_of_torusfactor, 0)
         set_attribute!(variety, :euler_characteristic, d+1)
-        set_attribute!(variety, :betti_number, fill(fmpz(1), d+1))
+        set_attribute!(variety, :betti_number, fill(ZZRingElem(1), d+1))
         set_attribute!(variety, :character_lattice, free_abelian_group(d))
     end
     
@@ -337,8 +337,8 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
     # Since we cannot deal with lattices that are finer than ZZ^n, we scale
     # everything up by the corresponding lcms.
     lcms = [lcm(w[1], w[i]) for i in 2:length(w)]
-    lattice_gens = fmpz_mat(length(w), length(w)-1)
-    ray_gens = fmpz_mat(length(w), length(w)-1)
+    lattice_gens = ZZMatrix(length(w), length(w)-1)
+    ray_gens = ZZMatrix(length(w), length(w)-1)
     lattice_gens[1,:] = [-div(i, w[1]) for i in lcms]
     ray_gens[1,:] = -lcms
     for i in 1:length(w)-1
@@ -423,7 +423,7 @@ function hirzebruch_surface(r::Int; set_attributes::Bool = true)
         set_attribute!(variety, :dim, 2)
         set_attribute!(variety, :dim_of_torusfactor, 0)
         set_attribute!(variety, :euler_characteristic, 4)
-        set_attribute!(variety, :betti_number, [fmpz(1), fmpz(2), fmpz(1)])
+        set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(2), ZZRingElem(1)])
         set_attribute!(variety, :character_lattice, free_abelian_group(2))
         set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
     end
@@ -523,19 +523,19 @@ function del_pezzo_surface(b::Int; set_attributes::Bool = true)
         set_attribute!(variety, :dim_of_torusfactor, 0)
         if b == 1
             set_attribute!(variety, :euler_characteristic, 4)
-            set_attribute!(variety, :betti_number, [fmpz(1), fmpz(2), fmpz(1)])
+            set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(2), ZZRingElem(1)])
             set_attribute!(variety, :character_lattice, free_abelian_group(2))
             set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
         end
         if b == 2
             set_attribute!(variety, :euler_characteristic, 5)
-            set_attribute!(variety, :betti_number, [fmpz(1), fmpz(3), fmpz(1)])
+            set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(3), ZZRingElem(1)])
             set_attribute!(variety, :character_lattice, free_abelian_group(2))
             set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
         end
         if b == 3
             set_attribute!(variety, :euler_characteristic, 6)
-            set_attribute!(variety, :betti_number, [fmpz(1), fmpz(4), fmpz(1)])
+            set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(4), ZZRingElem(1)])
             set_attribute!(variety, :character_lattice, free_abelian_group(2))
             set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
         end
@@ -689,7 +689,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attr
     trias = star_triangulations(P)
     
     # Currently, the rays in trias[1]
-    # (a) are encoded as fmpq_mat (fmpz expected)
+    # (a) are encoded as QQMatrix (ZZRingElem expected)
     # (b) contain the origin as first element (not a rays, so to be removed)
     rays = trias[1]
     integral_rays = zeros(ZZ, nrows(rays)-1, ncols(rays))
@@ -714,7 +714,7 @@ export normal_toric_varieties_from_star_triangulations
 ############################
 
 @doc Markdown.doc"""
-    normal_toric_varieties_from_glsm(charges::fmpz_mat; set_attributes::Bool = true)
+    normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 
 Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
 originally sparked interest in the physics community in toric varieties.
@@ -749,9 +749,9 @@ julia> normal_toric_varieties_from_glsm(charges)
 
 For convenience, we also support:
 - normal_toric_varieties_from_glsm(charges::Vector{Vector{Int}})
-- normal_toric_varieties_from_glsm(charges::Vector{Vector{fmpz}})
+- normal_toric_varieties_from_glsm(charges::Vector{Vector{ZZRingElem}})
 """
-function normal_toric_varieties_from_glsm(charges::fmpz_mat; set_attributes::Bool = true)
+function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
     # compute the map from Div_T -> Cl
     source = free_abelian_group(ncols(charges))
     range = free_abelian_group(nrows(charges))
@@ -767,7 +767,7 @@ function normal_toric_varieties_from_glsm(charges::fmpz_mat; set_attributes::Boo
     # construct vertices of polyhedron
     pts = zeros(QQ, nrows(rays), ncols(charges)-nrows(charges))
     for i in 1:nrows(rays)
-        pts[i, :] = [fmpz(c) for c in rays[i, :]]
+        pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
     end
     zero = [0 for i in 1:ncols(charges)-nrows(charges)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))

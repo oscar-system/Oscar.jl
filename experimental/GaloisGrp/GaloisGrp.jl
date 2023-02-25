@@ -26,7 +26,7 @@ Actually, not even a ring. Defined in terms of operations
  - `mul` used for multiplication
  - `add` for addition
  - `pow` for powering with Int exponent
- - `map` to create elements from (large) integers/ fmpz
+ - `map` to create elements from (large) integers/ ZZRingElem
  - `name` is only used for printing.
 """
 struct BoundRing{T}  <: AbstractAlgebra.Ring
@@ -70,7 +70,7 @@ function *(a::BoundRingElem, b::BoundRingElem)
   return c
 end
 
-function *(a::fmpz, b::BoundRingElem) 
+function *(a::ZZRingElem, b::BoundRingElem) 
   c = BoundRingElem(b.p.mul(b.p.map(a), b.val), b.p)
 #  @show a, ":*", b, ":=", c
   return c
@@ -91,9 +91,9 @@ Oscar.elem_type(::BoundRing{T}) where T = BoundRingElem{T}
 Oscar.parent_type(::Type{BoundRingElem{T}}) where T = BoundRing{T}
 Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
-(R::BoundRing{T})(a::fmpz) where T = BoundRingElem{T}(R.map(abs(a)), R)
-(R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(fmpz(a), R)
-(R::BoundRing{T})() where T = BoundRingElem{T}(fmpz(0), R)
+(R::BoundRing{T})(a::ZZRingElem) where T = BoundRingElem{T}(R.map(abs(a)), R)
+(R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(ZZRingElem(a), R)
+(R::BoundRing{T})() where T = BoundRingElem{T}(ZZRingElem(0), R)
 (R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
 (R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
@@ -109,13 +109,13 @@ Operations are:
  - `ab  := a+b`
 """
 function max_ring()
-  return BoundRing{fmpz}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
+  return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
 end
 
 """
 Normal ring
 """
-function add_ring(;type::Type=fmpz)
+function add_ring(;type::Type=ZZRingElem)
   return BoundRing{type}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
 end
 
@@ -123,25 +123,25 @@ end
 #we have |a_n| <= r^-n B (n+1)^k for B = x[1], k = x[2]
 #and deg(rt) <= x[3] (infinite valuation)
 function qt_ring()
-  return BoundRing{Tuple{fmpz, Int, fmpq}}( (x,y) -> (x[1]*y[1], x[2]+y[2]+1, x[3]+y[3]),
+  return BoundRing{Tuple{ZZRingElem, Int, QQFieldElem}}( (x,y) -> (x[1]*y[1], x[2]+y[2]+1, x[3]+y[3]),
                                             (x,y) -> (x[1]+y[1], max(x[2], y[2]), max(x[3], y[3])),
                                             (x,y) -> (x[1]^y, y*x[2]+y-1, y*x[3]),
                                                 x -> _coerce_qt(x), "qt-ring")
 end
 
-_coerce_qt(x::fmpz) = (abs(x), 0, fmpq(0))
-_coerce_qt(x::Integer) = (fmpz(x), 0, fmpq(0))
-function _coerce_qt(x::fmpz_poly)
+_coerce_qt(x::ZZRingElem) = (abs(x), 0, QQFieldElem(0))
+_coerce_qt(x::Integer) = (ZZRingElem(x), 0, QQFieldElem(0))
+function _coerce_qt(x::ZZPolyRingElem)
   if iszero(x)
-    return (fmpz(0), 0, fmpq(0))
+    return (ZZRingElem(0), 0, QQFieldElem(0))
   end
-  return (maximum(abs, coefficients(x))*(degree(x)+1), 0, fmpq(0))
+  return (maximum(abs, coefficients(x))*(degree(x)+1), 0, QQFieldElem(0))
 end
 
-(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::Tuple{fmpz, Int, fmpq}) = BoundRingElem(a, R)
-(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::Integer) = BoundRingElem(R.map(a), R)
-(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::fmpz) = BoundRingElem(R.map(a), R)
-(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::fmpz_poly) = BoundRingElem(R.map(a), R)
+(R::BoundRing{Tuple{ZZRingElem, Int, QQFieldElem}})(a::Tuple{ZZRingElem, Int, QQFieldElem}) = BoundRingElem(a, R)
+(R::BoundRing{Tuple{ZZRingElem, Int, QQFieldElem}})(a::Integer) = BoundRingElem(R.map(a), R)
+(R::BoundRing{Tuple{ZZRingElem, Int, QQFieldElem}})(a::ZZRingElem) = BoundRingElem(R.map(a), R)
+(R::BoundRing{Tuple{ZZRingElem, Int, QQFieldElem}})(a::ZZPolyRingElem) = BoundRingElem(R.map(a), R)
 
 """
 An slpoly evaluated at `cost_ring` elements `0` will count the number
@@ -155,7 +155,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function cost_ring()
-  return BoundRing{fmpz}( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
+  return BoundRing{ZZRingElem}( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
 end
 
 """
@@ -169,21 +169,21 @@ Operations:
  - all constants are mapped to `0`
 """
 function degree_ring()
-  return BoundRing{fmpz}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
+  return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
 end
 
 @doc Markdown.doc"""
     cost(I::SLPoly)
 
 Counts the number of multiplications to evaluate `I`, optionally
-a Tschirnhaus transformation (`fmpz_poly`) can be passed in as well.
+a Tschirnhaus transformation (`ZZPolyRingElem`) can be passed in as well.
 """
 function cost(I::SLPoly)
   n = ngens(parent(I))
   C = cost_ring()
   return value(evaluate(I, [C(0) for i = 1:n]))
 end
-function cost(I::SLPoly, ts::fmpz_poly)
+function cost(I::SLPoly, ts::ZZPolyRingElem)
   n = ngens(parent(I))
   C = cost_ring()
   return value(evaluate(I, [C(0) for i = 1:n]))+n*degree(ts)
@@ -261,23 +261,23 @@ function (R::SLPolyRing)(a::SLPoly)
 end
 
 @doc Markdown.doc"""
-    roots_upper_bound(f::fmpz_poly) -> fmpz
+    roots_upper_bound(f::ZZPolyRingElem) -> ZZRingElem
 
 An upper upper_bound for the absolute value of the complex roots of the input.    
 Uses the Cauchy bound.
 """
-function Nemo.roots_upper_bound(f::fmpz_poly)
+function Nemo.roots_upper_bound(f::ZZPolyRingElem)
   a = coeff(f, degree(f))
-  b = ceil(fmpz, abs(coeff(f, degree(f)-1)//a))
+  b = ceil(ZZRingElem, abs(coeff(f, degree(f)-1)//a))
   for i=0:degree(f)-2
-    b = max(b, root(ceil(fmpz, abs(coeff(f, i)//a)), degree(f)-i)+1)
+    b = max(b, root(ceil(ZZRingElem, abs(coeff(f, i)//a)), degree(f)-i)+1)
   end
   return 2*b
-  return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
+  return max(ZZRingElem(1), maximum([ceil(ZZRingElem, abs(coeff(f, i)//a)) for i=0:degree(f)]))
 end
-function Nemo.roots_upper_bound(f::fmpq_poly)
+function Nemo.roots_upper_bound(f::QQPolyRingElem)
   a = coeff(f, degree(f))
-  return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
+  return max(ZZRingElem(1), maximum([ceil(ZZRingElem, abs(coeff(f, i)//a)) for i=0:degree(f)]))
 end
 
 #roots are sums of m distinct roots of f
@@ -285,23 +285,23 @@ end
 #Symmetric Functions, m-Sets, and Galois Groups
 #by David Casperson and John McKay
 @doc Markdown.doc"""
-    msum_poly(f::PolyElem, m::Int)
+    msum_poly(f::PolyRingElem, m::Int)
 
 Compute the polynomial with roots sums of `m` roots of `f` using
 resultants.
 """
-function msum_poly(f::PolyElem, m::Int)
+function msum_poly(f::PolyRingElem, m::Int)
   f = divexact(f, leading_coefficient(f))
   N = binomial(degree(f), m)
   p = Hecke.polynomial_to_power_sums(f, N)
   p = vcat([degree(f)*one(base_ring(f))], p)
-  S, a = PowerSeriesRing(base_ring(f), N+1, "a")
-  Hfs = S([p[i]//factorial(fmpz(i-1)) for i=1:length(p)], N+1, N+1, 0)
+  S, a = power_series_ring(base_ring(f), N+1, "a")
+  Hfs = S([p[i]//factorial(ZZRingElem(i-1)) for i=1:length(p)], N+1, N+1, 0)
   H = [S(1), Hfs]
   for i=2:m
     push!(H, 1//i*sum((-1)^(h+1)*Hfs(h*a)*H[i-h+1] for h=1:i))
   end
-  p = [coeff(H[end], i)*factorial(fmpz(i)) for i=0:N]
+  p = [coeff(H[end], i)*factorial(ZZRingElem(i)) for i=0:N]
   return Hecke.power_sums_to_polynomial(p[2:end])
 end
 
@@ -325,12 +325,12 @@ Depends on type of
 However, `f` is hardly ever used. 
 """
 mutable struct GaloisCtx{T}
-  f::PolyElem
+  f::PolyRingElem
   C::T # a suitable root context
   B::BoundRingElem # a "bound" on the roots, might be "anything"
   G::PermGroup
   rt_num::Dict{Int, Int}
-  chn::Vector{Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}}
+  chn::Vector{Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}}
   start::Tuple{Int, Vector{Vector{Vector{Int}}}} # data for the starting group:
     # if start[1] == 1: start[2] is a list of the block systems used
     #             == 2  start[2] is a list of the orbits of the msum-poly, ie. a list of a list of pairs
@@ -345,44 +345,44 @@ mutable struct GaloisCtx{T}
     the starting group  and the block systems used to get them
   =#
   prime::Any #=can be
-   - fmpz/ Int: prime number, used over Q
+   - ZZRingElem/ Int: prime number, used over Q
    - NfOrdIdl : prime ideal , used over NfAbs
    - (Int, Int): evaluation point, prime number used over Q(t)
    =#
 
-  function GaloisCtx(f::fmpz_poly, ::AcbField)
+  function GaloisCtx(f::ZZPolyRingElem, ::AcbField)
     r = new{ComplexRootCtx}()
     r.f = f
     r.C = ComplexRootCtx(f)
     r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
     return r
   end
 
-  function GaloisCtx(f::fmpq_poly, x::AcbField)
+  function GaloisCtx(f::QQPolyRingElem, x::AcbField)
     return GaloisCtx(numerator(f), x)
   end
 
-  function GaloisCtx(f::fmpz_poly, p::Int)
+  function GaloisCtx(f::ZZPolyRingElem, p::Int)
     r = new{Hecke.qAdicRootCtx}()
     r.prime = p
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
     r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
     return r
   end
 
-  function GaloisCtx(f::fmpz_poly)
+  function GaloisCtx(f::ZZPolyRingElem)
     r = new{SymbolicRootCtx}()
     r.f = f
     r.C = SymbolicRootCtx(f)
     r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
     return r
   end
 
-  function GaloisCtx(f::fmpq_poly, p::Int)
+  function GaloisCtx(f::QQPolyRingElem, p::Int)
     d = mapreduce(denominator, lcm, coefficients(f))
     return GaloisCtx(Hecke.Globals.Zx(d*f), p)
   end
@@ -394,25 +394,25 @@ mutable struct GaloisCtx{T}
     - needs merging in Hecke
   =#
 
-  function GaloisCtx(f::fmpz_mpoly, shft::Int, p::Int, d::Int)
+  function GaloisCtx(f::ZZMPolyRingElem, shft::Int, p::Int, d::Int)
     f = evaluate(f, [gen(parent(f), 1), gen(parent(f), 2)+shft])
     #f(x, T+t), the roots are power series in T over qAdic(p, d)
     #so basically for f in Qq<<(T+t)>> 
     @assert ngens(parent(f)) == 2
     Qq, _ = QadicField(p, d, 10)
-    F, mF = ResidueField(Qq)
+    F, mF = residue_field(Qq)
     H = Hecke.MPolyFact.HenselCtxFqRelSeries(f, F)
-    SQq, _ = PowerSeriesRing(Qq, 2, "s", cached = false)
-    SQqt, _ = PolynomialRing(SQq, "t", cached = false)
+    SQq, _ = power_series_ring(Qq, 2, "s", cached = false)
+    SQqt, _ = polynomial_ring(SQq, "t", cached = false)
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
     r.prime = (shft, p)
     Qt, t = RationalFunctionField(QQ, "t", cached = false)
-    Qts, s = PolynomialRing(Qt, "s", cached = false)
+    Qts, s = polynomial_ring(Qt, "s", cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
     
     vl = roots_upper_bound(f)
     r.B = qt_ring()(vl[1])
@@ -422,7 +422,7 @@ mutable struct GaloisCtx{T}
   end
   function GaloisCtx(T::Type)
     r = new{T}()
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
     return r
   end
 end
@@ -431,19 +431,19 @@ function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.R
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, extra=(0, 0)) where {T}
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{ZZRingElem, Int, QQFieldElem}}, extra=(0, 0)) where {T}
   if isa(extra, Int)
     extra = (extra, min(2, div(extra, 3)))
   end
   C, k, d = B.val
   r = G.data[1]
   #so power series prec need to be floor(Int, d)
-  n = floor(fmpz, d+1)
+  n = floor(ZZRingElem, d+1)
   #padic: we ne |a_i| for i=0:n and |a_i| <= C (i+1)^k/r^i
   #and then log_p()
   #according to the Qt file, a_i is maximal around k/log(r) -1
   if G.data[3] #we're simulating CC, so we don't care about the p-adics (too much)
-    b = max(C, fmpz(10)^10)
+    b = max(C, ZZRingElem(10)^10)
   elseif isone(r)
     b = C*(n+1)^k
   else
@@ -454,24 +454,24 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, f
       b = max(C*(c+1)^k//r^c, C*(c+2)^k//r^(c+1))
     end
   end
-  b = max(b, fmpz(1))
-  return (clog(floor(fmpz, b), prime(G))+extra[1], Int(n)+extra[2])
+  b = max(b, ZZRingElem(1))
+  return (clog(floor(ZZRingElem, b), prime(G))+extra[1], Int(n)+extra[2])
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{ZZRingElem}, extra::Int = 5) where {T}
   return clog(B.val, G.C.p)+extra
 end
 
 mutable struct ComplexRootCtx
-  f::fmpz_poly
+  f::ZZPolyRingElem
   pr::Int
   rt::Vector{acb}
-  function ComplexRootCtx(f::fmpz_poly)
+  function ComplexRootCtx(f::ZZPolyRingElem)
     @assert ismonic(f)
-    rt = roots(f, ComplexField(20))
+    rt = roots(f, AcbField(20))
     return new(f, 20, rt)
   end
-  function ComplexRootCtx(f::fmpq_poly)
+  function ComplexRootCtx(f::QQPolyRingElem)
     return ComplexRootCtx(numerator(f))
   end
 end
@@ -484,7 +484,7 @@ function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = fal
   if C.C.pr >= pr
     return C.C.rt
   end
-  rt = roots(C.C.f, ComplexField(pr))
+  rt = roots(C.C.f, AcbField(pr))
   C.C.pr = pr
   n = length(rt)
   for i=1:n
@@ -495,21 +495,21 @@ end
 
 function isinteger(GC::GaloisCtx{ComplexRootCtx}, B::BoundRingElem, e)
   if abs(imag(e)) > 1e-10
-    return false, fmpz(0)
+    return false, ZZRingElem(0)
   end
-  r = round(fmpz, real(e))
+  r = round(ZZRingElem, real(e))
   if abs(real(e)-r) > 1e-10
-    return false, fmpz(0)
+    return false, ZZRingElem(0)
   else
     return true, r
   end
 end
 
-function bound_to_precision(G::GaloisCtx{ComplexRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5)
+function bound_to_precision(G::GaloisCtx{ComplexRootCtx}, B::BoundRingElem{ZZRingElem}, extra::Int = 5)
   return 2*clog(B.val, 2) + 10
 end
 
-function map_coeff(G::GaloisCtx{ComplexRootCtx}, a::fmpq)
+function map_coeff(G::GaloisCtx{ComplexRootCtx}, a::QQFieldElem)
   return parent(G.C.rt[1])(a)
 end
 
@@ -529,14 +529,14 @@ function Hecke.MPolyFact.block_system(a::Vector{acb}, eps = 1e-9)
 end
 
 mutable struct SymbolicRootCtx
-  f::fmpz_poly
+  f::ZZPolyRingElem
   rt::Vector{nf_elem}
-  function SymbolicRootCtx(f::fmpz_poly)
+  function SymbolicRootCtx(f::ZZPolyRingElem)
     @assert ismonic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
-  function SymbolicRootCtx(f::fmpq_poly)
+  function SymbolicRootCtx(f::QQPolyRingElem)
     return SymbolicRootCtx(numerator(f))
   end
 end
@@ -553,31 +553,31 @@ function isinteger(GC::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem, e)
   if Oscar.is_integer(e)
     return true, ZZ(e)
   else
-    return false, fmpz(0)
+    return false, ZZRingElem(0)
   end
 end
 
-function bound_to_precision(G::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5)
+function bound_to_precision(G::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem{ZZRingElem}, extra::Int = 5)
   return 1
 end
 
-function map_coeff(G::GaloisCtx{SymbolicRootCtx}, a::fmpq)
+function map_coeff(G::GaloisCtx{SymbolicRootCtx}, a::QQFieldElem)
   return parent(G.C.rt[1])(a)
 end
 
-function Nemo.roots_upper_bound(f::fmpz_mpoly, t::Int = 0)
+function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   @assert nvars(parent(f)) == 2
   Qs, s = RationalFunctionField(FlintQQ, "t", cached = false)
-  Qsx, x = PolynomialRing(Qs, cached = false)
+  Qsx, x = polynomial_ring(Qs, cached = false)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
   @assert !iszero(dis(t))
-  rt = roots(dis, ComplexField(20))
-  r = Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz)
+  rt = roots(dis, AcbField(20))
+  r = Hecke.lower_bound(minimum([abs(x-t) for x = rt]), ZZRingElem)
   @assert r > 0
   ff = map_coefficients(abs, f)
-  C = roots_upper_bound(Hecke.Globals.Zx(map(x->evaluate(x, fmpz[r, 0]), coefficients(ff, 2))))
-  C1 = maximum(map(x->evaluate(x, fmpz[r, 0]), coefficients(ff, 2)))
+  C = roots_upper_bound(Hecke.Globals.Zx(map(x->evaluate(x, ZZRingElem[r, 0]), coefficients(ff, 2))))
+  C1 = maximum(map(x->evaluate(x, ZZRingElem[r, 0]), coefficients(ff, 2)))
   #the infinite valuation... need Newton
   vl = valuations_of_roots(F)
   return (C+1, 0, maximum(x[1] for x = vl)), r
@@ -678,12 +678,12 @@ function upper_bound(G::GaloisCtx, f)
   return Oscar.evaluate(f, [G.B for i=1:degree(G.f)])
 end
 
-function upper_bound(G::GaloisCtx, f, ts::fmpz_poly)
+function upper_bound(G::GaloisCtx, f, ts::ZZPolyRingElem)
   B = ts(G.B)
   return Oscar.evaluate(f, [B for i=1:degree(G.f)])
 end
 
-function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), A::Vector, i::Int, ts::ZZPolyRingElem = gen(Oscar.Hecke.Globals.Zx))
   if ts != gen(Hecke.Globals.Zx)
     A = [ts(x) for x = A]
   end
@@ -693,7 +693,7 @@ function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), A::Vector, i:
   return parent(B[1])(binomial(n, i))*prod(b[max(1, n-i+1):end])
 end
 
-function upper_bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+function upper_bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::ZZPolyRingElem = gen(Oscar.Hecke.Globals.Zx))
   if ts != gen(Hecke.Globals.Zx)
     A = [ts(x) for x = A]
   end
@@ -701,7 +701,7 @@ function upper_bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::f
   return sum(B)
 end
 
-function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), i::Int, ts::ZZPolyRingElem = gen(Oscar.Hecke.Globals.Zx))
   if ts != gen(Hecke.Globals.Zx)
     b = ts(G.B)
   else
@@ -711,7 +711,7 @@ function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), i::Int, ts::f
   return parent(b)(binomial(n, i))*b^i
 end
 
-function upper_bound(G::GaloisCtx, ::typeof(power_sum), i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+function upper_bound(G::GaloisCtx, ::typeof(power_sum), i::Int, ts::ZZPolyRingElem = gen(Oscar.Hecke.Globals.Zx))
   if ts != gen(Hecke.Globals.Zx)
     b = ts(G.B)
   else
@@ -803,7 +803,7 @@ This is using a rather elementary algorithm.
 # Examples
 We recover the Newton-Girard formulas:
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, 3);
+julia> R, x = polynomial_ring(QQ, 3);
 
 julia> d = power_sum(x, 3)
 x1^3 + x2^3 + x3^3
@@ -821,7 +821,7 @@ function to_elementary_symmetric(f)
   if n == 1 || is_constant(f)
     return f
   end
-  T = PolynomialRing(base_ring(S), n-1)[1]
+  T = polynomial_ring(base_ring(S), n-1)[1]
   g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
   es = [elementary_symmetric(gens(S), i) for i=1:n-1]
   f = f - evaluate(g1, es)
@@ -1091,7 +1091,7 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   n = length(t)
   rt = roots(C)
   #make square-free (in residue field)
-  k, mk = ResidueField(parent(rt[1]))
+  k, mk = residue_field(parent(rt[1]))
   k_rt = map(mk, rt)
   ts = find_transformation(k_rt, I, t)
 
@@ -1105,8 +1105,8 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
     pr .*=  rt
     push!(ps, isinteger(C, B, sum(pr))[2])
   end
-  if isa(ps[1], fmpz)
-    return Hecke.power_sums_to_polynomial(map(fmpq, ps))
+  if isa(ps[1], ZZRingElem)
+    return Hecke.power_sums_to_polynomial(map(QQFieldElem, ps))
   else
     return Hecke.power_sums_to_polynomial(ps)
   end
@@ -1139,15 +1139,15 @@ function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
     pr .*=  rt
     push!(ps, isinteger(C, B, sum(pr))[2])
   end
-  if isa(ps[1], fmpz)
-    return Hecke.power_sums_to_polynomial(map(fmpq, ps))
+  if isa(ps[1], ZZRingElem)
+    return Hecke.power_sums_to_polynomial(map(QQFieldElem, ps))
   else
     return Hecke.power_sums_to_polynomial(ps)
   end
 end
 
-Hecke.minpoly(R::FmpzPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
-Hecke.minpoly(R::FmpqPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
+Hecke.minpoly(R::ZZPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
+Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
 
 struct GroupFilter
   f::Vector{Tuple{Function, String}}
@@ -1205,7 +1205,7 @@ mutable struct DescentEnv
   G::PermGroup
   s::Vector{PermGroup}
   I::Dict{Int, SLPoly}
-  T::Dict{Int, Vector{fmpz_poly}}
+  T::Dict{Int, Vector{ZZPolyRingElem}}
   l::Vector{Int}
   rng::AbstractRNG
   #the coset reps need to be cached as well
@@ -1220,7 +1220,7 @@ mutable struct DescentEnv
     r.s = filter(f, s)
     @vprint :GaloisGroup 1 "filtering down to $(length(r.s)) maximal subgroup classes\n"
     r.I = Dict{Int, SLPoly}()
-    r.T = Dict{Int, Vector{fmpz_poly}}()
+    r.T = Dict{Int, Vector{ZZPolyRingElem}}()
     r.l = zeros(Int, length(r.s))
     r.rng = MersenneTwister(1)
     return r
@@ -1477,8 +1477,8 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 
       gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(ms(gen(s))))
       d = map(gg, R)
-      f, mf = ResidueField(parent(r[1]))
-      _F, mF = ResidueField(parent(R[1]))
+      f, mf = residue_field(parent(r[1]))
+      _F, mF = residue_field(parent(R[1]))
       mfF = find_morphism(f, _F)
       #we should have
       # - d == r (in the appropriate setting)
@@ -1618,7 +1618,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, is_primitive, "primitivity")
     pc = parent(c[1])
-    k, mk = ResidueField(pc)
+    k, mk = residue_field(pc)
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
     GC.start = (2, O)
     
@@ -1644,7 +1644,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 end
 
 @doc Markdown.doc"""
-    find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f)) -> p, c
+    find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f)) -> p, c
 
 Tries to find a useful prime for the computation of Galois group. Useful means
   - degree of the splitting field not too small
@@ -1653,7 +1653,7 @@ Starts searching at `pStart`, returns the prime as well as the cycle types ident
 
 If `prime` is given, no search is performed.
 """
-function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
+function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
   if prime != 0
     p = prime
     lf = factor(f, GF(p))
@@ -1732,12 +1732,12 @@ end
 # Computing subfields of number fields and
 # applications to Galois group computations
 function order_from_shape(ct::Set{CycleType}, n)
-  o1 = fmpz(1)
+  o1 = ZZRingElem(1)
   #Lemma 15:
-  o  = n * reduce(lcm, fmpz[divexact(
-           reduce(lcm, fmpz[l for (l,v) = x]),
-           reduce(gcd, fmpz[l for (l,v) = x])) for x = ct if length(x) > 0], 
-           init = fmpz(1))
+  o  = n * reduce(lcm, ZZRingElem[divexact(
+           reduce(lcm, ZZRingElem[l for (l,v) = x]),
+           reduce(gcd, ZZRingElem[l for (l,v) = x])) for x = ct if length(x) > 0], 
+           init = ZZRingElem(1))
   #Lemma 16:         
   for p = PrimesSet(1, n)
     #find cycletypes that would correpond to elt of order a multiple of p
@@ -1751,7 +1751,7 @@ function order_from_shape(ct::Set{CycleType}, n)
     #e.g. a cycle of length 6 will produce 3 of length 2
     ct_pp = Set{CycleType}()
     for x = ct_p
-      y = x^Int(ppio(order(x), fmpz(p))[2])
+      y = x^Int(ppio(order(x), ZZRingElem(p))[2])
       push!(ct_pp, y^y.s[1][1])
     end
     # Now everything has a fixed point, so we can bound the
@@ -1902,8 +1902,8 @@ julia> describe(G)
 
 julia> roots(C, 2)
 4-element Vector{qadic}:
- (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
  (4*19^0 + 2*19^1 + O(19^2))*a + 5*19^0 + 9*19^1 + O(19^2)
+ (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
  (18*19^0 + 18*19^1 + O(19^2))*a + 12*19^0 + O(19^2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
@@ -1935,7 +1935,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
     if algo == :pAdic
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
     elseif algo == :Complex
-      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), ComplexField(20))
+      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), AcbField(20))
     elseif algo == :Symbolic
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)))
     else
@@ -2120,12 +2120,12 @@ return `false`.
 """
 function isinteger end
 
-function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{fmpz}, e)
+function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{ZZRingElem}, e)
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
     lz = lift(l)
-    lz = Hecke.mod_sym(lz, fmpz(p)^precision(l))
+    lz = Hecke.mod_sym(lz, ZZRingElem(p)^precision(l))
     if abs(lz) < value(B)
       return true, lz
     else
@@ -2142,22 +2142,22 @@ end
 # finite fields
 # rel. ext
 # ...
-function extension_field(f::fmpz_poly, n::String = "_a"; cached::Bool = true, check::Bool = true)
-  return NumberField(f, n, cached = cached, check = check)
+function extension_field(f::ZZPolyRingElem, n::String = "_a"; cached::Bool = true, check::Bool = true)
+  return number_field(f, n, cached = cached, check = check)
 end
-function extension_field(f::fmpq_poly, n::String = "_a"; cached::Bool = true, check::Bool = true)
-  return NumberField(f, n, cached = cached, check = check)
+function extension_field(f::QQPolyRingElem, n::String = "_a"; cached::Bool = true, check::Bool = true)
+  return number_field(f, n, cached = cached, check = check)
 end
 
-function extension_field(f::Generic.Poly{<:Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
+function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
   return FunctionField(f, n, cached = cached)
 end
 
 function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
-  return NumberField(f, n, cached = cached)
+  return number_field(f, n, cached = cached)
 end
 
-Hecke.function_field(f::Generic.Poly{<:Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
+Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
 
 
 @doc Markdown.doc"""
@@ -2385,7 +2385,7 @@ galois_quotient(C::GaloisCtx, d::Int, n::Int) =
             galois_quotient(C, transitive_group(d, n))
 
 """
-    galois_quotient(f::PolyElem, p::Vector{Int})
+    galois_quotient(f::PolyRingElem, p::Vector{Int})
 
 Equivalent to
 
@@ -2394,7 +2394,7 @@ Equivalent to
 Finds all subfields of the splitting field of f with galois group
 the p[2]-th transitive group of degree p[1]
 """
-function galois_quotient(f::PolyElem, p::Vector{Int})
+function galois_quotient(f::PolyRingElem, p::Vector{Int})
   G, C = galois_group(f)
   @assert length(p) == 2
   return galois_quotient(C, p[1], p[2])
@@ -2406,12 +2406,12 @@ end
 # Aubrey & Valibouze
 # JSC (2000) 30, 635-651
 
-function cauchy_ideal(f::fmpz_poly; parent::MPolyRing = PolynomialRing(QQ, degree(f), cached = false)[1])
+function cauchy_ideal(f::ZZPolyRingElem; parent::MPolyRing = polynomial_ring(QQ, degree(f), cached = false)[1])
   return cauchy_ideal(f(gen(Hecke.Globals.Qx)), parent=parent)
 end
 
 @doc Markdown.doc"""
-    cauchy_ideal(f::PolyElem{<:FieldElem})
+    cauchy_ideal(f::PolyRingElem{<:FieldElem})
 
 The coefficients of `f` are the elementary symmetric functions evaluated
 at the roots of `f`. The `cauchy_ideal` is the ideal generated
@@ -2427,7 +2427,7 @@ ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x
 
 ```
 """
-function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRing(base_ring(f), degree(f), cached = false)[1])
+function cauchy_ideal(f::PolyRingElem{<:FieldElem}; parent::MPolyRing = polynomial_ring(base_ring(f), degree(f), cached = false)[1])
   x = gens(parent)
   n = degree(f)
   f = f(x[n])
@@ -2453,7 +2453,7 @@ functions and the coefficients of the polynomial.
 julia> Qx, x = QQ["x"];
 
 julia> i = galois_ideal(galois_group(x^4-2)[2])
-ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x4 + x2*x3, x1^2*x4^2 + x2^2*x3^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
+ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x3 + x2*x4, x1^2*x3^2 + x2^2*x4^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
 
 julia> k, _ = number_field(i);
 
@@ -2542,7 +2542,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   end
 
   r = roots(C, bound_to_precision(C, C.B))
-  k, mk = ResidueField(parent(r[1]))
+  k, mk = residue_field(parent(r[1]))
   r = map(mk, r)
 
   for i=1:length(c)-1
@@ -2578,7 +2578,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   return ideal(id)
 end
 
-function Hecke.absolute_primitive_element(K::Oscar.NfNSGen{fmpq, fmpq_mpoly})
+function Hecke.absolute_primitive_element(K::Oscar.NfNSGen{QQFieldElem, QQMPolyRingElem})
   while true
     a = rand(K, -10:10)
     f = minpoly(a)
@@ -2588,12 +2588,12 @@ function Hecke.absolute_primitive_element(K::Oscar.NfNSGen{fmpq, fmpq_mpoly})
   end
 end
 
-function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{fmpq, fmpq_mpoly})
+function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingElem})
   return minpoly(a)
 end
 
 #TODO copied from MPolyFact in Hecke....
-function find_morphism(k::FqNmodFiniteField, K::FqNmodFiniteField)
+function find_morphism(k::fqPolyRepField, K::fqPolyRepField)
    if degree(k) > 1
     phi = Nemo.find_morphism(k, K) #avoids embed - which stores the info
   else
@@ -2639,19 +2639,19 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 end
 
 
-#TODO: do not move from fmpz_poly to fmpq_poly to fmpz_poly...
-function galois_group(f::fmpz_poly; pStart::Int = 2*degree(f), prime::Int = 0)
+#TODO: do not move from ZZPolyRingElem to QQPolyRingElem to ZZPolyRingElem...
+function galois_group(f::ZZPolyRingElem; pStart::Int = 2*degree(f), prime::Int = 0)
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart, prime = prime)
 end
 
 @doc Markdown.doc"""
-    galois_group(f::PolyElem{<:FieldElem})
+    galois_group(f::PolyRingElem{<:FieldElem})
 
 Computes the automorphism group of a splitting field of `f` as an explicit
 group of permutations of the roots. Furthermore, the `GaloisCtx` is
 returned allowing algorithmic access to the splitting field.
 """
-function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
+function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
   lf = [(k,v) for  (k,v) = factor(f).fac]
 
   if length(lf) == 1
@@ -2681,12 +2681,12 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
 
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
-  k, mk = ResidueField(parent(rr[1]))
+  k, mk = residue_field(parent(rr[1]))
   rr = map(mk, rr)
   po = Int[]
   for GC = C
     r = roots(GC, 5, raw = true)
-    K, mK = ResidueField(parent(r[1]))
+    K, mK = residue_field(parent(r[1]))
     r = map(mK, r)
     phi = find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
@@ -2708,7 +2708,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
   return blow_up(G, C, lf, con)
 end
 
-function Nemo.cyclotomic(n::Int, x::fmpq_poly)
+function Nemo.cyclotomic(n::Int, x::QQPolyRingElem)
   return Nemo.cyclotomic(n, gen(Hecke.Globals.Zx))(x)
 end
 
@@ -2719,7 +2719,7 @@ end
 #
 ################################################################################
 
-AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{fmpz}) = BoundRingElem
+AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{ZZRingElem}) = BoundRingElem
 
 AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{T}) where {T <: Integer} = BoundRingElem
 

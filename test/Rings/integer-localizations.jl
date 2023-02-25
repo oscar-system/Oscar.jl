@@ -21,10 +21,10 @@ FmpzPowersOfElement
 
 The multiplicative set given by the powers of some element.
 """
-mutable struct FmpzPowersOfElement <: AbsMultSet{FlintIntegerRing, fmpz}
-  d::Vector{fmpz} # a vector of admissible denominators. 
+mutable struct FmpzPowersOfElement <: AbsMultSet{ZZRing, ZZRingElem}
+  d::Vector{ZZRingElem} # a vector of admissible denominators. 
 
-  function FmpzPowersOfElement(denominators::Vector{fmpz})
+  function FmpzPowersOfElement(denominators::Vector{ZZRingElem})
     return new(denominators)
   end
 end
@@ -33,7 +33,7 @@ end
 ambient_ring(S::FmpzPowersOfElement) = ZZ
 
 ### required functionality
-function Base.in(a::fmpz, S::FmpzPowersOfElement) 
+function Base.in(a::ZZRingElem, S::FmpzPowersOfElement) 
   # check whether ∃ c ∈ ℤ, k ∈ ℕ₀: c ⋅ a = (∏ᵢ dᵢ)ᵏ, where dᵢ are the admissible denominators in S.
   d = prod(denominators(S))
   g = gcd(a, d)
@@ -45,12 +45,12 @@ function Base.in(a::fmpz, S::FmpzPowersOfElement)
 end
 
 ### additional constructors
-FmpzPowersOfElement(d::fmpz) = FmpzPowersOfElement([d])
+FmpzPowersOfElement(d::ZZRingElem) = FmpzPowersOfElement([d])
 FmpzPowersOfElement(d::Oscar.IntegerUnion) = FmpzPowersOfElement(ZZ(d))
 FmpzPowersOfElement(d::Vector{T}) where {T<:Oscar.IntegerUnion} = FmpzPowersOfElement(ZZ.(d))
 
 ### additional functionality
-denominators(S::FmpzPowersOfElement) = S.d::Vector{fmpz}
+denominators(S::FmpzPowersOfElement) = S.d::Vector{ZZRingElem}
 Base.in(a::Oscar.IntegerUnion, S::FmpzPowersOfElement) = (ZZ(a) in S)
 
 
@@ -63,11 +63,11 @@ FmpzComplementOfPrimeIdeal
 
 The multiplicatively closed set `S = ℤ ∖ ⟨p⟩` of integers outside a prime ideal `⟨p⟩`.
 """
-mutable struct FmpzComplementOfPrimeIdeal <: AbsMultSet{FlintIntegerRing, fmpz}
+mutable struct FmpzComplementOfPrimeIdeal <: AbsMultSet{ZZRing, ZZRingElem}
   # essential fields
-  p::fmpz
+  p::ZZRingElem
 
-  function FmpzComplementOfPrimeIdeal(p::fmpz)
+  function FmpzComplementOfPrimeIdeal(p::ZZRingElem)
     is_prime(p) || error("$(p) is not prime")
     return new(p)
   end
@@ -77,7 +77,7 @@ end
 ambient_ring(S::FmpzComplementOfPrimeIdeal) = ZZ
 
 ### required functionality
-function Base.in(b::fmpz, S::FmpzComplementOfPrimeIdeal)
+function Base.in(b::ZZRingElem, S::FmpzComplementOfPrimeIdeal)
   return !(divides(b, S.p)[1])
 end
 
@@ -97,7 +97,7 @@ FmpzComplementOfZeroIdeal
 
 The complement of the zero ideal in `ℤ`.
 """
-mutable struct FmpzComplementOfZeroIdeal <: AbsMultSet{FlintIntegerRing, fmpz}
+mutable struct FmpzComplementOfZeroIdeal <: AbsMultSet{ZZRing, ZZRingElem}
   function FmpzComplementOfZeroIdeal() 
     return new{}()
   end
@@ -107,7 +107,7 @@ end
 ambient_ring(S::FmpzComplementOfZeroIdeal) = ZZ
 
 ### required functionality
-function Base.in(b::fmpz, S::FmpzComplementOfZeroIdeal) 
+function Base.in(b::ZZRingElem, S::FmpzComplementOfZeroIdeal) 
   return !iszero(b)
 end
 
@@ -120,18 +120,18 @@ Base.in(b::Oscar.IntegerUnion, S::FmpzComplementOfZeroIdeal) = (ZZ(b) in S)
 #################################################################################
 
 @Markdown.doc """
-FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
+FmpzLocalizedRing{MultSetType <: AbsMultSet{ZZRing, ZZRingElem}} <: AbsLocalizedRing{ZZRing, ZZRingElem, MultSetType} 
 
 A minimal implementation for the localization `ℤ[S⁻¹]` of the ring of integers 
 at a multiplicatively closed set `S` of type `MultSetType`.
 """
-mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
+mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{ZZRing, ZZRingElem}} <: AbsLocalizedRing{ZZRing, ZZRingElem, MultSetType} 
   S::MultSetType # The multiplicatively closed set S ⊂ R whose inverses are added to R
 
-  function FmpzLocalizedRing(S::MultSetType) where {MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}}
+  function FmpzLocalizedRing(S::MultSetType) where {MultSetType <: AbsMultSet{ZZRing, ZZRingElem}}
     # Sanity check whether the multiplicatively closed set S is compatible with the 
     # given rings
-    MultSetType <: AbsMultSet{FlintIntegerRing, fmpz} || error(
+    MultSetType <: AbsMultSet{ZZRing, ZZRingElem} || error(
 	"The type of the multiplicatively closed set is not compatible with the type of the ring"
 	)
     return new{MultSetType}(S)
@@ -139,7 +139,7 @@ mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmp
 end
 
 ### required getter functions
-base_ring(W::FmpzLocalizedRing) = ZZ::FlintIntegerRing
+base_ring(W::FmpzLocalizedRing) = ZZ::ZZRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function
@@ -169,12 +169,12 @@ end
 Elements `a/b ∈ ℤ[S⁻¹]` of localizations of the ring of integers 
 at a multiplicatively closed set `S` of type `MultSetType`.
 """
-mutable struct FmpzLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{FlintIntegerRing, fmpz, MultSetType}
-  numerator::fmpz
-  denominator::fmpz
+mutable struct FmpzLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{ZZRing, ZZRingElem, MultSetType}
+  numerator::ZZRingElem
+  denominator::ZZRingElem
   R::FmpzLocalizedRing{MultSetType} # the parent ring
 
-  function FmpzLocalizedRingElem(R::FmpzLocalizedRing{MultSetType}, a::fmpz, b::fmpz) where {MultSetType}
+  function FmpzLocalizedRingElem(R::FmpzLocalizedRing{MultSetType}, a::ZZRingElem, b::ZZRingElem) where {MultSetType}
     # Perform some sanity checks
     b in inverted_set(R) || error("$b does not belong to the units of $R")
     return new{MultSetType}(a, b, R)
@@ -183,11 +183,11 @@ end
 
 ### required getter functions
 parent(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.R::FmpzLocalizedRing{MultSetType}
-numerator(f::FmpzLocalizedRingElem) = f.numerator::fmpz
-denominator(f::FmpzLocalizedRingElem) = f.denominator::fmpz
+numerator(f::FmpzLocalizedRingElem) = f.numerator::ZZRingElem
+denominator(f::FmpzLocalizedRingElem) = f.denominator::ZZRingElem
 
 ### required implementation of the arithmetic
-function Base.:(//)(a::fmpz, b::FmpzLocalizedRingElem)
+function Base.:(//)(a::ZZRingElem, b::FmpzLocalizedRingElem)
   c = ZZ(a)
   g = gcd(c, numerator(b))
   c = divexact(c, g)
@@ -213,11 +213,11 @@ function reduce_fraction(f::FmpzLocalizedRingElem)
 end
 
 ### required conversions
-(W::FmpzLocalizedRing)(f::fmpz) = FmpzLocalizedRingElem(W, f, ZZ(1))
-(W::FmpzLocalizedRing)(a::fmpz, b::fmpz) = FmpzLocalizedRingElem(W, a, b)
+(W::FmpzLocalizedRing)(f::ZZRingElem) = FmpzLocalizedRingElem(W, f, ZZ(1))
+(W::FmpzLocalizedRing)(a::ZZRingElem, b::ZZRingElem) = FmpzLocalizedRingElem(W, a, b)
 
 ### additional conversions
-(W::FmpzLocalizedRing)(q::fmpq) = FmpzLocalizedRingElem(W, numerator(q), denominator(q))
+(W::FmpzLocalizedRing)(q::QQFieldElem) = FmpzLocalizedRingElem(W, numerator(q), denominator(q))
 (W::FmpzLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = FmpzLocalizedRingElem(W, ZZ(numerator(q)), ZZ(denominator(q)))
 (W::FmpzLocalizedRing)(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion) = FmpzLocalizedRingElem(W, ZZ(a), ZZ(b))
 

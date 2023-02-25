@@ -12,7 +12,7 @@ julia> l = toric_line_bundle(dP1, [3, 2])
 Toric line bundle on a normal toric variety
 
 julia> all_cohomologies(l)
-3-element Vector{fmpz}:
+3-element Vector{ZZRingElem}:
  7
  0
  0

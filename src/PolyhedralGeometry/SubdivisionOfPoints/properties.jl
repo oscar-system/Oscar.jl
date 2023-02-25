@@ -20,7 +20,7 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
 
 julia> points(MOAE)
-6-element SubObjectIterator{PointVector{fmpq}}:
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
  [4, 0, 0]
  [0, 4, 0]
  [0, 0, 4]
@@ -29,10 +29,10 @@ julia> points(MOAE)
  [1, 1, 2]
 """
 function points(SOP::SubdivisionOfPoints)
-    return SubObjectIterator{PointVector{fmpq}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))
+    return SubObjectIterator{PointVector{QQFieldElem}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))
 end
 
-_point(::Type{PointVector{fmpq}}, SOP::Polymake.BigObject, i::Base.Integer) = PointVector{fmpq}(SOP.POINTS[i, 2:end])
+_point(::Type{PointVector{QQFieldElem}}, SOP::Polymake.BigObject, i::Base.Integer) = PointVector{QQFieldElem}(SOP.POINTS[i, 2:end])
 
 _point_matrix(::Val{_point}, SOP::Polymake.BigObject; homogenized=false) = SOP.POINTS[:, (homogenized ? 1 : 2):end]
 

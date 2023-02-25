@@ -57,7 +57,7 @@ julia> X = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1, x2, x3) = gens(OO(X))
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3

@@ -57,19 +57,19 @@ automorphism_group_generators(IM::IncidenceMatrix)
 
 ```@docs
 all_triangulations
-boundary_lattice_points(P::Polyhedron{fmpq})
+boundary_lattice_points(P::Polyhedron{QQFieldElem})
 contains(P::Polyhedron, v::AbstractVector)
-ehrhart_polynomial(P::Polyhedron{fmpq})
-ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
-h_star_polynomial(P::Polyhedron{fmpq})
-h_star_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
-interior_lattice_points(P::Polyhedron{fmpq})
-is_normal(P::Polyhedron{fmpq})
+ehrhart_polynomial(P::Polyhedron{QQFieldElem})
+ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
+h_star_polynomial(P::Polyhedron{QQFieldElem})
+h_star_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
+interior_lattice_points(P::Polyhedron{QQFieldElem})
+is_normal(P::Polyhedron{QQFieldElem})
 is_simple(P::Polyhedron)
-is_smooth(P::Polyhedron{fmpq})
-is_very_ample(P::Polyhedron{fmpq})
-lattice_points(P::Polyhedron{fmpq})
-lattice_volume(P::Polyhedron{fmpq})
+is_smooth(P::Polyhedron{QQFieldElem})
+is_very_ample(P::Polyhedron{QQFieldElem})
+lattice_points(P::Polyhedron{QQFieldElem})
+lattice_volume(P::Polyhedron{QQFieldElem})
 normalized_volume(P::Polyhedron{T}) where T<:scalar_types
 polarize(P::Polyhedron{T}) where T<:scalar_types
 project_full(P::Polyhedron{T}) where T<:scalar_types
@@ -78,10 +78,10 @@ print_constraints(P::Polyhedron; trivial::Bool = false)
 regular_triangulations
 regular_triangulation
 secondary_polytope
-solve_ineq(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
-solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat) where {T}
-solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) where {T}
-solve_non_negative(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
+solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
+solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) where {T}
+solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T}
+solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 support_function(P::Polyhedron{T}; convention::Symbol = :max) where T<:scalar_types
 volume(P::Polyhedron{T}) where T<:scalar_types
 ```

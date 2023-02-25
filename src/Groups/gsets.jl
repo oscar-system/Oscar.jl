@@ -909,7 +909,7 @@ julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
  PSL(2,5)
 
 julia> [(order(H), is_primitive(H)) for H in mx]
-3-element Vector{Tuple{fmpz, Bool}}:
+3-element Vector{Tuple{ZZRingElem, Bool}}:
  (24, 0)
  (36, 0)
  (60, 1)
@@ -984,7 +984,7 @@ julia> length(res)
 3
 
 julia> print(sort([index(G, stab) for (U, stab) in res]))
-fmpz[12, 12, 16]
+ZZRingElem[12, 12, 16]
 ```
 """
 function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem

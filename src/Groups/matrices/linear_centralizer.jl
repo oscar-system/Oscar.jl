@@ -8,7 +8,7 @@
 #
 ########################################################################
 
-function _GL_order(n::Int, q::fmpz)
+function _GL_order(n::Int, q::ZZRingElem)
    res = q^div(n*(n-1),2)
    for i in 1:n
       res *= (q^i-1)
@@ -18,7 +18,7 @@ end
 
 _GL_order(n::Int, F::Ring) = _GL_order(n, order(F))
 
-function _SL_order(n::Int, q::fmpz)
+function _SL_order(n::Int, q::ZZRingElem)
    res = q^div(n*(n-1),2)
    for i in 2:n
      res *= (q^i-1)
@@ -64,7 +64,7 @@ end
 # is the ring homomorphism sending a fixed root of f into the companion matrix of f.
 # (hence, elements of the final output belong to matrix_algebra(F,n*D*degree(f)))
 # ASSUMPTION: deg(f) > 1
-function _gens_for_GL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
+function _gens_for_GL_matrix(f::PolyRingElem, n::Int, F::FinField; D::Int=1)
    C = companion_matrix(f)
    CP = _centralizer(f)(C)            # matrix of maximal order in the centralizer of the companion matrix
    Df = degree(f)*D
@@ -148,7 +148,7 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
 
    # cardinality
    res = prod([_GL_order(l[2],F) for l in L])
-   exp = fmpz(0)
+   exp = ZZRingElem(0)
    for i in 1:length(L)-1, j in i+1:length(L)
       exp += L[i][1]*L[i][2]*L[j][2]
    end
@@ -163,7 +163,7 @@ end
 # V = vector of integers of the dimensions of Jordan blocks
 # assumes V is sorted (e.g. [1,1,1,2,3,3])
 # does the same as above, but every entry is replaced by the corresponding block matrix in the field F/(f)
-function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}; isSL=false)
+function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{Int}; isSL=false)
    d = degree(f)
    d>1 || return _centr_unipotent(F,V; isSL=isSL)
    n = sum(V)*d
@@ -231,7 +231,7 @@ function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}
 
    # cardinality
    res = prod([_GL_order(l[2],order(F)^degree(f)) for l in L])
-   exp = fmpz(0)
+   exp = ZZRingElem(0)
    for i in 1:length(L)-1, j in i+1:length(L)
       exp += L[i][1]*L[i][2]*L[j][2]
    end
@@ -249,7 +249,7 @@ function _centralizer_GL(x::MatElem)
    am = inv(a)
    n=nrows(x)
    listgens = MatElem[]
-   res = fmpz(1)
+   res = ZZRingElem(1)
    idN = identity_matrix(base_ring(x),n)
 
    i=1
@@ -320,7 +320,7 @@ end
 # is the ring homomorphism sending a fixed root of f into the companion matrix of f.
 # (hence, elements of the final output belong to matrix_algebra(F,n*D*degree(f)))
 # ASSUMPTION: deg(f) > 1
-function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
+function _gens_for_SL_matrix(f::PolyRingElem, n::Int, F::FinField; D::Int=1)
    C = companion_matrix(f)
    CP = _centralizer(f)(C)            # matrix of maximal order in the centralizer of the companion matrix
    CPi = inv(CP)
@@ -358,8 +358,8 @@ function _centralizer_SL(x::MatElem)
    n=nrows(x)
    listgens = MatElem[]
    _lambda = primitive_element(base_ring(x))
-   res = fmpz(1)
-   ind = fmpz(0)
+   res = ZZRingElem(1)
+   ind = ZZRingElem(0)
    idN = identity_matrix(base_ring(x),n)
 
    i=1
@@ -449,7 +449,7 @@ function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFie
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)
       V,card = G.descr==:GL ? _centralizer_GL(x.elm) : _centralizer_SL(x.elm)
       H = MatrixGroup(G.deg, G.ring, V)
-      set_attribute!(H, :order => fmpz(card))
+      set_attribute!(H, :order => ZZRingElem(card))
       return H, nothing          # do not return the embedding of the centralizer into G to do not compute G.X
    end
    C = GAP.Globals.Centralizer(G.X, x.X)

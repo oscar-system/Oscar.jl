@@ -74,18 +74,18 @@ ProjPlaneCurve(f::MPolyRingElem{T}) where {T <: FieldElem}
 ## Adjoint Ideals of Plane Curves
 
 ```@docs
-adjoint_ideal(C::ProjPlaneCurve{fmpq})
+adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
 ```
 
 ## Rational Points on Conics
 
 ```@docs
-rational_point_conic(D::ProjPlaneCurve{fmpq})
+rational_point_conic(D::ProjPlaneCurve{QQFieldElem})
 ```
 ## Parametrizing Rational Plane Curves
 
 ```@docs
- parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
+ parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
 ```
 
 

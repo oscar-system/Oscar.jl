@@ -1,5 +1,5 @@
 @testset "Covered schemes 1" begin
-  R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
   X = subscheme(Spec(R), [x^2+y^2])
   P = projective_space(X, 3)
   S = ambient_coordinate_ring(P)
@@ -32,7 +32,7 @@ end
 end
 
 @testset "standard_covering" begin
-  R, t = PolynomialRing(QQ,["t"])
+  R, t = polynomial_ring(QQ,["t"])
   T = Oscar.standard_spec(subscheme(Spec(R),t))
   Pt= projective_space(T, 2)
   X = covered_scheme(Pt)

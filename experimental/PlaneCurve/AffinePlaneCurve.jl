@@ -21,14 +21,14 @@ Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 julia> P = Oscar.Point([QQ(0), QQ(0)])
-Point with coordinates fmpq[0, 0]
+Point with coordinates QQFieldElem[0, 0]
 
 julia> Oscar.is_smooth(C, P)
 false
@@ -55,14 +55,14 @@ Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 julia> P2 = Oscar.Point([QQ(2), QQ(-2)])
-Point with coordinates fmpq[2, -2]
+Point with coordinates QQFieldElem[2, -2]
 
 julia> Oscar.tangent(C, P2)
 Affine plane curve defined by -48*x - 48*y
@@ -94,8 +94,8 @@ Return the affine plane curve consisting of the common component of `C` and `D`,
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y)*(x^2 + x + 1))
 Affine plane curve defined by x^4 + x^3*y + x^3 + x^2*y + x^2 + x*y
@@ -104,7 +104,7 @@ julia> D = Oscar.AffinePlaneCurve(x*(x+y)*(x-y))
 Affine plane curve defined by x^3 - x*y^2
 
 julia> Oscar.common_components(C, D)
-1-element Vector{AffinePlaneCurve{fmpq}}:
+1-element Vector{AffinePlaneCurve{QQFieldElem}}:
  Affine plane curve defined by x^2 + x*y
 ```
 """
@@ -130,8 +130,8 @@ Return a list whose first element is the affine plane curve defined by the gcd o
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
@@ -142,7 +142,7 @@ Affine plane curve defined by x^2 - x*y - 2*x + 2*y
 julia> Oscar.curve_intersect(C, D)
 2-element Vector{Vector{T} where T}:
  AffinePlaneCurve[]
- Point{fmpq}[Point with coordinates fmpq[0, 0], Point with coordinates fmpq[2, -2]]
+ Point{QQFieldElem}[Point with coordinates QQFieldElem[0, 0], Point with coordinates QQFieldElem[2, -2]]
 ```
 """
 function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
@@ -223,8 +223,8 @@ Return the reduced singular locus of `C` as a list whose first element is the af
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
@@ -232,7 +232,7 @@ Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 julia> Oscar.curve_singular_locus(C)
 2-element Vector{Vector{T} where T}:
  AffinePlaneCurve[Affine plane curve defined by x]
- Point[Point with coordinates fmpq[-1, 1], Point with coordinates fmpq[0, 0]]
+ Point[Point with coordinates QQFieldElem[-1, 1], Point with coordinates QQFieldElem[0, 0]]
 ```
 """
 function curve_singular_locus(C::AffinePlaneCurve)
@@ -309,14 +309,14 @@ Return the multiplicity of `C` at `P`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 julia> P = Oscar.Point([QQ(2), QQ(-2)])
-Point with coordinates fmpq[2, -2]
+Point with coordinates QQFieldElem[2, -2]
 
 julia> Oscar.multiplicity(C, P)
 1
@@ -345,17 +345,17 @@ Return the tangent lines at `P` to `C` with their multiplicity.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 julia> P = Oscar.Point([QQ(0), QQ(0)])
-Point with coordinates fmpq[0, 0]
+Point with coordinates QQFieldElem[0, 0]
 
 julia> Oscar.tangent_lines(C, P)
-Dict{AffinePlaneCurve{fmpq}, Int64} with 2 entries:
+Dict{AffinePlaneCurve{QQFieldElem}, Int64} with 2 entries:
   x     => 4
   x + y => 1
 ```
@@ -410,8 +410,8 @@ Return the intersection multiplicity of `C` and `D` at `P`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
 Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
@@ -420,7 +420,7 @@ julia> D = Oscar.AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
 Affine plane curve defined by x^8*y^3 + x^6*y^5 - x^4*y^6 - x^2*y^8
 
 julia> Q = Oscar.Point([QQ(0), QQ(-2)])
-Point with coordinates fmpq[0, -2]
+Point with coordinates QQFieldElem[0, -2]
 
 julia> Oscar.intersection_multiplicity(C, D, Q)
 2
@@ -446,8 +446,8 @@ Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwis
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
@@ -456,10 +456,10 @@ julia> D = Oscar.AffinePlaneCurve((x-y)*(x-2))
 Affine plane curve defined by x^2 - x*y - 2*x + 2*y
 
 julia> P = Oscar.Point([QQ(0), QQ(0)])
-Point with coordinates fmpq[0, 0]
+Point with coordinates QQFieldElem[0, 0]
 
 julia> Q = Oscar.Point([QQ(2), QQ(-2)])
-Point with coordinates fmpq[2, -2]
+Point with coordinates QQFieldElem[2, -2]
 
 julia> Oscar.aretransverse(C, D, P)
 false
@@ -482,8 +482,8 @@ Return `true` if `C` has no singular point, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
@@ -511,7 +511,7 @@ Return the arithmetic genus of the projective closure of `C`.
 function arithmetic_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
    K = base_ring(parent(F))
-   R, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
+   R, (x, y, z) = polynomial_ring(K, ["x", "y", "z"])
    T, _ = grade(R)
    G = homogenization(F, T, 3)
    D = ProjPlaneCurve(G)
@@ -527,8 +527,8 @@ Return the geometric genus of the projective closure of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(GF(7), ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, fpMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
 Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
@@ -540,7 +540,7 @@ julia> Oscar.geometric_genus(C)
 function geometric_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
    K = base_ring(parent(F))
-   R, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
+   R, (x, y, z) = polynomial_ring(K, ["x", "y", "z"])
    T, _ = grade(R)
    G = homogenization(F, T, 3)
    D = ProjPlaneCurve(G)

@@ -15,15 +15,15 @@ struct Cone{T} #a real polymake polyhedron
     Cone{T}(c::Polymake.BigObject) where T<:scalar_types = new{T}(c)
 end
 
-# default scalar type: `fmpq`
-Cone(x...; kwargs...) = Cone{fmpq}(x...; kwargs...)
+# default scalar type: `QQFieldElem`
+Cone(x...; kwargs...) = Cone{QQFieldElem}(x...; kwargs...)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
 Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
 @doc Markdown.doc"""
-    positive_hull([::Type{T} = fmpq,] R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types
+    positive_hull([::Type{T} = QQFieldElem,] R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -68,10 +68,10 @@ function positive_hull(::Type{T}, R::AbstractCollection[RayVector], L::Union{Abs
         return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = L,))
     end
 end
-# Redirect everything to the above constructor, use fmpq as default for the
+# Redirect everything to the above constructor, use QQFieldElem as default for the
 # scalar type T.
-positive_hull(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(fmpq, R, L; non_redundant=non_redundant)
-Cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(fmpq, R, L; non_redundant=non_redundant)
+positive_hull(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
+Cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
 Cone{T}(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types = positive_hull(T, R, L; non_redundant=non_redundant)
 Cone(::Type{T}, x...) where T<:scalar_types = positive_hull(T, x...)
 
@@ -87,7 +87,7 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities([::Type{T} = fmpq,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
+    cone_from_inequalities([::Type{T} = QQFieldElem,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
@@ -102,7 +102,7 @@ julia> C = cone_from_inequalities([0 -1; -1 1])
 Polyhedral cone in ambient dimension 2
 
 julia> rays(C)
-2-element SubObjectIterator{RayVector{fmpq}}:
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [1, 1]
 ```
@@ -118,7 +118,7 @@ function cone_from_inequalities(::Type{T}, I::AbstractCollection[LinearHalfspace
     end
 end
 
-cone_from_inequalities(x...) = cone_from_inequalities(fmpq, x...)
+cone_from_inequalities(x...) = cone_from_inequalities(QQFieldElem, x...)
 
 """
     pm_object(C::Cone)
@@ -136,7 +136,7 @@ pm_object(C::Cone) = C.pm_cone
 
 function Base.show(io::IO, C::Cone{T}) where T<:scalar_types
     print(io, "Polyhedral cone in ambient dimension $(ambient_dim(C))")
-    T != fmpq && print(io, " with $T type coefficients")
+    T != QQFieldElem && print(io, " with $T type coefficients")
 end
 
 Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_object(C); opts...)

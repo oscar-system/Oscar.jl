@@ -1,5 +1,5 @@
 @testset "residue ring" begin
-  @testset "order $n" for n in [ 2, 3, 65536, fmpz(2)^64 ]
+  @testset "order $n" for n in [ 2, 3, 65536, ZZRingElem(2)^64 ]
     gap_n = GAP.Obj(n)
     R = GAP.Globals.mod(GAP.Globals.Integers, gap_n)
     y = GAP.Globals.One(R)
@@ -19,14 +19,14 @@
     x = GAP.Globals.ZmodnZObj(1, GAP.Obj(n2))
     @test_throws ErrorException iso(x)
     @test_throws ErrorException image(iso, x)
-    @test_throws ErrorException preimage(iso, one(ResidueRing(ZZ, n2)))
+    @test_throws ErrorException preimage(iso, one(residue_ring(ZZ, n2)))
   end
 end
 
 @testset "finite prime field" begin
   # On the GAP side, consider fields of order up to 2^16 and larger fields.
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.
-  @testset "with characteristic $p" for p in [ 5, 65537, next_prime(fmpz(2)^64) ]
+  @testset "with characteristic $p" for p in [ 5, 65537, next_prime(ZZRingElem(2)^64) ]
     gap_p = GAP.Obj(p)
     F = GAP.Globals.GF(gap_p)
     x = GAP.Globals.Z(gap_p)
@@ -55,7 +55,7 @@ end
   # We support isomorphisms only from GAP fields that are extensions of
   # the prime field.
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.
-# @testset "with characteristic $p" for p in [5, 65537, next_prime(fmpz(2)^64)]
+# @testset "with characteristic $p" for p in [5, 65537, next_prime(ZZRingElem(2)^64)]
 #T currently these the additional tests fail due to missing `embed_matrices`
   @testset "with characteristic $p" for p in [5]
     gap_p = GAP.Obj(p)
@@ -152,7 +152,7 @@ end
       end
       @test_throws ErrorException iso(GAP.Globals.Z(2))
       @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-      @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
+      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, "y")[1]())
    end
 end
 
@@ -172,6 +172,6 @@ end
       end
       @test_throws ErrorException iso(GAP.Globals.Z(2))
       @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-      @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
+      @test_throws ErrorException preimage(iso, polynomial_ring(QQ, "y")[1]())
    end
 end

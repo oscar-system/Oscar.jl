@@ -34,7 +34,7 @@ function multiplicative_jordan_decomposition(x::MatrixGroupElem)
    p = characteristic(base_ring(x))
    alpha = valuation(a,p)
    m = div(a, p^alpha)
-   k = crt(fmpz(0),fmpz(p^alpha),fmpz(1),fmpz(m))
+   k = crt(ZZRingElem(0),ZZRingElem(p^alpha),ZZRingElem(1),ZZRingElem(m))
 #   a,b = multiplicative_jordan_decomposition(x.elm)
    return x^k, x^(a+1-k)
 end
@@ -109,11 +109,11 @@ end
 pol_elementary_divisors(x::MatrixGroupElem) = pol_elementary_divisors(x.elm)
 
 """
-    generalized_jordan_block(f::T, n::Int) where T<:PolyElem
+    generalized_jordan_block(f::T, n::Int) where T<:PolyRingElem
 
 Return the Jordan block of dimension `n` corresponding to the polynomial `f`.
 """
-function generalized_jordan_block(f::T, n::Int) where T<:PolyElem
+function generalized_jordan_block(f::T, n::Int) where T<:PolyRingElem
    d = degree(f)
    JB = cat([companion_matrix(f) for i in 1:n]..., dims=(1,2))
    pos = 1

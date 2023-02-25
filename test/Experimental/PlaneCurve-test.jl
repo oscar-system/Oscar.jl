@@ -1,7 +1,7 @@
 #Oscar.example("PlaneCurve.jl")
 
 @testset "AffinePlaneCurve constructors" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     F = y^3 * x^6 - y^6 * x^2
     C = Oscar.AffinePlaneCurve(F)
 
@@ -10,7 +10,7 @@
 
     @test degree(C) == 9
 
-    @test Oscar.curve_components(C) == Dict{Oscar.AffinePlaneCurve{fmpq},Int64}(
+    @test Oscar.curve_components(C) == Dict{Oscar.AffinePlaneCurve{QQFieldElem},Int64}(
         Oscar.AffinePlaneCurve(x) => 2,
         Oscar.AffinePlaneCurve(y) => 3,
         Oscar.AffinePlaneCurve(x^4 - y^3) => 1,
@@ -20,7 +20,7 @@
 end
 
 @testset "AffinePlaneCurve reducible functions" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     F = Oscar.AffinePlaneCurve((x^2 + y^2))
     P = Oscar.Point([QQ(0), QQ(0)])
 
@@ -43,7 +43,7 @@ end
 end
 
 @testset "AffinePlaneCurve intersection functions" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     F = Oscar.AffinePlaneCurve(x * (x + y))
     G = Oscar.AffinePlaneCurve(x + y^2 + 1)
     H = Oscar.AffinePlaneCurve(x * (x + y) * y)
@@ -66,7 +66,7 @@ end
 end
 
 @testset "AffinePlaneCurve int_multiplicity functions" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     F = Oscar.AffinePlaneCurve((x^2 + y^2) * (x^2 + y^2 + 2 * y))
     G = Oscar.AffinePlaneCurve((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2))
     L = Oscar.curve_intersect(F, G)
@@ -80,7 +80,7 @@ end
 end
 
 @testset "AffinePlaneCurve singularity functions" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 
     F = Oscar.AffinePlaneCurve(x + y^2)
 
@@ -103,7 +103,7 @@ end
     @test Oscar.is_smooth(G, P3)
 
     @test Oscar.tangent(G, P3) == Oscar.AffinePlaneCurve(x + y)
-    @test Oscar.tangent_lines(G, P1) == Dict{Oscar.AffinePlaneCurve{fmpq},Int64}(
+    @test Oscar.tangent_lines(G, P1) == Dict{Oscar.AffinePlaneCurve{QQFieldElem},Int64}(
         Oscar.AffinePlaneCurve(x) => 4,
         Oscar.AffinePlaneCurve(x + y) => 1,
     )
@@ -114,7 +114,7 @@ end
 end
 
 @testset "ProjPlaneCurve constructors" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(R)
     F = T(y^3 * x^6 - y^6 * x^2 * z)
     C = Oscar.ProjPlaneCurve(F)
@@ -124,7 +124,7 @@ end
 
     @test degree(C) == 9
 
-    @test Oscar.curve_components(C) == Dict{Oscar.ProjPlaneCurve{fmpq},Int64}(
+    @test Oscar.curve_components(C) == Dict{Oscar.ProjPlaneCurve{QQFieldElem},Int64}(
         Oscar.ProjPlaneCurve(T(x)) => 2,
         Oscar.ProjPlaneCurve(T(y)) => 3,
         Oscar.ProjPlaneCurve(T(x^4 - y^3 * z)) => 1,
@@ -134,7 +134,7 @@ end
 end
 
 @testset "ProjPlaneCurve reducible functions" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(R)
     F = Oscar.ProjPlaneCurve(T(x^2 + y^2))
     P = Oscar.Point([QQ(0), QQ(0), QQ(1)])
@@ -158,7 +158,7 @@ end
 end
 
 @testset "ProjPlaneCurve intersection functions" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(R)
     F = Oscar.ProjPlaneCurve(T(x * (x + y)))
     G = Oscar.ProjPlaneCurve(T(x * z + y^2 + z^2))
@@ -196,7 +196,7 @@ end
 end
 
 @testset "ProjPlaneCurve int_multiplicity functions" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(R)
     F = Oscar.ProjPlaneCurve(T((x^2 + y^2) * (x^2 + y^2 + 2 * y * z)))
     G = Oscar.ProjPlaneCurve(T((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2 * z)))
@@ -216,7 +216,7 @@ end
 end
 
 @testset "ProjPlaneCurve singularity functions" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(R)
     PP = proj_space(QQ, 2)
     F = Oscar.ProjPlaneCurve(T(x * z + y^2))
@@ -244,7 +244,7 @@ end
     @test Oscar.is_smooth(G, P3)
 
     @test Oscar.tangent(G, P3) == Oscar.ProjPlaneCurve(T(x + y))
-    @test Oscar.tangent_lines(G, P1) == Dict{Oscar.ProjPlaneCurve{fmpq},Int64}(
+    @test Oscar.tangent_lines(G, P1) == Dict{Oscar.ProjPlaneCurve{QQFieldElem},Int64}(
         Oscar.ProjPlaneCurve(T(x)) => 4,
         Oscar.ProjPlaneCurve(T(x + y)) => 1,
     )
@@ -255,7 +255,7 @@ end
 end
 
 @testset "AffineCurveDivisor basic functions" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
     P = Oscar.Point([QQ(0), QQ(0)])
     Q = Oscar.Point([QQ(0), QQ(-1)])
@@ -270,7 +270,7 @@ end
 end
 
 @testset "ProjCurveDivisor basic functions" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C = Oscar.ProjPlaneCurve(T(y^2 + y * z + x^2))
     PP = proj_space(QQ, 2)
@@ -290,7 +290,7 @@ end
 end
 
 @testset "ProjCurveDivisor global sections" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C = Oscar.ProjPlaneCurve(T(y^2 * z - x * (x - z) * (x + 3 * z)))
     PP = proj_space(QQ, 2)
@@ -316,7 +316,7 @@ end
 end
 
 @testset "Weierstrass form" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
@@ -334,19 +334,19 @@ end
 end
 
 @testset "genus" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
     @test (@inferred Oscar.arithmetic_genus(C)) == 1
     @test (@inferred Oscar.geometric_genus(C)) == 1
-    R, (a, b) = PolynomialRing(GF(7), ["a", "b"])
+    R, (a, b) = polynomial_ring(GF(7), ["a", "b"])
     D = Oscar.AffinePlaneCurve(b^9 - a^2 * (a - 1)^9)
     @test (@inferred Oscar.arithmetic_genus(D)) == 45
     @test (@inferred Oscar.geometric_genus(D)) == 0
 end
 
 @testset "ProjEllipticCurve" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(y^2 * z - x^3 - x * z^2)
     E = Oscar.ProjEllipticCurve(F)
@@ -355,7 +355,7 @@ end
 end
 
 @testset "Point addition" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
     PP = proj_space(QQ, 2)
@@ -372,7 +372,7 @@ end
 
 @testset "Counting Points on Elliptic Curves" begin
     K = GF(5, 7)
-    S, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(K, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
     PP = proj_space(K, 2)
@@ -382,7 +382,7 @@ end
 end
 
 @testset "Torsion points on elliptic curves" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
     PP = proj_space(QQ, 2)
@@ -403,8 +403,8 @@ end
     n = Oscar.ECM(ZZ(4453))
     @test gcd(n, ZZ(4453)) == n
 
-    A = ResidueRing(ZZ, ZZ(4453))
-    S, (x, y, z) = PolynomialRing(A, ["x", "y", "z"])
+    A = residue_ring(ZZ, ZZ(4453))
+    S, (x, y, z) = polynomial_ring(A, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(y^2 * z - x^3 - 10 * x * z^2 + 2 * z^3)
     E = Oscar.ProjEllipticCurve(F)
@@ -424,7 +424,7 @@ end
 end
 
 @testset "ParaPlaneCurve" begin
-    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C1 = Oscar.ProjPlaneCurve(T(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5))
     I1 = Oscar.parametrization_plane_curve(C1)
@@ -474,7 +474,7 @@ end
 end
 
 @testset "NonPlaneCurve" begin
-    S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
+    S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
     T, _ = grade(S)
     I = ideal(T, [x^2, y^2*z, z^2])
     C = Oscar.ProjCurve(I)

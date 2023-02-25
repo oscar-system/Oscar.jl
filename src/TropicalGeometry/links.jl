@@ -13,7 +13,7 @@
 homogeneity space
 todo: proper documentation
 Example:
-Kx,(x,y,z) = PolynomialRing(QQ,3)
+Kx,(x,y,z) = polynomial_ring(QQ,3)
 I = ideal([x+2*y,y+2*z])
 homogeneity_space(I)
 =======#
@@ -68,7 +68,7 @@ end
 tropical_link
 todo: proper documentation
 Example:
-Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
+Kx,(x1,x2,x3,x4,x5) = polynomial_ring(QQ,5)
 # inI = ideal([-10*x2^2*x3+9*x1*x3^2+31*x2*x3^2-25*x1*x3*x4-14*x2^2*x5+6*x1*x5^2+46*x2*x5^2-32*x4*x5^2,
 #              10*x1^3-2*x1^2*x2+38*x1^2*x3+6*x2^2*x3+34*x1*x2*x4-x3^2*x4+8*x1*x4^2+18*x2*x4^2+47*x3^2*x5-22*x4^2*x5+43*x2*x5^2+16*x3*x5^2,
 #              49*x1^2*x4-50*x1*x2*x4-20*x1*x4^2+40*x1*x2*x5-27*x1*x3*x5+4*x1*x4*x5+22*x3*x5^2])

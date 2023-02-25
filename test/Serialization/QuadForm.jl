@@ -24,7 +24,7 @@
           iso = hom(F1,F,gen(F))
           @test gram_matrix(V) == map_entries(iso,gram_matrix(loaded))
         end
-      R, x = PolynomialRing(F, "x")
+      R, x = polynomial_ring(F, "x")
       FF, b =extension_field(x^2 - a)
       VFF = quadratic_space(FF,FF[b;])
       test_save_load_roundtrip(path, VFF) do loaded

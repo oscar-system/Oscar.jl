@@ -91,7 +91,7 @@ end
     @test s0 == 0
     @test s0 isa SLPoly{Int}
 
-    R, (x1, y1) = PolynomialRing(AbstractAlgebra.zz, ["x", "y"])
+    R, (x1, y1) = polynomial_ring(AbstractAlgebra.zz, ["x", "y"])
 
     x0, y0 = gens(S)
     @test ngens(S) == 2
@@ -210,12 +210,12 @@ end
     end
 
     # conversion -> MPoly
-    R, (x1, y1) = PolynomialRing(AbstractAlgebra.zz, ["x", "y"])
+    R, (x1, y1) = polynomial_ring(AbstractAlgebra.zz, ["x", "y"])
     q = convert(R, p)
     @test q isa Generic.MPoly
     @test parent(q) === R
     @test q == -x1^2*y1^2-2*x1*y1^2+x1*y1-y1^2
-    R2, (x2, y2) = PolynomialRing(AbstractAlgebra.zz, ["y", "x"])
+    R2, (x2, y2) = polynomial_ring(AbstractAlgebra.zz, ["y", "x"])
     @test_throws ArgumentError convert(R2, p)
 
     @test convert(R, S()) == R()
@@ -304,7 +304,7 @@ end
     @test convert(R, 2-p) == 2-q
     @test convert(R, p-2) == q-2
 
-    R = ResidueRing(AbstractAlgebra.ZZ, 3)
+    R = residue_ring(AbstractAlgebra.ZZ, 3)
     a = R(2)
     S = SLPolyRing(R, [:x, :y])
     x, y = gens(S)
@@ -331,7 +331,7 @@ end
     @test SLP.evaluate!(empty(gs), S(1), gs) == S(1)
 
     # evaluate MPoly at SLPolyRing generators
-    R, (x, y) = PolynomialRing(AbstractAlgebra.zz, ["x", "y"])
+    R, (x, y) = polynomial_ring(AbstractAlgebra.zz, ["x", "y"])
     S = SLPolyRing(AbstractAlgebra.zz, [:x, :y])
     X, Y = gens(S)
     p = evaluate(x+y, [X, Y])
@@ -341,7 +341,7 @@ end
 
     @testset "SLPolyRing is a proper Ring" begin
         S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
-        St, t = PolynomialRing(S, "t")
+        St, t = polynomial_ring(S, "t")
 
         @testset "show" begin
             @test string(x1) == "x1"
@@ -374,7 +374,7 @@ end
 
     # issue #253
     let (S, (f,)) = slpoly_ring(ZZ, 1)
-        Zx, x = PolynomialRing(ZZ)
+        Zx, x = polynomial_ring(ZZ)
         f1 = evaluate(f, [x(f)])
         f2 = evaluate(f1, [f1])
         @test parent(f1) == parent(f2)

@@ -194,7 +194,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
     )
     check && (is_irreducible(X) || error("variety is not irreducible"))
     representative_patch in default_covering(X) || error("representative patch not found")
-    KK = FractionField(ambient_coordinate_ring(representative_patch))
+    KK = fraction_field(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
     return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
   end

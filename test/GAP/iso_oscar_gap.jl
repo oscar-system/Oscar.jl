@@ -1,6 +1,6 @@
 @testset "residue rings" begin
    @testset for n in [2, 3, 6]
-      for R in [ResidueRing(ZZ, n), ResidueRing(ZZ, fmpz(n))]
+      for R in [residue_ring(ZZ, n), residue_ring(ZZ, ZZRingElem(n))]
          f = Oscar.iso_oscar_gap(R)
          a = one(R)
          b = -one(R)
@@ -14,15 +14,15 @@
             end
          end
          n2 = n + 1
-         one2 = one(ResidueRing(ZZ, n2))
+         one2 = one(residue_ring(ZZ, n2))
          @test_throws ErrorException f(one2)
          @test_throws ErrorException image(f, one2)
          @test_throws ErrorException preimage(f, GAP.Globals.ZmodnZObj(1, GAP.Obj(n2)))
       end
    end
 
-   n = fmpz(2)^100
-   R = ResidueRing(ZZ, n)
+   n = ZZRingElem(2)^100
+   R = residue_ring(ZZ, n)
    f = Oscar.iso_oscar_gap(R)
    a = -one(R)
    @test f(a) == -f(one(R))
@@ -33,7 +33,7 @@ end
 
 @testset "finite fields" begin
    @testset for p in [2, 3]
-      for F in [Nemo.GaloisField(UInt(p)), Nemo.GaloisFmpzField(fmpz(p))]
+      for F in [Nemo.fpField(UInt(p)), Nemo.FpField(ZZRingElem(p))]
          f = Oscar.iso_oscar_gap(F)
          for a in F
             for b in F
@@ -56,7 +56,7 @@ end
    end
 
    @testset for (p,d) in [(2, 1), (5, 1), (2, 4), (3, 3)]
-      for F in [FqFiniteField(fmpz(p),d,:z), FqDefaultFiniteField(fmpz(p),d,:z)]
+      for F in [FqPolyRepField(ZZRingElem(p),d,:z), FqField(ZZRingElem(p),d,:z)]
          f = Oscar.iso_oscar_gap(F)
          g = elm -> map_entries(f, elm)
          for a in F
@@ -87,7 +87,7 @@ end
    end
 end
 
-@testset "a large non-prime field (FqNmodFiniteField)" begin
+@testset "a large non-prime field (fqPolyRepField)" begin
    # The defining polynomial of the Oscar field is not a Conway polynomial,
    # the polynomial of the GAP field is a Conway polynomial,
    # thus we need an intermediate field on the Oscar side.
@@ -107,7 +107,7 @@ end
    @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
 end
 
-@testset "another large non-prime field (FqNmodFiniteField)" begin
+@testset "another large non-prime field (fqPolyRepField)" begin
    # GAP's `GF(p, d)` throws an error if the Conway polynomial in question
    # is neither known nor cheap to compute.
    # Here we can translate from Oscar to GAP by choosing the
@@ -152,7 +152,7 @@ end
 
 @testset "cyclotomic fields" begin
    # for computing random elements of the fields in question
-   my_rand_bits(F::FlintRationalField, b::Int) = rand_bits(F, b)
+   my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
    my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
@@ -193,19 +193,19 @@ end
 end
 
 @testset "univariate polynomial rings" begin
-   baserings = [QQ,                           # yields `FmpqPolyRing`
-                ZZ,                           # yields `FmpzPolyRing`
-                GF(2,2),                      # yields `FqNmodPolyRing`
-                FqDefaultFiniteField(fmpz(2),3,:x), # yields `FqDefaultPolyRing`
-                FqFiniteField(fmpz(2),2,:z),  # yields `FqPolyRing`
-                GF(fmpz(2)),                  # yields `GFPFmpzPolyRing`
-                GF(2),                        # yields `GFPPolyRing`
-                Nemo.NmodRing(UInt64(6)),     # yields `NmodPolyRing`
-                Nemo.FmpzModRing(fmpz(6)),    # yields `FmpzModPolyRing`
+   baserings = [QQ,                           # yields `QQPolyRing`
+                ZZ,                           # yields `ZZPolyRing`
+                GF(2,2),                      # yields `fqPolyRepPolyRing`
+                FqField(ZZRingElem(2),3,:x), # yields `FqPolyRing`
+                FqPolyRepField(ZZRingElem(2),2,:z),  # yields `FqPolyRepPolyRing`
+                GF(ZZRingElem(2)),                  # yields `FpPolyRing`
+                GF(2),                        # yields `fpPolyRing`
+                Nemo.zzModRing(UInt64(6)),     # yields `zzModPolyRing`
+                Nemo.ZZModRing(ZZRingElem(6)),    # yields `ZZModPolyRing`
                ]
 #TODO: How to get `AbstractAlgebra.Generic.PolyRing`?
    @testset for R in baserings
-      PR, x = PolynomialRing(R, "x")
+      PR, x = polynomial_ring(R, "x")
       iso = Oscar.iso_oscar_gap(PR)
       for pol in [zero(x), one(x), x, x^3+x+1]
          img = iso(pol)
@@ -213,23 +213,23 @@ end
       end
       m = matrix([x x; x x])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
-      @test_throws ErrorException iso(PolynomialRing(R, "y")[1]())
-      @test_throws ErrorException image(iso, PolynomialRing(R, "y")[1]())
+      @test_throws ErrorException iso(polynomial_ring(R, "y")[1]())
+      @test_throws ErrorException image(iso, polynomial_ring(R, "y")[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end
 
 @testset "multivariate polynomial rings" begin
-   baserings = [QQ,                           # yields `FmpqMPolyRing`
-                ZZ,                           # yields `FmpzMPolyRing`
-                GF(2,2),                      # yields `FqNmodMPolyRing`
-                GF(fmpz(2)),                  # yields `AbstractAlgebra.Generic.MPolyRing{gfp_fmpz_elem}`
-                GF(2),                        # yields `GFPMPolyRing`
-                Nemo.NmodRing(UInt64(6)),     # yields `NmodMPolyRing`
+   baserings = [QQ,                           # yields `QQMPolyRing`
+                ZZ,                           # yields `ZZMPolyRing`
+                GF(2,2),                      # yields `fqPolyRepMPolyRing`
+                GF(ZZRingElem(2)),                  # yields `AbstractAlgebra.Generic.MPolyRing{FpFieldElem}`
+                GF(2),                        # yields `fpMPolyRing`
+                Nemo.zzModRing(UInt64(6)),     # yields `zzModMPolyRing`
                ]
-#TODO: How to get `GFPFmpzMPolyRing`, `FqDefaultMPolyRing`?
+#TODO: How to get `FpMPolyRing`, `FqMPolyRing`?
    @testset for R in baserings
-      PR, (x,y,z) = PolynomialRing(R, 3)
+      PR, (x,y,z) = polynomial_ring(R, 3)
       iso = Oscar.iso_oscar_gap(PR)
       for pol in [zero(x), one(x), x, x^2*y + y*z^3 + x*y*z + 1]
          img = iso(pol)
@@ -237,8 +237,8 @@ end
       end
       m = matrix([x x; y z])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
-      @test_throws ErrorException iso(PolynomialRing(R, ["y"])[1]())
-      @test_throws ErrorException image(iso, PolynomialRing(R, ["y"])[1]())
+      @test_throws ErrorException iso(polynomial_ring(R, ["y"])[1]())
+      @test_throws ErrorException image(iso, polynomial_ring(R, ["y"])[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end

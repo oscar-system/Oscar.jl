@@ -24,7 +24,7 @@
 end
 
 @testset "Issues in #1806 part 1" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x$i" for i in 1:3])
+    R, (x, y, z) = polynomial_ring(QQ, ["x$i" for i in 1:3])
 
     M = R[x y; y-1 z]
     f = det(M)
@@ -62,7 +62,7 @@ end
     F = FreeMod(R, 1)
     FQ = FreeMod(Q, 1)
     f = hom(F, FQ, gens(FQ), phi)
-    W, (t,) = PolynomialRing(QQ, ["t"])
+    W, (t,) = polynomial_ring(QQ, ["t"])
     psi = hom(Q, W, [zero(W), W[1]])
     FW = FreeMod(W, 1)
     g = hom(FQ, FW, gens(FW), psi)

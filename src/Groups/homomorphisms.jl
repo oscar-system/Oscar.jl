@@ -557,11 +557,11 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     orders = fmpz[GAPWrap.Order(x) for x in indep]
+     orders = ZZRingElem[GAPWrap.Order(x) for x in indep]
      n = length(indep)
      A = abelian_group(GrpAbFinGen, orders)
 
-     f(g) = A(Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
+     f(g) = A(Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
 
      finv = function(g::elem_type(GrpAbFinGen))
        res = GAPWrap.One(G.X)
@@ -609,9 +609,9 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      # `GAP.Globals.IndependentGenerators(G.X)`.
      Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(G.X)::GapObj)
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     Aindep = abelian_group(fmpz[GAPWrap.Order(g) for g in gensindep])
+     Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
 
-     imgs = [Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
+     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
      Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
      n = length(exponents)
@@ -626,7 +626,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      end
 
      finv = function(g)
-       exp = Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
+       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
        return Aindep_to_A(Aindep(exp))
      end
 

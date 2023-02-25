@@ -10,7 +10,7 @@ export TropicalSemiring,
 
 # @reexport using Oscar
 
-# import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, PolynomialRing
+# import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, polynomial_ring
 
 ################################################################################
 #
@@ -30,7 +30,7 @@ end
 mutable struct TropicalSemiringElem{T} <: FieldElem
   parent::TropicalSemiring{T}
   isinf::Bool
-  data::fmpq
+  data::QQFieldElem
 
   function rational_value(t::TropicalSemiringElem)
     return t.data
@@ -93,7 +93,7 @@ false
 julia> T = TropicalSemiring()
 Tropical semiring (min)
 
-julia> Tx,(x1,x2) = PolynomialRing(T,3)
+julia> Tx,(x1,x2) = polynomial_ring(T,3)
 (Multivariate Polynomial Ring in x1, x2, x3 over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x1, x2, x3])
 
 julia> f = x1 + -1*x2 + 0
@@ -477,7 +477,7 @@ one(R::AbstractAlgebra.Generic.PolyRing{<:TropicalSemiringElem}) = R(one(base_ri
 
 zero(R::AbstractAlgebra.Generic.PolyRing{TropicalSemiringElem{S}}) where {S} = R(zero(base_ring(R)))
 
-function Oscar.PolynomialRing(R::TropicalSemiring, s::Symbol; cached::Bool = true)
+function Oscar.polynomial_ring(R::TropicalSemiring, s::Symbol; cached::Bool = true)
    T = elem_type(R)
    parent_obj = Oscar.Generic.PolyRing{T}(R, s, cached)
 
@@ -486,7 +486,7 @@ end
 
 # Oscar will print zero sums as 0, which we do not want.
 # So we have to adjust the printing code for polynomials
-function AbstractAlgebra.expressify(@nospecialize(a::PolyElem{<:TropicalSemiringElem}),
+function AbstractAlgebra.expressify(@nospecialize(a::PolyRingElem{<:TropicalSemiringElem}),
                                     x = var(parent(a)); context = nothing)
   if iszero(a)
     return expressify(zero(base_ring(a)), context = context)
@@ -554,7 +554,7 @@ Translate the expression in the tropical world.
 ```jlexample
 julia> T = TropicalSemiring(min);
 
-julia> Tx, x = Tropical.PolynomialRing(T, "x" => 1:3);
+julia> Tx, x = Tropical.polynomial_ring(T, "x" => 1:3);
 
 julia> @tropical min(1, x[1], x[2], 2*x[3])
 x[1] + x[2] + x[3]^2 + (1)
@@ -593,15 +593,15 @@ function _tropicalize(x::Expr)
 end
 
 function _tropical_mul(x, y)
-  if x isa Union{Integer, Rational, fmpq, fmpz}
-    if x isa Rational || x isa fmpq
+  if x isa Union{Integer, Rational, QQFieldElem, ZZRingElem}
+    if x isa Rational || x isa QQFieldElem
       _x = ZZ(x)
       return y^_x
     else
       return y^x
     end
-  elseif y isa Union{Integer, Rational, fmpq, fmpz}
-    if y isa Rational | y isa fmpq
+  elseif y isa Union{Integer, Rational, QQFieldElem, ZZRingElem}
+    if y isa Rational | y isa QQFieldElem
       _y = ZZ(y)
       return x^_y
     else

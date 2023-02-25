@@ -10,7 +10,7 @@ using Test
     l2 = canonical_bundle(dP3)
     l3 = anticanonical_bundle(dP3)
     l4 = toric_line_bundle(dP3, trivial_divisor(dP3))
-    l5 = toric_line_bundle(dP1, [fmpz(1), fmpz(2)])
+    l5 = toric_line_bundle(dP1, [ZZRingElem(1), ZZRingElem(2)])
     
     @testset "Should fail" begin
         @test_throws ArgumentError l * l5

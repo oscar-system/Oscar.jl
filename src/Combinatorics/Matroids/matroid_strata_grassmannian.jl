@@ -18,7 +18,7 @@ julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 [0   0         0   1   x[3, 2]   x[3, 3]   x[3, 4]]
 
 julia> W # The coordinate ring of the stratum; in general a localized quotient ring `(R/I)[S⁻¹]`.
-Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of gfp_mpoly[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
+Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of fpMPolyRingElem[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
 ```
 """
 function matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType,  F::AbstractAlgebra.Ring = ZZ)
@@ -65,7 +65,7 @@ julia> X # The coordinate matrix.
 [0   0         0   1         1         1   1]
 
 julia> W # The coordinate ring of the stratum.
-Localization of Quotient of Multivariate Polynomial Ring in x[1, 1], x[1, 2], x[2, 3] over Galois field with characteristic 2 by ideal(x[2, 3] + 1, x[1, 2] + 1, x[1, 1] + 1, x[1, 1]*x[2, 3] + x[1, 2]) at the multiplicative set powers of gfp_mpoly[1, x[1, 1]*x[2, 3] + x[1, 1] + 1, x[2, 3], x[1, 2]*x[2, 3] + x[1, 2] + x[2, 3], x[1, 1] + x[1, 2] + 1, x[1, 2], x[1, 1], x[1, 2]*x[2, 3], x[1, 1]*x[2, 3]]
+Localization of Quotient of Multivariate Polynomial Ring in x[1, 1], x[1, 2], x[2, 3] over Galois field with characteristic 2 by ideal(x[2, 3] + 1, x[1, 2] + 1, x[1, 1] + 1, x[1, 1]*x[2, 3] + x[1, 2]) at the multiplicative set powers of fpMPolyRingElem[1, x[1, 1]*x[2, 3] + x[1, 1] + 1, x[2, 3], x[1, 2]*x[2, 3] + x[1, 2] + x[2, 3], x[1, 1] + x[1, 2] + 1, x[1, 2], x[1, 1], x[1, 2]*x[2, 3], x[1, 1]*x[2, 3]]
 ```
 """
 function matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
@@ -135,7 +135,7 @@ function make_polynomial_ring(Bs::Vector{Vector{Int}}, B::Vector{Int},
                               F::AbstractAlgebra.Ring)
     
     MC = bases_matrix_coordinates(Bs, B)
-    R, x = PolynomialRing(F, :"x"=>MC)
+    R, x = polynomial_ring(F, :"x"=>MC)
     xdict = Dict{Vector{Int}, MPolyRingElem}([MC[i] => x[i] for i in 1:length(MC)])
     return R, x, xdict
 end
@@ -150,7 +150,7 @@ function make_coordinate_matrix_no_identity(d::Int, n::Int,
                                             R::MPolyRing, x::Vector{T},
                                             xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
-    S = MatrixSpace(R, d, n-d)
+    S = matrix_space(R, d, n-d)
     X = S()
     for j in 1:n-d, i in 1:d
         if [i,j] in MC
@@ -171,7 +171,7 @@ function interlace_columns(M::MatrixElem{T}, N::MatrixElem{T}, B::Vector{Int},
     N_nrows, N_ncols = size(N)
     n = M_ncols + N_ncols
 
-    S = MatrixSpace(R, M_nrows, n)
+    S = matrix_space(R, M_nrows, n)
     Bc = [i for i in 1:n if !(i in B)]
     
     X = S()
@@ -325,7 +325,7 @@ function realization_polynomial_ring(Bs::Vector{Vector{Int}}, A::Vector{Int},
     MC = realization_bases_coordinates(Bs, A)
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
-    R, x = PolynomialRing(F, :"x"=>MR)
+    R, x = polynomial_ring(F, :"x"=>MR)
     xdict = Dict{Vector{Int}, MPolyRingElem}(MR[i] => x[i] for i in 1:length(MR))
     return R, x, xdict
 end
@@ -337,7 +337,7 @@ function matrix_realization_small(d::Int, n::Int, MC::Vector{Vector{Int}},
 
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
-    S = MatrixSpace(R, d, n-d-1)
+    S = matrix_space(R, d, n-d-1)
     X = S()
     for j in 1:n-d-1, i in 1:d
         if [i,j] in MR
@@ -370,10 +370,10 @@ function realization_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
     
     
     if d == 1
-        S = MatrixSpace(R,1,1)
+        S = matrix_space(R,1,1)
         Id = S([1])
     else
-        S = MatrixSpace(R,d,d+1)
+        S = matrix_space(R,d,d+1)
         Id = S(projective_identity(d))
     end
     Xpre = matrix_realization_small(d, n, MC, R, x, xdict)

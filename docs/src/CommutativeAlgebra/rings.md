@@ -33,7 +33,7 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-PolynomialRing(C::Ring, V::Vector{String}; ordering=:lex, cached = true)
+polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
@@ -46,17 +46,17 @@ order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner base
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, fmpz_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
 
 julia> typeof(R)
-FmpzMPolyRing
+ZZMPolyRing
 
 julia> typeof(x)
-fmpz_mpoly
+ZZMPolyRingElem
 
-julia> S, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, fmpz_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
 
 julia> R === S
 true
@@ -64,31 +64,31 @@ true
 ```
 
 ```jldoctest
-julia> R1, x = PolynomialRing(QQ, ["x"])
-(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+julia> R1, x = polynomial_ring(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, QQMPolyRingElem[x])
 
 julia> typeof(x)
-Vector{fmpq_mpoly} (alias for Array{fmpq_mpoly, 1})
+Vector{QQMPolyRingElem} (alias for Array{QQMPolyRingElem, 1})
 
-julia> R2, (x,) = PolynomialRing(QQ, ["x"])
-(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+julia> R2, (x,) = polynomial_ring(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, QQMPolyRingElem[x])
 
 julia> typeof(x)
-fmpq_mpoly
+QQMPolyRingElem
 
-julia> R3, x = PolynomialRing(QQ, "x")
+julia> R3, x = polynomial_ring(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> typeof(x)
-fmpq_poly
+QQPolyRingElem
 
 ```
 
 ```jldoctest
-julia> T, x = PolynomialRing(GF(3), ["x[1]", "x[2]"]);
+julia> T, x = polynomial_ring(GF(3), ["x[1]", "x[2]"]);
 
 julia> x
-2-element Vector{gfp_mpoly}:
+2-element Vector{fpMPolyRingElem}:
  x[1]
  x[2]
 
@@ -97,21 +97,21 @@ julia> x
 The constructor illustrated below allows for the convenient handling of variables with multi-indices:
 
 ```jldoctest
-julia> R, x, y, z = PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1));
+julia> R, x, y, z = polynomial_ring(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1));
 
 julia> x
-3×4 Matrix{fmpq_mpoly}:
+3×4 Matrix{QQMPolyRingElem}:
  x[1, 1]  x[1, 2]  x[1, 3]  x[1, 4]
  x[2, 1]  x[2, 2]  x[2, 3]  x[2, 4]
  x[3, 1]  x[3, 2]  x[3, 3]  x[3, 4]
 
 julia> y
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  y[1]
  y[2]
 
 julia> z
-1×1×1 Array{fmpq_mpoly, 3}:
+1×1×1 Array{QQMPolyRingElem, 3}:
 [:, :, 1] =
  z[1, 1, 1]
 
@@ -148,18 +148,18 @@ julia> FiniteField(2, 70, "a")
 ```
 
 ### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
-  
+
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t")
+julia> T, t = polynomial_ring(QQ, "t")
 (Univariate Polynomial Ring in t over Rational Field, t)
 
-julia> K, a = NumberField(t^2 + 1, "a")
+julia> K, a = number_field(t^2 + 1, "a")
 (Number field over Rational Field with defining polynomial t^2 + 1, a)
 
 julia> F = GF(3)
 Galois field with characteristic 3
 
-julia> T, t = PolynomialRing(F, "t")
+julia> T, t = polynomial_ring(F, "t")
 (Univariate Polynomial Ring in t over Galois field with characteristic 3, t)
 
 julia> K, a = FiniteField(t^2 + 1, "a")
@@ -170,10 +170,10 @@ julia> K, a = FiniteField(t^2 + 1, "a")
 ### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
 
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t")
+julia> T, t = polynomial_ring(QQ, "t")
 (Univariate Polynomial Ring in t over Rational Field, t)
 
-julia> QT = FractionField(T)
+julia> QT = fraction_field(T)
 Fraction field of Univariate Polynomial Ring in t over Rational Field
 
 julia> parent(t)
@@ -182,9 +182,9 @@ Univariate Polynomial Ring in t over Rational Field
 julia> parent(1//t)
 Fraction field of Univariate Polynomial Ring in t over Rational Field
 
-julia> T, (s, t) = PolynomialRing(GF(3), ["s", "t"]);
+julia> T, (s, t) = polynomial_ring(GF(3), ["s", "t"]);
 
-julia> QT = FractionField(T)
+julia> QT = fraction_field(T)
 Fraction field of Multivariate Polynomial Ring in s, t over Galois field with characteristic 3
 
 ```
@@ -301,14 +301,14 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> coefficient_ring(R)
 Rational Field
 
 julia> gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x
  y
  z
@@ -345,26 +345,26 @@ basic arithmetic as shown below:
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
 3*x^2 + y*z
 
 julia> typeof(f)
-fmpq_mpoly
+QQMPolyRingElem
 
 julia> S, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> g = 3*x^2+y*z
 3*x^2 + y*z
 
 julia> typeof(g)
-MPolyDecRingElem{fmpq, fmpq_mpoly}
+MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}
 
 julia> g == S(f)
 true
@@ -383,8 +383,8 @@ with exponent vectors given by the elements of `e`.
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
 3*x^2 + y*z
@@ -400,8 +400,8 @@ true
 An often more effective way to create polynomials is to use the `MPoly` build context as indicated below:
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
 Builder for an element of Multivariate Polynomial Ring in x, y over Rational Field
@@ -431,11 +431,11 @@ subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bas
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Galois field with characteristic 5, gfp_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 5, fpMPolyRingElem[x, y])
 
 julia> c = map(GF(5), [1, 2, 3])
-3-element Vector{gfp_elem}:
+3-element Vector{fpFieldElem}:
  1
  2
  3

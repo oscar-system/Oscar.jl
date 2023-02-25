@@ -67,7 +67,7 @@ GENERAL
 END
 ```
 """
-function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
   _internal_save_lp(target,
                     pm_object(feasible_region(lp)),
                     pm_object(lp),
@@ -119,7 +119,7 @@ BOUNDS
 ENDATA
 ```
 """
-function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
   _internal_save_mps(target,
                      pm_object(feasible_region(lp)),
                      pm_object(lp))

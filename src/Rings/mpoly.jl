@@ -1,6 +1,6 @@
 #module MPolyModule
 
-export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyRingElem, ideal, coordinates,
+export polynomial_ring, total_degree, degree,  MPolyIdeal, MPolyRingElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
        leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
@@ -17,14 +17,14 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyRingElem, ideal, 
 #TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
 
 #allows
-# PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
+# polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
 
-function PolynomialRing(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
+function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
   w = (v1, v...)
   str = _make_strings(w)
   strings = vcat(str...)
-  Rx, c = PolynomialRing(R, strings, cached = cached, ordering = ordering)
+  Rx, c = polynomial_ring(R, strings, cached = cached, ordering = ordering)
   # Now we need to collect the variables
   # We do it recursively to make it type stable
   Rx, _collect_variables(c, w)...
@@ -118,7 +118,7 @@ end
 
 ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
 
-function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyElem}
+function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
   return F(gen(base_ring(F)))
 end
 
@@ -126,7 +126,7 @@ function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyR
   return F(gen(base_ring(F), i))
 end
 
-function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyElem, MPolyRingElem}}
+function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
   return map(F, gens(base_ring(F)))
 end
 
@@ -415,11 +415,11 @@ end
 # Singular's native Fp(5):
 #  singular_coeff_ring(GF(5)) => Singular.N_ZpField
 #
-# Singular wrapper of the Oscar type fmpq_poly:
-#  singular_coeff_ring(QQ[t]) => Singular.N_Ring{fmpq_poly}
+# Singular wrapper of the Oscar type QQPolyRingElem:
+#  singular_coeff_ring(QQ[t]) => Singular.N_Ring{QQPolyRingElem}
 #
-# even more wrappings of the immutable Oscar type gfp_fmpz_elem:
-#  singular_coeff_ring(GF(fmpz(5))) => Singular.N_Field{Singular.FieldElemWrapper{GaloisFmpzField, gfp_fmpz_elem}}
+# even more wrappings of the immutable Oscar type FpFieldElem:
+#  singular_coeff_ring(GF(ZZRingElem(5))) => Singular.N_Field{Singular.FieldElemWrapper{FpField, FpFieldElem}}
 
 for T in [:MPolyRing, :(AbstractAlgebra.Generic.MPolyRing)]
 @eval function (Ox::$T)(f::Singular.spoly)
@@ -435,25 +435,25 @@ end
 end
 
 
-function (S::Singular.Rationals)(a::fmpq)
+function (S::Singular.Rationals)(a::QQFieldElem)
   b = Base.Rational{BigInt}(a)
   return S(b)
 end
 
-(F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
-(F::Singular.N_ZpField)(a::Nemo.nmod) = F(lift(a))
-(F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
-(F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
+(F::Singular.N_ZpField)(a::Nemo.fpFieldElem) = F(lift(a))
+(F::Singular.N_ZpField)(a::Nemo.zzModRingElem) = F(lift(a))
+(F::Nemo.fpField)(a::Singular.n_Zp) = F(Int(a))
+(F::Nemo.zzModRing)(a::Singular.n_Zp) = F(Int(a))
 
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_coeff_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
-singular_coeff_ring(::Nemo.FlintRationalField) = Singular.Rationals()
+singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
+singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
 
 # if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_coeff_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::Nemo.fpField) = Singular.Fp(Int(characteristic(F)))
 
-function singular_coeff_ring(F::Union{Nemo.NmodRing, Nemo.FmpzModRing})
-  return Singular.ResidueRing(Singular.Integers(), BigInt(modulus(F)))
+function singular_coeff_ring(F::Union{Nemo.zzModRing, Nemo.ZZModRing})
+  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))
 end
 
 singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
@@ -474,7 +474,7 @@ function singular_coeff_ring(K::AnticNumberField)
   return SK
 end
 
-function singular_coeff_ring(F::FqNmodFiniteField)
+function singular_coeff_ring(F::fqPolyRepField)
   # TODO: the Fp(Int(char)) can throw
   minpoly = modulus(F)
   Fa = parent(minpoly)
@@ -489,11 +489,11 @@ function singular_coeff_ring(F::FqNmodFiniteField)
 end
 
 #### TODO stuff to move to singular.jl
-function (F::Singular.N_FField)(a::Union{nmod, gfp_elem})
+function (F::Singular.N_FField)(a::Union{zzModRingElem, fpFieldElem})
   return F(a.data)
 end
 
-function (K::FqNmodFiniteField)(a::Singular.n_algExt)
+function (K::fqPolyRepField)(a::Singular.n_algExt)
   SK = parent(a)
   SF = parent(Singular.modulus(SK))
   SFa = SF(a)
@@ -508,7 +508,7 @@ function (K::FqNmodFiniteField)(a::Singular.n_algExt)
   return res
 end
 
-function (SF::Singular.N_AlgExtField)(a::fq_nmod)
+function (SF::Singular.N_AlgExtField)(a::fqPolyRepFieldElem)
   F = parent(a)
   SFa = gen(SF)
   res = SF(coeff(a, 0))
@@ -521,33 +521,33 @@ end
 
 function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
-    return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
+    return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ordering(Rx),
               cached = false)[1]
   else
-    return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
+    return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
   end
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
+  return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
+  return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
+  return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = singular(ord),
               cached = false)[1]
@@ -957,13 +957,13 @@ vectors (as `Vector{Int}`) with respect to the order `ordering`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, [:x, :y]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> coefficients_and_exponents((1 + x + 2*y)^2; ordering = neglex(R))
 coefficients and exponents iterator of 1 + 4*y + 4*y^2 + 2*x + 4*x*y + x^2
 
 julia> collect(ans)
-6-element Vector{Tuple{fmpq, Vector{Int64}}}:
+6-element Vector{Tuple{QQFieldElem, Vector{Int64}}}:
  (1, [0, 0])
  (4, [0, 1])
  (4, [0, 2])

@@ -108,7 +108,7 @@ affine_refinements(C::Covering) = C.affine_refinements
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   for i in 0:r
-    R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
     I = ideal(R, phi.(gens(defining_ideal(X))))
     push!(U, Spec(quo(R, I)[1]))
@@ -166,7 +166,7 @@ end
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
   for i in 0:r
-    R_fiber, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     F = Spec(R_fiber)
     ambient_space, pF, pY = product(F, Y)
     fiber_vars = pullback(pF).(gens(R_fiber))

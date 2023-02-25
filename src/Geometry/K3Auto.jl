@@ -18,37 +18,37 @@ The assumptions are as follows:
 
 - `S::ZLat`: primitive sublattice
 
-- `weyl_vector::fmpz_mat`: given in the basis of `L`
+- `weyl_vector::ZZMatrix`: given in the basis of `L`
 
 - `R::ZLat`: the orthogonal complement of `S` in `L`
   We assume that the basis of R consists of the last rank R standard basis vectors.
 - `SS::ZLat`: lattice with standard basis and same gram matrix as `S`.
 
-- `deltaR::Vector{fmpz_mat}`:
+- `deltaR::Vector{ZZMatrix}`:
 
-- `dualDeltaR::Vector{fmpz_mat}`:
+- `dualDeltaR::Vector{ZZMatrix}`:
 
-- `prRdelta::Vector{Tuple{fmpq_mat,fmpq}}`:
+- `prRdelta::Vector{Tuple{QQMatrix,QQFieldElem}}`:
 
 - `membership_test`: takes the `s x s` matrix describing `g: S -> S` with respect
   to the basis of `S` and returns whether `g` lies in the group `G`.
 
-- `prS::fmpq_mat`: `prS: L --> S^\vee` given with respect to the (standard)
+- `prS::QQMatrix`: `prS: L --> S^\vee` given with respect to the (standard)
   basis of `L` and the basis of `S`
 """
 mutable struct BorcherdsCtx
   L::ZLat
   S::ZLat
-  weyl_vector::fmpz_mat # given in the basis of L
+  weyl_vector::ZZMatrix # given in the basis of L
   SS::ZLat
   R::ZLat
-  deltaR::Vector{fmpz_mat}
-  dualDeltaR::Vector{fmpz_mat}
-  prRdelta::Vector{Tuple{fmpq_mat,fmpq}}
+  deltaR::Vector{ZZMatrix}
+  dualDeltaR::Vector{ZZMatrix}
+  prRdelta::Vector{Tuple{QQMatrix,QQFieldElem}}
   membership_test
-  gramL::fmpz_mat  # avoid a few conversions because gram_matrix(::ZLat) -> fmpq_mat
-  gramS::fmpz_mat
-  prS::fmpq_mat
+  gramL::ZZMatrix  # avoid a few conversions because gram_matrix(::ZLat) -> QQMatrix
+  gramS::ZZMatrix
+  prS::QQMatrix
   compute_OR::Bool
   # TODO: Store temporary variables for the computations
   # in order to make the core-functions adjacent_chamber and walls
@@ -154,11 +154,11 @@ function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
 
   d = exponent(discriminant_group(S))
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual,-1), 2, fmpz)
+  sv = short_vectors(rescale(Rdual,-1), 2, ZZRingElem)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
-  push!(sv,(zeros(fmpz, rank(Rdual)), QQ(0)))
+  push!(sv,(zeros(ZZRingElem, rank(Rdual)), QQ(0)))
   rkR = rank(R)
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   gramL = change_base_ring(ZZ,gram_matrix(L))
@@ -199,14 +199,14 @@ Note that two Weyl vectors induce the same chamber if and only if
 their orthogonal projections to ``S`` coincide.
 """
 mutable struct K3Chamber
-  weyl_vector::fmpz_mat
+  weyl_vector::ZZMatrix
   # for v in walls, the corresponding half space is defined by the equation
   # x * gram_matrix(S)*v >= 0, further v is primitive in S (and, in contrast to Shimada, not S^\vee)
-  walls::Vector{fmpz_mat}
-  lengths::Vector{fmpq}  #
-  B::fmpz_mat # QQ-basis consisting of rays #... why do we bother to save this?
-  gramB::fmpz_mat # the basis matrix inferred from the QQ-basis
-  parent_wall::fmpz_mat # for the spanning tree
+  walls::Vector{ZZMatrix}
+  lengths::Vector{QQFieldElem}  #
+  B::ZZMatrix # QQ-basis consisting of rays #... why do we bother to save this?
+  gramB::ZZMatrix # the basis matrix inferred from the QQ-basis
+  parent_wall::ZZMatrix # for the spanning tree
   data::BorcherdsCtx
   fp::Matrix{Int} # fingerprint for the backtrack search
   #per::Vector{Int}  # permutation
@@ -224,14 +224,14 @@ end
 export chamber, BorcherdsCtx
 
 @doc Markdown.doc"""
-    chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, [parent_wall::fmpz_mat, walls::Vector{fmpz_mat}])
+    chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, [parent_wall::ZZMatrix, walls::Vector{ZZMatrix}])
 
 Return the ``L|S``-chamber with the given Weyl vector.
 
 The lattices ``L`` and ``S`` are stored in `data`.
 Via the parent walls we can obtain a spanning tree of the chamber graph.
 """
-function chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, parent_wall::fmpz_mat=zero_matrix(ZZ, 0, 0))
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0))
   D = K3Chamber()
   D.weyl_vector = weyl_vector
   D.parent_wall = parent_wall
@@ -239,7 +239,7 @@ function chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, parent_wall::fmpz_ma
   return D
 end
 
-function chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, parent_wall::fmpz_mat, walls::Vector{fmpz_mat})
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix})
   D = K3Chamber()
   D.weyl_vector = weyl_vector
   D.parent_wall = parent_wall
@@ -263,7 +263,7 @@ function Base.:(==)(C::K3Chamber, D::K3Chamber)
 end
 
 @doc Markdown.doc"""
-    walls(D::K3Chamber) -> Vector{fmpz_mat}
+    walls(D::K3Chamber) -> Vector{ZZMatrix}
 
 Return the walls of the chamber `D`, i.e. its facets.
 
@@ -287,7 +287,7 @@ function walls(D::K3Chamber)
 end
 
 @doc Markdown.doc"""
-    weyl_vector(D::K3Chamber) -> fmpz_mat
+    weyl_vector(D::K3Chamber) -> ZZMatrix
 
 Return the Weyl vector defining this chamber.
 """
@@ -306,11 +306,11 @@ function rays(D::K3Chamber)
   C = positive_hull(rQ)
   Cd = polarize(C)
   L = rays(Cd)
-  Lq = fmpq_mat[matrix(QQ,1,rank(D.data.SS),i) for i in L]
+  Lq = QQMatrix[matrix(QQ,1,rank(D.data.SS),i) for i in L]
   # clear denominators
-  Lz = fmpz_mat[change_base_ring(ZZ,i*denominator(i)) for i in Lq]
+  Lz = ZZMatrix[change_base_ring(ZZ,i*denominator(i)) for i in Lq]
   # primitive in S
-  Lz = fmpz_mat[divexact(i,gcd(vec(i))) for i in Lz]
+  Lz = ZZMatrix[divexact(i,gcd(vec(i))) for i in Lz]
   @hassert :K3Auto 2 all(all(x>=0 for x in vec(r*gram_matrix(D.data.SS)*transpose(i))) for i in Lz)
   return Lz
 end
@@ -338,14 +338,14 @@ function fingerprint(D::K3Chamber)
   sort!(m2)
   m3 = [(v*G*transpose(a))[1,1] for a in walls(D)]
   sort!(m3)
-  m4 = fmpz[]
+  m4 = ZZRingElem[]
   for i in 1:length(walls(D))
     for j in 1:i-1
       push!(m4,(walls(D)[i]*G*transpose(walls(D)[j]))[1,1])
     end
   end
   sort!(m4)
-  V = Dict{Tuple{fmpz,fmpz},Vector{fmpz_mat}}()
+  V = Dict{Tuple{ZZRingElem,ZZRingElem},Vector{ZZMatrix}}()
   for w in walls(D)
     i =  (v*G*transpose(w))[1,1]
     j =  (w*G*transpose(w))[1,1]
@@ -398,7 +398,7 @@ function _fingerprint_backtrack!(D::K3Chamber)
   tmp = V[indB]
   deleteat!(V, indB)
   prepend!(V, tmp)
-  lengths = fmpq[(v*gramS*transpose(v))[1,1] for v in V]
+  lengths = QQFieldElem[(v*gramS*transpose(v))[1,1] for v in V]
   D.lengths = lengths
   gramB = change_base_ring(ZZ, B*gramS*transpose(B))
   D.gramB = gramB
@@ -506,7 +506,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    enumerate_quadratic_triple -> Vector{Tuple{Vector{Int}, fmpq}}
+    enumerate_quadratic_triple -> Vector{Tuple{Vector{Int}, QQFieldElem}}
 
 Return $\{x \in \mathbb Z^n : x Q x^T + 2xb^T + c <=0\}$.
 
@@ -557,7 +557,7 @@ function short_vectors_affine(S::ZLat, v::MatrixElem, alpha, d)
   return [s*B for s in sol]
 end
 
-function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
+function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldElem, d)
   # find a solution <x,v> = alpha with x in L if it exists
   w = gram*transpose(v)
   tmp = FakeFmpqMat(w)
@@ -565,7 +565,7 @@ function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
   wd = denominator(tmp)
   b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]))
   if !b
-    return fmpq_mat[]
+    return QQMatrix[]
   end
   _, K = left_kernel(wn)
   # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
@@ -590,7 +590,7 @@ end
 
 
 @doc Markdown.doc"""
-    separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
+    separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
 
 Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
 
@@ -599,7 +599,7 @@ Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
 - `d`: a negative integer
 - `v`,`h`: vectors of positive square
 """
-function separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
+function separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
   V = ambient_space(S)
   @hassert :K3Auto 1 inner_product(V,v,v)[1,1]>0
   @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
@@ -610,7 +610,7 @@ function separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
   return [a*B for a in separating_hyperplanes(gram,vS,hS,d)]
 end
 
-function separating_hyperplanes(gram::fmpq_mat, v::fmpq_mat, h::fmpq_mat, d)
+function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   L = Zlattice(gram=gram)
   n = ncols(gram)
   ch = QQ((h*gram*transpose(h))[1,1])
@@ -627,7 +627,7 @@ function separating_hyperplanes(gram::fmpq_mat, v::fmpq_mat, h::fmpq_mat, d)
   @vprint :K3Auto 5 Q
   LQ = Zlattice(gram=-Q*denominator(Q))
 
-  S = fmpq_mat[]
+  S = QQMatrix[]
   h = change_base_ring(QQ, h)
   rho = abs(d)*ch^-1
   t,sqrtho = issquare_with_sqrt(rho)
@@ -689,11 +689,11 @@ end
 _find_basis(row_matrices::Vector) = _find_basis(row_matrices, ncols(row_matrices[1]))
 
 @doc Markdown.doc"""
-    is_pm1_on_discr(S::ZLat, g::fmpz_mat) -> Bool
+    is_pm1_on_discr(S::ZLat, g::ZZMatrix) -> Bool
 
 Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
 """
-function is_pm1_on_discr(S::ZLat, g::fmpz_mat)
+function is_pm1_on_discr(S::ZLat, g::ZZMatrix)
   D = discriminant_group(S)
   imgs = [D(vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
   return all(imgs[i] == gens(D)[i] for i in 1:length(gens(D))) || all(imgs[i] == -gens(D)[i] for i in 1:length(gens(D)))
@@ -704,7 +704,7 @@ function is_pm1_on_discr(S::ZLat, g::fmpz_mat)
 end
 
 @doc Markdown.doc"""
-    hom(D::K3Chamber, E::K3Chamber) -> Vector{fmpz_mat}
+    hom(D::K3Chamber, E::K3Chamber) -> Vector{ZZMatrix}
 
 Return the set ``\mathrm{Hom}_G(D, E)`` of elements of ``G`` mapping `D` to `E`.
 
@@ -714,7 +714,7 @@ Hecke.hom(D::K3Chamber, E::K3Chamber) = alg319(D, E)
 #alg319(gram_matrix(D.data.SS), D.B,D.gramB, walls(D), walls(E), D.data.membership_test)
 
 @doc Markdown.doc"""
-    aut(E::K3Chamber) -> Vector{fmpz_mat}
+    aut(E::K3Chamber) -> Vector{ZZMatrix}
 
 Return the stabilizer ``\mathrm{Aut}_G(E)`` of ``E`` in ``G``.
 
@@ -740,9 +740,9 @@ function alg319(D::K3Chamber, E::K3Chamber)
   # for now this does not seem to be a bottleneck
   for i in 1:n
     @vprint :K3Auto 4 "level $(i-1), partial homs $(length(partial_homs)) \n"
-    partial_homs_new = fmpz_mat[]
+    partial_homs_new = ZZMatrix[]
     for img in partial_homs
-      extensions = fmpz_mat[]
+      extensions = ZZMatrix[]
       k = nrows(img)
       gi = gram*transpose(img)
       for r in raysE
@@ -760,7 +760,7 @@ function alg319(D::K3Chamber, E::K3Chamber)
     partial_homs = partial_homs_new
   end
   basisinv = inv(change_base_ring(QQ, basis))
-  homs = fmpz_mat[]
+  homs = ZZMatrix[]
   is_in_hom_D_E(fz) = all(r*fz in raysE for r in raysD)
   vE = sum(raysE) # center of mass of the dual cone
   vD = sum(raysD)
@@ -792,7 +792,7 @@ end
 
 
 # legacy worker for hom and aut without Plesken-Souvignier preprocessing
-function alg319(gram::MatrixElem, raysD::Vector{fmpz_mat}, raysE::Vector{fmpz_mat}, membership_test)
+function alg319(gram::MatrixElem, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
   n = ncols(gram)
   partial_homs = [zero_matrix(ZZ, 0, n)]
   basis,_ = _find_basis(raysD, n)
@@ -800,7 +800,7 @@ function alg319(gram::MatrixElem, raysD::Vector{fmpz_mat}, raysE::Vector{fmpz_ma
   return alg319(gram, basis, gram_basis, raysD, raysE, membership_test)
 end
 
-function alg319(gram::MatrixElem, basis::fmpz_mat, gram_basis::fmpq_mat, raysD::Vector{fmpz_mat}, raysE::Vector{fmpz_mat}, membership_test)
+function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::QQMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
   n = ncols(gram)
   partial_homs = [zero_matrix(ZZ, 0, n)]
   # breadth first search
@@ -809,9 +809,9 @@ function alg319(gram::MatrixElem, basis::fmpz_mat, gram_basis::fmpq_mat, raysD::
   # for now this does not seem to be a bottleneck
   for i in 1:n
     @vprint :K3Auto 4 "level $(i), partial homs $(length(partial_homs)) \n"
-    partial_homs_new = fmpz_mat[]
+    partial_homs_new = ZZMatrix[]
     for img in partial_homs
-      extensions = fmpz_mat[]
+      extensions = ZZMatrix[]
       k = nrows(img)
       gi = gram*transpose(img)
       for r in raysE
@@ -826,7 +826,7 @@ function alg319(gram::MatrixElem, basis::fmpz_mat, gram_basis::fmpq_mat, raysD::
     partial_homs = partial_homs_new
   end
   basisinv = inv(change_base_ring(QQ, basis))
-  homs = fmpz_mat[]
+  homs = ZZMatrix[]
   is_in_hom_D_E(fz) = all(r*fz in raysE for r in raysD)
   vE = sum(raysE) # center of mass of the dual cone
   vD = sum(raysD)
@@ -876,7 +876,7 @@ function _alg58(L::ZLat, S::ZLat, R::ZLat, prRdelta, w)
   Rdual = dual(R)
   Sdual = dual(S)
   rkR = rank(R)
-  delta_w = fmpq_mat[]
+  delta_w = QQMatrix[]
   iB = inv(basis_matrix(L))
   for c in n_R
     cm = -c
@@ -906,18 +906,18 @@ end
 
 function _alg58(L::ZLat, S::ZLat, R::ZLat, w::MatrixElem)
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual, -1), 2, fmpz)
+  sv = short_vectors(rescale(Rdual, -1), 2, ZZRingElem)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
-  push!(sv,(zeros(fmpz, rank(Rdual)), QQ(0)))
+  push!(sv,(zeros(ZZRingElem, rank(Rdual)), QQ(0)))
   rkR = rank(R)
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   return _alg58(L, S, R, prRdelta, w)
 end
 
 # the actual somewhat optimized implementation relying on short vector enumeration
-function _alg58_short_vector(data::BorcherdsCtx, w::fmpz_mat)
+function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   L = data.L
   V = ambient_space(L)
   S = data.S
@@ -929,7 +929,7 @@ function _alg58_short_vector(data::BorcherdsCtx, w::fmpz_mat)
   W = lattice(V, wS*basis_matrix(S))
   N = orthogonal_submodule(S, W)
   # W + N + R < L of finite index
-  svp_input = Tuple{fmpq,fmpq_mat,fmpq,Int}[]
+  svp_input = Tuple{QQFieldElem,QQMatrix,QQFieldElem,Int}[]
   for (rR, rRsq) in data.prRdelta
     if rRsq==2
       continue
@@ -952,8 +952,8 @@ function _alg58_short_vector(data::BorcherdsCtx, w::fmpz_mat)
   mi = minimum(bounds)
   ma = maximum(bounds)
 
-  svN = Hecke._short_vectors_gram(Hecke.LatEnumCtx, G,mi,ma, fmpz)
-  result = fmpq_mat[]
+  svN = Hecke._short_vectors_gram(Hecke.LatEnumCtx, G,mi,ma, ZZRingElem)
+  result = QQMatrix[]
   # treat the special case of the zero vector by copy paste.
   if QQ(0) in bounds
     (rN,sqrN) = (zeros(Int64,rank(Ndual)),0)
@@ -1017,14 +1017,14 @@ function _alg58_short_vector(data::BorcherdsCtx, w::fmpz_mat)
 end
 
 @doc Markdown.doc"""
-    _alg58_close_vector(data::BorcherdsCtx, w::fmpz_mat)
+    _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
 
 Return tuples (r_S, r) where r is an element of Delta_w and r_S is the
 orthogonal projection of `r` to `S^\vee` given in the basis of S.
 
 Corresponds to Algorithm 5.8 in [Shi15](@cite)
 """
-function _alg58_close_vector(data::BorcherdsCtx, w::fmpz_mat)
+function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   V = ambient_space(data.L)
   S = data.S
   d = exponent(discriminant_group(S))
@@ -1032,7 +1032,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::fmpz_mat)
   @hassert :K3Auto 2 basis_matrix(data.L)==1
   n_R = [QQ(i)//d for i in (-2*d+1):0 if mod(d*i,2)==0]
   SSdual = dual(data.SS)
-  delta_w = fmpq_mat[]
+  delta_w = QQMatrix[]
   wS = w*data.prS
   #wS = solve_left(gram_matrix(S),w*gram_matrix(V)*transpose(basis_matrix(S)))
   Vw = data.gramL*transpose(w)
@@ -1040,7 +1040,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::fmpz_mat)
   # we do the preprocessing here
 
   # collect the cvp inputs to avoid repeated calculation of the same cvp
-  cvp_inputs = Dict{Tuple{fmpq,fmpq},Vector{fmpq_mat}}()
+  cvp_inputs = Dict{Tuple{QQFieldElem,QQFieldElem},Vector{QQMatrix}}()
   for c in n_R
     kc = -2-c
     cm = -c
@@ -1072,7 +1072,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::fmpz_mat)
   #return [s*B for s in sol]
 
   # much of this code is copied from
-  # short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
+  # short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldElem, d)
   # to avoid repeated calculation of the same stuff e.g. K and Q
   # find a solution <x,v> = alpha with x in L if it exists
   ww = transpose(wS)
@@ -1157,7 +1157,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, alg=:short)
   if length(walls1)==rank(data.S)
     # shortcut which avoids calling Polymake
     d = rank(data.S)
-    walls = Vector{fmpz_mat}(undef,d)
+    walls = Vector{ZZMatrix}(undef,d)
     for i in 1:d
       vs = numerator(FakeFmpqMat(walls1[i]))
       g = gcd(vec(vs))
@@ -1173,7 +1173,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, alg=:short)
   P = positive_hull(D)
   r = rays(P)
   d = length(r)
-  walls = Vector{fmpz_mat}(undef,d)
+  walls = Vector{ZZMatrix}(undef,d)
   for i in 1:d
     v = matrix(QQ, 1, degree(data.SS), r[i])
     # rescale v to be primitive in S
@@ -1188,14 +1188,14 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, alg=:short)
 end
 
 @doc Markdown.doc"""
-    is_S_nondegenerate(L::ZLat, S::ZLat, w::fmpq_mat)
+    is_S_nondegenerate(L::ZLat, S::ZLat, w::QQMatrix)
 
 Return whether the ``L|S`` chamber defined by `w` is `S`-nondegenerate.
 
 This is the case if and only if $C = C(w) \cap S \otimes \RR$ has the
 expected dimension `dim(S)`.
 """
-function is_S_nondegenerate(L::ZLat, S::ZLat, w::fmpq_mat)
+function is_S_nondegenerate(L::ZLat, S::ZLat, w::QQMatrix)
   R = Hecke.orthogonal_submodule(L, S)
   Delta_w = _alg58(L, S, R, w)
   V = ambient_space(L)
@@ -1209,7 +1209,7 @@ function is_S_nondegenerate(L::ZLat, S::ZLat, w::fmpq_mat)
   return ispointed(P)
 end
 
-function inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
+function inner_point(L::ZLat, S::ZLat, w::QQMatrix)
   R = Hecke.orthogonal_submodule(L, S)
   Delta_w = _alg58(L, S, R, w)
   V = ambient_space(L)
@@ -1246,7 +1246,7 @@ function inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
 end
 
 @doc Markdown.doc"""
-    inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
+    inner_point(L::ZLat, S::ZLat, w::QQMatrix)
     inner_point(C::K3Chamber)
 
 Return a reasonably small integer inner point of the given L|S chamber.
@@ -1255,7 +1255,7 @@ inner_point(C::K3Chamber) = inner_point(C.data.L, C.data.S, change_base_ring(QQ,
 
 
 @doc Markdown.doc"""
-    unproject_wall(data::BorcherdsCtx, vS::fmpz_mat)
+    unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
 
 Return the (-2)-walls of L containing $v^{perp_S}$ but not all of ``S``.
 
@@ -1264,14 +1264,14 @@ Based on Algorithm 5.13 in [Shi15](@cite)
 # Arguments
 - `vS`: Given with respect to the basis of `S`.
 """
-function unproject_wall(data::BorcherdsCtx, vS::fmpz_mat)
+function unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
   d = gcd(vec(vS*data.gramS))
   v = QQ(1,d)*(vS*basis_matrix(data.S))  # primitive in Sdual
   vsq = QQ((vS*data.gramS*transpose(vS))[1,1],d^2)
 
   @hassert :K3Auto 1 vsq>=-2
   rkR = rank(data.R)
-  Pv = fmpz_mat[]
+  Pv = ZZMatrix[]
   for alpha in 1:Int64(floor(sqrt(Float64(-2//vsq))))
     c = 2 + alpha^2*vsq
     alphav = alpha*v
@@ -1298,11 +1298,11 @@ function unproject_wall(data::BorcherdsCtx, vS::fmpz_mat)
 end
 
 @doc Markdown.doc"""
-    adjacent_chamber(D::K3Chamber, v::fmpz_mat) -> K3Chamber
+    adjacent_chamber(D::K3Chamber, v::ZZMatrix) -> K3Chamber
 
 Return return the ``L|S`` chamber adjacent to `D` via the wall defined by `v`.
 """
-function adjacent_chamber(D::K3Chamber, v::fmpz_mat)
+function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
   gramL = D.data.gramL
   dualDeltaR = D.data.dualDeltaR
   deltaR = D.data.deltaR
@@ -1313,7 +1313,7 @@ function adjacent_chamber(D::K3Chamber, v::fmpz_mat)
   a = 1000000
   @label getu
   a = 2*a
-  rep = Array{Tuple{Int,fmpq,Bool}}(undef,l+length(dualDeltaR))
+  rep = Array{Tuple{Int,QQFieldElem,Bool}}(undef,l+length(dualDeltaR))
   u = matrix(ZZ, 1, dimL, rand(-a:a, dimL))
   Vw = gramL*transpose(D.weyl_vector)
   Vu = gramL*transpose(u)
@@ -1403,13 +1403,13 @@ function K3_surface_automorphism_group(S::ZLat)
   return borcherds_method(S, 26, compute_OR=false)[2:end]
 end
 
-function K3_surface_automorphism_group(S::ZLat, ample_class::fmpq_mat)
+function K3_surface_automorphism_group(S::ZLat, ample_class::QQMatrix)
   ample_classS = solve_left(basis_matrix(S), ample_class)
   L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_class)
   return borcherds_method(L, S, weyl, compute_OR=false)[2:end]
 end
 
-K3_surface_automorphism_group(S::ZLat, ample_class::Vector{fmpq}) = K3_surface_automorphism_group(S, matrix(QQ, 1, degree(S), ample_class))
+K3_surface_automorphism_group(S::ZLat, ample_class::Vector{QQFieldElem}) = K3_surface_automorphism_group(S, matrix(QQ, 1, degree(S), ample_class))
 
 
 function borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
@@ -1420,7 +1420,7 @@ end
 
 @doc Markdown.doc"""
     borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
-    borcherds_method(L::ZLat, S::ZLat, w::fmpq_mat; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+    borcherds_method(L::ZLat, S::ZLat, w::QQMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
 
 Compute the symmetry group of a Weyl chamber up to finite index.
 
@@ -1432,7 +1432,7 @@ Compute the symmetry group of a Weyl chamber up to finite index.
 - `max_nchambers`: break the computation after `max_nchambers` are found;
 - `entropy_abort` abort if an automorphism of positive entropy is found.
 """
-function borcherds_method(L::ZLat, S::ZLat, w::fmpz_mat; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(L::ZLat, S::ZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
   data = BorcherdsCtx(L, S, w, compute_OR)
   return borcherds_method(data, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
 end
@@ -1447,8 +1447,8 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers
   D = chamber(data, data.weyl_vector, zero_matrix(ZZ, 1, rank(S)))
   waiting_list = [D]
 
-  automorphisms = Set{fmpz_mat}()
-  rational_curves = Set{fmpz_mat}()
+  automorphisms = Set{ZZMatrix}()
+  rational_curves = Set{ZZMatrix}()
 
   # gogo
   ncircles = 0
@@ -1538,7 +1538,7 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers
   return data, collect(automorphisms), reduce(append!,values(chambers), init=K3Chamber[]), collect(rational_curves), true
 end
 
-function _dist(V::Hecke.QuadSpace, r::fmpq_mat, h1::fmpq_mat, h2::fmpq_mat)
+function _dist(V::Hecke.QuadSpace, r::QQMatrix, h1::QQMatrix, h2::QQMatrix)
   if inner_product(V,h1-h2,r)!=0
     return inner_product(V, h1, r)[1,1]//inner_product(V, h1 - h2, r)[1,1]
   else
@@ -1552,7 +1552,7 @@ end
 
 
 
-function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{fmpq_mat})
+function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{QQMatrix})
   @hassert :K3Auto 1 inner_product(V,h1,h2)[1,1]>0
   @hassert :K3Auto 1 all(inner_product(V,h1,r)[1,1]>=0 for r in separating_walls)
   @hassert :K3Auto 1 all(inner_product(V,h2,r)[1,1]<=0 for r in separating_walls)
@@ -1578,7 +1578,7 @@ function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{f
 end
 
 @doc Markdown.doc"""
-    span_in_S(L, S, weyl) -> fmpq_mat
+    span_in_S(L, S, weyl) -> QQMatrix
 
 Return a basis matrix of the linear hull of $C(weyl) \cap S$.
 with respect to the basis of `S`.
@@ -1607,7 +1607,7 @@ function span_in_S(L, S, weyl)
 end
 
 @doc Markdown.doc"""
-    weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0::fmpq_mat, perturbation_factor=1000)
+    weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::QQMatrix, weyl::QQMatrix, ample0::QQMatrix, perturbation_factor=1000)
 
 Return an `S`-nondegenerate Weyl vector of `L`.
 
@@ -1615,8 +1615,8 @@ Return an `S`-nondegenerate Weyl vector of `L`.
 - ample0: an ample class... the Weyl vector and u0 are moved to the same chamber first
 - perturbation_factor: used to get a random point close to the ample vector. If it is (too) big, computations become harder.
 """
-function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat,
-                                    ample0::fmpq_mat, perturbation_factor=1000)
+function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::QQMatrix, weyl::QQMatrix,
+                                    ample0::QQMatrix, perturbation_factor=1000)
   V = ambient_space(L)
   ample = ample0
   u = u0
@@ -1652,7 +1652,7 @@ function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_m
   if any(inner_product(V,h,r)==0 for r in relevant_roots)
     @goto choose_h
   end
-  separating = fmpq_mat[r for r in relevant_roots if sign(inner_product(V, h, r)[1,1])*sign(inner_product(V, u, r)[1,1])<0]
+  separating = QQMatrix[r for r in relevant_roots if sign(inner_product(V, h, r)[1,1])*sign(inner_product(V, u, r)[1,1])<0]
   # fix signs
   for i in 1:length(separating)
     r = separating[i]
@@ -1800,7 +1800,7 @@ end
 
 
 @doc Markdown.doc"""
-    borcherds_method_preprocessing(S::ZLat, n::Integer; ample=nothing) -> ZLat, ZLat, fmpz_mat
+    borcherds_method_preprocessing(S::ZLat, n::Integer; ample=nothing) -> ZLat, ZLat, ZZMatrix
 
 Return an embedding of `S` into an even unimodular, hyperbolic lattice `L` of
 rank `n=10, 18, 26` as well as an `S`-nondegenerate Weyl-vector.
@@ -1922,7 +1922,7 @@ function ample_class(S::ZLat)
   @assert vsq > 0
   # search ample
   ntry = 0
-  R,x = PolynomialRing(QQ,"x")
+  R,x = polynomial_ring(QQ,"x")
   while true
     ntry = ntry+1
     range = 10 + floor(ntry//100)
@@ -1939,8 +1939,8 @@ function ample_class(S::ZLat)
       if a > b
         (a,b) = (b,a)
       end
-      a = fmpz(floor(a))
-      b = fmpz(ceil(b))
+      a = ZZRingElem(floor(a))
+      b = ZZRingElem(ceil(b))
       if p(a) == 0  # catches the case of an integer root
         a = a -1
         @assert p(a) > 0
@@ -1984,7 +1984,7 @@ the fibration. Let $\overline{R}$ be the primitive closure of $R$ in $NS$.
 Then $\overline{R}/R$ is the torsion part of the Mordell-Weil group and finally
 the Mordell-Weil rank is given by rank F - rank R.
 """
-function fibration_type(NS::ZLat, f::fmpq_mat)
+function fibration_type(NS::ZLat, f::QQMatrix)
   p,z,n = signature_tuple(NS)
   @req p==1 && z==0 "lattice not hyperbolic"
   if rank(NS) == 2
@@ -2017,7 +2017,7 @@ and ``x.f=1`` if it exists.
 
 We try to be clever and return a small ``x`` by solving a closest vector problem.
 """
-function find_section(L::ZLat, f::fmpq_mat)
+function find_section(L::ZLat, f::QQMatrix)
   V = ambient_space(L)
   @req inner_product(V, f, f)==0 "f must be isotropic"
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
@@ -2064,7 +2064,7 @@ function find_section(L::ZLat, f::fmpq_mat)
   return s
 end
 
-find_section(L::ZLat, f::Vector{fmpq}) = vec(collect(find_section(L, matrix(QQ, 1, degree(L), f))))
+find_section(L::ZLat, f::Vector{QQFieldElem}) = vec(collect(find_section(L, matrix(QQ, 1, degree(L), f))))
 
 fibration_type(NS::ZLat, f) = fibration_type(NS, matrix(QQ, 1, degree(NS), f))
 

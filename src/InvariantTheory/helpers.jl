@@ -188,7 +188,7 @@ function add_to_basis!(B::BasisOfPolynomials, f::MPolyRingElem)
   return Hecke._add_row_to_rref!(B.M, srow)
 end
 
-function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPolyRingElem}
+function enumerate_monomials(polys::Vector{PolyRingElemT}) where {PolyRingElemT <: MPolyRingElem}
   enum_mons = Dict{Vector{Int}, Int}()
   c = 0
   for f in polys
@@ -202,7 +202,7 @@ function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPoly
   return enum_mons
 end
 
-function polys_to_smat(polys::Vector{PolyElemT}, monomial_to_column::Dict{Vector{Int}, Int}; copy = true) where {PolyElemT <: MPolyRingElem}
+function polys_to_smat(polys::Vector{PolyRingElemT}, monomial_to_column::Dict{Vector{Int}, Int}; copy = true) where {PolyRingElemT <: MPolyRingElem}
   @assert !isempty(polys)
   K = coefficient_ring(parent(polys[1]))
   M = sparse_matrix(K)

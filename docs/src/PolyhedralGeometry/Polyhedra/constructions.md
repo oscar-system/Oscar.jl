@@ -36,13 +36,13 @@ julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 Polyhedron in ambient dimension 2
 
 julia> facets(P)
-2-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^2 described by:
+2-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
 -x₁ ≦ 0
 x₁ ≦ 1
 
 
 julia> affine_hull(P)
-1-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^2 described by:
+1-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^2 described by:
 x₂ = 0
 
 
@@ -91,10 +91,10 @@ julia> P == Q0
 false
 
 julia> mfP = minimal_faces(P)
-(base_points = PointVector{fmpq}[[0, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+(base_points = PointVector{QQFieldElem}[[0, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 1]])
 
 julia> rmlP = rays_modulo_lineality(P)
-(rays_modulo_lineality = RayVector{fmpq}[[1, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+(rays_modulo_lineality = RayVector{QQFieldElem}[[1, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 1]])
 
 julia> Q1 = convex_hull(mfP.base_points, rmlP.rays_modulo_lineality)
 Polyhedron in ambient dimension 2

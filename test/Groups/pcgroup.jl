@@ -33,8 +33,8 @@
 
   # infinite polycyclic groups
   c = collector(2);
-  set_relative_orders!(c, fmpz[2, 0])
-  set_conjugate!(c, 2, 1, [2 => fmpz(-1)])
+  set_relative_orders!(c, ZZRingElem[2, 0])
+  set_conjugate!(c, 2, 1, [2 => ZZRingElem(-1)])
   gg = pc_group(c)
   @test describe(gg) == "an infinite group"
 

@@ -47,9 +47,9 @@ end
 # if fullrank is true, then the matrix should be invertible
 struct MatrixOrdering <: AbsGenOrdering
   vars::Vector{Int}
-  matrix::fmpz_mat
+  matrix::ZZMatrix
   fullrank::Bool
-  function MatrixOrdering(v, m::fmpz_mat, fullrank::Bool)
+  function MatrixOrdering(v, m::ZZMatrix, fullrank::Bool)
     length(v) == ncols(m) ||
         throw(ArgumentError("number of variables should match the number of columns"))
     if fullrank
@@ -218,8 +218,8 @@ Given a vector `V` of variables, return the lexicographical ordering on the set 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = lex(R)
 lex([w, x, y, z])
@@ -282,8 +282,8 @@ Given a vector `V` of variables, return the degree lexicographical ordering on t
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = deglex(R)
 deglex([w, x, y, z])
@@ -354,8 +354,8 @@ Given a vector `V` of variables, return the degree reverse lexicographical order
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex(R)
 degrevlex([w, x, y, z])
@@ -426,8 +426,8 @@ Given a vector `V` of variables, return the reverse lexicographical ordering on 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = revlex(R)
 revlex([w, x, y, z])
@@ -490,8 +490,8 @@ Given a vector `V` of variables, return the negative lexicographical ordering on
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = neglex(R)
 neglex([w, x, y, z])
@@ -554,8 +554,8 @@ Given a vector `V` of variables, return the negative reverse lexicographical ord
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negrevlex(R)
 negrevlex([w, x, y, z])
@@ -618,8 +618,8 @@ Given a vector `V` of variables, return the negative degree reverse lexicographi
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negdegrevlex(R)
 negdegrevlex([w, x, y, z])
@@ -690,8 +690,8 @@ Given a vector `V` of variables, return the negative degree lexicographical orde
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negdeglex(R)
 negdeglex([w, x, y, z])
@@ -798,8 +798,8 @@ lexicographical ordering on the set of monomials in the given variables.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = wdeglex(R, [1, 2, 3, 4])
 wdeglex([w, x, y, z], [1, 2, 3, 4])
@@ -867,8 +867,8 @@ lexicographical ordering on the set of monomials in the given variables.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = wdegrevlex(R, [1, 2, 3, 4])
 wdegrevlex([w, x, y, z], [1, 2, 3, 4])
@@ -936,8 +936,8 @@ negative weighted lexicographical ordering on the set of monomials in the given 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negwdeglex(R, [1, 2, 3, 4])
 negwdeglex([w, x, y, z], [1, 2, 3, 4])
@@ -1005,8 +1005,8 @@ weighted reverse lexicographical ordering on the set of monomials in the given v
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negwdegrevlex(R, [1, 2, 3, 4])
 negwdegrevlex([w, x, y, z], [1, 2, 3, 4])
@@ -1121,12 +1121,12 @@ julia> canonical_matrix(o3)
 ```
 """
 function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
-  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), fmpz_mat(M), check))
+  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), ZZMatrix(M), check))
 end
 
 function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
   i = _unique_var_indices(v)
-  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M), check))
+  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, ZZMatrix(M), check))
 end
 
 @doc Markdown.doc"""
@@ -1144,7 +1144,7 @@ in the case of a tie.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> W = [1, 0, -1];
 
@@ -1180,7 +1180,7 @@ julia> canonical_matrix(o2)
 """
 function weight_ordering(w::Vector{Int}, o::MonomialOrdering)
   i = _support_indices(o.o)
-  m = fmpz_mat(1, length(w), w)
+  m = ZZMatrix(1, length(w), w)
   return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
 end
 
@@ -1230,7 +1230,7 @@ Return a matrix defining `ord` as a matrix ordering.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> o1 = degrevlex(R)
 degrevlex([x, y, z])
@@ -1275,7 +1275,7 @@ Return the canonical matrix defining `ord` as a matrix ordering.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> o1 = degrevlex(R)
 degrevlex([x, y, z])
@@ -1322,7 +1322,7 @@ Return `true` if `ord` is global, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> o = matrix_ordering(R, [1 1; 0 -1])
 matrix_ordering([x, y], [1 1; 0 -1])
@@ -1348,7 +1348,7 @@ Return `true` if `ord` is local, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> o = matrix_ordering(R, [-1 -1; 0 -1])
 matrix_ordering([x, y], [-1 -1; 0 -1])
@@ -1374,7 +1374,7 @@ Return `true` if `ord` is mixed, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> o = matrix_ordering(R, [1 -1; 0 -1])
 matrix_ordering([x, y], [1 -1; 0 -1])
@@ -1426,7 +1426,7 @@ a partial ordering that does not distinguish `a` from `b`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> cmp(lex([x,y]), x, one(R))
 1
@@ -1490,7 +1490,7 @@ Return `false`, otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> o1 = lex(R)
 lex([w, x, y, z])
@@ -1674,7 +1674,7 @@ Return the ring ordering induced by `ord`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
@@ -1794,7 +1794,7 @@ end
 function _opposite_ordering(nvars::Int, o::SymbOrdering{:deglex})
   n = length(o.vars)
   newvars = reverse(nvars+1 .- o.vars)
-  return MatrixOrdering(newvars, fmpz_mat(1, n, ones(Int, n)), false)*
+  return MatrixOrdering(newvars, ZZMatrix(1, n, ones(Int, n)), false)*
          SymbOrdering(:revlex, newvars)
 end
 
@@ -1957,10 +1957,10 @@ function _convert_sblock(nvars::Int, o::Singular.sorder_block, lastvar::Int)
     newlastvar = lastvar+length(o.weights)
     newlastvar <= nvars || error("too many weights in Singular.ordering_a")
     i = collect(lastvar+1:newlastvar)
-    m = fmpz_mat(1, length(o.weights), o.weights)
+    m = ZZMatrix(1, length(o.weights), o.weights)
     return MatrixOrdering(i, m, false), lastvar
   elseif o.order == Singular.ringorder_M
-    m = fmpz_mat(o.size, o.size, o.weights)
+    m = ZZMatrix(o.size, o.size, o.weights)
     return MatrixOrdering(i, m, true), newlastvar
 
   elseif o.order == Singular.ringorder_C

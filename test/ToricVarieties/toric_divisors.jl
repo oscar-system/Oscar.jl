@@ -62,7 +62,7 @@ using Test
     @testset "Arithmetic" begin
         @test (D == D2) == false
         @test (D4 + D5 == D6) == true
-        @test is_principal(fmpz(2)*D+D2) == true
+        @test is_principal(ZZRingElem(2)*D+D2) == true
         @test is_principal(2*D-D2) == true
         @test coefficients(D2+D2) == coefficients(2*D2)
         @test coefficients(D2-D2) == [0, 0, 0, 0]

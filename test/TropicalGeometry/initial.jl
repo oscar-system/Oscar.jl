@@ -1,5 +1,5 @@
 @testset "initial" begin
-    Kx,(x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ,6)
+    Kx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ,6)
     Cyclic5Homogenized = ideal([x1+x2+x3+x4+x5,
                                    x1*x2+x2*x3+x3*x4+x1*x5+x4*x5,
                                    x1*x2*x3+x2*x3*x4+x1*x2*x5+x1*x4*x5+x3*x4*x5,
@@ -56,7 +56,7 @@
     end
     @testset "val_t" begin
         Kt,t = RationalFunctionField(QQ,"t")
-        Ktx,(x0,x1,x2,x3,x4,x5) = PolynomialRing(Kt,6)
+        Ktx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(Kt,6)
         Cyclic5Homogenized_Kt = ideal([change_coefficient_ring(Kt,f) for f in gens(Cyclic5Homogenized)])
         Katsura5Homogenized_Kt = ideal([change_coefficient_ring(Kt,f) for f in gens(Katsura5Homogenized)])
         val_t = TropicalSemiringMap(Kt,t)

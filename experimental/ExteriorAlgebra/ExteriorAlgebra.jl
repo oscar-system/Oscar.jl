@@ -14,16 +14,16 @@ export exterior_algebra_PBWAlgQuo;  # for historical reasons
 
 
 # This auxiliary fn NOT EXPORTED:
-# *  convert list of var names to a list of strings for Singular.PolynomialRing
-# *  MAY BECOME REDUNDANT if Singular.PolynomialRing is updated.
+# *  convert list of var names to a list of strings for Singular.polynomial_ring
+# *  MAY BECOME REDUNDANT if Singular.polynomial_ring is updated.
 
 """
     var_names_for_singular(V)  where V is Vector of Strings, Symbols or Chars
     
 Return a `Vector{String}` by converting the elements of `V` successively into strings.
 
-NEEDED ONLY to prepare input for `Singular.PolynomialRing`;
-maybe later `Singular.PolynomialRing` will accept more general vectors
+NEEDED ONLY to prepare input for `Singular.polynomial_ring`;
+maybe later `Singular.polynomial_ring` will accept more general vectors
 for its second argument, and this function becomes redundant.
 """
 function var_names_for_singular(xs::Union{AbstractVector{<:AbstractString},
@@ -91,7 +91,7 @@ function exterior_algebra(K::Field, xs::Union{AbstractVector{<:AbstractString}, 
     end;
     VarNames = var_names_for_singular(xs);
     if (!allunique(VarNames))  throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));  end;
-    P, _ = Singular.PolynomialRing(K, VarNames)
+    P, _ = Singular.polynomial_ring(K, VarNames)
     SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr));
     ExtAlg = Singular.create_ring_from_singular_ring(SINGULAR_PTR);
     return ExtAlg, gens(ExtAlg);
@@ -147,7 +147,7 @@ function exterior_algebra_PBWAlgQuo(K::Ring, xs::Union{AbstractVector{<:Abstract
     NumVars = length(xs)
     if (NumVars == 0)  throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));  end;
     if (!allunique(xs))  throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));  end;
-    R, indets = PolynomialRing(K, xs);
+    R, indets = polynomial_ring(K, xs);
     M = zero_matrix(R, NumVars, NumVars);
     for i in 1:NumVars-1  for j in i+1:NumVars  M[i,j] = -indets[i]*indets[j];  end;  end;
     PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false); # disable check since we know it is OK!

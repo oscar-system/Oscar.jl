@@ -1,20 +1,20 @@
 @testset "Rings.QQ.constructors" begin
-   @test QQ === FractionField(ZZ)
+   @test QQ === fraction_field(ZZ)
 
-   @test QQ(1, 2) isa Oscar.fmpq
-   @test QQ(1, ZZ(2)) isa Oscar.fmpq
-   @test QQ(ZZ(1), 2) isa Oscar.fmpq
-   @test QQ(ZZ(1), ZZ(2)) isa Oscar.fmpq
-   @test QQ(2) isa Oscar.fmpq
-   @test QQ(ZZ(2)) isa Oscar.fmpq
-   @test QQ() isa Oscar.fmpq
+   @test QQ(1, 2) isa Oscar.QQFieldElem
+   @test QQ(1, ZZ(2)) isa Oscar.QQFieldElem
+   @test QQ(ZZ(1), 2) isa Oscar.QQFieldElem
+   @test QQ(ZZ(1), ZZ(2)) isa Oscar.QQFieldElem
+   @test QQ(2) isa Oscar.QQFieldElem
+   @test QQ(ZZ(2)) isa Oscar.QQFieldElem
+   @test QQ() isa Oscar.QQFieldElem
 
-   @test 1//ZZ(2) isa Oscar.fmpq
-   @test ZZ(1)//2 isa Oscar.fmpq
-   @test ZZ(1)//ZZ(2) isa Oscar.fmpq
+   @test 1//ZZ(2) isa Oscar.QQFieldElem
+   @test ZZ(1)//2 isa Oscar.QQFieldElem
+   @test ZZ(1)//ZZ(2) isa Oscar.QQFieldElem
 
-   @test zero(QQ) isa Oscar.fmpq
-   @test one(QQ) isa Oscar.fmpq
+   @test zero(QQ) isa Oscar.QQFieldElem
+   @test one(QQ) isa Oscar.QQFieldElem
 
    @test QQ(1, -2) == -1//2
    @test QQ(-1, 2) == -1//2
@@ -111,14 +111,14 @@ end
    @test numerator(QQ()) == 0
    @test denominator(QQ()) == 1
 
-   @test numerator(QQ(-2, 3)) isa Oscar.fmpz
-   @test denominator(QQ(-2, 3)) isa Oscar.fmpz
+   @test numerator(QQ(-2, 3)) isa Oscar.ZZRingElem
+   @test denominator(QQ(-2, 3)) isa Oscar.ZZRingElem
 
-   @test numerator(QQ()) isa Oscar.fmpz
-   @test denominator(QQ()) isa Oscar.fmpz
+   @test numerator(QQ()) isa Oscar.ZZRingElem
+   @test denominator(QQ()) isa Oscar.ZZRingElem
 
-   @test numerator(QQ(1)) isa Oscar.fmpz
-   @test denominator(QQ(1)) isa Oscar.fmpz
+   @test numerator(QQ(1)) isa Oscar.ZZRingElem
+   @test denominator(QQ(1)) isa Oscar.ZZRingElem
 
    @test sign(QQ(-2, 3)) == -1
    @test sign(QQ()) == 0
@@ -128,22 +128,22 @@ end
    @test sign(QQ(-2)) == -1
    @test sign(QQ(0)) == 0
 
-   @test sign(QQ(-2, 3)) isa Oscar.fmpq
-   @test sign(QQ()) isa Oscar.fmpq
-   @test sign(QQ(1)) isa Oscar.fmpq
-   @test sign(QQ(-1)) isa Oscar.fmpq
+   @test sign(QQ(-2, 3)) isa Oscar.QQFieldElem
+   @test sign(QQ()) isa Oscar.QQFieldElem
+   @test sign(QQ(1)) isa Oscar.QQFieldElem
+   @test sign(QQ(-1)) isa Oscar.QQFieldElem
 
    @test abs(QQ(-2, 3)) == 2//3
    @test abs(QQ()) == 0
    @test abs(QQ(2)) == 2
 
-   @test abs(QQ(-2, 3)) isa Oscar.fmpq
-   @test abs(QQ()) isa Oscar.fmpq
-   @test abs(QQ(2)) isa Oscar.fmpq
+   @test abs(QQ(-2, 3)) isa Oscar.QQFieldElem
+   @test abs(QQ()) isa Oscar.QQFieldElem
+   @test abs(QQ(2)) isa Oscar.QQFieldElem
 
-   @test height(QQ(-2, 3)) isa Oscar.fmpz
-   @test height(QQ()) isa Oscar.fmpz
-   @test height(QQ(2)) isa Oscar.fmpz
+   @test height(QQ(-2, 3)) isa Oscar.ZZRingElem
+   @test height(QQ()) isa Oscar.ZZRingElem
+   @test height(QQ(2)) isa Oscar.ZZRingElem
 
    @test height(QQ(-3, 2)) == 3
    @test height(QQ(-2, 3)) == 3
@@ -153,15 +153,15 @@ end
    @test height(QQ(-1)) == 1
    @test height(QQ(2)) == 2
 
-   @test floor(QQ(-2, 3)) isa Oscar.fmpq
-   @test floor(QQ(7, 5)) isa Oscar.fmpq
-   @test floor(QQ(2)) isa Oscar.fmpq
-   @test floor(QQ()) isa Oscar.fmpq
+   @test floor(QQ(-2, 3)) isa Oscar.QQFieldElem
+   @test floor(QQ(7, 5)) isa Oscar.QQFieldElem
+   @test floor(QQ(2)) isa Oscar.QQFieldElem
+   @test floor(QQ()) isa Oscar.QQFieldElem
 
-   @test ceil(QQ(-2, 3)) isa Oscar.fmpq
-   @test ceil(QQ(7, 5)) isa Oscar.fmpq
-   @test ceil(QQ(2)) isa Oscar.fmpq
-   @test ceil(QQ()) isa Oscar.fmpq
+   @test ceil(QQ(-2, 3)) isa Oscar.QQFieldElem
+   @test ceil(QQ(7, 5)) isa Oscar.QQFieldElem
+   @test ceil(QQ(2)) isa Oscar.QQFieldElem
+   @test ceil(QQ()) isa Oscar.QQFieldElem
 
    @test floor(QQ(-1, 2)) == -1
    @test floor(QQ(1, 2)) == 0
@@ -177,45 +177,45 @@ end
 end
 
 @testset "Rings.QQ.arithmetic" begin
-   @test QQ(2, 3) + 1 isa Oscar.fmpq
-   @test QQ(2, 3) - 1 isa Oscar.fmpq
-   @test QQ(2, 3)*2 isa Oscar.fmpq
-   @test QQ(1, 2) + 12345678901234567890 isa Oscar.fmpq
-   @test QQ(1, 2) + 1234567890123456789012345678901234567890 isa Oscar.fmpq
-   @test QQ(1, 2) - 12345678901234567890 isa Oscar.fmpq
-   @test QQ(1, 2) - 1234567890123456789012345678901234567890 isa Oscar.fmpq
-   @test QQ(1, 2)*12345678901234567890 isa Oscar.fmpq
-   @test QQ(1, 2)*1234567890123456789012345678901234567890 isa Oscar.fmpq
+   @test QQ(2, 3) + 1 isa Oscar.QQFieldElem
+   @test QQ(2, 3) - 1 isa Oscar.QQFieldElem
+   @test QQ(2, 3)*2 isa Oscar.QQFieldElem
+   @test QQ(1, 2) + 12345678901234567890 isa Oscar.QQFieldElem
+   @test QQ(1, 2) + 1234567890123456789012345678901234567890 isa Oscar.QQFieldElem
+   @test QQ(1, 2) - 12345678901234567890 isa Oscar.QQFieldElem
+   @test QQ(1, 2) - 1234567890123456789012345678901234567890 isa Oscar.QQFieldElem
+   @test QQ(1, 2)*12345678901234567890 isa Oscar.QQFieldElem
+   @test QQ(1, 2)*1234567890123456789012345678901234567890 isa Oscar.QQFieldElem
 
-   @test 1 + QQ(2, 3) isa Oscar.fmpq
-   @test 1 - QQ(2, 3) isa Oscar.fmpq
-   @test 2*QQ(2, 3) isa Oscar.fmpq
-   @test 12345678901234567890 + QQ(1, 2) isa Oscar.fmpq
-   @test 1234567890123456789012345678901234567890 + QQ(1, 2) isa Oscar.fmpq
-   @test 12345678901234567890 - QQ(1, 2) isa Oscar.fmpq
-   @test 1234567890123456789012345678901234567890 - QQ(1, 2) isa Oscar.fmpq
-   @test 12345678901234567890*QQ(1, 2) isa Oscar.fmpq
-   @test 1234567890123456789012345678901234567890*QQ(1, 2) isa Oscar.fmpq
+   @test 1 + QQ(2, 3) isa Oscar.QQFieldElem
+   @test 1 - QQ(2, 3) isa Oscar.QQFieldElem
+   @test 2*QQ(2, 3) isa Oscar.QQFieldElem
+   @test 12345678901234567890 + QQ(1, 2) isa Oscar.QQFieldElem
+   @test 1234567890123456789012345678901234567890 + QQ(1, 2) isa Oscar.QQFieldElem
+   @test 12345678901234567890 - QQ(1, 2) isa Oscar.QQFieldElem
+   @test 1234567890123456789012345678901234567890 - QQ(1, 2) isa Oscar.QQFieldElem
+   @test 12345678901234567890*QQ(1, 2) isa Oscar.QQFieldElem
+   @test 1234567890123456789012345678901234567890*QQ(1, 2) isa Oscar.QQFieldElem
 
-   @test QQ(2, 3) + 2//5 isa Oscar.fmpq
-   @test QQ(2, 3) - 2//5 isa Oscar.fmpq
-   @test QQ(2, 3)*(2//5) isa Oscar.fmpq
-   @test QQ(2, 3) + 12345678901234567890//5 isa Oscar.fmpq
-   @test QQ(2, 3) - 12345678901234567890//5 isa Oscar.fmpq
-   @test QQ(2, 3)*(12345678901234567890//5) isa Oscar.fmpq
-   @test QQ(2, 3) + BigInt(2)//5 isa Oscar.fmpq
-   @test QQ(2, 3) - BigInt(2)//5 isa Oscar.fmpq
-   @test QQ(2, 3)*(BigInt(2)//5) isa Oscar.fmpq
+   @test QQ(2, 3) + 2//5 isa Oscar.QQFieldElem
+   @test QQ(2, 3) - 2//5 isa Oscar.QQFieldElem
+   @test QQ(2, 3)*(2//5) isa Oscar.QQFieldElem
+   @test QQ(2, 3) + 12345678901234567890//5 isa Oscar.QQFieldElem
+   @test QQ(2, 3) - 12345678901234567890//5 isa Oscar.QQFieldElem
+   @test QQ(2, 3)*(12345678901234567890//5) isa Oscar.QQFieldElem
+   @test QQ(2, 3) + BigInt(2)//5 isa Oscar.QQFieldElem
+   @test QQ(2, 3) - BigInt(2)//5 isa Oscar.QQFieldElem
+   @test QQ(2, 3)*(BigInt(2)//5) isa Oscar.QQFieldElem
 
-   @test 2//5 + QQ(2, 3) isa Oscar.fmpq
-   @test 2//5 - QQ(2, 3) isa Oscar.fmpq
-   @test (2//5)*QQ(2, 3) isa Oscar.fmpq
-   @test 12345678901234567890//5 + QQ(2, 3) isa Oscar.fmpq
-   @test 12345678901234567890//5 - QQ(2, 3) isa Oscar.fmpq
-   @test (12345678901234567890//5)*QQ(2, 3) isa Oscar.fmpq
-   @test BigInt(2)//5 + QQ(2, 3) isa Oscar.fmpq
-   @test BigInt(2)//5 - QQ(2, 3) isa Oscar.fmpq
-   @test (BigInt(2)//5)*QQ(2, 3) isa Oscar.fmpq
+   @test 2//5 + QQ(2, 3) isa Oscar.QQFieldElem
+   @test 2//5 - QQ(2, 3) isa Oscar.QQFieldElem
+   @test (2//5)*QQ(2, 3) isa Oscar.QQFieldElem
+   @test 12345678901234567890//5 + QQ(2, 3) isa Oscar.QQFieldElem
+   @test 12345678901234567890//5 - QQ(2, 3) isa Oscar.QQFieldElem
+   @test (12345678901234567890//5)*QQ(2, 3) isa Oscar.QQFieldElem
+   @test BigInt(2)//5 + QQ(2, 3) isa Oscar.QQFieldElem
+   @test BigInt(2)//5 - QQ(2, 3) isa Oscar.QQFieldElem
+   @test (BigInt(2)//5)*QQ(2, 3) isa Oscar.QQFieldElem
 
    a = QQ(2, 3)
 
@@ -287,18 +287,18 @@ end
 end
 
 @testset "Rings.QQ.divexact" begin
-   @test divexact(QQ(2, 3), QQ(3, 2)) isa Oscar.fmpq
-   @test divexact(QQ(2, 3), 3//2) isa Oscar.fmpq
-   @test divexact(QQ(2, 3), BigInt(3)//2) isa Oscar.fmpq
-   @test divexact(2//3, QQ(2, 3)) isa Oscar.fmpq
-   @test divexact(BigInt(2)//3, QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), QQ(3, 2)) isa Oscar.QQFieldElem
+   @test divexact(QQ(2, 3), 3//2) isa Oscar.QQFieldElem
+   @test divexact(QQ(2, 3), BigInt(3)//2) isa Oscar.QQFieldElem
+   @test divexact(2//3, QQ(2, 3)) isa Oscar.QQFieldElem
+   @test divexact(BigInt(2)//3, QQ(2, 3)) isa Oscar.QQFieldElem
 
-   @test divexact(QQ(2, 3), 2) isa Oscar.fmpq
-   @test divexact(QQ(2, 3), BigInt(2)) isa Oscar.fmpq
-   @test divexact(QQ(2, 3), ZZ(2)) isa Oscar.fmpq
-   @test divexact(2, QQ(2, 3)) isa Oscar.fmpq
-   @test divexact(BigInt(2), QQ(2, 3)) isa Oscar.fmpq
-   @test divexact(ZZ(2), QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), 2) isa Oscar.QQFieldElem
+   @test divexact(QQ(2, 3), BigInt(2)) isa Oscar.QQFieldElem
+   @test divexact(QQ(2, 3), ZZ(2)) isa Oscar.QQFieldElem
+   @test divexact(2, QQ(2, 3)) isa Oscar.QQFieldElem
+   @test divexact(BigInt(2), QQ(2, 3)) isa Oscar.QQFieldElem
+   @test divexact(ZZ(2), QQ(2, 3)) isa Oscar.QQFieldElem
 
    @test divexact(QQ(2, 3), QQ(2, 3)) == 1
    @test divexact(QQ(2, 3), 5) == 2//15
@@ -315,11 +315,11 @@ end
 end
 
 @testset "Rings.QQ.powering" begin
-   @test QQ(2, 3)^0 isa Oscar.fmpq
-   @test QQ(2, 3)^1 isa Oscar.fmpq
-   @test QQ(2, 3)^2 isa Oscar.fmpq
-   @test QQ(2, 3)^-1 isa Oscar.fmpq
-   @test QQ(2, 3)^-1 isa Oscar.fmpq
+   @test QQ(2, 3)^0 isa Oscar.QQFieldElem
+   @test QQ(2, 3)^1 isa Oscar.QQFieldElem
+   @test QQ(2, 3)^2 isa Oscar.QQFieldElem
+   @test QQ(2, 3)^-1 isa Oscar.QQFieldElem
+   @test QQ(2, 3)^-1 isa Oscar.QQFieldElem
 
    @test QQ(2, 3)^0 == 1
    @test QQ(2, 3)^1 == 2//3

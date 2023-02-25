@@ -15,14 +15,14 @@ todo: proper documentation
 Example:
 
 val_2 = TropicalSemiringMap(QQ,2)
-Kx,(x,y,z) = PolynomialRing(QQ,3)
+Kx,(x,y,z) = polynomial_ring(QQ,3)
 w = [0,0,0]
 I = ideal([x+2*y,y+2*z])
 groebner_polyhedron(I,val_2,w)
 
 Kt,t = RationalFunctionField(QQ,"t")
 val_t = TropicalSemiringMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
+Ktx,(x,y,z) = polynomial_ring(Kt,3)
 w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
 groebner_polyhedron(I,val_t,w)
@@ -41,7 +41,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyRingElem}, val::TropicalSemiringM
   return groebner_polyhedron(GB,initial(GB,val,w,perturbation=perturbation),val)
 end
 
-function groebner_polyhedron(GB::Vector{<:MPolyRingElem}, inGB::Vector{<:MPolyRingElem}, val::TropicalSemiringMap) # GB entries can be MPolyRingElem and fmpq_mpoly
+function groebner_polyhedron(GB::Vector{<:MPolyRingElem}, inGB::Vector{<:MPolyRingElem}, val::TropicalSemiringMap) # GB entries can be MPolyRingElem and QQMPolyRingElem
   eq_lhs = zeros(Int,0,nvars(parent(GB[1])))
   eq_rhs = zeros(Int,0)
   ineq_lhs = zeros(Int,0,nvars(parent(GB[1])))

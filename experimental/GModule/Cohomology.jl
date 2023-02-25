@@ -58,7 +58,7 @@ Oscar.elem_type(a::MultGrp{T}) where T = MultGrpElem{T}
 import Base: ==, +, -, *
 
 *(a::Integer, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
-*(a::fmpz, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
+*(a::ZZRingElem, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
 +(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = MultGrpElem{T}(a.data*b.data, parent(a))
 -(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = MultGrpElem{T}(a.data//b.data, parent(a))
 -(a::MultGrpElem{T}) where T = MultGrpElem{T}(inv(a.data), parent(a))
@@ -1160,7 +1160,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
-          push!(r, sparse_row(ZZ, [ng, ng+1], [p, fmpz(-1)]))
+          push!(r, sparse_row(ZZ, [ng, ng+1], [p, ZZRingElem(-1)]))
           push!(hm, v)
           v *= p
           ng += 1
@@ -1195,7 +1195,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
 
   for i=1:ngens(M)-1
-    r = fmpz[]
+    r = ZZRingElem[]
     for j=i+1:ngens(M)
       push!(r, j)
       push!(r, -h[i, j])
@@ -1209,7 +1209,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
   Julia_to_gap = function(a::GrpAbFinGenElem)
-    r = fmpz[]
+    r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
@@ -1221,7 +1221,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
 
   gap_to_julia = function(a::GAP.GapObj)
     e = GAPWrap.ExtRepOfObj(a)
-    z = zeros(fmpz, ngens(M))
+    z = zeros(ZZRingElem, ngens(M))
     for i=1:2:length(e)
       if !iszero(e[i+1])
         z[e[i]] = e[i+1]
@@ -1242,12 +1242,12 @@ function fp_group(::Type{PcGroup}, M::GrpAbFinGen; refine::Bool = true)
   return pc_group(M)
 end
 
-function (k::Nemo.GaloisField)(a::Vector)
+function (k::Nemo.fpField)(a::Vector)
   @assert length(a) == 1
   return k(a[1])
 end
 
-function (k::FqNmodFiniteField)(a::Vector)
+function (k::fqPolyRepField)(a::Vector)
   return k(polynomial(GF(Int(characteristic(k))), a))
 end
 
@@ -1268,8 +1268,8 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
   B = PcGroup(GAP.Globals.GroupByRws(C))
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
-  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{gfp_elem, gfp_fmpz_elem}})
-    r = fmpz[]
+  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+    r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
@@ -1280,8 +1280,8 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
     return g
   end
 
-  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{fq, fq_nmod}})
-    r = fmpz[]
+  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem}})
+    r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         for j=0:degree(k)-1
@@ -1299,7 +1299,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
 
   gap_to_julia = function(a::GAP.GapObj)
     e = GAPWrap.ExtRepOfObj(a)
-    z = zeros(fmpz, ngens(M)*degree(k))
+    z = zeros(ZZRingElem, ngens(M)*degree(k))
     for i=1:2:length(e)
       if !iszero(e[i+1])
         z[e[i]] = e[i+1]
@@ -1313,7 +1313,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
   end
 
   for i=1:ngens(M)-1
-    r = fmpz[]
+    r = ZZRingElem[]
     for j=i+1:ngens(M)
       GAP.Globals.SetConjugate(C, j, i, gen(G, j).X)
     end
@@ -1925,7 +1925,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   if e % prime(K) != 0 && !full #tame!
     @vprint :GaloisCohomology 2 " .. tame, no 1-units ..\n"
 #    @show :tame
-    k, mk = ResidueField(K)
+    k, mk = residue_field(K)
     u, mu = unit_group(k)
     pi = uniformizer(K)
     # move to a Teichmueller lift?
@@ -2298,7 +2298,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   cf = Tuple{GrpAbFinGen, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
-  s = push!(Set{fmpz}(s), Set{fmpz}(keys(factor(discriminant(zk)).fac))...)
+  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(keys(factor(discriminant(zk)).fac))...)
   for i=1:length(sf)
     l = factor(prod(s)*zf[i])
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])

@@ -1,4 +1,4 @@
-export Localization, MPolyElemLoc, ideal, singular_assure, numerator,
+export Localization, MPolyRingElemLoc, ideal, singular_assure, numerator,
        denominator, groebner_basis, minimal_generators
 
 ###############################################################################
@@ -39,7 +39,7 @@ function Oscar.Localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
 end
 
 @Markdown.doc """
-MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
+MPolyRingElemLoc{T} <: AbstractAlgebra.RingElem where {T}
 
 An element f/g in an instance of `MPolyRingLoc{T}`.
 
@@ -47,12 +47,12 @@ The data being stored consists of
   * the fraction f/g as an instance of `AbstractAlgebra.Generic.Frac`;
   * the parent instance of `MPolyRingLoc{T}`.
 """
-struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
+struct MPolyRingElemLoc{T} <: AbstractAlgebra.RingElem where {T}
   frac::AbstractAlgebra.Generic.Frac
   parent::MPolyRingLoc{T}
 
   # pass with checked = false to skip the non-trivial denominator check
-  function MPolyElemLoc{T}(f::AbstractAlgebra.Generic.Frac,
+  function MPolyRingElemLoc{T}(f::AbstractAlgebra.Generic.Frac,
                            p::MPolyRingLoc{T}, checked = true) where {T}
     R = p.base_ring
     B = base_ring(R)
@@ -71,44 +71,44 @@ struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
   end
 end
 
-function MPolyElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
+function MPolyRingElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
   R = parent(f)
-  return MPolyElemLoc{T}(f//R(1), Localization(R, m), false)
+  return MPolyRingElemLoc{T}(f//R(1), Localization(R, m), false)
 end
 
-function MPolyElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
+function MPolyRingElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
   R = parent(numerator(f))
   B = base_ring(R)
-  return MPolyElemLoc{elem_type(B)}(f, Localization(R, m))
+  return MPolyRingElemLoc{elem_type(B)}(f, Localization(R, m))
 end
 
 ###############################################################################
 # Basic functions                                                             #
 ###############################################################################
 
-function Base.deepcopy_internal(a::MPolyElemLoc{T}, dict::IdDict) where T
-  return MPolyElemLoc{T}(Base.deepcopy_internal(a.frac, dict), a.parent, false)
+function Base.deepcopy_internal(a::MPolyRingElemLoc{T}, dict::IdDict) where T
+  return MPolyRingElemLoc{T}(Base.deepcopy_internal(a.frac, dict), a.parent, false)
 end
 
 function Base.show(io::IO, W::MPolyRingLoc)
   print("Localization of the ", W.base_ring, " at the maximal ", W.max_ideal)
 end
 
-function Base.show(io::IO, w::MPolyElemLoc)
+function Base.show(io::IO, w::MPolyRingElemLoc)
   show(io, w.frac)
 end
 
 Nemo.symbols(R::MPolyRingLoc) = symbols(R.base_ring)
 Nemo.nvars(R::MPolyRingLoc) = nvars(R.base_ring)
-Nemo.parent(f::MPolyElemLoc) = f.parent
-Nemo.numerator(f::MPolyElemLoc) = numerator(f.frac)
-Nemo.denominator(f::MPolyElemLoc) = denominator(f.frac)
+Nemo.parent(f::MPolyRingElemLoc) = f.parent
+Nemo.numerator(f::MPolyRingElemLoc) = numerator(f.frac)
+Nemo.denominator(f::MPolyRingElemLoc) = denominator(f.frac)
 
-elem_type(::MPolyRingLoc{T}) where {T} = MPolyElemLoc{T}
-elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyElemLoc{T}
-parent_type(::Type{MPolyElemLoc{T}}) where {T} = MPolyRingLoc{T}
+elem_type(::MPolyRingLoc{T}) where {T} = MPolyRingElemLoc{T}
+elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyRingElemLoc{T}
+parent_type(::Type{MPolyRingElemLoc{T}}) where {T} = MPolyRingLoc{T}
 
-function check_parent(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}, thr::Bool = true) where {T}
+function check_parent(a::MPolyRingElemLoc{T}, b::MPolyRingElemLoc{T}, thr::Bool = true) where {T}
   if parent(a) == parent(b)
     return true
   elseif thr
@@ -128,58 +128,58 @@ end
 (W::MPolyRingLoc)(i::RingElem) = W(W.base_ring(i))
 
 function (W::MPolyRingLoc{T})(f::MPolyRingElem) where {T}
-  return MPolyElemLoc{T}(f//one(parent(f)), W)
+  return MPolyRingElemLoc{T}(f//one(parent(f)), W)
 end
 
 function (W::MPolyRingLoc{T})(g::AbstractAlgebra.Generic.Frac) where {T}
-  return MPolyElemLoc{T}(g, W)
+  return MPolyRingElemLoc{T}(g, W)
 end
 
-(W::MPolyRingLoc)(g::MPolyElemLoc) = W(g.frac)
+(W::MPolyRingLoc)(g::MPolyRingElemLoc) = W(g.frac)
 Base.one(W::MPolyRingLoc) = W(1)
 Base.zero(W::MPolyRingLoc) = W(0)
 
 # Since a.parent.max_ideal is maximal and AA's frac arithmetic is reasonable,
 # none of these ring operations should generate bad denominators.
 # If this turns out to be a problem, remove the last false argument.
-function +(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+function +(a::MPolyRingElemLoc{T}, b::MPolyRingElemLoc{T}) where {T}
   check_parent(a, b)
-  return MPolyElemLoc{T}(a.frac + b.frac, a.parent, false)
+  return MPolyRingElemLoc{T}(a.frac + b.frac, a.parent, false)
 end
 
-function -(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+function -(a::MPolyRingElemLoc{T}, b::MPolyRingElemLoc{T}) where {T}
   check_parent(a, b)
-  return MPolyElemLoc{T}(a.frac - b.frac, a.parent, false)
+  return MPolyRingElemLoc{T}(a.frac - b.frac, a.parent, false)
 end
 
-function -(a::MPolyElemLoc{T}) where {T}
-  return MPolyElemLoc{T}(-a.frac, a.parent, false)
+function -(a::MPolyRingElemLoc{T}) where {T}
+  return MPolyRingElemLoc{T}(-a.frac, a.parent, false)
 end
 
-function *(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+function *(a::MPolyRingElemLoc{T}, b::MPolyRingElemLoc{T}) where {T}
   check_parent(a, b)
-  return MPolyElemLoc{T}(a.frac*b.frac, a.parent, false)
+  return MPolyRingElemLoc{T}(a.frac*b.frac, a.parent, false)
 end
 
-function ==(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+function ==(a::MPolyRingElemLoc{T}, b::MPolyRingElemLoc{T}) where {T}
   return check_parent(a, b, false) && a.frac == b.frac
 end
 
-function ^(a::MPolyElemLoc{T}, i::Int) where {T}
-  return MPolyElemLoc{T}(a.frac^i, a.parent, false)
+function ^(a::MPolyRingElemLoc{T}, i::Int) where {T}
+  return MPolyRingElemLoc{T}(a.frac^i, a.parent, false)
 end
 
-function Oscar.mul!(a::MPolyElemLoc, b::MPolyElemLoc, c::MPolyElemLoc)
+function Oscar.mul!(a::MPolyRingElemLoc, b::MPolyRingElemLoc, c::MPolyRingElemLoc)
   return b*c
 end
 
-function Oscar.addeq!(a::MPolyElemLoc, b::MPolyElemLoc)
+function Oscar.addeq!(a::MPolyRingElemLoc, b::MPolyRingElemLoc)
   return a+b
 end
 
-function Base.:(//)(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+function Base.:(//)(a::MPolyRingElemLoc{T}, b::MPolyRingElemLoc{T}) where {T}
   check_parent(a, b)
-  return MPolyElemLoc{T}(a.frac//b.frac, a.parent)
+  return MPolyRingElemLoc{T}(a.frac//b.frac, a.parent)
 end
 
 ###############################################################################
@@ -193,7 +193,7 @@ Sets up the singular ring in the backend to perform, for instance, standard basi
 in `R`.
 """
 function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) where T
-  return Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(R.base_ring)),
+  return Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(R.base_ring)),
               [string(x) for x = Nemo.symbols(R)],
               ordering = ord,
               cached = false)[1]
@@ -232,7 +232,7 @@ mutable struct IdealGensLoc{S}
     r.isGB  = false
     return r
   end
-  function IdealGensLoc(a::Vector{T}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
+  function IdealGensLoc(a::Vector{T}; ord::Symbol = :negdegrevlex) where T <: MPolyRingElemLoc
     r = new{T}()
     r.O     = a
     r.Ox    = parent(a[1])
@@ -271,7 +271,7 @@ mutable struct MPolyIdealLoc{S} <: Ideal{S}
     r.gb = Dict()
     return r
   end
-  function MPolyIdealLoc(g::Vector{T}) where {T <: MPolyElemLoc}
+  function MPolyIdealLoc(g::Vector{T}) where {T <: MPolyRingElemLoc}
     r = new{T}()
     r.dim = -1 # not known
     r.gens = IdealGensLoc(g)
@@ -326,11 +326,11 @@ Base.eltype(::IdealGensLoc{S}) where S = S
 ###############################################################################
 
 @Markdown.doc """
-ideal(h::Vector{T}) where T <: MPolyElemLoc
+ideal(h::Vector{T}) where T <: MPolyRingElemLoc
 
 Construct the ideal I = ⟨h₁,…,hᵣ⟩ generated by the elements hᵢ in `h`.
 """
-function ideal(g::Vector{T}) where T <: MPolyElemLoc
+function ideal(g::Vector{T}) where T <: MPolyRingElemLoc
   return MPolyIdealLoc(g)
 end
 

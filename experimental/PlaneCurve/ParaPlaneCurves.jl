@@ -5,7 +5,7 @@ export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
 
 
 ################################################################################
-function _tosingular(C::ProjPlaneCurve{fmpq})
+function _tosingular(C::ProjPlaneCurve{QQFieldElem})
     F = C.eq
     T = parent(F)
     Tx = singular_poly_ring(T)
@@ -17,11 +17,11 @@ function _fromsingular_ring(R::Singular.PolyRing)
     if typeof(Kx) == Singular.N_AlgExtField
         FF, t = RationalFunctionField(QQ, "t")
         f = numerator(FF(Kx.minpoly))
-        K, _ = NumberField(f, "a")
+        K, _ = number_field(f, "a")
     else
         K = QQ
     end
-    newring, _ = PolynomialRing(K, [string(x) for x in gens(R)])
+    newring, _ = polynomial_ring(K, [string(x) for x in gens(R)])
     return newring
 end
 
@@ -32,7 +32,7 @@ function _tosingular_ideal(C::ProjCurve)
 end
 
 @doc Markdown.doc"""
-    parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
+    parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
 
 Return a rational parametrization of  `C`. 
 
@@ -44,13 +44,13 @@ julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
 Projective plane curve defined by -2*x^3*z + 3*x^2*z^2 + y^4 - 2*y^2*z^2
 
 julia> parametrization_plane_curve(C)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  12*s^4 - 8*s^2*t^2 + t^4
  -12*s^3*t + 2*s*t^3
  8*s^4
 ```
 """
-function parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
+function parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
     s = "local"
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.paraPlaneCurve(F, s)
@@ -61,7 +61,7 @@ function parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
 end
 
 @doc Markdown.doc"""
-    adjoint_ideal(C::ProjPlaneCurve{fmpq})
+    adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
 
 Return the Gorenstein adjoint ideal of `C`. 
 
@@ -76,7 +76,7 @@ julia> I = adjoint_ideal(C)
 ideal(-x*z + y^2, x*y - y*z, x^2 - x*z)
 ```
 """
-function adjoint_ideal(C::ProjPlaneCurve{fmpq})
+function adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
     n = 2
     F = _tosingular(C)
     R = parent(C.eq)
@@ -85,7 +85,7 @@ function adjoint_ideal(C::ProjPlaneCurve{fmpq})
 end
 
 @doc Markdown.doc"""
-    rational_point_conic(D::ProjPlaneCurve{fmpq})
+    rational_point_conic(D::ProjPlaneCurve{QQFieldElem})
 
 If the conic `D` contains a rational point, return the homogeneous coordinates of such a point.
 If no such point exists, return a point on `D` defined over a quadratic field extension of $\mathbb Q$.
@@ -115,7 +115,7 @@ julia> minpoly(a)
 t^2 - 2
 ```
 """
-function rational_point_conic(C::ProjPlaneCurve{fmpq})
+function rational_point_conic(C::ProjPlaneCurve{QQFieldElem})
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.rationalPointConic(F)
     R = L[1]
@@ -125,13 +125,13 @@ function rational_point_conic(C::ProjPlaneCurve{fmpq})
 end
 
 @doc Markdown.doc"""
-    parametrization_conic(C::ProjPlaneCurve{fmpq})
+    parametrization_conic(C::ProjPlaneCurve{QQFieldElem})
 
 Given a conic `C`, return a vector `V` of polynomials in a new ring which should be
 considered as the homogeneous coordinate ring of `PP^1`. The vector `V` defines a
 rational parametrization `PP^1 --> C2 = {q=0}`.
 """
-function parametrization_conic(C::ProjPlaneCurve{fmpq})
+function parametrization_conic(C::ProjPlaneCurve{QQFieldElem})
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.paraConic(F)
     R = L[1]
@@ -141,7 +141,7 @@ function parametrization_conic(C::ProjPlaneCurve{fmpq})
 end
 
 @doc Markdown.doc"""
-    map_to_rational_normal_curve(C::ProjPlaneCurve{fmpq})
+    map_to_rational_normal_curve(C::ProjPlaneCurve{QQFieldElem})
 
 Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
 
@@ -158,7 +158,7 @@ julia> map_to_rational_normal_curve(C)
 Projective curve defined by the ideal(y(1)^2 + 2*y(1)*y(3) - 2*y(2)^2)
 ```
 """
-function map_to_rational_normal_curve(C::ProjPlaneCurve{fmpq})
+function map_to_rational_normal_curve(C::ProjPlaneCurve{QQFieldElem})
     F = _tosingular(C)
     I = Singular.LibParaplanecurves.adjointIdeal(F)
     L = Singular.LibParaplanecurves.mapToRatNormCurve(F, I)
@@ -184,14 +184,14 @@ julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"])
   w -> [1]
   x -> [1]
   y -> [1]
-  z -> [1], MPolyDecRingElem{fmpq, fmpq_mpoly}[v, w, x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[v, w, x, y, z])
 
 julia> M = matrix(R, 2, 4, [v w x y; w x y z])
 [v   w   x   y]
 [w   x   y   z]
 
 julia> V = minors(M, 2)
-6-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  v*x - w^2
  v*y - w*x
  w*y - x^2
@@ -205,7 +205,7 @@ julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_anticanonical_map(RNC)
-3-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x
  -y
  z
@@ -234,7 +234,7 @@ julia> M = matrix(R, 2, 3, [w x y; x y z])
 [x   y   z]
 
 julia> V = minors(M, 2)
-3-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  w*y - x^2
  w*z - x*y
  x*z - y^2
@@ -245,7 +245,7 @@ julia> TC = ProjCurve(I)
 Projective curve defined by the ideal(w*y - x^2, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_It_Proj_Odd(TC)
-2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  y
  -z
 ```
@@ -287,7 +287,7 @@ julia> M = matrix(R, 2, 4, [v w x y; w x y z])
 [w   x   y   z]
 
 julia> V = minors(M, 2)
-6-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  v*x - w^2
  v*y - w*x
  w*y - x^2
@@ -301,7 +301,7 @@ julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_It_Proj_Even(RNC)
-(MPolyDecRingElem{fmpq, fmpq_mpoly}[x, -y, z], Projective plane curve defined by -y(1)*y(3) + y(2)^2)
+(MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, -y, z], Projective plane curve defined by -y(1)*y(3) + y(2)^2)
 ```
 """
 function rat_normal_curve_It_Proj_Even(C::ProjCurve)

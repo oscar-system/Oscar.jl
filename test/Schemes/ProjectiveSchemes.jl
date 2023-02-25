@@ -2,7 +2,7 @@
 
 # test for relative projective space over a polynomial ring
 R, (x,y) = QQ["x", "y"]
-R_ext, _ = PolynomialRing(R, ["u", "v"])
+R_ext, _ = polynomial_ring(R, ["u", "v"])
 S, (u,v) = grade(R_ext, [1,1])
 
 I = ideal(S, [x*v - y*u])
@@ -19,7 +19,7 @@ g = map_on_affine_cones(phi)
 @test is_well_defined(phi)
 
 # test for projective space over a field
-R_ext, _ = PolynomialRing(QQ, ["u", "v"])
+R_ext, _ = polynomial_ring(QQ, ["u", "v"])
 S, (u,v) = grade(R_ext, [1,1])
 
 I = ideal(S, [u])
@@ -38,7 +38,7 @@ g = map_on_affine_cones(phi)
 # test for relative projective space over MPolyQuoLocalizedRings
 Y = Spec(R)
 Q = OO(Y)
-R_ext, _ = PolynomialRing(Q, ["u", "v"])
+R_ext, _ = polynomial_ring(Q, ["u", "v"])
 S, (u,v) = grade(R_ext, [1,1])
 X = ProjectiveScheme(S)
 
@@ -92,7 +92,7 @@ end
 end
 
 @testset "Issue #1580" begin 
-  R,(x,) = PolynomialRing(GF(3),["x"])
+  R,(x,) = polynomial_ring(GF(3),["x"])
   Rx,i = localization(R, x)
   x = Rx(x)
   P2 = projective_space(Rx, 2)
@@ -101,7 +101,7 @@ end
 end
 
 @testset "affine cone" begin
-  R,(x,) = PolynomialRing(GF(3),["x"])
+  R,(x,) = polynomial_ring(GF(3),["x"])
   Rx,i = localization(R, x)
   x = Rx(x)
   Rq,j = quo(Rx,ideal(Rx,x))

@@ -93,7 +93,7 @@ julia> coefficient_ring(A)
 Rational Field
 
 julia> gens(A)
-3-element Vector{PBWAlgElem{fmpq, Singular.n_Q}}:
+3-element Vector{PBWAlgElem{QQFieldElem, Singular.n_Q}}:
  x
  y
  z

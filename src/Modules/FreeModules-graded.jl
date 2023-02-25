@@ -184,7 +184,7 @@ end
 *(a::MPolyRingElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(parent(b).R(a)*b.r, b.parent)
 *(a::Int, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
 *(a::Integer, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
-*(a::fmpq, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
+*(a::QQFieldElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
 ==(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = a.r == b.r
 zero(F::FreeModule_dec) = FreeModuleElem_dec(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
 parent(a::FreeModuleElem_dec) = a.parent
@@ -613,7 +613,7 @@ end
 *(a::MPolyRingElem, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
 *(a::Int, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
 *(a::Integer, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
-*(a::fmpq, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
+*(a::QQFieldElem, b::SubquoDecModuleElem) = SubquoDecModuleElem(a*b.a, b.parent)
 ==(a::SubquoDecModuleElem, b::SubquoDecModuleElem) = iszero(a-b)
 
 function sub(F::FreeModule_dec, O::Vector{<:FreeModuleElem_dec})

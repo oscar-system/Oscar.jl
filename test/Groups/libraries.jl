@@ -105,9 +105,9 @@ end
    @test_throws ErrorException perfect_group_identification(symmetric_group(5))
 
    @test sum(number_perfect_groups, 1:59) == 1
-   @test number_perfect_groups(fmpz(60)^3) == 1
+   @test number_perfect_groups(ZZRingElem(60)^3) == 1
    @test_throws ArgumentError number_perfect_groups(0) # invalid argument
-   @test_throws ErrorException number_perfect_groups(fmpz(60)^10)  # result not known
+   @test_throws ErrorException number_perfect_groups(ZZRingElem(60)^10)  # result not known
 end
 
 @testset "Small groups" begin
@@ -197,7 +197,7 @@ end
 
    # prescribed `base_ring` of the matrix group
    # (for different types of fields)
-   rings = [GF(2), GF(2, 2), GF(fmpz(2), 2)]
+   rings = [GF(2), GF(2, 2), GF(ZZRingElem(2), 2)]
    for R in rings
      info = all_atlas_group_infos("A5", base_ring => R)
      @test length(info) > 0

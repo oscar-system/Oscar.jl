@@ -1,5 +1,5 @@
 @testset "MPolyQuoRing" begin
-  R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   f = y^2+y+x^2
   C = ideal(R, [f])
@@ -21,7 +21,7 @@
 end
 
 @testset "MpolyQuo.manipulation" begin
-  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   I = ideal(R, [zero(R)])
   Q, q = quo(R,I)
   f = q(x*y)
@@ -48,7 +48,7 @@ end
 end
 
 @testset "MPolyQuoRing.ideals" begin
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
   Q, _ = quo(R, ideal(R, [x*y, x*z]))
   (x, y, z) = map(Q, (x, y, z))
 
@@ -90,7 +90,7 @@ end
   @test dim(J)  == 1
   @test dim(J)  == J.dim  # test case if dim(J) is already set
 
-  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
@@ -170,9 +170,9 @@ end
 end
 
 @testset "issue #1901" begin
-  R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   L, _ = Localization(R, powers_of_element(R[1]))
-  S, (s0, s1, s2) = PolynomialRing(L, ["s0", "s1", "s2"])
+  S, (s0, s1, s2) = polynomial_ring(L, ["s0", "s1", "s2"])
   I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
   Q, _ = quo(S, I)
   @test Q isa MPolyQuoRing

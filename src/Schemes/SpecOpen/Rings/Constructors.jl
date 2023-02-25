@@ -38,7 +38,7 @@ zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches
 (R::SpecOpenRing)() = zero(R)
 (R::SpecOpenRing)(a::Integer) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 (R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
-(R::SpecOpenRing)(a::fmpz) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(a::ZZRingElem) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 
 ########################################################################
 # Copying                                                              #

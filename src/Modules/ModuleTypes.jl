@@ -101,8 +101,8 @@ which specifies its coordinates with respect to the basis of standard unit vecto
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
@@ -111,7 +111,7 @@ julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
 
 julia> typeof(f)
-FreeModElem{fmpq_mpoly}
+FreeModElem{QQMPolyRingElem}
 
 julia> g = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
@@ -258,8 +258,8 @@ combination of the generators of $M$ which defines $f$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -288,7 +288,7 @@ julia> g = z*M[1] + one(R)*M[2]
 (x*z + y)*e[1]
 
 julia> typeof(g)
-SubquoModuleElem{fmpq_mpoly}
+SubquoModuleElem{QQMPolyRingElem}
 
 julia> f == g
 true

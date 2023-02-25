@@ -28,7 +28,7 @@ import Oscar.Singular: std, Ideal, lead_exponent
 #extractInclusionMinimalIdeals(A::Vector{Any})
 #removeSomeRedundancies(A::Vector{Any})
 #monomialFromVector(a::Vector{Int64}, R::Singular.PolyRing)
-#markov4ti2(L::fmpz_mat)
+#markov4ti2(L::ZZMatrix)
 #"=="(I::Singular.sideal,J::Singular.sideal)
 #isSubset(I::Singular.sideal,J::Singular.sideal)
 #idealFromCharacter(P::PChar, R::Singular.PolyRing)
@@ -120,7 +120,7 @@ function isUnital(I::Singular.sideal)
         return counter==Singular.ngens(I)
 end
 
-function markov4ti2(L::fmpz_mat)
+function markov4ti2(L::ZZMatrix)
         #sanity checks noch einbauen!!
         nc=Nemo.ncols(L)
         nr=Nemo.nrows(L)
@@ -326,7 +326,7 @@ function extractInclusionMinimalIdeals(A::Vector{Singular.sideal})
         return Result
 end
 
-function deleteZerosInHNF(m::fmpz_mat)
+function deleteZerosInHNF(m::ZZMatrix)
         #deletes zero rows in the hnf of m
         m=hnf(m)
         i=Nemo.nrows(m)

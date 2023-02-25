@@ -5,10 +5,10 @@
 @attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
            toric_variety::AbstractNormalToricVariety
-           coeffs::Vector{fmpz}
+           coeffs::Vector{ZZRingElem}
            ToricDivisor(polymake_divisor::Polymake.BigObject,
                         toric_variety::AbstractNormalToricVariety,
-                        coeffs::Vector{T}) where {T <: IntegerUnion} = new(polymake_divisor, toric_variety, [fmpz(c) for c in coeffs])
+                        coeffs::Vector{T}) where {T <: IntegerUnion} = new(polymake_divisor, toric_variety, [ZZRingElem(c) for c in coeffs])
 end
 export ToricDivisor
 
@@ -79,7 +79,7 @@ function divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T
     end
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))
-    coeffs = [fmpz(x) for x in transpose(f(char).coeff)][:, 1]
+    coeffs = [ZZRingElem(x) for x in transpose(f(char).coeff)][:, 1]
     return toric_divisor(v, coeffs)
 end
 export divisor_of_character
@@ -107,7 +107,7 @@ function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
 end
 
 
-Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
+Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_variety(td), [ZZRingElem(c)*x for x in coefficients(td)])
 
 
 ######################

@@ -26,7 +26,7 @@ function Oscar.binomial(a::RingElem, k::Int)
   return prod([a-i for i=0:k-1])*inv(p(factorial(k)))
 end
 
-function exp_groebner_basis(B::IdealGens{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_poly_ring(B.Ox, ord)
     i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), h.data, complete_reduction = complete_reduction)
@@ -62,7 +62,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
   R = RecoCtx(K)
 
   fl = true
-  d = fmpz(1)
+  d = ZZRingElem(1)
   very_first = true
   local H::HilbertData
   while true
@@ -89,7 +89,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
     end
     @vtime :ModStdNF 2 IP = Hecke.modular_lift(Jp, me)
     if d == 1
-      d = fmpz(p)
+      d = ZZRingElem(p)
       gc = IP
       push!(R, d, lift(Zx, me.ce.pr[end]))
       fl = true
@@ -106,15 +106,15 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
     else
       new_idx = [any(x -> any(x->!iszero(x), Hecke.modular_proj(x, me)), AbstractAlgebra.coefficients(gd[i] - IP[i])) for i=1:length(gc)]
       @vprint :ModStdNF 1 "new information in $new_idx\n"
-      push!(R, fmpz(p), lift(Zx, me.ce.pr[end]))
+      push!(R, ZZRingElem(p), lift(Zx, me.ce.pr[end]))
       fl = !any(new_idx)
       if !fl
         @vtime :ModStdNF 2 for i = 1:length(gc)
           if new_idx[i]
-            gc[i], _ = induce_crt(gc[i], d, IP[i], fmpz(p), true)
+            gc[i], _ = induce_crt(gc[i], d, IP[i], ZZRingElem(p), true)
           end
         end
-        d *= fmpz(p)
+        d *= ZZRingElem(p)
         fl = true
         @vtime :ModStdNF 2 for i = 1:length(gc)
           if new_idx[i]
@@ -125,7 +125,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
         stable = max_stable
 #        @show gd
       else
-        d *= fmpz(p)
+        d *= ZZRingElem(p)
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
@@ -150,7 +150,7 @@ end
 # for induced stuff and majority voting and such think of data structures
 #   that allow to match monomials effectively.
 function Hecke.modular_proj(B::IdealGens{Generic.MPoly{nf_elem}}, me::Hecke.modular_env)
-  g = [Vector{nmod_mpoly}() for i = me.fld]
+  g = [Vector{zzModMPolyRingElem}() for i = me.fld]
   for i=B
     h = Hecke.modular_proj(i, me)
     for j = 1:length(h)
@@ -160,11 +160,11 @@ function Hecke.modular_proj(B::IdealGens{Generic.MPoly{nf_elem}}, me::Hecke.modu
   return [IdealGens(x, keep_ordering = false) for x = g] 
 end
 
-function Hecke.modular_lift(f::Vector{IdealGens{nmod_mpoly}}, me::Hecke.modular_env)
+function Hecke.modular_lift(f::Vector{IdealGens{zzModMPolyRingElem}}, me::Hecke.modular_env)
   g = []
   @assert all(x -> length(x) == length(f[1]), f)
   for i=1:length(f[1])
-    lp = nmod_mpoly[ f[j][Val(:O), i] for j=1:length(f)]
+    lp = zzModMPolyRingElem[ f[j][Val(:O), i] for j=1:length(f)]
     push!(g, Hecke.modular_lift(lp, me))
   end
   return g
@@ -181,7 +181,7 @@ end
 
 function homogenize(i::MPolyIdeal)
   R = base_ring(i)
-  S, _ = PolynomialRing(base_ring(R), push!([string(x) for x = symbols(R)], "H"))
+  S, _ = polynomial_ring(base_ring(R), push!([string(x) for x = symbols(R)], "H"))
   return homogenize(i, S)
 end
 
@@ -198,7 +198,7 @@ using Oscar
 
 function example_1()
   k, a = quadratic_field(-1)
-  kt, (x,y,z) = PolynomialRing(k, ["x", "y", "z"])
+  kt, (x,y,z) = polynomial_ring(k, ["x", "y", "z"])
   f1 = (a+8)*x^2*y^2+5*x*y^3+(-a+3)*x^3*z+x^2*y*z
   f2 = x^5+2*y^3*z^2+13*y^2*z^3+5*y*z^4
   f3 = 8*x^3+(a+12)*y^3+x*z^2+3
@@ -210,7 +210,7 @@ end
 function example_2()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^5+t^2+2)
-  kt, (x, y, z) = PolynomialRing(k, ["x", "y", "z"])
+  kt, (x, y, z) = polynomial_ring(k, ["x", "y", "z"])
 
   f1 = 2*x*y^4*z^2+(a-1)*x^2*y^3*z+(2*a)*x*y*z^2+7*y^3+(7*a+1)
   f2 = 2*x^2*y^4*z+(a)*x^2*y*z^2-x*y^2*z^2+(2*a+3)*x^2*y*z-12*x+(12*a)*y
@@ -224,7 +224,7 @@ function example_3()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^7-7*t+3)
 
-  kt, (v, w, x, y, z) = PolynomialRing(k, ["v", "w", "x", "y", "z"])
+  kt, (v, w, x, y, z) = polynomial_ring(k, ["v", "w", "x", "y", "z"])
   f1 = (a)*v+(a-1)*w+x+(a+2)*y+z
   f2 = v*w+(a-1)*w*x+(a+2)*v*y+x*y+(a)*y*z
   f3 = (a)*v*w*x+(a+5)*w*x*y+(a)*v*w*z+(a+2)*v*y*z+(a)*x*y*z
@@ -238,7 +238,7 @@ function example_4()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^7-7*t+3)
 
-  kt, (u, v, w, x, y, z) = PolynomialRing(k, ["u", "v", "w", "x", "y", "z"])
+  kt, (u, v, w, x, y, z) = polynomial_ring(k, ["u", "v", "w", "x", "y", "z"])
 
   f1 = (a)*u+(a+2)*v+w+x+y+z
   f2 = u*v+v*w+w*x+x*y+(a+3)*u*z+y*z
@@ -252,7 +252,7 @@ end
 
 function example_5()
   k, a = cyclotomic_field(7)
-  kt, (w, x, y, z) = PolynomialRing(k, ["w", "x", "y", "z"])
+  kt, (w, x, y, z) = polynomial_ring(k, ["w", "x", "y", "z"])
 
   f1 = (a+5)*w^3*x^2*y+(a-3)*w^2*x^3*y+(a+7)*w*x^2*y^2
   f2 = (a)*w^5+(a+3)*w*x^2*y^2+(a^2+11)*x^2*y^2*z
@@ -266,7 +266,7 @@ function example_6()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^12-5*t^11+24*t^10-115*t^9+551*t^8-2640*t^7+12649*t^6-2640*t^5+551*t^4-115*t^3+24*t^2-5*t+1)
 
-  kt, (w, x, y, z) = PolynomialRing(k, ["w", "x", "y", "z"])
+  kt, (w, x, y, z) = polynomial_ring(k, ["w", "x", "y", "z"])
 
   f1 = (2*a+3)*w*x^4*y^2+(a+1)*w^2*x^3*y*z+2*w*x*y^2*z^3+(7*a-1)*x^3*z^4
   f2 = 2*w^2*x^4*y+w^2*x*y^2*z^2+(-a)*w*x^2*y^2*z^2+(a+11)*w^2*x*y*z^3-12*w*z^6+12*x*z^6
@@ -280,7 +280,7 @@ function example_7()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^2+5*t+1)
 
-  kt, (u, v, w, x, y, z) = PolynomialRing(k, ["u", "v", "w", "x", "y", "z"])
+  kt, (u, v, w, x, y, z) = polynomial_ring(k, ["u", "v", "w", "x", "y", "z"])
 
   f1 = u+v+w+x+y+z+(a)
   f2 = u*v+v*w+w*x+x*y+y*z+(a)*u+(a)*z
@@ -297,7 +297,7 @@ function example_8()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^8-16*t^7+19*t^6-t^5-5*t^4+13*t^3-9*t^2+13*t+17)
 
-  kt, (w, x, y, z) = PolynomialRing(k, ["w", "x", "y", "z"])
+  kt, (w, x, y, z) = polynomial_ring(k, ["w", "x", "y", "z"])
 
   f1 = (-a^2-1)*x^2*y+2*w*x*z-2*w+(a^2+1)*y
   f2 = (a^3-a-3)*w^3*y+4*w*x^2*y+4*w^2*x*z+2*x^3*z+(a)*w^2-10*x^2+4*w*y-10*x*z+(2*a^2+a)
@@ -311,7 +311,7 @@ function example_9()
   t = gen(Hecke.Globals.Qx)
   k, a = number_field(t^7+10*t^5+5*t^3+10*t+1)
 
-  kt, (t, u, v, w, x, y, z) = PolynomialRing(k, ["t", "u", "v", "w", "x", "y", "z"])
+  kt, (t, u, v, w, x, y, z) = polynomial_ring(k, ["t", "u", "v", "w", "x", "y", "z"])
 
   f1 = v*x+w*y-x*z-w-y
   f2 = v*w-u*x+x*y-w*z+v+x+z
@@ -332,7 +332,7 @@ module Decker
 using Oscar
 
 function example_dim(k, n::Int, d::Int, nc::Int, range)
-  kt, t = PolynomialRing(k, 2*n+1)
+  kt, t = polynomial_ring(k, 2*n+1)
 
   id = typeof(t[1])[]
   for i=1:n
@@ -352,7 +352,7 @@ function example_dim(k, n::Int, d::Int, nc::Int, range)
 end
 
 function book_page_80(k)
-  Qx, (x, y, z) = PolynomialRing(k, ["x", "y", "z"])
+  Qx, (x, y, z) = polynomial_ring(k, ["x", "y", "z"])
   i = ideal([3x^3*y+x^3+x*y^3+y^2*z^2,2x^3*z-x*y-x*z^3-y^4-z^2,2x^2*y*z-2x*y^2+x*z^2-y^4])
   return i
 end
@@ -365,7 +365,7 @@ using Oscar
 
 function example_bad_lex()
   k, i = quadratic_field(-1)
-  kx, (x1, x2, x3, x4, x5, x6, x7) = PolynomialRing(k, 7)
+  kx, (x1, x2, x3, x4, x5, x6, x7) = polynomial_ring(k, 7)
   i = ideal(
       [(5*i + 7)*x1^2*x5 + (4*i + 9)*x1*x2*x4 + (10*i + 2)*x2*x3*x6 + (10*i + 9)*x2*x4*x6,
        (6*i + 8)*x1*x2*x3 + (7*i + 3)*x2^2*x5 + (i + 3)*x2*x4*x6 + (3*i + 10)*x2*x6^2,

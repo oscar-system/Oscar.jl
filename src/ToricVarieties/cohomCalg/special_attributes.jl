@@ -11,7 +11,7 @@ Compute the vanishing sets of an abstract toric variety `v` by use of the cohomC
     denominator_contributions = contributing_denominators(variety)
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)
-        list_of_polyhedra = Polyhedron{fmpq}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
+        list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
         push!(vs, ToricVanishingSet(variety, list_of_polyhedra, i-1))
     end
     return vs::Vector{ToricVanishingSet}
@@ -40,7 +40,7 @@ julia> dP3 = del_pezzo_surface(3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
-3-element Vector{fmpz}:
+3-element Vector{ZZRingElem}:
  0
  16
  0
@@ -124,7 +124,7 @@ function all_cohomologies(l::ToricLineBundle)
         # -> Hooray! We found the line bundle cohomologies in question.
         
         # obtain the command string
-        class = vec([fmpz(x) for x in divisor_class(l).coeff])
+        class = vec([ZZRingElem(x) for x in divisor_class(l).coeff])
         command = command_string(v, class)
         
         # execute cohomCalg
@@ -143,7 +143,7 @@ function all_cohomologies(l::ToricLineBundle)
         
         # read out the result
         stdout = read(out, String)
-        result = [fmpz(parse(Int, c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
+        result = [ZZRingElem(parse(Int, c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
         
         # consistency check
         if length(result) != dim(v)+1

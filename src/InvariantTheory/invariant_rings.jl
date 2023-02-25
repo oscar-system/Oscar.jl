@@ -126,7 +126,7 @@ right_action(f::MPolyRingElem, p::PermGroupElem) = right_action(parent(f), p)(f)
 #
 ################################################################################
 
-function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
+function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, GrpT, PolyRingElemT}
   @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
@@ -134,7 +134,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT
   end
 
   actions = [ right_action(polynomial_ring(IR), g) for g in group(IR) ]
-  function reynolds(f::PolyElemT)
+  function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for action in actions
       g = addeq!(g, action(f))
@@ -206,7 +206,7 @@ julia> IR = invariant_ring(G)
 Invariant ring of
 Matrix group of degree 3 over Galois field with characteristic 3
 with generators
-gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
 Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3 graded by
@@ -215,7 +215,7 @@ Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characte
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
+3-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
  x[1]
  x[2]
  x[3]
@@ -248,7 +248,7 @@ function reynolds_operator(IR::InvRing, f::MPolyRingElem)
   return reynolds_operator(IR, polynomial_ring(IR)(f))
 end
 
-function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}, chi::GAPGroupClassFunction) where {FldT, GrpT, PolyElemT}
+function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroupClassFunction) where {FldT, GrpT, PolyRingElemT}
 # I expect that this also works in the non-modular case, but haven't found a reference.
   # The only reference for this version of the reynolds operator appears to be [Gat96].
   @assert is_zero(characteristic(coefficient_ring(IR)))
@@ -260,7 +260,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}, chi::GAPGroupClas
 
   actions_and_values = [ (right_action(polynomial_ring(IR), g), K(conjchi(g).data)) for g in group(IR) ]
 
-  function reynolds(f::PolyElemT)
+  function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for (action, val) in actions_and_values
       g = addeq!(g, action(f)*val)
@@ -396,15 +396,15 @@ julia> IR = invariant_ring(G)
 Invariant ring of
 Matrix group of degree 3 over Galois field with characteristic 3
 with generators
-gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
-2-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
+2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 
 julia> basis(IR, 3)
-2-element Vector{MPolyDecRingElem{gfp_elem, gfp_mpoly}}:
+2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
@@ -454,7 +454,7 @@ julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c i
 group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
 
 julia> basis(R, 3, chi)
-2-element Vector{MPolyDecRingElem{fmpq, fmpq_mpoly}}:
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1]^3 - x[2]^3
  x[1]^2*x[2] - x[1]*x[2]^2
 
@@ -487,15 +487,15 @@ basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(I
 function _molien_series_char0(S::PolyRing, I::InvRing)
   G = group(I)
   n = degree(G)
-  if G isa MatrixGroup{T, T1} where T1<:MatElem{T} where T<:Union{fmpq, fmpz, nf_elem}
+  if G isa MatrixGroup{T, T1} where T1<:MatElem{T} where T<:Union{QQFieldElem, ZZRingElem, nf_elem}
     Gp, GtoGp = isomorphic_group_over_finite_field(G)
   else
     Gp, GtoGp = (G, id_hom(G))
   end
   K = coefficient_ring(I)
-  Kt, _ = PolynomialRing(K, "t", cached = false)
+  Kt, _ = polynomial_ring(K, "t", cached = false)
   C = conjugacy_classes(Gp)
-  res = zero(FractionField(Kt))
+  res = zero(fraction_field(Kt))
   for c in C
     g = (GtoGp\(representative(c)))::elem_type(G)
     if g isa MatrixGroupElem
@@ -505,9 +505,9 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
     else
       error("problem to compute the char. pol. of $g")
     end
-    res = res + length(c)::fmpz * 1//reverse(f)
+    res = res + length(c)::ZZRingElem * 1//reverse(f)
   end
-  res = divexact(res, order(Gp)::fmpz)
+  res = divexact(res, order(Gp)::ZZRingElem)
   num = change_coefficient_ring(coefficient_ring(S),
                                 numerator(res), parent = S)
   den = change_coefficient_ring(coefficient_ring(S),
@@ -539,8 +539,8 @@ function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{G
     info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
                                                                  GAP.GapObj(psi), chi.values))
   end
-  num = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer))::Vector{fmpz})
-  den = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.denom))::Vector{fmpz})
+  num = S(Vector{ZZRingElem}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer))::Vector{ZZRingElem})
+  den = S(Vector{ZZRingElem}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.denom))::Vector{ZZRingElem})
   return num//den
 end
 
@@ -615,12 +615,12 @@ end
 function molien_series(I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   if chi === nothing
     if !isdefined(I, :molien_series)
-      S, t = PolynomialRing(QQ, "t", cached = false)
+      S, t = polynomial_ring(QQ, "t", cached = false)
       I.molien_series = molien_series(S, I)
     end
     return I.molien_series
   else
-    S, t = PolynomialRing(QQ, "t", cached = false)
+    S, t = polynomial_ring(QQ, "t", cached = false)
     return molien_series(S, I, chi)
   end
 end

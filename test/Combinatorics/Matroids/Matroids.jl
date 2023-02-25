@@ -227,7 +227,7 @@
         NN = direct_sum(N,N)
         O = matroid_from_bases(Set{Set{Int}}([Set()]),0)
 
-        R, q = PolynomialRing(ZZ, 'q')
+        R, q = polynomial_ring(ZZ, 'q')
         for (M, values) in ((uniform_matroid(3,5), [2, 17, 2, 3, 4, inf, R(q^3-5q^2+10q-6), false, false, false, true]),
                             (uniform_matroid(0,2), [2, 1, 1, 0, 1, 1, R(0), true, true, true, false]),
                             (vamos_matroid(), [4, 79, 7, 3, 4, 3, R(q^4-8q^3+28q^2-51q+30), false, false, false, true]),

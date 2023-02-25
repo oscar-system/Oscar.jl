@@ -11,8 +11,8 @@ struct SubdivisionOfPoints{T}
 end
 
 
-# default scalar type: `fmpq`
-SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
+# default scalar type: `QQFieldElem`
+SubdivisionOfPoints(x...) = SubdivisionOfPoints{QQFieldElem}(x...)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
@@ -105,5 +105,5 @@ end
 ###############################################################################
 function Base.show(io::IO, SOP::SubdivisionOfPoints{T}) where T<:scalar_types
     print(io, "Subdivision of points in ambient dimension $(ambient_dim(SOP))")
-    T != fmpq && print(io, " with $T type coefficients")
+    T != QQFieldElem && print(io, " with $T type coefficients")
 end

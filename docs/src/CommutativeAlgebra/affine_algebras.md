@@ -75,7 +75,7 @@ If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
@@ -86,7 +86,7 @@ julia> modulus(A)
 ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(A)
-3-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
+3-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
  x
  y
  z
@@ -130,7 +130,7 @@ or by directly coercing elements of `R` into `A`.
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 
@@ -138,7 +138,7 @@ julia> f = p(x^3*y^2-y^3*x^2+x*y)
 x^3*y^2 - x^2*y^3 + x*y
 
 julia> typeof(f)
-MPolyQuoRingElem{fmpq_mpoly}
+MPolyQuoRingElem{QQMPolyRingElem}
 
 julia> g = A(x^3*y^2-y^3*x^2+x*y)
 x^3*y^2 - x^2*y^3 + x*y
@@ -214,7 +214,7 @@ If `a` is an ideal of the affine algebra `A`, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
@@ -225,7 +225,7 @@ julia> base_ring(a)
 Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(a)
-2-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
  x - y
  z^4
 
@@ -394,9 +394,9 @@ ideal(-a^2*c + b^3 - 2*b^2*c + b*c^2)
 ```
 
 ```jldoctest
-julia> D3,y = PolynomialRing(QQ, "y" => 1:3);
+julia> D3,y = polynomial_ring(QQ, "y" => 1:3);
 
-julia> C3, x = PolynomialRing(QQ, "x" => 1:3);
+julia> C3, x = polynomial_ring(QQ, "x" => 1:3);
 
 julia> V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 
@@ -430,9 +430,9 @@ is_finite(F::AffAlgHom)
 ###### Examples
 
 ```jldoctest
-julia> D, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> D, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"]);
+julia> S, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"]);
 
 julia> C, p = quo(S, ideal(S, [c-b^3]));
 
@@ -460,9 +460,9 @@ true
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [ "x", "y", "z"]);
 
-julia> C, (s, t) = PolynomialRing(QQ, ["s", "t"]);
+julia> C, (s, t) = polynomial_ring(QQ, ["s", "t"]);
 
 julia> V = [s*t, t, s^2];
 
@@ -510,14 +510,14 @@ noether_normalization(A::MPolyQuoRing)
 ###### Examples
 
 ```jldoctest; setup = :(Singular.call_interpreter("""system("random", 47);"""))
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [x*y, x*z]));
 
 julia> L = noether_normalization(A);
 
 julia> L[1]
-2-element Vector{MPolyQuoRingElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
  -2*x + y
  -5*y + z
 

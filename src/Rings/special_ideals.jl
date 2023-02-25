@@ -27,7 +27,7 @@ ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
 ```
 """
 function katsura(n::Int)
-    R, _ = PolynomialRing(ZZ, n + 1)
+    R, _ = polynomial_ring(ZZ, n + 1)
     return katsura(R)
 end
 
@@ -39,7 +39,7 @@ Returns the Katsura ideal in the given polynomial ring `R`.
 # Examples
 ```jldoctest
 julia> R, _ = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> katsura(R)
 ideal(x + 2*y + 2*z - 1, x^2 - x + 2*y^2 + 2*z^2, 2*x*y + 2*y*z - y)

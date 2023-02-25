@@ -50,7 +50,7 @@ julia> PC = PolyhedralComplex(IM, V)
 Polyhedral complex in ambient dimension 2
 
 julia> vertices(PC)
-4-element SubObjectIterator{PointVector{fmpq}}:
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0]
  [1, 0]
  [1, 1]
@@ -125,16 +125,16 @@ julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
 Polyhedral complex in ambient dimension 3
 
 julia> RML = rays_modulo_lineality(PC)
-(rays_modulo_lineality = RayVector{fmpq}[[1, 0, 0], [0, 1, 0], [-1, 0, 0]], lineality_basis = RayVector{fmpq}[[0, 0, 1]])
+(rays_modulo_lineality = RayVector{QQFieldElem}[[1, 0, 0], [0, 1, 0], [-1, 0, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 0, 1]])
 
 julia> RML.rays_modulo_lineality
-3-element SubObjectIterator{RayVector{fmpq}}:
+3-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0, 0]
  [0, 1, 0]
  [-1, 0, 0]
 
 julia> RML.lineality_basis
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [0, 0, 1]
 ```
 """
@@ -172,14 +172,14 @@ julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
 Polyhedral complex in ambient dimension 3
 
 julia> MFPC = minimal_faces(PC)
-(base_points = PointVector{fmpq}[[0, 0, 0]], lineality_basis = RayVector{fmpq}[[0, 0, 1]])
+(base_points = PointVector{QQFieldElem}[[0, 0, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 0, 1]])
 
 julia> MFPC.base_points
-1-element SubObjectIterator{PointVector{fmpq}}:
+1-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0, 0]
 
 julia> MFPC.lineality_basis
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [0, 0, 1]
 ```
 """
@@ -208,7 +208,7 @@ julia> PC = PolyhedralComplex(IM, VR, [2])
 Polyhedral complex in ambient dimension 2
 
 julia> rays(PC)
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
 
 julia> matrix(QQ, rays(PC))
@@ -259,7 +259,7 @@ julia> PC = PolyhedralComplex(IM, VR, [2])
 Polyhedral complex in ambient dimension 2
 
 julia> maximal_polyhedra(PC)
-2-element SubObjectIterator{Polyhedron{fmpq}}:
+2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
  Polyhedron in ambient dimension 2
 ```
@@ -373,7 +373,7 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR);
 
 julia> P1s = polyhedra_of_dim(PC,1)
-5-element SubObjectIterator{Polyhedron{fmpq}}:
+5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
  Polyhedron in ambient dimension 2
  Polyhedron in ambient dimension 2

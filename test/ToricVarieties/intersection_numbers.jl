@@ -20,7 +20,7 @@ using Test
     product_space = hirzebruch_surface(5; set_attributes) * projective_space(NormalToricVariety, 2; set_attributes)
     
     @testset "Should fail" begin
-        R,_ = PolynomialRing(QQ, 3)
+        R,_ = polynomial_ring(QQ, 3)
         @test_throws ArgumentError cohomology_ring(antv)
         @test_throws ArgumentError chow_ring(antv2)
         @test_throws ArgumentError c1 - c0
@@ -44,8 +44,8 @@ using Test
         @test is_trivial(c1) == false
         @test nrows(exponents(c1)) == 3
         @test length(coefficients(c1)) == 3
-        @test fmpq(3) * c1 == fmpz(3) * c1
-        @test 2 * c1 != fmpz(3) * c2
+        @test QQFieldElem(3) * c1 == ZZRingElem(3) * c1
+        @test 2 * c1 != ZZRingElem(3) * c2
         @test (c0 == c1) == false
     end
     

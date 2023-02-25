@@ -130,7 +130,7 @@ function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map})
     return f.temp_ring::mpoly_ring_type(codomain(coefficient_map(f)))
   end
 
-  S, = PolynomialRing(codomain(coefficient_map(f)), _nvars(domain(f)))
+  S, = polynomial_ring(codomain(coefficient_map(f)), _nvars(domain(f)))
   f.temp_ring = S
   return S
 end

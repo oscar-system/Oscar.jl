@@ -25,7 +25,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
     ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
-    S_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    S_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
     S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)])
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
@@ -45,7 +45,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
-    T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
     I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
@@ -75,7 +75,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
     T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
@@ -105,7 +105,7 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
     S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 

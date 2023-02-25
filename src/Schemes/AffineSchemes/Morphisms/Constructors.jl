@@ -94,7 +94,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -128,7 +128,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -165,7 +165,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3

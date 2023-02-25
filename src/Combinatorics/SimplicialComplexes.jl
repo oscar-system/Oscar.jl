@@ -287,7 +287,7 @@ ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x
 """
 function stanley_reisner_ideal(K::SimplicialComplex)
     n = nvertices(K)
-    R, _ = PolynomialRing(QQ, n, cached=false)
+    R, _ = polynomial_ring(QQ, n, cached=false)
     return stanley_reisner_ideal(R, K)
 end
 
@@ -325,7 +325,7 @@ Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field to Quotient o
 """
 function stanley_reisner_ring(K::SimplicialComplex)
     n = nvertices(K)
-    R, _ = PolynomialRing(QQ, n, cached=false)
+    R, _ = polynomial_ring(QQ, n, cached=false)
     return stanley_reisner_ring(R, K)
 end
 

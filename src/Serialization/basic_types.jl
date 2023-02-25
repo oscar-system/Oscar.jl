@@ -19,46 +19,46 @@ function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
 end
 
 ################################################################################
-# fmpz
-@registerSerializationType(fmpz)
+# ZZRingElem
+@registerSerializationType(ZZRingElem)
 
-function save_internal(s::SerializerState, z::fmpz)
+function save_internal(s::SerializerState, z::ZZRingElem)
     return string(z)
 end
 
-function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
-    return fmpz(str)
+function load_internal(s::DeserializerState, ::Type{ZZRingElem}, str::String)
+    return ZZRingElem(str)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{fmpz},
+                                   ::Type{ZZRingElem},
                                    str::String,
-                                   parent::FlintIntegerRing)
-    return parent(fmpz(str))
+                                   parent::ZZRing)
+    return parent(ZZRingElem(str))
 end
 
 ################################################################################
-# fmpq
-@registerSerializationType(fmpq)
+# QQFieldElem
+@registerSerializationType(QQFieldElem)
 
-function save_internal(s::SerializerState, q::fmpq)
+function save_internal(s::SerializerState, q::QQFieldElem)
     return string(q)
 end
 
-function load_internal(s::DeserializerState, ::Type{fmpq}, q::String)
+function load_internal(s::DeserializerState, ::Type{QQFieldElem}, q::String)
     # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
     # is merged and in a Nemo release
     fraction_parts = collect(map(String, split(q, "//")))
-    fraction_parts = [fmpz(s) for s in fraction_parts]
+    fraction_parts = [ZZRingElem(s) for s in fraction_parts]
 
-    return fmpq(fraction_parts...)
+    return QQFieldElem(fraction_parts...)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{fmpq},
+                                   ::Type{QQFieldElem},
                                    str::String,
-                                   parent::FlintRationalField)
-    return parent(load_internal(s, fmpq, str))
+                                   parent::QQField)
+    return parent(load_internal(s, QQFieldElem, str))
 end
 
 

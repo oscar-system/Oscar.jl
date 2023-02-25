@@ -44,9 +44,9 @@ mutable struct NfNSGenElem{T, S} <: Hecke.NumFieldElem{T}
   parent::NfNSGen{T, S}
 end
 
-const NfAbsNSGen = NfNSGen{fmpq, fmpq_mpoly}
+const NfAbsNSGen = NfNSGen{QQFieldElem, QQMPolyRingElem}
 
-const NfAbsNSGenElem = NfNSGenElem{fmpq, fmpq_mpoly}
+const NfAbsNSGenElem = NfNSGenElem{QQFieldElem, QQMPolyRingElem}
 
 parent_type(::NfNSGenElem{T, S}) where {T, S} = NfNSGen{T, S}
 
@@ -62,31 +62,31 @@ elem_type(::Type{NfNSGen{T, S}}) where {T, S} = NfNSGenElem{T, S}
 #
 ################################################################################
 
-function number_field(I::MPolyIdeal{fmpq_mpoly}, var::Vector{Symbol})
+function number_field(I::MPolyIdeal{QQMPolyRingElem}, var::Vector{Symbol})
   n = length(var)
   R = base_ring(I)
   nn = nvars(R)
   @req length(var) == nvars(R) """
       Number of symbols $(n) must be the number of variables $(nn)
       """
-  K = NfNSGen{fmpq, fmpq_mpoly}(I, var)
+  K = NfNSGen{QQFieldElem, QQMPolyRingElem}(I, var)
   return K, gens(K)
 end
 
-number_field(I::MPolyIdeal{fmpq_mpoly}, var::Vector{String}) =
+number_field(I::MPolyIdeal{QQMPolyRingElem}, var::Vector{String}) =
     number_field(I, map(Symbol, var))
 
-function number_field(I::MPolyIdeal{fmpq_mpoly}, var::String)
+function number_field(I::MPolyIdeal{QQMPolyRingElem}, var::String)
   R = base_ring(I)
   return number_field(I, String["$var$i" for i in 1:nvars(R)])
 end
 
-function number_field(I::MPolyIdeal{fmpq_mpoly}, var::Symbol)
+function number_field(I::MPolyIdeal{QQMPolyRingElem}, var::Symbol)
   R = base_ring(I)
   return number_field(I, Symbol[Symbol(var, i) for i in 1:nvars(R)])
 end
 
-number_field(I::MPolyIdeal{fmpq_mpoly}) = number_field(I, "_\$")
+number_field(I::MPolyIdeal{QQMPolyRingElem}) = number_field(I, "_\$")
 
 # Now for number fields
 
@@ -140,7 +140,7 @@ parent(a::NfNSGenElem) = a.parent
 
 Hecke.data(a::NfNSGenElem) = a.f
 
-base_field(K::NfNSGen{fmpq, fmpq_mpoly}) = FlintQQ
+base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = FlintQQ
 
 base_field(K::NfNSGen) = base_ring(polynomial_ring(K))
 
@@ -341,45 +341,45 @@ Base.://(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a * inv(
 
 divexact(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a//b
 
-# with fmpq
-+(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} =
+# with QQFieldElem
++(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} =
     NfNSGenElem(Hecke.data(a) + b, parent(a))
 
-*(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} =
+*(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} =
     NfNSGenElem(Hecke.data(a) * b, parent(a))
 
-Base.://(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} =
+Base.://(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} = a//b
+divexact(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} = a//b
 
-+(a::fmpq, b::NfNSGenElem{T, S}) where {S, T} = b + a
++(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = b + a
 
-*(a::fmpq, b::NfNSGenElem{T, S}) where {S, T} = b * a
+*(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = b * a
 
-Base.://(a::fmpq, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
+Base.://(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
 
-divexact(a::fmpq, b::NfNSGenElem{T, S}) where {S, T} = a//b
+divexact(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = a//b
 
-# with fmpz
-+(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} =
+# with ZZRingElem
++(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} =
     NfNSGenElem(Hecke.data(a) + b, parent(a))
 
-*(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} =
+*(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} =
     NfNSGenElem(Hecke.data(a) * b, parent(a))
 
-Base.://(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} =
+Base.://(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} = a//b
+divexact(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} = a//b
 
-+(a::fmpz, b::NfNSGenElem{T, S}) where {S, T} = b + a
++(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = b + a
 
-*(a::fmpz, b::NfNSGenElem{T, S}) where {S, T} = b * a
+*(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = b * a
 
-Base.://(a::fmpz, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
+Base.://(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
 
-divexact(a::fmpz, b::NfNSGenElem{T, S}) where {S, T} = a//b
+divexact(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = a//b
 
 # with Integer
 +(a::NfNSGenElem{T, S}, b::Base.Integer) where {S, T} =
@@ -474,7 +474,7 @@ end
 
 # Our ideals are non-trivial, so we don't have to reduce before comparing
 # with scalars
-for t in [Base.Integer, Base.Rational{<:Integer}, fmpz, fmpq]
+for t in [Base.Integer, Base.Rational{<:Integer}, ZZRingElem, QQFieldElem]
   @eval begin
     ==(a::NfNSGenElem{T, S}, b::$t) where {T, S} = Hecke.data(a) == b
 
@@ -486,9 +486,9 @@ end
 
 ==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a == Hecke.data(b)
 
-==(a::NfNSGenElem{fmpq, fmpq_mpoly}, b::fmpq) = Hecke.data(a) == b
+==(a::NfNSGenElem{QQFieldElem, QQMPolyRingElem}, b::QQFieldElem) = Hecke.data(a) == b
 
-==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) = Hecke.data(b) == a
+==(a::QQFieldElem, b::NfNSGenElem{QQFieldElem, QQMPolyRingElem}) = Hecke.data(b) == a
 
 ################################################################################
 #
@@ -517,7 +517,7 @@ function (K::NfNSGen{T, S})(a::T) where {T, S}
   return K(polynomial_ring(K)(a))
 end
 
-for t in [Base.Integer, Base.Rational{<:Base.Integer}, fmpz, fmpq]
+for t in [Base.Integer, Base.Rational{<:Base.Integer}, ZZRingElem, QQFieldElem]
   @eval begin
     function (K::NfNSGen{T, S})(a::$t) where {T, S}
       return K(polynomial_ring(K)(a))
@@ -531,7 +531,7 @@ end
 #
 ################################################################################
 
-Hecke.denominator(a::NfNSGenElem{fmpq, fmpq_mpoly}) =
+Hecke.denominator(a::NfNSGenElem{QQFieldElem, QQMPolyRingElem}) =
     denominator(Hecke.data(reduce!(a)))
 
 ################################################################################
@@ -581,11 +581,11 @@ function coordinates(a::NfNSGenElem{T, S}) where {T, S}
   return v
 end
 
-absolute_coordinates(a::NfNSGenElem{fmpq, fmpq_mpoly}) = coordinates(a)
+absolute_coordinates(a::NfNSGenElem{QQFieldElem, QQMPolyRingElem}) = coordinates(a)
 
 function absolute_coordinates(a::NfNSGenElem)
   K = parent(a)
-  v = Vector{fmpq}(undef, absolute_degree(K))
+  v = Vector{QQFieldElem}(undef, absolute_degree(K))
   va = coordinates(a)
   ind = 1
   for i = 1:length(va)
@@ -606,18 +606,18 @@ function elem_to_mat_row!(M::MatElem{T}, i::Int, a::NfNSGenElem{T, S}) where {T,
   return nothing
 end
 
-function elem_to_mat_row!(M::fmpz_mat, i::Int, d::fmpz, a::NfNSGenElem{fmpq, fmpq_mpoly})
+function elem_to_mat_row!(M::ZZMatrix, i::Int, d::ZZRingElem, a::NfNSGenElem{QQFieldElem, QQMPolyRingElem})
   dd = denominator(a)
   v = coordinates(dd * a)
   for j in 1:length(v)
     @assert isone(denominator(v[j]))
     M[i, j] = numerator(v[j])
   end
-  ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{fmpz}, Ref{fmpz}), d, dd)
+  ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ref{ZZRingElem}), d, dd)
   return nothing
 end
 
-function basis_matrix(v::Vector{NfNSGenElem{fmpq, fmpq_mpoly}},
+function basis_matrix(v::Vector{NfNSGenElem{QQFieldElem, QQMPolyRingElem}},
                       ::Type{FakeFmpqMat})
   d = degree(parent(v[1]))
   z = zero_matrix(FlintQQ, length(v), d)
@@ -643,19 +643,19 @@ function representation_matrix(a::NfNSGenElem)
   return M
 end
 
-function representation_matrix_q(a::NfNSGenElem{fmpq, fmpq_mpoly})
+function representation_matrix_q(a::NfNSGenElem{QQFieldElem, QQMPolyRingElem})
   M = representation_matrix(a)
   return Hecke._fmpq_mat_to_fmpz_mat_den(M)
 end
 
-function Hecke.elem_from_mat_row(K::NfNSGen{fmpq, fmpq_mpoly},
-                                 M::fmpz_mat, i::Int, d::fmpz)
+function Hecke.elem_from_mat_row(K::NfNSGen{QQFieldElem, QQMPolyRingElem},
+                                 M::ZZMatrix, i::Int, d::ZZRingElem)
   z = zero(K)
   B = basis(K, copy = false)
   for j in 1:ncols(M)
     z = z + M[i, j] * B[j]
   end
-  return K(fmpq(1, d)) * z
+  return K(QQFieldElem(1, d)) * z
 end
 
 ################################################################################
@@ -674,7 +674,7 @@ function minpoly(a::NfNSGenElem)
   z *= a
   elem_to_mat_row!(M, 2, z)
   i = 2
-  Qt, _ = PolynomialRing(k, "t", cached = false)
+  Qt, _ = polynomial_ring(k, "t", cached = false)
   while true
     if n % (i-1) == 0 && rank(M) < i
       N = nullspace(transpose(sub(M, 1:i, 1:ncols(M))))
@@ -804,12 +804,12 @@ end
 function Hecke.simple_extension(K::NfNSGen; simplify = false)
   a = primitive_element(K)
   if simplify
-    L = NumberField(minpoly(a), "\$", cached = false)[1]
+    L = number_field(minpoly(a), "\$", cached = false)[1]
     h = hom(L, K, a)
     LL, mLL = Hecke.simplify(L, cached = false)
     return LL, mLL * h
   else
-    L = NumberField(minpoly(a), "\$", cached = false)[1]
+    L = number_field(minpoly(a), "\$", cached = false)[1]
     return L, hom(L, K, a)
   end
 end
