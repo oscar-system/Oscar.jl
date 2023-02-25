@@ -82,7 +82,7 @@ end
 end
 # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
-<<<<<<< HEAD
+
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
@@ -99,18 +99,6 @@ if Oscar.is_dev
   include("Experimental/GITFans-test.jl")
 end
 
-# Will automatically include all experimental packages following our
-# guidelines.
-include("../experimental/runtests.jl")
-
-include("Experimental/galois-test.jl")
-include("Experimental/gmodule-test.jl")
-include("Experimental/ModStdQt-test.jl")
-include("Experimental/ModStdNF-test.jl")
-include("Experimental/MPolyRingSparse-test.jl")
-include("Experimental/MatrixGroups-test.jl")
-include("Experimental/JuLie-test.jl")
-include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 include("Experimental/IntersectionTheory-test.jl")
 

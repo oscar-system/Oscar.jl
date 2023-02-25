@@ -3,7 +3,7 @@ using Oscar
 using Markdown
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
-import Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, proj, graph
+import Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, proj, graph, variety, pushforward
 import Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
 import AbstractAlgebra: combinations
 import AbstractAlgebra.Generic: FunctionalMap, Partition, partitions
@@ -16,7 +16,7 @@ export bundles, tangent_bundle, cotangent_bundle, canonical_bundle, canonical_cl
 export schur_functor
 export →
 export complete_intersection, section_zero_locus, degeneracy_locus
-export proj, grassmannian, flag, point, variety, bundle
+export proj, grassmannian, flag, variety, bundle
 export schubert_class, schubert_classes
 
 include("Types.jl")
