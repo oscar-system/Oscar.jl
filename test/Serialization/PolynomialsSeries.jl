@@ -36,7 +36,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function get_hom(R1::T, R2::T) where T <: Union{
-    SeriesRing{S}, Generic.laurent_series_field{S}} where S <: NfAbsNSElem
+    SeriesRing{S}, Generic.LaurentSeriesField{S}} where S <: NfAbsNSElem
     D = base_ring(R1)
     I = base_ring(R2)
     return hom(D, I, gens(I))
@@ -55,7 +55,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function get_hom(R1::T, R2::T) where T <: (
-    Union{SeriesRing{S}, Generic.laurent_series_field{S}} where S <: Union{
+    Union{SeriesRing{S}, Generic.LaurentSeriesField{S}} where S <: Union{
         Hecke.NfRelElem{nf_elem},
         AbstractAlgebra.Generic.Frac{QQPolyRingElem}}
     )
@@ -79,7 +79,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function get_hom(R1::T, R2::T) where T <: Union{
-    Generic.laurent_series_field{S}, SeriesRing{S}} where S <: Hecke.NfRelNSElem{nf_elem}
+    Generic.LaurentSeriesField{S}, SeriesRing{S}} where S <: Hecke.NfRelNSElem{nf_elem}
     D = base_ring(R1)
     I = base_ring(R2)
     D_base_field = base_field(D)
@@ -97,7 +97,7 @@ function get_hom(R1::T, R2::T) where {
 end
 
 function get_hom(R1::T, R2::T) where T <: Union{
-    SeriesRing{S}, Generic.laurent_series_field{S}} where S <: Union{
+    SeriesRing{S}, Generic.LaurentSeriesField{S}} where S <: Union{
         nf_elem, zzModRingElem, ZZRingElem, QQFieldElem, fqPolyRepFieldElem}
     D = base_ring(R1)
     I = base_ring(R2)
