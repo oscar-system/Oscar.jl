@@ -691,8 +691,8 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(MatrixSpace(OO(VV), 1, 1))
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(MatrixSpace(OO(UU), 1, 1))
+    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(matrix_space(OO(VV), 1, 1))
+    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(matrix_space(OO(UU), 1, 1))
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -752,14 +752,14 @@ end
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -768,7 +768,7 @@ end
   return M
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -957,8 +957,8 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   for G in values(glueings(C))
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
-    MG[(U, V)] = one(MatrixSpace(OO(VV), n, n))
-    MG[(V, U)] = one(MatrixSpace(OO(UU), n, n))
+    MG[(U, V)] = one(matrix_space(OO(VV), n, n))
+    MG[(V, U)] = one(matrix_space(OO(UU), n, n))
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -1315,7 +1315,7 @@ function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::FreeMod)
   return MR, ident
 end
 
-function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
+function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubquoModule)
   R = domain(f)
   S = codomain(f)
   base_ring(I) === R || error("ideal is not defined over the correct ring")
@@ -1438,7 +1438,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   OOX = OO(X)
   MU = M(U)
   MU isa FreeMod && return [U]
-  MU::SubQuo
+  MU::SubquoModule
   A = _presentation_matrix(MU)
   if iszero(A) 
     # Trivial shortcut in the recursion. 
@@ -1534,7 +1534,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
       M_gens = amb_res.(v)
       rest_gens = [M_gens[k] for k in 1:length(M_gens) if k!=j]
       rels = [amb_res(w) for w in relations(MU)]
-      MV = SubQuo(F, rest_gens, rels)
+      MV = SubquoModule(F, rest_gens, rels)
       img_gens = elem_type(F)[]
       for k in 1:j-1
         push!(img_gens, M_gens[k])
@@ -1590,7 +1590,7 @@ function projectivization(E::AbsCoherentSheaf;
   X = scheme(E)
   check && (is_locally_free(E) || error("coherent sheaf must be locally free"))
   C = trivializing_covering(E)
-  algebras = IdDict{AbsSpec, Union{MPolyQuo, MPolyRing}}()
+  algebras = IdDict{AbsSpec, Union{MPolyQuoRing, MPolyRing}}()
   on_patches = IdDict{AbsSpec, AbsProjectiveScheme}()
 
   # Fill in the names of the variables in case there are none provided.
@@ -1617,7 +1617,7 @@ function projectivization(E::AbsCoherentSheaf;
     set_base_scheme!(PU, U)
     on_patches[U] = PU
   end
-  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
+  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   OX = StructureSheafOfRings(X)
 
   # prepare for the projective glueings

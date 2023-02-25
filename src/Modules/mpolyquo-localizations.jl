@@ -1,8 +1,8 @@
-clear_denominators(A::MatrixType) where {T<:MPolyQuoLocalizedRingElem, MatrixType<:MatrixElem{T}} = clear_denominators(map_entries(lift, A))
+clear_denominators(A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}} = clear_denominators(map_entries(lift, A))
 
 # use the lifts to do computations effectively over the base ring
 # rather than the quotient ring.
-function clear_denominators(v::FreeModElem{<:MPolyQuoLocalizedRingElem})
+function clear_denominators(v::FreeModElem{<:MPolyQuoLocRingElem})
   F = parent(v)
   L = base_ring(F)
   R = base_ring(L)
@@ -18,13 +18,13 @@ end
 # constructs the matrix for the submodule I*F where 
 # F is the free module of rank n over the base ring R 
 # and I is the modulus.
-function modulus_matrix(L::MPolyQuoLocalizedRing, n::Int)
+function modulus_matrix(L::MPolyQuoLocRing, n::Int)
   I = modulus(underlying_quotient(L))
   m = length(gens(I))
   R = base_ring(L)
-  B = zero(MatrixSpace(R, 0, n))
+  B = zero(matrix_space(R, 0, n))
   for j in 1:n
-    A = zero(MatrixSpace(R, m, n))
+    A = zero(matrix_space(R, m, n))
     for i in 1:m
       A[i, j] = gens(I)[i]
     end
@@ -33,13 +33,13 @@ function modulus_matrix(L::MPolyQuoLocalizedRing, n::Int)
   return B
 end
 
-function syz(A::MatrixElem{<:MPolyQuoLocalizedRingElem})
+function syz(A::MatrixElem{<:MPolyQuoLocRingElem})
   B, D = clear_denominators(A)
   L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
   return map_entries(base_ring(A), transpose(mul(transpose(D), transpose(L[:,1:nrows(D)]))))
 end
 
-function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocalizedRingElem, MatrixType<:MatrixElem{T}}
+function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}}
   R = base_ring(A)
   R === base_ring(b) || error("matrices must be defined over the same ring")
   nrows(b) == 1 || error("only matrices with one row are allowed!")
@@ -51,7 +51,7 @@ function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocalizedRingElem, 
   return ideal(R, vec(L[:, 1]))
 end
 
-function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocalizedRingElem, MatrixType<:MatrixElem{T}}
+function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}}
   S = base_ring(A)
   R = base_ring(S)
   S === base_ring(b) || error("matrices must be defined over the same ring")
@@ -60,22 +60,22 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocalizedR
   B, D = clear_denominators(Aext)
   c, u = clear_denominators(b)
   (success, y, v) = has_solution(B, c, inverted_set(S))
-  success || return (false, zero(MatrixSpace(S, 1, ncols(b))))
+  success || return (false, zero(matrix_space(S, 1, ncols(b))))
   # We have B = D⋅Aext and c = u ⋅ b as matrices. 
   # Now [y z]⋅B = v⋅c ⇔ [y z]⋅D ⋅Aext = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D ⋅ Aext = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D to be the solution x of x ⋅ Aext = b. 
   # Then for the first m components x' of x we have x' ⋅ A ≡ b mod I
   x = S(one(R), v*u[1,1])*map_entries(S, transpose(mul(transpose(D), transpose(y))))
   #x = S(one(R), v*u[1,1])*map_entries(S, y*D)
-  xpart = zero(MatrixSpace(S, 1, nrows(A)))
+  xpart = zero(matrix_space(S, 1, nrows(A)))
   for i in 1:nrows(A)
     xpart[1, i] = x[1, i]
   end
   return (success, xpart)
 end
 
-function pre_saturated_module(M::SubQuo{T}) where {T<:MPolyQuoLocalizedRingElem}
-  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubQuo{base_ring_elem_type(T)}
+function pre_saturated_module(M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem}
+  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{base_ring_elem_type(T)}
   if !has_attribute(M, :pre_saturated_module)
     S = base_ring(M)
     R = base_ring(S)
@@ -84,18 +84,18 @@ function pre_saturated_module(M::SubQuo{T}) where {T<:MPolyQuoLocalizedRingElem}
     (B, E) = clear_denominators(relM)
     mod_mat = modulus_matrix(S, ncols(B))
     B = vcat(B, mod_mat)
-    #E = vcat(E, zero(MatrixSpace(R, nrows(mod_mat), ncols(E))))
+    #E = vcat(E, zero(matrix_space(R, nrows(mod_mat), ncols(E))))
     for i in 1:nrows(mod_mat)
       push!(E, sparse_row(base_ring(E)))
     end
     F = ambient_free_module(M)
     Fb = base_ring_module(F)
-    Mb = SubQuo(Fb, A, B)
+    Mb = SubquoModule(Fb, A, B)
     set_attribute!(M, :pre_saturation_data_gens, change_base_ring(S, D))
     set_attribute!(M, :pre_saturation_data_rels, change_base_ring(S, E))
     set_attribute!(M, :pre_saturated_module, Mb)
   end
-  return get_attribute(M, :pre_saturated_module)::SubQuo{base_ring_elem_type(T)}
+  return get_attribute(M, :pre_saturated_module)::SubquoModule{base_ring_elem_type(T)}
 end
 
 # The kernel routine has to be overwritten since the base_ring_module of a
@@ -104,7 +104,7 @@ end
 function kernel(
     f::FreeModuleHom{DomType, CodType, Nothing}
   ) where {
-    T<:MPolyQuoLocalizedRingElem, 
+    T<:MPolyQuoLocRingElem, 
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }

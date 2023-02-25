@@ -46,8 +46,8 @@ struct PolyhedralFan{T} <:_FanLikeType{T}
    PolyhedralFan{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
-# default scalar type: `fmpq`
-PolyhedralFan(x...; non_redundant::Bool = false) = PolyhedralFan{fmpq}(x...; non_redundant = non_redundant)
+# default scalar type: `QQFieldElem`
+PolyhedralFan(x...; non_redundant::Bool = false) = PolyhedralFan{QQFieldElem}(x...; non_redundant = non_redundant)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
@@ -72,7 +72,7 @@ julia> R = [1 0; 1 1; 0 1; -1 0; 0 -1];
 julia> IM=IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
 
 julia> PF=PolyhedralFan(R,IM)
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 ```
 """
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
@@ -133,6 +133,6 @@ end
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, PF::PolyhedralFan{T}) where T<:scalar_types
-    print(io, "A polyhedral fan in ambient dimension $(ambient_dim(PF))")
-    T != fmpq && print(io, " with $T type coefficients")
+    print(io, "Polyhedral fan in ambient dimension $(ambient_dim(PF))")
+    T != QQFieldElem && print(io, " with $T type coefficients")
 end

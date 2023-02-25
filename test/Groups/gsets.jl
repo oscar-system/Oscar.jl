@@ -44,7 +44,7 @@
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
-  R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
+  R, x = polynomial_ring(QQ, ["x1", "x2", "x3"]);
   f = x[1]*x[2] + x[2]*x[3]
   G = symmetric_group(3)
   Omega = gset(G, on_indeterminates, [f])

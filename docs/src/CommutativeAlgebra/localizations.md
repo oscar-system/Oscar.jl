@@ -58,8 +58,8 @@ For multiplicatively closed subsets of multivariate polynomial rings, there are 
 `MPolyComplementOfPrimeIdeal`, and `MPolyPowersOfElement`.
 
 The general abstract type for localizations of rings is `AbsLocalizedRing`. For localizations of multivariate
-polynomial rings, there is the concrete subtype `MPolyLocalizedRing`. For localizations of quotients of
-multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocalizedRing`. 
+polynomial rings, there is the concrete subtype `MPolyLocRing`. For localizations of quotients of
+multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocRing`. 
 
 
 ## Constructors
@@ -72,7 +72,7 @@ for multiplicatively closed subsets of multivariate polynomial rings.
 ```@docs
     complement_of_point_ideal(R::MPolyRing, a::Vector)
     complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false)
-    powers_of_element(f::MPolyElem)
+    powers_of_element(f::MPolyRingElem)
 ```
 
 It is also possible to build products of multiplicatively closed sets already given:
@@ -84,7 +84,7 @@ product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 Containment in multiplicatively closed subsets can be checked via the `in` function:
 
 ```@docs
-in(f::MPolyElem, U::AbsMPolyMultSet)
+in(f::MPolyRingElem, U::AbsMPolyMultSet)
 ```
 
 ### Localized Rings
@@ -94,7 +94,7 @@ localization(R::MPolyRing, U::AbsMPolyMultSet)
 ```
 
 ```@docs
-localization(RQ::MPolyQuo, U::AbsMPolyMultSet)
+localization(RQ::MPolyQuoRing, U::AbsMPolyMultSet)
 ```
 	
 ## Data associated to Localized Rings
@@ -116,7 +116,7 @@ This reflects the way of creating localizations of quotients of multivariate pol
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -134,11 +134,11 @@ true
 ```
 
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t");
+julia> T, t = polynomial_ring(QQ, "t");
 
-julia> K, a =  NumberField(2*t^2-1, "a");
+julia> K, a =  number_field(2*t^2-1, "a");
 
-julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
 ideal(2*x^2 - y^3, 2*x^2 - y^5)
@@ -165,8 +165,8 @@ true
 ### Types
 
 The general abstract type for elements of localizations of rings is `AbsLocalizedRingElem`.
-For elements of localizations of multivariate polynomial rings, there is the concrete subtype `MPolyLocalizedRingElem`.
-For elements of localizations of quotients of multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocalizedRingElem`.
+For elements of localizations of multivariate polynomial rings, there is the concrete subtype `MPolyLocRingElem`.
+For elements of localizations of quotients of multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocRingElem`.
 
 ### Creating Elements of Localized Rings
 
@@ -181,8 +181,8 @@ multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at 
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -220,11 +220,11 @@ y^2/z^2
 ```
 
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t");
+julia> T, t = polynomial_ring(QQ, "t");
 
-julia> K, a =  NumberField(2*t^2-1, "a");
+julia> K, a =  number_field(2*t^2-1, "a");
 
-julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
 ideal(2*x^2 - y^3, 2*x^2 - y^5)
@@ -247,7 +247,7 @@ x
 julia> RQL(x)
 x
 
-julia> f = phi(x)*inv(phi(y))
+julia> f = phi(x)/phi(y)
 x/y
 
 julia> g = RQL(x, y)
@@ -255,7 +255,7 @@ x/y
 
 julia> X, Y = gens(RQL);
 
-julia> h = X*inv(Y)
+julia> h = X/Y
 x/y
 
 julia> f == g == h
@@ -286,7 +286,7 @@ of representing `f` by pairs of elements of `RQ` and not the internal representa
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -311,16 +311,16 @@ x
 julia> u = denominator(f*g)
 z
 
-julia> typeof(r) == typeof(u) <: MPolyElem
+julia> typeof(r) == typeof(u) <: MPolyRingElem
 true
 ```
 
 ```jldoctest
-julia> T, t = PolynomialRing(QQ, "t");
+julia> T, t = polynomial_ring(QQ, "t");
 
-julia> K, a =  NumberField(2*t^2-1, "a");
+julia> K, a =  number_field(2*t^2-1, "a");
 
-julia> R, (x, y) = PolynomialRing(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> I = ideal(R, [2*x^2-y^3, 2*x^2-y^5])
 ideal(2*x^2 - y^3, 2*x^2 - y^5)
@@ -343,7 +343,7 @@ x
 julia> parent(f)
 Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
 
-julia> g = f*inv(phi(y))
+julia> g = f/phi(y)
 x/y
 
 julia> r = numerator(f*g)
@@ -352,18 +352,18 @@ x^2
 julia> u = denominator(f*g)
 y
 
-julia> typeof(r) == typeof(u) <: MPolyQuoElem
+julia> typeof(r) == typeof(u) <: MPolyQuoRingElem
 true
 ```
 
 ### Tests on Elements of Localized Rings
 
 ```@docs
-is_unit(f::MPolyLocalizedRingElem)
+is_unit(f::MPolyLocRingElem)
 ```
 
 ```@docs
-is_unit(f::MPolyQuoLocalizedRingElem)
+is_unit(f::MPolyQuoLocRingElem)
 ```
 
 ## Homomorphisms from Localized Rings
@@ -385,7 +385,7 @@ in `S` (and elements of `I` to zero). That is, `PHI` is determined by composing 
 map `R` ``\to`` `RQ`). The constructors below take this into account.
 
 ```@docs
-hom(Rloc::MPolyLocalizedRing, S::Ring, F::Map)
+hom(Rloc::MPolyLocRing, S::Ring, F::Map)
 ```
 
 Given a ring homomorphism `PHI` from `Rloc` to `S` (from `RQL` to `S`), `domain(PHI)` and `codomain(PHI)`
@@ -414,13 +414,13 @@ multivariate polynomial rings is similar..
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> f = x^3+y^4
 x^3 + y^4
 
 julia> V = [derivative(f, i) for i=1:2]
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  3*x^2
  4*y^3
 
@@ -429,7 +429,7 @@ julia> U = complement_of_point_ideal(R, [0, 0]);
 julia> Rloc, _ = localization(R, U);
 
 julia> MI = ideal(Rloc, V)
-ideal in localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0, 0] generated by [3*x^2, 4*y^3]
+ideal in localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0] generated by [3*x^2, 4*y^3]
 ```
 
 ### Data Associated to Ideals

@@ -19,14 +19,16 @@ Toric divisor classes are equivalence classes of Weil divisors modulo linear equ
 ### General constructors
 
 ```@docs
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+toric_divisor_class(td::ToricDivisor)
 ```
 
 ### Addition, subtraction and scalar multiplication
 
 Toric divisor classes can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz`.
+for scalars which are integers or of type `ZZRingElem`.
 
 ### Special divisor classes
 

@@ -39,7 +39,7 @@ end
     @test !isone(a)
 
     c = one(K) + one(K)
-    for T in [Int, BigInt, fmpz, fmpq, Rational{Int}, Rational{BigInt}]
+    for T in [Int, BigInt, ZZRingElem, QQFieldElem, Rational{Int}, Rational{BigInt}]
       b = @inferred K(T(2))
       @test b == c
     end
@@ -103,10 +103,10 @@ end
     K, z = abelian_closure(QQ)
     x  = z(5)
     y = ZZ(x^5)
-    @test y isa fmpz
+    @test y isa ZZRingElem
     @test y == 1
     y = QQ(x^5)
-    @test y isa fmpq
+    @test y isa QQFieldElem
     @test y == 1
     @test_throws ErrorException ZZ(x)
     @test_throws ErrorException QQ(x)
@@ -114,8 +114,8 @@ end
 
   @testset "Promote rule" begin
     @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, Int) == QQAbElem
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, fmpz) == QQAbElem
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, fmpq) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, ZZRingElem) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, QQFieldElem) == QQAbElem
   end
 
   @testset "Arithmetic" begin
@@ -142,7 +142,7 @@ end
         @test div(a * b, a) == b
       end
       @test a^10 == reduce(*, fill(a, 10))
-      @test a^fmpz(10) == reduce(*, fill(a, 10))
+      @test a^ZZRingElem(10) == reduce(*, fill(a, 10))
     end
   end
 
@@ -175,8 +175,8 @@ end
     for i in 1:10
       a = rand_elem()
       _b = rand(-10:10)
-      for T in [Int, BigInt, fmpz, fmpq, Rational{Int}, Rational{BigInt}]
-        b = (!iszero(_b) && (T === fmpq || T <: Rational)) ? inv(T(_b)) : T(_b)
+      for T in [Int, BigInt, ZZRingElem, QQFieldElem, Rational{Int}, Rational{BigInt}]
+        b = (!iszero(_b) && (T === QQFieldElem || T <: Rational)) ? inv(T(_b)) : T(_b)
         @test a * b == a * K(b)
         @test b * a == a * K(b)
         @test a + b == a + K(b)
@@ -196,7 +196,7 @@ end
     b = z(4)^2
     @test @inferred a == b
 
-    for T in [Int, BigInt, fmpz, fmpq, Rational{Int}, Rational{BigInt}]
+    for T in [Int, BigInt, ZZRingElem, QQFieldElem, Rational{Int}, Rational{BigInt}]
       @test @inferred b == T(-1)
       @test @inferred T(-1) == b
     end
@@ -221,7 +221,7 @@ end
     end
 
     @test length(roots(8*b, 3)) == 3
-    Kx, x = PolynomialRing(K)
+    Kx, x = polynomial_ring(K)
     @test length(roots(x^15-2^15)) == 15
 
     @test order(z(5)) == 5
@@ -277,5 +277,5 @@ end
 
   K, z = abelian_closure(QQ)
   S = [z(3)]
-  @test degree(NumberField(QQ, S)[1]) == 2
+  @test degree(number_field(QQ, S)[1]) == 2
 end

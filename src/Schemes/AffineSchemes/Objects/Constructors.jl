@@ -17,7 +17,7 @@ This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -37,7 +37,7 @@ of the localized ring $U^{-1} R$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -60,7 +60,7 @@ localized ring $U^{-1} (R/I)$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -70,7 +70,7 @@ julia> Spec(R, I, U)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
 ```
 """
-Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, I, U))
+Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocRing(R, I, U))
 
 
 
@@ -88,7 +88,7 @@ when in need to copy an affine spectrum.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -126,7 +126,7 @@ Spec of Multivariate Polynomial Ring in y1, y2, y3, y4, y5 over Rational Field
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
-  R, _ = PolynomialRing(kk, [variable_name * "$i" for i in 1:n])
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
   return Spec(R)
 end
 
@@ -145,7 +145,7 @@ Spec of Multivariate Polynomial Ring in y1, z2, a over Rational Field
 ```
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
-  R, _ = PolynomialRing(kk, var_symbols)
+  R, _ = polynomial_ring(kk, var_symbols)
   return Spec(R)
 end
 
@@ -158,24 +158,24 @@ end
     standard_spec(X::AbsSpec)
 
 For an affine spectrum with coordinate ring of type `MPolyRing`, 
-`MPolyQuo`, or `MPolyLocalizedRing`, this returns the canonical 
-transform to a `Spec` of an `MPolyQuoLocalizedRing`. 
+`MPolyQuoRing`, or `MPolyLocRing`, this returns the canonical 
+transform to a `Spec` of an `MPolyQuoLocRing`. 
 
 # Examples
 ```jldoctest
 julia> standard_spec(affine_space(QQ,5))
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(0) at the multiplicative set powers of fmpq_mpoly[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(0) at the multiplicative set powers of QQMPolyRingElem[1]
 ```
 """
 function standard_spec(X::AbsSpec)
   error("not implemented for input of type $(typeof(X))")
 end
 
-standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
 #@doc Markdown.doc"""
-#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
 #
 #For an affine spectrum whose coordinate ring is the
 #quotient of a polynomial ring, this method computes
@@ -183,7 +183,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X)
 #
 ## Examples
 #```jldoctest
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 #
 #julia> I = ideal(R, [x]);
 #
@@ -191,18 +191,18 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X)
 #Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 #
 #julia> standard_spec(X)
-#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[1]
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[1]
 #```
 #"""
-function standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
+function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
   A = OO(X)
   R = base_ring(A)
-  return Spec(MPolyQuoLocalizedRing(R, modulus(A), units_of(R)))
+  return Spec(MPolyQuoLocRing(R, modulus(A), units_of(R)))
 end
 
 
 #@doc Markdown.doc"""
-#    standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing})
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing})
 #
 #For an affine spectrum whose coordinate ring is the
 #quotient of a polynomial ring, this method computes
@@ -210,7 +210,7 @@ end
 #
 ## Examples
 #```jldoctest
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 #
 #julia> I = ideal(R, [x]);
 #
@@ -223,11 +223,11 @@ end
 #Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
 #```
 #"""
-standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
 
 #@doc Markdown.doc"""
-#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing})
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing})
 #
 #For an affine spectrum whose coordinate ring is the
 #quotient of a polynomial ring, this method computes
@@ -235,7 +235,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedR
 #
 ## Examples
 #```jldoctest
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 #
 #julia> I = ideal(R, [x]);
 #
@@ -248,7 +248,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedR
 #Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
 #```
 #"""
-standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = Spec(OO(X))
+standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
 
 
 
@@ -272,7 +272,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -307,7 +307,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -345,20 +345,20 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1, x2, x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
 
 julia> hypersurface_complement(X, x1)
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1]
 ```
 """
 function hypersurface_complement(X::AbsSpec, f::RingElem)
   return hypersurface_complement(underlying_scheme(X), f)::AbsSpec
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocalizedRing}}
+function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
@@ -368,7 +368,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyLocalizedRing}}
+function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyLocRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = numerator(f)
   U = MPolyPowersOfElement(h)
@@ -387,7 +387,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
+function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
   W, _ = Localization(OO(X), U)
@@ -413,20 +413,20 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
 
 julia> hypersurface_complement(X,[x1,x2])
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1, x2]
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1, x2]
 ```
 """
 function hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
   return hypersurface_complement(underlying_scheme(X), f)::AbsSpec
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocalizedRing}}
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
@@ -436,7 +436,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyLocalizedRing}}
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyLocRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
@@ -455,7 +455,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   W, _ = Localization(OO(X), U)
@@ -498,7 +498,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -529,7 +529,7 @@ end
 
 function Base.intersect(
     X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyQuo}
+    Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -539,7 +539,7 @@ end
 
 function Base.intersect(
     X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyLocalizedRing}
+    Y::AbsSpec{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -549,7 +549,7 @@ end
 
 function Base.intersect(
     X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -567,8 +567,8 @@ end
 
 ### For Specs of MPolyQuos
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuo},
-    Y::AbsSpec{BRT, <:MPolyQuo}
+    X::AbsSpec{BRT, <:MPolyQuoRing},
+    Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -577,8 +577,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuo},
-    Y::AbsSpec{BRT, <:MPolyLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyQuoRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -587,8 +587,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuo},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyQuoRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -598,7 +598,7 @@ end
 
 function Base.intersect(
     Y::AbsSpec{BRT, <:Ring},
-    X::AbsSpec{BRT, <:MPolyQuo}
+    X::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)
 end
@@ -606,8 +606,8 @@ end
 
 ### For Specs of MPolyLocalizedRings
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -616,8 +616,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -627,7 +627,7 @@ end
 
 function Base.intersect(
     Y::AbsSpec{BRT, <:Ring},
-    X::AbsSpec{BRT, <:MPolyLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)
 end
@@ -635,8 +635,8 @@ end
 
 ### For Specs of MPolyQuoLocalizedRings
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -666,7 +666,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -675,7 +675,7 @@ julia> H = subscheme(X,ideal(R,[x1]))
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
 julia> closure(H, X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1) at the multiplicative set powers of fmpq_mpoly[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1) at the multiplicative set powers of QQMPolyRingElem[1]
 ```
 """
 function closure(X::AbsSpec, Y::AbsSpec) 
@@ -685,7 +685,7 @@ end
 function closure(
     X::Spec{BRT, RT}, 
     Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
                                           <:MPolyPowersOfElement}}
   issubset(X, Y) || error("the first argument is not a subset of the second")
   is_closed_embedding(X, Y) && return X
@@ -693,6 +693,6 @@ function closure(
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)
   R = ambient_coordinate_ring(Y)
-  return Spec(MPolyQuoLocalizedRing(R, Isat, inverted_set(OO(Y))))
+  return Spec(MPolyQuoLocRing(R, Isat, inverted_set(OO(Y))))
 end
 

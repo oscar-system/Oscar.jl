@@ -131,7 +131,7 @@ function maximal_extension(
     Y::AbsSpec, 
     f::Vector{<:RingElem}
   )
-  h = maximal_extension(X, Y, FractionField(ambient_coordinate_ring(X)).(f))
+  h = maximal_extension(X, Y, fraction_field(ambient_coordinate_ring(X)).(f))
   return h
 end
 

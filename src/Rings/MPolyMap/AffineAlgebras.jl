@@ -5,16 +5,16 @@
 ################################################################################
 
 const AffAlgHom = MPolyAnyMap{DT, CT, Nothing} where {T <: FieldElem,
-                                                       U <: MPolyElem{T},
-                                                       DT <: Union{MPolyRing{T}, MPolyQuo{U}},
-                                                       CT <: Union{MPolyRing{T}, MPolyQuo{U}}}
+                                                       U <: MPolyRingElem{T},
+                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{U}},
+                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{U}}}
 
-affine_algebra_morphism_type(::Type{T}) where {T <: Union{MPolyRing, MPolyQuo}} = morphism_type(T, T)
+affine_algebra_morphism_type(::Type{T}) where {T <: Union{MPolyRing, MPolyQuoRing}} = morphism_type(T, T)
 
 affine_algebra_morphism_type(::T) where {T} = affine_algebra_morphism_type(T)
 
-affine_algebra_morphism_type(::Type{S}, ::Type{T}) where {S <: Union{MPolyRing, MPolyQuo},
-                                                          T <: Union{MPolyRing, MPolyQuo}} = morphism_type(S, T)
+affine_algebra_morphism_type(::Type{S}, ::Type{T}) where {S <: Union{MPolyRing, MPolyQuoRing},
+                                                          T <: Union{MPolyRing, MPolyQuoRing}} = morphism_type(S, T)
 
 affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_morphism_type(S, T)
 
@@ -178,11 +178,11 @@ If `F` is bijective, return its inverse.
 
 # Examples
 ```jldoctest
-julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> D1, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3]);
 
-julia> C, (t,) = PolynomialRing(QQ, ["t"]);
+julia> C, (t,) = polynomial_ring(QQ, ["t"]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
@@ -218,12 +218,12 @@ function inverse(F::AffAlgHom)
   return psi
 end
 
-function preimage(F::AffAlgHom, f::Union{MPolyElem, MPolyQuoElem})
+function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
   @assert parent(f) === codomain(F)
   return preimage_with_kernel(F, f)[1]
 end
 
-function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyElem, MPolyQuoElem})
+function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
   @assert parent(f) === codomain(F)
   r = domain(F)
   s = codomain(F)

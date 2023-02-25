@@ -33,27 +33,27 @@ The complete $H$-representation can be retrieved using [`facets`](@ref facets)
 and [`affine_hull`](@ref affine_hull):
 ```jldoctest
 julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> facets(P)
-2-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^2 described by:
+2-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
 -x₁ ≦ 0
 x₁ ≦ 1
 
 
 julia> affine_hull(P)
-1-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^2 described by:
+1-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^2 described by:
 x₂ = 0
 
 
 julia> Q0 = Polyhedron(facets(P))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> P == Q0
 false
 
 julia> Q1 = Polyhedron(facets(P), affine_hull(P))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> P == Q1
 true
@@ -70,7 +70,7 @@ its unique minimal $H$-representation:
 
 ```jldoctest
 julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> halfspace_matrix_pair(facets(T))
 (A = [-1 0; 0 -1; 1 1], b = Polymake.RationalAllocated[0, 0, 1])
@@ -82,22 +82,22 @@ minimal_faces), [`rays_modulo_lineality`](@ref rays_modulo_lineality) and [`line
 
 ```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> Q0 = convex_hull(vertices(P))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> P == Q0
 false
 
 julia> mfP = minimal_faces(P)
-(base_points = PointVector{fmpq}[[0, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+(base_points = PointVector{QQFieldElem}[[0, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 1]])
 
 julia> rmlP = rays_modulo_lineality(P)
-(rays_modulo_lineality = RayVector{fmpq}[[1, 0]], lineality_basis = RayVector{fmpq}[[0, 1]])
+(rays_modulo_lineality = RayVector{QQFieldElem}[[1, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 1]])
 
 julia> Q1 = convex_hull(mfP.base_points, rmlP.rays_modulo_lineality)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> P == Q1
 false
@@ -106,7 +106,7 @@ julia> Q0 == Q1
 false
 
 julia> Q2 = convex_hull(mfP.base_points, rmlP.rays_modulo_lineality, lineality_space(P))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> P == Q2
 true

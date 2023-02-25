@@ -1,7 +1,7 @@
 export adjoint
 
-#(R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
-#(R::MPolyLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyQuoLocRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyLocRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 #(R::MPolyRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
 

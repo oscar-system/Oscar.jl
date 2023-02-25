@@ -10,16 +10,16 @@ Return the normal toric variety of the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
-A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+julia> cc = cohomology_class(d)
+Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> toric_variety(cc)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 toric_variety(c::CohomologyClass) = c.v
@@ -34,16 +34,16 @@ Return the coefficients of the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
-A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+julia> cc = cohomology_class(d)
+Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> coefficients(cc)
-3-element Vector{fmpq}:
+3-element Vector{QQFieldElem}:
  6
  1
  7
@@ -61,13 +61,13 @@ Return the exponents of the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
-A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+julia> cc = cohomology_class(d)
+Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> exponents(cc)
 [0   0   1   0   0]
@@ -88,13 +88,13 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
-A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+julia> cc = cohomology_class(d)
+Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> polynomial(cc)
 6*x3 + e1 + 7*e2
@@ -105,7 +105,7 @@ export polynomial
 
 
 @doc Markdown.doc"""
-    polynomial(c::CohomologyClass, ring::MPolyQuo)
+    polynomial(c::CohomologyClass, ring::MPolyQuoRing)
 
 Returns the polynomial in `ring` corresponding
 to the cohomology class `c`.
@@ -113,19 +113,19 @@ to the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> cc = CohomologyClass(d)
-A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+julia> cc = cohomology_class(d)
+Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
-julia> R, _ = PolynomialRing(QQ, 5)
-(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, fmpq_mpoly[x1, x2, x3, x4, x5])
+julia> R, _ = polynomial_ring(QQ, 5)
+(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, QQMPolyRingElem[x1, x2, x3, x4, x5])
 
 julia> (x1, x2, x3, x4, x5) = gens(R)
-5-element Vector{fmpq_mpoly}:
+5-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -142,7 +142,7 @@ julia> polynomial(R_quo, cc)
 6*x3 + x4 + 7*x5
 ```
 """
-function polynomial(ring::MPolyQuo, c::CohomologyClass)
+function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
     p = polynomial(c)
     if iszero(p)
         return zero(ring)

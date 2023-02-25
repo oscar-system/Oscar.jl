@@ -26,12 +26,12 @@ export
     SesquilinearForm{T<:RingElem}
 
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
-At the moment, only rings of type `FqNmodFiniteField` are supported.
+At the moment, only rings of type `fqPolyRepField` are supported.
 """
 mutable struct SesquilinearForm{T<:RingElem}
    matrix::MatElem{T}
    descr::Symbol       # quadratic, symmetric, alternating or hermitian
-   pol::MPolyElem{T}     # only for quadratic forms
+   pol::MPolyRingElem{T}     # only for quadratic forms
    X::GapObj
    ring_iso::MapFromFunc
 
@@ -53,7 +53,7 @@ mutable struct SesquilinearForm{T<:RingElem}
       end
    end
 
-   function SesquilinearForm{T}(f::MPolyElem{T},sym) where T
+   function SesquilinearForm{T}(f::MPolyRingElem{T},sym) where T
       @assert sym==:quadratic "Only quadratic forms are described by polynomials"
       @assert Set([total_degree(x) for x in AbstractAlgebra.monomials(f)])==Set(2) "The polynomials is not homogeneous of degree 2"
       r = new{T}()
@@ -64,7 +64,7 @@ mutable struct SesquilinearForm{T<:RingElem}
 end
 
 SesquilinearForm(B::MatElem{T}, sym) where T = SesquilinearForm{T}(B,sym)
-SesquilinearForm(f::MPolyElem{T},sym) where T = SesquilinearForm{T}(f,sym)
+SesquilinearForm(f::MPolyRingElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
 
 
@@ -151,20 +151,20 @@ Return the quadratic form with Gram matrix `B`.
 quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadratic)
 
 """
-    quadratic_form(f::MPolyElem{T}; check=true)
+    quadratic_form(f::MPolyRingElem{T}; check=true)
 
 Return the quadratic form described by the polynomial `f`.
 Here, `f` must be a homogeneous polynomial of degree 2.
 If `check` is set as `false`, it does not check whether the polynomial is homogeneous of degree 2.
-To define quadratic forms of dimension 1, `f` can also have type `PolyElem{T}`.
+To define quadratic forms of dimension 1, `f` can also have type `PolyRingElem{T}`.
 """
-quadratic_form(f::MPolyElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
-# TODO : neither is_homogeneous or is_homogeneous works for variables of type MPolyElem{T}
+quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
+# TODO : neither is_homogeneous or is_homogeneous works for variables of type MPolyRingElem{T}
 
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
-function quadratic_form(f::PolyElem{T}) where T <: FieldElem
+function quadratic_form(f::PolyRingElem{T}) where T <: FieldElem
    @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homogeneous of degree 2"
-   R1 = PolynomialRing(base_ring(f), [string(parent(f).S)])[1]
+   R1 = polynomial_ring(base_ring(f), [string(parent(f).S)])[1]
 
    return SesquilinearForm(R1[1]^2*coefficients(f)[2], :quadratic)
 end
@@ -282,7 +282,7 @@ function defining_polynomial(f::SesquilinearForm)
    isdefined(f,:pol) && return f.pol
 
    @assert f.descr == :quadratic "Polynomial defined only for quadratic forms"
-   R = PolynomialRing(base_ring(f.matrix), nrows(f.matrix) )[1]
+   R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix) )[1]
    p = zero(R)
    for i in 1:nrows(f.matrix), j in i:nrows(f.matrix)
       p += f.matrix[i,j] * R[i]*R[j]

@@ -7,10 +7,10 @@ toric variety `toric_variety(c)`.
 # Examples
 ```jldoctest
 julia> dP3 = del_pezzo_surface(3)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1, x2, x3, e1, e2, e3) = gens(cohomology_ring(dP3))
-6-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+6-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  x1
  x2
  x3
@@ -18,30 +18,30 @@ julia> (x1, x2, x3, e1, e2, e3) = gens(cohomology_ring(dP3))
  e2
  e3
 
-julia> c = CohomologyClass(dP3, e3*e3 + e3)
-A cohomology class on a normal toric variety given by e3^2 + e3
+julia> c = cohomology_class(dP3, e3*e3 + e3)
+Cohomology class on a normal toric variety given by e3^2 + e3
 
 julia> integrate(c)
 -1
 
 julia> F3 = hirzebruch_surface(3)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1, x2, x3, x4) = gens(cohomology_ring(F3))
-4-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+4-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  t1
  x1
  t2
  x2
 
-julia> c = CohomologyClass(F3, x1*x2 + x3*x4)
-A cohomology class on a normal toric variety given by 2//3*x2^2
+julia> c = cohomology_class(F3, x1*x2 + x3*x4)
+Cohomology class on a normal toric variety given by 2//3*x2^2
 
 julia> integrate(c)
 2
 ```
 """
-function integrate(c::CohomologyClass)::fmpq
+function integrate(c::CohomologyClass)::QQFieldElem
     # can only integrate if the variety is simplicial, complete
     if !is_simplicial(toric_variety(c)) || !is_complete(toric_variety(c))
         throw(ArgumentError("Integration only supported over complete and simplicial toric varieties"))
@@ -77,6 +77,6 @@ function integrate(c::CohomologyClass)::fmpq
     end
     n = AbstractAlgebra.leading_coefficient(top_form.f)
     m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
-    return fmpq(n//m)
+    return QQFieldElem(n//m)
 end
 export integrate

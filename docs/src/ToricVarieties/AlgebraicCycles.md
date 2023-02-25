@@ -61,29 +61,29 @@ the cones in the fan of the toric variety.
 ### General constructors
 
 ```@docs
-RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors
 
 ```@docs
-RationalEquivalenceClass(d::ToricDivisor)
-RationalEquivalenceClass(c::ToricDivisorClass)
-RationalEquivalenceClass(l::ToricLineBundle)
-RationalEquivalenceClass(cc::CohomologyClass)
-RationalEquivalenceClass(cc::ClosedSubvarietyOfToricVariety)
+rational_equivalence_class(d::ToricDivisor)
+rational_equivalence_class(c::ToricDivisorClass)
+rational_equivalence_class(l::ToricLineBundle)
+rational_equivalence_class(cc::CohomologyClass)
+rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
 ```
 
 ### Addition, subtraction and scalar multiplication
 
 Algebraic cycles can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz`.
+for scalars which are integers or of type `ZZRingElem`.
 
 Note that one can easily define the Chow ring also a formal linear sums of
 irreducible subvarieties with coefficients being rational numbers. We
 support this more general ring and therefore also allow for left
-multiplication with scalars of type `fmpq`.
+multiplication with scalars of type `QQFieldElem`.
 
 ### Intersection product
 
@@ -95,7 +95,7 @@ of as a polynomial in this ring and the intersection product
 corresponds to the product of two (equivalence classes of) polynomials.
 
 An algebraic cycle can be intersected `n`- with itself via `^n`,
-where `n` can be an integer of of type `fmpz`.
+where `n` can be an integer of of type `ZZRingElem`.
 
 A closed subvarieties defines in a natural way a rational equivalence
 class (cf. section on special constructors above). This allows to
@@ -110,7 +110,7 @@ equivalence classes in the Chow ring.
 ```@docs
 toric_variety(ac::RationalEquivalenceClass)
 polynomial(ac::RationalEquivalenceClass)
-polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
+polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
 ```
 
 ### Representatives

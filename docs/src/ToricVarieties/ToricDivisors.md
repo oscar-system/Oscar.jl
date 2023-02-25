@@ -21,15 +21,15 @@ correspond to the rays of the underlying fan.
 ### General constructors
 
 ```@docs
-DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
-ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Addition, subtraction and scalar multiplication
 
 Toric divisors can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz`.
+for scalars which are integers or of type `ZZRingElem`.
 
 ### Special divisors
 
@@ -57,7 +57,6 @@ is_ample(td::ToricDivisor)
 is_basepoint_free(td::ToricDivisor)
 is_cartier(td::ToricDivisor)
 is_effective(td::ToricDivisor)
-is_linearly_equivalent_to_effective_toric_divisor(td::ToricDivisor)
 is_integral(td::ToricDivisor)
 is_nef(td::ToricDivisor)
 is_prime(td::ToricDivisor)

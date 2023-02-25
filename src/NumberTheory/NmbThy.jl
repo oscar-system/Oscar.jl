@@ -1,13 +1,13 @@
 export norm_equation_fac_elem, norm_equation, irreducibles, factorisations
 
-function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
+function norm_equation_fac_elem(R::NfAbsOrd, k::ZZRingElem; abs::Bool = false)
   @assert Hecke.is_maximal(R)
   lp = factor(k)
-  S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{fmpz_mat}}[]
+  S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{ZZMatrix}}[]
   for (p, k) = lp.fac
     P = prime_decomposition(R, p)
     s = solve_non_negative(matrix(FlintZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(FlintZZ, 1, 1, [k]))
-    push!(S, (P, fmpz_mat[view(s, i:i, 1:ncols(s)) for i=1:nrows(s)]))
+    push!(S, (P, ZZMatrix[view(s, i:i, 1:ncols(s)) for i=1:nrows(s)]))
   end
   sol = FacElem{nf_elem, AnticNumberField}[]
   for x in Base.Iterators.ProductIterator(Tuple(t[2] for t = S))
@@ -23,7 +23,7 @@ function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
   if !abs
     u, mu = unit_group_fac_elem(R)
     i = findfirst(x -> norm(mu(x)) == -1, gens(u))
-    ns = fmpq[norm(x) for x = sol]
+    ns = QQFieldElem[norm(x) for x = sol]
     if i === nothing
       return [sol[i] for i in 1:length(sol) if ns[i] == k]
     end
@@ -34,14 +34,14 @@ function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
 end
 
 norm_equation_fac_elem(R::NfAbsOrd, k::Base.Integer; abs::Bool = false) = 
-                            norm_equation_fac_elem(R, fmpz(k), abs = abs)
+                            norm_equation_fac_elem(R, ZZRingElem(k), abs = abs)
 
-function norm_equation(R::NfAbsOrd, k::fmpz; abs::Bool = false)
+function norm_equation(R::NfAbsOrd, k::ZZRingElem; abs::Bool = false)
   s = norm_equation_fac_elem(R, k, abs = abs)
   return elem_type(R)[R(evaluate(x)) for x = s]
 end
 
-norm_equation(R::NfAbsOrd, k::Base.Integer; abs::Bool = false) = norm_equation(R, fmpz(k), abs = abs)
+norm_equation(R::NfAbsOrd, k::Base.Integer; abs::Bool = false) = norm_equation(R, ZZRingElem(k), abs = abs)
 
 function norm_equation_fac_elem(R::Hecke.NfRelOrd{nf_elem,Hecke.NfOrdFracIdl}, a::NfAbsOrdElem{AnticNumberField,nf_elem})
 
@@ -97,8 +97,8 @@ function is_irreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return false
   end
   s, ms = Hecke.sunit_mod_units_group_fac_elem(S)
-  V = transpose(matrix(ZZ, [fmpz[valuation(ms(x), y) for y = S] for x = gens(s)]))
-  b = transpose(matrix(ZZ, [fmpz[valuation(a, y) for y = S]]))
+  V = transpose(matrix(ZZ, [ZZRingElem[valuation(ms(x), y) for y = S] for x = gens(s)]))
+  b = transpose(matrix(ZZ, [ZZRingElem[valuation(a, y) for y = S]]))
   sol = solve(V, b)
 
   #want to write sol = x+y where
@@ -149,7 +149,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   cone = cone_from_inequalities(-V)
   @assert is_pointed(cone) # otherwise the Hilbert basis is not unique
   hb = hilbert_basis(cone)
-  res = [O(evaluate(ms(s(map(fmpz, Array(v)))))) for v in hb]
+  res = [O(evaluate(ms(s(map(ZZRingElem, Array(v)))))) for v in hb]
   return res
 end
 
@@ -196,8 +196,8 @@ function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return []
   end
   irr = irreducibles(S)
-  b = transpose(matrix(ZZ, [fmpz[valuation(a, y) for y = S]]))
-  A = transpose(matrix(ZZ, [fmpz[valuation(x, y) for y = S] for x = irr]))
+  b = transpose(matrix(ZZ, [ZZRingElem[valuation(a, y) for y = S]]))
+  A = transpose(matrix(ZZ, [ZZRingElem[valuation(x, y) for y = S] for x = irr]))
   #solving Ax = b for x >=0  and A >=0 implies that columns of A with
   #entries > those in b can never be part of a solution
   #thus we prune them

@@ -22,7 +22,7 @@ the union of all cyclotomic extensions. Here for $n \in \mathbf{N}$ we denote by
 ## Creation of the abelian closure and elements
 
 ```@docs
-abelian_closure(::FlintRationalField)
+abelian_closure(::QQField)
 ```
 
 Given the abelian closure, the generator can be recovered as follows:

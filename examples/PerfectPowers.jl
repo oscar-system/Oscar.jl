@@ -4,15 +4,15 @@ using Oscar
 import Oscar: Nemo, Hecke
 import Base: powermod
 
-function root_exact(a::fmpz, n::Int)
+function root_exact(a::ZZRingElem, n::Int)
   @assert n>0
   n == 1 && return a
-  k, a = remove(a, fmpz(2))
+  k, a = remove(a, ZZRingElem(2))
   if k % n != 0
-    return fmpz(1)
+    return ZZRingElem(1)
   end
   kn = div(k,n) #since we change n
-  isone(a) && return fmpz(2)^kn
+  isone(a) && return ZZRingElem(2)^kn
 
   while !isone(a) && iseven(n)
     a = _root_exact(a, Val(2))
@@ -21,14 +21,14 @@ function root_exact(a::fmpz, n::Int)
   (isone(a) ||isone(n)) && return a
   a = _root_exact(a, n)
   isone(a) && return a
-  return a*fmpz(2)^kn
+  return a*ZZRingElem(2)^kn
 end
 
 #TODO
 #  write the _root_exat in mpn
 #  prealloc temp
 #  understand why the top bit is wrong for 7^10 = 16807 and p = 2
-function _root_exact(a::fmpz, p::Val{2})
+function _root_exact(a::ZZRingElem, p::Val{2})
   #return the p-th root, or garbage of the correct size...
 
   @assert isodd(a)
@@ -39,7 +39,7 @@ function _root_exact(a::fmpz, p::Val{2})
   A = Hecke.Limbs(a, MSW=false)
   d = A[1]
   if d % 8 != 1
-    return fmpz(1)
+    return ZZRingElem(1)
   end
   dd = d
 
@@ -53,58 +53,58 @@ function _root_exact(a::fmpz, p::Val{2})
     #there are 2 roots in this case ? and -? so we need to try both
     #since we do >> 1 (or div(, 2)) we loose the high bit.
     d *= dd
-    nbits(d) <= s && return fmpz(d)
+    nbits(d) <= s && return ZZRingElem(d)
     d = -d #we could have found the negative one by accident...
-    nbits(d) <= s && return fmpz(d)
-    return fmpz(1)
+    nbits(d) <= s && return ZZRingElem(d)
+    return ZZRingElem(1)
   end
 
-  B = mod(a, fmpz(2)^(s+3))
-  D = fmpz(d)
+  B = mod(a, ZZRingElem(2)^(s+3))
+  D = ZZRingElem(d)
 
-  M = fmpz(2)^(64)
+  M = ZZRingElem(2)^(64)
   i = 64 
-  one = fmpz(1)
+  one = ZZRingElem(1)
   #TODO; better chain of exponents, use mpn? more inline?
   #TODO: better mod 2^n, use mullow?
   while i < s
     Nemo.mul!(M, M, M)
-    ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{fmpz}, Ref{fmpz}, Int), M, M, 2)
+    ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ref{ZZRingElem}, Int), M, M, 2)
 
     T = powermod(D, 2, M)
     Nemo.mul!(T, T, B)
     Hecke.mod!(T, T, M)
     Nemo.sub!(T, one, T)
-    ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{fmpz}, Ref{fmpz}, Int), T, T, 1)
+    ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ref{ZZRingElem}, Int), T, T, 1)
     Nemo.add!(T, one, T)
     Nemo.mul!(D, D, T)
     Hecke.mod!(D, D, M)
 
     i = 2*i-2
   end
-  M = fmpz(2)^(s+2)
+  M = ZZRingElem(2)^(s+2)
 
   Nemo.mul!(D, D, a)
   Hecke.mod!(D, D, M)
   if nbits(D) <= s
-    return fmpz(D)
+    return ZZRingElem(D)
   end
   
   Nemo.mul!(D, D, -1) # in case the iteration found the negative root
   Nemo.add!(D, D, M)
   if nbits(D) > s
-    return fmpz(1)
+    return ZZRingElem(1)
   end
 
   return D
 end
 
-@inline function fmpz_trunc!(a::fmpz, i::Int)
+@inline function fmpz_trunc!(a::ZZRingElem, i::Int)
 #  @assert a >= 0
-  ccall((:fmpz_fdiv_r_2exp, Nemo.libflint), Cvoid, (Ref{fmpz}, Ref{fmpz}, Clong), a, a, i)
+  ccall((:fmpz_fdiv_r_2exp, Nemo.libflint), Cvoid, (Ref{ZZRingElem}, Ref{ZZRingElem}, Clong), a, a, i)
 end
 
-function powermod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worse than 
+function powermod_2exp(a::ZZRingElem, p::Int, i::Int) #too slow - much worse than 
                                               #powermod directly
   @assert a > 0 && p > 0
   a = copy(a)
@@ -131,7 +131,7 @@ function powermod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worse than
   return b
 end
 
-function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
+function _root_exact(a::ZZRingElem, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   #return the p-th root, or garbage of the correct size...
 
   @assert isodd(a)
@@ -141,7 +141,7 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   if iseven(p)
     @show "slow", p
     fl, a = Hecke.is_power(a, p)
-    return fl ? a : fmpz(1)
+    return fl ? a : ZZRingElem(1)
   end
   n = nbits(a)
   s = div(n, p)+1 # bits in p-th root
@@ -166,19 +166,19 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   if s + extra_s < 64
     d *= dd
     d = d % 2^min(pr, 63)
-    iseven(d) && return fmpz(1)
-    nbits(d) <= s && return fmpz(d)
-    return fmpz(1)
+    iseven(d) && return ZZRingElem(1)
+    nbits(d) <= s && return ZZRingElem(d)
+    return ZZRingElem(1)
   end
 
 #  B = powermod_2exp(a, p-1, 64*w+1)
-  B = powermod(a, p-1, fmpz(2)^(64*(w+extra_w)))
-  L = fmpz(l)
-  D = fmpz(d)
+  B = powermod(a, p-1, ZZRingElem(2)^(64*(w+extra_w)))
+  L = ZZRingElem(l)
+  D = ZZRingElem(d)
 
-  M = fmpz(2)^(64)
+  M = ZZRingElem(2)^(64)
   i = 1
-  two = fmpz(2)
+  two = ZZRingElem(2)
   #TODO; better chain of exponents, use mpn? more inline?
   #TODO: better mod 2^n (done), use mullow?
   #TODO: find powermod for 2^n modulus
@@ -223,40 +223,40 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   fmpz_trunc!(D, (w+extra_w)*64)
 #  Hecke.mod!(D, D, M)
   if nbits(D) > s
-    return fmpz(1)
+    return ZZRingElem(1)
   end
 
   return D
 end
 
 """
-    is_power_bernstein(a::fmpz)
+    is_power_bernstein(a::ZZRingElem)
 
 Computes the maximal `k` s.th. `a = b^k` using an asymptotically optimal
 algorithm with a runtime softly linear in the size of `a`.
 
 Much faster than `is_power` from gmp/flint for large input.
 
-Try `a = fmpz(12345)^56789`
+Try `a = ZZRingElem(12345)^56789`
 
 Not fine tuned for small input
 """
-function is_power_bernstein(a::fmpz)
+function is_power_bernstein(a::ZZRingElem)
 #https://cr.yp.to/lineartime/powers2-20060914-ams.pdf
   if isone(a)
     return (0, a)
   end
-  k, a = remove(a, fmpz(2))
+  k, a = remove(a, ZZRingElem(2))
   if isone(a)
     return k
   end
-  l, a = remove(a, fmpz(3))
+  l, a = remove(a, ZZRingElem(3))
   g = gcd(k, l)
   if isone(a)
     # a is/was 2^k * 3^l
     return g
   end
-  h, a = remove(a, fmpz(5))
+  h, a = remove(a, ZZRingElem(5))
   g = gcd(h, g)
   if isone(a)
     return g
@@ -295,14 +295,14 @@ function is_power_bernstein(a::fmpz)
     pp = p
     d = _root_exact(a, p, 10, 2)
     if !isone(d)
-      if powermod(d, p, fmpz(p_test)) == a_test && d^p == a
+      if powermod(d, p, ZZRingElem(p_test)) == a_test && d^p == a
         f *= p
         cl = min(cl, flog(d, 7))
         a = d
         a_test = a % p_test
       else
-         d = fmpz(1)
-#        @show p, powermod(d, p, fmpz(p_test)) == a % p_test
+         d = ZZRingElem(1)
+#        @show p, powermod(d, p, ZZRingElem(p_test)) == a % p_test
       end
     end
     while !isone(d) && pp <= cl

@@ -103,7 +103,7 @@ A concrete instance of this type is
     Spec{BaseRingType, RingType}
 ```
 It provides an implementation of affine schemes for rings ``R`` of type
-`MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`, and `MPolyQuoLocalizedRing`
+`MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, and `MPolyQuoLocRing`
 defined over the integers or algebraic field extensions of ``\mathbb Q``.
 This minimal implementation can be used internally, when deriving new
 concrete types `MySpec<:AbsSpec` such as, for instance,

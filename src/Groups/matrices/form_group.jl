@@ -679,19 +679,19 @@ function isometry_group(f::SesquilinearForm{T}) where T
 end
 
 """
-    isometry_group(L::AbsLat) -> MatrixGroup
+    isometry_group(L::AbstractLat) -> MatrixGroup
 
 Return the group of isometries of the lattice `L`.
 
 The transformations are represented with respect to the ambient space of `L`.
 """
-@attr MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))} function isometry_group(L::Hecke.AbsLat)
+@attr MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))} function isometry_group(L::Hecke.AbstractLat)
    gens = Hecke.automorphism_group_generators(L)
    G = matrix_group(gens)
    return G
 end
 
-@attr MatrixGroup{fmpq,fmpq_mat} function isometry_group(L::ZLat)
+@attr MatrixGroup{QQFieldElem,QQMatrix} function isometry_group(L::ZLat)
   # corner case
   if rank(L) == 0
      return matrix_group(identity_matrix(QQ,degree(L)))
@@ -708,12 +708,12 @@ end
 end
 
 """
-    _isometry_group_via_decomposition(L::ZLat) -> Tuple{MatrixGroup, Vector{fmpq_mat}}
+    _isometry_group_via_decomposition(L::ZLat) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
 """
 function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
-  # TODO: adapt the direct decomposition approach for AbsLat
+  # TODO: adapt the direct decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
   # but in some examples it is also slower ... up to a factor of 15
   if gram_matrix(L)[1,1]<0
@@ -724,13 +724,13 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   # for simplicity we work with the ambient representation
   # TODO: Swap to action on vectors once Hecke 0.15.3 is released
   _sv = shortest_vectors(L)
-  if eltype(_sv) === Vector{fmpz}
-    sv = fmpz_mat[matrix(ZZ, 1, length(v), v) for v in _sv]
+  if eltype(_sv) === Vector{ZZRingElem}
+    sv = ZZMatrix[matrix(ZZ, 1, length(v), v) for v in _sv]
   else
     sv = _sv
   end
   bL = basis_matrix(L)
-  sv1 = fmpq_mat[v*bL for v in sv]
+  sv1 = QQMatrix[v*bL for v in sv]
   h = _row_span!(sv)*bL
   M1 = lattice(V, h)
   if closed
@@ -798,8 +798,8 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   # now we may alter sv1
   sv = append!(sv1, sv2)
 
-  G1q =  _orthogonal_group(H1, fmpz_mat[hom(H1, H1, TorQuadModElem[H1(lift(x) * matrix(g)) for x in gens(H1)]).map_ab.map for g in gens(G1)])
-  G2q =  _orthogonal_group(H2, fmpz_mat[hom(H2, H2, TorQuadModElem[H2(lift(x) * matrix(g)) for x in gens(H2)]).map_ab.map for g in gens(G2)])
+  G1q =  _orthogonal_group(H1, ZZMatrix[hom(H1, H1, TorQuadModuleElem[H1(lift(x) * matrix(g)) for x in gens(H1)]).map_ab.map for g in gens(G1)])
+  G2q =  _orthogonal_group(H2, ZZMatrix[hom(H2, H2, TorQuadModuleElem[H2(lift(x) * matrix(g)) for x in gens(H2)]).map_ab.map for g in gens(G2)])
 
   psi1 = hom(G1, G1q, gens(G1q), check=false)
   psi2 = hom(G2, G2q, gens(G2q), check=false)
@@ -819,17 +819,17 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   return G, sv
 end
 
-function on_lattices(L::ZLat, g::MatrixGroupElem{fmpq,fmpq_mat})
+function on_lattices(L::ZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   V = ambient_space(L)
   return lattice(V, basis_matrix(L) * matrix(g), check=false)
 end
 
 """
-    on_matrix(x, g::MatrixGroupElem{fmpq,fmpq_mat})
+    on_matrix(x, g::MatrixGroupElem{QQFieldElem,QQMatrix})
 
 Return `x*g`.
 """
-function on_matrix(x, g::MatrixGroupElem{fmpq,fmpq_mat})
+function on_matrix(x, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   return x*matrix(g)
 end
 
@@ -853,7 +853,7 @@ function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
   GAP.Globals.SetNiceMonomorphism(G.X, phi.map)
 end
 
-function _row_span!(L::Vector{fmpz_mat})
+function _row_span!(L::Vector{ZZMatrix})
   l = length(L)
   d = ncols(L[1])
   m = min(2*d,l)
@@ -872,7 +872,7 @@ function _row_span!(L::Vector{fmpz_mat})
   return h[1:rank(h),:]
 end
 
-automorphism_group(L::Hecke.AbsLat) = isometry_group(L)
+automorphism_group(L::Hecke.AbstractLat) = isometry_group(L)
 
 orthogonal_group(L::Hecke.ZLat) = isometry_group(L)
 

@@ -7,7 +7,7 @@ export
     dual_matroid, direct_sum, restriction, deletion, contraction, minor,
     principal_extension, free_extension, series_extension, parallel_extension,
     uniform_matroid, fano_matroid, non_fano_matroid, pappus_matroid, non_pappus_matroid, vamos_matroid,
-    all_subsets_matroid, projective_plane, projective_geometry, affine_geometry
+    all_subsets_matroid, projective_plane, projective_geometry, affine_geometry, automorphism_group
 
 
 ################################################################################
@@ -860,3 +860,20 @@ function affine_geometry(r::Int, q::Int; check::Bool=false)
     PG = projective_geometry(r, q; check=check)
     return restriction(PG, Vector(2:(length(PG.groundset)-q)))
 end
+
+@doc Markdown.doc"""
+    automorphism_group(m::Matroid)
+
+Given a matroid `m` return its automorphism group as a `PermGroup`.
+The group acts on the elements of `m`.
+
+# Example
+```jldoctest
+julia> M = uniform_matroid(2, 4)
+Matroid of rank 2 on 4 elements
+
+julia> automorphism_group(M)
+Group([ (3,4), (1,2), (2,3) ])
+```
+"""
+automorphism_group(m::Matroid) = automorphism_group(IncidenceMatrix(bases(m));action=:on_cols)

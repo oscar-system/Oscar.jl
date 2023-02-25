@@ -11,3 +11,5 @@ include("Fields.jl")
 include("TropicalGeometry.jl")
 include("QuadForm.jl")
 include("polymake/runtests.jl")
+include("upgrades/runtests.jl")
+

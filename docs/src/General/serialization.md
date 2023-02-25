@@ -18,6 +18,7 @@ threefold:
 ```@docs
 save
 load
+is_basic_serialization_type
 ```
 
 ## Objects that can be serialized
@@ -39,7 +40,7 @@ SimplicialComplex
 ```julia
 Ideal
 Polynomial
-PolynomialRing
+polynomial_ring
 ```
 
 ### Polyhedral Geometry

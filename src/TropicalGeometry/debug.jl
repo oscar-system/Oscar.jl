@@ -1,5 +1,5 @@
 K = GF(2)
-Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
+Kx,(x1,x2,x3,x4) = polynomial_ring(K,4);
 inI = ideal([x2 + x3 + x4, x1 + x3])
 println(inI) # same print as input for tropical_link
 println(base_ring(inI)) # same print as input for tropical_link
@@ -14,7 +14,7 @@ singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing
 inI1 = ideal(Kx,singularIdeal)
 
 L,t = RationalFunctionField(K,"t")
-Lx,x = PolynomialRing(L,symbols(Kx))
+Lx,x = polynomial_ring(L,symbols(Kx))
 inI1 = ideal(Lx,[change_base_ring(L,g) for g in gens(inI1)])
 
 hyperplanes = [x[i]-t for i in [2,3,4]]
@@ -38,7 +38,7 @@ end
 
 
 
-Kx,(x1,x2,x3,x4) = PolynomialRing(QQ,4);
+Kx,(x1,x2,x3,x4) = polynomial_ring(QQ,4);
 p = 2;
 I = ideal([x1-p*x2+(p+1)*x3,3*x2-p^2*x3+(p^2+1)*x4]);
 w = Int[-1, 1, -1, 1]
@@ -50,7 +50,7 @@ w = Int[-1, 1, -1, 1]
 
 # Step 1.1: running simulate_valuation
 G = gens(I)
-Rtx,tx = PolynomialRing(ZZ,vcat([:t],symbols(parent(G[1]))))
+Rtx,tx = polynomial_ring(ZZ,vcat([:t],symbols(parent(G[1]))))
 vvG = [p-tx[1]]
 for f in G
   fRtx = MPolyBuildCtx(Rtx)
@@ -65,7 +65,7 @@ end
 # Step 1.2: compute standard basis in Singular
 vvw = -w
 pushfirst!(vvw,-1)
-S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(vvw)*Singular.ordering_dp())
+S,_ = Singular.polynomial_ring(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(vvw)*Singular.ordering_dp())
 SI = Singular.Ideal(S, [S(g) for g in vvG])
 vvGB = Singular.gens(Singular.satstd(SI,Singular.MaximalIdeal(S,1)))
 vvGB = [Rtx(g) for g in vvGB]
@@ -76,7 +76,7 @@ x = copy(symbols(Rx))
 popfirst!(x)
 
 K = QQ
-Kx,_ = PolynomialRing(K,x)
+Kx,_ = polynomial_ring(K,x)
 
 GB = []
 for i = 2:3
@@ -95,6 +95,6 @@ end
 # Step 2: construct initial ideal from the tropical groebner basis
 ###
 f = GB[1]
-kx, x = PolynomialRing(GF(2),[repr(x) for x in gens(parent(f))])
+kx, x = polynomial_ring(GF(2),[repr(x) for x in gens(parent(f))])
 
 initialf = MPolyBuildCtx(kx)

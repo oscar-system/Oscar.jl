@@ -6,22 +6,22 @@ Checks if the toric line bundle `l` is contained in the toric vanishing set `tvs
 # Examples
 ```jldoctest
 julia> dP1 = del_pezzo_surface(1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(dP1, [3, 2])
-A toric line bundle on a normal toric variety
+julia> l = toric_line_bundle(dP1, [3, 2])
+Toric line bundle on a normal toric variety
 
 julia> all_cohomologies(l)
-3-element Vector{fmpz}:
+3-element Vector{ZZRingElem}:
  7
  0
  0
 
 julia> vs = vanishing_sets(dP1)
 3-element Vector{ToricVanishingSet}:
- A toric vanishing set for cohomology index 0
- A toric vanishing set for cohomology index 1
- A toric vanishing set for cohomology index 2
+ Toric vanishing set for cohomology index 0
+ Toric vanishing set for cohomology index 1
+ Toric vanishing set for cohomology index 2
 
 julia> contains(vs[1], l)
 false

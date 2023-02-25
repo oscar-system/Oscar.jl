@@ -19,7 +19,7 @@
         "vector": [
             {
                 "id": "0293688e-68ce-4b08-80ce-530552c3ec7e",
-                "type": "LinearProgram{fmpq}",
+                "type": "LinearProgram{QQFieldElem}",
                 "data": {
                     "lpcoeffs": {
                         "data": [
@@ -39,7 +39,7 @@
                     "convention": "max",
                     "feasible_region": {
                         "id": "d856e6f1-2012-4f3d-86ea-5056298adf55",
-                        "type": "Polyhedron{fmpq}",
+                        "type": "Polyhedron{QQFieldElem}",
                         "data": {
                             "boundedness": {
                                 "id": "2d193e09-7d5e-4dfc-9acd-8ef71fc24c2b",
@@ -183,7 +183,7 @@
             },
             {
                 "id": "351122b8-08b3-411f-b535-2af7ec8f2190",
-                "type": "LinearProgram{fmpq}",
+                "type": "LinearProgram{QQFieldElem}",
                 "data": {
                     "lpcoeffs": {
                         "data": [

@@ -99,7 +99,7 @@ function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyRin
   return ambient_scheme(U)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuo}}
+function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuoRing}}
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))

@@ -25,7 +25,7 @@ Return the point with the given coordinates.
 # Examples
 ```jldoctest
 julia> P = Oscar.Point([QQ(1), QQ(2), QQ(2)])
-Point with coordinates fmpq[1, 2, 2]
+Point with coordinates QQFieldElem[1, 2, 2]
 ```
 """
 mutable struct Point{S <: FieldElem}
@@ -66,11 +66,11 @@ Return the maximal ideal associated to the point `P` in the ring `R`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> P = Oscar.Point([QQ(2), QQ(1)])
-Point with coordinates fmpq[2, 1]
+Point with coordinates QQFieldElem[2, 1]
 
 julia> Oscar.ideal_point(R, P)
 ideal(x - 2, y - 1)
@@ -85,14 +85,14 @@ end
 # Structure of Affine Plane Curves and Projective Plane Curves
 ################################################################################
 @doc Markdown.doc"""
-    AffinePlaneCurve{S}(eq::Oscar.MPolyElem{S}) where S <: FieldElem
+    AffinePlaneCurve{S}(eq::Oscar.MPolyRingElem{S}) where S <: FieldElem
 
 Return the Affine Plane Curve defined by the polynomial in two variables `eq`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = y^3*x^6 - y^6*x^2
 x^6*y^3 - x^2*y^6
@@ -102,10 +102,10 @@ Affine plane curve defined by x^6*y^3 - x^2*y^6
 ```
 """
 mutable struct AffinePlaneCurve{S} <: PlaneCurve{S}
-  eq::Oscar.MPolyElem{S}                # Equation of the curve (polynomial in two variables)
+  eq::Oscar.MPolyRingElem{S}                # Equation of the curve (polynomial in two variables)
   degree::Int                           # degree of the equation of the curve
   components::Dict{AffinePlaneCurve{S}, Int}
-  function AffinePlaneCurve{S}(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
+  function AffinePlaneCurve{S}(eq::Oscar.MPolyRingElem{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 2 || error("The defining equation must belong to a ring with two variables")
     !is_constant(eq) || error("The defining equation must be non constant")
     new{S}(eq,
@@ -114,7 +114,7 @@ mutable struct AffinePlaneCurve{S} <: PlaneCurve{S}
   end
 end
 
-AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem} = AffinePlaneCurve{S}(eq)
+AffinePlaneCurve(eq::Oscar.MPolyRingElem{S}) where {S <: FieldElem} = AffinePlaneCurve{S}(eq)
 
 function Base.show(io::IO, C::AffinePlaneCurve)
   if !get(io, :compact, false)
@@ -126,20 +126,20 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    ProjPlaneCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
+    ProjPlaneCurve{S}(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem}
 
 Return the Projective Plane Curve defined by the homogeneous polynomial in three variables `eq`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = T(y^3*x^6 - y^6*x^2*z)
 x^6*y^3 - x^2*y^6*z
@@ -149,10 +149,10 @@ Projective plane curve defined by x^6*y^3 - x^2*y^6*z
 ```
 """
 mutable struct ProjPlaneCurve{S} <: ProjectivePlaneCurve{S}
-  eq::Oscar.MPolyElem_dec{S}            # Equation of the curve (polynomial in three variables)
+  eq::Oscar.MPolyDecRingElem{S}            # Equation of the curve (polynomial in three variables)
   degree::Int                           # degree of the equation of the curve
   components::Dict{ProjPlaneCurve{S}, Int}
-  function ProjPlaneCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
+  function ProjPlaneCurve{S}(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !is_constant(eq) || error("The defining equation must be non constant")
     is_homogeneous(eq) || error("The defining equation is not homogeneous")
@@ -162,10 +162,10 @@ mutable struct ProjPlaneCurve{S} <: ProjectivePlaneCurve{S}
   end
 end
 
-ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
+ProjPlaneCurve(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
 
 @doc Markdown.doc"""
-    ProjPlaneCurve(f::MPolyElem{T}) where {T <: FieldElem}
+    ProjPlaneCurve(f::MPolyRingElem{T}) where {T <: FieldElem}
 
 Given a homogeneous polynomial `f` in three variables with coefficients in a field,
 create the projective plane curve defined by `f`.
@@ -176,13 +176,13 @@ julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(z*x^2-y^3)
 Projective plane curve defined by x^2*z - y^3
 ```
 """
-function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
+function ProjPlaneCurve(eq::Oscar.MPolyRingElem{S}) where {S <: FieldElem}
   R, _ = grade(parent(eq))
   return ProjPlaneCurve{S}(R(eq))
 end
@@ -267,8 +267,8 @@ Return the Jacobian ideal of the defining polynomial of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
@@ -291,14 +291,14 @@ Return a dictionary containing the irreducible components of `C` and their multi
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.curve_components(C)
-Dict{AffinePlaneCurve{fmpq}, Int64} with 3 entries:
+Dict{AffinePlaneCurve{QQFieldElem}, Int64} with 3 entries:
   y         => 3
   x         => 2
   x^4 - y^3 => 1
@@ -323,8 +323,8 @@ Return `true` if `C` is irreducible, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
@@ -353,8 +353,8 @@ Return `true` if `C` is reduced, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
@@ -389,8 +389,8 @@ Return the plane curve defined by the squarefree part of the equation of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
@@ -431,8 +431,8 @@ Return the union of `C` and `D` (with multiplicity).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
@@ -456,8 +456,8 @@ Return the coordinate ring of the curve `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2

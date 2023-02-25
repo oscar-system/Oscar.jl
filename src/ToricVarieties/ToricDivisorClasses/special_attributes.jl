@@ -10,13 +10,13 @@ Construct the trivial divisor class of a normal toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> trivial_divisor_class(v)
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass trivial_divisor_class(v::AbstractNormalToricVariety) = ToricDivisorClass(trivial_divisor(v))
+@attr ToricDivisorClass trivial_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(trivial_divisor(v))
 export trivial_divisor_class
 
 
@@ -28,13 +28,13 @@ Construct the anticanonical divisor class of a normal toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> anticanonical_divisor_class(v)
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass anticanonical_divisor_class(v::AbstractNormalToricVariety) = ToricDivisorClass(anticanonical_divisor(v))
+@attr ToricDivisorClass anticanonical_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(anticanonical_divisor(v))
 export anticanonical_divisor_class
 
 
@@ -46,11 +46,11 @@ Construct the canonical divisor class of a normal toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> canonical_divisor_class(v)
-A divisor class on a normal toric variety
+Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass canonical_divisor_class(v::AbstractNormalToricVariety) = ToricDivisorClass(canonical_divisor(v))
+@attr ToricDivisorClass canonical_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(canonical_divisor(v))
 export canonical_divisor_class

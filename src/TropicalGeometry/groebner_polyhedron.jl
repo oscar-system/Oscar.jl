@@ -15,14 +15,14 @@ todo: proper documentation
 Example:
 
 val_2 = TropicalSemiringMap(QQ,2)
-Kx,(x,y,z) = PolynomialRing(QQ,3)
+Kx,(x,y,z) = polynomial_ring(QQ,3)
 w = [0,0,0]
 I = ideal([x+2*y,y+2*z])
 groebner_polyhedron(I,val_2,w)
 
 Kt,t = RationalFunctionField(QQ,"t")
 val_t = TropicalSemiringMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
+Ktx,(x,y,z) = polynomial_ring(Kt,3)
 w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
 groebner_polyhedron(I,val_t,w)
@@ -33,7 +33,7 @@ function groebner_polyhedron(I,val::TropicalSemiringMap{K,p} where {K,p},w::Vect
   return groebner_polyhedron(GB,val,w,perturbation=perturbation,skip_reduction=skip_reduction)
 end
 
-function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], skip_reduction::Bool=false)
+function groebner_polyhedron(GB::Vector{<:MPolyRingElem}, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], skip_reduction::Bool=false)
   if !skip_reduction
     GB = interreduce_tropically(GB,val,w,perturbation=perturbation)
   end
@@ -41,7 +41,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::TropicalSemiringMap, 
   return groebner_polyhedron(GB,initial(GB,val,w,perturbation=perturbation),val)
 end
 
-function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem}, val::TropicalSemiringMap) # GB entries can be MPolyElem and fmpq_mpoly
+function groebner_polyhedron(GB::Vector{<:MPolyRingElem}, inGB::Vector{<:MPolyRingElem}, val::TropicalSemiringMap) # GB entries can be MPolyRingElem and QQMPolyRingElem
   eq_lhs = zeros(Int,0,nvars(parent(GB[1])))
   eq_rhs = zeros(Int,0)
   ineq_lhs = zeros(Int,0,nvars(parent(GB[1])))

@@ -6,6 +6,8 @@ include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
 
+include("JuLie.jl")
+
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
 include("Schemes/ProjectiveSchemes.jl")
@@ -16,6 +18,7 @@ include("Schemes/SpaceGerms.jl")
 include("Schemes/singular_locus.jl")
 include("Schemes/Sheaves.jl")
 include("Schemes/IdealSheaves.jl")
+include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 
@@ -26,5 +29,7 @@ include("Schemes/LazyGlueing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 
-include("JuLie.jl")
+include("Schemes/BlowupMorphism.jl")
 include("Schemes/ToricSchemes/include.jl")
+
+include("ExteriorAlgebra/ExteriorAlgebra.jl")

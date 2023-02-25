@@ -4,7 +4,7 @@
   Zx, _ = ZZ["x"]
   Zxy, _ = ZZ["x", "y"]
   
-  for K in [GF(2), GF(fmpz(2)), GF(2, 2), GF(fmpz(2), 2), ZZ, QQ, Qsqrt2, Zx, Zxy]
+  for K in [GF(2), GF(ZZRingElem(2)), GF(2, 2), GF(ZZRingElem(2), 2), ZZ, QQ, Qsqrt2, Zx, Zxy]
     Kx, (x, y) = K["x", "y"]
     h = @inferred hom(Kx, Kx, [y, x])
     @test h isa Oscar.morphism_type(Kx, Kx)
@@ -28,7 +28,7 @@
       @test_throws MethodError hom(Kx, Kx, [GF(2)(1), GF(2)(1)])
     end
 
-    h = @inferred hom(Kx, Kx, fmpz[1, 1])
+    h = @inferred hom(Kx, Kx, ZZRingElem[1, 1])
     @test h isa Oscar.morphism_type(Kx, Kx)
     @test (@inferred h(x + y)) == Kx(2)
     @test (@inferred h(x + y)) == Kx(2)

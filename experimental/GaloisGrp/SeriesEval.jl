@@ -1,4 +1,4 @@
-function (f::RelSeriesElem)(a::RingElem)
+function (f::RelPowerSeriesRingElem)(a::RingElem)
   y = a
   v = valuation(f)
   p = precision(f)

@@ -245,13 +245,13 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   # beta = 1/f'(alpha) sum b_i alpha^i
   # f(alpha)/(t-alpha) = sum g_i(alpha) t^i
   # Tr(beta * g_i(alpha)/f'(alpha)) = b_i (dual basis)
-  Kt, t = PolynomialRing(K, "t", cached = false)
+  Kt, t = polynomial_ring(K, "t", cached = false)
   Gk = divexact(map_coefficients(K, defining_polynomial(K), parent = Kt), t-gen(K))
   Qt = parent(defining_polynomial(K))
   Gt = [Qt(x) for x = coefficients(Gk)]
   fsa = derivative(defining_polynomial(K))(gen(K))
   fsat = Qt(fsa)
-  B = length(bs)*evaluate(func[1], [G.B for x = R])*parent(B)(maximum(ceil(fmpz, length(x)) for x = coefficients(Gk)))
+  B = length(bs)*evaluate(func[1], [G.B for x = R])*parent(B)(maximum(ceil(ZZRingElem, length(x)) for x = coefficients(Gk)))
   pr = bound_to_precision(G, B)
   R = roots(G, pr, raw = true)
   beta = K()
@@ -287,7 +287,7 @@ end
 function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   Zx = Hecke.Globals.Zx
 
-  f = Zx(mapreduce(denominator, lcm, coefficients(defining_polynomial(K)), init = fmpz(1))*defining_polynomial(K))
+  f = Zx(mapreduce(denominator, lcm, coefficients(defining_polynomial(K)), init = ZZRingElem(1))*defining_polynomial(K))
   f = divexact(f, content(f))
 
   p, ct = find_prime(Hecke.Globals.Qx(f), pStart = pStart, prime = prime,
@@ -322,13 +322,13 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   #roots that belong to the same factor would give rise
   #to the same principal subfield. So we can save on LLL calls.
   r = roots(G, 1)
-  F, mF = ResidueField(parent(r[1]))
+  F, mF = residue_field(parent(r[1]))
   r = map(mF, r)
   rt_to_lf = [findall(x->iszero(f[1](x)), r) for f = lf]
   done = zeros(Int, length(lf))
   while true
     lf = factor_mod_pk(Array, H, pr)
-    ppr = fmpz(p)^pr
+    ppr = ZZRingElem(p)^pr
     @assert parent(lf[1][1]) == parent(f)
     @assert all(x->is_monic(x[1]), lf)
     rt = findfirst(x->degree(x[1]) == 1, lf)
@@ -352,7 +352,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
         end
       end
       M = [M identity_matrix(ZZ, n); ppr*identity_matrix(ZZ, di) zero_matrix(ZZ, di, n)]
-      D = diagonal_matrix(vcat([B for j=1:di], [fmpz(1) for j=1:n]))
+      D = diagonal_matrix(vcat([B for j=1:di], [ZZRingElem(1) for j=1:n]))
 #      M = M*D
       while true
         @show maximum(nbits, M), nbits(B), size(M)

@@ -21,12 +21,12 @@
     end
 
     @testset "conformance tests" begin
-        @test typeof(Cone1) == Cone{fmpq}
-        @test typeof(Q0) == Polyhedron{fmpq}
-        @test typeof(Q1) == Polyhedron{fmpq}
-        @test typeof(Q2) == Polyhedron{fmpq}
-        @test typeof(C0) == Polyhedron{fmpq}
-        @test typeof(C1) == Polyhedron{fmpq}
+        @test typeof(Cone1) == Cone{QQFieldElem}
+        @test typeof(Q0) == Polyhedron{QQFieldElem}
+        @test typeof(Q1) == Polyhedron{QQFieldElem}
+        @test typeof(Q2) == Polyhedron{QQFieldElem}
+        @test typeof(C0) == Polyhedron{QQFieldElem}
+        @test typeof(C1) == Polyhedron{QQFieldElem}
         @test typeof(Q0 == Q0) == Bool
         @test typeof(Q0 == Q1) == Bool
         @test typeof(Q0 != Q0) == Bool
@@ -69,14 +69,14 @@
     end
 
     @testset "newton_polytope" begin
-        Qx, x = Oscar.PolynomialRing(Oscar.QQ, :x => 1:2)
+        Qx, x = Oscar.polynomial_ring(Oscar.QQ, :x => 1:2)
         f = sum([x; 1])^2 + x[1]^4 * x[2] * 3
         newt = newton_polytope(f)
         @test dim(newt) == 2
         @test point_matrix(vertices(newt)) == matrix(QQ, [4 1; 2 0; 0 2; 0 0])
     end
 
-    @testset "Construct from fmpq" begin
+    @testset "Construct from QQFieldElem" begin
         A = zeros(Oscar.QQ, 3, 2)
         A[1, 1] = 1
         A[3, 2] = 4
@@ -87,7 +87,7 @@
         @test rhs == [1, -3]
     end
 
-    @testset "Construct from fmpz" begin
+    @testset "Construct from ZZRingElem" begin
         A = zeros(Oscar.ZZ, 3, 2)
         A[1, 1] = 1
         A[3, 2] = 4
@@ -141,17 +141,17 @@
         
         # testing correct dispatch and tuple processing for Polyhedron
         @test Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
-        @test Polyhedron([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], fmpq[0, 0, 0]) == Pos_poly
+        @test Polyhedron([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], QQFieldElem[0, 0, 0]) == Pos_poly
         @test Polyhedron(matrix(ZZ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
         @test Polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
         
         let y = convex_hull([0, 0, 0], [1, 0, 0], [[0, 1, 0], [0, 0, 1]])
             @test Polyhedron([-1 0 0], [0]) == y
             @test Polyhedron([-1 0 0], 0) == y
-            @test Polyhedron([-[1, 0, 0]], fmpq[0]) == y
-            @test Polyhedron([-1, 0, 0], fmpq[0]) == y
-            @test Polyhedron([[-1, 0, 0]], fmpq(0)) == y
-            @test Polyhedron([-1, 0, 0], fmpq(0)) == y
+            @test Polyhedron([-[1, 0, 0]], QQFieldElem[0]) == y
+            @test Polyhedron([-1, 0, 0], QQFieldElem[0]) == y
+            @test Polyhedron([[-1, 0, 0]], QQFieldElem(0)) == y
+            @test Polyhedron([-1, 0, 0], QQFieldElem(0)) == y
             @test Polyhedron(matrix(ZZ, [-1 0 0]), [0]) == y
             @test Polyhedron(matrix(QQ, [-1 0 0]), [0]) == y
         end

@@ -1,17 +1,17 @@
 @testset "groebner" begin
-    R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     I = ideal(R,[x*y^2 - x, x^3 - 2*y^5])
     groebner_basis(I, ordering=lex(R), algorithm=:fglm)
-    @test gens(I.gb[lex(R)]) == fmpq_mpoly[y^7 - y^5, x*y^2 - x, x^3 - 2*y^5]
+    @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^7 - y^5, x*y^2 - x, x^3 - 2*y^5]
     groebner_basis(I, ordering=degrevlex(R))
-    @test gens(I.gb[degrevlex(R)]) == fmpq_mpoly[x*y^2 - x, x^4 - 2*x*y, -x^3 + 2*y^5]
+    @test gens(I.gb[degrevlex(R)]) == QQMPolyRingElem[x*y^2 - x, x^4 - 2*x*y, -x^3 + 2*y^5]
     @test_throws ErrorException groebner_basis(I, ordering=neglex(R))
     standard_basis(I, ordering=neglex(R))
-    @test gens(I.gb[neglex(R)]) == fmpq_mpoly[-x^3 + 2*y^5, x]
+    @test gens(I.gb[neglex(R)]) == QQMPolyRingElem[-x^3 + 2*y^5, x]
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
-    R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
+    R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
     I = ideal(R, [x])
     gb = f4(I)
     @test normal_form(y, I) == y
@@ -48,7 +48,7 @@
     @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
     @test is_standard_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_standard_basis(I.gens, ordering=neglex(R)) == false
-	R, (x1, x2, x3, x4) = PolynomialRing(QQ, ["x1", "x2", "x3", "x4"])
+	R, (x1, x2, x3, x4) = polynomial_ring(QQ, ["x1", "x2", "x3", "x4"])
 	J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
        x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
        2*x1*x2+2*x2*x3+2*x3*x4-x2,
@@ -58,7 +58,7 @@
 	@test J.gb[degrevlex(R)].isReduced == true 
 	@test_throws ErrorException standard_basis(J, ordering=negdeglex(R), algorithm=:fglm)
 	standard_basis(J, ordering=lex(R), algorithm=:fglm)
-	H = fmpq_mpoly[128304*x4^8 - 93312*x4^7 + 15552*x4^6 + 3144*x4^5 - 1120*x4^4 + 36*x4^3 + 15*x4^2 - x4,
+	H = QQMPolyRingElem[128304*x4^8 - 93312*x4^7 + 15552*x4^6 + 3144*x4^5 - 1120*x4^4 + 36*x4^3 + 15*x4^2 - x4,
 		5913075*x3 + 371438283744*x4^7 - 237550027104*x4^6 + 22645939824*x4^5 + 11520686172*x4^4 - 2024910556*x4^3 - 132524276*x4^2 + 30947828*x4,
 		1971025*x2 - 97197721632*x4^7 + 73975630752*x4^6 - 12121915032*x4^5 - 2760941496*x4^4 + 814792828*x4^3 - 1678512*x4^2 - 9158924*x4,
 		5913075*x1 - 159690237696*x4^7 + 31246269696*x4^6 + 27439610544*x4^5 - 6475723368*x4^4 - 838935856*x4^3 + 275119624*x4^2 + 4884038*x4 - 5913075]
@@ -66,7 +66,7 @@
 end
 
 @testset "groebner leading ideal" begin
-   R, (t, x, y, z) = PolynomialRing(QQ, ["t", "x", "y", "z"])
+   R, (t, x, y, z) = polynomial_ring(QQ, ["t", "x", "y", "z"])
 
    I = ideal(R, [x + y + t + z, x^2 + y^2 + t^3])
 
@@ -79,7 +79,7 @@ end
 end
 
 @testset "groebner orderings" begin
-   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 
    I = ideal(R, [x + y + z, x^2 + y^2 + z^3])
 
@@ -127,13 +127,13 @@ end
 end
 
 @testset "f4" begin
-    R, (x1,x2,x3,x4) = PolynomialRing(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"], ordering=:degrevlex)
+    R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"], ordering=:degrevlex)
     I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
             x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
             2*x1*x2+2*x2*x3+2*x3*x4-x2,
             x2^2+2*x1*x3+2*x2*x4-x3])
     H = f4(I);
-    G = gfp_mpoly[x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
+    G = fpMPolyRingElem[x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
                   x3^2 + 2*x2*x4 + 76695850*x3*x4 + 115043772*x4^2 + 115043768*x2 + 191739613*x3 + 230087535*x4
                   x2*x3 + 268435457*x2*x4 + 230087533*x3*x4 + 76695842*x4^2 + 210913575*x2 + 38347923*x3 + 153391692*x4
                   x2^2 + 2*x2*x4 + 153391692*x3*x4 + 230087538*x4^2 + 230087536*x2 + 115043768*x3 + 191739613*x4
@@ -144,7 +144,7 @@ end
     @test isdefined(I, :gb)
     @test I.gb[degrevlex(gens(base_ring(I)))].O == G
     H = f4(I, eliminate=2);
-    G = gfp_mpoly[x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
+    G = fpMPolyRingElem[x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                   x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                   x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                   x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
@@ -153,7 +153,7 @@ end
 end
 
 @testset "fglm" begin
-	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+	R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 	A = Oscar.IdealGens(R, [x*y-1, x^2+y^2])
 	@test_throws ErrorException Oscar._fglm(A, lex(R))
 	I = ideal(R, gens(A))
@@ -161,7 +161,7 @@ end
 	@test_throws ErrorException Oscar._fglm(I.gb[degrevlex(R)], lex(R))
 	groebner_basis(I, complete_reduction=true)
 	G = Oscar._fglm(I.gb[degrevlex([x, y])], lex(R))
-	@test gens(G) == fmpq_mpoly[y^4 + 1, x + y^3]
+	@test gens(G) == QQMPolyRingElem[y^4 + 1, x + y^3]
 	J = ideal(R, [x])
 	@test_throws ErrorException groebner_basis(J, algorithm=:fglm)
 	J.gb = Dict()
@@ -169,15 +169,15 @@ end
 	@test haskey(I.gb, degrevlex(R))
 	@test I.gb[degrevlex(R)].isReduced
 	@test haskey(I.gb, lex(R))
-	@test gens(I.gb[lex(R)]) == fmpq_mpoly[y^4 + 1, x + y^3]
-	R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
+	@test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^4 + 1, x + y^3]
+	R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
 	I = ideal(R, [x*y-1, x^2+y^2])
 	@test_throws ErrorException groebner_basis(I, algorithm=:fglm)
 	@test_throws ErrorException fglm(I, destination_ordering=lex(R))
 end
 
 @testset "groebner hilbert driven" begin
-  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
@@ -185,7 +185,7 @@ end
   I = ideal([x*(x+y), x^2 - y^2 + (x-2*y) * y])
   gb = standard_basis(I, ordering = deglex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = deglex(R))
-  R, (x, y) = PolynomialRing(GF(65521), ["x", "y"])
+  R, (x, y) = polynomial_ring(GF(65521), ["x", "y"])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))

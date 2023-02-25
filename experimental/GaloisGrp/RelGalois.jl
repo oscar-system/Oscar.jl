@@ -14,7 +14,7 @@ function galois_group(mkK::Map{AnticNumberField, AnticNumberField})
   return image(h)[1]
 end
 
-function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
+function GaloisCtx(f::PolyRingElem{nf_elem}, P::NfOrdIdl)
   k = base_ring(f)
   @assert k == nf(order(P))
   zk = order(P)
@@ -48,11 +48,11 @@ function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
   # [4] as the namse suggest
   # [5] the denominator used, f'(alpha), the Kronnecker rep
 
-  C.B = add_ring()(maximum([iroot(ceil(fmpz, length(x)), 2)+1 for x = coefficients(f)]))
+  C.B = add_ring()(maximum([iroot(ceil(ZZRingElem, length(x)), 2)+1 for x = coefficients(f)]))
   return C
 end
 
-function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f)+1, prime::Any = 0)
+function find_prime(f::PolyRingElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f)+1, prime::Any = 0)
   if prime !== 0
     @assert isa(prime, NfOrdIdl)
     return prime, Set{CycleType}()
@@ -170,7 +170,7 @@ function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = t
 end
   
 
-function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, x::qadic)
+function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}, x::qadic)
   P = C.C.P
   zk = order(P)
   if any(i->!iszero(coeff(x, i)), 1:length(x)-1)
@@ -185,7 +185,7 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, x::q
   x *= map_coeff(C, C.data[5]) #the den
   a = nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
   a = a*inv(C.data[5])
-  if ceil(fmpz, length(a)) <= value(y)^2
+  if ceil(ZZRingElem, length(a)) <= value(y)^2
     return true, a
   else
     return false, a
@@ -197,11 +197,11 @@ function map_coeff(C::GaloisCtx{Hecke.vanHoeijCtx}, x)
   return coeff(C.data[1](x), 0)
 end
 
-function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, extra::Int = 0)
+function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}, extra::Int = 0)
   #the bound is a bound on the sqrt(T_2(x)). This needs to be used with the norm_change stuff
   #and possible denominators and such. Possibly using Kronecker...
   c1, c2 = C.data[4] # the norm-change-const
-  v = value(y) + iroot(ceil(fmpz, length(C.data[5])), 2)+1 #correct for den
+  v = value(y) + iroot(ceil(ZZRingElem, length(C.data[5])), 2)+1 #correct for den
   #want to be able to detect x in Z_k of T_2(x) <= v^2
   #if zk = order(C.C.P) is (known to be) maximal, 2-norm of coeff. vector squared < c2*v^2
   #otherwise, we need tpo multiply by f'(alpha) (increasing the size), revover and divide
@@ -215,7 +215,7 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fm
   return N
 end
 
-function galois_group(f::PolyElem{nf_elem}, ::FlintRationalField)
+function galois_group(f::PolyRingElem{nf_elem}, ::QQField)
   @assert isirreducible(f)
 
   g = f

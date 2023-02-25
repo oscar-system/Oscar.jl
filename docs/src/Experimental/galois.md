@@ -66,7 +66,7 @@ The main information is included in the number field chapter, see
 
   - [`subfields(K::SimpleNumField; degree::Int = -1)`](@ref)
   - [`Hecke.principal_subfields(K::SimpleNumField)`](@ref)
-  - [`subfields(FF::Generic.FunctionField{fmpq})`](@ref)
+  - [`subfields(FF::Generic.FunctionField{QQFieldElem})`](@ref)
 
 By setting `set_verbose_level(:Subfields, n::Int)` to 1 or 2
 information about the progress can be obtained.
@@ -88,7 +88,7 @@ Information about the progress is available via
 
 ```@docs
 galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
-galois_group(f::PolyElem{<:FieldElem})
+galois_group(f::PolyRingElem{<:FieldElem})
 ```
 
 Over the rational function field, we can also compute the monodromy group:
@@ -104,10 +104,10 @@ julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 
 julia> subfields(F)
 4-element Vector{Any}:
- (Function Field over Rational Field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
- (Function Field over Rational Field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
  (Function Field over Rational Field with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over Rational Field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
  (Function Field over Rational Field with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
+ (Function Field over Rational Field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
 
 julia> galois_group(F)
 (Group([ (), (1,5)(2,3)(4,6), (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
@@ -153,8 +153,8 @@ julia> r = roots(C, 5)
 4-element Vector{qadic}:
  5*11^0 + 2*11^1 + 6*11^2 + 8*11^3 + 11^4 + O(11^5)
  6*11^0 + 8*11^1 + 4*11^2 + 2*11^3 + 9*11^4 + O(11^5)
- (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)
  (11^0 + 6*11^1 + 6*11^2 + 2*11^4 + O(11^5))*a + 9*11^0 + 4*11^1 + 6*11^2 + 7*11^3 + 11^4 + O(11^5)
+ (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)
 
 julia> r[1]^2
 3*11^0 + O(11^5)
@@ -170,7 +170,7 @@ roots an element in the splitting field. In case the evaluation is
 actually an integer, this can be proven with the tools provided.
 
 ```jldoctest galois1
-julia> I, s = PolynomialRing(ZZ, 4);
+julia> I, s = polynomial_ring(ZZ, 4);
 
 julia> s[1]^2
 x1^2
@@ -212,7 +212,7 @@ symmetric functions evaluated at the roots:
 
 ```jldoctest galois1
 julia> o = collect(orbit(G, s[1]+s[3]))
-4-element Vector{fmpz_mpoly}:
+4-element Vector{ZZMPolyRingElem}:
  x1 + x3
  x1 + x4
  x2 + x4
@@ -268,19 +268,19 @@ julia> Oscar.GaloisGrp.isinteger(C, B, evaluate(prod(s), roots(C, pr)))
 galois_quotient(C::Oscar.GaloisGrp.GaloisCtx, Q::PermGroup)
 galois_quotient(C::Oscar.GaloisGrp.GaloisCtx, d::Int)
 galois_quotient(C::Oscar.GaloisGrp.GaloisCtx, d::Int, n::Int)
-galois_quotient(f::PolyElem, p::Vector{Int})
+galois_quotient(f::PolyRingElem, p::Vector{Int})
 fixed_field(GC::Oscar.GaloisGrp.GaloisCtx, U::PermGroup, extra::Int = 5)
 minpoly(C::Oscar.GaloisGrp.GaloisCtx, I, extra::Int = 5)
 ```
 
 ```@docs
-Oscar.GaloisGrp.cauchy_ideal(f::PolyElem{<:FieldElem})
+Oscar.GaloisGrp.cauchy_ideal(f::PolyRingElem{<:FieldElem})
 Oscar.GaloisGrp.galois_ideal(C::Oscar.GaloisGrp.GaloisCtx, extra::Int = 5)
 ```
 
 Over the integers, if the Galois group is solvable, the roots can be expressed 
 as radicals:
 ```@docs
-solve(f::fmpz_poly)
+solve(f::ZZPolyRingElem)
 fixed_field(C::Oscar.GaloisGrp.GaloisCtx, s::Vector{PermGroup})
 ```

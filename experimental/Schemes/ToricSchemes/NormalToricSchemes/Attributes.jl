@@ -9,10 +9,10 @@ its toric origin.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 
 julia> underlying_scheme(toric_scheme)
 covered scheme with 3 affine patches in its default covering
@@ -31,13 +31,13 @@ the underlying normal toric variety.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 
 julia> normal_toric_variety(toric_scheme)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 normal_toric_variety(X::ToricCoveredScheme) = X.ntv
@@ -53,13 +53,13 @@ the fan of the underlying toric variety.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{fmpq}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 
 julia> fan(toric_scheme)
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 ```
 """
 fan(X::ToricCoveredScheme) = fan(normal_toric_variety(X))

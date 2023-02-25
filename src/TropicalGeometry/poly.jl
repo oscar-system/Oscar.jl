@@ -5,7 +5,7 @@
 export tropical_polynomial
 
 @doc Markdown.doc"""
-    tropical_polynomial(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+    tropical_polynomial(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
 on which a function `valuation` is defined such as `PadicField(7,2)`),
@@ -30,7 +30,7 @@ julia> tropical_polynomial(f,max)
 (-1)*x + y + (-2)
 ```
 """
-function tropical_polynomial(f::MPolyElem, M::Union{typeof(min),typeof(max)}=min)
+function tropical_polynomial(f::MPolyRingElem, M::Union{typeof(min),typeof(max)}=min)
   T = TropicalSemiring(M)
   if M==min
     s=1
@@ -38,7 +38,7 @@ function tropical_polynomial(f::MPolyElem, M::Union{typeof(min),typeof(max)}=min
     s=-1
   end
 
-  Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
+  Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)
 
   if base_ring(parent(f)) isa NonArchLocalField
@@ -57,15 +57,15 @@ end
 
 
 @doc Markdown.doc"""
-    tropical_polynomial(f::MPolyElem,val::TropicalSemiringMap)
+    tropical_polynomial(f::MPolyRingElem,val::TropicalSemiringMap)
 
 Given a polynomial `f` and a tropical semiring map `val`,
 returns the tropicalization of `f` as a polynomial over the tropical semiring.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ,["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x,y) = polynomial_ring(QQ,["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> val = TropicalSemiringMap(QQ,7)
 The 7-adic valuation on Rational Field
@@ -77,9 +77,9 @@ julia> tropical_polynomial(f,val)
 (1)*x + y + (2)
 ```
 """
-function tropical_polynomial(f::MPolyElem, val::TropicalSemiringMap)
+function tropical_polynomial(f::MPolyRingElem, val::TropicalSemiringMap)
   T = TropicalSemiring(val)
-  Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
+  Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)
 
   for (c,alpha) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))

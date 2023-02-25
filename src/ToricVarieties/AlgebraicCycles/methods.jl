@@ -6,7 +6,7 @@ function Base.:*(ac::RationalEquivalenceClass, sv::ClosedSubvarietyOfToricVariet
     if toric_variety(ac) !== toric_variety(sv)
         throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
-    return ac * RationalEquivalenceClass(sv)
+    return ac * rational_equivalence_class(sv)
 end
 
 
@@ -14,5 +14,5 @@ function Base.:*(sv::ClosedSubvarietyOfToricVariety, ac::RationalEquivalenceClas
     if toric_variety(ac) !== toric_variety(sv)
         throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
-    return ac * RationalEquivalenceClass(sv)
+    return ac * rational_equivalence_class(sv)
 end

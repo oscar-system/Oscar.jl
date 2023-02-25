@@ -79,10 +79,10 @@ for (p,d) in [(2,1), (17,1), (17,2)]
   mats["GAP GF($p,$d)"] = one(GL(n,q))
   mats["raw GAP GF($p,$d)"] = one(GL(n,q)).X
   mats["GF($p,$d)"] = identity_matrix(GF(p,d), n)
-  mats["GF(fmpz($p),$d)"] = identity_matrix(GF(fmpz(p),d), n)
+  mats["GF(ZZRingElem($p),$d)"] = identity_matrix(GF(ZZRingElem(p),d), n)
   if d == 1
     mats["Oscar GF($p)"] = identity_matrix(GF(p), n)
-    mats["Oscar GF(fmpz($p))"] = identity_matrix(GF(fmpz(p)), n)
+    mats["Oscar GF(ZZRingElem($p))"] = identity_matrix(GF(ZZRingElem(p)), n)
   end
   testdata["GF($p,$d)"] = mats
 end

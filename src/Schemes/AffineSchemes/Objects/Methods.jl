@@ -57,7 +57,7 @@ julia> X = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1, x2, x3) = gens(OO(X))
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -77,18 +77,18 @@ function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::MPolyQuoElem, X::AbsSpec{<:Ring, <:MPolyQuo})
+function is_non_zero_divisor(f::MPolyQuoRingElem, X::AbsSpec{<:Ring, <:MPolyQuoRing})
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))
   J = ideal(R, lift(f))
   return I == quotient(I, J)
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyLocRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
   I = ideal(OO(X), [zero(OO(X))])
   zero_ideal = Oscar.pre_image_ideal(I)
   J = Oscar.pre_image_ideal(ideal(OO(X), [f]))

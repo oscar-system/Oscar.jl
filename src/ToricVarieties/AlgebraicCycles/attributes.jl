@@ -12,16 +12,16 @@ equivalence class of algebraic cycles.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> toric_variety(ac)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 toric_variety(ac::RationalEquivalenceClass) = ac.v
@@ -39,24 +39,24 @@ rational equivalence class of algebraic cycles.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> polynomial(ac)
 6*x3 + e1 + 7*e2
 ```
 """
 polynomial(ac::RationalEquivalenceClass) = ac.p
-export p
+export polynomial
 
 
 @doc Markdown.doc"""
-    polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
+    polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
 
 On a simplicial and complete toric variety, the Chow ring
 is isomorphic to a certain quotient of the Cox ring. This
@@ -69,19 +69,19 @@ ring if desired.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
-julia> R, _ = PolynomialRing(QQ, 5)
-(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, fmpq_mpoly[x1, x2, x3, x4, x5])
+julia> R, _ = polynomial_ring(QQ, 5)
+(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, QQMPolyRingElem[x1, x2, x3, x4, x5])
 
 julia> (x1, x2, x3, x4, x5) = gens(R)
-5-element Vector{fmpq_mpoly}:
+5-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -98,7 +98,7 @@ julia> polynomial(R_quo, ac)
 6*x3 + x4 + 7*x5
 ```
 """
-function polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
+function polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
     p = polynomial(ac)
     if iszero(p)
         return zero(ring)
@@ -125,22 +125,22 @@ Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> ac*ac
-A rational equivalence class on a normal toric variety represented by 34V(x2,x3)
+Rational equivalence class on a normal toric variety represented by 34V(x2,x3)
 
 julia> representative(ac*ac)
 34*x2*x3
 ```
 """
-@attr MPolyElem_dec{fmpq, fmpq_mpoly} function representative(ac::RationalEquivalenceClass)
+@attr MPolyDecRingElem{QQFieldElem, QQMPolyRingElem} function representative(ac::RationalEquivalenceClass)
     if is_trivial(ac)
         return zero(cox_ring(toric_variety(ac)))
     end
@@ -159,22 +159,22 @@ Return the coefficients of `polynomial(ac)`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> coefficients(ac*ac)
-1-element Vector{fmpq}:
+1-element Vector{QQFieldElem}:
  -34
 ```
 """
-@attr Vector{fmpq} function coefficients(ac::RationalEquivalenceClass)
+@attr Vector{QQFieldElem} function coefficients(ac::RationalEquivalenceClass)
     if is_trivial(ac)
-        return fmpq[]
+        return QQFieldElem[]
     end
     return [coefficient_ring(toric_variety(ac))(k) for k in AbstractAlgebra.coefficients(polynomial(ac).f)]
 end
@@ -195,13 +195,13 @@ class is identical to the one given to this method.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> length(components(ac*ac))
 1
@@ -215,7 +215,7 @@ julia> length(components(ac*ac))
     gs = gens(cox_ring(toric_variety(ac)))
     mons = [m for m in monomials(representative(ac))]
     expos = [[e for e in AbstractAlgebra.exponent_vectors(m)][1] for m in mons]
-    return [ClosedSubvarietyOfToricVariety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
+    return [closed_subvariety_of_toric_variety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
 end
 export components
 
@@ -234,16 +234,16 @@ equilvalence class of algebraic cycles.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> ac = RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+julia> ac = rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> cohomology_class(ac)
-A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 ```
 """
 @attr CohomologyClass cohomology_class(ac::RationalEquivalenceClass) = CohomologyClass(toric_variety(ac), polynomial(cohomology_ring(toric_variety(ac)),ac))

@@ -65,7 +65,7 @@ end
   U = affine_charts(X)
   TC1 = incTC(U[1])
   @test TC1 === incTC(U[1])
-  @test incTC(U[1]) isa SubQuo
+  @test incTC(U[1]) isa SubquoModule
   U21 = PrincipalOpenSubset(U[2], dehomogenize(IP, 1)(x))
   U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
@@ -100,11 +100,13 @@ end
   J = ideal(S, [x-z, y])
   JJ = IdealSheaf(IP, J)
   JJC = pullback(inc, JJ)
-  IP_Bl_C = blow_up(JJC)
-  Bl_C = covered_scheme(IP_Bl_C)
-  p = covered_projection_to_base(IP_Bl_C)
+  blow_down_map = blow_up(JJC)
+  Bl_C = domain(blow_down_map)
+  p = projection(blow_down_map)
   p_star = pullback(p)
   p_star_LC = p_star(LC)
+  @test p_star_LC isa Oscar.AbsCoherentSheaf
+  @test scheme(p_star_LC) === Bl_C
 
   for U in affine_charts(Bl_C)
     @test p_star_LC(U) isa FreeMod
@@ -151,7 +153,6 @@ end
   PT = oscar.projectivization(T)
   PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
 end
-
 
 @testset "direct sums of sheaves" begin
   IP = projective_space(QQ, ["x", "y", "z", "w"])

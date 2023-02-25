@@ -46,7 +46,7 @@ Print the object in LP format to stdout:
 
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
@@ -67,7 +67,7 @@ GENERAL
 END
 ```
 """
-function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
   _internal_save_lp(target,
                     pm_object(feasible_region(lp)),
                     pm_object(lp),
@@ -85,7 +85,7 @@ Print the object in MPS format to stdout:
 
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
@@ -119,7 +119,7 @@ BOUNDS
 ENDATA
 ```
 """
-function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
   _internal_save_mps(target,
                      pm_object(feasible_region(lp)),
                      pm_object(lp))

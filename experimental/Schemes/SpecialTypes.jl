@@ -4,13 +4,13 @@ export image_ideal
 
 export ideal_type
 
-function is_constant(a::MPolyLocalizedRingElem) 
+function is_constant(a::MPolyLocRingElem) 
   reduce_fraction(a)
   return is_constant(numerator(a)) && is_constant(denominator(a))
 end
 
 ### Already implemented in AA -- but probably buggy?
-#function is_zero_divisor(f::MPolyElem)
+#function is_zero_divisor(f::MPolyRingElem)
 #  iszero(f) && return true
 #  if is_constant(f)
 #    c = AbstractAlgebra.coefficients(f)[1]
@@ -19,7 +19,7 @@ end
 #  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 #end
 
-function is_zero_divisor(f::MPolyLocalizedRingElem)
+function is_zero_divisor(f::MPolyLocRingElem)
   iszero(f) && return true
   if is_constant(f)
     c = first(AbstractAlgebra.coefficients(numerator(f)))
@@ -31,7 +31,7 @@ end
 ### The following method is only implemented when the coefficient ring is a field.
 # The code should be valid generically, but the Singular backend needed for the 
 # ideal quotient is probably buggy for non-fields.
-function is_zero_divisor(f::MPolyQuoElem{<:MPolyElem{<:FieldElem}})
+function is_zero_divisor(f::MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}})
   iszero(f) && return true
   b = simplify(f)
   # The next block is basically useless when the coefficient ring is 
@@ -45,7 +45,7 @@ function is_zero_divisor(f::MPolyQuoElem{<:MPolyElem{<:FieldElem}})
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 end
 
-function is_zero_divisor(f::MPolyQuoLocalizedRingElem{<:Field})
+function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
   iszero(f) && return true
   # The next block is basically useless when the coefficient ring is 
   # a field, because it is merely another `is_zero`-check. However, 

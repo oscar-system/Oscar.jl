@@ -52,6 +52,8 @@ function _iso_gap_oscar(F::GAP.GapObj)
      return _iso_gap_oscar_ring_integers(F)
    elseif GAPWrap.IsUnivariatePolynomialRing(F)
      return _iso_gap_oscar_univariate_polynomial_ring(F)
+   elseif GAPWrap.IsPolynomialRing(F)
+     return _iso_gap_oscar_multivariate_polynomial_ring(F)
    end
 
    error("no method found")
@@ -60,9 +62,9 @@ end
 function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
    n = GAPWrap.Size(RG)
    if n isa GAP.GapObj
-     n = fmpz(n)
+     n = ZZRingElem(n)
    end
-   RO = ResidueRing(ZZ, n)
+   RO = residue_ring(ZZ, n)
 
    finv, f = _iso_oscar_gap_residue_ring_functions(RO, RG)
 
@@ -70,10 +72,10 @@ function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
 end
 
 function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
-   p = characteristic(FG)  # of type `fmpz`
+   p = characteristic(FG)  # of type `ZZRingElem`
    d = GAP.Globals.DegreeOverPrimeField(FG)
    if d == 1
-     if p < fmpz(2)^64
+     if p < ZZRingElem(2)^64
        p = UInt64(p)
      end
      FO = GF(p)
@@ -116,12 +118,20 @@ end
 
 function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
    coeffs_iso = iso_gap_oscar(GAP.Globals.LeftActingDomain(RG))
-   RO, x = PolynomialRing(codomain(coeffs_iso), "x")
+   RO, x = polynomial_ring(codomain(coeffs_iso), "x")
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
 
    return MapFromFunc(f, finv, RG, RO)
 end
 
+function _iso_gap_oscar_multivariate_polynomial_ring(RG::GAP.GapObj)
+   coeffs_iso = iso_gap_oscar(GAP.Globals.LeftActingDomain(RG))
+   nams = [string(x) for x in GAP.Globals.IndeterminatesOfPolynomialRing(RG)]
+   RO, x = polynomial_ring(codomain(coeffs_iso), nams)
+   finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
+
+   return MapFromFunc(f, finv, RG, RO)
+end
 
 # Use a GAP attribute for caching the mapping.
 # The following must be executed at runtime,

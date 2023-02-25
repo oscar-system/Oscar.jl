@@ -133,3 +133,16 @@ can find details of the specification
 More details on the serialization, albeit concerning the older XML format, can be
 found in [GHJ16](@cite). Even though the underlying format changed to JSON, the
 abstract mathematical structure of the data files is still the same.
+
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Taylor Brysiewicz](https://sites.google.com/view/taylorbrysiewicz/home),
+* [Michael Joswig](https://page.math.tu-berlin.de/~joswig/),
+* [Lars Kastner](https://lkastner.github.io/),
+* Benjamin Lorenz.
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

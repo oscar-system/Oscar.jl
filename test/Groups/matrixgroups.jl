@@ -30,7 +30,7 @@
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
-   T,t = PolynomialRing(GF(3) ,"t")
+   T,t = polynomial_ring(GF(3) ,"t")
    F,z = FiniteField(t^2+1,"z")
    G = GL(3,F)
    @test G.X isa GAP.GapObj
@@ -157,7 +157,7 @@ end
 
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -169,7 +169,7 @@ end
    @test !isdefined(G,:ring_iso)
 
    @test order(G)==5760
-   @test order(G) isa fmpz
+   @test order(G) isa ZZRingElem
    @test order(Int64, G) isa Int64
    @test order(Int64, SL(2,F))==720
    @test isdefined(G,:X)
@@ -376,7 +376,7 @@ end
 end
 
 @testset "Membership" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -427,7 +427,7 @@ end
 end
 
 @testset "Methods on elements" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -449,7 +449,7 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
-   @test x*matrix(y) isa fq_nmod_mat
+   @test x*matrix(y) isa fqPolyRepMatrix
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
@@ -470,7 +470,7 @@ end
 end
 
 @testset "Subgroups" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -495,7 +495,7 @@ end
 end
 
 @testset "Cosets and conjugacy classes" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -538,7 +538,7 @@ end
 
 @testset "Jordan structure" begin
    F = GF(3, 1)
-   R,t = PolynomialRing(F,"t")
+   R,t = polynomial_ring(F,"t")
    G = GL(9,F)
 
    L_big = [
@@ -575,7 +575,7 @@ end
 
    F,z = FiniteField(5,3,"z")
    G = GL(6,F)
-   R,t = PolynomialRing(F,"t")
+   R,t = polynomial_ring(F,"t")
    f = t^3+t*z+1
    x = generalized_jordan_block(f,2)
    @test generalized_jordan_block(f,2)==hvcat((2,2),companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f))
@@ -587,8 +587,8 @@ end
    @test_throws ErrorException Oscar._elem_given_det(G(x),z)
 
    @testset "Low-level methods in linear_centralizer.jl" begin
-      @test Oscar._SL_order(3,fmpz(8))== fmpz(div(prod([8^3-8^i for i in 0:2]),7))
-      @test Oscar._SL_order(4, GF(3, 1))== fmpz(div(prod([3^4-3^i for i in 0:3]),2))
+      @test Oscar._SL_order(3,ZZRingElem(8))== ZZRingElem(div(prod([8^3-8^i for i in 0:2]),7))
+      @test Oscar._SL_order(4, GF(3, 1))== ZZRingElem(div(prod([3^4-3^i for i in 0:3]),2))
       L = Oscar._gens_for_GL(1,GF(7, 1))
       @test length(L)==1
       @test L[1]^2 !=1 && L[1]^3 !=1
@@ -600,7 +600,7 @@ end
       L = Oscar._gens_for_GL(5,GF(2, 1))
       @test length(L)==2
       @test matrix_group(L...)==GL(5,GF(2, 1))
-      _,t = PolynomialRing(GF(3, 1),"t")
+      _,t = polynomial_ring(GF(3, 1),"t")
       f = t^2+t-1
       L = Oscar._gens_for_GL_matrix(f,2,GF(3, 1); D=2)
       @test length(L)==2
@@ -632,7 +632,7 @@ end
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 
-   Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
+   Qx, x = polynomial_ring(FlintQQ, "x", cached = false)
    f = x^2-2;
    K, a = number_field(f)
    D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);

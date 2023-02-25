@@ -12,7 +12,7 @@ import Oscar: IJuliaMime
 
 mutable struct PartialCharacter{T}
   #A has generators of the lattice in rows
-  A::fmpz_mat
+  A::ZZMatrix
 	#images of the generators are saved in b
   b::Vector{T}
 	#Delta are the indices of the cellular variables of the associated ideal
@@ -22,7 +22,7 @@ mutable struct PartialCharacter{T}
     return new{T}()
   end
 
-  function PartialCharacter{T}(mat::fmpz_mat, vals::Vector{T}) where T
+  function PartialCharacter{T}(mat::ZZMatrix, vals::Vector{T}) where T
     z = new{T}()
     z.A = mat
     z.b = vals
@@ -30,7 +30,7 @@ mutable struct PartialCharacter{T}
   end
 end
 
-function partial_character(A::fmpz_mat, vals::Vector{T}, variables::Set{Int} = Set{Int}()) where T <: FieldElem
+function partial_character(A::ZZMatrix, vals::Vector{T}, variables::Set{Int} = Set{Int}()) where T <: FieldElem
   @assert nrows(A) == length(vals)
   z = PartialCharacter{T}(A, vals)
   if !isempty(variables)
@@ -39,7 +39,7 @@ function partial_character(A::fmpz_mat, vals::Vector{T}, variables::Set{Int} = S
   return z
 end
 
-function (Chi::PartialCharacter)(b::fmpz_mat)
+function (Chi::PartialCharacter)(b::ZZMatrix)
   @assert nrows(b) == 1
   @assert Nemo.ncols(b) == Nemo.ncols(Chi.A)
   s = can_solve_with_solution(Chi.A, b, side = :left)
@@ -47,7 +47,7 @@ function (Chi::PartialCharacter)(b::fmpz_mat)
   return evaluate(FacElem(Dict([(Chi.b[i], s[2][1, i]) for i = 1:length(Chi.b)])))
 end
 
-function (Chi::PartialCharacter)(b::Vector{fmpz})
+function (Chi::PartialCharacter)(b::Vector{ZZRingElem})
   return Chi(matrix(FlintZZ, 1, length(b), b))
 end
 
@@ -55,7 +55,7 @@ function have_same_domain(P::PartialCharacter, Q::PartialCharacter)
   return have_same_span(P.A, Q.A)
 end
 
-function have_same_span(A::fmpz_mat, B::fmpz_mat)
+function have_same_span(A::ZZMatrix, B::ZZMatrix)
   @assert ncols(A) == ncols(B)
   return hnf(A) == hnf(B)
 end
@@ -106,7 +106,7 @@ function saturations(L::PartialCharacter{QQAbElem{T}}) where T
         break
       end
     end
-    mu = evaluate(FacElem(Dict(Tuple{QQAbElem{T}, fmpz}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
+    mu = evaluate(FacElem(Dict(Tuple{QQAbElem{T}, ZZRingElem}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
 		mu1 = roots(mu, Int(div(d, c)))
     push!(B,  mu1)
   end

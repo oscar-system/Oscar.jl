@@ -8,25 +8,25 @@ If so, the function returns `true` and otherwise
 # Examples
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
-A normal, affine toric variety
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> is_smooth(affine_toric_scheme)
 true
 
 julia> C2 = positive_hull([-1 1; 1 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
-julia> antv2 = AffineNormalToricVariety(C2)
-A normal, affine toric variety
+julia> antv2 = affine_normal_toric_variety(C2)
+Normal, affine toric variety
 
 julia> affine_toric_scheme2 = ToricSpec(antv2)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[-1, 1], [1, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[-1, 1], [1, 1]]
 
 julia> is_smooth(affine_toric_scheme2)
 false
@@ -46,13 +46,13 @@ If so, the function returns `true` and otherwise
 # Examples
 ```jldoctest
 julia> C = positive_hull([-1 1; 1 1])
-A polyhedral cone in ambient dimension 2
+Polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
-A normal, affine toric variety
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[-1, 1], [1, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[-1, 1], [1, 1]]
 
 julia> is_smooth(affine_toric_scheme)
 false

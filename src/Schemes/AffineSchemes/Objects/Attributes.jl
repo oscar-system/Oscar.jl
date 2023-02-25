@@ -78,7 +78,7 @@ julia> ambient_space(Z) == X
 true
 
 julia> V = hypersurface_complement(Y, y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[y]
 
 julia> ambient_space(V) == X
 true
@@ -92,8 +92,8 @@ In each case the ambient affine space is given by `Spec(P)`.
 
 # Examples
 ```jldoctest ambient_via_spec
-julia> P, (x, y) = PolynomialRing(QQ, [:x, :y])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> P, (x, y) = polynomial_ring(QQ, [:x, :y])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> X = Spec(P)
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
@@ -120,12 +120,12 @@ julia> ambient_space(Z) == X
 true
 
 julia> U = powers_of_element(y)
-powers of fmpq_mpoly[y]
+powers of QQMPolyRingElem[y]
 
 julia> URmodI, _ = localization(RmodI, U);
 
 julia> V = Spec(URmodI)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[y]
 
 julia> ambient_space(V) == X
 true
@@ -154,7 +154,7 @@ function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
+@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return Spec(ambient_coordinate_ring(X))
 end
 
@@ -248,7 +248,7 @@ julia> X = affine_space(QQ, [:x,:y])
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> (x, y) = coordinates(X)
-2-element Vector{fmpq_mpoly}:
+2-element Vector{QQMPolyRingElem}:
  x
  y
 
@@ -256,7 +256,7 @@ julia> Y = subscheme(X, [x])
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
 julia> (xY, yY) = coordinates(Y)
-2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
  x
  y
 
@@ -311,11 +311,11 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
   return dim(saturated_ideal(modulus(OO(X))))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing})
   # the following line is supposed to refer the problem to the
   # algebra side of the problem
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
@@ -325,7 +325,7 @@ end
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuo})
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoRing})
   return dim(modulus(OO(X)))
 end
 
@@ -349,7 +349,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -413,8 +413,8 @@ This command relies on [`radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> J = ideal(R,[(x-y)^2])
 ideal(x^2 - 2*x*y + y^2)
@@ -423,21 +423,40 @@ julia> X = Spec(R,J)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
 
 julia> Y = Spec(R,J,U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
 
 julia> reduced_scheme(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
+
+with coordinates
+
+	y, y)
 
 julia> reduced_scheme(Y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0], morphism from
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
+
+to
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
+
+with coordinates
+
+	x, y)
 
 ```
 """
-
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
@@ -445,7 +464,7 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Ra
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
   J = radical(modulus(OO(X)))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
   return domain(inc), inc
@@ -464,7 +483,7 @@ end
 ### TODO: The following two functions (singular_locus, 
 ###       singular_locus_reduced) need to be made type-sensitive 
 ###       and reduced=true needs to be set automatically for varieties 
-###       as soon as not only schemes, but also varieties as separte
+###       as soon as not only schemes, but also varieties as separate
 ###       type have been introduced in OSCAR
 ### TODO: Make singular locus also available for projective schemes and
 ###       for covered schemes (using the workhorse here...).
@@ -487,7 +506,7 @@ See also [`is_smooth`](@ref).
 # Examples
 ``` jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x^2 - y^2 + z^2])
 ideal(x^2 - y^2 + z^2)
@@ -525,19 +544,19 @@ with coordinates
 	0, 0, 0)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 julia> Y = Spec(R,I,U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 julia> singular_locus(Y)
-(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], morphism from
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0], morphism from
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 to
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 with coordinates
 
@@ -588,7 +607,7 @@ See also [`is_smooth`](@ref).
 # Examples
 ``` jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])
 ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
@@ -648,7 +667,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   empty = typeof(X)[]
   result = empty
 
-# equidimensional decompositon to allow Jacobi criterion on each component
+# equidimensional decomposition to allow Jacobi criterion on each component
   P = Ideal[]
 
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 
@@ -725,7 +744,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -744,9 +763,9 @@ true
 ```
 """
 @attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuo}) = modulus(OO(X))
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = saturated_ideal(modulus(OO(X)))
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
+@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = saturated_ideal(modulus(OO(X)))
 
 
 ########################################################################
@@ -756,9 +775,9 @@ ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = saturated_id
 OO(X::Spec) = X.OO
 base_ring(X::Spec) = X.kk
 ambient_coordinate_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
-ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
-ambient_coordinate_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
-ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyLocRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoLocRing}) = base_ring(OO(X))
 ambient_coordinate_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
 
 
@@ -778,9 +797,9 @@ base_ring_elem_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}
 base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
 
 poly_type(::Type{SpecType}) where {BRT, RT<:MPolyRing, SpecType<:AbsSpec{BRT, RT}} = elem_type(RT)
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuo{T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoRing{T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
 poly_type(X::AbsSpec) = poly_type(typeof(X))
 
 ring_type(::Type{Spec{BRT, RT}}) where {BRT, RT} = RT

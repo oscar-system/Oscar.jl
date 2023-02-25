@@ -4,7 +4,7 @@ export ToricSpec
   X::SpecType
   antv::AffineNormalToricVariety
   dual_cone::Cone
-  hb::fmpz_mat
+  hb::ZZMatrix
   function ToricSpec(antv::AffineNormalToricVariety; R::MPolyRing=base_ring(toric_ideal(antv)))
     Cdual = polarize(cone(antv))
     hb = matrix(ZZ, hilbert_basis(Cdual))

@@ -107,7 +107,7 @@
     end
   end
 
-  R, x = PolynomialRing(QQ, "x" => 1:3)
+  R, x = polynomial_ring(QQ, "x" => 1:3)
   C = Oscar.PowerProductCache(R, x)
   @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(Oscar.all_monomials(R, 3)))
   mons = Oscar.all_power_products_of_degree!(C, 3, true)

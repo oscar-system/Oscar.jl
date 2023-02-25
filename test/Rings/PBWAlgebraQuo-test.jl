@@ -4,8 +4,8 @@
   Q, M = quo(R, two_sided_ideal(R, [x]))
   (X, Y, Z) = gens(Q)
 
-  @test elem_type(Q) == PBWAlgQuoElem{fmpq, Singular.n_Q}
-  @test parent_type(X) == PBWAlgQuo{fmpq, Singular.n_Q}
+  @test elem_type(Q) == PBWAlgQuoElem{QQFieldElem, Singular.n_Q}
+  @test parent_type(X) == PBWAlgQuo{QQFieldElem, Singular.n_Q}
   @test coefficient_ring(R) == QQ
   @test coefficient_ring(X) == QQ
   @test base_ring(Q) == R
@@ -25,7 +25,7 @@ end
   @test string(one(R)) == "1"
 end
 
-function test_elem(Q::PBWAlgQuo{fmpq})
+function test_elem(Q::PBWAlgQuo{QQFieldElem})
   R = base_ring(Q)
   return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
 end

@@ -11,13 +11,13 @@ For convenience, we also support `structure_sheaf(variety)`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> structure_sheaf(v)
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = ToricLineBundle(v, zero(picard_group(v)))
+@attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = toric_line_bundle(v, zero(picard_group(v)))
 export structure_sheaf
 
 
@@ -30,13 +30,13 @@ For convenience, we also support `anticanonical_bundle(variety)`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> anticanonical_bundle(v)
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(ToricLineBundle(v, d) for d in torusinvariant_prime_divisors(v))
+@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(toric_line_bundle(v, d) for d in torusinvariant_prime_divisors(v))
 export anticanonical_bundle
 
 
@@ -49,10 +49,10 @@ For convenience, we also support `canonical_bundle(variety)`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> canonical_bundle(v)
-A toric line bundle on a normal toric variety
+Toric line bundle on a normal toric variety
 ```
 """
 @attr ToricLineBundle canonical_bundle(v::AbstractNormalToricVariety) = inv(anticanonical_bundle(v))

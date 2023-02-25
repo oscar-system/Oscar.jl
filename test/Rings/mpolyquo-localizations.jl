@@ -22,12 +22,12 @@
   f = (x^2 + y^2)
   T = MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
   I = ideal(R, f)
-  V = MPolyQuoLocalizedRing(R, I, T)
+  V = MPolyQuoLocRing(R, I, T)
 
   S = R
   U = MPolyPowersOfElement(S, [f-1])
   J = ideal(S, zero(S))
-  W = MPolyQuoLocalizedRing(S, J, U)
+  W = MPolyQuoLocRing(S, J, U)
 
   h = MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
   J1 = ideal(V, [x*(x-1), y*(y-3)])

@@ -4,7 +4,7 @@
 ###
 
 @doc Markdown.doc"""
-    valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
+    valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
 
 Return the valued weighted degree of a polynomial `f` with respect to valuation
 `val` and weight vector `w`. In other words, returns the tropicalized
@@ -15,7 +15,7 @@ weighted degree of the i-th term of `f`.
 
 # Examples
 ```jldoctest
-julia> Kxy, (x,y) = PolynomialRing(QQ,["x", "y"]);
+julia> Kxy, (x,y) = polynomial_ring(QQ,["x", "y"]);
 
 julia> val_2 = TropicalSemiringMap(QQ,2);
 
@@ -36,7 +36,7 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 
 ```
 """
-function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
+function valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
   # compute the weighted degrees shifted by the coefficient valuations
   vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))]
 
@@ -77,7 +77,7 @@ export valued_weighted_degree
 
 
 @doc Markdown.doc"""
-    initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
+    initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
 
 Return the initial form of `f` with respect to valuation `val` and weight `w`.
 If convention==min (default), it is computed in the min convention. If
@@ -88,7 +88,7 @@ Section 2.4 of [MS15](@cite).
 
 # Examples
 ```jldoctest
-julia> Kxy, (x,y) = PolynomialRing(QQ,["x", "y"]);
+julia> Kxy, (x,y) = polynomial_ring(QQ,["x", "y"]);
 
 julia> w = [1,1];
 
@@ -109,7 +109,7 @@ julia> Kt,t = RationalFunctionField(QQ,"t");
 
 julia> w = [1,1];
 
-julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
+julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
 
 julia> f = t*x+t*y+1;
 
@@ -121,7 +121,7 @@ julia> initial(f,val_t,w)       # polynomial over QQ
 ```jldoctest
 julia> Kt,t = RationalFunctionField(GF(32003),"t");
 
-julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
+julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
 
 julia> w = [1,1];
 
@@ -133,7 +133,7 @@ julia> initial(f,val_t,w)       # polynomial over QQ
 1
 ```
 """
-function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
+function initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
   # compute the maximal weighted degrees
   # todo (optional):
   # currently, we iterate over the entire polynomial to compute the (terms with) maximal valuated weighted degrees
@@ -152,7 +152,7 @@ function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation
   else
     t = val.valued_field(val.uniformizer_field)
   end
-  kx, x = PolynomialRing(val.residue_field,[repr(x) for x in gens(parent(f))])
+  kx, x = polynomial_ring(val.residue_field,[repr(x) for x in gens(parent(f))])
   R = val.valued_ring
   pi = val.residue_map
 

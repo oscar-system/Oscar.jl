@@ -3,10 +3,10 @@ export prime_ideal
 export rand, sets, issubset, units_of, simplify!, is_trivial
 import Base: issubset
 
-export MPolyLocalizedRing
+export MPolyLocRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
 
-export MPolyLocalizedRingElem
+export MPolyLocRingElem
 export numerator, denominator, fraction, parent, is_unit, divexact
 export reduce_fraction
 
@@ -67,7 +67,7 @@ mutable struct MPolyPowersOfElement{
   R::RingType # the parent ring
   a::Vector{RingElemType} # the list of elements whose powers belong to this set
 
-  function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyElem}
+  function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyRingElem}
     for f in a 
       parent(f) == R || error("element does not belong to the given ring")
       !iszero(f) || error("can not localize at the zero element")
@@ -81,7 +81,7 @@ end
 ambient_ring(S::MPolyPowersOfElement) = S.R
 
 ### additional constructors
-MPolyPowersOfElement(f::RET) where {RET<:MPolyElem} = MPolyPowersOfElement(parent(f), [f])
+MPolyPowersOfElement(f::RET) where {RET<:MPolyRingElem} = MPolyPowersOfElement(parent(f), [f])
 units_of(R::RT) where {RT<:MPolyRing} = MPolyPowersOfElement(R, [one(R)])
 
 ### additional functionality
@@ -107,7 +107,7 @@ end
 
 ### iteration 
 Base.iterate(U::MPolyPowersOfElement) = (length(U.a)>0 ? (U.a[1], 1) : nothing)
-Base.iterate(U::MPolyPowersOfElement, a::Tuple{<:MPolyElem, Int}) = (a[2] < length(U.a) ? (U.a[a[2]+1], a[2]+1) : nothing)
+Base.iterate(U::MPolyPowersOfElement, a::Tuple{<:MPolyRingElem, Int}) = (a[2] < length(U.a) ? (U.a[a[2]+1], a[2]+1) : nothing)
 Base.iterate(U::MPolyPowersOfElement, i::Int) = (i < length(U.a) ? (U.a[i+1], i+1) : nothing)
 
 is_trivial(U::MPolyPowersOfElement) = (U == units_of(ambient_ring(U)))
@@ -286,10 +286,10 @@ closed subset ``R\setminus m``, where ``m`` is the maximal ideal
 $$m = \langle x_1-a_1,\dots, x_n-a_n\rangle \subset R.$$
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> U = complement_of_point_ideal(R, [0, 0 ,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 ```
 """
@@ -308,7 +308,7 @@ return the multiplicatively closed subset ``R\setminus P.``
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -320,23 +320,23 @@ complement of ideal(x)
 complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false) = MPolyComplementOfPrimeIdeal(P; check)
 
 @doc Markdown.doc"""  
-    powers_of_element(f::MPolyElem)
+    powers_of_element(f::MPolyRingElem)
 
 Given an element `f` of a polynomial ring, return the multiplicatively 
 closed subset of the polynomial ring which is formed by the powers of `f`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> f = x
 x
 
 julia> U = powers_of_element(f)
-powers of fmpq_mpoly[x]
+powers of QQMPolyRingElem[x]
 ```
 """
-powers_of_element(f::MPolyElem) = MPolyPowersOfElement(f)
+powers_of_element(f::MPolyRingElem) = MPolyPowersOfElement(f)
 
 ### required getter functions
 ambient_ring(S::MPolyComplementOfKPointIdeal) = S.R
@@ -406,7 +406,7 @@ mutable struct MPolyProductOfMultSets{
   R::RingType
   U::Vector{<:AbsMPolyMultSet{BaseRingType, BaseRingElemType, RingType, RingElemType}}
 
-  function MPolyProductOfMultSets(R::RT, U::Vector{<:AbsMPolyMultSet{BRT, BRET, RT, RET}}) where {BRT<:Ring, BRET<:RingElement, RT<:MPolyRing, RET<:MPolyElem}
+  function MPolyProductOfMultSets(R::RT, U::Vector{<:AbsMPolyMultSet{BRT, BRET, RT, RET}}) where {BRT<:Ring, BRET<:RingElement, RT<:MPolyRing, RET<:MPolyRingElem}
     for s in U
       ambient_ring(s) == R || error("multiplicative set does not live in the given ring")
     end
@@ -711,19 +711,19 @@ Alternatively, write `T*U`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> T = complement_of_point_ideal(R, [0, 0 ,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 julia> f = x
 x
 
 julia> U = powers_of_element(f)
-powers of fmpq_mpoly[x]
+powers of QQMPolyRingElem[x]
 
 julia> S = product(T, U)
-product of the multiplicative sets [complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], powers of fmpq_mpoly[x]]
+product of the multiplicative sets [complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0], powers of QQMPolyRingElem[x]]
 ```
 """
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
@@ -921,7 +921,7 @@ end
 ########################################################################
 
 @Markdown.doc """
-    MPolyLocalizedRing{
+    MPolyLocRing{
         BaseRingType,
         BaseRingElemType,
         RingType,
@@ -937,7 +937,7 @@ The localization of a multivariate polynomial ring ``R = 𝕜[x₁,…,xₙ]`` o
 base field ``𝕜`` of type `BaseRingType` and with elements of type `RingElemType` 
 at a multiplicative set ``S ⊂ R`` of type `MultSetType`.
 """
-@attributes mutable struct MPolyLocalizedRing{
+@attributes mutable struct MPolyLocRing{
     BaseRingType,
     BaseRingElemType,
     RingType,
@@ -951,7 +951,7 @@ at a multiplicative set ``S ⊂ R`` of type `MultSetType`.
   R::RingType # The parent ring which is being localized
   S::MultSetType # The multiplicatively closed set that has been inverted 
 
-  function MPolyLocalizedRing(
+  function MPolyLocRing(
       R::RingType, 
       S::MultSetType
     ) where {RingType<:MPolyRing, MultSetType<:AbsMPolyMultSet}
@@ -964,12 +964,12 @@ at a multiplicative set ``S ⊂ R`` of type `MultSetType`.
 end
 
 ### required getter functions 
-base_ring(W::MPolyLocalizedRing) = W.R
-inverted_set(W::MPolyLocalizedRing) = W.S
+base_ring(W::MPolyLocRing) = W.R
+inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
-gens(W::MPolyLocalizedRing) = W.(gens(base_ring(W)))
-ngens(W::MPolyLocalizedRing) = ngens(base_ring(W))
+gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
+ngens(W::MPolyLocRing) = ngens(base_ring(W))
 
 ### required extension of the localization function
 @Markdown.doc """
@@ -980,7 +980,7 @@ Return the localization of `R` at `U`, together with the localization map.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -1008,7 +1008,7 @@ localization of Multivariate Polynomial Ring in x, y, z over Rational Field at t
 
 function Localization(S::AbsMPolyMultSet)
     R = ambient_ring(S)
-    Rloc = MPolyLocalizedRing(R, S)
+    Rloc = MPolyLocRing(R, S)
     #iota = MapFromFunc(x -> Rloc(x), R, Rloc)
     iota = hom(R, Rloc, Rloc.(gens(R)))
     return Rloc, iota
@@ -1021,7 +1021,7 @@ end
 
 ### Successive localizations are handled by the dispatch for products
 function Localization(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    W::MPolyLocRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   issubset(S, inverted_set(W)) && return W, identity_map(W)
@@ -1032,12 +1032,12 @@ function Localization(
 end
 
 ### additional constructors
-MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
+MPolyLocRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocRing(R, MPolyComplementOfPrimeIdeal(P))
 
-Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = Localization(MPolyPowersOfElement(R, v))
+Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyRingElem} = Localization(MPolyPowersOfElement(R, v))
 
 function Localization(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    W::MPolyLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     f::RET
   ) where {BRT, BRET, RT, RET<:RingElement}
   R = base_ring(W)
@@ -1048,13 +1048,13 @@ function Localization(
   end
   g = denominators(S)
   h = gcd(prod(g), f)
-  L = MPolyLocalizedRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
+  L = MPolyLocRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
   return L, MPolyLocalizedRingHom(W, L, hom(base_ring(W), L, L.(gens(base_ring(W)))), check=false)
   #return L, MapFromFunc((x->L(numerator(x), denominator(x), check=false)), W, L)
 end
 
 function Localization(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    W::MPolyLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     v::Vector{RET}
   ) where {BRT, BRET, RT, RET}
   V = W
@@ -1066,11 +1066,11 @@ function Localization(
 end
 
 ### generation of random elements 
-function rand(W::MPolyLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(W::MPolyLocRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return W(rand(base_ring(W), v1, v2, v3), rand(inverted_set(W), v1, v2, v3))
 end
 
-function rand(rng::Random.AbstractRNG, W::MPolyLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(rng::Random.AbstractRNG, W::MPolyLocRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return W(rand(rng, base_ring(W), v1, v2, v3), rand(rng, inverted_set(W), v1, v2, v3))
 end
 
@@ -1080,7 +1080,7 @@ end
 ########################################################################
 
 @Markdown.doc """
-    MPolyLocalizedRingElem{
+    MPolyLocRingElem{
         BaseRingType, 
         BaseRingElemType,
         RingType,
@@ -1094,7 +1094,7 @@ end
 
 Elements of localizations of polynomial rings.
 """
-mutable struct MPolyLocalizedRingElem{
+mutable struct MPolyLocRingElem{
     BaseRingType, 
     BaseRingElemType,
     RingType,
@@ -1106,11 +1106,11 @@ mutable struct MPolyLocalizedRingElem{
     MultSetType
   } 
 
-  W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+  W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
   frac::AbstractAlgebra.Generic.Frac{RingElemType}
 
-  function MPolyLocalizedRingElem(
-      W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType},
+  function MPolyLocRingElem(
+      W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType},
       f::AbstractAlgebra.Generic.Frac{RingElemType};
       check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
@@ -1125,20 +1125,20 @@ mutable struct MPolyLocalizedRingElem{
 end
 
 ### required getter functions 
-numerator(a::MPolyLocalizedRingElem) = numerator(a.frac)
+numerator(a::MPolyLocRingElem) = numerator(a.frac)
 
-denominator(a::MPolyLocalizedRingElem) = denominator(a.frac)
+denominator(a::MPolyLocRingElem) = denominator(a.frac)
 
-parent(a::MPolyLocalizedRingElem) = a.W
+parent(a::MPolyLocRingElem) = a.W
 
 ### additional getter functions
-fraction(a::MPolyLocalizedRingElem) = a.frac
+fraction(a::MPolyLocRingElem) = a.frac
 # to assure compatibility with generic code for MPolyQuoLocalizedRings:
-lifted_numerator(a::MPolyLocalizedRingElem) = numerator(a)
-lifted_denominator(a::MPolyLocalizedRingElem) = denominator(a)
+lifted_numerator(a::MPolyLocRingElem) = numerator(a)
+lifted_denominator(a::MPolyLocRingElem) = denominator(a)
 
 ### required conversions
-function (W::MPolyLocalizedRing{
+function (W::MPolyLocRing{
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -1151,10 +1151,10 @@ function (W::MPolyLocalizedRing{
     RingElemType<:RingElem, 
     MultSetType
   } 
-  return MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=false)
+  return MPolyLocRingElem(W, fraction_field(base_ring(W))(f), check=false)
 end
 
-(W::MPolyLocalizedRing{
+(W::MPolyLocRing{
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -1166,10 +1166,10 @@ end
     RingType<:Ring, 
     RingElemType<:RingElem, 
     MultSetType<:AbsMultSet
-  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
+  } = MPolyLocRingElem(W, fraction_field(base_ring(W))(base_ring(W)(f)), check=false)
 
 # Remove ambiguities
-(W::MPolyLocalizedRing{
+(W::MPolyLocRing{
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -1177,13 +1177,13 @@ end
     MultSetType
   })(f::BaseRingElemType) where {
     BaseRingType<:Ring, 
-    BaseRingElemType<:fmpz, 
+    BaseRingElemType<:ZZRingElem, 
     RingType<:Ring, 
     RingElemType<:RingElem, 
     MultSetType<:AbsMultSet
-  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
+  } = MPolyLocRingElem(W, fraction_field(base_ring(W))(base_ring(W)(f)), check=false)
 
-function (W::MPolyLocalizedRing{
+function (W::MPolyLocRing{
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -1196,11 +1196,11 @@ function (W::MPolyLocalizedRing{
     RingElemType, 
     MultSetType
   } 
-  return MPolyLocalizedRingElem(W, a//b, check=check)
+  return MPolyLocRingElem(W, a//b, check=check)
 end
 
 ### additional conversions
-(W::MPolyLocalizedRing{
+(W::MPolyLocRing{
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -1212,62 +1212,62 @@ end
     RingType, 
     RingElemType, 
     MultSetType
-  } = MPolyLocalizedRingElem(W, f, check=check)
+  } = MPolyLocRingElem(W, f, check=check)
 
 ### additional promotions 
-AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{BRT, BRET, RT, RET, MST}
 
-AbstractAlgebra.promote_rule(::Type{BRET}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{BRET}, ::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{BRT, BRET, RT, RET, MST}
 
-AbstractAlgebra.promote_rule(::Type{Integer}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{Integer}, ::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{BRT, BRET, RT, RET, MST}
 
-AbstractAlgebra.promote_rule(::Type{fmpz}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{ZZRingElem}, ::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{BRT, BRET, RT, RET, MST}
 
 ### overwriting the arithmetic using the fractions from AbstractAlgebra
-function +(a::T, b::T) where {T<:MPolyLocalizedRingElem}
+function +(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(fraction(a) + fraction(b), check=false)
 end
 
-function -(a::T, b::T) where {T<:MPolyLocalizedRingElem}
+function -(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(fraction(a) - fraction(b), check=false)
 end
 
-function -(a::T) where {T<:MPolyLocalizedRingElem}
+function -(a::T) where {T<:MPolyLocRingElem}
   return (parent(a))((-1)*fraction(a), check=false)
 end
 
-function *(a::T, b::T) where {T<:MPolyLocalizedRingElem}
+function *(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(fraction(a) * fraction(b), check=false)
 end
 
-function *(a::RET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
+function *(a::RET, b::MPolyLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
   return (parent(b))(a*fraction(b), check=false)
 end
 
-function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRET, RT, RET <: RingElem, MST}
+function *(a::MPolyLocRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRET, RT, RET <: RingElem, MST}
   return b*a
 end
 
-function *(a::BRET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
+function *(a::BRET, b::MPolyLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
   return (parent(b))(a*numerator(b), denominator(b), check=false)
 end
 
-function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
+function *(a::MPolyLocRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
   return b*a
 end
 
-function Base.:(/)(a::Integer, b::T) where {T<:MPolyLocalizedRingElem}
+function Base.:(/)(a::Integer, b::T) where {T<:MPolyLocRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(/)(a::fmpz, b::T) where {T<:MPolyLocalizedRingElem}
+function Base.:(/)(a::ZZRingElem, b::T) where {T<:MPolyLocRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(/)(a::T, b::T) where {T<:MPolyLocalizedRingElem}
+function Base.:(/)(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   g = gcd(numerator(a), numerator(b))
   c = divexact(numerator(a), g)
@@ -1276,24 +1276,24 @@ function Base.:(/)(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   return (parent(a))(fraction(a) // fraction(b), check=false)
 end
 
-function ==(a::T, b::T) where {T<:MPolyLocalizedRingElem}
+function ==(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return fraction(a) == fraction(b)
 end
 
 # We need to manually split this into three methods, because 
 # otherwise it seems that Julia can not dispatch this function.
-function ^(a::MPolyLocalizedRingElem, i::Int64)
+function ^(a::MPolyLocRingElem, i::Int64)
   return parent(a)(fraction(a)^i, check=false)
 end
-function ^(a::MPolyLocalizedRingElem, i::Integer)
+function ^(a::MPolyLocRingElem, i::Integer)
   return parent(a)(fraction(a)^i, check=false)
 end
-function ^(a::MPolyLocalizedRingElem, i::fmpz)
+function ^(a::MPolyLocRingElem, i::ZZRingElem)
   return parent(a)(fraction(a)^i, check=false)
 end
 
-function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingElem} 
+function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocRingElem} 
   W = parent(p)
   S = inverted_set(W)
   parent(q) == W || error("incompatible rings")
@@ -1317,14 +1317,14 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingEle
 end
 
 @Markdown.doc """
-    is_unit(f::MPolyLocalizedRingElem)
+    is_unit(f::MPolyLocRingElem)
 
 Return `true`, if `f` is a unit of `parent(f)`, `false` otherwise.
 
 # Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -1341,44 +1341,44 @@ julia> is_unit(iota(y))
 true
 ```
 """ 
-is_unit(f::MPolyLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
+is_unit(f::MPolyLocRingElem) = numerator(f) in inverted_set(parent(f))
 
 
 ########################################################################
 # implementation of Oscar's general ring interface                     #
 ########################################################################
 
-one(W::MPolyLocalizedRing) = W(one(base_ring(W)))
-zero(W::MPolyLocalizedRing) = W(zero(base_ring(W)))
+one(W::MPolyLocRing) = W(one(base_ring(W)))
+zero(W::MPolyLocRing) = W(zero(base_ring(W)))
 
-elem_type(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-elem_type(T::Type{MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+elem_type(W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+elem_type(T::Type{MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
-parent_type(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+parent_type(f::MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+parent_type(T::Type{MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
-function (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
+function (W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
   parent(f) === W && return f
-  return MPolyLocalizedRingElem(W, fraction(f), check=check)
+  return MPolyLocRingElem(W, fraction(f), check=check)
 end
 
-(W::MPolyLocalizedRing)() = zero(W)
-(W::MPolyLocalizedRing)(a::Integer) = W(base_ring(W)(a), check=false)
-(W::MPolyLocalizedRing)(a::Int64) = W(base_ring(W)(a), check=false)
-(W::MPolyLocalizedRing)(a::fmpz) = W(base_ring(W)(a), check=false)
+(W::MPolyLocRing)() = zero(W)
+(W::MPolyLocRing)(a::Integer) = W(base_ring(W)(a), check=false)
+(W::MPolyLocRing)(a::Int64) = W(base_ring(W)(a), check=false)
+(W::MPolyLocRing)(a::ZZRingElem) = W(base_ring(W)(a), check=false)
 
-is_domain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
-is_exact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
+is_domain_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
+is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
 ### promotion rules
-AbstractAlgebra.promote_rule(::Type{MPolyLocalizedRingElem{RT, RET, MST}}, ::Type{MPolyLocalizedRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{MPolyLocRingElem{RT, RET, MST}}, ::Type{MPolyLocRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{RT, RET, MST}
 
-function AbstractAlgebra.promote_rule(::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}, ::Type{T}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
-  AbstractAlgebra.promote_rule(RET, T) == RET && return MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
-  return AbstractAlgebra.promote_rule(BRET, T) == BRET ? MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST} : Union{}
+function AbstractAlgebra.promote_rule(::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}, ::Type{T}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
+  AbstractAlgebra.promote_rule(RET, T) == RET && return MPolyLocRingElem{BRT, BRET, RT, RET, MST}
+  return AbstractAlgebra.promote_rule(BRET, T) == BRET ? MPolyLocRingElem{BRT, BRET, RT, RET, MST} : Union{}
 end
 
-@attr function base_ring_shifts(L::MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
+@attr function base_ring_shifts(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
   a = point_coordinates(inverted_set(L))
   R = base_ring(L)
   shift = hom(R, R, gens(R)+R.(a))
@@ -1406,15 +1406,15 @@ end
 
 @Markdown.doc """
     MPolyLocalizedIdeal{
-        LocRingType<:MPolyLocalizedRing, 
-        LocRingElemType<:MPolyLocalizedRingElem
+        LocRingType<:MPolyLocRing, 
+        LocRingElemType<:MPolyLocRingElem
       } <: AbsLocalizedIdeal{LocRingElemType}
 
 Ideals in localizations of polynomial rings.
 """
 @attributes mutable struct MPolyLocalizedIdeal{
-    LocRingType<:MPolyLocalizedRing, 
-    LocRingElemType<:MPolyLocalizedRingElem
+    LocRingType<:MPolyLocRing, 
+    LocRingElemType<:MPolyLocRingElem
   } <: AbsLocalizedIdeal{LocRingElemType}
   # the initial set of generators, not to be changed ever!
   gens::Vector{LocRingElemType}
@@ -1442,7 +1442,7 @@ Ideals in localizations of polynomial rings.
   saturated_ideal::MPolyIdeal
  
   function MPolyLocalizedIdeal(
-      W::MPolyLocalizedRing, 
+      W::MPolyLocRing, 
       gens::Vector{LocRingElemType};
       map_from_base_ring::Hecke.Map = MapFromFunc(
           x->W(x),
@@ -1471,8 +1471,8 @@ getindex(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyLocalizedIdeal) = I.W
 
 ### type getters
-ideal_type(::Type{MPolyLocalizedRingType}) where {MPolyLocalizedRingType<:MPolyLocalizedRing} = MPolyLocalizedIdeal{MPolyLocalizedRingType, elem_type(MPolyLocalizedRingType)}
-ideal_type(L::MPolyLocalizedRing) = ideal_type(typeof(L))
+ideal_type(::Type{MPolyLocalizedRingType}) where {MPolyLocalizedRingType<:MPolyLocRing} = MPolyLocalizedIdeal{MPolyLocalizedRingType, elem_type(MPolyLocalizedRingType)}
+ideal_type(L::MPolyLocRing) = ideal_type(typeof(L))
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring
@@ -1487,7 +1487,7 @@ function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   is_saturated(I) && return false
   R = base_ring(L)
   J = pre_saturated_ideal(I)
-  (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([b]), inverted_set(L))
+  (success, x, u) = has_solution(generator_matrix(J), matrix_space(R, 1, 1)([b]), inverted_set(L))
   !success && return false
   # cache the intermediate result
   extend_pre_saturated_ideal!(I, b, x, u, check=false)
@@ -1527,7 +1527,7 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
     # multiplications sparse*dense have to be carried out this way round.
     return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
   else
-    (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([p]), inverted_set(L), check=false)
+    (success, x, u) = has_solution(generator_matrix(J), matrix_space(R, 1, 1)([p]), inverted_set(L), check=false)
     !success && error("check for membership was disabled, but element is not in the ideal")
     # cache the intermediate result
     #result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
@@ -1539,7 +1539,7 @@ end
 
 function coordinates(
     a::RingElem, I::MPolyLocalizedIdeal{LRT}; check::Bool=true
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   L = base_ring(I)
   parent(a) === L || return coordinates(L(a), I, check=check)
   if check 
@@ -1555,7 +1555,7 @@ function coordinates(
   return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
 end
 
-generator_matrix(J::MPolyIdeal) = MatrixSpace(base_ring(J), ngens(J), 1)(gens(J))
+generator_matrix(J::MPolyIdeal) = matrix_space(base_ring(J), ngens(J), 1)(gens(J))
 
 @Markdown.doc """
     saturated_ideal(I::MPolyLocalizedIdeal)
@@ -1572,15 +1572,15 @@ projection map `R -> RQ`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, ["x"]);
 
 julia> U = powers_of_element(x)
-powers of fmpq_mpoly[x]
+powers of QQMPolyRingElem[x]
 
 julia> Rloc, iota = localization(R, U);
 
 julia> I = ideal(Rloc, [x+x^2])
-ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the powers of fmpq_mpoly[x] generated by [x^2 + x]
+ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the powers of QQMPolyRingElem[x] generated by [x^2 + x]
 
 julia> SI = saturated_ideal(I)
 ideal(x + 1)
@@ -1589,12 +1589,12 @@ julia> base_ring(SI)
 Multivariate Polynomial Ring in x over Rational Field
 
 julia> U = complement_of_point_ideal(R, [0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0]
 
 julia> Rloc, iota = localization(R, U);
 
 julia> I = ideal(Rloc, [x+x^2])
-ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0] generated by [x^2 + x]
+ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the complement of maximal ideal corresponding to point with coordinates QQFieldElem[0] generated by [x^2 + x]
 
 julia> saturated_ideal(I)
 ideal(x)
@@ -1613,7 +1613,7 @@ function pre_saturated_ideal(I::MPolyLocalizedIdeal)
     I.pre_saturated_ideal = ideal(base_ring(W), numerator.(gens(I)))
     r = length(gens(I))
     A = zero_matrix(SMat, W, 0, r)
-    #A = zero(MatrixSpace(W, r, r))
+    #A = zero(matrix_space(W, r, r))
     for i in 1:r
       push!(A, sparse_row(W, [(i, W(denominator(gens(I)[i])))]))
       #A[i, i] = denominator(gens(I)[i])
@@ -1633,7 +1633,7 @@ end
 function extend_pre_saturated_ideal!(
     I::MPolyLocalizedIdeal, f::PT, x::MatrixElem{PT}, u::PT;
     check::Bool=true
-  ) where {PT <: MPolyElem}
+  ) where {PT <: MPolyRingElem}
   nrows(x) == 1 || error("matrix must be a row vector")
   L = base_ring(I)
   R = base_ring(L)
@@ -1657,7 +1657,7 @@ end
 function extend_pre_saturated_ideal!(
     I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatrixElem{PT}, u::Vector{PT};
     check::Bool=true
-  ) where {PT <: MPolyElem}
+  ) where {PT <: MPolyRingElem}
   L = base_ring(I)
   R = base_ring(L)
   J = pre_saturated_ideal(I)
@@ -1699,13 +1699,13 @@ function _diagonal_sparse_matrix(L::Ring, v::Vector{T}) where {T<:RingElem}
 end
 
 function coordinate_shift(
-    L::MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}
+    L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}
   )
   if !has_attribute(L, :coordinate_shift)
     U = inverted_set(L)
     a = point_coordinates(U)
     R = base_ring(L)
-    Ls = MPolyLocalizedRing(R, MPolyComplementOfKPointIdeal(R, [0 for i in 1:ngens(R)]))
+    Ls = MPolyLocRing(R, MPolyComplementOfKPointIdeal(R, [0 for i in 1:ngens(R)]))
     xs = [ x + a for (x, a) in zip(gens(base_ring(L)), a) ]
     xs_inv = [ x - a for (x, a) in zip(gens(base_ring(L)), a) ]
     shift = MapFromFunc(
@@ -1722,7 +1722,7 @@ end
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     with_generator_transition::Bool=false
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
     L = base_ring(I)
@@ -1750,7 +1750,7 @@ end
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     with_generator_transition::Bool=false
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
     L = base_ring(I)
@@ -1780,7 +1780,7 @@ function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     strategy::Symbol=:iterative_saturation,
     with_generator_transition::Bool=true
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
     L = base_ring(I)
@@ -1806,7 +1806,7 @@ function saturated_ideal(
             end
           end
           if length(cache) > 0
-            #A = zero(MatrixSpace(L, ngens(Jsat), ngens(I)))
+            #A = zero(matrix_space(L, ngens(Jsat), ngens(I)))
 
             #for i in 1:length(cache)
             #  (g, a, dttk) = cache[i]
@@ -1852,7 +1852,7 @@ function saturated_ideal(
         if length(cache) > 0
           # We completely overwrite the pre_saturated_ideal with the generators 
           # of the saturated ideal
-          #A = zero(MatrixSpace(L, ngens(Jsat), ngens(I)))
+          #A = zero(matrix_space(L, ngens(Jsat), ngens(I)))
           #for i in 1:length(cache)
           #  (g, a, dttk) = cache[i]
           #  A[i, :] = L(one(dttk), dttk, check=false)*change_base_ring(L, a)*pre_saturation_data(I)
@@ -1892,13 +1892,13 @@ end
     saturated_ideal(I::MPolyQuoIdeal)
 
 Returns the largest ideal in $R$ mapping to $I$ under the canonical map $R \longrightarrow S$ for an ideal $I \in S$, where $S$ may be any of the
-types 'MPolyLocalizedRing', 'MPolyQuoLocalizedRing', 'MPolyRing' and 'MPolyQuoRing' and $R$ is the underlying ring of type 'MPolyRing'.
+types 'MPolyLocRing', 'MPolyQuoLocRing', 'MPolyRing' and 'MPolyQuoRing' and $R$ is the underlying ring of type 'MPolyRing'.
 Note that the last two variants are only provided to allow a coherent usage.  
 
 # Examples
 ``` jldoctest
 julia> R, (x, y) = QQ["x", "y"]
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y^2+1])
 ideal(x, y^2 + 1)
@@ -1906,7 +1906,7 @@ ideal(x, y^2 + 1)
 julia> U = MPolyComplementOfPrimeIdeal(I)
 complement of ideal(x, y^2 + 1)
 
-julia> L = MPolyLocalizedRing(R, U)
+julia> L = MPolyLocRing(R, U)
 localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x, y^2 + 1)
 
 julia> J = ideal(L,[y*(x^2+(y^2+1)^2)])
@@ -1926,7 +1926,7 @@ ideal(x^2*y + y^5 + 2*y^3 + y)
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     with_generator_transition::Bool=false
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
   if !is_saturated(I)
     W = base_ring(I)
     R = base_ring(W)
@@ -1963,7 +1963,7 @@ function ideal_membership(
     a::RingElem, 
     I::MPolyLocalizedIdeal{LocRingType}
   ) where {
-    LocRingType<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}
+    LocRingType<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}
   }
   L = base_ring(I)
   parent(a) == L || return L(a) in I
@@ -1973,25 +1973,25 @@ end
 
 
 ### Conversion of ideals in the original ring to localized ideals
-function (W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
+function (W::MPolyLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   return MPolyLocalizedIdeal(W, W.(gens(I)))
 end
 
 ### required constructors 
 function ideal(
-    W::MPolyLocalizedRing, f
+    W::MPolyLocRing, f
   )
   return MPolyLocalizedIdeal(W, [W(f)])
 end
 
 @doc Markdown.doc"""    
-    ideal(Rloc::MPolyLocalizedRing, V::Vector)
+    ideal(Rloc::MPolyLocRing, V::Vector)
 
 Given a localization `Rloc` of a multivariate polynomial ring, and given a vector `V` of 
 elements of `Rloc`, create the ideal of `Rloc` which is generated by the entries of `V`.
 """
 function ideal(
-    W::MPolyLocalizedRing,
+    W::MPolyLocRing,
     gens::Vector
   )
   length(gens) == 0 && return MPolyLocalizedIdeal(W, elem_type(W)[])
@@ -1999,7 +1999,7 @@ function ideal(
 end
 
 function ideal(
-    W::MPolyLocalizedRing,
+    W::MPolyLocRing,
     I::Ideal
   )
   return MPolyLocalizedIdeal(W, W.(gens(I)))
@@ -2050,7 +2050,7 @@ end
 
 @attr function shifted_ideal(
     I::MPolyLocalizedIdeal{LRT, LRET}
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, LRET}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, LRET}
   L = base_ring(I)
   R = base_ring(L)
   shift, tfihs = base_ring_shifts(L)
@@ -2061,7 +2061,7 @@ function ideal_membership(
     a::RingElem, 
     I::MPolyLocalizedIdeal{LocRingType}
   ) where {
-    LocRingType<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}
+    LocRingType<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}
   }
   L = base_ring(I)
   parent(a) == L || return L(a) in I
@@ -2079,7 +2079,7 @@ end
 function coordinates(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
   L = base_ring(I)
   L == parent(a) || return coordinates(L(a), I)
   R = base_ring(L)
@@ -2113,7 +2113,7 @@ end
 function coordinates(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
   L = base_ring(I)
   parent(a) == L || return coordinates(L(a), I)
 
@@ -2178,7 +2178,7 @@ end
 function ideal_membership(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
   L = base_ring(I)
   parent(a) == L || return L(a) in I
 
@@ -2235,7 +2235,7 @@ end
 function ideal_membership(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
   parent(a) == base_ring(I) || return base_ring(I)(a) in I
   J = pre_saturated_ideal(I)
   p = numerator(a)
@@ -2249,7 +2249,7 @@ end
 function coordinates(
     a::RingElem,
     I::MPolyLocalizedIdeal{LRT} 
-  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
+  ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
   L = base_ring(I)
   L == parent(a) || return coordinates(L(a), I)
   J = pre_saturated_ideal(I)
@@ -2262,13 +2262,13 @@ function coordinates(
 end
 
 @Markdown.doc """
-    bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
+    bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocRingElem}
 
 Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
 (d, λ) consisting of a common denominator d and a vector 
 λ = [λ₁,…,λₙ] such that aᵢ//bᵢ = λᵢ⋅aᵢ//d
 """
-function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
+function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocRingElem}
   length(f) == 0 && error("need at least one argument to determine the return type")
   R = base_ring(parent(f[1]))
   for a in f
@@ -2287,12 +2287,12 @@ function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingE
   return d, a
 end
 
-write_as_linear_combination(f::MPolyLocalizedRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
+write_as_linear_combination(f::MPolyLocRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
 
 # return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
 @Markdown.doc """
     as_affine_algebra(
-      L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
+      L::MPolyLocRing{BRT, BRET, RT, RET, 
       MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
       inverse_name::String="θ"
     ) where {BRT, BRET, RT, RET}
@@ -2307,7 +2307,7 @@ quintuple ``(A, I, d, ϕ, θ)`` consisting of
   * the localization variable ``θ`` corresponding to ``d⁻¹``.
 """
 function as_affine_algebra(
-    L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
+    L::MPolyLocRing{BRT, BRET, RT, RET, 
 			     MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
     inverse_name::String="θ"
   ) where {BRT, BRET, RT, RET}
@@ -2325,7 +2325,7 @@ end
 ########################################################################
 
 mutable struct MPolyLocalizedRingHom{
-                                     DomainType<:MPolyLocalizedRing, 
+                                     DomainType<:MPolyLocRing, 
                                      CodomainType<:Ring, 
                                      RestrictedMapType<:Map
                                     } <: AbsLocalizedRingHom{
@@ -2356,7 +2356,7 @@ mutable struct MPolyLocalizedRingHom{
       S::CodomainType,
       res::RestrictedMapType;
       check::Bool=true
-    ) where {DomainType<:MPolyLocalizedRing, CodomainType<:Ring, RestrictedMapType<:Map}
+    ) where {DomainType<:MPolyLocRing, CodomainType<:Ring, RestrictedMapType<:Map}
     R = base_ring(W)
     U = inverted_set(W)
     domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
@@ -2379,7 +2379,7 @@ function MPolyLocalizedRingHom(
 end
 
 function MPolyLocalizedRingHom(
-      W::MPolyLocalizedRing,
+      W::MPolyLocRing,
       S::Ring,
       a::Vector{RingElemType};
       check::Bool=true
@@ -2403,28 +2403,28 @@ function Base.show(io::IO, phi::MPolyLocalizedRingHom)
 end
 
 @doc Markdown.doc"""
-    hom(Rloc::MPolyLocalizedRing, S::Ring, phi::Map)
+    hom(Rloc::MPolyLocRing, S::Ring, phi::Map)
 
-Given a localized ring `Rloc`of type `MPolyLocalizedRing`, say `Rloc` is the localization 
+Given a localized ring `Rloc`of type `MPolyLocRing`, say `Rloc` is the localization 
 of a multivariate polynomial ring `R` at the multiplicatively closed subset `U` of `R`, and 
 given a homomorphism `phi` from `R` to `S` sending elements of `U` to units in `S`, return 
 the homomorphism from `Rloc` to `S` whose composition with the localization map is `phi`.
 
-    hom(Rloc::MPolyLocalizedRing, S::Ring, V::Vector)
+    hom(Rloc::MPolyLocRing, S::Ring, V::Vector)
 
 Given a localized ring `Rloc` as above, and given a vector `V` of `nvars` elements of `S`, let `phi` 
 be the homomorphism from `R` to `S` which is determined by the entries of `V` as the images of
 the generators of `R`, and proceed as above.
 
-    hom(RQL::MPolyQuoLocalizedRing, S::Ring, phi::Map)
+    hom(RQL::MPolyQuoLocRing, S::Ring, phi::Map)
 
-Given a localized ring `RQL`of type `MPolyQuoLocalizedRing`, say `RQL` is the localization 
+Given a localized ring `RQL`of type `MPolyQuoLocRing`, say `RQL` is the localization 
 of a quotient ring `RQ` of a multivariate polynomial ring `R` at the multiplicatively closed subset `U` of `R`, and 
 given a homomorphism `phi` from `R` to `S` sending elements of `U` to units in `S` and elements of the modulus
 of `RQ` to zero, return the homomorphism from `Rloc` to `S` whose composition with the localization map `RQ -> RQL`
 and the projection map `R -> RQ` is `phi`.
 
-    hom(RQL::MPolyQuoLocalizedRing, S::Ring, V::Vector)
+    hom(RQL::MPolyQuoLocRing, S::Ring, V::Vector)
 
 Given a localized ring `RQL`as above, and given a vector `V` of `nvars` elements of `S`, let `phi` 
 be the homomorphism from `R` to `S` which is determined by the entries of `V` as the images of
@@ -2435,7 +2435,7 @@ the generators of `R`, and proceed as above.
  
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [y-x^2, z-x^3]);
 
@@ -2445,7 +2445,7 @@ julia> UR = complement_of_point_ideal(R, [0, 0, 0]);
 
 julia> RQL, _ = localization(RQ, UR);
 
-julia> T, (t,) =  PolynomialRing(QQ, ["t"]);
+julia> T, (t,) =  polynomial_ring(QQ, ["t"]);
 
 julia> UT = complement_of_point_ideal(T, [0]);
 
@@ -2462,8 +2462,8 @@ julia> PSI(TL(t))
 x
 ```
 """
-hom(W::MPolyLocalizedRing, S::Ring, res::Map; check::Bool=true) = MPolyLocalizedRingHom(W, S, res, check=check)
-hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}; check::Bool=true) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a, check=check)
+hom(W::MPolyLocRing, S::Ring, res::Map; check::Bool=true) = MPolyLocalizedRingHom(W, S, res, check=check)
+hom(W::MPolyLocRing, S::Ring, a::Vector{RET}; check::Bool=true) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a, check=check)
 
 ### required getter functions
 domain(PHI::MPolyLocalizedRingHom) = PHI.W
@@ -2480,7 +2480,7 @@ with the localization map (with the composition of the localization map and the 
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [y-x^2, z-x^3]);
 
@@ -2490,7 +2490,7 @@ julia> UR = complement_of_point_ideal(R, [0, 0, 0]);
 
 julia> RQL, _ = localization(RQ, UR);
 
-julia> T, (t,) =  PolynomialRing(QQ, ["t"]);
+julia> T, (t,) =  polynomial_ring(QQ, ["t"]);
 
 julia> UT = complement_of_point_ideal(T, [0]);
 
@@ -2507,7 +2507,7 @@ Domain:
 Multivariate Polynomial Ring in x, y, z over Rational Field
 Codomain:
 =========
-localization of Multivariate Polynomial Ring in t over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0]
+localization of Multivariate Polynomial Ring in t over Rational Field at the complement of maximal ideal corresponding to point with coordinates QQFieldElem[0]
 
 julia> psi = restricted_map(PSI)
 Map with following data
@@ -2516,13 +2516,13 @@ Domain:
 Multivariate Polynomial Ring in t over Rational Field
 Codomain:
 =========
-Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 ```
 """
 restricted_map(PHI::MPolyLocalizedRingHom) = PHI.res
 
 ### implementing the Oscar map interface
-function identity_map(W::T) where {T<:MPolyLocalizedRing} 
+function identity_map(W::T) where {T<:MPolyLocRing} 
   MPolyLocalizedRingHom(W, W, identity_map(base_ring(W)))
 end
 
@@ -2546,11 +2546,11 @@ function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom)
   return true
 end
 
-function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
+function divides(a::MPolyLocRingElem, b::MPolyLocRingElem)
   W = parent(a)
   W == parent(b) || error("elements do not belong to the same ring")
   F = FreeMod(W, 1)
-  A = MatrixSpace(W, 1, 1)([b])
+  A = matrix_space(W, 1, 1)([b])
   M, _ = sub(F, A)
   represents_element(a*F[1], M) || return (false, zero(W))
   x = coordinates(a*F[1], M)
@@ -2558,14 +2558,14 @@ function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
 end
 
 # This had to be moved after the definition of the elements.
-function Localization(R::MPolyRing, f::MPolyElem)
+function Localization(R::MPolyRing, f::MPolyRingElem)
   U = MPolyPowersOfElement(R, [f])
-  L = MPolyLocalizedRing(R, U)
-  function func(a::MPolyElem)
+  L = MPolyLocRing(R, U)
+  function func(a::MPolyRingElem)
     parent(a) == R || error("element does not belong to the correct ring")
     return L(a)
   end
-  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -2579,44 +2579,44 @@ end
 # Further functionality for elements of localized rings
 #############################################################################
 
-function derivative(f::MPolyLocalizedRingElem, i::Int)
+function derivative(f::MPolyLocRingElem, i::Int)
   num = derivative(numerator(f), i)*denominator(f) - derivative(denominator(f), i)*numerator(f)
   den = denominator(f)^2
   g = gcd(num, den)
   return parent(f)(divexact(num, g), divexact(den, g), check=false)
 end
 
-function jacobi_matrix(f::MPolyLocalizedRingElem)
+function jacobi_matrix(f::MPolyLocRingElem)
   L = parent(f)
   n = nvars(base_ring(L))
   return matrix(L, n, 1, [derivative(f, i) for i=1:n])
 end
 
-function jacobi_matrix(g::Vector{<:MPolyLocalizedRingElem})
+function jacobi_matrix(g::Vector{<:MPolyLocRingElem})
   R = parent(g[1])
   n = nvars(base_ring(R))
   @assert all(x->parent(x) == R, g)
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-function _is_integral_domain(R::MPolyLocalizedRing)
+function _is_integral_domain(R::MPolyLocRing)
   return true
 end
 
 ### Method compatible with `localized_ring`: This is the trivial lift to itself. 
-function lift(a::MPolyLocalizedRingElem)
+function lift(a::MPolyLocRingElem)
   return a
 end
 
 ### Allow computation of kernels of maps to MPolyLocalizedRings
-function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyLocalizedRing})
+function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyLocRing})
   P = domain(f)
   L = codomain(f)
   I = ideal(L, zero(L))
   R = base_ring(L)
   J = saturated_ideal(I)
   d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
-  W = MPolyQuoLocalizedRing(R, ideal(R, zero(R)), MPolyPowersOfElement(R, d))
+  W = MPolyQuoLocRing(R, ideal(R, zero(R)), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
   A = codomain(id)
   h = hom(P, A, id.(f.(gens(P))))
@@ -2628,16 +2628,16 @@ end
 
 @Markdown.doc """
 
-    in(f::MPolyElem, U::AbsMPolyMultSet)   
+    in(f::MPolyRingElem, U::AbsMPolyMultSet)   
 
 Return `true` if `f` is contained in `U`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> S = complement_of_point_ideal(R, [0, 0 ,0])
-complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
 
 julia> y in S
 false
@@ -2652,7 +2652,7 @@ julia> y in T
 true
 
 julia> U = powers_of_element(x)
-powers of fmpq_mpoly[x]
+powers of QQMPolyRingElem[x]
 
 julia> x^3 in U
 true
@@ -2660,5 +2660,16 @@ true
 julia> (1+y)*x^2 in product(S, U)
 true
 ```
-""" Base.in(f::MPolyElem, U::AbsMPolyMultSet) 
+""" Base.in(f::MPolyRingElem, U::AbsMPolyMultSet) 
+
+### Some auxiliary functions
+
+@attr MPolyLocalizedIdeal function radical(I::MPolyLocalizedIdeal)
+  J = pre_saturated_ideal(I)
+  return ideal(base_ring(I), gens(radical(J)))
+end
+
+@attr function dim(I::MPolyLocalizedIdeal)
+  return dim(saturated_ideal(I))
+end
 

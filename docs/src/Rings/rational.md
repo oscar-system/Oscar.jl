@@ -17,8 +17,8 @@ Pages = ["rational.md"]
 
 Fractions are created in Julia with the double slash operator `//`. If a
 fraction is created from Julia integers, a Julia fraction results, and if either
-the numerator or denominator is an OSCAR integer of type `fmpz`, an OSCAR
-fraction of type `fmpq` results.
+the numerator or denominator is an OSCAR integer of type `ZZRingElem`, an OSCAR
+fraction of type `QQFieldElem` results.
 
 Julia has its own parameterised type `Rational{T}` for its own fractions, where
 `T` is the integer type of the numerator and denominator, e.g.
@@ -29,13 +29,13 @@ the numerator and denominator.
 ## The field of rationals
 
 The parent of an OSCAR rational number is the field of rationals. It can be
-constructed from the ring of integers `ZZ` using the `FractionField`
+constructed from the ring of integers `ZZ` using the `fraction_field`
 constructor.
 
 For convenience, `QQ` is already defined to be the field of rational numbers.
 
 ```jldoctest
-julia> S = FractionField(ZZ)
+julia> S = fraction_field(ZZ)
 Rational Field
 
 julia> QQ
@@ -102,9 +102,9 @@ julia> one(QQ)
 
 ## Predicates
 
-* `iszero(n::fmpq) -> Bool`
-* `isone(n::fmpq) -> Bool`
-* `is_unit(n::fmpq) -> Bool`
+* `iszero(n::QQFieldElem) -> Bool`
+* `isone(n::QQFieldElem) -> Bool`
+* `is_unit(n::QQFieldElem) -> Bool`
 
 The `is_unit` function will return `true` iff ``n \neq 0``.
 
@@ -122,12 +122,12 @@ true
 
 ## Properties
 
-* `numerator(n::fmpq) -> fmpz`
-* `denominator(n::fmpq) -> fmpz`
+* `numerator(n::QQFieldElem) -> ZZRingElem`
+* `denominator(n::QQFieldElem) -> ZZRingElem`
 
 Return the numerator and denominator respectively, of $n$.
 
-* `sign(n::fmpq) -> fmpq`
+* `sign(n::QQFieldElem) -> QQFieldElem`
 
 Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
@@ -143,7 +143,7 @@ julia> sign(QQ(-1))
 
 ```
 
-* `abs(n::fmpq) -> fmpq`
+* `abs(n::QQFieldElem) -> QQFieldElem`
 
 Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
 otherwise.
@@ -155,7 +155,7 @@ julia> abs(QQ(-3, 2))
 
 ```
 
-* `height(n::fmpq) -> fmpz`
+* `height(n::QQFieldElem) -> ZZRingElem`
 
 Return the maximum of the absolute values of the numerator and denominator of
 $n$.
@@ -166,11 +166,11 @@ julia> height(QQ(324987329, -8372492324))
 
 ```
 
-* `floor(n::fmpq) -> fmpq`
+* `floor(n::QQFieldElem) -> QQFieldElem`
 
 Return the greatest integer $m$ (as a rational number) such that $m \leq n$.
 
-* `ceil(n::fmpq) -> fmpq`
+* `ceil(n::QQFieldElem) -> QQFieldElem`
 
 Return the least integer $m$ (as a rational number) such that $m \geq n$.
 
@@ -182,31 +182,31 @@ julia> ceil(QQ(7, 2))
 4
 
 julia> typeof(ans)
-fmpq
+QQFieldElem
 
 julia> ceil(QQ(5))
 5
 
 ```
-* `floor(fmpz, n::fmpq) -> fmpz`
+* `floor(ZZRingElem, n::QQFieldElem) -> ZZRingElem`
 
 Return the greatest integer $m$ such that $m \leq n$.
 
-* `ceil(fmpz, n::fmpq) -> fmpz`
+* `ceil(ZZRingElem, n::QQFieldElem) -> ZZRingElem`
 
 Return the least integer $m$ such that $m \geq n$.
 
 ```jldoctest
-julia> floor(fmpz, QQ(-2, 3))
+julia> floor(ZZRingElem, QQ(-2, 3))
 -1
 
-julia> ceil(fmpz, QQ(7, 2))
+julia> ceil(ZZRingElem, QQ(7, 2))
 4
 
 julia> typeof(ans)
-fmpz
+ZZRingElem
 
-julia> ceil(fmpz, QQ(5))
+julia> ceil(ZZRingElem, QQ(5))
 5
 
 ```
@@ -219,9 +219,9 @@ Julia and OSCAR rationals and integers.
 
 ### [Exact Division]
 
-* `divexact(a::fmpq, b::fmpq) -> fmpq`
-* `divexact(a::fmpq, b::Union{fmpz,Base.Integer,Base.Rational}) -> fmpq`
-* `divexact(a::Union{fmpz,Base.Integer,Base.Rational}, b::fmpq) -> fmpq`
+* `divexact(a::QQFieldElem, b::QQFieldElem) -> QQFieldElem`
+* `divexact(a::QQFieldElem, b::Union{ZZRingElem,Base.Integer,Base.Rational}) -> QQFieldElem`
+* `divexact(a::Union{ZZRingElem,Base.Integer,Base.Rational}, b::QQFieldElem) -> QQFieldElem`
 
 Return the quotient of ``a`` by ``b``. Exact division raises an exception if
 division by zero is attempted.
@@ -246,7 +246,7 @@ julia> divexact(QQ(1, 3), 5)
 
 ### Powering
 
-* `^(a::fmpq, b::Int) -> fmpq`
+* `^(a::QQFieldElem, b::Int) -> QQFieldElem`
 
 Return the result of powering ``a`` by ``b``.
 
@@ -278,16 +278,16 @@ ERROR: DivideError: integer division error
 
 ```
 
-* `is_power(a::fmpq, b::Int) -> Bool, fmpq`
+* `is_power(a::QQFieldElem, b::Int) -> Bool, QQFieldElem`
 
 Test if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
 ```false``` and any rational otherwise.
 
-* `is_power(a::fmpq) -> Int, fmpq`
+* `is_power(a::QQFieldElem) -> Int, QQFieldElem`
 
 Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
 
-* `root(a::fmpq, b::Int) -> fmpq`
+* `root(a::QQFieldElem, b::Int) -> QQFieldElem`
 
 Compute an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
 

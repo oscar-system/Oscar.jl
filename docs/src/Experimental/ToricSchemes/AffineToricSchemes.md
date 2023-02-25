@@ -20,11 +20,11 @@ We can construct an affine toric scheme as follows:
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> antv = AffineNormalToricVariety(C)
+julia> antv = affine_normal_toric_variety(C)
 A normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{fmpq}[[1, 0], [0, 1]]
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 ```
 
 

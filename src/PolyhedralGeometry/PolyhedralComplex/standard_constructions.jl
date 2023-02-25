@@ -23,13 +23,13 @@ julia> VR2 = [0 0; 0 1; 1 1]
  1  1
 
 julia> PC1 = PolyhedralComplex(IM,VR1)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 
 julia> PC2 = PolyhedralComplex(IM,VR2)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 
 julia> common_refinement(PC1,PC2)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 ```
 """
 function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
@@ -57,10 +57,10 @@ julia> VR = [0 0; 1 0; 1 1]
  1  1
 
 julia> PC1 = PolyhedralComplex(IM,VR)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 
 julia> k_skeleton(PC1,1)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 ```
 """
 function k_skeleton(PC::PolyhedralComplex{T},k::Int) where T<:scalar_types
