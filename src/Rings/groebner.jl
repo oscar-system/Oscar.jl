@@ -1406,13 +1406,13 @@ end
 function _find_weights(F::Vector{P}) where {P <: MPolyElem}
   nrows = sum((length).(F)) - length(F)
   ncols = ngens(parent(first(F)))
-  mat_space = MatrixSpace(ZZ, nrows, ncols)
+  mat_space = MatrixSpace(QQ, nrows, ncols)
 
   exp_diffs = permutedims(reduce(hcat, [e[i] - e[1] for e in
                                           (collect).((exponents).(F))
                                           for i in 2:length(e)]))
   K = kernel(mat_space(exp_diffs))[2]
-
+  isempty(K) && return zeros(Int, ncols)
   # Here we try to find a vector with strictly positive entries in K
   # this method to find such a vector is taken from
   # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
@@ -1420,7 +1420,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyElem}
   !is_feasible(Pol) && return zeros(Int, ncols)
   pos_vec = zeros(Int, ncols)
   for i in 1:ncols
-    ei = [j == i ? 1 : 0 for j in 1:ncols]
+    ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
     L = LinearProgram(Pol, obj_func)
     m, v = solve_lp(L)
