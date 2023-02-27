@@ -1341,8 +1341,13 @@ end
 # Grassmann Pluecker Ideal
 #
 ################################################################################
-function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
+function _grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
     return convert(MPolyIdeal{QQMPolyRingElem}, Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
+end
+
+function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
+    R, x = polynomial_ring(QQ, "x" => 1: subspace_dimension * (ambient_dimension - 1))
+    return grassmann_pluecker_ideal(R, subspace_dimension, ambient_dimension)
 end
 
 @doc Markdown.doc"""
@@ -1361,7 +1366,7 @@ are given by all $d \times d$ minors of a $d \times n$ matrix. For the algorithm
 # Examples
 ```jldoctest
 julia> grassmann_pluecker_ideal(2, 4)
-ideal(x[0]*x[5] - x[1]*x[4] + x[2]*x[3])
+ideal(x[1]*x[6] - x[2]*x[5] + x[3]*x[4])
 
 julia> R, x = polynomial_ring(residue_ring(ZZ, 7), "x" => (1:2, 1:3), ordering=:degrevlex)
 (Multivariate Polynomial Ring in 6 variables x[1, 1], x[2, 1], x[1, 2], x[2, 2], ..., x[2, 3] over Integers modulo 7, zzModMPolyRingElem[x[1, 1] x[1, 2] x[1, 3]; x[2, 1] x[2, 2] x[2, 3]])
@@ -1374,7 +1379,7 @@ ideal(x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3])
 function grassmann_pluecker_ideal(ring::MPolyRing,
                                  subspace_dimension::Int,
                                  ambient_dimension::Int) 
-    pluecker_ideal = grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
+    pluecker_ideal = _grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
     converted_generators = elem_type(ring)[]
     coeff_ring = base_ring(ring)
     for g in gens(pluecker_ideal)
