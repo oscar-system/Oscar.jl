@@ -949,7 +949,7 @@ function invariant(G::PermGroup, H::PermGroup)
       hH = image(h, H)[1]
       if order(hG) > order(hH)
         @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
-        @hassert :GaloisInvariant 0 is_maximal(hG, hH)
+        @hassert :GaloisInvariant 0 is_maximal_subgroup(hH, hG)
         I = invariant(hG, hH)
         return evaluate(I, g[collect(o)])
       end
@@ -1595,21 +1595,21 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         G = intersect(G, ar)[1]
       else
         let ar = ar 
-          push!(F, x->!is_subgroup(ar, x)[1], "subfield is even/odd")
+          push!(F, x->!is_subset(x, ar), "subfield is even/odd")
         end
       end
     end
     if in_br
       #G = intersect(G, br)[1] #already done above
     else
-      #push!(F, x->!is_subgroup(br, x)[1]) #already done above
+      #push!(F, x->!is_subset(x, br)) #already done above
     end
     if can_use_wr
       if in_cr
         G = intersect(G, cr)[1]
       else
         let cr = cr
-          push!(F, x->!is_subgroup(cr, x)[1], "third subgroup of wreath product")
+          push!(F, x->!is_subset(x, cr), "third subgroup of wreath product")
         end
       end
     end

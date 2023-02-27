@@ -19,11 +19,14 @@ The following functions are available in OSCAR for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
-is_subgroup
-embedding(G::T, H::T) where T <: GAPGroup
+is_subset(H::T, G::T) where T <: GAPGroup
+is_subgroup(H::T, G::T) where T <: GAPGroup
+embedding(H::T, G::T) where T <: GAPGroup
 index(G::T, H::T) where T <: GAPGroup
-is_normal(G::T, H::T) where T <: GAPGroup
-is_characteristic(G::T, H::T) where T <: GAPGroup
+is_maximal_subgroup(H::T, G::T) where T <: GAPGroup
+is_normalized_by(H::T, G::T) where T <: GAPGroup
+is_normal_subgroup(H::T, G::T) where T <: GAPGroup
+is_characteristic_subgroup(H::T, G::T) where T <: GAPGroup
 ```
 
 ## Standard subgroups
