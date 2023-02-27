@@ -2,27 +2,27 @@
     from Nemocas/AbstractAlgebra.jl/master/test/generic/MPoly-test.jl and slightly adjusted
 """
 
-@testset "MPolySparse.constructors" begin
+@testset "SparseMPoly.constructors" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
-      @test PolynomialRingSparse(R, var_names, ordering = ord, cached = true)[1] === PolynomialRingSparse(R, var_names, ordering = ord, cached = true)[1]
-      @test PolynomialRingSparse(R, var_names, ordering = ord, cached = false)[1] !== PolynomialRingSparse(R, var_names, ordering = ord, cached = true)[1]
-      @test PolynomialRingSparse(R, num_vars, "x", ordering = ord, cached = true)[1] === PolynomialRingSparse(R, var_names, ordering = ord, cached = true)[1]
-      @test PolynomialRingSparse(R, num_vars, ordering = ord, cached = true)[1] === PolynomialRingSparse(R, var_names, ordering = ord, cached = true)[1]
+      @test sparse_polynomial_ring(R, var_names, ordering = ord, cached = true)[1] === sparse_polynomial_ring(R, var_names, ordering = ord, cached = true)[1]
+      @test sparse_polynomial_ring(R, var_names, ordering = ord, cached = false)[1] !== sparse_polynomial_ring(R, var_names, ordering = ord, cached = true)[1]
+      @test sparse_polynomial_ring(R, num_vars, "x", ordering = ord, cached = true)[1] === sparse_polynomial_ring(R, var_names, ordering = ord, cached = true)[1]
+      @test sparse_polynomial_ring(R, num_vars, ordering = ord, cached = true)[1] === sparse_polynomial_ring(R, var_names, ordering = ord, cached = true)[1]
 
-      @test elem_type(S) == MPolySparse{elem_type(R)}
-      @test elem_type(MPolyRingSparse{elem_type(R)}) == MPolySparse{elem_type(R)}
-      @test parent_type(MPolySparse{elem_type(R)}) == MPolyRingSparse{elem_type(R)}
+      @test elem_type(S) == SparseMPoly{elem_type(R)}
+      @test elem_type(SparseMPolyRing{elem_type(R)}) == SparseMPoly{elem_type(R)}
+      @test parent_type(SparseMPoly{elem_type(R)}) == SparseMPolyRing{elem_type(R)}
       @test base_ring(S) === R
       @test coefficient_ring(S) === R
 
-      @test typeof(S) <: MPolyRingSparse
+      @test typeof(S) <: SparseMPolyRing
 
       isa(symbols(S), Vector{Symbol})
 
@@ -79,7 +79,7 @@
 
       @test f1 == f3
 
-      _, varlist = PolynomialRingSparse(QQ, var_names)
+      _, varlist = sparse_polynomial_ring(QQ, var_names)
       y = varlist[1]
       @test x in [x, y]
       @test x in [y, x]
@@ -89,14 +89,14 @@
    end
 
    # test "getindex" syntax
-   S, (y, z) = PolynomialRingSparse(R, ["y", "z"])
-   @test S isa MPolyRingSparse{ZZPolyRingElem}
-   @test y isa MPolySparse{ZZPolyRingElem}
-   @test z isa MPolySparse{ZZPolyRingElem}
+   S, (y, z) = sparse_polynomial_ring(R, ["y", "z"])
+   @test S isa SparseMPolyRing{ZZPolyRingElem}
+   @test y isa SparseMPoly{ZZPolyRingElem}
+   @test z isa SparseMPoly{ZZPolyRingElem}
 end
 
-@testset "MPolySparse.printing" begin
-   S, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"])
+@testset "SparseMPoly.printing" begin
+   S, (x, y) = sparse_polynomial_ring(ZZ, ["x", "y"])
 
    @test string(zero(S)) == "0"
    @test string(one(S)) == "1"
@@ -104,14 +104,14 @@ end
    @test string(y) == "y"
    @test string(x^2 - y) == "x^2 - y"
 
-   S, (x, y) = PolynomialRingSparse(AbstractAlgebra.RealField, ["x", "y"])
+   S, (x, y) = sparse_polynomial_ring(AbstractAlgebra.RealField, ["x", "y"])
 
    @test string(x) == "x"
    @test string(y) == "y"
 end
 
-@testset "MPolySparse.rand" begin
-   R, x = PolynomialRingSparse(ZZ, ["y"])
+@testset "SparseMPoly.rand" begin
+   R, x = sparse_polynomial_ring(ZZ, ["y"])
    num_vars = 5
    var_names = ["x$j" for j in 1:num_vars]
 
@@ -120,12 +120,12 @@ end
    # ord = rand_ordering(rng)
    # @test_broken ord in [:lex, :deglex, :degrevlex]
 
-   S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+   S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
    # test_rand(S, 0:5, 0:100, 0:0, -100:100)
 end
 
-@testset "MPolySparse.manipulation" begin
+@testset "SparseMPoly.manipulation" begin
    R, x = ZZ["y"]
 
    @test characteristic(R) == 0
@@ -134,7 +134,7 @@ end
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
       g = gens(S)
 
       @test !is_gen(S(1))
@@ -225,7 +225,7 @@ end
    for num_vars = 1:4
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(ZZ, var_names, ordering = ord)
 
       for iter = 1:10
          @test is_homogeneous(zero(S))
@@ -237,7 +237,7 @@ end
       end
    end
 
-   R, (x, ) = PolynomialRingSparse(ZZ, ["x"])
+   R, (x, ) = sparse_polynomial_ring(ZZ, ["x"])
 
    @test is_univariate(R)
    @test is_univariate(x)
@@ -245,7 +245,7 @@ end
    @test is_univariate(R(1))
    @test is_univariate(x^3 + 3x)
 
-   R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"])
+   R, (x, y) = sparse_polynomial_ring(ZZ, ["x", "y"])
 
    @test !is_univariate(R)
    @test is_univariate(x)
@@ -261,13 +261,13 @@ end
    @test !is_univariate(y^4 + 3x + 1)
 end
 
-@testset "MPolySparse.multivariate_coeff" begin
+@testset "SparseMPoly.multivariate_coeff" begin
    R = ZZ
 
    for iter = 1:5
       ord = rand_ordering()
 
-      S, (x, y, z) = PolynomialRingSparse(R, ["x", "y", "z"]; ordering=ord)
+      S, (x, y, z) = sparse_polynomial_ring(R, ["x", "y", "z"]; ordering=ord)
 
       f = -8*x^5*y^3*z^5+9*x^5*y^2*z^3-8*x^4*y^5*z^4-10*x^4*y^3*z^2+8*x^3*y^2*z-10*x*y^3*z^4-4*x*y-10*x*z^2+8*y^2*z^5-9*y^2*z^3
 
@@ -281,12 +281,12 @@ end
    end
 end
 
-@testset "MPolySparse.leading_term" begin
+@testset "SparseMPoly.leading_term" begin
    for num_vars=1:10
       ord = rand_ordering()
       var_names = ["x$j" for j in 1:num_vars]
 
-      R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars_R = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
       f = rand(R, 5:10, 1:10, -100:100)
       g = rand(R, 5:10, 1:10, -100:100)
@@ -309,7 +309,7 @@ end
    for num_vars = 1:4
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(ZZ, var_names, ordering = ord)
 
       for iter = 1:10
          f = rand(S, 0:4, 0:5, -10:10)
@@ -334,7 +334,7 @@ end
    for num_vars = 1:4
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(ZZ, var_names, ordering = ord)
 
       for iter = 1:10
          f = zero(S)
@@ -361,7 +361,7 @@ end
       end
    end
 
-   R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"]; ordering = :lex)
+   R, (x, y) = sparse_polynomial_ring(ZZ, ["x", "y"]; ordering = :lex)
 
    @test constant_coefficient(R()) == 0
    @test constant_coefficient(2x + 1) == 1
@@ -379,7 +379,7 @@ end
    @test_throws ArgumentError tail(R(0))
 end
 
-@testset "MPolySparse.total_degree" begin
+@testset "SparseMPoly.total_degree" begin
    max = 50
    for nvars = 1:10
       var_names = ["x$j" for j in 1:nvars]
@@ -388,7 +388,7 @@ end
          degrees = []
          for nord = 1:20
             ord = rand_ordering()
-            S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+            S, varlist = sparse_polynomial_ring(ZZ, var_names, ordering = ord)
             p = zero(S)
             for j = 1:nterms
                p += prod(varlist[i]^exps[i,j] for i = 1:nvars)
@@ -400,14 +400,14 @@ end
    end
 end
 
-@testset "MPolySparse.unary_ops" begin
+@testset "SparseMPoly.unary_ops" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:10
          f = rand(S, 0:5, 0:100, 0:0, -100:100)
@@ -417,14 +417,14 @@ end
    end
 end
 
-@testset "MPolySparse.binary_ops" begin
+@testset "SparseMPoly.binary_ops" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:10
          f = rand(S, 0:5, 0:100, 0:0, -100:100)
@@ -440,14 +440,14 @@ end
    end
 end
 
-@testset "MPolySparse.adhoc_binary" begin
+@testset "SparseMPoly.adhoc_binary" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:100
          f = rand(S, 0:5, 0:100, 0:0, -100:100)
@@ -481,14 +481,14 @@ end
    end
 end
 
-@testset "MPolySparse.adhoc_comparison" begin
+@testset "SparseMPoly.adhoc_comparison" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
       for iter = 1:100
          d = rand(-100:100)
          g = rand(R, 0:2, -10:10)
@@ -503,14 +503,14 @@ end
    end
 end
 
-@testset "MPolySparse.powering" begin
+@testset "SparseMPoly.powering" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
       for iter = 1:10
          f = rand(S, 0:5, 0:100, 0:0, -100:100)
 
@@ -529,7 +529,7 @@ end
    end
 
    # Over field of nonzero characteristic
-   R, (x, y, z, t) = PolynomialRingSparse(GF(2), ["x", "y", "z", "t"])
+   R, (x, y, z, t) = sparse_polynomial_ring(GF(2), ["x", "y", "z", "t"])
    f = 1 + x + y + z + t
 
    @test zero(R)^0 == one(R)
@@ -539,14 +539,14 @@ end
    end
 end
 
-@testset "MPolySparse.divides" begin
+@testset "SparseMPoly.divides" begin
    R, x = ZZ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:10
          f = S(0)
@@ -573,13 +573,13 @@ end
    end
 end
 
-@testset "MPolySparse.square_root" begin
+@testset "SparseMPoly.square_root" begin
    for R in [ZZ, QQ]
       for num_vars = 1:10
          var_names = ["x$j" for j in 1:num_vars]
          ord = rand_ordering()
 
-         S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+         S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
          for iter = 1:10
             f = rand(S, 0:5, 0:100, -100:100)
@@ -615,7 +615,7 @@ end
          var_names = ["x$j" for j in 1:num_vars]
          ord = rand_ordering()
 
-         S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+         S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
          for iter = 1:10
             f = rand(S, 0:5, 0:100, 0:Int(p))
@@ -645,14 +645,14 @@ end
    end
 end
 
-@testset "MPolySparse.euclidean_division" begin
+@testset "SparseMPoly.euclidean_division" begin
    R, x = QQ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:10
          f = S(0)
@@ -680,20 +680,20 @@ end
 
       end
 
-      S, varlist = PolynomialRingSparse(QQ, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(QQ, var_names, ordering = ord)
       v = varlist[1+Int(round(rand() * (num_vars-1)))]
       @test divrem(v, 2*v) == (1//2, 0)
    end
 end
 
-@testset "MPolySparse.ideal_reduction" begin
+@testset "SparseMPoly.ideal_reduction" begin
    R, x = QQ["y"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:10
          f = S(0)
@@ -735,11 +735,11 @@ end
    end
 end
 
-@testset "MPolySparse.gcd" begin
+@testset "SparseMPoly.gcd" begin
    for num_vars = 1:4
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(ZZ, var_names, ordering = ord)
 
       for iter = 1:10
          f = rand(S, 0:4, 0:5, -10:10)
@@ -754,11 +754,11 @@ end
    end
 end
 
-@testset "MPolySparse.lcm" begin
+@testset "SparseMPoly.lcm" begin
    for num_vars = 1:4
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(ZZ, var_names, ordering = ord)
 
       for iter = 1:10
          f = rand(S, 0:4, 0:5, -10:10)
@@ -778,14 +778,14 @@ end
    end
 end
 
-@testset "MPolySparse.evaluation" begin
+@testset "SparseMPoly.evaluation" begin
    R, x = ZZ["x"]
 
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       # TODO
       # for iter = 1:50
@@ -825,7 +825,7 @@ end
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       # TODO
       # for iter = 1:50
@@ -848,7 +848,7 @@ end
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:10
          eval_num = rand(0:num_vars)
@@ -944,7 +944,7 @@ end
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
       for iter = 1:50
          f = rand(S, 0:5, 0:100, -100:100)
@@ -988,7 +988,7 @@ end
 
    for iter = 1:10
       ord = rand_ordering()
-      R, (x, y, z) = PolynomialRingSparse(ZZ, ["x", "y", "z"], ordering = ord)
+      R, (x, y, z) = sparse_polynomial_ring(ZZ, ["x", "y", "z"], ordering = ord)
 
       f = x*y^2*z^3
 
@@ -998,7 +998,7 @@ end
 
    # Individual tests
 
-   R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"])
+   R, (x, y) = sparse_polynomial_ring(ZZ, ["x", "y"])
 
    f = 2x^2*y^2 + 3x + y + 1
 
@@ -1021,7 +1021,7 @@ end
    @test evaluate(f, [z + 1, z - 1]) == 2*z^4 - 4*z^2 + 4*z + 5
    @test f(z + 1, z - 1) == 2*z^4 - 4*z^2 + 4*z + 5
 
-   R, (x, y, z) = PolynomialRingSparse(ZZ, ["x", "y", "z"])
+   R, (x, y, z) = sparse_polynomial_ring(ZZ, ["x", "y", "z"])
 
    f = x^2*y^2 + 2x*z + 3y*z + z + 1
 
@@ -1034,7 +1034,7 @@ end
                   x^4 - 2*x^2*z^2 + 5*x*z + z^4 - z^2 + z + 1
 
    S, t = polynomial_ring(R, "t")
-   T, (x1, y1, z1) = PolynomialRingSparse(QQ, ["x", "y", "z"])
+   T, (x1, y1, z1) = sparse_polynomial_ring(QQ, ["x", "y", "z"])
    f1 = x1^2*y1^2 + 2x1*z1 + 3y1*z1 + z1 + 1
 
    @test evaluate(f, [2, 3], [t + 1, t - 1]) ==
@@ -1059,18 +1059,18 @@ end
    @test f(M1, ZZ(2), 3) == S([56 52; 78 134])
 
    K = AbstractAlgebra.RealField
-   R, (x, y) = PolynomialRingSparse(K, ["x", "y"])
+   R, (x, y) = sparse_polynomial_ring(K, ["x", "y"])
    @test evaluate(x + y, [K(1), K(1)]) isa BigFloat
 end
 
-# @testset "MPolySparse.valuation" begin
+# @testset "SparseMPoly.valuation" begin
 #    R, x = ZZ["y"]
 
 #    for num_vars = 1:10
 #       var_names = ["x$j" for j in 1:num_vars]
 #       ord = rand_ordering()
 
-#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+#       S, varlist = sparse_polynomial_ring(R, var_names, ordering = ord)
 
 #       for iter = 1:100
 #          f = S()
@@ -1101,12 +1101,12 @@ end
 #    end
 # end
 
-@testset "MPolySparse.derivative" begin
+@testset "SparseMPoly.derivative" begin
    for num_vars=1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      R, vars = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
       j = 1
       for v in vars
@@ -1126,10 +1126,10 @@ end
    end
 end
 
-@testset "MPolySparse.change_base_ring" begin
+@testset "SparseMPoly.change_base_ring" begin
    F2 = residue_ring(ZZ, 2)
-   R, varsR = PolynomialRingSparse(F2, ["x"])
-   S, varsS = PolynomialRingSparse(R, ["y"])
+   R, varsR = sparse_polynomial_ring(F2, ["x"])
+   S, varsS = sparse_polynomial_ring(R, ["y"])
    f = x -> x^2
    map_coefficients(f, varsR[1] * varsS[1]) == f(varsR[1]) * varsS[1]
 
@@ -1137,12 +1137,12 @@ end
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      R, vars = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
-      F2x, varss = PolynomialRingSparse(F2, var_names; ordering = ord)
+      F2x, varss = sparse_polynomial_ring(F2, var_names; ordering = ord)
 
-      @test typeof(change_base_ring(ZZ, R(1))) == MPolySparse{typeof(ZZ(1))}
-      @test typeof(change_base_ring(ZZ, R(0))) == MPolySparse{typeof(ZZ(0))}
+      @test typeof(change_base_ring(ZZ, R(1))) == SparseMPoly{typeof(ZZ(1))}
+      @test typeof(change_base_ring(ZZ, R(0))) == SparseMPoly{typeof(ZZ(0))}
 
       for iter in 1:10
          f = rand(R, 5:10, 1:10, -100:100)
@@ -1160,12 +1160,12 @@ end
    end
 end
 
-# @testset "MPolySparse.vars" begin
+# @testset "SparseMPoly.vars" begin
 #    for num_vars=1:10
 #       var_names = ["x$j" for j in 1:num_vars]
 #       ord = rand_ordering()
 
-#       R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+#       R, vars_R = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
 #       for iter in 1:10
 #          f = rand(R, 5:10, 1:10, -100:100)
@@ -1174,12 +1174,12 @@ end
 #    end
 # end
 
-@testset "MPolySparse.combine_like_terms" begin
+@testset "SparseMPoly.combine_like_terms" begin
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars_R = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
       for iter in 1:10
          f = R()
@@ -1208,12 +1208,12 @@ end
    end
 end
 
-@testset "MPolySparse.exponents" begin
+@testset "SparseMPoly.exponents" begin
    for num_vars = 1:10
       var_names = ["x$j" for j in 1:num_vars]
       ord = rand_ordering()
 
-      R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars_R = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
       # TODO
       # for iter in 1:10
@@ -1280,13 +1280,13 @@ end
    end
 end
 
-@testset "MPolySparse.to_univariate" begin
+@testset "SparseMPoly.to_univariate" begin
    for num_vars=1:10
       ord = rand_ordering()
 
       var_names = ["x$j" for j in 1:num_vars]
 
-      R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars_R = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
       x = rand(vars_R)
 
       R_univ, x_univ = polynomial_ring(ZZ, "x")
@@ -1307,12 +1307,12 @@ end
    end
 end
 
-@testset "MPolySparse.coefficients_of_univariate" begin
+@testset "SparseMPoly.coefficients_of_univariate" begin
    for num_vars=1:10
       ord = rand_ordering()
       var_names = ["x$j" for j in 1:num_vars]
 
-      R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars_R = sparse_polynomial_ring(ZZ, var_names; ordering=ord)
 
       @test length(AbstractAlgebra.Generic.coefficients_of_univariate(zero(R), true)) == 0
       @test length(AbstractAlgebra.Generic.coefficients_of_univariate(zero(R), false)) == 0
@@ -1336,13 +1336,13 @@ end
    end
 end
 
-@testset "MPolySparse.ordering" begin
+@testset "SparseMPoly.ordering" begin
    n_mpolys = 100
    maxval = 10
    maxdeg = 20
 
    # :deglex ordering
-   R, (x,y,z) = PolynomialRingSparse(ZZ, ["x", "y", "z"], ordering=:lex)
+   R, (x,y,z) = sparse_polynomial_ring(ZZ, ["x", "y", "z"], ordering=:lex)
    # Monomials of degree 2
    @test isless(z^2, y*z) == true
    @test isless(y*z, y^2) == true
@@ -1353,7 +1353,7 @@ end
    for n_vars = 1:maxdeg
       A = unique(sortslices(reshape(map(Int,map(round, rand(n_vars * n_mpolys) * maxval)), (n_mpolys, n_vars)), dims=1),dims=1)
       var_names = ["x$j" for j in 1:n_vars]
-      R, varsR = PolynomialRingSparse(ZZ, var_names, ordering=:lex)
+      R, varsR = sparse_polynomial_ring(ZZ, var_names, ordering=:lex)
       for i in 1:size(A)[1]-1
          f = R([base_ring(R)(1)], [A[i,:]])
          g = R([base_ring(R)(1)], [A[i+1,:]])
@@ -1362,7 +1362,7 @@ end
    end
 
    # :deglex ordering
-   R, (x,y,z) = PolynomialRingSparse(ZZ, ["x", "y", "z"], ordering=:deglex)
+   R, (x,y,z) = sparse_polynomial_ring(ZZ, ["x", "y", "z"], ordering=:deglex)
 
    @test isless(z^2, y*z) == true
    @test isless(y*z, x*z) == true
@@ -1373,7 +1373,7 @@ end
    for n_vars=1:maxdeg
       A = reshape(map(Int,map(round, rand(n_vars * n_mpolys) * maxval)), (n_mpolys, n_vars))
       var_names = ["x$j" for j in 1:n_vars]
-      R, varsR = PolynomialRingSparse(ZZ, var_names, ordering=:deglex)
+      R, varsR = sparse_polynomial_ring(ZZ, var_names, ordering=:deglex)
 
       for i in 1:size(A)[1]-1
          f = R([base_ring(R)(1)], [A[i,:]])
@@ -1397,7 +1397,7 @@ end
    end
 
    # :degrevlex ordering
-   R, (x,y,z) = PolynomialRingSparse(ZZ, ["x", "y", "z"], ordering=:degrevlex)
+   R, (x,y,z) = sparse_polynomial_ring(ZZ, ["x", "y", "z"], ordering=:degrevlex)
    # Monomials of degree 2
    @test isless(z^2, y*z) == true
    @test isless(y*z, x*z) == true
@@ -1407,7 +1407,7 @@ end
    for n_vars = 1:maxdeg
       A = reshape(map(Int,map(round, rand(n_vars * n_mpolys) * maxval)), (n_mpolys, n_vars))
       var_names = ["x$j" for j in 1:n_vars]
-      R, varsR = PolynomialRingSparse(ZZ, var_names, ordering=:degrevlex)
+      R, varsR = sparse_polynomial_ring(ZZ, var_names, ordering=:degrevlex)
       for i in 1:size(A)[1]-1
          f = R([base_ring(R)(1)], [A[i,:]])
          g = R([base_ring(R)(1)], [A[i+1,:]])

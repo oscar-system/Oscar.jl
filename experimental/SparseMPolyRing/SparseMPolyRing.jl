@@ -3,7 +3,7 @@ This is an approach to create a multivariate polynomial ring implementation
 where the size of a monomial is independent of the number of variables in the ring.
 Thus this implementation is to be used with low degree polynomials over rings
 with lots of variables.
-This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
+This strongly follows Generic.MPolyRing from AbstractAlgebra.
 """
 
 import Base: deepcopy_internal, divrem, gcd, hash, isless, isone, iszero, 
@@ -24,11 +24,11 @@ import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring,
 
 import AbstractAlgebra.Generic: ordering
 
-export MPolyRingSparse, MPolySparse, PolynomialRingSparse
+export SparseMPolyRing, SparseMPoly, sparse_polynomial_ring
 
 ###############################################################################
 #
-#   MPolyRingSparse / MPolySparse
+#   SparseMPolyRing / SparseMPoly
 #
 ###############################################################################
 
@@ -38,35 +38,35 @@ export MPolyRingSparse, MPolySparse, PolynomialRingSparse
 # :deglex
 # :degrevlex
 
-mutable struct MPolyRingSparse{T <: RingElement} <: AbstractAlgebra.MPolyRing{T}
+mutable struct SparseMPolyRing{T <: RingElement} <: AbstractAlgebra.MPolyRing{T}
     base_ring::Ring
     S::Vector{Symbol}
     ord::Symbol
     num_vars::Int
 
-    function MPolyRingSparse{T}(R::Ring, s::Vector{Symbol}, ord::Symbol,
+    function SparseMPolyRing{T}(R::Ring, s::Vector{Symbol}, ord::Symbol,
                             cached::Bool = true) where T <: RingElement
-        return get_cached!(MPolySparseID, (R, s, ord), cached) do
+        return get_cached!(SparseMPolyID, (R, s, ord), cached) do
             new{T}(R, s, ord, length(s))
-        end::MPolyRingSparse{T}
+        end::SparseMPolyRing{T}
     end
 end
 
-const MPolySparseID = CacheDictType{Tuple{Ring, Vector{Symbol}, Symbol}, Ring}()
+const SparseMPolyID = CacheDictType{Tuple{Ring, Vector{Symbol}, Symbol}, Ring}()
 
-mutable struct MPolySparse{T <: RingElement} <: MPolyRingElem{T}
+mutable struct SparseMPoly{T <: RingElement} <: MPolyRingElem{T}
     coeffs::Vector{T}
     exps::Vector{Vector{Tuple{Int,Int}}}
     length::Int
-    parent::MPolyRingSparse{T}
+    parent::SparseMPolyRing{T}
 
-    function MPolySparse{T}(R::MPolyRingSparse) where T <: RingElement
+    function SparseMPoly{T}(R::SparseMPolyRing) where T <: RingElement
         return new{T}(Vector{T}(undef, 0), Vector{Vector{Tuple{Int,Int}}}(undef, 0), 0, R)
     end
 
-    MPolySparse{T}(R::MPolyRingSparse, a::Vector{T}, b::Vector{Vector{Tuple{Int,Int}}}) where T <: RingElement = new{T}(a, b, length(a), R)
+    SparseMPoly{T}(R::SparseMPolyRing, a::Vector{T}, b::Vector{Vector{Tuple{Int,Int}}}) where T <: RingElement = new{T}(a, b, length(a), R)
 
-    function MPolySparse{T}(R::MPolyRingSparse, a::T) where T <: RingElement
+    function SparseMPoly{T}(R::SparseMPolyRing, a::T) where T <: RingElement
         return iszero(a) ? new{T}(Vector{T}(undef, 0), Vector{Vector{Tuple{Int,Int}}}(undef, 0), 0, R) :
                                             new{T}([a], [Vector{Tuple{Int,Int}}(undef, 0)], 1, R)
     end
@@ -79,43 +79,43 @@ end
 #
 ###############################################################################
 
-parent(a::MPolySparse{T}) where T <: RingElement = a.parent
+parent(a::SparseMPoly{T}) where T <: RingElement = a.parent
 
-parent_type(::Type{MPolySparse{T}}) where T <: RingElement = MPolyRingSparse{T}
+parent_type(::Type{SparseMPoly{T}}) where T <: RingElement = SparseMPolyRing{T}
 
-elem_type(::Type{MPolyRingSparse{T}}) where T <: RingElement = MPolySparse{T}
+elem_type(::Type{SparseMPolyRing{T}}) where T <: RingElement = SparseMPoly{T}
 
-base_ring(R::MPolyRingSparse{T}) where T <: RingElement = R.base_ring::parent_type(T)
+base_ring(R::SparseMPolyRing{T}) where T <: RingElement = R.base_ring::parent_type(T)
 
-symbols(a::MPolyRingSparse) = a.S
+symbols(a::SparseMPolyRing) = a.S
 
-nvars(a::MPolyRingSparse) = a.num_vars
+nvars(a::SparseMPolyRing) = a.num_vars
 
-function gen(a::MPolyRingSparse{T}, i::Int, ::Type{Val{:lex}}) where {T <: RingElement}
+function gen(a::SparseMPolyRing{T}, i::Int, ::Type{Val{:lex}}) where {T <: RingElement}
     n = a.num_vars
     return a([one(base_ring(a))], [[(i,1)]])
 end
 
-function gen(a::MPolyRingSparse{T}, i::Int, ::Type{Val{:deglex}}) where {T <: RingElement}
+function gen(a::SparseMPolyRing{T}, i::Int, ::Type{Val{:deglex}}) where {T <: RingElement}
     n = a.num_vars
     return a([one(base_ring(a))], [[(i,1)]])
 end
 
-function gen(a::MPolyRingSparse{T}, i::Int, ::Type{Val{:degrevlex}}) where {T <: RingElement}
+function gen(a::SparseMPolyRing{T}, i::Int, ::Type{Val{:degrevlex}}) where {T <: RingElement}
     n = a.num_vars
     return a([one(base_ring(a))], [[(i,1)]])
 end
 
-function gens(a::MPolyRingSparse{T}) where {T <: RingElement}
+function gens(a::SparseMPolyRing{T}) where {T <: RingElement}
     n = a.num_vars
     return [gen(a, i, Val{a.ord}) for i in 1:n]
 end
 
-function gen(a::MPolyRingSparse{T}, i::Int) where {T <: RingElement}
+function gen(a::SparseMPolyRing{T}, i::Int) where {T <: RingElement}
     return gen(a, i, Val{a.ord})
 end
 
-function vars(p::MPolySparse{T}) where {T <: RingElement}
+function vars(p::SparseMPoly{T}) where {T <: RingElement}
     exps = p.exps
     gen_list = gens(p.parent)
     inds_in_p = sort!(unique([v[1] for i in 1:length(p) for v in exps[i]]))
@@ -123,16 +123,16 @@ function vars(p::MPolySparse{T}) where {T <: RingElement}
     return map(ind -> gen_list[ind], inds_in_p)
 end
 
-function var_index(x::MPolySparse{T}) where {T <: RingElement}
+function var_index(x::SparseMPoly{T}) where {T <: RingElement}
     !is_gen(x) && error("Not a variable in var_index")
     return x.exps[1][1][1]
  end
 
-function ordering(a::MPolyRingSparse{T}) where {T <: RingElement}
+function ordering(a::SparseMPolyRing{T}) where {T <: RingElement}
     return a.ord
 end
 
-function check_parent(a::MPolySparse{T}, b::MPolySparse{T}, throw::Bool = true) where T <: RingElement
+function check_parent(a::SparseMPoly{T}, b::SparseMPoly{T}, throw::Bool = true) where T <: RingElement
     b = parent(a) != parent(b)
     b & throw && error("Incompatible polynomial rings in polynomial operation")
     return !b
@@ -163,11 +163,11 @@ function transform_exps2(e::Vector{Tuple{Int,Int}}, N::Int)
     return exp
 end
 
-function exponent_vector(a::MPolySparse{T}, i::Int) where T <: RingElement
+function exponent_vector(a::SparseMPoly{T}, i::Int) where T <: RingElement
     return transform_exps2(a.exps[i], nvars(parent(a)))
 end
 
-function exponent(a::MPolySparse{T}, i::Int, j::Int) where T <: RingElement
+function exponent(a::SparseMPoly{T}, i::Int, j::Int) where T <: RingElement
     k = searchsortedfirst(a.exps[i], j; by=first)
     if 1 <= k <= length(a.exps[i]) && a.exps[i][k][1] == j
         return a.exps[i][k][2]
@@ -176,11 +176,11 @@ function exponent(a::MPolySparse{T}, i::Int, j::Int) where T <: RingElement
     end
 end
 
-function coeff(a::MPolySparse, i::Int)
+function coeff(a::SparseMPoly, i::Int)
     return a.coeffs[i]
 end
 
-function coeff(a::MPolySparse{T}, e::Vector{Tuple{Int,Int}}) where T <: RingElement
+function coeff(a::SparseMPoly{T}, e::Vector{Tuple{Int,Int}}) where T <: RingElement
     monomial_lt = (x, y) -> monomial_isless(x, y, parent(a))
     k = searchsortedfirst(a.exps, e; lt = monomial_lt)
     if 1 <= k <= length(a) && a.exps[k] == e
@@ -190,7 +190,7 @@ function coeff(a::MPolySparse{T}, e::Vector{Tuple{Int,Int}}) where T <: RingElem
     end
 end
 
-function coeff(a::MPolySparse{T}, e::Vector{Int}) where T <: RingElement
+function coeff(a::SparseMPoly{T}, e::Vector{Int}) where T <: RingElement
     return coeff(a, transform_exps(e))
 end
 
@@ -280,7 +280,7 @@ end
 #
 ###############################################################################
 
-function Base.hash(x::MPolySparse{T}, h::UInt) where {T <: RingElement}
+function Base.hash(x::SparseMPoly{T}, h::UInt) where {T <: RingElement}
     b = 0xf89bb54654fe9eae%UInt
     for i in 1:length(x)
         b = xor(b, xor(hash(x.coeffs[i], h), h))
@@ -290,9 +290,9 @@ function Base.hash(x::MPolySparse{T}, h::UInt) where {T <: RingElement}
     return b
 end
 
-is_unit(x::MPolySparse) = x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0) && is_unit(x.coeffs[1])
+is_unit(x::SparseMPoly) = x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0) && is_unit(x.coeffs[1])
 
-function is_gen(x::MPolySparse{T}) where {T <: RingElement}
+function is_gen(x::SparseMPoly{T}) where {T <: RingElement}
     if length(x) != 1
         return false
     end
@@ -305,7 +305,7 @@ function is_gen(x::MPolySparse{T}) where {T <: RingElement}
     return x.exps[1][1][2] == 1
 end
 
-function is_homogeneous(x::MPolySparse{T}) where {T <: RingElement}
+function is_homogeneous(x::SparseMPoly{T}) where {T <: RingElement}
     last_deg = 0
     is_first = true
  
@@ -325,11 +325,11 @@ function is_homogeneous(x::MPolySparse{T}) where {T <: RingElement}
     return true
  end
 
-function monomial(x::MPolySparse{T}, i::Int) where {T <: RingElement}
+function monomial(x::SparseMPoly{T}, i::Int) where {T <: RingElement}
     return parent(x)([one(base_ring(x))], [x.exps[i]])
 end
 
-function monomial!(m::MPolySparse{T}, x::MPolySparse{T}, i::Int) where {T <: RingElement}
+function monomial!(m::SparseMPoly{T}, x::SparseMPoly{T}, i::Int) where {T <: RingElement}
     fit!(m, 1)
     m.exps[1] = x.exps[i]
     m.coeffs[1] = one(base_ring(x))
@@ -338,12 +338,12 @@ function monomial!(m::MPolySparse{T}, x::MPolySparse{T}, i::Int) where {T <: Rin
  end
 
 
-function term(x::MPolySparse{T}, i::Int) where {T <: RingElement}
+function term(x::SparseMPoly{T}, i::Int) where {T <: RingElement}
     return parent(x)([x.coeffs[i]], [x.exps[i]])
 end
 
 
-function degree(f::MPolySparse{T}, i::Int) where {T <: RingElement}
+function degree(f::SparseMPoly{T}, i::Int) where {T <: RingElement}
     biggest = -1
     for j = 1:length(f)
         k = searchsortedfirst(f.exps[j], i; by=first)
@@ -359,7 +359,7 @@ function degree(f::MPolySparse{T}, i::Int) where {T <: RingElement}
     return biggest
 end
 
-function total_degree(f::MPolySparse{T}) where {T <: RingElement}
+function total_degree(f::SparseMPoly{T}) where {T <: RingElement}
     ord = ordering(parent(f))
     if ord == :lex
         max_deg = -1
@@ -377,15 +377,15 @@ function total_degree(f::MPolySparse{T}) where {T <: RingElement}
     end
 end
 
-length(x::MPolySparse) = x.length
+length(x::SparseMPoly) = x.length
 
-isone(x::MPolySparse) = x.length == 1 && x.coeffs[1] == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0)
+isone(x::SparseMPoly) = x.length == 1 && x.coeffs[1] == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0)
 
-iszero(x::MPolySparse) = x.length == 0
+iszero(x::SparseMPoly) = x.length == 0
 
-is_constant(x::MPolySparse) = x.length == 0 || (x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0))
+is_constant(x::SparseMPoly) = x.length == 0 || (x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0))
 
-function Base.deepcopy_internal(a::MPolySparse{T}, dict::IdDict) where {T <: RingElement}
+function Base.deepcopy_internal(a::SparseMPoly{T}, dict::IdDict) where {T <: RingElement}
     Re = deepcopy_internal(a.exps[1:a.length], dict)
     Rc = Array{T}(undef, a.length)
     for i = 1:a.length
@@ -410,7 +410,7 @@ end
 #
 ###############################################################################
 
-function -(a::MPolySparse{T}) where {T <: RingElement}
+function -(a::SparseMPoly{T}) where {T <: RingElement}
     r = zero(a)
     fit!(r, length(a))
     for i in 1:length(a)
@@ -421,7 +421,7 @@ function -(a::MPolySparse{T}) where {T <: RingElement}
     return r
 end
 
-function +(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function +(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     r = zero(a)
     fit!(r, length(a) + length(b))
     i = 1
@@ -466,7 +466,7 @@ function +(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
     return r
 end
 
-function -(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function -(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     r = zero(a)
     fit!(r, length(a) + length(b))
     i = 1
@@ -511,7 +511,7 @@ function -(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
     return r
 end
 
-function *(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function *(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     r = zero(a)
     fit!(r, length(a) * length(b))
     for i in 1:length(a), j in 1:length(b)
@@ -531,11 +531,11 @@ end
 
 struct SparseToDenseData{T <: RingElement}
     vmap::Vector{Int}
-    sparse_R::MPolyRingSparse{T}
+    sparse_R::SparseMPolyRing{T}
     dense_R::MPolyRing{T}
 end
 
-function sparse_to_dense(as::MPolySparse{T}...) where {T <: RingElement}
+function sparse_to_dense(as::SparseMPoly{T}...) where {T <: RingElement}
     for a in as
         check_parent(a, as[1], true)
     end
@@ -589,14 +589,14 @@ end
 #
 ###############################################################################
 
-function Base.sqrt(a::MPolySparse{T}; check::Bool=true) where {T <: RingElement}
+function Base.sqrt(a::SparseMPoly{T}; check::Bool=true) where {T <: RingElement}
     (da,), data = sparse_to_dense(a)
     dq = sqrt(da)
     (q,) = dense_to_sparse(data, dq)
     return q
 end
 
-function is_square(a::MPolySparse{T}) where {T <: RingElement}
+function is_square(a::SparseMPoly{T}) where {T <: RingElement}
     (da,), _ = sparse_to_dense(a)
     return is_square(da)
 end
@@ -608,7 +608,7 @@ end
 #
 ###############################################################################
 
-function ==(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function ==(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     fl = check_parent(a, b, false)
     !fl && return false
     if length(a) != length(b)
@@ -625,7 +625,7 @@ function ==(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
     return true
 end
 
-function Base.isless(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function Base.isless(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     check_parent(a, b)
     (!is_monomial(a) || !is_monomial(b)) && error("Not monomials in comparison")
     return monomial_isless(a.exps[1], b.exps[1], parent(a))
@@ -638,7 +638,7 @@ end
 #
 ###############################################################################
 
-function ^(a::MPolySparse{T}, b::Int) where {T <: RingElement}
+function ^(a::SparseMPoly{T}, b::Int) where {T <: RingElement}
     b < 0 && throw(DomainError(b, "exponent must be >= 0"))
     # special case powers of x for constructing polynomials efficiently
     if iszero(a)
@@ -665,27 +665,27 @@ end
 #
 ###############################################################################
 
-function divides(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function divides(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     (da, db), data = sparse_to_dense(a, b)
     (flag, dq) = divides(da, db)
     (q,) = dense_to_sparse(data, dq)
     return flag, q
 end
 
-function divexact(a::MPolySparse{T}, b::MPolySparse{T}; check::Bool=true) where {T <: RingElement}
+function divexact(a::SparseMPoly{T}, b::SparseMPoly{T}; check::Bool=true) where {T <: RingElement}
     d, q = divides(a, b)
     check && d == false && error("Not an exact division in divexact")
     return q
 end
 
-function divexact(a::MPolySparse, n::Union{Integer, Rational, AbstractFloat}; check::Bool=true)
+function divexact(a::SparseMPoly, n::Union{Integer, Rational, AbstractFloat}; check::Bool=true)
     (da,), data = sparse_to_dense(a)
     (dq) = divexact(da, n; check=check)
     (q,) = dense_to_sparse(data, dq)
     return q
 end
 
-function divexact(a::MPolySparse{T}, n::T; check::Bool=true) where {T <: RingElem}
+function divexact(a::SparseMPoly{T}, n::T; check::Bool=true) where {T <: RingElem}
     (da,), data = sparse_to_dense(a)
     (dq) = divexact(da, n; check=check)
     (q,) = dense_to_sparse(data, dq)
@@ -699,14 +699,14 @@ end
 #
 ###############################################################################
 
-function Base.divrem(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function Base.divrem(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     (da, db), data = sparse_to_dense(a, b)
     (dq, dr) = divrem(da, db)
     (q, r) = dense_to_sparse(data, dq, dr)
     return q, r
 end
 
-function Base.divrem(a::MPolySparse{T}, bs::Vector{MPolySparse{T}}) where {T <: RingElement}
+function Base.divrem(a::SparseMPoly{T}, bs::Vector{SparseMPoly{T}}) where {T <: RingElement}
     (da, dbs...), data = sparse_to_dense(a, bs...)
     (dqs, dr) = divrem(da, collect(dbs))
     (r, qs...) = dense_to_sparse(data, dr, dqs...)
@@ -719,7 +719,7 @@ end
 #
 ###############################################################################
 
-function (a::MPolySparse{T})(vals::Union{NCRingElem, RingElement}...) where T <: RingElement
+function (a::SparseMPoly{T})(vals::Union{NCRingElem, RingElement}...) where T <: RingElement
     length(vals) != nvars(parent(a)) && error("Number of variables does not match number of values")
     R = base_ring(a)
     # The best we can do here is to cache previously used powers of the values
@@ -766,14 +766,14 @@ end
 #
 ###############################################################################
 
-function gcd(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function gcd(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     (da, db), data = sparse_to_dense(a, b)
     (dg) = gcd(da, db)
     (g,) = dense_to_sparse(data, dg)
     return g
 end
 
-function lcm(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+function lcm(a::SparseMPoly{T}, b::SparseMPoly{T}) where {T <: RingElement}
     (da, db), data = sparse_to_dense(a, b)
     (dl) = lcm(da, db)
     (l,) = dense_to_sparse(data, dl)
@@ -787,11 +787,11 @@ end
 #
 ###############################################################################
 
-function map_coefficients(f, p::MPolySparse; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(parent(f(zero(base_ring(p)))), parent(p), cached))
+function map_coefficients(f, p::SparseMPoly; cached = true, parent::SparseMPolyRing = _change_mpoly_ring(parent(f(zero(base_ring(p)))), parent(p), cached))
     return _map(f, p, parent)
 end
 
-function _map(g, p::MPolySparse, Rx)
+function _map(g, p::SparseMPoly, Rx)
     cvzip = zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
     M = MPolyBuildCtx(Rx)
     for (c, v) in cvzip
@@ -802,16 +802,16 @@ function _map(g, p::MPolySparse, Rx)
 end
 
 function _change_mpoly_ring(R, Rx, cached)
-    P, _ = PolynomialRingSparse(R, map(string, symbols(Rx)), ordering = ordering(Rx), cached = cached)
+    P, _ = sparse_polynomial_ring(R, map(string, symbols(Rx)), ordering = ordering(Rx), cached = cached)
     return P
  end
 
-function change_base_ring(R::Ring, p::MPolySparse{T}; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
+function change_base_ring(R::Ring, p::SparseMPoly{T}; cached = true, parent::SparseMPolyRing = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
     base_ring(parent) != R && error("Base rings do not match.")
     return _map(R, p, parent)
 end
 
-function change_coefficient_ring(R::Ring, p::MPolySparse{T}; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
+function change_coefficient_ring(R::Ring, p::SparseMPoly{T}; cached = true, parent::SparseMPolyRing = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
    return change_base_ring(R, p, cached = cached, parent = parent)
 end
 
@@ -822,7 +822,7 @@ end
 #
 ###############################################################################
 
-function fit!(a::MPolySparse{T}, n::Int) where {T <: RingElement}
+function fit!(a::SparseMPoly{T}, n::Int) where {T <: RingElement}
     if length(a) < n
         resize!(a.coeffs, n)
         resize!(a.exps, n)
@@ -830,12 +830,12 @@ function fit!(a::MPolySparse{T}, n::Int) where {T <: RingElement}
     return nothing
 end
 
-function zero!(a::MPolySparse{T}) where {T <: RingElement}
+function zero!(a::SparseMPoly{T}) where {T <: RingElement}
     a.length = 0
     return a
 end
 
-function set_exponent_vector!(a::MPolySparse{T}, i::Int, e::Vector{Tuple{Int,Int}}) where T <: RingElement
+function set_exponent_vector!(a::SparseMPoly{T}, i::Int, e::Vector{Tuple{Int,Int}}) where T <: RingElement
     n = nvars(parent(a))
     all(x -> 0 < x[1] <= n, e) || error("variable index out of range")
     fit!(a, i)
@@ -846,13 +846,13 @@ function set_exponent_vector!(a::MPolySparse{T}, i::Int, e::Vector{Tuple{Int,Int
     return a
 end
 
-function set_exponent_vector!(a::MPolySparse{T}, i::Int, e::Vector{Int}) where T <: RingElement
+function set_exponent_vector!(a::SparseMPoly{T}, i::Int, e::Vector{Int}) where T <: RingElement
     return set_exponent_vector!(a, i, transform_exps(e))
 end
 
 for T in [RingElem, Integer, Rational, AbstractFloat]
     @eval begin
-        function setcoeff!(a::MPolySparse{S}, i::Int, c::S) where {S <: $T}
+        function setcoeff!(a::SparseMPoly{S}, i::Int, c::S) where {S <: $T}
             fit!(a, i)
             a.coeffs[i] = c
             if i > length(a)
@@ -863,7 +863,7 @@ for T in [RingElem, Integer, Rational, AbstractFloat]
     end
 end
 
-function sort_terms!(a::MPolySparse{T}) where {T <: RingElement}
+function sort_terms!(a::SparseMPoly{T}) where {T <: RingElement}
     n = length(a)
     monomial_lt = (x, y) -> monomial_isless(x, y, parent(a))
     if n > 1
@@ -874,7 +874,7 @@ function sort_terms!(a::MPolySparse{T}) where {T <: RingElement}
     return a
 end
 
-function combine_like_terms!(a::MPolySparse{T}) where {T <: RingElement}
+function combine_like_terms!(a::SparseMPoly{T}) where {T <: RingElement}
     o = 0
     i = 1
     while i <= length(a)
@@ -899,10 +899,10 @@ end
 #
 ###############################################################################
 
-AbstractAlgebra.promote_rule(::Type{MPolySparse{T}}, ::Type{MPolySparse{T}}) where T <: RingElement = MPolySparse{T}
+AbstractAlgebra.promote_rule(::Type{SparseMPoly{T}}, ::Type{SparseMPoly{T}}) where T <: RingElement = SparseMPoly{T}
 
-function AbstractAlgebra.promote_rule(::Type{MPolySparse{T}}, ::Type{U}) where {T <: RingElement, U <: RingElement}
-    AbstractAlgebra.promote_rule(T, U) == T ? MPolySparse{T} : Union{}
+function AbstractAlgebra.promote_rule(::Type{SparseMPoly{T}}, ::Type{U}) where {T <: RingElement, U <: RingElement}
+    AbstractAlgebra.promote_rule(T, U) == T ? SparseMPoly{T} : Union{}
 end
 
 
@@ -912,55 +912,55 @@ end
 #
 ###############################################################################
 
-function (a::MPolyRingSparse{T})(b::RingElement) where {T <: RingElement}
+function (a::SparseMPolyRing{T})(b::RingElement) where {T <: RingElement}
     return a(base_ring(a)(b))
 end
 
-function (a::MPolyRingSparse{T})() where {T <: RingElement}
-    z = MPolySparse{T}(a)
+function (a::SparseMPolyRing{T})() where {T <: RingElement}
+    z = SparseMPoly{T}(a)
     return z
 end
 
-function (a::MPolyRingSparse{T})(b::Union{Integer, Rational, AbstractFloat}) where {T <: RingElement}
-    z = MPolySparse{T}(a, base_ring(a)(b))
+function (a::SparseMPolyRing{T})(b::Union{Integer, Rational, AbstractFloat}) where {T <: RingElement}
+    z = SparseMPoly{T}(a, base_ring(a)(b))
     return z
 end
 
-function (a::MPolyRingSparse{T})(b::T) where {T <: Union{Integer, Rational, AbstractFloat}}
-    z = MPolySparse{T}(a, b)
+function (a::SparseMPolyRing{T})(b::T) where {T <: Union{Integer, Rational, AbstractFloat}}
+    z = SparseMPoly{T}(a, b)
     return z
 end
 
-function (a::MPolyRingSparse{T})(b::T) where {T <: RingElement}
+function (a::SparseMPolyRing{T})(b::T) where {T <: RingElement}
     parent(b) != base_ring(a) && error("Unable to coerce to polynomial")
-    z = MPolySparse{T}(a, b)
+    z = SparseMPoly{T}(a, b)
     return z
 end
 
-function (a::MPolyRingSparse{T})(b::MPolySparse{T}) where {T <: RingElement}
+function (a::SparseMPolyRing{T})(b::SparseMPoly{T}) where {T <: RingElement}
     parent(b) != a && error("Unable to coerce polynomial")
     return b
 end
 
-function (a::MPolyRingSparse{T})(b::Vector{T}, e::Vector{Vector{Tuple{Int,Int}}}) where {T <: RingElement}
+function (a::SparseMPolyRing{T})(b::Vector{T}, e::Vector{Vector{Tuple{Int,Int}}}) where {T <: RingElement}
     if length(b) > 0 && isassigned(b, 1)
         parent(b[1]) != base_ring(a) && error("Unable to coerce to polynomial")
     end
-    z = MPolySparse{T}(a, b, map(x -> filter(y -> !iszero(y[2]), x), e))
+    z = SparseMPoly{T}(a, b, map(x -> filter(y -> !iszero(y[2]), x), e))
     return z
 end
 
 # This is the main user interface for efficiently creating a polynomial. It accepts
 # an array of coefficients and an array of exponent vectors. Sorting, coalescing of
 # like terms and removal of zero terms is performed.
-function (R::MPolyRingSparse{T})(b::Vector{T}, e::Vector{Vector{Int}}) where {T <: RingElement}
+function (R::SparseMPolyRing{T})(b::Vector{T}, e::Vector{Vector{Int}}) where {T <: RingElement}
     if length(b) > 0 && isassigned(b, 1)
         parent(b[1]) != base_ring(R) && error("Unable to coerce to polynomial")
     end
 
     length(e) != length(b) && error("Exponent vector has length $(length(e)) (expected $(length(b)))")
 
-    z = MPolySparse{T}(R, b, map(transform_exps, e))
+    z = SparseMPoly{T}(R, b, map(transform_exps, e))
     z = sort_terms!(z)
     z = combine_like_terms!(z)
     return z
@@ -973,7 +973,7 @@ end
 #
 ###############################################################################
 
-function expressify(a::MPolySparse, x = symbols(parent(a)); context = nothing)
+function expressify(a::SparseMPoly, x = symbols(parent(a)); context = nothing)
     sum = Expr(:call, :+)
     for i in 1:length(a)
         prod = Expr(:call, :*)
@@ -994,33 +994,33 @@ end
 
 ###############################################################################
 #
-#   PolynomialRingSparse constructor
+#   sparse_polynomial_ring constructor
 #
 ###############################################################################
 
-function PolynomialRingSparse(R::Ring, s::Vector{Symbol}; cached::Bool = true, ordering::Symbol = :lex)
+function sparse_polynomial_ring(R::Ring, s::Vector{Symbol}; cached::Bool = true, ordering::Symbol = :lex)
     T = elem_type(R)
-    parent_obj = MPolyRingSparse{T}(R, s, ordering, cached)
+    parent_obj = SparseMPolyRing{T}(R, s, ordering, cached)
 
     return parent_obj, gens(parent_obj)
 end
 
-function PolynomialRingSparse(R::Ring, s::Vector{String}; cached::Bool = true, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, [Symbol(v) for v in s]; cached=cached, ordering=ordering)
+function sparse_polynomial_ring(R::Ring, s::Vector{String}; cached::Bool = true, ordering::Symbol = :lex)
+    return sparse_polynomial_ring(R, [Symbol(v) for v in s]; cached=cached, ordering=ordering)
 end
 
-function PolynomialRingSparse(R::Ring, s::Vector{Char}; cached::Bool = true, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, [Symbol(v) for v in s]; cached=cached, ordering=ordering)
+function sparse_polynomial_ring(R::Ring, s::Vector{Char}; cached::Bool = true, ordering::Symbol = :lex)
+    return sparse_polynomial_ring(R, [Symbol(v) for v in s]; cached=cached, ordering=ordering)
 end
 
-function PolynomialRingSparse(R::Ring, n::Int, s::Symbol=:x; cached::Bool = false, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, [Symbol(s, i) for i=1:n], cached = cached, ordering = ordering)
+function sparse_polynomial_ring(R::Ring, n::Int, s::Symbol=:x; cached::Bool = false, ordering::Symbol = :lex)
+    return sparse_polynomial_ring(R, [Symbol(s, i) for i=1:n], cached = cached, ordering = ordering)
 end
 
-function PolynomialRingSparse(R::Ring, n::Int, s::String; cached::Bool = false, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, n, Symbol(s); cached=cached, ordering=ordering)
+function sparse_polynomial_ring(R::Ring, n::Int, s::String; cached::Bool = false, ordering::Symbol = :lex)
+    return sparse_polynomial_ring(R, n, Symbol(s); cached=cached, ordering=ordering)
 end
 
-function PolynomialRingSparse(R::Ring, n::Int, s::Char; cached::Bool = false, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, n, Symbol(s); cached=cached, ordering=ordering)
+function sparse_polynomial_ring(R::Ring, n::Int, s::Char; cached::Bool = false, ordering::Symbol = :lex)
+    return sparse_polynomial_ring(R, n, Symbol(s); cached=cached, ordering=ordering)
 end

@@ -103,7 +103,7 @@ include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
-include("Experimental/MPolyRingSparse-test.jl")
+include("Experimental/SparseMPolyRing-test.jl")
 include("Experimental/MatrixGroups-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 

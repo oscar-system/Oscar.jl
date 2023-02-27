@@ -4,7 +4,8 @@ include("ModStd.jl")
 include("PlaneCurve.jl")
 include("GITFans.jl")
 include("GModule.jl")
-include("MPolyRingSparse.jl")
+
+include("SparseMPolyRing/SparseMPolyRing.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
