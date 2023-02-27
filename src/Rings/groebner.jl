@@ -1265,23 +1265,21 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 end
 
 @doc Markdown.doc"""
-    groebner_basis_hilbert_driven(I::MPolyIdeal{P};
-                                  ordering::MonomialOrdering,
-                                  complete_reduction::Bool = false,
-                                  weights::Vector{Int} = ones(ngens(base_ring(I)))) where {P <: MPolyElem}
+         groebner_basis_hilbert_driven(I::MPolyIdeal{P};
+                                       ordering::MonomialOrdering,
+                                       complete_reduction::Bool = false,
+                                       weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+                                       hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
 
 
-Compute a Gröbner basis of `I` with respect to `ordering` using a
-Hilbert Series driven method as follows: If a Gröbner basis for `I` is
-present, compute the Hilbert series of `I` (w.r.t. `weights`) and use
-it to optimize the Gröbner basis computation for `I`
-w.r.t. `ordering`. If no Gröbner basis for `I` is present compute the
-Hilbert series for `I` if the base field of `I` has positive
-characteristic, otherwise compute the Hilbert series for `I` modulo a
-randomly chosen prime. Use the resulting Hilbert series to optimize
-the Gröbner basis computation for `I` w.r.t. `ordering`.
+Compute a Gröbner basis of `I` with respect to `ordering` using the
+Hilbert series of `I` to optimize the computation. If the numerator of
+the hilbert series of `I` is not passed by the user, it is computed
+internally.
 
-`I` must be given by generators homogeneous w.r.t. `weights`.
+`I` must be given by generators homogeneous w.r.t. `weights` and
+`hilbert_numerator` must be either `nothing` or the numerator of the
+hilbert series of `I` w.r.t.  weights computed by Oscar.
 
 # Examples
 ```jldoctest
