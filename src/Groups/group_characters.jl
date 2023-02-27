@@ -89,7 +89,6 @@ julia> Oscar.with_unicode() do
          show(atlas_irrationality("3y'''24*13-2&5"))
        end;
 -5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
-
 ```
 """
 function atlas_irrationality(F::AnticNumberField, description::String)
@@ -181,7 +180,6 @@ Sym( [ 1 .. 3 ] ) mod 2
         
 χ₁  1  1
 χ₂  2 -1
-
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
@@ -222,7 +220,6 @@ character_table("A5mod2")
 
 julia> println(character_table("J5"))
 nothing
-
 ```
 """
 function character_table(id::String, p::Int = 0)
@@ -256,7 +253,6 @@ character_table("Sym(5)")
 
 julia> println(character_table(:WeylB, 3))
 character_table("W(B3)")
-
 ```
 
 Currently the following series are supported.
@@ -343,7 +339,6 @@ julia> println(spor_names[1:5])
 
 julia> length(all_character_table_names(number_conjugacy_classes => 1))
 1
-
 ```
 """
 function all_character_table_names(L...; ordered_by = nothing)
@@ -680,7 +675,6 @@ Return the order of the group for which `tbl` is the character table.
 ```jldoctest
 julia> order(character_table(symmetric_group(4)))
 24
-
 ```
 """
 order(tbl::GAPGroupCharacterTable) = order(ZZRingElem, tbl)
@@ -699,7 +693,6 @@ ordered according to the columns of `tbl`.
 ```jldoctest
 julia> println(orders_class_representatives(character_table("A5")))
 [1, 2, 3, 5, 5]
-
 ```
 """
 @gapattribute orders_class_representatives(tbl::GAPGroupCharacterTable) = Vector{Int}(GAP.Globals.OrdersClassRepresentatives(tbl.GAPTable)::GapObj)
@@ -715,7 +708,6 @@ ordered according to the columns of `tbl`.
 ```jldoctest
 julia> println(orders_centralizers(character_table("A5")))
 ZZRingElem[60, 4, 3, 5, 5]
-
 ```
 """
 @gapattribute orders_centralizers(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesCentralizers(tbl.GAPTable)::GAP.Obj)
@@ -727,7 +719,6 @@ ZZRingElem[60, 4, 3, 5, 5]
 ```jldoctest
 julia> println(class_lengths(character_table("A5")))
 ZZRingElem[1, 15, 20, 12, 12]
-
 ```
 """
 @gapattribute class_lengths(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesConjugacyClasses(tbl.GAPTable)::GapObj)
@@ -752,7 +743,6 @@ julia> println(maxes(character_table("M11")))
 
 julia> maxes(character_table("M")) == nothing  # not (yet) known
 true
-
 ```
 """
 function maxes(tbl::GAPGroupCharacterTable)
@@ -772,7 +762,6 @@ It is used mainly for library tables.
 ```jldoctest
 julia> identifier(character_table("A5"))
 "A5"
-
 ```
 """
 @gapattribute identifier(tbl::GAPGroupCharacterTable) = string(GAP.Globals.Identifier(tbl.GAPTable)::GapObj)
@@ -788,7 +777,6 @@ see [`pcore(G::GAPGroup, p::IntegerUnion)`](@ref).
 ```jldoctest
 julia> println(class_positions_of_pcore(character_table("2.A5"), 2))
 [1, 2]
-
 ```
 """
 class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion) = Vector{Int}(GAP.Globals.ClassPositionsOfPCore(tbl.GAPTable, GAP.Obj(p))::GapObj)
@@ -880,7 +868,6 @@ julia> decomposition_matrix(t2)
 [1   1   0   0]
 [0   0   0   1]
 [1   1   1   0]
-
 ```
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
@@ -925,7 +912,6 @@ julia> class_multiplication_coefficient(character_table("A5"), 2, 3, 4)
 
 julia> class_multiplication_coefficient(character_table("A5"), 2, 4, 4)
 0
-
 ```
 """
 function class_multiplication_coefficient(::Type{T}, tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) where T <: IntegerUnion
@@ -950,7 +936,6 @@ julia> possible_class_fusions(character_table("A5"), character_table("A6"))
  [1, 2, 3, 7, 6]
  [1, 2, 4, 6, 7]
  [1, 2, 4, 7, 6]
-
 ```
 """
 function possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
@@ -1012,7 +997,6 @@ julia> character_parameters(character_table("S5"))
  [2, 2, 1]
 
 julia> character_parameters(character_table("M11"))
-
 ```
 """
 function character_parameters(tbl::GAPGroupCharacterTable)
@@ -1043,7 +1027,6 @@ julia> class_parameters(character_table("S5"))
  [3, 2]
 
 julia> class_parameters(character_table("M11"))
-
 ```
 """
 function class_parameters(tbl::GAPGroupCharacterTable)
@@ -1199,7 +1182,6 @@ julia> ind = [induced_class_function(chi, t, x) for x in maps];  length(ind)
 4
 julia> length(Set(ind))
 2
-
 ```
 """
 function induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -1411,7 +1393,6 @@ Return the array of those integers `i` such that `chi[i] == chi[1]` holds.
 ```jldoctest
 julia> println(class_positions_of_kernel(character_table("2.A5")[2]))
 [1, 2]
-
 ```
 """
 function class_positions_of_kernel(chi::GAPGroupClassFunction)
@@ -1461,7 +1442,6 @@ a root of unity.
 ```jldoctest
 julia> println(class_positions_of_center(character_table("2.A5")[2]))
 [1, 2]
-
 ```
 """
 function class_positions_of_center(chi::GAPGroupClassFunction)
