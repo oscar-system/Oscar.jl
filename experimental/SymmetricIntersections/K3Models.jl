@@ -47,7 +47,7 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, Gs::Oscar.GAPGroup, n::Int, d
   end
   @info "$(length(sum_index)) possible action(s) to consider"
   F = base_field(RR)
-  S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
+  S, _ = grade(polynomial_ring(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
   E = underlying_group(RR)
   Irr = irreducible_characters_underlying_group(RR)
@@ -98,7 +98,7 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   !bool && (return Tuple{ProjRep, Vector{SymmetricIntersections}}[])
   @info "$(length(sum_index)) possible actions to consider"
   F = base_field(RR)
-  S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
+  S, _ = grade(polynomial_ring(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
   E = underlying_group(RR)
   Irr = irreducible_characters_underlying_group(RR)
@@ -146,7 +146,7 @@ function possible_ideals_for_cubics(G::Oscar.GAPGroup)
   !bool && return Tuple{ProjRep, Vector{SymmetricIntersections}}[]
   @info "$(length(sum_index)) possible actions to consider"
   F = base_field(RR)
-  S, _ = grade(PolynomialRing(F, "x" => 0:5)[1])
+  S, _ = grade(polynomial_ring(F, "x" => 0:5)[1])
   _, j = homogeneous_component(S, 3)
   E = underlying_group(RR)
   Irr = irreducible_characters_underlying_group(RR)

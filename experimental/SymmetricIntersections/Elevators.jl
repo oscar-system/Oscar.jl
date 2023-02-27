@@ -64,9 +64,9 @@ end
 # f(L). Several distinct indices could correspond to the same integers
 # in f(L), and while enumerating EC, we want to know which partition of d on the
 # elements of f(L) we have to consider.
-@attr Tuple{Int, Vector{Vector{fmpz}}} function _num_sum(EC::ElevCtx{T, U}) where {T, U}
+@attr Tuple{Int, Vector{Vector{ZZRingElem}}} function _num_sum(EC::ElevCtx{T, U}) where {T, U}
   len = 0
-  sumsum = Vector{fmpz}[]
+  sumsum = Vector{ZZRingElem}[]
   it = underlying_iterator(EC)
   L = underlying_list(EC)
   f = associated_function(EC)
@@ -160,7 +160,7 @@ of `EC`.
 associated_function(EC::ElevCtx) = EC.f
 
 @doc Markdown.doc"""
-    underlying_iterator(EC::ElevCtx) -> SubObjectIterator{PointVector{fmpz}}
+    underlying_iterator(EC::ElevCtx) -> SubObjectIterator{PointVector{ZZRingElem}}
 
 Return the underlying iterator of `EC`.
 """
@@ -225,7 +225,7 @@ function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 
     ubs =  [Int(div(d, fL[i])) for i in 1:length(L)]
   end
 
-  it = solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, B, C, D)
+  it = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, B, C, D)
   el = ElevCtx(L, d, it, f, (lbs, ubs))
   return el
 end
@@ -241,7 +241,7 @@ elevator(L::Vector{Int}, d::Int; lbs::Vector{Int} = [0 for i in 1:length(L)], ub
 # for a d-elevator of (L,f), return the first `d`-elevation of (L, f) associated
 # to the partition sumtype of d on the elements of f(L). The order considered by
 # default is the lexicographic order
-function _first(EC::ElevCtx, sumtype::Vector{fmpz})
+function _first(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   @assert sum(sumtype) == degree_of_elevations(EC)
   @assert any(s -> s == sumtype, _possible_sums(EC))
   lbs, ubs  = associated_bounds(EC)
@@ -296,7 +296,7 @@ end
 # for a d-elevator of (L,f), return the last d-elevation of (L, f) associated
 # to the partition sumtype of d on the elements of f(L). The order considered
 # is the lexicographic order.
-function _last(EC::ElevCtx, sumtype::Vector{fmpz})
+function _last(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   @assert sum(sumtype) == degree_of_elevations(EC)
   @assert any(s -> s == sumtype, _possible_sums(EC))
   lbs, ubs  = associated_bounds(EC)

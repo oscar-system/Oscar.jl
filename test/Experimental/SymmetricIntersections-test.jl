@@ -1,7 +1,7 @@
 using Oscar.SymInt
 
 @testset "Elevators" begin
-  R, _ = PolynomialRing(QQ, 10, cached=false)
+  R, _ = polynomial_ring(QQ, 10, cached=false)
   W = sort(rand(1:5, 10))
   S, x = grade(R, W)
   
@@ -23,7 +23,7 @@ using Oscar.SymInt
   @test underlying_list(el) === x
   @test degree_of_elevations(el) == 5
   @test associated_function(el) === weight
-  @test typeof(underlying_iterator(el)) == SubObjectIterator{PointVector{fmpz}}
+  @test typeof(underlying_iterator(el)) == SubObjectIterator{PointVector{ZZRingElem}}
 end
 
 @testset "Linear representations" begin
@@ -300,7 +300,7 @@ end
     fs, n = parametrization_data(S)[1]
     @test n == 1
     @test length(fs)-1 == projective_dimension(M)
-    @test all(f -> f[1] isa MPolyElem_dec, fs)
+    @test all(f -> f[1] isa MPolyDecRingElem, fs)
     @test all(f -> is_semi_invariant_polynomial(linear_lift(prep), f[1]), fs)
     for f in fs
       f = f[1]

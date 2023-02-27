@@ -9,7 +9,7 @@ export is_invariant_ideal,
 ### Action on homogeneous ideals/polynomials
 
 @doc Markdown.doc"""
-    is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec -> Bool
+    is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyDecRingElem -> Bool
 
 Given a linear representation `rep` of a group `E` on a finite vector space `V` and a
 homogeneous polynomial `f` of degree `d` in the ($\mathbb Z$-graded) polynomial
@@ -20,7 +20,7 @@ action on `R_d`.
 of `e` given by `rep` is a scalar multiple of `f`. In other words, the vector span
 of `f` in `R_d` is `E`-invariant under the actions induced by `rep`.
 """ 
-function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_dec
+function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyDecRingElem
   @req is_homogeneous(f) "f must be a homogeneous polynomial"
   R = parent(f)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
@@ -39,14 +39,14 @@ function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyElem_de
 end
 
 @doc Markdown.doc"""
-    linear_representation(rep::LinRep, f::S) where S <: MPolyElem_dec -> LinRep
+    linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem -> LinRep
 
 Given a linear representation `rep` on a finite vector space `V` and a semi-invariant
 homogeneous polynomial `f` of degree `d` in the ($\mathbb Z$-graded) polynomial
 algebra `R` associated to `V`, return the 1-dimensional linear representation
 corresponding to the induced action on `f`.
 """ 
-function linear_representation(rep::LinRep, f::S) where S <: MPolyElem_dec
+function linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem
   @req is_homogeneous(f) "f must be a homogeneous polynomial"
   R = parent(f)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
@@ -67,14 +67,14 @@ end
 
 @doc Markdown.doc"""
     is_invariant_ideal(rep::LinRep, I::S)
-                                where S <: MPolyIdeal{<: MPolyElem_dec} -> Bool
+                                where S <: MPolyIdeal{<: MPolyDecRingElem} -> Bool
 
 Given a linear representation `rep` on a finite vector space `V` and a
 homogeneous ideal `I` in the ($\mathbb Z$-graded) polynomial algebra `R`
 associated to `V`, return whether `I` is invariant under the induced action on
 `R`.
 """ 
-function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
+function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDecRingElem}
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
@@ -92,14 +92,14 @@ end
 
 @doc Markdown.doc"""
     linear_representation(rep::LinRep, I::S)
-                              where S <: MPolyIdeal{<: MPolyElem_dec} -> LinRep
+                              where S <: MPolyIdeal{<: MPolyDecRingElem} -> LinRep
 
 Given a linear representation `rep` on a finite dimensional vector space `V` and an invariant
 homogeneous polynomial `I` in the ($\mathbb Z$-graded) polynomial algebra `R`
 associated to `V`, such that `I = I_d` for some positive integer `d`, return the
 linear representation corresponding to the induced action on `I`.
 """ 
-function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyElem_dec}
+function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDecRingElem}
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficients of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
@@ -140,7 +140,7 @@ projective_group_action(symci::SymmetricIntersections) = symci.prep
 
 @doc Markdown.doc"""
     parametrization_data(symci::SymmetricIntersections)
-                                        -> Vector{Tuple{Vector{MPolyElem_dec}, Int}}
+                                        -> Vector{Tuple{Vector{MPolyDecRingElem}, Int}}
 
 Given a parametrizing space `symci` for ideals defining symmetric intersections,
 return a list of tuples `(B, n)` where `B`'s' are bases for the factor spaces of `symci`
@@ -149,9 +149,9 @@ and `n` is the size of a sample in the factor space spanned by `B` to be taken.
 function parametrization_data(symci::SymmetricIntersections)
   pd = parametrization_data(symci.para)
   j = symci.j
-  pd2 = Tuple{Vector{Vector{MPolyElem_dec}}, Int}[]
+  pd2 = Tuple{Vector{Vector{MPolyDecRingElem}}, Int}[]
   for (B, n) in pd
-    B2 = Vector{MPolyElem_dec}[]
+    B2 = Vector{MPolyDecRingElem}[]
     for b in B
       _vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
       vv = domain(j).(_vv)
@@ -208,7 +208,7 @@ function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j = nothing, che
   RR = representation_ring_linear_lift(prep)
   F = base_field(RR)
   if j === nothing
-    S, _ = grade(PolynomialRing(F, "x" => 0:dimension_linear_lift(prep)-1)[1])
+    S, _ = grade(polynomial_ring(F, "x" => 0:dimension_linear_lift(prep)-1)[1])
     _, j = homogeneous_component(S, d)
   elseif check
     V = domain(j)
@@ -273,7 +273,7 @@ function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   res = Tuple{ProjRep, Vector{SymmetricIntersections}}[]
   is_empty(pfr) && return res
   F = base_field(representation_ring_linear_lift(pfr[1]))
-  S, _ = grade(PolynomialRing(F, "x" => 0:n-1)[1])
+  S, _ = grade(polynomial_ring(F, "x" => 0:n-1)[1])
   _, j = homogeneous_component(S, d)
   for prep in pfr
     D = symmetric_intersections(prep, d, t, j = j, check = false)
