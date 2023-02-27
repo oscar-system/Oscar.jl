@@ -78,3 +78,7 @@
 Graphs = Oscar
 export Graphs
 
+# Backwards compatibility for renaming MPolyRingSparse -> SparseMPolyRing
+@alias MPolyRingSparse SparseMPolyRing
+@alias MPolySparse SparseMPoly
+@alias PolynomialRingSparse sparse_polynomial_ring
