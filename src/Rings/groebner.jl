@@ -155,26 +155,31 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     _compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
     if all(_is_homogeneous, gens(I))
-      J, target_ordering, weights  = I, ordering, ones(ngens(base_ring(I)))
+      J, target_ordering, weights, hn  = I, ordering, ones(Int, ngens(base_ring(I))), nothing
     else
       weights = _find_weights(gens(I))
       if !iszero(weights[1])
-        J, target_ordering = I, ordering
+        J, target_ordering, hn = I, ordering, nothing
       else
         R = base_ring(I)
-        if !haskey(I.gb, degrevlex(R))
-          I.gb[degrevlex(R)] = _compute_standard_basis(I.gens, degrevlex(R))
-        end
+        K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
+        S = base_ring(K)
+        gb = groebner_assure(K, degrevlex(S))
+        K_hom = homogenization(K, "w")
+        gb_hom = IdealGens((p -> homogenization(p, base_ring(K_hom))).(gens(gb)))
+        gb_hom.isGB = true
+        K_hom.gb[degrevlex(S)] = gb_hom
+        singular_assure(K_hom.gb[degrevlex(S)])
+        hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
         J = homogenization(I, "w")
-        S = base_ring(J)
-        J.gb[degrevlex(S)] = IdealGens((p -> homogenization(p, S)).(gens(I.gb[degrevlex(R)])))
-        weights = ones(ngens(S))
+        weights = ones(Int, ngens(base_ring(J)))
         target_ordering = _extend_mon_order(ordering, base_ring(J))
       end
     end
     GB = groebner_basis_hilbert_driven(J, ordering=target_ordering,
                                        complete_reduction=complete_reduction,
-                                       weights=weights)
+                                       weights=weights,
+                                       hilbert_numerator=hn)
     if base_ring(I) == base_ring(J)
       I.gb[ordering] = GB
     else
@@ -1308,35 +1313,14 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   is_global(ordering) || error("Destination ordering must be global.")
   haskey(I.gb, ordering) && return I.gb[ordering]
   if isnothing(hilbert_numerator)
-    if isempty(I.gb) && iszero(characteristic(base_ring(I))) 
-      p = 32771
-      while true
-        p = Hecke.next_prime(p)
-        
-        base_field = GF(p)
-        ModP, _ = grade(PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))[1],
-                        weights)
-        I_mod_p_gens =
-          try
-            [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
-          catch e
-            # this precise error is thrown if the chosen prime p divides one
-            # of the denominators of the coefficients of the generators of I.
-            # In this case we simply choose the next prime and try again.
-            if e == ErrorException("Unable to coerce") 
-              continue
-            else
-              rethrow(e)
-            end
-          end
-        G = groebner_assure(ideal(ModP, I_mod_p_gens), default_ordering(ModP))
-        break
-      end
+    if isempty(I.gb)
+      J = iszero(characteristic(base_ring(I))) ? _mod_rand_prime(I) : I
+      G = groebner_assure(J, wdegrevlex(base_ring(J), weights))
     else
       G = groebner_assure(I)
     end
 
-    if characteristic(base_ring(I)) > 0 && ordering == default_ordering(base_ring(I))
+    if characteristic(base_ring(I)) > 0 && ordering == wdegrevlex(base_ring(I), weights)
       return G
     end
     singular_assure(G)
@@ -1380,6 +1364,30 @@ function _extend_mon_order(ordering::MonomialOrdering,
   m_hom[1, :] = ones(Int, nvars + 1)
   m_hom[2:end, 2:end] = m
   return matrix_ordering(homogenized_ring, m_hom)
+end
+
+function _mod_rand_prime(I::MPolyIdeal)
+  p = 32771
+  while true
+    p = Hecke.next_prime(p)
+    
+    base_field = GF(p)
+    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+    I_mod_p_gens =
+      try
+        [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
+      catch e
+        # this precise error is thrown if the chosen prime p divides one
+        # of the denominators of the coefficients of the generators of I.
+        # In this case we simply choose the next prime and try again.
+        if e == ErrorException("Unable to coerce") 
+          continue
+        else
+          rethrow(e)
+        end
+      end
+    return ideal(ModP, I_mod_p_gens)
+  end
 end
 
 # check homogeneity w.r.t. some weights
