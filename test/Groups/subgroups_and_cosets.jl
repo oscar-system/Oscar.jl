@@ -362,7 +362,7 @@ end
    @test frattini_subgroup(S)==sub(S,[one(S)])
    @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==center(G)
-   @test is_characteristic(G,center(G)[1])
+   @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S
