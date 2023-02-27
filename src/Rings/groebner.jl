@@ -154,15 +154,27 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
   elseif algorithm == :fglm
     _compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    if base_ring(I) isa MPolyDecRing
-      J, target_ordering  = I, ordering
+    if all(_is_homogeneous, gens(I))
+      J, target_ordering, weights  = I, ordering, ones(ngens(base_ring(I)))
     else
-      gens_hom = homogenization(gens(I), "w")
-      J = ideal(parent(first(gens_hom)), gens_hom)
-      target_ordering = _extend_mon_order(ordering, base_ring(J))
+      weights = _find_weights(gens(I))
+      if !iszero(weights[1])
+        J, target_ordering = I, ordering
+      else
+        R = base_ring(I)
+        if !haskey(I.gb, degrevlex(R))
+          I.gb[degrevlex(R)] = _compute_standard_basis(I.gens, degrevlex(R))
+        end
+        J = homogenization(I, "w")
+        S = base_ring(J)
+        J.gb[degrevlex(S)] = IdealGens((p -> homogenization(p, S)).(gens(I.gb[degrevlex(R)])))
+        weights = ones(ngens(S))
+        target_ordering = _extend_mon_order(ordering, base_ring(J))
+      end
     end
-    GB = groebner_basis_hilbert_driven(J, ordering = target_ordering,
-                                       complete_reduction=complete_reduction)
+    GB = groebner_basis_hilbert_driven(J, ordering=target_ordering,
+                                       complete_reduction=complete_reduction,
+                                       weights=weights)
     if base_ring(I) == base_ring(J)
       I.gb[ordering] = GB
     else
@@ -1369,6 +1381,10 @@ end
 function _is_homogeneous(f::MPolyElem, weights::Vector{Int})
   all([sum(weights .* e) == sum(weights .* first(exponents(f)))
        for e in exponents(f)])
+end
+
+function _is_homogeneous(f::MPolyElem)
+  _is_homogeneous(f, ones(Int, ngens(parent(f))))
 end
   
 
