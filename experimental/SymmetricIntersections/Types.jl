@@ -36,11 +36,11 @@ export CharacterGrassmannian,
 @attributes mutable struct ElevCtx{T, U}
   L::Vector{T}
   d::Int
-  it::SubObjectIterator{PointVector{fmpz}}
+  it::SubObjectIterator{PointVector{ZZRingElem}}
   f::U
   bounds::Tuple{Vector{Int}, Vector{Int}}
 
-  function ElevCtx(L::Vector{T}, d::Int, it::SubObjectIterator{PointVector{fmpz}}, f::U, bounds::Tuple{Vector{Int}, Vector{Int}}) where {T, U}
+  function ElevCtx(L::Vector{T}, d::Int, it::SubObjectIterator{PointVector{ZZRingElem}}, f::U, bounds::Tuple{Vector{Int}, Vector{Int}}) where {T, U}
     z = new{T, U}()
     z.L = L
     z.d = d
@@ -199,7 +199,7 @@ end
 @attributes mutable struct SymmetricIntersections{S, T, U, V}
   prep::ProjRep{S, T, U, V}
   para::CharacterGrassmannian{S, T, U}
-  j::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, MPolyRing_dec{U, AbstractAlgebra.Generic.MPolyRing{U}}}
+  j::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, MPolyDecRing{U, AbstractAlgebra.Generic.MPolyRing{U}}}
   
   function SymmetricIntersections(prep::ProjRep{S, T, U, V}, para::CharacterGrassmannian{S, T, U}, j::MapFromFunc) where {S, T, U, V}
     z = new{S, T, U, V}(prep, para, j)
