@@ -10,8 +10,8 @@ struct PolyhedralComplex{T}
      PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
-# default scalar type: `fmpq`
-PolyhedralComplex(x...) = PolyhedralComplex{fmpq}(x...)
+# default scalar type: `QQFieldElem`
+PolyhedralComplex(x...) = PolyhedralComplex{QQFieldElem}(x...)
 
 PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
 
@@ -50,7 +50,24 @@ julia> vr = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, vr)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
+```
+
+Polyhedral complex with rays and lineality:
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+Polyhedral complex in ambient dimension 3
+
+julia> lineality_dim(PC)
+1
 ```
 """
 function PolyhedralComplex{T}(
@@ -100,9 +117,9 @@ PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types 
 function Base.show(io::IO, PC::PolyhedralComplex{T}) where T<:scalar_types
     try
         ad = ambient_dim(PC)
-        print(io, "A polyhedral complex in ambient dimension $(ad)")
-        T != fmpq && print(io, " with $T type coefficients")
+        print(io, "Polyhedral complex in ambient dimension $(ad)")
+        T != QQFieldElem && print(io, " with $T type coefficients")
     catch e
-        print(io, "A polyhedral complex without ambient dimension")
+        print(io, "Polyhedral complex without ambient dimension")
     end
 end

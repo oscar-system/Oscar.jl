@@ -77,3 +77,4 @@
 # Allow backwards compatibility after removal of Oscar.Graphs module.
 Graphs = Oscar
 export Graphs
+

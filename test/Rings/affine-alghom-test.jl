@@ -1,6 +1,6 @@
 @testset "algebra homomorphisms" begin
-  r, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  s, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
+  r, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  s, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"])
   S = quo(s, ideal(s, [c-b^3]))[1]
   T, (X, Y, Z) = grade(r)
   U = [X, Y, Z]
@@ -31,8 +31,8 @@
 end
 
 @testset "finiteness tests for alghoms" begin
-  r, (X, Y, Z) = PolynomialRing(QQ, ["X", "Y", "Z"])
-  s1, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
+  r, (X, Y, Z) = polynomial_ring(QQ, ["X", "Y", "Z"])
+  s1, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"])
   S1 = quo(s1, ideal(s1, [c-b^3]))[1]
   V = S1.([2*a+b^6, 7*b-a^2, c^2])
   f1 = hom(r, S1, V)
@@ -41,7 +41,7 @@ end
   a, b, c = S2(X), S2(Y), S2(Z)
   f2 = hom(r, S2, [(a*b)^3+a^2+c, b^2-1, c^3])
 
-  r2 , (x, y) = PolynomialRing(QQ, ["x", "y"])
+  r2 , (x, y) = polynomial_ring(QQ, ["x", "y"])
   s3 = quo(r, ideal(r, [X^2-Y^2*Z]))[1]
   f3 = hom(r2, s3, [gen(s3, 1), gen(s3, 2)])
 
@@ -51,7 +51,7 @@ end
 end
 
 @testset "subalgebra membership" begin
-  s, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
+  s, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"])
   S = quo(s, ideal(s, [c-b^3]))[1]
   t = subalgebra_membership(S(c+a^2-b^6), S.([a,b^3]))
   T = parent(t[2])

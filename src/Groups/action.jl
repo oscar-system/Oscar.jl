@@ -295,10 +295,10 @@ end
 
 """
     on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
-    on_indeterminates(f::Nemo.MPolyElem, p::PermGroupElem)
+    on_indeterminates(f::MPolyRingElem, p::PermGroupElem)
     on_indeterminates(f::MPolyIdeal, p::PermGroupElem)
     on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
-    on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+    on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S
     on_indeterminates(f::MPolyIdeal, p::MatrixGroupElem)
 
 Return the image of `f` under `p`.
@@ -306,7 +306,7 @@ If `p` is a `PermGroupElem` then it acts via permuting the indeterminates,
 if `p` is a `MatrixGroupElem` then it acts via evaluating `f` at the
 vector obtained by multiplying `p` with the (column) vector of indeterminates.
 
-For `Nemo.MPolyElem` and `MPolyIdeal` objects,
+For `MPolyRingElem` and `MPolyIdeal` objects,
 one can also call `^` instead of `on_indeterminates`.
 
 # Examples
@@ -314,7 +314,7 @@ one can also call `^` instead of `on_indeterminates`.
 julia> g = symmetric_group(3);  p = g[1]
 (1,2,3)
 
-julia> R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
+julia> R, x = polynomial_ring(QQ, ["x1", "x2", "x3"]);
 
 julia> f = x[1]*x[2] + x[2]*x[3]
 x1*x2 + x2*x3
@@ -334,7 +334,7 @@ julia> g = general_linear_group(2, 5);  m = g[2]
 [4   1]
 [4   0]
 
-julia> R, x = PolynomialRing(base_ring(g), degree(g));
+julia> R, x = polynomial_ring(base_ring(g), degree(g));
 
 julia> f = x[1]*x[2] + x[1]
 x1*x2 + x1
@@ -346,7 +346,7 @@ x1^2 + 4*x1*x2 + 4*x1 + x2
 """
 on_indeterminates(f::GAP.GapObj, p::PermGroupElem) = GAP.Globals.OnIndeterminates(f, p.X)
 
-function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
+function on_indeterminates(f::MPolyRingElem, s::PermGroupElem)
   G = parent(s)
   @assert ngens(parent(f)) == degree(G)
 
@@ -370,7 +370,7 @@ function on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
   return GAP.Globals.Value(f, indets, p.X * indets)
 end
 
-function on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+function on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S
   @assert base_ring(f) == base_ring(p)
   @assert ngens(parent(f)) == degree(parent(p))
   act = Oscar.right_action(parent(f), p)
@@ -390,9 +390,9 @@ function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
   return ideal(parent(imggens[1]), imggens)
 end
 
-^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
+^(f::MPolyRingElem, p::PermGroupElem) = on_indeterminates(f, p)
 
-^(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
+^(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
 
 ^(I::MPolyIdeal, p::PermGroupElem) = on_indeterminates(I, p)
 

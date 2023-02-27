@@ -25,7 +25,7 @@ For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
 ## Constructors
 
 ```@docs
-CyclicQuotientSingularity(n::fmpz, q::fmpz)
+cyclic_quotient_singularity(n::T, q::T) where {T <: IntegerUnion}
 ```
 
 
@@ -40,6 +40,6 @@ dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 ## Auxiliary Methods
 
 ```@docs
-continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})
-rational_to_continued_fraction_hirzebruch_jung(r::fmpq)
+continued_fraction_hirzebruch_jung_to_rational(v::Vector{ZZRingElem})
+rational_to_continued_fraction_hirzebruch_jung(r::QQFieldElem)
 ```

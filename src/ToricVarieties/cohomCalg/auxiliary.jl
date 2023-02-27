@@ -2,7 +2,7 @@
 # (1) Call cohomCalg to compute line bundle cohomolgy
 ###################################
 
-function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
+function command_string(v::AbstractNormalToricVariety, c::Vector{ZZRingElem})
     # Initialize a list of strings, which we will eventually join to form the command string
     string_list = Vector{String}()
     
@@ -19,7 +19,7 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     # Add information about the Stanley-Reisner ideal to string_list
     current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
     new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
-    new_ring, _ = PolynomialRing(coefficient_ring(v), new_coordinate_names, cached=false)
+    new_ring, _ = polynomial_ring(coefficient_ring(v), new_coordinate_names, cached=false)
     generators = [string(g) for g in gens(stanley_reisner_ideal(new_ring, v))]
     push!(string_list, "srideal [" * joincomma(generators) * "]")
     
@@ -29,7 +29,7 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     # Join and return
     return join(string_list, ";")
 end
-command_string(v::AbstractNormalToricVariety) = command_string(v, [fmpz(0) for i in 1:rank(picard_group(v))])
+command_string(v::AbstractNormalToricVariety) = command_string(v, [ZZRingElem(0) for i in 1:rank(picard_group(v))])
 
 
 
@@ -95,11 +95,15 @@ function contributing_denominators(variety::AbstractNormalToricVariety)
     # we execute cohomCalg with homogeneous variable names "x1", "x2" and so on
     # -> translate back into actually chosen variable names
     gens = Hecke.gens(cox_ring(variety))
-    for i in 1:length(contributing_monomials)
-        for j in 1:length(contributing_monomials[i])
-            m = contributing_monomials[i][j]
-            present_variables = [occursin("x$k", m) for k in 1:ngens(cox_ring(variety))]
-            contributing_monomials[i][j] = string(prod(gens[k]^present_variables[k] for k in 1:ngens(cox_ring(variety))))
+    for cm in contributing_monomials
+        if cm == [""]
+            empty!(cm)
+        else
+            for j in 1:length(cm)
+                m = cm[j]
+                present_variables = [occursin("x$k", m) for k in 1:ngens(cox_ring(variety))]
+                cm[j] = string(prod(gens[k]^present_variables[k] for k in 1:ngens(cox_ring(variety))))
+            end
         end
     end
     

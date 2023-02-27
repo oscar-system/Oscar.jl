@@ -57,7 +57,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -95,7 +95,7 @@ end
 
 function issubset(
     X::AbsSpec{BRT, <:MPolyRing}, 
-    Y::AbsSpec{BRT, <:MPolyQuo}
+    Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -105,7 +105,7 @@ end
 
 function issubset(
     X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyLocalizedRing}
+    Y::AbsSpec{BRT, <:MPolyLocRing}
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -115,7 +115,7 @@ end
 
 function issubset(
     X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -123,10 +123,10 @@ function issubset(
 end
 
 
-# (2.2) MPolyQuo in first argument
+# (2.2) MPolyQuoRing in first argument
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuo},
+    X::AbsSpec{BRT, <:MPolyQuoRing},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = ambient_coordinate_ring(Y)
@@ -138,7 +138,7 @@ end
 function issubset(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuo}
+  ) where {BRT, RT<:MPolyQuoRing}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   return issubset(ambient_closure_ideal(Y), ambient_closure_ideal(X))
@@ -146,8 +146,8 @@ end
 
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuo},
-    Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+    X::AbsSpec{BRT, <:MPolyQuoRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -157,8 +157,8 @@ end
 
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuo},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+    X::AbsSpec{BRT, <:MPolyQuoRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -167,10 +167,10 @@ function issubset(
 end
 
 
-# (2.3) MPolyLocalizedRing in first argument
+# (2.3) MPolyLocRing in first argument
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyLocalizedRing},
+    X::AbsSpec{BRT, <:MPolyLocRing},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = OO(Y)
@@ -180,8 +180,8 @@ end
 
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuo}
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || return false
@@ -192,7 +192,7 @@ end
 function issubset(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyLocalizedRing}
+  ) where {BRT, RT<:MPolyLocRing}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -202,8 +202,8 @@ end
 
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -213,10 +213,10 @@ function issubset(
 end
 
 
-# (2.4) MPolyQuoLocalizedRing in first argument
+# (2.4) MPolyQuoLocRing in first argument
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = OO(Y)
@@ -226,8 +226,8 @@ end
 
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuo}
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || return false
@@ -237,8 +237,8 @@ end
 
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -257,7 +257,7 @@ end
 function issubset(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -273,8 +273,8 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}) where {BRT}
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -305,7 +305,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -317,7 +317,7 @@ julia> is_open_embedding(Y, X)
 false
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1]
 
 julia> is_open_embedding(Z, X)
 true
@@ -331,7 +331,7 @@ end
 function is_open_embedding(
     X::Spec{BRT, RT},
     Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
+  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -344,7 +344,7 @@ end
 
 
 function is_open_embedding(
-    X::Spec{BRT, <:MPolyQuoLocalizedRing},
+    X::Spec{BRT, <:MPolyQuoLocRing},
     Y::Spec{BRT, <:MPolyRing}
   ) where {BRT}
   return OO(Y) == ambient_coordinate_ring(X) && all(iszero, gens(modulus(OO(X))))
@@ -370,7 +370,7 @@ julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x1
  x2
  x3
@@ -382,7 +382,7 @@ julia> is_closed_embedding(Y, X)
 true
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1]
 
 julia> is_closed_embedding(Z, X)
 false
@@ -394,7 +394,7 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuo},
+    X::AbsSpec{<:Ring, <:MPolyQuoRing},
     Y::AbsSpec{<:Ring, <:MPolyRing}
   )
   return ambient_coordinate_ring(X) === ambient_coordinate_ring(Y)
@@ -403,7 +403,7 @@ end
 
 function is_closed_embedding(
     X::AbsSpec{<:Ring, <:MPolyRing},
-    Y::AbsSpec{<:Ring, <:MPolyQuo}
+    Y::AbsSpec{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -412,8 +412,8 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuo},
-    Y::AbsSpec{<:Ring, <:MPolyQuo}
+    X::AbsSpec{<:Ring, <:MPolyQuoRing},
+    Y::AbsSpec{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -432,7 +432,7 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
                                             <:MPolyPowersOfElement}},
 
     Y::AbsSpec{<:Ring, <:MPolyRing}
@@ -447,10 +447,10 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}},
 
-    Y::AbsSpec{<:Ring, <:MPolyQuo}
+    Y::AbsSpec{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -467,7 +467,7 @@ end
 function is_closed_embedding(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
+  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -478,7 +478,7 @@ end
 
 
 function is_closed_embedding(
-    X::Spec{BRT, <:MPolyQuo},
+    X::Spec{BRT, <:MPolyQuoRing},
     Y::Spec{BRT, <:MPolyRing}
   ) where {BRT}
   OO(Y) === ambient_coordinate_ring(X) || return false
@@ -487,9 +487,9 @@ end
 
 
 function is_closed_embedding(
-    X::Spec{BRT, <:MPolyQuo},
+    X::Spec{BRT, <:MPolyQuoRing},
     Y::Spec{BRT, <:RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
+  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -513,8 +513,8 @@ This command relies on [`equidimensional_decomposition_radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[(x-y)])
 ideal(x - y)
@@ -597,8 +597,8 @@ is locally free over 𝒪(X).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x-y^2])
 ideal(x - y^2)
@@ -619,17 +619,17 @@ julia> is_smooth(Y)
 false
 
 julia> U = MPolyComplementOfKPointIdeal(R,[1,1])
-complement of maximal ideal corresponding to point with coordinates fmpq[1, 1]
+complement of maximal ideal corresponding to point with coordinates QQFieldElem[1, 1]
 
 julia> Z = Spec(R, J, U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[1, 1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[1, 1]
 
 julia> is_smooth(Z)
 true
 
 ```
 """
-@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
   R = base_ring(OO(X))
   L = localized_ring(OO(X))
   I = modulus(OO(X))
@@ -640,7 +640,7 @@ true
   return success
 end
 
-@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoRing})
   R = base_ring(OO(X))
   I = modulus(OO(X))
   f = gens(I)
@@ -652,7 +652,7 @@ end
 
 ## make is_smooth agnostic to quotient ring
 is_smooth(X::AbsSpec{<:Field, <:MPolyRing}) = true
-is_smooth(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) = true
+is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 
 @attr function is_integral(X::AbsSpec)
   return Oscar._is_integral_domain(OO(X))

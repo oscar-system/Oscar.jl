@@ -10,12 +10,12 @@
   @test is_smooth(Spec(R))
   Y = Spec(R, ideal(R, [x^2 - y^2 + z^2 - 1]))
   @test is_smooth(Y)
-  U1 = complement_of_ideal(R, [0, 0, 0])
+  U1 = complement_of_point_ideal(R, [0, 0, 0])
   X1 = Spec(R, I * J, U1)
   Z1, _ = singular_locus(X1)
   @test is_subset(subscheme(X1,  [x, y, z]), Z1)
   @test is_smooth(Spec(R, U1))
-  U2 = complement_of_ideal(R, [1, 1, 0])
+  U2 = complement_of_point_ideal(R, [1, 1, 0])
   X2 = Spec(R, I * J, U2)
   Z2, _ = singular_locus(X2)
   @test is_empty(Z2)
@@ -54,7 +54,7 @@ end
   @test is_reduced(X)
   @test !is_reduced(X2)
   @test reduced_scheme(X2)[1] == X
-  U = complement_of_ideal(R,[0,0,0])
+  U = complement_of_point_ideal(R,[0,0,0])
   X1 = Spec(R, I ,U)
   X12 = Spec(R, I2, U)
   Y1 = Spec(R, I*J, U)
@@ -74,7 +74,7 @@ end
 
 @testset "derivative in localized ring" begin
   R, (x,y) = QQ["x","y"]
-  U = complement_of_ideal(R,[0,0])
+  U = complement_of_point_ideal(R,[0,0])
   X = Spec(R, U)
   L = OO(X)
   I = ideal(L, [1//(1+x), (1-y)^2//((y-1)*(1-x))])

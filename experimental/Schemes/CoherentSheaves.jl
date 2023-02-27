@@ -8,7 +8,9 @@ export dual
 export LineBundle
 export PushforwardSheaf
 export is_locally_free
-#export PullbackSheaf
+export PullbackSheaf
+export DirectSumSheaf
+export projectivization
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -146,6 +148,8 @@ identifications given by the glueings in the `default_covering`.
   ID::IdDict{AbsSpec, ModuleFP} # the modules on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
   M::PreSheafOnScheme # the underlying presheaf of modules for caching
+  C::Covering # The covering of X on which the modules had first been described, a.k.a. the 
+              # `default_covering` of this sheaf ℱ.
 
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme, 
@@ -158,46 +162,132 @@ identifications given by the glueings in the `default_covering`.
                                                        # and fⱼ the restrictions of the generators 
                                                        # of MD[V]. The aᵢⱼ are elements of 𝒪(U ∩ V)
                                                        # represented as a subset of V.
-      check::Bool=true
+      check::Bool=true,
+      default_cov::Covering=begin                      # This will be the `default_covering` of the sheaf to be created.
+        patch_list = collect(keys(MD))
+        glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+        C = Covering(patch_list, glueing_dict)
+        inherit_glueings!(C, default_covering(X))
+        C
+      end
     )
     OOX = OO(X)
-    #OOX = StructureSheafOfRings(X)
+    # Make sure that all patches and glueings of the 
+    # given `default_covering` of the sheaf ℱ to be created 
+    # are compatible with the data in the dictionaries.
+    all(x->haskey(MD, x), patches(default_cov)) || error("all patches in the default covering must have a prescribed module")
+    all(x->any(y->(x===y), patches(default_cov)), keys(MD)) || error("all prescribed modules must appear in the default covering")
+    all(x->haskey(MG, x), keys(glueings(default_cov))) || error("all glueings in the default covering must have a prescribed transition")
+    all(x->any(y->(x===y), keys(glueings(default_cov))), keys(MG)) || error("all prescribed transitions must correspond to glueings in the default covering")
+
+    ### Lookup and production pattern for sheaves of modules
+    #
+    # When asked to produce a module on an open affine U, the functions 
+    # below lead to the following behaviour.
+    #
+    #                     U₁                    an `affine_chart` of `X`
+    #           _________/|\______________      (`patches` of `default_covering(X)`)
+    #          /          |               \    
+    #          V₁         V₂______        |     two `PrincipalOpenSubset`s of U₁  
+    #         /|\        /|\      \       |     covering the latter
+    #        / | \      / | \     |       |      
+    #       W₁ W₂ W₃   A₁ A₂ A₃   C₁      D₁    `PrincipalOpenSubset`s of, respectively, 
+    #                        |                  V₁, V₂, and U₁
+    #                        |
+    #                        E
+    #
+    #  Figure 1: A sample tree in one `affine_chart` of a `CoveredScheme`
+    #
+    #  Suppose the patches of the `default_covering` of ℱ (i.e. now the local variable
+    #  `default_cov`) are V₁ together with A₁, A₂, and A₃.
+    #
+    # 1) Look up whether U is in the list of patches of `default_cov`, e.g. U = V₁ 
+    #    or U = A₂. If yes, return the value of the dictionary.
+    #
+    # 2) See whether U hangs below some V in the ancestry tree with V 
+    #    in `default_cov`; e.g. U = E or U = W₃. If yes, restrict from V.
+    #
+    # 3) Otherwise, U is covered by patches {Aᵢ}, i ∈ I, from `default_cov` and 
+    #    contained in one affine chart U₁ of X 
+    #      U₁ ⊃ U ⊃ Aᵢ.
+    #    We distinguish two sub-cases. 
+    #
+    #    3.1) U appears in the refinement tree T of W whose leafs consist 
+    #    entirely of the Aᵢs and the latter cover U. For instance, this 
+    #    could be the case for U = V₂ with the Aᵢ covering it. 
+    #    Let T' be the subtree starting from U and let {Aⱼ}, j ∈ J be the 
+    #    leafs of this subtree. We then recursively build up the modules on 
+    #    the nodes in T'. Note that this requires some further obvious 
+    #    covering properties on the subtree T'. 
+    #
+    #    3.2) U does not appear in the refinement tree T above; e.g. 
+    #    when U = C₁ or U = D₁. Then we first have to build the module on 
+    #    U₁ and restrict from there. 
+    #
+    # The point 3) is not implemented, yet. Instead, the current code 
+    # requires to take refinements hanging under nodes in `default_cov`. 
 
     ### Production of the modules on open sets; to be cached
     function production_func(
         F::AbsPreSheaf,
         U::AbsSpec
       )
+      # Since the other cases are caught by the methods below, 
+      # U can only be an affine_chart of X. 
+      #
+      # See whether we have anything cached for U
       haskey(MD, U) && return MD[U]
-      error("module on $U was not found")
+
+      # If not, we are in case 3) above.
+      error("production of modules not implemented in this case")
     end
 
     function production_func(
         F::AbsPreSheaf,
         U::PrincipalOpenSubset
       )
-      V = ambient_scheme(U)
-      MV = F(V)
-      rho = OOX(V, U)
-      MU, phi = change_base_ring(rho, MV)
-      add_incoming_restriction!(F, V, MU, phi)
-      return MU
+      # Check whether we can directly produce the module
+      haskey(MD, U) && return MD[U]
+
+      # If not: See whether we are below a prescribed module in the 
+      # refinement tree
+      if has_ancestor(x->haskey(MD, x), U)
+        V = ambient_scheme(U)
+        MV = F(V)
+        rho = OOX(V, U)
+        MU, phi = change_base_ring(rho, MV)
+        add_incoming_restriction!(F, V, MU, phi)
+        return MU
+      end
+      # We are in case 3) above
+      error("production of modules not implemented in this case")
     end
 
     function production_func(
         F::AbsPreSheaf,
         U::SimplifiedSpec
       )
-      V = original(U)
-      MV = F(V)
-      rho = OOX(V, U)
-      MU, phi = change_base_ring(rho, MV)
-      add_incoming_restriction!(F, V, MU, phi)
-      return MU
+      # Check whether we can directly produce the module
+      haskey(MD, U) && return MD[U]
+
+      # If not: See whether we are below a prescribed module in the 
+      # refinement tree
+      if has_ancestor(x->haskey(MD, x), U)
+        V = original(U)
+        MV = F(V)
+        rho = OOX(V, U)
+        MU, phi = change_base_ring(rho, MV)
+        add_incoming_restriction!(F, V, MU, phi)
+        return MU
+      end
+      # We are in case 3) above
+      error("production of modules not implemented in this case")
     end
 
     ### Production of the restriction maps; to be cached
     function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      # Since the other cases are caught by the methods below, both U and V 
+      # must be `affine_chart`s of X with U contained in V along some glueing.
       if any(W->(W === U), affine_charts(X)) && any(W->(W === V), affine_charts(X))
         MV = F(V)
         MU = F(U)
@@ -222,7 +312,7 @@ identifications given by the glueings in the `default_covering`.
         # This is the end of the recursion induced in the next elseif below.
         res = hom(F(V), F(U), gens(F(U)), OOX(W, U))
         return res
-      elseif some_ancestor(W->(W === V), U)
+      elseif has_ancestor(W->(W === V), U)
         W = ambient_scheme(U)
         return compose(F(V, W), F(W, U))
       end
@@ -246,6 +336,7 @@ identifications given by the glueings in the `default_covering`.
     function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::SimplifiedSpec)
       # If V was not an affine_chart of X, some other function would have 
       # been triggered. 
+      @assert any(x->x===V, affine_charts(X)) "first argument must be an affine chart"
 
       # First the easy case: Inheritance from an ancestor in the tree.
       if original(U) === V
@@ -255,7 +346,7 @@ identifications given by the glueings in the `default_covering`.
         W = original(U)
         res = hom(F(W), F(U), gens(MU), OOX(W, U))
         return res
-      elseif some_ancestor(W->(W === V), U)
+      elseif has_ancestor(W->(W === V), U)
         W = original(U)
         return compose(F(V, W), F(W, U))
       end
@@ -313,7 +404,7 @@ identifications given by the glueings in the `default_covering`.
 
       if V === ambient_scheme(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = ambient_scheme(U)
         return compose(F(V, W), F(W, U))
       end
@@ -371,7 +462,7 @@ identifications given by the glueings in the `default_covering`.
     function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedSpec)
       if V === original(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = original(U)
         return compose(F(V, W), F(W, U))
       end
@@ -429,7 +520,7 @@ identifications given by the glueings in the `default_covering`.
     function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::PrincipalOpenSubset)
       if V === ambient_scheme(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = ambient_scheme(U)
         return compose(F(V, W), F(W, U))
       end
@@ -489,7 +580,7 @@ identifications given by the glueings in the `default_covering`.
 
       if V === original(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
-      elseif some_ancestor(W->W===V, U)
+      elseif has_ancestor(W->W===V, U)
         W = original(U)
         return compose(F(V, W), F(W, U))
       end
@@ -551,7 +642,7 @@ identifications given by the glueings in the `default_covering`.
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                       #is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(MD, OOX, Mpre)
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(MD, OOX, Mpre, default_cov)
     if check
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
@@ -565,6 +656,9 @@ end
 ### forwarding and implementing the required getters
 underlying_presheaf(M::SheafOfModules) = M.M
 sheaf_of_rings(M::SheafOfModules) = M.OOX
+
+### Implementing the additional getters
+default_covering(M::SheafOfModules) = M.C
 
 
 @Markdown.doc """
@@ -597,8 +691,8 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(MatrixSpace(OO(VV), 1, 1))
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(MatrixSpace(OO(UU), 1, 1))
+    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(matrix_space(OO(VV), 1, 1))
+    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(matrix_space(OO(UU), 1, 1))
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -658,14 +752,14 @@ end
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -674,7 +768,7 @@ end
   return M
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -761,9 +855,79 @@ underlying_presheaf(M::HomSheaf) = M.M
 sheaf_of_rings(M::HomSheaf) = M.OOX
 domain(M::HomSheaf) = M.domain
 codomain(M::HomSheaf) = M.codomain
+#default_covering(M::HomSheaf) = default_covering(domain(M)) # TODO: This is only a temporary fix!
 
-function Base.show(io::IO, M::HomSheaf)
-  print(io, "sheaf of homomorphisms from $(domain(M)) to $(codomain(M))")
+########################################################################
+# Sheaves of direct sums                                               #
+########################################################################
+@attributes mutable struct DirectSumSheaf{SpaceType, OpenType, OutputType,
+                                          RestrictionType
+                                         } <: AbsCoherentSheaf{
+                                                               SpaceType, OpenType,
+                                                               OutputType, RestrictionType
+                                                              }
+  summands::Vector{AbsCoherentSheaf{SpaceType, OpenType, OutputType, RestrictionType}}
+  #projections::Vector #TODO: Realize as sections in HomSheafs
+  #inclusions::Vector # TODO: same.
+  OOX::StructureSheafOfRings
+  M::PreSheafOnScheme
+
+  function DirectSumSheaf(X::AbsCoveredScheme, summands::Vector{<:AbsCoherentSheaf})
+    all(x->(scheme(x)===X), summands) || error("summands must be defined over the same scheme")
+    OOX = OO(X)
+    all(x->(sheaf_of_rings(x)===OOX), summands) || error("summands must be defined over the same sheaves of rings")
+
+    ### Production of the modules on open sets; to be cached
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+      result, inc, pr = direct_sum([F(U) for F in summands]..., task=:both)
+      set_attribute!(result, :inclusions, inc) # TODO: Workaround as long as the maps are not cached.
+      set_attribute!(result, :projections, pr) 
+      return result
+    end
+
+    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MV = FF(V)
+      MU = FF(U)
+      inc_V = get_attribute(MV, :inclusions)::Vector
+      pr_V = get_attribute(MV, :projections)::Vector
+      inc_U = get_attribute(MU, :inclusions)::Vector
+      pr_U = get_attribute(MU, :projections)::Vector
+      
+      parts = [] # TODO: Can we do better with type annotation?
+      for i in 1:length(inc_V)
+        push!(parts, hom(MV, MU, 
+                         inc_U[i].(summands[i](V, U).(pr_V[i].(gens(MV)))),
+                         OOX(V, U)
+                        ))
+      end
+      return sum(parts)
+    end
+      
+    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                     )
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(summands, OOX, Mpre)
+
+    return M
+  end
+end
+
+### forwarding and implementation of the essential getters
+underlying_presheaf(M::DirectSumSheaf) = M.M
+sheaf_of_rings(M::DirectSumSheaf) = M.OOX
+summands(M::DirectSumSheaf) = M.summands
+
+### user facing constructors
+function direct_sum(summands::Vector{<:AbsCoherentSheaf})
+  length(summands) == 0 && error("list of summands must not be empty")
+  X = scheme(first(summands))
+  return DirectSumSheaf(X, summands)
+end
+
+function Base.show(io::IO, M::DirectSumSheaf)
+  print(io, "direct sum of $(summands(M))")
 end
 
 @Markdown.doc """
@@ -793,8 +957,8 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   for G in values(glueings(C))
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
-    MG[(U, V)] = one(MatrixSpace(OO(VV), n, n))
-    MG[(V, U)] = one(MatrixSpace(OO(UU), n, n))
+    MG[(U, V)] = one(matrix_space(OO(VV), n, n))
+    MG[(V, U)] = one(matrix_space(OO(UU), n, n))
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -948,6 +1112,188 @@ function Base.show(io::IO, M::PushforwardSheaf)
 end
 
 ########################################################################
+# Pullback of sheaves along morphisms                                  #
+########################################################################
+
+#=
+# Let f : X → Y be a morphism and ℳ 
+# a sheaf of modules on Y. For an open set U ⊂ X we have 
+# f^* ℳ (U) to be the 𝒪_X(U)-module 
+#
+#   𝒪_X ⊗_{f⁻¹𝒪_Y} f⁻¹ℳ
+#
+# where f⁻¹(ℱ) denotes the sheaf associated to U ↦ lim_{V ⊃ f(U)} ℱ(V).
+# On the algebraic side, this merely means carrying out a change of bases 
+# for the module ℳ (V) where V is some affine open containing f(U). 
+# To find the latter might be a subtle task for general morphisms of 
+# schemes. In fact, f will in general only be given with respect to 
+# fixed coverings CX of X and CY of Y. Since the pullback of sheaves 
+# is a local question on X, we need to restrict to sufficiently small 
+# neighborhoods such that 
+# 
+#   fᵢ : Uᵢ → Vᵢ 
+#
+# is a local affine representative of the map f. But then the Uᵢ might 
+# not be `affine_charts` of X, anymore. Thus, we can a priori only 
+# construct the modules locally on X and the `production_func` has 
+# to take care of extending them to the `affine_charts` if necessary.
+#
+# Again, it is clear that this can and should be made lazy.
+#                                                                     =#
+#
+# TODO: PullbackSheaf is not yet fully functional.
+#
+# Missing parts: 
+#
+#  - If ℳ  is given only on the patches of a refinement Vⱼ, j ∈ J of 
+#    the `default_covering` of X, then there is no method implemented 
+#    to create a module for ℳ (U) when U ⊂ X is an `affine_chart` of X. 
+#    The user is hence forced to work in the refinement only. 
+
+@attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
+                                         RestrictionType
+                                        } <: AbsCoherentSheaf{
+                                                              SpaceType, OpenType,
+                                                              OutputType, RestrictionType
+                                                             }
+  f::AbsCoveredSchemeMorphism
+  OOX::StructureSheafOfRings # the sheaf of rings in the domain
+  OOY::StructureSheafOfRings # the sheaf of rings in the codomain
+  M::AbsCoherentSheaf        # the sheaf of modules on Y
+  pullback_of_sections::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the natural 
+                                                                   # pullback maps along the maps in the `covering_morphism` of f 
+  F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
+
+  function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+    X = domain(f)
+    Y = codomain(f)
+    Y === scheme(M) || error("sheaf must be defined over the domain of the embedding")
+    OOY = sheaf_of_rings(M)
+    OOX = OO(X)
+    fcov = covering_morphism(f)::CoveringMorphism
+    CX = domain(fcov)::Covering
+    CY = codomain(fcov)::Covering
+    pullbacks = IdDict{AbsSpec, Hecke.Map}()
+
+    ### Production of the modules on open sets.
+    #
+    # Since the morphism f might have an underlying CoveringMorphism ϕ with 
+    # a non-trivial refinement of the `default_covering` of X as a domain, 
+    # we can not expect to easily produce f^*(M) on the `affine_charts` of X. 
+    # Instead, we can produce it on affine opens U ⊂ X which are hanging 
+    # below the patches in `domain(ϕ)`.
+    #
+    # For everything else, we proceed as in case 3) of the general 
+    # SheafOfModules, see above. 
+    #
+    # Again, this case is not implemented for the time being. 
+
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+      # See whether U is a patch of the domain covering and pull back directly
+      if haskey(morphisms(fcov), U)
+        floc = morphisms(fcov)[U]
+        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
+        pullbacks[U] = map
+        return MU
+      end
+
+      # We are in case 3).
+      error("case not implemented")
+    end
+
+    function production_func(FF::AbsPreSheaf, 
+        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      )
+      # See whether U is a patch of the domain covering and pull back directly
+      if haskey(morphisms(fcov), U)
+        floc = morphisms(fcov)[U]
+        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
+        pullbacks[U] = map
+        return MU
+      end
+
+      # If not, check whether we are hanging below such a patch in the 
+      # refinement tree.
+      if has_ancestor(y->any(x->(x===y), patches(domain(fcov))), U)
+        V = __find_chart(U, domain(fcov))
+        MU, res = change_base_ring(OOX(V, U), FF(V))
+        add_incoming_restriction!(FF, V, MU, res)
+        return MU
+      end
+
+      # We are in case 3)
+      error("case not implemented")
+    end
+
+    ### Restriction for pulled back sheaves of modules
+    #
+    # For U ⊂ V ⊂ X, f : X → Y, M on Y and F = f^*M we do the following 
+    # to compute the restriction morphism F(V) → F(U).
+    # Let ϕ be the `covering_morphism` behind f. 
+    #
+    #             f : X   →    Y
+    #            
+    #                 ∪        ∪
+    #                    ϕ[V]
+    #    f*ℱ (V)      V   →    V' ↦ ℱ (V')
+    #            
+    #      ↓ f*ρ      ∪        ∪      ↓ ρ
+    #                    ϕ[U]
+    #    f*ℱ (U)      U   →    U' ↦ ℱ (U') 
+    #
+    # 1) If both U and V are in the `Covering` `domain(ϕ)` induce the restriction 
+    #    f*ρ from ρ on Y. 
+    # 2) If V is in `domain(ϕ)` and U is a node hanging below V in 
+    #    the refinement tree, restrict from V. 
+    # 3) If V is in `domain(ϕ)` and U is a subset of V, restrict as usual.
+    # 4) If V is a node hanging below some patch in `domain(ϕ)` and 
+    #    U is a subset, restrict as usual. 
+
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      if haskey(morphisms(fcov), V)
+        if haskey(morphisms(fcov), U)
+          # case 1)
+          f_V = morphisms(fcov)[V]
+          f_U = morphisms(fcov)[U]
+          MYV = M(codomain(f_V))
+          MYU = M(codomain(f_U))
+          res_Y = M(codomain(f_V), codomain(f_U))
+          result = hom(F(V), F(U), 
+                       (pullbacks[U]).(res_Y.(gens(MYV))), 
+                       OOX(V, U))
+          return result
+        end
+
+        # case 2)
+        error("restriction map should have been cached by production")
+      end
+      error("case not implemented")
+    end
+    
+    ident = IdDict{AbsSpec, Union{Hecke.Map, Nothing}}()
+
+    Blubber = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                     )
+    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(f, OOX, OOY, M, pullbacks, Blubber)
+    return MY
+  end
+end
+
+underlying_presheaf(M::PullbackSheaf) = M.F
+sheaf_of_rings(M::PullbackSheaf) = M.OOX
+original_sheaf(M::PullbackSheaf) = M.M
+map(M::PullbackSheaf) = M.f
+pullbacks_on_patches(M::PullbackSheaf) = M.pullback_of_sections
+
+function Base.show(io::IO, M::PullbackSheaf)
+  print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
+end
+
+
+########################################################################
 # pushforward of modules                                               #
 ########################################################################
 #
@@ -969,7 +1315,7 @@ function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::FreeMod)
   return MR, ident
 end
 
-function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
+function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubquoModule)
   R = domain(f)
   S = codomain(f)
   base_ring(I) === R || error("ideal is not defined over the correct ring")
@@ -999,7 +1345,8 @@ end
     patch_list = vcat(patch_list, _trivializing_covering(M, U))
   end
   C = Covering(patch_list)
-  fill_with_lazy_glueings!(C, X)
+  inherit_glueings!(C, default_covering(X))
+  push!(coverings(X), C)
   return C
 end
 
@@ -1081,7 +1428,8 @@ end
     end
   end
   C = Covering(patch_list)
-  fill_with_lazy_glueings!(C, scheme(M))
+  inherit_glueings!(C, default_covering(scheme(M)))
+  push!(coverings(X), C)
   return C
 end
 
@@ -1090,7 +1438,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   OOX = OO(X)
   MU = M(U)
   MU isa FreeMod && return [U]
-  MU::SubQuo
+  MU::SubquoModule
   A = _presentation_matrix(MU)
   if iszero(A) 
     # Trivial shortcut in the recursion. 
@@ -1099,7 +1447,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
     V = PrincipalOpenSubset(U, one(OO(U)))
     F = FreeMod(OO(V), ncols(A))
     res = hom(MU, F, gens(F), OOX(U, V))
-    add_incoming_restriction(M, U, F, res)
+    add_incoming_restriction!(M, U, F, res)
     object_cache(M)[V] = F
     return [V]
   end
@@ -1107,7 +1455,26 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   # We do not need to go through all entries of A, but only those 
   # necessary to generate the unit ideal.
   I = ideal(OOX(U), [A[i, j] for i in 1:nrows(A) for j in 1:ncols(A)])
-  one(OOX(U)) in I || error("sheaf is not locally trivial")
+  if !(one(OOX(U)) in I)
+    # Now two things could be happening.
+    # 1. The sheaf is not locally trivial.
+    # 2. We might have different disjoint components on which 
+    #    the sheaf has different ranks.
+    Y = components(U) 
+    length(Y) == 1 && error("sheaf is not locally free")
+
+    return_patches = AbsSpec[]
+    for V in Y
+      # Test for being locally free on V
+      rho = OOX(U, V)
+      MV, res = change_base_ring(rho, MU)
+      add_incoming_restriction!(M, U, MV, res)
+      object_cache(M)[V] = MV
+      return_patches = vcat(return_patches, _trivializing_covering(M, V))
+    end
+    return return_patches
+  end
+
   # The non-zero coordinates provide us with a list of entries which 
   # are sufficient to do so. This set can not assumed to be minimal, though.
   a = coordinates(one(OOX(U)), I)
@@ -1167,7 +1534,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
       M_gens = amb_res.(v)
       rest_gens = [M_gens[k] for k in 1:length(M_gens) if k!=j]
       rels = [amb_res(w) for w in relations(MU)]
-      MV = SubQuo(F, rest_gens, rels)
+      MV = SubquoModule(F, rest_gens, rels)
       img_gens = elem_type(F)[]
       for k in 1:j-1
         push!(img_gens, M_gens[k])
@@ -1193,10 +1560,115 @@ end
   return matrix(map(presentation(M), 1))
 end
 
-function fill_with_lazy_glueings!(C::Covering, X::AbsCoveredScheme)
-  # TODO: Fill in all the implicit and restricted glueings from X.
-  # We assume that all patches in C are in a tree structure eventually 
-  # leading to affine charts of X.
-  return C
+########################################################################
+# Projectivization of vector bundles                                   #
+#
+# To any vector bundle E → X one can associate its projectivization 
+# ℙ(E) → X. In general, E will be given as a locally free 
+# AbsCoherentSheaf.
+########################################################################
+
+@Markdown.doc """
+    projectivization(E::AbsCoherentSheaf; 
+        var_names::Vector{String}=Vector{String}(),
+        check::Bool=true
+      )
+
+For a locally free sheaf ``E`` on an `AbsCoveredScheme` ``X`` this produces 
+the associated projectivization ``ℙ (E) → X`` as a `CoveredProjectiveScheme`.
+
+A list of names for the variables of the relative homogeneous coordinate 
+rings can be provided with `var_names`.
+
+!!! note: The sheaf ``E`` needs to be locally free so that a `trivializing_covering` 
+can be computed. The check for this can be turned off by setting `check=false`.
+"""
+function projectivization(E::AbsCoherentSheaf; 
+    var_names::Vector{String}=Vector{String}(),
+    check::Bool=true
+  )
+  X = scheme(E)
+  check && (is_locally_free(E) || error("coherent sheaf must be locally free"))
+  C = trivializing_covering(E)
+  algebras = IdDict{AbsSpec, Union{MPolyQuoRing, MPolyRing}}()
+  on_patches = IdDict{AbsSpec, AbsProjectiveScheme}()
+
+  # Fill in the names of the variables in case there are none provided.
+  if length(var_names) == 0
+    # determine the global bound on the rank
+    r = 0
+    for U in patches(C)
+      F = E(U)
+      F isa FreeMod || error("modules must locally be free")
+      r = (rank(F) > r ? rank(F) : r)
+    end
+    var_names = ["s$i" for i in 0:r-1]
+  end
+
+  for U in patches(C)
+    F = E(U)
+    F isa FreeMod || error("modules must locally be free")
+    r = rank(F)
+    length(var_names) >= r || error("number of names for the variables must greater or equal to the local rank of the module")
+    RU = rees_algebra(E(U), var_names=var_names[1:r])
+    algebras[U] = RU
+    SU, _ = grade(RU)
+    PU = ProjectiveScheme(SU)
+    set_base_scheme!(PU, U)
+    on_patches[U] = PU
+  end
+  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  OX = StructureSheafOfRings(X)
+
+  # prepare for the projective glueings
+  for (U, V) in keys(glueings(C))
+    P = on_patches[U]
+    SP = ambient_coordinate_ring(P)
+    Q = on_patches[V]
+    SQ = ambient_coordinate_ring(Q)
+    G = C[U, V]
+    UV, VU = glueing_domains(G)
+    f, g = glueing_morphisms(G)
+
+    PUV, PUVtoP = fiber_product(OX(U, UV), P)
+    QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
+
+    # to construct the identifications of PUV with QVU we need to 
+    # express the generators of I(U) in terms of the generators of I(V)
+    # on the overlap U ∩ V. 
+    !(G isa Glueing) || error("method not implemented for this type of glueing")
+
+    # The problem is that on a SpecOpen U ∩ V
+    # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
+    # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
+    # for the generators fᵢ of I(U) and gⱼ of I(V): Even though 
+    # we can do this locally on the patches of a SpecOpen, the result 
+    # is not guaranteed to glue to global functions on the overlap.
+    # Abstractly, we know that the intersection of affine charts 
+    # in a separated scheme must be affine, but we do not have a 
+    # model of this overlap as an affine scheme and hence no computational
+    # backup. 
+
+    # fᵢ the generators of I(U)
+    # gⱼ the generators of I(V)
+    # aᵢⱼ the coefficients for fᵢ = ∑ⱼ aᵢⱼ⋅gⱼ in VU
+    # bⱼᵢ the coefficients for gⱼ = ∑ᵢ bⱼᵢ⋅fᵢ in UV
+    # sᵢ the variables for the homogeneous ring over U
+    # tⱼ the variables for the homogenesous ring over V
+    A = [coordinates(E(U, VU)(v)) for v in gens(E(U))]
+    B = [coordinates(E(V, UV)(w)) for w in gens(E(V))]
+    #A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+    #B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
+    SQVU = ambient_coordinate_ring(QVU)
+    SPUV = ambient_coordinate_ring(PUV)
+    # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
+    # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
+    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))
+    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)]))
+
+    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup)
+  end
+  return CoveredProjectiveScheme(X, C, on_patches, projective_glueings)
 end
+
 

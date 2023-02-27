@@ -32,10 +32,10 @@ julia> f = x^2+y^2+2
 x^2 + y^2 + (2)
 
 julia> hyp1 = TropicalHypersurface(f)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> pc = underlying_polyhedral_complex(hyp1)
-A polyhedral complex in ambient dimension 2
+Polyhedral complex in ambient dimension 2
 ``` 
 """
 function underlying_polyhedral_complex(TV::TropicalVarietySupertype)
@@ -69,13 +69,13 @@ julia> f2 = x^2+y^2+RR(-6)
 x^2 + y^2 + (-6)
 
 julia> hyp1 = TropicalHypersurface(f1)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> hyp2 = TropicalHypersurface(f2)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> tv12 = intersect(hyp1, hyp2)
-A min tropical variety of dimension 1 embedded in 2-dimensional Euclidean space
+min tropical variety of dimension 1 embedded in 2-dimensional Euclidean space
 ```
 """
 function intersect(T1::TropicalVarietySupertype{M, EMB}, T2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
@@ -275,7 +275,7 @@ julia> f = x+y;
 julia> tropicalAndAffineLine = TropicalHypersurface(f);
 
 julia> lineality_space(tropicalAndAffineLine)
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [-1, -1]
 ```
 """
@@ -309,10 +309,10 @@ julia> f = x+y+1;
 julia> tropicalLine = TropicalHypersurface(f);
 
 julia> maximal_polyhedra(tropicalLine)
-3-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
+3-element SubObjectIterator{Polyhedron{QQFieldElem}}:
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
 ```
 """
 function maximal_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
@@ -490,7 +490,7 @@ julia> f1 = x+y+1;
 julia> tropicalLine = TropicalHypersurface(f1);
 
 julia> vertices(tropicalLine)
-1-element SubObjectIterator{PointVector{fmpq}}:
+1-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 1]
 
 julia> f2 = 1*x^2+x*y+1*y^2+x+y+1;
@@ -498,7 +498,7 @@ julia> f2 = 1*x^2+x*y+1*y^2+x+y+1;
 julia> tropicalQuadric = TropicalHypersurface(f1);
 
 julia> vertices(tropicalQuadric)
-1-element SubObjectIterator{PointVector{fmpq}}:
+1-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 1]
 
 julia> f3 = x^3+x*y^2+x^2*y+y^3+x^2+x*y+y^2+x+y+1;
@@ -506,7 +506,7 @@ julia> f3 = x^3+x*y^2+x^2*y+y^3+x^2+x*y+y^2+x+y+1;
 julia> tropicalCubic = TropicalHypersurface(f3);
 
 julia> vertices(tropicalCubic)
-2-element SubObjectIterator{PointVector{fmpq}}:
+2-element SubObjectIterator{PointVector{QQFieldElem}}:
  [0, 0]
  [1, 1]
 ```

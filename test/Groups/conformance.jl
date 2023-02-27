@@ -33,7 +33,7 @@ import Oscar.AbstractAlgebra.GroupsCore
       @test gens(G) isa Vector{typeof(g)}
 
       if isfinite(G)
-         @test order(G) isa fmpz
+         @test order(G) isa ZZRingElem
          @test order(G) > 0
          @test is_trivial(G) == (order(G) == 1)
       else

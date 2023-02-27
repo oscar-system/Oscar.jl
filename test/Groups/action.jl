@@ -52,7 +52,7 @@ end
 
 @testset "action on multivariate polynomials: permutations" begin
   g = symmetric_group(3)
-  R, vars = PolynomialRing(QQ, 3);
+  R, vars = polynomial_ring(QQ, 3);
   (x1, x2, x3) = vars
   f = x1*x2 + x2*x3
   iso = Oscar.iso_oscar_gap(R)
@@ -77,7 +77,7 @@ end
 
 @testset "action on multivariate polynomials: matrices" begin
   g = general_linear_group(3, 5)
-  R, vars = PolynomialRing(base_ring(g), degree(g))
+  R, vars = polynomial_ring(base_ring(g), degree(g))
   (x1, x2, x3) = vars
   f = x1*x2 + x2*x3
 

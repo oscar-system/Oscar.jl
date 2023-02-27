@@ -2,7 +2,7 @@ function Hecke.minpoly(a::QQAbElem)
   return minpoly(data(a))
 end
 
-function Hecke.number_field(::FlintRationalField, a::QQAbElem; cached::Bool = false)
+function Hecke.number_field(::QQField, a::QQAbElem; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   return k, b
@@ -10,7 +10,7 @@ end
 
 Hecke.minpoly(a::qqbar) = minpoly(Hecke.Globals.Qx, a)
 
-function Hecke.number_field(::FlintRationalField, a::qqbar; cached::Bool = false)
+function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   Qx = parent(k.pol)
@@ -43,11 +43,11 @@ function Hecke.number_field(::FlintRationalField, a::qqbar; cached::Bool = false
   return k, MapFromFunc(to_qqbar, to_k, k, parent(a))
 end
 
-Base.getindex(::FlintRationalField, a::qqbar) = number_field(QQ, a)
+Base.getindex(::QQField, a::qqbar) = number_field(QQ, a)
 
-function Hecke.numerator(f::fmpq_poly, parent::FmpzPolyRing = Hecke.Globals.Zx)
+function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
   g = parent()
-  ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{fmpz_poly}, Ref{fmpq_poly}), g, f)
+  ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{ZZPolyRingElem}, Ref{QQPolyRingElem}), g, f)
   return g
 end
 
@@ -159,7 +159,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
   return [(mR(sR(ms(x))), F) for x = gens(s)]
 end
 
-function Hecke.number_field(::FlintRationalField, a::AbstractVector{<: QQAbElem}; cached::Bool = false)
+function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbElem}; cached::Bool = false)
   if length(a) == 0
     return Hecke.rationals_as_number_field()[1]
   end
@@ -169,8 +169,8 @@ function Hecke.number_field(::FlintRationalField, a::AbstractVector{<: QQAbElem}
   return k, gen(k)
 end
 
-Base.getindex(::FlintRationalField, a::QQAbElem) = number_field(QQ, a)
-Base.getindex(::FlintRationalField, a::Vector{QQAbElem}) = number_field(QQ, a)
-Base.getindex(::FlintRationalField, a::QQAbElem...) = number_field(QQ, [x for x =a])
-Base.getindex(::FlintRationalField, chi::Oscar.GAPGroupClassFunction) = number_field(QQ, chi)
+Base.getindex(::QQField, a::QQAbElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQAbElem}) = number_field(QQ, a)
+Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x =a])
+Base.getindex(::QQField, chi::Oscar.GAPGroupClassFunction) = number_field(QQ, chi)
 

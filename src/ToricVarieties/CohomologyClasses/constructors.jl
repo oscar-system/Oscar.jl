@@ -4,8 +4,8 @@
 
 @attributes mutable struct CohomologyClass
     v::AbstractNormalToricVariety
-    p::MPolyQuoElem
-    function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoElem)
+    p::MPolyQuoRingElem
+    function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
         if parent(p) != cohomology_ring(v)
             throw(ArgumentError("The polynomial must reside in the cohomology ring of the toric variety"))
         end
@@ -20,7 +20,28 @@ export CohomologyClass
 ######################
 
 @doc Markdown.doc"""
-    CohomologyClass(d::ToricDivisor)
+    cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+
+Construct the toric cohomology class
+on the toric variety `v` corresponding
+to the polynomial `p`. Note that `p` must
+reside in the cohomology ring of `v`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
+Cohomology class on a normal toric variety given by x1
+```
+"""
+cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = CohomologyClass(v, p)
+export cohomology_class
+
+
+@doc Markdown.doc"""
+    cohomology_class(d::ToricDivisor)
 
 Construct the toric cohomology class
 corresponding to the toric divisor `d`.
@@ -28,16 +49,16 @@ corresponding to the toric divisor `d`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(P2, [1, 2, 3])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(P2, [1, 2, 3])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> CohomologyClass(d)
-A cohomology class on a normal toric variety given by 6*x3
+julia> cohomology_class(d)
+Cohomology class on a normal toric variety given by 6*x3
 ```
 """
-function CohomologyClass(d::ToricDivisor)
+function cohomology_class(d::ToricDivisor)
     indets = gens(cohomology_ring(toric_variety(d)))
     coeff_ring = coefficient_ring(toric_variety(d))
     poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
@@ -46,7 +67,7 @@ end
 
 
 @doc Markdown.doc"""
-    CohomologyClass(c::ToricDivisorClass)
+    cohomology_class(c::ToricDivisorClass)
 
 Construct the toric cohomology class
 corresponding to the toric divisor class `c`.
@@ -54,20 +75,20 @@ corresponding to the toric divisor class `c`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> tdc = ToricDivisorClass(P2, [2])
-A divisor class on a normal toric variety
+julia> tdc = toric_divisor_class(P2, [2])
+Divisor class on a normal toric variety
 
-julia> CohomologyClass(tdc)
-A cohomology class on a normal toric variety given by 2*x3
+julia> cohomology_class(tdc)
+Cohomology class on a normal toric variety given by 2*x3
 ```
 """
-CohomologyClass(c::ToricDivisorClass) = CohomologyClass(toric_divisor(c))
+cohomology_class(c::ToricDivisorClass) = cohomology_class(toric_divisor(c))
 
 
 @doc Markdown.doc"""
-    CohomologyClass(l::ToricLineBundle)
+    cohomology_class(l::ToricLineBundle)
 
 Construct the toric cohomology class
 corresponding to the toric line bundle `l`.
@@ -75,16 +96,16 @@ corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(P2, [2])
-A toric line bundle on a normal toric variety
+julia> l = toric_line_bundle(P2, [2])
+Toric line bundle on a normal toric variety
 
-julia> polynomial(CohomologyClass(l))
+julia> polynomial(cohomology_class(l))
 2*x3
 ```
 """
-CohomologyClass(l::ToricLineBundle) = CohomologyClass(toric_divisor(l))
+cohomology_class(l::ToricLineBundle) = cohomology_class(toric_divisor(l))
 
 
 #################################
@@ -111,7 +132,7 @@ function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
 end
 
 
-Base.:*(c::fmpq, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
+Base.:*(c::QQFieldElem, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 
@@ -147,5 +168,5 @@ end
 ######################s
 
 function Base.show(io::IO, cc::CohomologyClass)
-    join(io, "A cohomology class on a normal toric variety given by $(string(polynomial(cc)))")
+    join(io, "Cohomology class on a normal toric variety given by $(string(polynomial(cc)))")
 end

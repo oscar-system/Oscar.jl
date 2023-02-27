@@ -19,7 +19,7 @@ The basic setting in this context consists of a group $G$, a field $K$, a vector
 $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.
 The induced action on the dual vector space $V^\ast$,
 
-$V^\ast  \times G \rightarrow V^\ast, (f, \pi)\mapsto f \;\!   . \;\! \pi  := f\circ \rho(\pi),$
+$V^\ast  \times G \to V^\ast, (f, \pi)\mapsto f \;\!   . \;\! \pi  := f\circ \rho(\pi),$
  
 extends to an action of $G$ on the graded symmetric algebra
 
@@ -65,3 +65,15 @@ and the survey article
 - [DJ98](@cite)
 
 provide details on theory and algorithms as well as references.
+
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker),
+* [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn),
+* [Johannes Schmitt](https://joschmitt.eu/).
+
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

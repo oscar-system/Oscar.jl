@@ -133,10 +133,49 @@ if Sys.iswindows()
   windows_error()
 end
 
+# global seed value for oscar to allow creating deterministic random number
+# generators
+# we initialize this here with a random value as well to allow use during
+# precompilation
+const rng_seed = Ref{UInt32}(rand(UInt32))
+
+@doc Markdown.doc"""
+    get_seed()
+
+Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
+"""
+get_seed() = return rng_seed[]
+
+@doc Markdown.doc"""
+    set_seed!(s::Integer)
+
+Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
+"""
+function set_seed!(s::Integer)
+  rng_seed[] = convert(UInt32, s)
+end
+
+@doc Markdown.doc"""
+    get_seeded_rng()
+
+Return a new random number generator object of type MersenneTwister which is
+seeded with the global seed value `Oscar.rng_seed`. This can be used for
+the testsuite to get more stable output and running times. Using a separate RNG
+object for each testset (or file) makes sure previous uses don't affect later
+testcases. It could also be useful for some randomized algorithms.
+The seed will be initialized with a random value during OSCAR startup but can
+be set to a fixed value with `Oscar.set_seed!` as it is done in `runtests.jl`.
+"""
+get_seeded_rng() = return MersenneTwister([get_seed()])
+
+
 function __init__()
   if Sys.iswindows()
     windows_error()
   end
+
+  # initialize random seed
+  set_seed!(rand(UInt32))
 
   if isinteractive() && Base.JLOptions().banner != 0
     println(" -----    -----    -----      -      -----   ")
@@ -164,7 +203,9 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
-    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+    withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
+      GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+    end
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
@@ -196,7 +237,6 @@ const oscardir = Base.pkgdir(Oscar)
 const aadir = Base.pkgdir(AbstractAlgebra)
 const nemodir = Base.pkgdir(Nemo)
 const heckedir = Base.pkgdir(Hecke)
-
 
 function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
@@ -418,6 +458,7 @@ include("Rings/PBWAlgebra.jl")
 include("Rings/PBWAlgebraQuo.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
+
 include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
@@ -436,6 +477,7 @@ include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
 include("Modules/mpolyquo.jl")
+include("Rings/ReesAlgebra.jl")
 
 include("Geometry/basics.jl")
 include("Geometry/K3Auto.jl")
@@ -450,6 +492,9 @@ include("Combinatorics/Graphs.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 
 include("Combinatorics/Matroids/JMatroids.jl")
+
+include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
+
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")

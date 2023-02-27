@@ -14,12 +14,12 @@ random linear polynomials where coefficients have uniform valuation
 todo: proper documentation
 
 val_2 = TropicalSemiringMap(QQ,2)
-Kx,(x,y,z) = PolynomialRing(QQ,3)
+Kx,(x,y,z) = polynomial_ring(QQ,3)
 random_affine_linear_polynomials(3,Kx,val_2)
 
 Kt,t = RationalFunctionField(QQ,"t")
 val_t = TropicalSemiringMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
+Ktx,(x,y,z) = polynomial_ring(Kt,3)
 random_affine_linear_polynomials(3,Ktx,val_t)
 =======#
 function random_affine_linear_polynomials(k::Int,Kx,val::TropicalSemiringMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=9)
@@ -54,13 +54,13 @@ todo: proper documentation
 Example:
 
 val_2 = TropicalSemiringMap(QQ,2)
-Kx,(x,y,z) = PolynomialRing(QQ,3)
+Kx,(x,y,z) = polynomial_ring(QQ,3)
 I = ideal([x+2*y,y+2*z])
 tropical_points(I,val_2)
 
 Kt,t = RationalFunctionField(QQ,"t")
 val_t = TropicalSemiringMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
+Ktx,(x,y,z) = polynomial_ring(Kt,3)
 I = ideal([x+t*y,y+t*z])
 tropical_points(I,val_t)
 =======#

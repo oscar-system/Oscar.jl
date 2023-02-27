@@ -4,8 +4,8 @@
 
 @attributes mutable struct RationalEquivalenceClass
     v::AbstractNormalToricVariety
-    p::MPolyQuoElem
-    RationalEquivalenceClass(v::AbstractNormalToricVariety, p::MPolyQuoElem) = new(v, p)
+    p::MPolyQuoRingElem
+    RationalEquivalenceClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = new(v, p)
 end
 export RationalEquivalenceClass
 
@@ -15,23 +15,20 @@ export RationalEquivalenceClass
 ####################################################
 
 @doc Markdown.doc"""
-    RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+    rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(P2, [1, 2, 3])
-A torus-invariant, non-prime divisor on a normal toric variety
-
-julia> RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)
+julia> rational_equivalence_class(P2, [1, 2, 3, 4, 5, 6])
+Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
 ```
 """
-function RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+function rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
     if !(is_complete(v) && is_simplicial(v))
         throw(ArgumentError("Currently, the Chow ring is only supported for toric varieties that are both complete and simplicial"))
     end
@@ -41,6 +38,7 @@ function RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::V
     mons = gens_of_rational_equivalence_classes(v)
     return RationalEquivalenceClass(v, sum(coefficients[i]*mons[i] for i in 1:length(coefficients)))
 end
+export rational_equivalence_class
 
 
 ####################################################
@@ -48,23 +46,23 @@ end
 ####################################################
 
 @doc Markdown.doc"""
-    RationalEquivalenceClass(d::ToricDivisor)
+    rational_equivalence_class(d::ToricDivisor)
 
 Construct the rational equivalence class of algebraic cycles corresponding to the toric divisor `d`.
 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(P2, [1, 2, 3])
-A torus-invariant, non-prime divisor on a normal toric variety
+julia> d = toric_divisor(P2, [1, 2, 3])
+Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> RationalEquivalenceClass(d)
-A rational equivalence class on a normal toric variety represented by 6V(x3)
+julia> rational_equivalence_class(d)
+Rational equivalence class on a normal toric variety represented by 6V(x3)
 ```
 """
-function RationalEquivalenceClass(d::ToricDivisor)
+function rational_equivalence_class(d::ToricDivisor)
     v = toric_variety(d)
     if is_trivial(d)
         return RationalEquivalenceClass(v, zero(chow_ring(v)))
@@ -76,23 +74,23 @@ end
 
 
 @doc Markdown.doc"""
-    RationalEquivalenceClass(c::ToricDivisorClass)
+    rational_equivalence_class(c::ToricDivisorClass)
 
 Construct the algebraic cycle corresponding to the toric divisor class `c`.
 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> tdc = ToricDivisorClass(P2, [2])
-A divisor class on a normal toric variety
+julia> tdc = toric_divisor_class(P2, [2])
+Divisor class on a normal toric variety
 
-julia> RationalEquivalenceClass(tdc)
-A rational equivalence class on a normal toric variety represented by 2V(x3)
+julia> rational_equivalence_class(tdc)
+Rational equivalence class on a normal toric variety represented by 2V(x3)
 ```
 """
-RationalEquivalenceClass(c::ToricDivisorClass) = RationalEquivalenceClass(toric_divisor(c))
+rational_equivalence_class(c::ToricDivisorClass) = rational_equivalence_class(toric_divisor(c))
 
 
 @doc Markdown.doc"""
@@ -103,78 +101,78 @@ Construct the toric algebraic cycle corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(P2, [2])
-A toric line bundle on a normal toric variety
+julia> l = toric_line_bundle(P2, [2])
+Toric line bundle on a normal toric variety
 
-julia> polynomial(RationalEquivalenceClass(l))
+julia> polynomial(rational_equivalence_class(l))
 2*x3
 ```
 """
-RationalEquivalenceClass(l::ToricLineBundle) = RationalEquivalenceClass(toric_divisor(l))
+rational_equivalence_class(l::ToricLineBundle) = rational_equivalence_class(toric_divisor(l))
 
 
 @doc Markdown.doc"""
-    RationalEquivalenceClass(cc::CohomologyClass)
+    rational_equivalence_class(cc::CohomologyClass)
 
 Construct the toric algebraic cycle corresponding to the cohomology class `cc`.
 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1, x2, x3) = gens(cohomology_ring(P2))
-3-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  x1
  x2
  x3
 
 julia> cc = CohomologyClass(P2, x1+x2)
-A cohomology class on a normal toric variety given by x1 + x2
+Cohomology class on a normal toric variety given by x1 + x2
 
-julia> RationalEquivalenceClass(cc)
-A rational equivalence class on a normal toric variety represented by 2V(x3)
+julia> rational_equivalence_class(cc)
+Rational equivalence class on a normal toric variety represented by 2V(x3)
 ```
 """
-RationalEquivalenceClass(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(chow_ring(toric_variety(cc)), cc))
+rational_equivalence_class(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(chow_ring(toric_variety(cc)), cc))
 
 
 @doc Markdown.doc"""
-    RationalEquivalenceClass(cc::ClosedSubvarietyOfToricVariety)
+    rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
 
 Construct the rational equivalence class of algebraic
 cycles of a closed subvariety of a normal toric variety.
 
 # Examples
 ```jldoctest
-julia> ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)))
-A normal toric variety
+julia> ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))
+Normal toric variety
 
 julia> set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"]);
 
 julia> (x1, x2, y1, y2) = gens(cox_ring(ntv))
-4-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
  y1
  y2
 
-julia> sv = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2, y2])
-A closed subvariety of a normal toric variety
+julia> sv = closed_subvariety_of_toric_variety(ntv, [x1^2+x1*x2+x2^2, y2])
+Closed subvariety of a normal toric variety
 
-julia> RationalEquivalenceClass(sv)
-A rational equivalence class on a normal toric variety represented by 2V(x2,y2)
+julia> rational_equivalence_class(sv)
+Rational equivalence class on a normal toric variety represented by 2V(x2,y2)
 ```
 """
-function RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)
+function rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
     v = toric_variety(sv)
     indets = gens(chow_ring(v))
     mons = [[m for m in monomials(p)][1] for p in gens(defining_ideal(sv))]
     expos = [matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(mons[k])]) for k in 1:length(mons)]
     coeffs = [1 for i in 1:length(mons)]
-    new_mons = MPolyQuoElem{fmpq_mpoly}[]
+    new_mons = MPolyQuoRingElem{QQMPolyRingElem}[]
     for k in 1:length(mons)
       mon = 1
       for j in 1:ncols(expos[k])
@@ -188,6 +186,7 @@ function RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)
     classes = [coeffs[k]*RationalEquivalenceClass(v, new_mons[k]) for k in 1:length(mons)]
     return prod(classes)
 end
+
 
 ####################################################
 # 4: Addition, subtraction and scalar multiplication
@@ -209,7 +208,7 @@ function Base.:-(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
 end
 
 
-Base.:*(c::fmpq, ac::RationalEquivalenceClass) = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
+Base.:*(c::QQFieldElem, ac::RationalEquivalenceClass) = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
 Base.:*(c::Rational{Int64}, ac::RationalEquivalenceClass) = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
 Base.:*(c::T, ac::RationalEquivalenceClass) where {T <: IntegerUnion} = RationalEquivalenceClass(toric_variety(ac), coefficient_ring(toric_variety(ac))(c) * polynomial(ac))
 
@@ -233,7 +232,7 @@ function Base.:*(ac::RationalEquivalenceClass, sv::ClosedSubvarietyOfToricVariet
     if toric_variety(ac) !== toric_variety(sv)
         throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
-    return ac * RationalEquivalenceClass(sv)
+    return ac * rational_equivalence_class(sv)
 end
 
 
@@ -241,7 +240,7 @@ function Base.:*(sv::ClosedSubvarietyOfToricVariety, ac::RationalEquivalenceClas
     if toric_variety(ac) !== toric_variety(sv)
         throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
-    return ac * RationalEquivalenceClass(sv)
+    return ac * rational_equivalence_class(sv)
 end
 
 
@@ -249,7 +248,7 @@ function Base.:*(sv1::ClosedSubvarietyOfToricVariety, sv2::ClosedSubvarietyOfTor
     if toric_variety(sv1) !== toric_variety(sv2)
         throw(ArgumentError("The closed subvarieties must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
-    return RationalEquivalenceClass(sv1) * RationalEquivalenceClass(sv2)
+    return rational_equivalence_class(sv1) * rational_equivalence_class(sv2)
 end
 
 
@@ -268,7 +267,7 @@ end
 
 function Base.show(io::IO, ac::RationalEquivalenceClass)
     if is_trivial(ac)
-        join(io, "A trivial rational equivalence class on a normal toric variety")
+        join(io, "Trivial rational equivalence class on a normal toric variety")
     else
       # otherwise, extract properties to represent the rational equivalence class
       r = representative(ac)
@@ -287,9 +286,9 @@ function Base.show(io::IO, ac::RationalEquivalenceClass)
           end
           tmp = join(m, ",")
           if i == 1 && coeffs[i] == 1
-              push!(properties_string, "A rational equivalence classon a normal toric variety represented by V($tmp)")
+              push!(properties_string, "Rational equivalence classon a normal toric variety represented by V($tmp)")
           elseif i == 1 && coeffs[i] != 1
-              push!(properties_string, "A rational equivalence class on a normal toric variety represented by $(coeffs[i])V($tmp)")
+              push!(properties_string, "Rational equivalence class on a normal toric variety represented by $(coeffs[i])V($tmp)")
           elseif i > 1 && coeffs[i] == 1
               push!(properties_string, "+V($tmp)")
           elseif i > 1 && coeffs[i] > 0 && coeffs[i] != 1

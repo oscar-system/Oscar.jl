@@ -13,10 +13,10 @@ direction.
 julia> C = cube(3);
 
 julia> NF = normal_fan(C)
-A polyhedral fan in ambient dimension 3
+Polyhedral fan in ambient dimension 3
 
 julia> rays(NF)
-6-element SubObjectIterator{RayVector{fmpq}}:
+6-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]
@@ -41,10 +41,10 @@ the maximal cones of the face fan of `P` are the cones over the facets of `P`.
 By definition, this bounded polyhedron's number of facets equals the amount of
 maximal cones of its face fan.
 ```jldoctest
-julia> C = cross(3);
+julia> C = cross_polytope(3);
 
 julia> FF = face_fan(C)
-A polyhedral fan in ambient dimension 3
+Polyhedral fan in ambient dimension 3
 
 julia> n_maximal_cones(FF) == nfacets(C)
 true

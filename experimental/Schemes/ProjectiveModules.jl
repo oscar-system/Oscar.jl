@@ -1,6 +1,6 @@
 export is_projective, annihilator
 
-function annihilator(M::SubQuo)
+function annihilator(M::SubquoModule)
   R = base_ring(M)
   F = FreeMod(R, 1)
   I = ideal(R, [one(R)])
@@ -17,7 +17,7 @@ end
 iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
 
 @Markdown.doc """
-    is_projective(M::SubQuo)
+    is_projective(M::SubquoModule)
 
 Given a subquotient ``M = (A + B)/B`` over a ring ``R`` return a triple 
 `(success, π, σ)` where `success` is `true` or `false` depending on 
@@ -26,7 +26,7 @@ where ``π`` is a projection onto ``M`` and ``σ`` a section of ``π``
 so that ``Rʳ ≅ M ⊕ N`` splits as a direct sum via the projector 
 ``σ ∘ π``.
 """
-function is_projective(M::SubQuo; check::Bool=true)
+function is_projective(M::SubquoModule; check::Bool=true)
   ### Assemble a presentation of M over its base ring
   # TODO: Eventually replace by the methods for free 
   # presentation from the module package. 
@@ -75,13 +75,64 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
 
   # The condition for end of recursion:
   if iszero(A) 
-    return true, one(MatrixSpace(R, n, n)), 0
+    return true, one(matrix_space(R, n, n)), 0
   end
 
   entry_list = [(A[i,j], i, j) for i in 1:m for j in 1:n if !iszero(A[i,j])]
   I = ideal(R, [a[1] for a in entry_list])
   if !(one(R) in I)
-    return false, zero(MatrixSpace(R, n, n)), 0
+    # If I is not the unit ideal, it might still be the case that this holds true for the 
+    # restriction to the components of Spec(R). 
+    R isa Union{MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing} || error("method not implemented")
+    # TODO: Work this out without schemes on the purely algebraic side.
+    # This is a temporary hotfix to address a particular boundary case, see #1882. 
+    # The code below is also not generic and should eventually be adjusted.
+
+    X = Spec(R)
+    U = components(X)
+    l = length(U)
+    l == 1 && return false, zero(matrix_space(R, n, n)), 0
+    projectors = MatElem[] # The local projectors on each component
+    expon = Int[]
+    for k in 1:l
+      L, inc = Localization(R, complement_equation(U[k])) # We can not use OO(U[k]) directly, because 
+                                                          # we'd be missing the map in that case. 
+      success, p, k = _is_projective_without_denominators(change_base_ring(L, A), unit=L(unit))
+      !success && return false, zero(matrix_space(R, n, n)), 0
+      q = zero(matrix_space(R, nrows(p), ncols(p)))
+      for i in 1:nrows(p)
+        for j in 1:ncols(p)
+          q[i, j] = preimage(inc, p[i, j])
+        end
+      end
+      push!(projectors, q)
+      push!(expon, k)
+    end
+
+    c = coordinates(one(R), ideal(R, [complement_equation(U[k])^(expon[k]+1) for k in 1:length(expon)]))
+    result = sum([c[k]*projectors[k] for k in 1:length(projectors)])
+
+    # Copied from below
+    d = lcm(_lifted_denominator.(result))
+    if isone(d)
+      return true, result, 0
+    end
+
+    inner, outer = ppio(d, _lifted_numerator(unit))
+    (mpow, upow) = Oscar._minimal_power_such_that(_lifted_numerator(unit), 
+                                                  x->(divides(x, inner)[1]))
+
+    # pull u^mpow from each entry of the matrix:
+    L = zero(matrix_space(R, n, n))
+    for i in 1:n
+      for j in 1:n
+        L[i, j] = R(_lifted_numerator(result[i, j])*
+                    divides(upow, inner)[2]*
+                    divides(d, _lifted_denominator(result[i, j]))[2]
+                   )*inv(R(outer*(_lifted_denominator(unit)^mpow)))
+      end
+    end
+    return true, L, mpow
   end
 
   lambda1 = coordinates(one(R), I) # coefficients for the first powers
@@ -119,7 +170,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
     B = last(sub_results)[2]
     k = last(sub_results)[3]
     if last(sub_results)[1] == false
-      return false, zero(MatrixSpace(R, n, n)), 0
+      return false, zero(matrix_space(R, n, n)), 0
     end
   end
   powers = [k for (_, _, k) in sub_results]
@@ -127,10 +178,10 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
   # TODO: This can be optimized
   c = coordinates(one(R), ideal(R, [u^(k+1) for ((u, _, _), k) in zip(entry_list, powers)]))
 
-  result = zero(MatrixSpace(R, n, n))
+  result = zero(matrix_space(R, n, n))
   for ((u, i, j), (_, Q, k), (Rloc, inc), lambda) in zip(entry_list, sub_results, sub_localizations, c)
     # Lift the matrix Q to an n×n-matrix over R
-    Qinc = zero(MatrixSpace(R, n, n))
+    Qinc = zero(matrix_space(R, n, n))
     for r in 1:j-1
       for s in 1:j-1
         Qinc[r, s] = preimage(inc, Q[r, s])
@@ -152,7 +203,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
     # has been deleted via the localization at u. This can only be done 
     # over R for u⋅v, so we multiply by u, keeping in mind that this will 
     # become a unit in the localization. 
-    P = u*one(MatrixSpace(R, n, n))
+    P = u*one(matrix_space(R, n, n))
     P[j, j] = 0
     for l in 1:n
       l == j && continue
@@ -172,7 +223,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
                                                 x->(divides(x, inner)[1]))
 
   # pull u^mpow from each entry of the matrix:
-  L = zero(MatrixSpace(R, n, n))
+  L = zero(matrix_space(R, n, n))
   for i in 1:n
     for j in 1:n
       L[i, j] = R(_lifted_numerator(result[i, j])*
@@ -187,12 +238,12 @@ end
 # helper functions to unify the interface
 _lifted_denominator(a::RingElem) = one(parent(a))
 _lifted_denominator(a::AbsLocalizedRingElem) = denominator(a)
-_lifted_denominator(a::MPolyQuoElem) = one(base_ring(parent(a)))
-_lifted_denominator(a::MPolyQuoLocalizedRingElem) = lifted_denominator(a)
+_lifted_denominator(a::MPolyQuoRingElem) = one(base_ring(parent(a)))
+_lifted_denominator(a::MPolyQuoLocRingElem) = lifted_denominator(a)
 _lifted_numerator(a::RingElem) = a
 _lifted_numerator(a::AbsLocalizedRingElem) = numerator(a)
-_lifted_numerator(a::MPolyQuoElem) = lift(a)
-_lifted_numerator(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)
+_lifted_numerator(a::MPolyQuoRingElem) = lift(a)
+_lifted_numerator(a::MPolyQuoLocRingElem) = lifted_numerator(a)
 
 ########################################################################
 # Various localization routines for localizing at powers of elements   #
@@ -200,16 +251,16 @@ _lifted_numerator(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)
 # This deserves special constructors, because we can deliver maps for  # 
 # lifting which is not possible in general.                            #
 ########################################################################
-function Localization(A::MPolyQuo, f::MPolyQuoElem)
+function Localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
   R = base_ring(A)
   U = MPolyPowersOfElement(R, [lift(f)])
-  W = MPolyLocalizedRing(R, U)
-  L = MPolyQuoLocalizedRing(R, modulus(A), U, A, W)
-  function func(a::MPolyQuoElem)
+  W = MPolyLocRing(R, U)
+  L = MPolyQuoLocRing(R, modulus(A), U, A, W)
+  function func(a::MPolyQuoRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a, check=false)
   end
-  function func_inv(a::MPolyQuoLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                                  <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -224,16 +275,16 @@ function Localization(A::MPolyQuo, f::MPolyQuoElem)
   return L, MapFromFunc(func, func_inv, A, L)
 end
 
-function Localization(A::MPolyLocalizedRing, f::MPolyLocalizedRingElem)
+function Localization(A::MPolyLocRing, f::MPolyLocRingElem)
   R = base_ring(A)
   d = numerator(f)
   U = MPolyPowersOfElement(R, [d])
-  L = MPolyLocalizedRing(R, U*inverted_set(A))
-  function func(a::MPolyLocalizedRingElem)
+  L = MPolyLocRing(R, U*inverted_set(A))
+  function func(a::MPolyLocRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a, check=false)
   end
-  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -245,16 +296,16 @@ function Localization(A::MPolyLocalizedRing, f::MPolyLocalizedRingElem)
   return L, MapFromFunc(func, func_inv, A, L)
 end
 
-function Localization(A::MPolyQuoLocalizedRing, f::MPolyQuoLocalizedRingElem)
+function Localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
   R = base_ring(A)
   d = lifted_numerator(f)
   U = MPolyPowersOfElement(R, [d])
-  L = MPolyQuoLocalizedRing(R, modulus(underlying_quotient(A)), U*inverted_set(A))
-  function func(a::MPolyQuoLocalizedRingElem)
+  L = MPolyQuoLocRing(R, modulus(underlying_quotient(A)), U*inverted_set(A))
+  function func(a::MPolyQuoLocRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a)
   end
-  function func_inv(a::MPolyQuoLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")

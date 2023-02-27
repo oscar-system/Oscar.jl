@@ -128,7 +128,7 @@ function small_group_identification(G::GAPGroup)
    isfinite(G) || error("group is not finite")
    has_small_group_identification(order(G)) || error("identification is not available for groups of order $(order(G))")
    res = GAP.Globals.IdGroup(G.X)
-   return Tuple{fmpz,fmpz}(res)
+   return Tuple{ZZRingElem,ZZRingElem}(res)
 end
 
 
@@ -145,13 +145,13 @@ julia> number_small_groups(8)
 julia> number_small_groups(4096)
 ERROR: the number of groups of order 4096 is not available
 
-julia> number_small_groups(next_prime(fmpz(2)^64))
+julia> number_small_groups(next_prime(ZZRingElem(2)^64))
 1
 ```
 """
 function number_small_groups(n::IntegerUnion)
   has_number_small_groups(n) || error("the number of groups of order $n is not available")
-  return fmpz(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
+  return ZZRingElem(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
 end
 
 

@@ -12,7 +12,7 @@ Return the dimension of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> dim(antv)
 1
@@ -33,7 +33,7 @@ Return the dimension of the torus factor of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> dim_of_torusfactor(antv)
 1
@@ -59,7 +59,7 @@ Return the Euler characteristic of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> euler_characteristic(antv)
 1
@@ -118,7 +118,7 @@ question is not yet finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> set_coordinate_names(antv, ["u"])
 
@@ -181,7 +181,7 @@ This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> coefficient_ring(antv) == QQ
 true
@@ -200,7 +200,7 @@ the normal toric variety `v`. The default is `x1, ..., xn`.
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
 
-julia> antv = AffineNormalToricVariety(C);
+julia> antv = affine_normal_toric_variety(C);
 
 julia> coordinate_names(antv)
 1-element Vector{String}:
@@ -231,7 +231,7 @@ Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R, _ = PolynomialRing(QQ, 3);
+julia> R, _ = polynomial_ring(QQ, 3);
 
 julia> cox_ring(R, p2)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
@@ -267,7 +267,7 @@ Multivariate Polynomial Ring in y1, y2, y3 over Rational Field graded by
 ```
 """
 @attr MPolyRing function cox_ring(v::AbstractNormalToricVariety)
-    S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached=false)
+    S, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached=false)
     return cox_ring(S, v)
 end
 export cox_ring
@@ -295,7 +295,7 @@ Return the Stanley-Reisner ideal of a normal toric variety `v` as an ideal of
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R, _ = PolynomialRing(QQ, 3);
+julia> R, _ = polynomial_ring(QQ, 3);
 
 julia> ngens(stanley_reisner_ideal(R, p2))
 1
@@ -354,7 +354,7 @@ Return the irrelevant ideal of a normal toric variety `v` as an ideal in `R`.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R, _ = PolynomialRing(QQ, 3);
+julia> R, _ = polynomial_ring(QQ, 3);
 
 julia> length(gens(irrelevant_ideal(R, p2)))
 3
@@ -401,7 +401,7 @@ Return the ideal of linear relations of the simplicial and complete toric variet
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R, _ = PolynomialRing(QQ, 3);
+julia> R, _ = polynomial_ring(QQ, 3);
 
 julia> ngens(ideal_of_linear_relations(R, p2))
 2
@@ -435,7 +435,7 @@ julia> ngens(ideal_of_linear_relations(p2))
 ```
 """
 @attr MPolyIdeal function ideal_of_linear_relations(v::AbstractNormalToricVariety)
-    R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
+    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v))
     weights = [1 for i in 1:ngens(R)]
     grade(R, weights)
     return ideal_of_linear_relations(R, v)
@@ -461,12 +461,12 @@ $\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
 ideal comes from the dual cone.
 ```jldoctest
 julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
-A polyhedral cone in ambient dimension 3
+Polyhedral cone in ambient dimension 3
 
-julia> antv = AffineNormalToricVariety(C)
-A normal, affine toric variety
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
 
-julia> R, _ = PolynomialRing(QQ, 4);
+julia> R, _ = polynomial_ring(QQ, 4);
 
 julia> toric_ideal(R, antv)
 ideal(-x1*x2 + x3*x4)
@@ -491,10 +491,10 @@ $\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
 ideal comes from the dual cone.
 ```jldoctest
 julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
-A polyhedral cone in ambient dimension 3
+Polyhedral cone in ambient dimension 3
 
-julia> antv = AffineNormalToricVariety(C)
-A normal, affine toric variety
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
 
 julia> toric_ideal(antv)
 ideal(-x1*x2 + x3*x4)
@@ -503,14 +503,14 @@ ideal(-x1*x2 + x3*x4)
 @attr MPolyIdeal function toric_ideal(antv::AffineNormalToricVariety)
     cone = Cone(pm_object(antv).WEIGHT_CONE)
     n = length(hilbert_basis(cone))
-    R, _ = PolynomialRing(coefficient_ring(antv), n, cached=false)
+    R, _ = polynomial_ring(coefficient_ring(antv), n, cached=false)
     return toric_ideal(R, antv)
 end
 
 
 @attr MPolyIdeal function toric_ideal(ntv::NormalToricVariety)
     is_affine(ntv) || error("Cannot construct affine toric variety from non-affine input")
-    return toric_ideal(AffineNormalToricVariety(ntv))
+    return toric_ideal(affine_normal_toric_variety(ntv))
 end
 export toric_ideal
 
@@ -562,8 +562,8 @@ julia> coordinate_ring_of_torus(p2)
 Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
-@attr MPolyQuo function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
-    S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
+@attr MPolyQuoRing function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 export coordinate_ring_of_torus
@@ -575,7 +575,7 @@ export coordinate_ring_of_torus
 
 
 @doc Markdown.doc"""
-    character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
+    character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 
 Computes the rational function corresponding to a character of the normal toric variety `v`.
 
@@ -587,15 +587,15 @@ julia> character_to_rational_function(p2, [-1, 2])
 x2^2*x1_
 ```
 """
-function character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
-    S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
-    return character_to_rational_function(S, v::AbstractNormalToricVariety, character::Vector{fmpz})
+function character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
+    return character_to_rational_function(S, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 end
-character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [fmpz(k) for k in character])
+character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
 
 
 @doc Markdown.doc"""
-    character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
+    character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 
 Computes the rational function corresponding to a character of the normal toric variety `v`.
 
@@ -603,13 +603,13 @@ Computes the rational function corresponding to a character of the normal toric 
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R, _ = PolynomialRing(QQ, 4);
+julia> R, _ = polynomial_ring(QQ, 4);
 
 julia> character_to_rational_function(R, p2, [-1, 2])
 x2^2*x3
 ```
 """
-function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
+function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
     if ambient_dim(v) != length(character)
         throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety"))
     end
@@ -624,7 +624,7 @@ function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVari
     end
     return rational_function
 end
-character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(R, v, [fmpz(k) for k in character])
+character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(R, v, [ZZRingElem(k) for k in character])
 export character_to_rational_function
 
 
@@ -708,9 +708,9 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> torusinvariant_prime_divisors(p2)
 3-element Vector{ToricDivisor}:
- A torus-invariant, prime divisor on a normal toric variety
- A torus-invariant, prime divisor on a normal toric variety
- A torus-invariant, prime divisor on a normal toric variety
+ Torus-invariant, prime divisor on a normal toric variety
+ Torus-invariant, prime divisor on a normal toric variety
+ Torus-invariant, prime divisor on a normal toric variety
 ```
 """
 @attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
@@ -719,7 +719,7 @@ julia> torusinvariant_prime_divisors(p2)
     for i in 1:rank(ti_divisors)
         coeffs = zeros(Int, rank(ti_divisors))
         coeffs[i] = 1
-        push!(prime_divisors, ToricDivisor(v, coeffs))
+        push!(prime_divisors, toric_divisor(v, coeffs))
     end
     return prime_divisors
 end
@@ -781,7 +781,7 @@ torus-invariant Weil divisors of an abstract normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(p2)
 Map with following data
@@ -816,7 +816,7 @@ Abelian group with structure: Z^3
     col = 1
     for i in 1:number_of_rays
         for j in cones_ray_is_part_of[i]
-            map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[:, i]]
+            map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [ZZRingElem(c) for c in fan_rays[:, i]]
             col += 1
         end
     end
@@ -827,7 +827,7 @@ Abelian group with structure: Z^3
     col = 1
     for i in 1:number_of_rays
         ncol = number_ray_is_part_of_max_cones[i]-1
-        map_for_difference_of_elements[row, col:(col+ncol-1)] = fill(fmpz(1), ncol)
+        map_for_difference_of_elements[row, col:(col+ncol-1)] = fill(ZZRingElem(1), ncol)
         map_for_difference_of_elements[(row+1):(row+ncol), col:(col+ncol-1)] = -identity_matrix(ZZ, ncol)
         row += ncol + 1
         col += ncol
@@ -836,7 +836,7 @@ Abelian group with structure: Z^3
     # compute the matrix for mapping to torusinvariant Weil divisors
     map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_weil_divisor_group(v)))
     for i in 1:number_of_rays
-        map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:, i]]
+        map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [ZZRingElem(-c) for c in fan_rays[:, i]]
     end
     
     # compute the total map
@@ -863,7 +863,7 @@ Return the Cartier divisor group of an abstract normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> torusinvariant_cartier_divisor_group(p2)
 GrpAb: Z^3
@@ -884,7 +884,7 @@ of an abstract normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_picard_group(p2)
 Map with following data
@@ -918,7 +918,7 @@ Return the Picard group of an abstract normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> picard_group(p2)
 GrpAb: Z
@@ -942,10 +942,10 @@ Return the nef cone of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> nef = nef_cone(p2)
-A polyhedral cone in ambient dimension 1
+Polyhedral cone in ambient dimension 1
 
 julia> dim(nef)
 1
@@ -965,10 +965,10 @@ Return the mori cone of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> mori = mori_cone(p2)
-A polyhedral cone in ambient dimension 1
+Polyhedral cone in ambient dimension 1
 
 julia> dim(mori)
 1
@@ -988,14 +988,14 @@ Return the fan of an abstract normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> fan(p2)
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 ```
 """
-@attr PolyhedralFan{fmpq} function fan(v::AbstractNormalToricVariety)
-    return PolyhedralFan{fmpq}(pm_object(v))
+@attr PolyhedralFan{QQFieldElem} function fan(v::AbstractNormalToricVariety)
+    return PolyhedralFan{QQFieldElem}(pm_object(v))
 end
 export fan
 
@@ -1007,8 +1007,8 @@ Return the cone of the affine normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> cone(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
-A polyhedral cone in ambient dimension 2
+julia> cone(affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1])))
+Polyhedral cone in ambient dimension 2
 ```
 """
 @attr Cone function cone(v::AffineNormalToricVariety)
@@ -1030,19 +1030,19 @@ Compute an affine open cover of the normal toric variety `v`, i.e. returns a lis
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> affine_open_covering(p2)
 3-element Vector{AffineNormalToricVariety}:
- A normal, affine toric variety
- A normal, affine toric variety
- A normal, affine toric variety
+ Normal, affine toric variety
+ Normal, affine toric variety
+ Normal, affine toric variety
 ```
 """
 @attr Vector{AffineNormalToricVariety} function affine_open_covering(v::AbstractNormalToricVariety)
     charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
     for i in 1:pm_object(v).N_MAXIMAL_CONES
-        charts[i] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
+        charts[i] = affine_normal_toric_variety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
     end
     return charts
 end

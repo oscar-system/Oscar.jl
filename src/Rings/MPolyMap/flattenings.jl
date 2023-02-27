@@ -1,7 +1,7 @@
 ########################################################################
 # RingFlattening
 #
-# A struct to accomodate all the information necessary for using 
+# A struct to accommodate all the information necessary for using 
 # flattenings of polynomial rings efficiently to render them effectively
 # computable. 
 #
@@ -21,11 +21,11 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   base_ring_to_flat::Hecke.Map{CoeffRingType, FlatRingType}
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyElem}
+      S::MPolyRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
-    S_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    S_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
     S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)])
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
@@ -36,16 +36,16 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   end
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyQuoElem}
-    A = base_ring(S)::MPolyQuo
+      S::MPolyRing{RingElemType}
+    ) where {RingElemType <: MPolyQuoRingElem}
+    A = base_ring(S)::MPolyQuoRing
     R = base_ring(A)::MPolyRing
     I = modulus(A)::MPolyIdeal
     kk = coefficient_ring(R)::Field
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
-    T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
     I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
@@ -63,22 +63,22 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   end
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyQuoLocalizedRingElem}
-    Q = base_ring(S)::MPolyQuoLocalizedRing
+      S::MPolyRing{RingElemType}
+    ) where {RingElemType <: MPolyQuoLocRingElem}
+    Q = base_ring(S)::MPolyQuoLocRing
     R = base_ring(Q)::MPolyRing
-    L = localized_ring(Q)::MPolyLocalizedRing
-    A = underlying_quotient(Q)::MPolyQuo
+    L = localized_ring(Q)::MPolyLocRing
+    A = underlying_quotient(Q)::MPolyQuoRing
     U = inverted_set(Q)::AbsMultSet
     I = modulus(Q)::MPolyLocalizedIdeal
     kk = coefficient_ring(R)::Field
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
-    T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transfered. 
+    T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
     L_to_T_flat_loc = hom(L, T_flat_loc, gens(T_flat_loc)[ngens(S)+1:end])
 
     I_flat = ideal(T_flat_loc, L_to_T_flat_loc.(gens(I)))
@@ -96,19 +96,19 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
   end
 
   function RingFlattening(
-      S::AbstractAlgebra.Generic.MPolyRing{RingElemType}
-    ) where {RingElemType <: MPolyLocalizedRingElem}
-    L = base_ring(S)::MPolyLocalizedRing
+      S::MPolyRing{RingElemType}
+    ) where {RingElemType <: MPolyLocRingElem}
+    L = base_ring(S)::MPolyLocRing
     R = base_ring(L)::MPolyRing
     U = inverted_set(L)::AbsMultSet
     kk = coefficient_ring(R)::Field
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = PolynomialRing(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
 
-    S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transfered. 
+    S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
     L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end])
 
     R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
@@ -165,12 +165,12 @@ end
 
 ### Computation of induced morphisms on flattened towers of polynomial rings
 @attr function flatten(
-    f::MPolyAnyMap{AbstractAlgebra.Generic.MPolyRing{RingElemType}, 
-                   AbstractAlgebra.Generic.MPolyRing{RingElemType},
+    f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
+                   <:MPolyRing{RingElemType},
                    Nothing
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   S = domain(f)
@@ -183,12 +183,12 @@ end
 end
 
 @attr function flatten(
-    f::MPolyAnyMap{AbstractAlgebra.Generic.MPolyRing{RingElemType}, 
-                   AbstractAlgebra.Generic.MPolyRing{RingElemType}
+    f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
+                   <:MPolyRing{RingElemType}
                    # Note the missing requirement here: It allows for a non-trivial coefficient map
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   S = domain(f)
@@ -204,10 +204,10 @@ end
 
 ### Deflecting some of the basic methods for ideals in towers of polynomial rings
 function ideal_membership(
-    x::AbstractAlgebra.Generic.MPoly{RingElemType},
-    I::MPolyIdeal{AbstractAlgebra.Generic.MPoly{RingElemType}}
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                  <:MPolyQuoLocalizedRingElem
+    x::MPolyRingElem{RingElemType},
+    I::MPolyIdeal{<:MPolyRingElem{RingElemType}}
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                  <:MPolyQuoLocRingElem
                                  }
           }
   parent(x) === base_ring(I) || return base_ring(I)(x) in I
@@ -216,10 +216,10 @@ function ideal_membership(
 end
 
 function coordinates(
-    x::AbstractAlgebra.Generic.MPoly{RingElemType},
-    I::MPolyIdeal{AbstractAlgebra.Generic.MPoly{RingElemType}}
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                  <:MPolyQuoLocalizedRingElem
+    x::MPolyRingElem{RingElemType},
+    I::MPolyIdeal{<:MPolyRingElem{RingElemType}}
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                  <:MPolyQuoLocRingElem
                                  }
           }
   phi = flatten(parent(x))
@@ -237,11 +237,11 @@ end
 
 # This first signature has to stay to avoid ambiguities.
 function kernel(
-    f::MPolyAnyMap{<:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}, 
-                   <:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}
+    f::MPolyAnyMap{<:MPolyRing{<:RingElemType}, 
+                   <:MPolyRing{<:RingElemType}
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   f_flat = flatten(f)
@@ -253,11 +253,11 @@ function kernel(
 end
 
 function kernel(
-    f::MPolyAnyMap{<:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}, 
+    f::MPolyAnyMap{<:MPolyRing{<:RingElemType}, 
                    <:Ring
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   phi = flatten(domain(f))
@@ -269,16 +269,29 @@ function kernel(
 end
 
 function kernel(
-    f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuo, 
-                           <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing
+    f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuoRing, 
+                           <:MPolyLocRing, <:MPolyQuoLocRing
                           }, # Restriction necessary to avoid ambiguities
-                   <:AbstractAlgebra.Generic.MPolyRing{<:RingElemType}
+                   <:MPolyRing{<:RingElemType}
                   }
-  ) where {RingElemType <: Union{<:MPolyElem, <:MPolyQuoElem, <:MPolyLocalizedRingElem, 
-                                 <:MPolyQuoLocalizedRingElem
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
                                 }
           }
   phi = flatten(codomain(f))
   f_flat = hom(domain(f), codomain(phi), phi.(f.(gens(domain(f)))))
   return kernel(f_flat)
 end
+
+### saturations
+function saturation(
+    I::MPolyIdeal{T}, J::MPolyIdeal{T}
+  ) where {T<:MPolyRingElem{<:Union{<:MPolyRingElem, MPolyQuoRingElem, MPolyLocRingElem, 
+                                <:MPolyQuoLocRingElem
+                               }}}
+  S = base_ring(I)
+  phi = flatten(S)
+  pre_res = saturation(phi(I), phi(J))
+  return ideal(S, inverse(phi).(gens(pre_res)))
+end
+

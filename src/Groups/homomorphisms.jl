@@ -152,6 +152,32 @@ function hom(G::GAPGroup, H::GAPGroup, imgs::Vector; check::Bool = true)
   return hom(G, H, gens(G), imgs; check)
 end
 
+# Map `G::GAPGroup` to `A::GrpAbFinGen` by prescribing images.
+# Return a composition of homomorphisms `G -> G/G' -> B -> A`,
+# not a `GAPGroupHomomorphism`.
+function hom(G::GAPGroup, A::GrpAbFinGen, gensG::Vector, imgs::Vector{GrpAbFinGenElem}; check::Bool = true)
+  # map G to G/G'
+  (q, map1) = quo(G, derived_subgroup(G)[1])
+
+  # map G/G' to an isomorphic additive group B
+  iso = isomorphism(GrpAbFinGen, q)
+  B = codomain(iso)
+
+  # map B to A as prescribed
+  if length(gensG) == 0
+    map2 = hom([zero(B)], [zero(A)], check = check)
+  else
+    map2 = hom([iso(map1(x)) for x in gensG], imgs, check = check)
+  end
+
+  # create the composition
+  return compose(map1, compose(iso, map2))
+end
+
+function hom(G::GAPGroup, A::GrpAbFinGen, imgs::Vector{GrpAbFinGenElem}; check::Bool = true)
+  return hom(G, A, gens(G), imgs; check)
+end
+
 function domain(f::GAPGroupHomomorphism)
   return f.domain
 end
@@ -531,11 +557,11 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     orders = fmpz[GAPWrap.Order(x) for x in indep]
+     orders = ZZRingElem[GAPWrap.Order(x) for x in indep]
      n = length(indep)
      A = abelian_group(GrpAbFinGen, orders)
 
-     f(g) = A(Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
+     f(g) = A(Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
 
      finv = function(g::elem_type(GrpAbFinGen))
        res = GAPWrap.One(G.X)
@@ -545,8 +571,8 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
        return group_element(G, res)
      end
 
-     return MapFromFunc(f, finv, G, A)
-   end::MapFromFunc{typeof(G), GrpAbFinGen}
+     return GroupIsomorphismFromFunc(f, finv, G, A)
+   end::GroupIsomorphismFromFunc{typeof(G), GrpAbFinGen}
 end
 
 """
@@ -583,9 +609,9 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      # `GAP.Globals.IndependentGenerators(G.X)`.
      Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(G.X)::GapObj)
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     Aindep = abelian_group(fmpz[GAPWrap.Order(g) for g in gensindep])
+     Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
 
-     imgs = [Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
+     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
      Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
      n = length(exponents)
@@ -600,13 +626,80 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      end
 
      finv = function(g)
-       exp = Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
+       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
        return Aindep_to_A(Aindep(exp))
      end
 
-     return MapFromFunc(f, finv, A, G)
-   end::MapFromFunc{GrpAbFinGen, T}
+     return GroupIsomorphismFromFunc(f, finv, A, G)
+   end::GroupIsomorphismFromFunc{GrpAbFinGen, T}
 end
+
+####
+mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFromFunc}
+    map::MapFromFunc{R, T}
+end
+
+function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
+  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(f, g, D, C))
+end
+
+function GroupIsomorphismFromFunc(f, g, D, C)
+  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(f, g, D, C)
+end
+
+# install the same methods as for `MapFromFunc`,
+# see `Hecke.jl/src/Map/MapType.jl`
+
+domain(f::GroupIsomorphismFromFunc) = domain(f.map)
+
+codomain(f::GroupIsomorphismFromFunc) = codomain(f.map)
+
+image_function(f::GroupIsomorphismFromFunc) = image_function(f.map)
+
+preimage_function(f::GroupIsomorphismFromFunc) = preimage_function(f.map)
+
+image(f::GroupIsomorphismFromFunc, x) = image(f.map, x)
+
+preimage(f::GroupIsomorphismFromFunc, y) = preimage(f.map, y)
+
+function Base.show(io::IO, M::GroupIsomorphismFromFunc)
+  Base.show(io, M.map)
+end
+
+Base.inv(M::GroupIsomorphismFromFunc) = GroupIsomorphismFromFunc(inv(M.map))
+
+# additional methods
+
+is_bijective(f::GroupIsomorphismFromFunc) = true
+
+kernel(f::GroupIsomorphismFromFunc) = trivial_subgroup(domain(f))
+
+####
+
+# compute the kernel of a composition of maps, with domain a `GAPGroup`,
+# where the kernels of the composed maps can be computed
+
+function kernel(comp::AbstractAlgebra.Generic.CompositeMap{T, GrpAbFinGen}) where T <: GAPGroup
+  map1 = comp.map1
+  map2 = comp.map2
+
+  if map2 isa GrpAbFinGenMap
+    ker2 = kernel(map2, false)::Tuple{GrpAbFinGen, GrpAbFinGenMap}
+  else
+    ker2 = kernel(map2)
+  end
+  ker2gens = [ker2[2](x) for x in gens(ker2[1])]
+  preimages = [preimage(map1, x) for x in ker2gens]
+  ker1 = kernel(map1)
+
+  # Compute generators of the kernel of `map2`,
+  # take their preimages under `map1`,
+  # form the closure with the kernel of `map1`
+  G = domain(comp)
+  K = sub(G, vcat([ker1[2](x) for x in gens(ker1[1])], preimages))
+end
+
+####
 
 function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
@@ -627,8 +720,8 @@ function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
       s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
            elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
       F, mF = quo(G, s)
-      @hassert is_finite(A) == is_finite(F)
-      is_finite(A) && @hassert order(A) == order(F)
+      @assert is_finite(A) == is_finite(F)
+      is_finite(A) && @assert order(A) == order(F)
       return MapFromFunc(
         y->F([i => y[i] for i=1:ngens(A)]),
         x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)),

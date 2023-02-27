@@ -170,7 +170,7 @@ function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
+perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
@@ -180,7 +180,7 @@ function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-(g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
+(g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = g([Int(y) for y in L])
 
 # cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
@@ -341,8 +341,8 @@ julia> Vector(pi, 4)
  3
  1
  4
-julia> Vector{fmpz}(pi, 2)
-2-element Vector{fmpz}:
+julia> Vector{ZZRingElem}(pi, 2)
+2-element Vector{ZZRingElem}:
  2
  3
 
@@ -491,7 +491,7 @@ function ^(c::CycleType, e::Int)
 end
 
 order(::Type{T}, c::CycleType) where T = mapreduce(x->T(x[1]), lcm, c.s, init = T(1))
-order(c::CycleType) = order(fmpz, c)
+order(c::CycleType) = order(ZZRingElem, c)
 
 degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
 

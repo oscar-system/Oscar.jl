@@ -1,18 +1,18 @@
 ################################################################################
 ######## Scalar types
 ################################################################################
-const scalar_types = Union{fmpq, nf_elem, Float64}
+const scalar_types = Union{QQFieldElem, nf_elem, Float64}
 
-const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq),
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
                                 ("QuadraticExtension<Rational>", nf_elem),
                                 ("Float", Float64)])
 
-const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational),
+const scalar_type_to_polymake = Dict{Type, Type}([(QQFieldElem, Polymake.Rational),
                                     (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
-                                    (Union{fmpq, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
+                                    (Union{QQFieldElem, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
                                     (Float64, Float64)])
 
-const scalar_types_extended = Union{scalar_types, fmpz}
+const scalar_types_extended = Union{scalar_types, ZZRingElem}
 
 ################################################################################
 ######## Vector types
@@ -22,7 +22,7 @@ struct PointVector{U} <: AbstractVector{U}
     p::Vector{U}
     
     PointVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
-    PointVector(p::AbstractVector) = new{fmpq}(p)
+    PointVector(p::AbstractVector) = new{QQFieldElem}(p)
 end
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
@@ -59,7 +59,7 @@ struct RayVector{U} <: AbstractVector{U}
     p::Vector{U}
     
     RayVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
-    RayVector(p::AbstractVector) = new{fmpq}(p)
+    RayVector(p::AbstractVector) = new{QQFieldElem}(p)
 end
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
@@ -113,7 +113,7 @@ struct AffineHalfspace{T} <: Halfspace{T}
     b::T
     
     AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
-    AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
+    AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{QQFieldElem}(vec(a), b)
 end
 
 Halfspace(a, b) = AffineHalfspace(a, b)
@@ -127,7 +127,7 @@ struct LinearHalfspace{T} <: Halfspace{T}
     a::Vector{T}
     
     LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
-    LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
+    LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{QQFieldElem}(vec(a))
 end
 
 Halfspace(a) = LinearHalfspace(a)
@@ -152,7 +152,7 @@ struct AffineHyperplane{T} <: Hyperplane{T}
     b::T
     
     AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
-    AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
+    AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{QQFieldElem}(vec(a), b)
 end
 
 Hyperplane(a, b) = AffineHyperplane(a, b)
@@ -164,7 +164,7 @@ struct LinearHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
     
     LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
-    LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
+    LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{QQFieldElem}(vec(a))
 end
 
 Hyperplane(a) = LinearHyperplane(a)
@@ -266,8 +266,8 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{fmpz}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
@@ -282,11 +282,11 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
 end
 
 # primitive generators only for ray based iterators
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{fmpq}}) =
+matrix(R::ZZRing, iter::SubObjectIterator{RayVector{QQFieldElem}}) =
     matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{fmpz},PointVector{fmpz}}}) =
+matrix(R::ZZRing, iter::SubObjectIterator{<:Union{RayVector{ZZRingElem},PointVector{ZZRingElem}}}) =
     matrix(R, matrix_for_polymake(iter))
-matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector{fmpq}, PointVector{fmpq}}}) =
+matrix(R::QQField, iter::SubObjectIterator{<:Union{RayVector{QQFieldElem}, PointVector{QQFieldElem}}}) =
     matrix(R, matrix_for_polymake(iter))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
@@ -346,6 +346,62 @@ unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
 unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
 
 _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
+
+################################################################################
+
+# Lineality often causes certain collections to be empty;
+# the following definition allows to easily construct a working empty SOI
+
+_empty_access() = nothing
+
+function _empty_subobjectiterator(::Type{T}, Obj::Polymake.BigObject) where T
+    return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
+end
+
+for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
+    M = Symbol(f)
+    @eval begin
+        function $M(::Val{_empty_access}, P::Polymake.BigObject; homogenized=false)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+            typename = scalar_regexp[1]
+            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + homogenized)
+        end
+    end
+end
+
+for f in ("_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
+    M = Symbol(f)
+    @eval begin
+        $M(::Val{_empty_access}, P::Polymake.BigObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+    end
+end
+
+for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
+    M = Symbol(f)
+    @eval begin
+        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+            typename = scalar_regexp[1]
+            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
+        end
+    end
+end
+
+for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
+    M = Symbol(f)
+    @eval begin
+        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+            typename = scalar_regexp[1]
+            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
+        end
+    end
+end
+
+_matrix_for_polymake(::Val{_empty_access}) = _point_matrix
 
 ################################################################################
 ######## Unify matrices

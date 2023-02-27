@@ -6,7 +6,7 @@ export ProjEllipticCurve, discriminant, is_smooth, j_invariant,
 # Helping functions
 ################################################################################
 
-function is_weierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
+function is_weierstrass_form(eq::Oscar.MPolyRingElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -21,7 +21,7 @@ end
 
 ################################################################################
 
-function shortformtest(eq::Oscar.MPolyElem{S}) where S <: RingElem
+function shortformtest(eq::Oscar.MPolyRingElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -33,7 +33,7 @@ end
 
 ################################################################################
 
-function _iselliptic(F::Oscar.MPolyElem_dec)
+function _iselliptic(F::Oscar.MPolyDecRingElem)
    C = ProjPlaneCurve(F)
    return iselliptic(C)
 end
@@ -44,7 +44,7 @@ end
 
 ################################################################################
 
-function is_inflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function is_inflection(F::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    J = jacobi_matrix([jacobi_matrix(F)[i] for i in 1:3])
    H = det(J)
    return iszero(evaluate(F, P.v)) && iszero(evaluate(H, P.v))
@@ -95,7 +95,7 @@ end
 
 ################################################################################
 
-function _change_coord(F::Oscar.MPolyElem_dec, P::Oscar.Geometry.ProjSpcElem)
+function _change_coord(F::Oscar.MPolyDecRingElem, P::Oscar.Geometry.ProjSpcElem)
    evaluate(F, P) == 0 || error("The point is not on the curve")
    D = ProjPlaneCurve(F)
    L = tangent(D, P)
@@ -114,7 +114,7 @@ end
 
 ################################################################################
 
-function _discr(eq::Oscar.MPolyElem_dec)
+function _discr(eq::Oscar.MPolyDecRingElem)
    R = parent(eq)
    x = gen(R, 1)
    z = gen(R, 3)
@@ -133,9 +133,9 @@ end
 # Definition EllipticCurve
 ################################################################################
 @doc Markdown.doc"""
-    ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
-    ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
-    ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
+    ProjEllipticCurve{S}(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem}
+    ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
+    ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}) where {S <: Nemo.ZZModRingElem}
 
 Return the Projective Elliptic Curve defined by the equation `eq`, with `P` as
 infinity point. If no point is specified it is expected that `eq` is in
@@ -143,21 +143,21 @@ Weierstrass form, and the infinity point is `(0:1:0)`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -170,14 +170,14 @@ Projective elliptic curve defined by -x^3 - x*z^2 + y^2*z
 ```
 """
 mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
-  eq::Oscar.MPolyElem_dec{S}
+  eq::Oscar.MPolyDecRingElem{S}
   degree::Int
   components::Dict{ProjEllipticCurve{S}, Int}
   point::Oscar.Geometry.ProjSpcElem{S}
   maps
   Hecke_ec::EllCrv{S}
 
-  function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
+  function ProjEllipticCurve{S}(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !is_constant(eq) || error("The defining equation must be non constant")
     is_homogeneous(eq) || error("The defining equation is not homogeneous")
@@ -191,7 +191,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], check = v[1]))
   end
 
-  function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
+  function ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
      nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
      iszero(evaluate(eq, P.v)) || error("The point is not on the curve")
      !is_constant(eq) || error("The defining equation must be non constant")
@@ -206,7 +206,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
      new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], check = v[1]))
   end
 
-  function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
+  function ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}) where {S <: Nemo.ZZModRingElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !is_constant(eq) || error("The defining equation must be non constant")
     is_homogeneous(eq) || error("The defining equation is not homogeneous")
@@ -229,9 +229,9 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   end
 end
 
-ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjEllipticCurve{S}(eq)
+ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem} = ProjEllipticCurve{S}(eq)
 
-function ProjEllipticCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
+function ProjEllipticCurve(eq::Oscar.MPolyRingElem{S}) where {S <: FieldElem}
   R, _ = grade(parent(eq))
   return ProjEllipticCurve{S}(R(eq))
 end
@@ -262,21 +262,21 @@ Weierstrass form and which is linearly equivalent to `E`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -335,24 +335,24 @@ end
 ################################################################################
 # Structure for points on elliptic curve.
 ################################################################################
-#Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.fmpz_mod}
+#Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.ZZModRingElem}
 
 @doc Markdown.doc"""
     Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
-    Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.fmpz_mod}
+    Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.ZZModRingElem}
 
 Create the point `P` on the elliptic curve `E`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
 Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
@@ -377,7 +377,7 @@ struct Point_EllCurve{S <: RingElem}
       new{S}(P, E, _point_toweierstrass(E, P))
    end
 
-   function Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.fmpz_mod}
+   function Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.ZZModRingElem}
       T = E.eq.parent
       A = base_ring(T)
       zz = gen(T, 3)
@@ -416,7 +416,7 @@ function _point_toweierstrass(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpc
    end
 end
 
-function _point_tohecke_znz(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: Nemo.fmpz_mod
+function _point_tohecke_znz(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: Nemo.ZZModRingElem
    if iszero(P.v[3])
       return Hecke.infinity(E.Hecke_ec)
    else
@@ -509,7 +509,7 @@ end
 ################################################################################
 # helping function
 
-function contract(i::Int, F::Oscar.MPolyElem{S}) where {S <: FieldElem}
+function contract(i::Int, F::Oscar.MPolyRingElem{S}) where {S <: FieldElem}
    R = parent(F)
    P = MPolyBuildCtx(R)
    L = AbstractAlgebra.exponent_vectors(F)
@@ -538,7 +538,7 @@ end
 ################################################################################
 # helping function
 
-function _eva(F::Oscar.MPolyElem{S}) where {S <: FieldElem}
+function _eva(F::Oscar.MPolyRingElem{S}) where {S <: FieldElem}
    R = parent(F)
    nvars(R) == 3 || error("wrong number of variables")
    X = gens(R)
@@ -559,18 +559,18 @@ long Weierstrass form.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -711,33 +711,33 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    order(P::Point_EllCurve{fmpq})
+    order(P::Point_EllCurve{QQFieldElem})
 
 Return the order of the point `P` or `0` if the order is infinite.
 """
-function Oscar.order(P::Point_EllCurve{fmpq})
+function Oscar.order(P::Point_EllCurve{QQFieldElem})
    return Hecke.order(P.Hecke_Pt)
 end
 
 ################################################################################
 
 @doc Markdown.doc"""
-    is_torsion_point(P::Point_EllCurve{fmpq})
+    is_torsion_point(P::Point_EllCurve{QQFieldElem})
 
 Return whether the point `P` is a torsion point.
 """
-function Oscar.is_torsion_point(P::Point_EllCurve{fmpq})
+function Oscar.is_torsion_point(P::Point_EllCurve{QQFieldElem})
    return Hecke.is_torsion_point(P.Hecke_Pt)
 end
 
 ################################################################################
 @doc Markdown.doc"""
-    torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+    torsion_points_lutz_nagell(E::ProjEllipticCurve{QQFieldElem})
 
 Return the rational torsion points of the elliptic curve `E` using the
 Lutz-Nagell theorem.
 """
-function Oscar.torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+function Oscar.torsion_points_lutz_nagell(E::ProjEllipticCurve{QQFieldElem})
    PP = proj_space(E)
    H = E.Hecke_ec
    M = Hecke.torsion_points_lutz_nagell(H)
@@ -747,12 +747,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
+    torsion_points_division_poly(E::ProjEllipticCurve{QQFieldElem})
 
 Return the rational torsion points of a rational elliptic curve `E` using
 division polynomials.
 """
-function Oscar.torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
+function Oscar.torsion_points_division_poly(E::ProjEllipticCurve{QQFieldElem})
    PP = proj_space(E)
    H = E.Hecke_ec
    M = Hecke.torsion_points_division_poly(H)

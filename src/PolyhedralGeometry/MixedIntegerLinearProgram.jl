@@ -15,16 +15,19 @@ struct MixedIntegerLinearProgram{T}
    MixedIntegerLinearProgram{T}(fr::Polyhedron{T}, milp::Polymake.BigObject, c::Symbol) where T<:scalar_types = new{T}(fr, milp, c)
 end
 
-# no default = `fmpq` here; scalar type can be derived from the feasible region
+# no default = `QQFieldElem` here; scalar type can be derived from the feasible region
 MixedIntegerLinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = MixedIntegerLinearProgram{T}(p, x...)
 
-function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max) where T<:scalar_types
+function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; integer_variables=Int64[], k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
    ambDim = ambient_dim(P)
+   if isnothing(integer_variables) || isempty(integer_variables)
+      integer_variables = 1:ambDim
+   end
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
-   milp = Polymake.polytope.MixedIntegerLinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=integer_variables)
+   milp = Polymake.polytope.MixedIntegerLinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=Vector(integer_variables))
    if convention == :max
       Polymake.attach(milp, "convention", "max")
    elseif convention == :min
@@ -36,11 +39,12 @@ end
 
 MixedIntegerLinearProgram(Q::Polyhedron{T}, objective::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max) where T<:scalar_types = MixedIntegerLinearProgram{T}(Q, objective; integer_variables = integer_variables, k = k, convention = convention)
 
-MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max)  where T =
+MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; integer_variables=Vector{Int64}([]), k = 0, convention = :max)  where T<:scalar_types =
    MixedIntegerLinearProgram{T}(Polyhedron{T}(A, b), c; integer_variables = integer_variables, k = k, convention = convention)
 
-MixedIntegerLinearProgram(x...) = MixedIntegerLinearProgram{fmpq}(x...)
+MixedIntegerLinearProgram(x...) = MixedIntegerLinearProgram{QQFieldElem}(x...)
 
+pm_object(milp::MixedIntegerLinearProgram) = milp.polymake_milp
 
 ###############################################################################
 ###############################################################################
@@ -132,13 +136,13 @@ objective function of `MILP`, or `nothing` if no such point exists.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
 
 julia> optimal_solution(milp)
-2-element PointVector{fmpq}:
+2-element PointVector{QQFieldElem}:
  1
  3//2
 
@@ -146,7 +150,7 @@ julia> milp = MixedIntegerLinearProgram(c, [1,1])
 A mixed integer linear program
 
 julia> optimal_solution(milp)
-2-element PointVector{fmpq}:
+2-element PointVector{QQFieldElem}:
  1
  1
 ```
@@ -177,7 +181,7 @@ on convention.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
@@ -213,19 +217,19 @@ may be `inf` or `-inf` in which case `v` is `nothing`.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
 A mixed integer linear program
 
 julia> solve_milp(milp)
-(5/2, fmpq[1, 3//2])
+(5/2, QQFieldElem[1, 3//2])
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
 A mixed integer linear program
 
 julia> solve_milp(milp)
-(2, fmpq[1, 1])
+(2, QQFieldElem[1, 1])
 ```
 """
 function solve_milp(milp::MixedIntegerLinearProgram)

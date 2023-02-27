@@ -133,7 +133,7 @@ function fundamental_invariants_via_primary_and_secondary(IR::InvRing)
   end
 
   # Use S to keep track of relations that might show up
-  S, _ = PolynomialRing(K, [ "y$i" for i = 1:length(res) + length(primary_invariants(IR)) ])
+  S, _ = polynomial_ring(K, [ "y$i" for i = 1:length(res) + length(primary_invariants(IR)) ])
   RtoS = Dict{elem_type(R), elem_type(S)}()
   for i = 1:length(res)
     RtoS[res[i]] = gen(S, i)
@@ -227,7 +227,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> fundamental_invariants(IR)
-4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]*x[2]*x[3]
  x[1]^6 + x[2]^6 + x[3]^6

@@ -36,7 +36,7 @@ integers whose size is usually only limited by available memory. While the
 `BigInt` type avoids overflow problems, it can be relatively slow in the
 `Int` range.
 
-OSCAR currently has the integer type `fmpz`, which for performance
+OSCAR currently has the integer type `ZZRingElem`, which for performance
 reasons scales internally from machine integers to GMP multiprecision integers.
 
 ## The ring of integers
@@ -123,9 +123,9 @@ exceed ``2^{37}`` bits.
 For convenience, all basic arithmetic and exact division functions in OSCAR
 also accept Julia integers. If all of the arguments to an OSCAR function are
 julia integers, the resulting integers should be julia integers. However, once
-at least one of the arguments is an `fmpz`, the function will generally behave
-as if all integer arguments were promoted to the type `fmpz`, and the integers
-in the return generally should also be of type `fmpz`. For example:
+at least one of the arguments is an `ZZRingElem`, the function will generally behave
+as if all integer arguments were promoted to the type `ZZRingElem`, and the integers
+in the return generally should also be of type `ZZRingElem`. For example:
 
 ```jldoctest
 julia> divexact(ZZ(234), 2)
@@ -138,10 +138,10 @@ julia> typeof(gcdx(4, 6))
 Tuple{Int64, Int64, Int64}
 
 julia> typeof(gcd(4, ZZ(6)))
-fmpz
+ZZRingElem
 
 julia> typeof(gcdx(4, ZZ(6)))
-Tuple{fmpz, fmpz, fmpz}
+Tuple{ZZRingElem, ZZRingElem, ZZRingElem}
 
 julia> typeof(jacobi_symbol(ZZ(2), ZZ(3)))
 Int64
@@ -155,14 +155,14 @@ the three possible return values of `-1`, `0`, or `1`.
 
 ## Predicates
 
-* `iszero(n::fmpz) -> Bool`
-* `isone(n::fmpz) -> Bool`
-* `is_unit(n::fmpz) -> Bool`
-* `isodd(n::fmpz) -> Bool`
-* `iseven(n::fmpz) -> Bool`
-* `is_square(n::fmpz) -> Bool`
-* `is_prime(n::fmpz) -> Bool`
-* `is_probable_prime(n::fmpz) -> Bool`
+* `iszero(n::ZZRingElem) -> Bool`
+* `isone(n::ZZRingElem) -> Bool`
+* `is_unit(n::ZZRingElem) -> Bool`
+* `isodd(n::ZZRingElem) -> Bool`
+* `iseven(n::ZZRingElem) -> Bool`
+* `is_square(n::ZZRingElem) -> Bool`
+* `is_prime(n::ZZRingElem) -> Bool`
+* `is_probable_prime(n::ZZRingElem) -> Bool`
 
 The `is_prime` predicate will prove primality, whereas `is_probable_prime` may
 declare a composite number to be prime with very low probability.
@@ -187,7 +187,7 @@ true
 
 ## Properties
 
-* `sign(n::fmpz) -> fmpz`
+* `sign(n::ZZRingElem) -> ZZRingElem`
 
 Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
@@ -203,7 +203,7 @@ julia> sign(ZZ(-1))
 
 ```
 
-* `abs(n::fmpz) -> fmpz`
+* `abs(n::ZZRingElem) -> ZZRingElem`
 
 Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
 otherwise
@@ -241,7 +241,7 @@ These choices have been made for maximum parsimony with the Julia language.
 
 ### [Exact Division](@id integer_exact_division)
 
-* `divexact(a::fmpz, b::fmpz) -> fmpz`
+* `divexact(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem`
 
 Return the quotient of ``a`` by ``b``. The result of the exact division of two
 integers will always be another integer. Exact division raises an exception if
@@ -264,7 +264,7 @@ julia> divexact(ZZ(6), 2)
 
 ### Powering
 
-* `^(a::fmpz, b::Int) -> fmpz`
+* `^(a::ZZRingElem, b::Int) -> ZZRingElem`
 
 Return the result of powering ``a`` by ``b``.
 
@@ -314,9 +314,9 @@ with ``|r| < |b|``.
 
 ### Division with remainder
 
-* `divrem(a::fmpz, b::fmpz) -> (fmpz, fmpz)` : division with remainder
-* `div(a::fmpz, b::fmpz) -> fmpz` : quotient only
-* `rem(a::fmpz, b::fmpz) -> fmpz` : remainder only
+* `divrem(a::ZZRingElem, b::ZZRingElem) -> (ZZRingElem, ZZRingElem)` : division with remainder
+* `div(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem` : quotient only
+* `rem(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem` : remainder only
 
 Both `rem` and `divrem` compute the remainder ``r`` such that when ``r \neq 0``
 the sign of ``r`` is the same as the sign of ``a``.
@@ -346,7 +346,7 @@ ERROR: DivideError: integer division error
 
 ### Modular reduction
 
-* `mod(a::fmpz, b::fmpz) -> fmpz` : remainder only
+* `mod(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem` : remainder only
 
 The `mod` function computes a remainder ``r`` such that when ``r \neq 0`` the
 sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
@@ -372,7 +372,7 @@ ERROR: DivideError: integer division error
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
-* `divides(a::fmpz, b::fmpz) -> (Bool, fmpz)`
+* `divides(a::ZZRingElem, b::ZZRingElem) -> (Bool, ZZRingElem)`
 
 In OSCAR, we say that ``b`` divides ``a`` if there exists ``c`` in the same
 ring such that ``a = bc``.
@@ -403,7 +403,7 @@ julia> divides(ZZ(0), ZZ(0))
 
 ### Greatest common divisor
 
-* `gcd(a::fmpz, b::fmpz) -> fmpz`
+* `gcd(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem`
 
 Return the greatest common divisor of its inputs, which is by definition the
 largest integer dividing the two inputs, unless both inputs are zero in which
@@ -421,7 +421,7 @@ julia> gcd(ZZ(3), ZZ(0))
 
 ### Extended GCD
 
-* `gcdx(a::fmpz, b::fmpz) -> (fmpz, fmpz, fmpz)`
+* `gcdx(a::ZZRingElem, b::ZZRingElem) -> (ZZRingElem, ZZRingElem, ZZRingElem)`
 
 Return a tuple ``(g, s, t)`` such that ``g`` is the greatest common divisor of
 ``a`` and ``b`` and ``g = as + bt``. Normally ``s`` and ``t`` are chosen so
@@ -433,7 +433,7 @@ that ``|s| < |b|/(2g)`` and ``|t| < |a|/(2g)``, where this uniquely defines
 
 ### Least common multiple
 
-* `lcm(a::fmpz, b::fmpz) -> fmpz`
+* `lcm(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem`
 
 Return the least common multiple of ``a`` and ``b``. This is the least
 positive multiple of ``a`` and ``b``, unless ``a = 0`` or ``b = 0``
@@ -459,7 +459,7 @@ Julia and OSCAR distinguish two kinds of square root:
 
 We describe only the first of these here.
 
-* `isqrt(n::fmpz) -> fmpz`
+* `isqrt(n::ZZRingElem) -> ZZRingElem`
 
 Return the floor of the square root of its argument, i.e. the largest integer
 whose square does not exceed its input. An exception is raised if a negative
@@ -481,7 +481,7 @@ Argument must be non-negative
 
 ```
 
-* `isqrtrem(n::fmpz) -> (fmpz, fmpz)`
+* `isqrtrem(n::ZZRingElem) -> (ZZRingElem, ZZRingElem)`
 
 Return the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
 ``n = s^2 + r``.
@@ -497,7 +497,7 @@ julia> isqrtrem(ZZ(5))
 
 ### General roots
 
-* `root(a::fmpz, n::Int) -> fmpz`
+* `root(a::ZZRingElem, n::Int) -> ZZRingElem`
 
 Return the value ``r`` of largest absolute value such that ``r^n \leq a``.
 When ``a`` is a perfect ``n``-th power, the return value will be an ``n``-th
@@ -531,8 +531,8 @@ Exponent must be positive
 
 ## Conversions
 
-* `Int(n::fmpz) -> Int`
-* `BigInt(n::fmpz) -> BigInt`
+* `Int(n::ZZRingElem) -> Int`
+* `BigInt(n::ZZRingElem) -> BigInt`
 
 Convert the OSCAR integer to the respective Julia integer.
 
@@ -557,7 +557,7 @@ ERROR: InexactError: convert(Int64, 12348732648732648763274868732687324)
 
 ```
 
-* `fits(::Type{Int}, n::fmpz) -> Bool`
+* `fits(::Type{Int}, n::ZZRingElem) -> Bool`
 
 Return `true` if the OSCAR integer will fit in an `Int`.
 
@@ -572,7 +572,7 @@ false
 
 ## Factorisation
 
-* `factor(n::fmpz) -> Fac{fmpz}`
+* `factor(n::ZZRingElem) -> Fac{ZZRingElem}`
 
 Return a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
@@ -586,7 +586,7 @@ ERROR: ArgumentError: Argument is not non-zero
 
 ```
 
-* `unit(F::Fac) -> fmpz`
+* `unit(F::Fac) -> ZZRingElem`
 
 ```jldoctest
 julia> F = factor(ZZ(-12))
@@ -621,7 +621,7 @@ julia> F = factor(ZZ(-60))
 -1 * 5 * 2^2 * 3
 
 julia> collect(F)
-3-element Vector{Pair{fmpz, Int64}}:
+3-element Vector{Pair{ZZRingElem, Int64}}:
  5 => 1
  2 => 2
  3 => 1
@@ -662,19 +662,19 @@ ERROR: 7 is not a factor of -1 * 5 * 2^2 * 3
 
 !!! note
     The functions in this section that take `Int` arguments will return an
-    `Int`, which may overflow or throw an error. Use the `fmpz` versions if
+    `Int`, which may overflow or throw an error. Use the `ZZRingElem` versions if
     this is not the desired behaviour.
 
 ### Factorial
 
-* `factorial(n::fmpz) -> fmpz`
+* `factorial(n::ZZRingElem) -> ZZRingElem`
 
 Return the factorial of ``n``, i.e. ``n!``. An exception is raised if
 ``n < 0``. We define ``0! = 1``.
 
 * `rising_factorial(x::Int, n::Int) -> Int`
-* `rising_factorial(x::fmpz, n::Int) -> fmpz`
-* `rising_factorial(x::fmpz, n::fmpz) -> fmpz`
+* `rising_factorial(x::ZZRingElem, n::Int) -> ZZRingElem`
+* `rising_factorial(x::ZZRingElem, n::ZZRingElem) -> ZZRingElem`
 
 Return ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
@@ -691,7 +691,7 @@ julia> rising_factorial(ZZ(-30), 3)
 ### Primorial
 
 * `primorial(n::Int) -> Int`
-* `primorial(n::fmpz) -> fmpz`
+* `primorial(n::ZZRingElem) -> ZZRingElem`
 
 Return the primorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
@@ -706,7 +706,7 @@ julia> primorial(ZZ(100))
 ### Bell numbers
 
 * `bell(n::Int) -> Int`
-* `bell(n::fmpz) -> fmpz`
+* `bell(n::ZZRingElem) -> ZZRingElem`
 
 Return the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
@@ -719,7 +719,7 @@ julia> bell(ZZ(20))
 
 ### Binomial coefficients
 
-* `binomial(n::fmpz, k::fmpz) -> fmpz`
+* `binomial(n::ZZRingElem, k::ZZRingElem) -> ZZRingElem`
 
 Return the binomial coefficient ``\frac{n (n-1) \cdots (n-k+1)}{k!}`` for
 ``k \ge 0`` and returns `0` for `k < 0`.
@@ -737,7 +737,7 @@ julia> binomial(ZZ(72), ZZ(15))
 ### Integer partitions
 
 * `number_of_partitions(n::Int) -> Int`
-* `number_of_partitions(n::fmpz) -> fmpz`
+* `number_of_partitions(n::ZZRingElem) -> ZZRingElem`
 
 Return the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
@@ -752,7 +752,7 @@ julia> number_of_partitions(ZZ(10^6))
 ### Fibonacci sequence
 
 * `fibonacci(n::Int) -> Int`
-* `fibonacci(n::fmpz) -> fmpz`
+* `fibonacci(n::ZZRingElem) -> ZZRingElem`
 
 Return the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
 relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
@@ -772,13 +772,13 @@ julia> fibonacci(-2)
 
 !!! note
     The functions in this section that take `Int` arguments will return a
-    `Int`, which may overflow or throw an error. Use the `fmpz` versions if
+    `Int`, which may overflow or throw an error. Use the `ZZRingElem` versions if
     this is not the desired behaviour.
 
 ### Moebius mu function
 
 * `moebius_mu(n::Int) -> Int`
-* `moebius_mu(n::fmpz) -> Int` 
+* `moebius_mu(n::ZZRingElem) -> Int` 
 
 Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
 ``n`` is not squarefree and otherwise is defined to be ``+1`` or ``-1`` if
@@ -795,7 +795,7 @@ julia> moebius_mu(30)
 ### Jacobi symbols
 
 * `jacobi_symbol(m::Int, n::Int) -> Int`
-* `jacobi_symbol(m::fmpz, n::fmpz) -> Int`
+* `jacobi_symbol(m::ZZRingElem, n::ZZRingElem) -> Int`
 
 Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
 integers ``m`` and odd, positive integers ``n``. If the factorisation of ``n``
@@ -818,8 +818,8 @@ julia> jacobi_symbol(3, 37)
 ### Sigma function
 
 * `divisor_sigma(m::Int, n::Int) -> Int`
-* `divisor_sigma(m::fmpz, n::Int) -> fmpz`
-* `divisor_sigma(m::fmpz, n::fmpz) -> fmpz`
+* `divisor_sigma(m::ZZRingElem, n::Int) -> ZZRingElem`
+* `divisor_sigma(m::ZZRingElem, n::ZZRingElem) -> ZZRingElem`
 
 Return the sum of the ``n``-th powers of the divisors of ``m``
 ```math
@@ -836,7 +836,7 @@ julia> divisor_sigma(60, 5)
 ### Euler totient function
 
 * `euler_phi(n::Int) -> Int`
-* `euler_phi(n::fmpz) -> fmpz`
+* `euler_phi(n::ZZRingElem) -> ZZRingElem`
 
 Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that

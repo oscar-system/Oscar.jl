@@ -19,7 +19,7 @@ The simplest example is the creation of a polynomial ring. If we mutate the
 array of symbols used for printing, we have effectively changed the ring.
 
 ```
-julia> v = [:x, :y, :z]; R = PolynomialRing(QQ, v)[1]
+julia> v = [:x, :y, :z]; R = polynomial_ring(QQ, v)[1]
 Multivariate Polynomial Ring in x, y, z over Rational Field
 
 julia> v[3] = :w; R
@@ -30,7 +30,7 @@ In this example, the modification of `v` is unexpected and may in fact corrupt
 the internal data structures used by the polynomial ring. As such, this
 modification of `v` has to be considered illegal. Upon creation of the array
 called `v`, we have full rights over the object and can mutate at will.
-However, after passing it to the function `PolynomialRing`, we have given up
+However, after passing it to the function `polynomial_ring`, we have given up
 *ownership* of the array and are no longer free to modify it.
 
 General OSCAR Principle (GOP):
@@ -42,7 +42,7 @@ Ramifications:
 1. This means that the polynomial ring constructor is allowed to expect that `v`
    is never mutated for the remaining duration of its life. In return, the
    constructor is guaranteed not to modify the array, so that `v` is still
-   `[:x, :y, :z]` after `PolynomialRing` returns.
+   `[:x, :y, :z]` after `polynomial_ring` returns.
 2. In general this means that all functions should be expected to take ownership
    of their arguments: the user is safest *never* modifying an existing object
    that has been passed to an unknown Julia function. Note that assignments
@@ -60,10 +60,10 @@ In this example we construct the factored element `x = 2^3` and then change the
 `2` to a `1`. The GOP says this modification of `a` on line 3 is illegal.
 
 ```julia
-julia> a = fmpz(2)
+julia> a = ZZRingElem(2)
 2
 
-julia> x = FacElem([a], [fmpz(3)]); evaluate(x)
+julia> x = FacElem([a], [ZZRingElem(3)]); evaluate(x)
 8
 
 julia> a = one!(a)  # illegal in-place assignment of a to 1
@@ -77,10 +77,10 @@ In the previous example, the link between the object `x` and the object `a` can
 be broken by passing a `deepcopy` of `a` to the `FacElem` function.
 
 ```julia
-julia> a = fmpz(2)
+julia> a = ZZRingElem(2)
 2
 
-julia> x = FacElem([deepcopy(a)], [fmpz(3)]); evaluate(x)
+julia> x = FacElem([deepcopy(a)], [ZZRingElem(3)]); evaluate(x)
 8
 
 julia> a = one!(a)  # we still own a, so modification is legal
@@ -101,7 +101,7 @@ mutations turn out to be legal currently, while they are illegal if
 GOP be safely ignored.
 
 ```
-R = PolynomialRing(K, [:x, :y])[1]
+R = polynomial_ring(K, [:x, :y])[1]
 a = one(K)
 p = R([a], [[0,0]])
 @show p
@@ -110,7 +110,7 @@ a = add!(a, a, a)       # legal? (does a += a in-place)
 ```
 
 ```
-R = PolynomialRing(K, :x)[1]
+R = polynomial_ring(K, :x)[1]
 a = [one(K), one(K)]
 p = R(a)
 @show (p, degree(p))
@@ -141,7 +141,7 @@ each of the residue fields.
 
 ```julia
 julia> a = Hecke.modular_proj(1+2*i, m)
-2-element Vector{fq_nmod}:
+2-element Vector{fqPolyRepFieldElem}:
  2
  0
 ```
@@ -151,12 +151,12 @@ different input, we will find that `a` has changed.
 
 ```julia
 julia> b = Hecke.modular_proj(2+3*i, m)
-2-element Vector{fq_nmod}:
+2-element Vector{fqPolyRepFieldElem}:
  1
  3
 
 julia> a
-2-element Vector{fq_nmod}:
+2-element Vector{fqPolyRepFieldElem}:
  1
  3
 ```
@@ -171,12 +171,12 @@ function correctly.
 julia> a = deepcopy(Hecke.modular_proj(1+2*i, m));
 julia> b = deepcopy(Hecke.modular_proj(2+3*i, m));
 julia> (a, b)
-(fq_nmod[2, 0], fq_nmod[1, 3])
+(fqPolyRepFieldElem[2, 0], fqPolyRepFieldElem[1, 3])
 ```
 
 ## Unsafe arithmetic with OSCAR objects
 
-Particularly with integers (`BigInt` and `fmpz`) - but also to a lesser extent
+Particularly with integers (`BigInt` and `ZZRingElem`) - but also to a lesser extent
 with polynomials - the cost of basic arithmetic operations can easily be
 dominated by the cost of allocating space for the answer. For this reason,
 OSCAR offers an interface for in-place arithmetic operations.

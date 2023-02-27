@@ -13,7 +13,7 @@ You can find our installation instructions [here](https://oscar.computeralgebra.
 
 ---
 
-**Q: Why do some of your types have funny names like `fmpz` or `fmpq_mat`?**
+**Q: Why do some of your types have funny names like `ZZRingElem` or `QQMatrix`?**
 
 This has historical reasons. We plan to rename these types before OSCAR 1.0
 (the old names will still work indefinitely, though).

@@ -10,7 +10,7 @@
   @test degree(L) == order(G)
   @test length(roots(k.pol, L)) == 5
 
-  R, x = PolynomialRing(QQ, "x")
+  R, x = polynomial_ring(QQ, "x")
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
   g, C = galois_group(pol)
   @test order(g) == 18
@@ -45,7 +45,6 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   grps = [all_transitive_groups(degree => n) for n in 1:20]
 
   @testset "primitive_by_shape (exact) in degree $n" for n in 1:11
-    println(n)
     @test all(G -> is_primitive(G) == primitive_by_shape(cycle_structures(G),n), grps[n] )
   end
 
@@ -53,17 +52,14 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   # note that we only check the implication, as there are cases in degree 15 and above
   # where primitive_by_shape fails to detect primitivity
   @testset "primitive_by_shape (randomized) in degree $n" for n in 12:length(grps)
-    println(n)
     @test all(G -> is_primitive(G) || !primitive_by_shape(sample_cycle_structures(G),n), grps[n] )
   end
 
   @testset "an_sn_by_shape (exact) in degree $n" for n in 1:11
-    println(n)
     @test all(G -> naive_is_giant(G) == an_sn_by_shape(cycle_structures(G),n), grps[n] )
   end
 
   @testset "an_sn_by_shape (randomized) in degree $n" for n in 12:length(grps)
-    println(n)
     @test all(G -> naive_is_giant(G) == an_sn_by_shape(sample_cycle_structures(G),n), grps[n] )
   end
 

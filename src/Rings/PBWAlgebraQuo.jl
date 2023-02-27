@@ -147,7 +147,7 @@ end
     quo(A::PBWAlgRing, I::PBWAlgIdeal)
 
 Given a two-sided ideal `I` of `A`, create the quotient algebra $A/I$ and
-return the new algebra together with the quotient map $A\rightarrow A/I$.
+return the new algebra together with the quotient map $A\to A/I$.
 
 # Examples
 ```jldoctest
@@ -158,7 +158,7 @@ julia> L = [-x*y, -x*z, -y*z];
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational Field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+(PBW-algebra over Rational Field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
 
 julia> I = two_sided_ideal(A, [x^2, y^2, z^2])
 two_sided_ideal(x^2, y^2, z^2)

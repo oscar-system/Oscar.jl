@@ -53,6 +53,8 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     the above notation extends naturally to elements of  $K[x]^p$ and $K[x]_>^p$, respectively. There is one particularity:
 	Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
+## Default Orderings
+
 !!! note
     The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
     Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
@@ -64,8 +66,8 @@ Here are some illustrating OSCAR examples:
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> default_ordering(R)
 degrevlex([x, y, z])
@@ -80,15 +82,20 @@ julia> S, _ = grade(R, [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
-  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
 ```
 
+## Monomials, Terms, and More
+
+Here are examples which indicate how to recover monomials, terms, and
+more from a given polynomial.
+
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*z^3+2*x*y+1
 2*x*y + 3*z^3 + 1
@@ -97,7 +104,7 @@ julia> terms(f)
 terms iterator of 3*z^3 + 2*x*y + 1
 
 julia> collect(ans)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  3*z^3
  2*x*y
  1
@@ -115,7 +122,7 @@ julia> coefficients_and_exponents(f)
 coefficients and exponents iterator of 3*z^3 + 2*x*y + 1
 
 julia> collect(ans)
-3-element Vector{Tuple{fmpq, Vector{Int64}}}:
+3-element Vector{Tuple{QQFieldElem, Vector{Int64}}}:
  (3, [0, 0, 3])
  (2, [1, 1, 0])
  (1, [0, 0, 0])
@@ -140,8 +147,8 @@ julia> tail(f)
 ```
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
@@ -153,7 +160,7 @@ julia> default_ordering(F)
 degrevlex([x, y])*lex([gen(1), gen(2), gen(3)])
 
 julia> collect(terms(f))
-6-element Vector{FreeModElem{fmpq_mpoly}}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  -y^10*e[1]
  4*x^3*e[2]
  5*x*y^2*e[1]
@@ -162,7 +169,7 @@ julia> collect(terms(f))
  3*e[1]
 
 julia> collect(terms(f, ordering = lex(F)*lex(R)))
-6-element Vector{FreeModElem{fmpq_mpoly}}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  5*x*y^2*e[1]
  -y^10*e[1]
  3*e[1]
@@ -232,20 +239,20 @@ In the global case, they always return fully reduced remainders.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ```@docs
 reduce_with_quotients(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 		  
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
-## Gröbner and Standard Bases
+## Computing Gröbner/Standard Bases
 
 Still keeping the notation introduced at the beginning of this section, let $G$ be a subset of $K[x]_>$.
 Then the *leading ideal* of $G$ is the ideal of $K[x]$ defined by
@@ -347,7 +354,7 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 
 
 ```@docs
-leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyElem
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyRingElem
 leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 ```
 
@@ -360,7 +367,7 @@ $g$, $I$, and $>$ (and does not depend on the choice of Gröbner basis). We refe
 a remainder as the *normal form*  of $g$ mod $I$, with respect to $>$.
 
 ```@docs
-normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyElem
+normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyRingElem
 ```
 
 ## Syzygies
@@ -368,6 +375,6 @@ normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(b
 We refer to the section on modules for more on syzygies.
 
 ```@docs
-syzygy_generators(G::Vector{<:MPolyElem})
+syzygy_generators(G::Vector{<:MPolyRingElem})
 ```
 

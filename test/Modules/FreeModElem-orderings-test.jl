@@ -1,5 +1,5 @@
 @testset "Modules: orderings" begin
-  R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+  R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
   F = FreeMod(R,2)
   a = (1 + 2*w + 3*x + 4*y + 5*z)*(F[1] + F[2])
 

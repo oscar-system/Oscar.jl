@@ -49,8 +49,8 @@ Return `true` if `f` belongs to `U`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -104,8 +104,8 @@ If, say, Rloc = R[U⁻¹], return R.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -130,8 +130,8 @@ If, say, Rloc = R[U⁻¹], return U.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -154,7 +154,7 @@ end
     Localization(U::AbsMultSet)
 
 Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
-return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\rightarrow`` ``R[U^{-1}]``.
+return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\to`` ``R[U^{-1}]``.
 
     Localization(R::Ring, U::AbsMultSet)
 
@@ -162,8 +162,8 @@ Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -230,7 +230,7 @@ end
 ### Other conversions for the sake of convenience
 (W::AbsLocalizedRing)(a::Int) = W(base_ring(W)(a))
 (W::AbsLocalizedRing)(a::Integer) = W(base_ring(W)(a))
-(W::AbsLocalizedRing)(a::fmpz) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::ZZRingElem) = W(base_ring(W)(a))
 
 
 #################################################################################
@@ -278,8 +278,8 @@ function parent(f::AbsLocalizedRingElem)
 end
 
 function expressify(f::AbsLocalizedRingElem; context=nothing) 
-  isone(denominator(f)) && expressify(numerator(f), context=context)
-  return Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+  isone(denominator(f)) && return expressify(numerator(f), context=context)
+  return Expr(:call, :/, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
 end
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
@@ -338,18 +338,12 @@ function *(a::AbsLocalizedRingElem{RT, RET, MST}, b::RET) where {RT, RET <: Ring
   return b*a
 end
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
+  return divexact(parent(b)(a), b)
 end
 
-### Why are divisions not implemented as generic functions?
-# Say both a = p⋅c/q and b = f⋅c/g are elements of a localized 
-# ring R[S⁻¹] such that f⋅c ∉ S, but f ∈ S. Then by cancellation 
-# a/b is an admissible element of the localization. But this 
-# cancellation can not be implemented on a generic level, but 
-# only for the specific ring R.
-function Base.:(//)(a::T, b::T) where {T<:AbsLocalizedRingElem}
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::T, b::T) where {T<:AbsLocalizedRingElem}
+  return divexact(a, b)
 end
 
 function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
@@ -357,7 +351,7 @@ function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return numerator(a)*denominator(b) == numerator(b)*denominator(a)
 end
 
-function ^(a::AbsLocalizedRingElem, i::fmpz)
+function ^(a::AbsLocalizedRingElem, i::ZZRingElem)
   return parent(a)(numerator(a)^i, denominator(a)^i)
 end
 
@@ -610,7 +604,7 @@ end
 ### generic functions
 (f::AbsLocalizedRingHom)(a::RingElem) = f(domain(f)(a))
 (f::AbsLocalizedRingHom)(a::Integer) = f(domain(f)(a))
-(f::AbsLocalizedRingHom)(a::fmpz) = f(domain(f)(a))
+(f::AbsLocalizedRingHom)(a::ZZRingElem) = f(domain(f)(a))
 
 @Markdown.doc """
     (f::AbsLocalizedRingHom)(I::Ideal)

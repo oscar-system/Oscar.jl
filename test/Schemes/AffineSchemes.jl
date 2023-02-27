@@ -101,7 +101,7 @@ end
   I = ideal(R, f)
   S = powers_of_element(x)
   Spec(R,S)
-  S = complement_of_ideal(I)
+  S = complement_of_prime_ideal(I)
   Spec(R,I)
   X = subscheme(A3, I)
   set_name!(X, "X")
@@ -120,7 +120,7 @@ end
   @test ambient_coordinate_ring(U) === R
   @test ring_type(V) == typeof(OO(V))
   @test base_ring_type(typeof(V)) == typeof(QQ)
-  @test base_ring_elem_type(V) == fmpq
+  @test base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
   @test issubset(V,U)
   @test issubset(U,V)
@@ -143,7 +143,7 @@ end
 @testset "fiber product" begin
   R, _ = QQ["x","t"]
   S, _ = QQ["y","t"]
-  T, _ = PolynomialRing(QQ,["t"])
+  T, _ = polynomial_ring(QQ,["t"])
   X = Oscar.standard_spec(Spec(R))
   Y = Oscar.standard_spec(Spec(S))
   B = Oscar.standard_spec(Spec(T))

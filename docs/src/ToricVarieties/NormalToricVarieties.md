@@ -12,8 +12,8 @@ Pages = ["NormalToricVarieties.md"]
 
 We introduce two main types of normal toric varieties, distinguishing between
 the affine and non-affine case:
-- `AffineNormalToricVariety` is the toric variety associated to a cone $\sigma$, denoted by $U_{\sigma}$ in [CLS11](@cite)
-- `NormalToricVariety` is the toric variety associated to a polyhedral fan $\Sigma$, denoted by $X_{\Sigma}$ in [CLS11](@cite)
+- `AffineNormalToricVariety` is the type for toric varieties associated to a cone $\sigma$, denoted by $U_{\sigma}$ in [CLS11](@cite)
+- `NormalToricVariety` is the type for toric varieties associated to a polyhedral fan $\Sigma$, denoted by $X_{\Sigma}$ in [CLS11](@cite)
 
 !!! warning
     The lattice is always assumed to be the standard lattice $\mathbb{Z}^n$.
@@ -22,39 +22,48 @@ the affine and non-affine case:
 
 ## Constructors
 
+All of the constructors below accept as their last argument an optional boolean. This boolean `set_attributes` controls whether the constructors
+sets attributes for the constructed variety. The benefit of such setters is increased performance. However, as per usual, a shortcut comes at
+a price. In the case at hand, it might lead to possible inconsistencies, despite our best efforts to prevent this from happening.
+
+The default is `set_attributes = true`, that is our constructors set attributes upon construction. If not desired, it can be switched off by
+passing `set_attributes = false` as last argument. Note however, that the constructors of `del_pezzo_surface`, `hirzebruch_surface`,
+`projective_space` and `weighted_projective_space ` *always* make a default/standard choice for the grading of the Cox ring.
+
+
 ### Affine Toric Varieties
 
 ```@docs
-AffineNormalToricVariety(C::Cone)
-NormalToricVariety(C::Cone)
-AffineNormalToricVariety(v::NormalToricVariety)
+affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
+normal_toric_variety(C::Cone; set_attributes::Bool = true)
+affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 ```
 
 ### Normal Toric Varieties
 
 ```@docs
-NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = true)
-NormalToricVariety(PF::PolyhedralFan)
-NormalToricVariety(P::Polyhedron)
+normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
+normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 ```
 
 ### Famous Toric Vareties
 
 ```@docs
-affine_space(::Type{NormalToricVariety}, d::Int)
-del_pezzo_surface(b::Int)
-hirzebruch_surface(r::Int)
-projective_space(::Type{NormalToricVariety}, d::Int)
-weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
+affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
+del_pezzo_surface(b::Int; set_attributes::Bool = true)
+hirzebruch_surface(r::Int; set_attributes::Bool = true)
+projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
+weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 ```
 
 ### Further Constructions
 
 ```@docs
-blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String)
-Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
-NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
-NormalToricVarietyFromGLSM(charges::fmpz_mat)
+blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
+Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
+normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 ```
 
 
@@ -174,14 +183,14 @@ coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
 ```
 Along the same lines, characters can be turned into rational functions:
 ```@docs
-character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
-character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
+character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 ```
 
 
 ## Auxiliary Methods
 
 ```@docs
-binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(pts::fmpz_mat)
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, ZZMatrix})
+toric_ideal(pts::ZZMatrix)
 ```

@@ -38,18 +38,18 @@ If no such method already exists, this has to also be provided; in the worst cas
 
 As soon as the above requirements are met, the methods 
 ```@julia
-   represents_element(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
-   coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
-   kernel(f::FreeModuleHom{DomType, CodType, Nothing}) where {T, DomType<:FreeMod{T}, CodType<:SubQuo{T}}
-   kernel(f::SubQuoHom{DomType, CodType, Nothing}) where {T, DomType<:FreeMod{T}, CodType<:SubQuo{T}}
-   iszero(a::SubQuoElem{T}) where {T<:AbsLocalizedRingElem}
+   represents_element(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
+   coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
+   kernel(f::FreeModuleHom{DomType, CodType, Nothing}) where {T, DomType<:FreeMod{T}, CodType<:SubquoModule{T}}
+   kernel(f::SubQuoHom{DomType, CodType, Nothing}) where {T, DomType<:FreeMod{T}, CodType<:SubquoModule{T}}
+   iszero(a::SubquoModuleElem{T}) where {T<:AbsLocalizedRingElem}
 ```
 will be available for modules over $S$, i.e. for `T = elem_type(S)`. 
 As can easily be seen, having the first three of these methods
 is already equivalent to $S = R[U^{-1}]$ being computable; hence all higher methods can be derived 
 from these basic ones. 
 
-The generic code makes use of a simple caching mechanism for the `SubQuo`s as follows. 
+The generic code makes use of a simple caching mechanism for the `SubquoModule`s as follows. 
 For a module ``M = (G + N)/N`` with submodules ``G, N \subset R^n`` of some free module, 
 the localization ``M[U^{-1}]`` over ``S = R[U^{-1}]`` has an associated *saturated module* over ``R``:
 ```math

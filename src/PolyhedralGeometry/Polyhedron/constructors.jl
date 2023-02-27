@@ -19,8 +19,8 @@ struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
     Polyhedron{T}(p::Polymake.BigObject) where T<:scalar_types = new{T}(p)
 end
 
-# default scalar type: `fmpq`
-Polyhedron(x...) = Polyhedron{fmpq}(x...)
+# default scalar type: `QQFieldElem`
+Polyhedron(x...) = Polyhedron{QQFieldElem}(x...)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
@@ -43,7 +43,7 @@ julia> A = [1 0; 0 1; -1 0 ; 0 -1];
 julia> b = [1, 1, 0, 0];
 
 julia> Polyhedron(A,b)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 ```
 """
 Polyhedron{T}(A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = Polyhedron{T}((A, b))
@@ -72,14 +72,14 @@ julia> A = [1 0; 0 1; -1 0 ; 0 -1];
 julia> b = [1, 1, 0, 0];
 
 julia> Polyhedron((A,b))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 ```
 
 As an example for a polyhedron constructed from both inequalities and
 equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
 ```jldoctest
 julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> is_feasible(P)
 true
@@ -88,7 +88,7 @@ julia> dim(P)
 1
 
 julia> vertices(P)
-2-element SubObjectIterator{PointVector{fmpq}}:
+2-element SubObjectIterator{PointVector{QQFieldElem}}:
  [1, 0]
  [0, 0]
 ```
@@ -123,7 +123,7 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull([::Type{T} = fmpq,] V [, R [, L]]; non_redundant::Bool = false)
+    convex_hull([::Type{T} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
@@ -148,7 +148,7 @@ See Def. 2.11 and Def. 3.1  of [JT13](@cite).
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
 ```jldoctest
 julia> Square = convex_hull([0 0; 0 1; 1 0; 1 1])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 ```
 To construct the positive orthant, rays have to be passed:
 ```jldoctest
@@ -157,7 +157,7 @@ julia> V = [0 0];
 julia> R = [1 0; 0 1];
 
 julia> PO = convex_hull(V, R)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 ```
 The closed-upper half plane can be constructed by passing rays and a lineality space:
 ```jldoctest
@@ -168,7 +168,7 @@ julia> R = [0 1];
 julia> L = [1 0];
 
 julia> UH = convex_hull(V, R, L)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 ```
 To obtain the x-axis in $\mathbb{R}^2$:
 ```jldoctest
@@ -179,7 +179,7 @@ julia> R = nothing;
 julia> L = [1 0];
 
 julia> XA = convex_hull(V, R, L)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 ```
 """
 function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
@@ -197,7 +197,7 @@ function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{Abs
     end
 end
 
-convex_hull(x...) = convex_hull(fmpq, x...)
+convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(QQFieldElem, V, R, L; non_redundant=non_redundant)
 
 ###############################################################################
 ###############################################################################
@@ -207,10 +207,10 @@ convex_hull(x...) = convex_hull(fmpq, x...)
 function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
     try
         ad = ambient_dim(P)
-        print(io, "A polyhedron in ambient dimension $(ad)")
-        T != fmpq && print(io, " with $T type coefficients")
+        print(io, "Polyhedron in ambient dimension $(ad)")
+        T != QQFieldElem && print(io, " with $T type coefficients")
     catch e
-        print(io, "A polyhedron without ambient dimension")
+        print(io, "Polyhedron without ambient dimension")
     end
 end
 

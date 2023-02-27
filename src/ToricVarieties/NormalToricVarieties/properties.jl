@@ -57,7 +57,7 @@ Decides if the normal toric varieties `v` is a projective space.
 # Examples
 ```jldoctest
 julia> F5 = hirzebruch_surface(5)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_projective_space(F5)
 false

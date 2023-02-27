@@ -1,10 +1,10 @@
-R, x = PolynomialRing(QQ, "x")
+R, x = polynomial_ring(QQ, "x")
 q = x^2 + 3//4
-K, a = NumberField(q)
-Z7 = ResidueRing(ZZ, 7)
-Z7t, t = PolynomialRing(Z7, "t")
+K, a = number_field(q)
+Z7 = residue_ring(ZZ, 7)
+Z7t, t = polynomial_ring(Z7, "t")
 Fin, d = FiniteField(t^2 + t + 1)
-Frac = FractionField(R)
+Frac = fraction_field(R)
 
 cases = [
     (QQ, [1 2; 3 4//5]),
@@ -15,11 +15,11 @@ cases = [
 ]
 
 function test_equality(m::MatrixElem{T}, l::MatrixElem{T}) where T <: Union{
-    fmpz, fmpq, nmod, fq_nmod}
+    ZZRingElem, QQFieldElem, zzModRingElem, fqPolyRepFieldElem}
     return change_base_ring(base_ring(l), m) == l
 end
 
-function test_equality(m::MatrixElem{T}, l:: MatrixElem{T}) where T <: AbstractAlgebra.Generic.Frac{fmpq_poly}
+function test_equality(m::MatrixElem{T}, l:: MatrixElem{T}) where T <: AbstractAlgebra.Generic.Frac{QQPolyRingElem}
     x = gen(base_ring(m))
     return map(i -> evaluate(i, x), l) == m
 end

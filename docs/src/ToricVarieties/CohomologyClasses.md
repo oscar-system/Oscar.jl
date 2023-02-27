@@ -15,16 +15,17 @@ Pages = ["CohomologyClasses.md"]
 ### General constructors
 
 ```@docs
-CohomologyClass(d::ToricDivisor)
-CohomologyClass(c::ToricDivisorClass)
-CohomologyClass(l::ToricLineBundle)
+cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+cohomology_class(d::ToricDivisor)
+cohomology_class(c::ToricDivisorClass)
+cohomology_class(l::ToricLineBundle)
 ```
 
 ### Addition, subtraction and scalar multiplication
 
 Cohomology classes can be added and subtracted via the usual `+` and `-`
 operators. Moreover, multiplication by scalars from the left is supported
-for scalars which are integers or of type `fmpz` or `fmpq`.
+for scalars which are integers or of type `ZZRingElem` or `QQFieldElem`.
 
 ### Wedge product
 
@@ -33,7 +34,7 @@ using internally the multiplication of the corresponding polynomial
 (equivalence classes) in the Cox ring.
 
 A cohomology class can be wedged `n`-times with itself via `^n`,
-where `n` can be an integer or of type `fmpz`.
+where `n` can be an integer or of type `ZZRingElem`.
 
 
 ## Properties
@@ -50,7 +51,7 @@ toric_variety(c::CohomologyClass)
 coefficients(c::CohomologyClass)
 exponents(c::CohomologyClass)
 polynomial(c::CohomologyClass)
-polynomial(ring::MPolyQuo, c::CohomologyClass)
+polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 ```
 
 

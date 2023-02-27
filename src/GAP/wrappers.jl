@@ -102,6 +102,7 @@ GAP.@wrap IsPerfectGroup(x::Any)::Bool
 GAP.@wrap IsPermGroup(x::Any)::Bool
 GAP.@wrap IsPGroup(x::Any)::Bool
 GAP.@wrap IsPolynomial(x::Any)::Bool
+GAP.@wrap IsPolynomialRing(x::Any)::Bool
 GAP.@wrap IsPrimeField(x::Any)::Bool
 GAP.@wrap IsPrimitive(x::Any, y::Any)::Bool
 GAP.@wrap IsPrimitive(x::Any)::Bool

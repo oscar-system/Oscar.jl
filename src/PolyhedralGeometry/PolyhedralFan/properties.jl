@@ -18,7 +18,7 @@ julia> C = cube(3);
 julia> NF = normal_fan(C);
 
 julia> rays(NF)
-6-element SubObjectIterator{RayVector{fmpq}}:
+6-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]
@@ -43,7 +43,8 @@ julia> matrix(QQ, rays(NF))
 [ 0    0   -1]
 ```
 """
-rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
+rays(PF::_FanLikeType{T}) where T<:scalar_types = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{T}, pm_object(PF))
+_rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, _nrays(PF))
 
 _ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.RAYS, i, :))
 
@@ -52,6 +53,50 @@ _vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = hom
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
 _maximal_cone(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(PF, i - 1))
+
+
+@doc Markdown.doc"""                                                 
+    rays_modulo_lineality(as, F::PolyhedralFan)
+                         
+Return the rays of the polyhedral fan `F` up to lineality as a `NamedTuple`
+with two iterators. If `F` has lineality `L`, then the iterator
+`rays_modulo_lineality` iterates over representatives of the rays of `F/L`.
+The iterator `lineality_basis` gives a basis of the lineality space `L`.
+
+# Examples
+```jldoctest
+julia> P = convex_hull(QQFieldElem, [0 0; 1 0])
+Polyhedron in ambient dimension 2
+
+julia> NF = normal_fan(P)
+Polyhedral fan in ambient dimension 2
+
+julia> rmlF = rays_modulo_lineality(NF)
+(rays_modulo_lineality = RayVector{QQFieldElem}[[1, 0], [-1, 0]], lineality_basis = RayVector{QQFieldElem}[[0, 1]])
+
+julia> rmlF.rays_modulo_lineality
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [1, 0]
+ [-1, 0]
+
+julia> rmlF.lineality_basis
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 1]
+
+julia> rays(NF)
+0-element SubObjectIterator{RayVector{QQFieldElem}}
+```
+"""
+rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, F) 
+function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
+    return (
+        rays_modulo_lineality = _rays(F),
+        lineality_basis = lineality_space(F)
+    )
+end
+rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
+    
+
 
 @doc Markdown.doc"""
     maximal_cones(PF::PolyhedralFan)
@@ -90,19 +135,19 @@ The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan
 julia> PF = face_fan(cube(3));
 
 julia> cones(PF, 2)
-12-element SubObjectIterator{Cone{fmpq}}:
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
+12-element SubObjectIterator{Cone{QQFieldElem}}:
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
+ Polyhedral cone in ambient dimension 3
 ```
 """
 function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
@@ -211,7 +256,8 @@ julia> nrays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+nrays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _nrays(PF) : 0
+_nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc Markdown.doc"""
@@ -225,20 +271,20 @@ The f-vector of the normal fan of a polytope is the reverse of the f-vector of
 the polytope.
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> f_vector(c)
-3-element Vector{fmpz}:
+3-element Vector{ZZRingElem}:
  8
  12
  6
 
 
 julia> nfc = normal_fan(c)
-A polyhedral fan in ambient dimension 3
+Polyhedral fan in ambient dimension 3
 
 julia> f_vector(nfc)
-3-element Vector{fmpz}:
+3-element Vector{ZZRingElem}:
  6
  12
  8
@@ -247,7 +293,7 @@ julia> f_vector(nfc)
 function f_vector(PF::_FanLikeType)
     pmf = pm_object(PF)
     ldim = pmf.LINEALITY_DIM
-    return Vector{fmpz}(vcat(fill(0,ldim),pmf.F_VECTOR))
+    return Vector{ZZRingElem}(vcat(fill(0,ldim),pmf.F_VECTOR))
 end
 
 
@@ -261,13 +307,13 @@ the dimension of the largest linear subspace.
 The dimension of the lineality space is zero if and only if the fan is pointed.
 ```jldoctest
 julia> C = convex_hull([0 0; 1 0])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> is_fulldimensional(C)
 false
 
 julia> nf = normal_fan(C)
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 
 julia> is_pointed(nf)
 false
@@ -294,10 +340,10 @@ one containing all the points with $y ≥ 0$. The fan's lineality is the common
 lineality of these two cones, i.e. in $x$-direction.
 ```jldoctest
 julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3, 4, 1]]))
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
-1-element SubObjectIterator{RayVector{fmpq}}:
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
 ```
 """
@@ -321,13 +367,13 @@ Determine whether `PF` is pointed, i.e. all its cones are pointed.
 The normal fan of a non-fulldimensional polytope is not pointed.
 ```jldoctest
 julia> C = convex_hull([0 0; 1 0])
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> is_fulldimensional(C)
 false
 
 julia> nf = normal_fan(C)
-A polyhedral fan in ambient dimension 2
+Polyhedral fan in ambient dimension 2
 
 julia> is_pointed(nf)
 false
@@ -340,7 +386,7 @@ is_pointed(PF::_FanLikeType) = pm_object(PF).POINTED::Bool
 
 
 @doc Markdown.doc"""
-    is_smooth(PF::PolyhedralFan{fmpq})
+    is_smooth(PF::PolyhedralFan{QQFieldElem})
 
 Determine whether `PF` is smooth.
 
@@ -354,7 +400,7 @@ julia> is_smooth(PF)
 false
 ```
 """
-is_smooth(PF::_FanLikeType{fmpq}) = pm_object(PF).SMOOTH_FAN::Bool
+is_smooth(PF::_FanLikeType{QQFieldElem}) = pm_object(PF).SMOOTH_FAN::Bool
 
 @doc Markdown.doc"""
     is_regular(PF::PolyhedralFan)
@@ -443,10 +489,10 @@ Return the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
 # Examples
 ```jldoctest
 julia> star = starsubdivision(normal_fan(simplex(3)), 1)
-A polyhedral fan in ambient dimension 3
+Polyhedral fan in ambient dimension 3
 
 julia> rays(star)
-5-element SubObjectIterator{RayVector{fmpq}}:
+5-element SubObjectIterator{RayVector{QQFieldElem}}:
  [0, 1, 0]
  [0, 0, 1]
  [-1, -1, -1]
@@ -514,7 +560,7 @@ Return the Cartesian/direct product of two polyhedral fans.
 # Examples
 ```jldoctest
 julia> normal_fan(simplex(2))*normal_fan(simplex(3))
-A polyhedral fan in ambient dimension 5
+Polyhedral fan in ambient dimension 5
 ```
 """
 function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)

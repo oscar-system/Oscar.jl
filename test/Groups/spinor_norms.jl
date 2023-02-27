@@ -1,6 +1,6 @@
 @testset "spinor norms" begin
   g = ZZ[-1 0 0 0; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1]
-  G =  diagonal_matrix(fmpq[2, 3//2, 4//3, 5//4])
+  G =  diagonal_matrix(QQFieldElem[2, 3//2, 4//3, 5//4])
   s = Oscar.spin(G, g)
   @test is_square(s//5)
 

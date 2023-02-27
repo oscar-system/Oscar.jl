@@ -88,7 +88,7 @@ function candidates_primary_degrees(R::InvRing, k::Int, bad_prefixes::Vector{Vec
 
     for d in ds
       # Check whether there exist invariants of this degree.
-      if dimension_via_molien_series(fmpz, R, d) == 0
+      if dimension_via_molien_series(ZZRingElem, R, d) == 0
         skip = true
         break
       end
@@ -113,11 +113,11 @@ end
 # RG/< invars, f_1, ..., f_k > has Krull dimension n - k, where n == length(invars).
 # If the base field is finite, the answer "true" might be wrong (for theoretical reasons).
 # See Kem99, Theorem 2.
-function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars::Vector{PolyElemT}, k::Int, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Tuple{MPolyIdeal{PolyElemT}, Int}}) where {FldT, GrpT, PolyElemT}
+function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyRingElemT}, degrees::Vector{Int}, invars::Vector{PolyRingElemT}, k::Int, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyRingElemT}, Tuple{MPolyIdeal{PolyRingElemT}, Int}}) where {FldT, GrpT, PolyRingElemT}
   R = polynomial_ring(RG)
   n = length(degrees)
 
-  deg_dict = Dict{fmpz, Int}()
+  deg_dict = Dict{ZZRingElem, Int}()
   for e in degrees[length(invars) + 1:length(invars) + k]
     deg_dict[e] = get(deg_dict, e, 0) + 1
   end
@@ -175,7 +175,7 @@ end
 # b == true iff primary invariants of the given degrees exist. In this case
 # invars_cache will contain those invariants.
 # k is only needed for recursive calls of the function.
-function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars_cache::PrimaryInvarsCache{PolyElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Tuple{MPolyIdeal{PolyElemT}, Int}}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyElemT}
+function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyRingElemT}, degrees::Vector{Int}, invars_cache::PrimaryInvarsCache{PolyRingElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyRingElemT}, Tuple{MPolyIdeal{PolyRingElemT}, Int}}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyRingElemT}
 
   n = length(degrees) - length(invars_cache.invars)
   R = polynomial_ring(RG)
@@ -278,7 +278,7 @@ julia> G = MatrixGroup(3, K, [M1, M2]);
 julia> IR = invariant_ring(G);
 
 julia> primary_invariants(IR)
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -286,7 +286,7 @@ julia> primary_invariants(IR)
 julia> IR = invariant_ring(G); # "New" ring to avoid caching
 
 julia> primary_invariants(IR, primary_degrees = [ 3, 6, 6 ])
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]*x[2]*x[3]
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^6 + x[2]^6 + x[3]^6

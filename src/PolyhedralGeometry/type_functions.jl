@@ -20,17 +20,17 @@ for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:Union{Halfspace{fmpq}, Hyperplane{fmpq}, Polyhedron{fmpq}, Cone{fmpq}, Pair{Matrix{fmpq}, fmpq}}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator{<:Union{Halfspace{QQFieldElem}, Hyperplane{QQFieldElem}, Polyhedron{QQFieldElem}, Cone{QQFieldElem}, Pair{Matrix{QQFieldElem}, QQFieldElem}}}) = matrix(QQ, Matrix{QQFieldElem}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
         $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = Matrix{T}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
 
-function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{fmpq}, Hyperplane{fmpq}, Polyhedron{fmpq}, Cone{fmpq}, Pair{Matrix{fmpq}, fmpq}}})
+function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{QQFieldElem}, Hyperplane{QQFieldElem}, Polyhedron{QQFieldElem}, Cone{QQFieldElem}, Pair{Matrix{QQFieldElem}, QQFieldElem}}})
     try
         h = affine_matrix_for_polymake(iter)
-        return (A = matrix(QQ, Matrix{fmpq}(h[:, 2:end])), b = -h[:, 1])
+        return (A = matrix(QQ, Matrix{QQFieldElem}(h[:, 2:end])), b = -h[:, 1])
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end

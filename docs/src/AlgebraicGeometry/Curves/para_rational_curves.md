@@ -62,7 +62,7 @@ The data structures for algebraic curves in OSCAR are still under development
 and subject to change. Here is the current constructor for projective plane curves:
 
 ```@docs
-ProjPlaneCurve(f::MPolyElem{T}) where {T <: FieldElem}
+ProjPlaneCurve(f::MPolyRingElem{T}) where {T <: FieldElem}
 ```
 
 ## The Genus of a Plane Curve
@@ -74,22 +74,27 @@ ProjPlaneCurve(f::MPolyElem{T}) where {T <: FieldElem}
 ## Adjoint Ideals of Plane Curves
 
 ```@docs
-adjoint_ideal(C::ProjPlaneCurve{fmpq})
+adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
 ```
 
 ## Rational Points on Conics
 
 ```@docs
-rational_point_conic(D::ProjPlaneCurve{fmpq})
+rational_point_conic(D::ProjPlaneCurve{QQFieldElem})
 ```
 ## Parametrizing Rational Plane Curves
 
 ```@docs
- parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
+ parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
 ```
 
 
+## Contact
 
+Please direct questions about this part of OSCAR to the following people:
+* [Janko Böhm](https://www.mathematik.uni-kl.de/~boehm/),
+* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker/seite).
 
+You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
 
-
+Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).

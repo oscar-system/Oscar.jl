@@ -74,7 +74,7 @@ function product(X::StdSpec, Y::StdSpec;
   else 
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(S)]))
   end
-  RS, z = PolynomialRing(k, new_symb)
+  RS, z = polynomial_ring(k, new_symb)
   inc1 = hom(R, RS, gens(RS)[1:m])
   inc2 = hom(S, RS, gens(RS)[m+1:m+n])
   IX = ideal(RS, inc1.(gens(modulus(underlying_quotient(OO(X))))))

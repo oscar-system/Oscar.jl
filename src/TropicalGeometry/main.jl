@@ -52,8 +52,8 @@ end
 # Allow gcd of vectors of univariate rational polynomials
 # to make their handling similar to that of integers
 ###
-gcd(F::Vector{fmpq_poly}) = reduce(gcd, F)
-gcd(F::fmpq_poly...) = reduce(gcd, F)
+gcd(F::Vector{QQPolyRingElem}) = reduce(gcd, F)
+gcd(F::QQPolyRingElem...) = reduce(gcd, F)
 
 
 

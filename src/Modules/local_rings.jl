@@ -43,8 +43,8 @@ end
 function composition_series(
         M::ModuleFP{T}
     ) where {
-             T<:MPolyLocalizedRingElem{<:Field, <:FieldElem, 
-                                       <:MPolyRing, <:MPolyElem,
+             T<:MPolyLocRingElem{<:Field, <:FieldElem, 
+                                       <:MPolyRing, <:MPolyRingElem,
                                        <:MPolyComplementOfKPointIdeal
                                       }
             }
@@ -54,8 +54,8 @@ end
 function composition_series(
         M::ModuleFP{T}
     ) where {
-             T<:MPolyQuoLocalizedRingElem{<:Field, <:FieldElem, 
-                                          <:MPolyRing, <:MPolyElem,
+             T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, 
+                                          <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal
                                          }
             }

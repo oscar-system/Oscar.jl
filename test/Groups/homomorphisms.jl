@@ -158,7 +158,7 @@ end
        of = one(f)
 
        # ... to an element of a permutation group or to a rational number
-       for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+       for imgs in [gens(symmetric_group(4)), QQFieldElem[2, 3]]
          g1 = imgs[1]
          g2 = imgs[2]
          for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3)]
@@ -180,7 +180,7 @@ end
    end
 
    # map according to a description of the word
-   for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+   for imgs in [gens(symmetric_group(4)), QQFieldElem[2, 3]]
      g1 = imgs[1]
      g2 = imgs[2]
      for (v, w) in [
@@ -390,6 +390,71 @@ end
        @test FPGroup(G) isa FPGroup
        @test_throws ArgumentError GrpAbFinGen(G)
    end
+end
+
+@testset "Homomorphism GAPGroup to GrpAbFinGen" begin
+   # G abelian, A isomorphic to G
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   A = abelian_group( [ 2, 4 ] )
+   imgs = gens(A)
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 1
+
+   # G abelian, A a proper factor of G
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   A = abelian_group( [ 2, 2 ] )
+   imgs = gens(A)
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 2
+
+   # G abelian, A containing a proper factor of G
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   A = abelian_group( [ 2, 4 ] )
+   imgs = [gen(A, 1), 2*gen(A, 2)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 2
+
+   # G nonabelian, A isomorphic to G/G'
+   G = dihedral_group(8)
+   A = abelian_group( [ 2, 2 ] )
+   imgs = [gen(A, 1), gen(A, 2), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 2
+
+   # G nonabelian, A a proper factor of  G/G'
+   G = dihedral_group(8)
+   A = abelian_group( [ 2 ] )
+   imgs = [gen(A, 1), gen(A, 1), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 4
+
+   # G nonabelian, A containing a proper factor of G/G'
+   G = dihedral_group(8)
+   A = abelian_group( [ 4 ] )
+   imgs = [2*gen(A,1), 2*gen(A,1), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 4
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   A = abelian_group( [ 2 ] )
+   imgs = elem_type(A)[]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 1
+
+   # A trivial
+   G = dihedral_group(8)
+   A = abelian_group( [ 1 ] )
+   imgs = [zero(A), zero(A), zero(A)]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 8
+
+   # G and A trivial
+   G = cyclic_group(PcGroup, 1)
+   A = abelian_group( [ 1 ] )
+   imgs = elem_type(A)[]
+   mp = hom(G, A, imgs)
+   @test order(kernel(mp)[1]) == 1
 end
 
 TestDirectProds=function(G1,G2)

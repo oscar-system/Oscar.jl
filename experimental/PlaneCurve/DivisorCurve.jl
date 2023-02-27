@@ -17,20 +17,20 @@ Given a curve `C` which is assumed to be smooth and irreducible, return the divi
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
 Affine plane curve defined by x^2 + y^2 + y
 
 julia> P = Oscar.Point([QQ(0), QQ(0)])
-Point with coordinates fmpq[0, 0]
+Point with coordinates QQFieldElem[0, 0]
 
 julia> Q = Oscar.Point([QQ(0), QQ(-1)])
-Point with coordinates fmpq[0, -1]
+Point with coordinates QQFieldElem[0, -1]
 
 julia> Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
-3*fmpq[0, 0] - 2*fmpq[0, -1]
+3*QQFieldElem[0, 0] - 2*QQFieldElem[0, -1]
 ```
 """
 struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
@@ -69,21 +69,21 @@ Given a curve `C` which is assumed to be smooth and irreducible, return the divi
 
 # Examples
 ```jldoctest
-julia> S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -99,7 +99,7 @@ mutable struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
     C::ProjPlaneCurve{S}
     divisor::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}
     degree::Int
-    prin_div::AbstractAlgebra.Generic.Frac{T} where T <: MPolyElem{S}
+    prin_div::AbstractAlgebra.Generic.Frac{T} where T <: MPolyRingElem{S}
     function ProjCurveDivisor{S}(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
         for (P, m) in D
             P in C || error("The point ", P, " is not on the curve")
@@ -250,20 +250,20 @@ Return `true` if `D` is an effective divisor, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
 Affine plane curve defined by x^2 + y^2 + y
 
 julia> P = Oscar.Point([QQ(0), QQ(0)])
-Point with coordinates fmpq[0, 0]
+Point with coordinates QQFieldElem[0, 0]
 
 julia> Q = Oscar.Point([QQ(0), QQ(-1)])
-Point with coordinates fmpq[0, -1]
+Point with coordinates QQFieldElem[0, -1]
 
 julia> D = Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
-3*fmpq[0, 0] - 2*fmpq[0, -1]
+3*QQFieldElem[0, 0] - 2*QQFieldElem[0, -1]
 
 julia> Oscar.is_effective(D)
 false
@@ -283,28 +283,28 @@ end
 ###############################################################################
 
 @doc Markdown.doc"""
-    multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
-    multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+    multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyRingElem{S}}
+    multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
 
 Return the multiplicity of the rational function `phi` on the curve `C` at the point `P`.
 
 # Examples
 ```jldoctest
-julia> S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -316,14 +316,14 @@ julia> Oscar.multiplicity(C, phi, P)
 -1
 ```
 """
-function multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
+function multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyRingElem{S}}
     f = divrem(phi.num, C.eq)
     g = divrem(phi.den, C.eq)
     !iszero(g[2]) || error("This is not a rational function on `C`")
     return multiplicity(C, f[2], P) - multiplicity(C, g[2], P)
 end
 
-function multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+function multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
     g = divrem(phi.den.f, C.eq.f)
     !iszero(g[2]) || error("This is not a rational function on the curve")
     f = divrem(phi.num.f, C.eq.f)
@@ -335,12 +335,12 @@ end
 ###############################################################################
 
 @doc Markdown.doc"""
-    multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
-    multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+    multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}, P::Point{S}) where S <: FieldElem
+    multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the multiplicity of the polynomial `F` on the curve `C` at the point `P`.
 """
-function multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
+function multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}, P::Point{S}) where S <: FieldElem
     f = divrem(F, C.eq)
     if iszero(f[2])
         return Inf
@@ -351,7 +351,7 @@ function multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}
     end
 end
 
-function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
     f = divrem(F.f, defining_equation(C))
     if iszero(f[2])
         return Inf
@@ -367,11 +367,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: FieldElem
+    divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}) where S <: FieldElem
 
 Return the divisor defined by the polynomial `F` on the curve `C`.
 """
-function divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: FieldElem
+function divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}) where S <: FieldElem
     f = divrem(F, C.eq)
     !iszero(f[2]) || error("The polynomial is zero on the curve")
     E = Dict{Point{S}, Int}()
@@ -388,11 +388,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
+    divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyRingElem{S}}
 
 Return the divisor defined by the rational function `phi` on the curve `C`.
 """
-function divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
+function divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyRingElem{S}}
     g = divrem(phi.den, C.eq)
     !iszero(g[2]) || error("This is not a rational function on the curve")
     f = divrem(phi.num, C.eq)
@@ -403,11 +403,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
+    divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}) where S <: FieldElem
 
 Return the divisor defined by the polynomial `F` on the curve `C`. The points of the divisor are in the projective space `PP` if specified, or in a new projective space otherwise.
 """
-function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
+function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}) where S <: FieldElem
     f = divrem(F.f, defining_equation(C))
     !iszero(f[2]) || error("The polynomial is zero on the curve")
     E = Dict{Oscar.Geometry.ProjSpcElem{S}, Int}()
@@ -422,7 +422,7 @@ function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, F::Oscar.M
     return ProjCurveDivisor(C, E)
 end
 
-function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
+function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}) where S <: FieldElem
     R = parent(C.eq)
     PP = proj_space(R.R.base_ring, 2)
     return divisor(PP[1], C, F)
@@ -431,27 +431,27 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+    divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
 
 Return the divisor defined by the rational function `phi` on the curve `C`.
 
 # Examples
 ```jldoctest
-julia> S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> phi = T(x)//T(y)
 x//y
@@ -460,7 +460,7 @@ julia> Oscar.divisor(PP[1], C, phi)
 -(0 : 0 : 1) + (0 : 1 : -1)
 ```
 """
-function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
     g = divrem(phi.den.f, C.eq.f)
     !iszero(g[2]) || error("This is not a rational function on the curve")
     f = divrem(phi.num.f, C.eq.f)
@@ -469,7 +469,7 @@ function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::Abstr
     return divisor(PP, C, R(f[2])) - divisor(PP, C, R(g[2]))
 end
 
-function divisor(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+function divisor(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
     R = parent(C.eq)
     PP = proj_space(R.R.base_ring, 2)
     return divisor(PP[1], C, phi)
@@ -537,7 +537,8 @@ function _purify1(I::T, Q) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
    f = ideal(Q, [gens(Id)[1]])
    res = f:(f:IdQ)
    Oscar.oscar_assure(res)
-   return ideal(Q, _minimal_generating_set(res.I))
+   res_ideal = ideal(base_ring(res.qRing), res.gens.O)
+   return ideal(Q, _minimal_generating_set(res_ideal))
 end
 
 function _basis(I::Oscar.MPolyIdeal, d::Int)
@@ -559,7 +560,8 @@ function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, q::Os
    q1 = fJ:Ip
    P = _purify1(q1, Q)
    Oscar.oscar_assure(P)
-   B = _basis(P.I, total_degree(f.f))
+   P_ideal = ideal(base_ring(P.qRing), P.gens.O)
+   B = _basis(P_ideal, total_degree(f.f))
    arr = normal_form(B, q)
    LD = ideal(R, arr)
    return [_remove_zeros(LD), f.f]
@@ -584,21 +586,21 @@ Return a set of generators of the global sections of the sheaf associated to the
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)
@@ -607,7 +609,7 @@ julia> D = Oscar.ProjCurveDivisor(C, P, 4)
 4*(0 : 1 : 0)
 
 julia> Oscar.global_sections(D)
-4-element Vector{AbstractAlgebra.Generic.Frac{fmpq_mpoly}}:
+4-element Vector{AbstractAlgebra.Generic.Frac{QQMPolyRingElem}}:
  1
  y//z
  x//z
@@ -639,7 +641,7 @@ end
 
 ################################################################################
 
-function _section_ideal(f::Oscar.MPolyElem, g::Oscar.MPolyElem, D::ProjCurveDivisor)
+function _section_ideal(f::Oscar.MPolyRingElem, g::Oscar.MPolyRingElem, D::ProjCurveDivisor)
     E = divisor_ideals(D)
     R = parent(f)
     F = defining_equation(D.C)
@@ -683,21 +685,21 @@ otherwise
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)
@@ -727,21 +729,21 @@ Return `true` if the divisor `D` is principal, and `false` otherwise
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)
@@ -769,21 +771,21 @@ is linearly equivalent to the divisor defined by `phi`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)

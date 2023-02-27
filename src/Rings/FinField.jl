@@ -22,9 +22,9 @@ end
 ###############################################################
 #TODO: consolidate with Hecke: is_primitive_root?
 
-@attr Fac{fmpz} factored_order(K::FinField) = factor(size(K)-1)
+@attr Fac{ZZRingElem} factored_order(K::FinField) = factor(size(K)-1)
 
-function Oscar.is_primitive(a::FinFieldElem, f::Fac{fmpz} = factored_order(parent(a)))
+function Oscar.is_primitive(a::FinFieldElem, f::Fac{ZZRingElem} = factored_order(parent(a)))
   iszero(a) && return false
   n = size(parent(a))-1
   for p = keys(f.fac)
@@ -54,12 +54,12 @@ end
 
 function disc_log(a::T) where {T <: FinFieldElem}
   K = parent(a)
-  res = Vector{Tuple{fmpz, fmpz}}()
+  res = Vector{Tuple{ZZRingElem, ZZRingElem}}()
   qm1 = size(K)-1
   g = generator(K)
   for (p, k) = factored_order(K)
     r = divexact(qm1, p^k)
-    push!(res, (fmpz(p)^k, Hecke.disc_log_ph(g^r, a^r, fmpz(p), k)))
+    push!(res, (ZZRingElem(p)^k, Hecke.disc_log_ph(g^r, a^r, ZZRingElem(p), k)))
   end
   return crt([x[2] for x = res], [x[1] for x= res])
 end

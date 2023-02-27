@@ -45,9 +45,9 @@ end
 
 function Base.show(io::IO, th::TropicalHypersurface{M, EMB}) where {M, EMB}
     if EMB
-        print(io, "A $(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidean space")
+        print(io, "$(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidean space")
     else
-        print(io, "An abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
+        print(io, "Abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
     end
 end
 
@@ -74,7 +74,7 @@ julia> f = x+y+1
 x + y + (1)
 
 julia> Tf = TropicalHypersurface(f)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}}) where T
@@ -121,7 +121,7 @@ end
 # end
 
 @doc Markdown.doc"""
-    TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+    TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
 on which a function `valuation` is defined such as `PadicField(7,2)`),
@@ -137,13 +137,13 @@ julia> Kxy, (x,y) = K["x", "y"]
 julia> f = 7*x+y+49;
 
 julia> TropicalHypersurface(f, min)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> TropicalHypersurface(f, max)
-A max tropical hypersurface embedded in 2-dimensional Euclidean space
+max tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
-function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+function TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
     tropf = tropical_polynomial(f,M)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -154,15 +154,15 @@ function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min
 end
 
 @doc Markdown.doc"""
-    TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+    TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Construct the tropical hypersurface from a polynomial `f` and a map to the
 tropical semiring `val`.
 
 # Examples
 ```jldoctest
-julia> Kx, (x1,x2) = PolynomialRing(QQ,2)
-(Multivariate Polynomial Ring in x1, x2 over Rational Field, fmpq_mpoly[x1, x2])
+julia> Kx, (x1,x2) = polynomial_ring(QQ,2)
+(Multivariate Polynomial Ring in x1, x2 over Rational Field, QQMPolyRingElem[x1, x2])
 
 julia> val = TropicalSemiringMap(QQ,7)
 The 7-adic valuation on Rational Field
@@ -170,10 +170,10 @@ The 7-adic valuation on Rational Field
 julia> f = 7*x1+x2+49;
 
 julia> TropicalHypersurface(f, val)
-A min tropical hypersurface embedded in 2-dimensional Euclidean space
+min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
-function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap)
+function TropicalHypersurface(f::MPolyRingElem, val::TropicalSemiringMap)
     tropf = tropical_polynomial(f,val)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -185,7 +185,7 @@ end
 
 
 # @doc Markdown.doc"""
-#     tropical_variety(f::MPolyElem, M::Union{typeof(min),typeof(max)})
+#     tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
 
 # Return the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
 # If M=min, the tropical hypersurface will obey the min-convention.
@@ -205,7 +205,7 @@ end
 
 # julia> tropical_variety(f,max)
 # """
-# function tropical_variety(f::MPolyElem, M::Union{typeof(min),typeof(max)})
+# function tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
 #     return TropicalHypersurface{M}(f)
 # end
 
@@ -233,7 +233,7 @@ julia> f = x+y+1;
 julia> tropicalLine = TropicalHypersurface(f);
 
 julia> dual_subdivision(tropicalLine)
-A subdivision of points in ambient dimension 3
+Subdivision of points in ambient dimension 3
 ```
 """
 function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
