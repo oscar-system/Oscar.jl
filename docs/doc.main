@@ -234,6 +234,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
+    "DeveloperDocumentation/experimental.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
