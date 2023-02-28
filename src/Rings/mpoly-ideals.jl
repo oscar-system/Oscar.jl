@@ -1341,13 +1341,8 @@ end
 # Grassmann Pluecker Ideal
 #
 ################################################################################
-function _grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
-    return convert(MPolyIdeal{QQMPolyRingElem}, Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
-end
-
 function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
-    R, x = polynomial_ring(QQ, "x" => 1: subspace_dimension * (ambient_dimension - 1))
-    return grassmann_pluecker_ideal(R, subspace_dimension, ambient_dimension)
+    return convert(MPolyIdeal{QQMPolyRingElem}, Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
 end
 
 @doc Markdown.doc"""
@@ -1379,7 +1374,7 @@ ideal(x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3])
 function grassmann_pluecker_ideal(ring::MPolyRing,
                                  subspace_dimension::Int,
                                  ambient_dimension::Int) 
-    pluecker_ideal = _grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
+    pluecker_ideal = grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
     converted_generators = elem_type(ring)[]
     coeff_ring = base_ring(ring)
     for g in gens(pluecker_ideal)
