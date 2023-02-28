@@ -9,7 +9,7 @@ Pages = ["faq.md"]
 
 **Q: How do I install OSCAR?**
 
-You can find our installation instructions [here](https://oscar.computeralgebra.de/install/).
+You can find our installation instructions [here](https://www.oscar-system.org/install/).
 
 ---
 
@@ -128,7 +128,7 @@ background. Please read our page on [Complex Algorithms in OSCAR].
 
 **Q: How can I install OSCAR on Windows?**
 
-Please follow [the install instructions on our website](https://oscar.computeralgebra.de/install/).
+Please follow [the install instructions on our website](https://www.oscar-system.org/install/).
 
 ---
 
