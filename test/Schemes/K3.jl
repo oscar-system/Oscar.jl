@@ -40,7 +40,7 @@
   X2 = domain(prX2)
   Y2, inc_Y2, pr_Y2 = strict_transform(prX2, inc_Y1)
   simplify!(Y2)
-  @show has_attribute(Y2, :simplified_covering)
+  # @show has_attribute(Y2, :simplified_covering)
   I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
   I_sing_X2 = radical(pushforward(inc_Y2)(I_sing_Y2))
   prX3 = blow_up(I_sing_X2, covering=oscar.simplified_covering(X2),
@@ -49,22 +49,22 @@
   X3 = domain(prX3)
   Y3, inc_Y3, pr_Y3 = strict_transform(prX3, inc_Y2)
   simplify!(Y3)
-  @show has_attribute(Y3, :simplified_covering)
+  # @show has_attribute(Y3, :simplified_covering)
   I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
   I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
 
   # Now the singular locus consists of two points. 
   # We blow them up successively rather than at once. 
-  println("starting primary decomposition of singular locus")
+  # println("starting primary decomposition of singular locus")
   decomp = primary_decomposition(I_sing_X3)
-  println("finished primary decomposition of singular locus")
+  # println("finished primary decomposition of singular locus")
   l = radical.([a for (_, a) in decomp])
 
-  @show "blowing up first center"
-  @show gens.(l[1].(patches(oscar.simplified_covering(X3))))
+  # @show "blowing up first center"
+  # @show gens.(l[1].(patches(oscar.simplified_covering(X3))))
   prX41 = blow_up(l[1], covering=oscar.simplified_covering(X3),
                 var_name="v")
-  @show "done blowing up"
+  # @show "done blowing up"
   X41 = domain(prX41)
   E41 = exceptional_divisor(prX41)
   X41 = domain(prX41)
@@ -72,9 +72,9 @@
 
   l2 = radical(strict_transform(prX41, l[2]))
   simplify!(X41)
-  @show scheme(l2) === X41
-  @show "blowing up second center"
-  @show gens.(l2.(patches(oscar.simplified_covering(X41))))
+  # @show scheme(l2) === X41
+  # @show "blowing up second center"
+  # @show gens.(l2.(patches(oscar.simplified_covering(X41))))
   prX42 = blow_up(l2, var_name="vv")
  # prX42 = blow_up(l2, covering=oscar.simplified_covering(X41),
  #               var_name="vv")
@@ -87,9 +87,9 @@
 
   # Now the singular locus consists of three points. 
   # We blow them up successively rather than at once. 
-  println("starting primary decomposition of singular locus")
+  # println("starting primary decomposition of singular locus")
   decomp = primary_decomposition(I_sing_X42)
-  println("finished primary decomposition of singular locus")
+  # println("finished primary decomposition of singular locus")
 
   centers = [a for (_, a) in decomp]
 
@@ -160,7 +160,7 @@
 
   Y53 = domain(inc_Y53)
 
-  @show is_smooth(Y53)
+  # @show is_smooth(Y53)
 
   # Pull all exceptional divisors up to the smooth model:
   E12 = strict_transform(prX2, E1)

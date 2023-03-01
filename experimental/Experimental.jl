@@ -5,6 +5,7 @@ include("PlaneCurve.jl")
 include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
+include("SymmetricIntersections.jl")
 
 include("JuLie.jl")
 

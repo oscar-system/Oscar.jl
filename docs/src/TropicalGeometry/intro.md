@@ -19,9 +19,9 @@ Please direct questions about this part of OSCAR to the following people:
 * [Marta Panizzut](https://martapanizzut.github.io/),
 * [Yue Ren](https://www.yueren.de/).
 
-You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
-Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
 
 
 ## Tropical semirings

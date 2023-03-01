@@ -106,6 +106,7 @@ include("Experimental/ModStdNF-test.jl")
 include("Experimental/MPolyRingSparse-test.jl")
 include("Experimental/MatrixGroups-test.jl")
 include("Experimental/JuLie_tests.jl")
+include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 
 include("Geometry/K3Auto.jl")
