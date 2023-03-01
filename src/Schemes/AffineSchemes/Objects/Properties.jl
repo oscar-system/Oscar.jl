@@ -653,6 +653,8 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 ###################################################################
 # Irreducibility and Integrality                                  #
 #    integral iff (irreducible && reduced)                        #
+#    integral = OO(X) is integral domain                          #
+#    irreducible = nilradical of OO(X) is prime                   #
 ###################################################################
 @doc Markdown.doc"""
    is_irreducible(X::AbsSpec)
@@ -661,7 +663,12 @@ Return the boolean value whether an affine scheme `X` is irreducible.
 
 """
 @attr function is_irreducible(X::AbsSpec)
-  return Oscar._is_integral_domain(OO(X))
+  !is_empty(X) || return false
+  if get_attribute(X, is_integral, false)
+## integral = irreducible + reduced
+     return true
+  end 
+  return length(minimal_primes(modulus(OO(X))))==1
 end
 
 @doc Markdown.doc"""
@@ -672,17 +679,20 @@ i.e. irreducible and reduced.
 
 """
 @attr function is_integral(X::AbsSpec)
-  return (is_irreducible(X) && is_reduced(X))
+  !is_empty(X) || return false
+  if has_attribute(X,:is_reduced) && has_attribute(X,:is_irreducible)
+     return get_attribute(X,:is_reduced) && get_attribute(X,:is_irreducible)
+  end
+  return is_prime(modulus(OO(X)))
 end
 
 ###################################################################
 # Connectedness                                                   #
 ###################################################################
 @doc Markdown.doc"""
-   is_integral(X::AbsSpec)
+   is_connected(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is integral,
-i.e. irreducible and reduced.
+Return the boolean value whether an affine scheme `X` is connected.
 
 """
 @attr function is_connected(X::AbsSpec)
@@ -690,5 +700,5 @@ i.e. irreducible and reduced.
 ## note for future implementation: expensive property
 ## 1) do primary decomposition
 ## 2) check connectedness of lowest two layers of the intersection lattice
-  return(get_attribute(X,:is_connected)
+  return(get_attribute(X,:is_connected))
 end
