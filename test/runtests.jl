@@ -107,6 +107,7 @@ include("Experimental/MPolyRingSparse-test.jl")
 include("Experimental/MatrixGroups-test.jl")
 include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
+include("Experimental/LinearQuotients/runtests.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/FreeModElem-orderings-test.jl")
