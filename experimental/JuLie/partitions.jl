@@ -10,7 +10,7 @@
 export Partition, partitions, ascending_partitions, dominates, conjugate, getindex_safe, num_partitions
 
 @doc Markdown.doc"""
-    Partition{T} <: AbstractArray{T,1}
+    Partition{T} <: AbstractVector{T}
 
 A **partition** of an integer ``n ≥ 0`` is a decreasing sequence ``λ=(λ₁,…,λᵣ)`` of positive integers ``λᵢ`` whose sum is equal to ``n``. The ``λᵢ`` are called the **parts** of the partition. We encode a partition as an array with elements ``λᵢ``. You may increase performance by using smaller integer types, see the examples below. For efficiency, the ```Partition``` constructor does not check whether the given array is in fact a partition, i.e. a decreasing sequence.
 
@@ -34,8 +34,8 @@ julia> P=Partition(Int8[3,2,1]) #Same partition but using 8 bit integers
 # References
 1. Wikipedia, [Partition (number theory)](https://en.wikipedia.org/wiki/Partition_(number_theory))
 """
-struct Partition{T} <: AbstractArray{T,1}
-  p::Array{T,1}
+struct Partition{T} <: AbstractVector{T}
+  p::Vector{T}
 end
 
 # The following are functions to make the Partition struct array-like.
@@ -71,8 +71,8 @@ end
 # to get it into the default type Int64. This constructor is also called by
 # MultiPartition, and this casts the whole array into "Any" whenever there's
 # the empty partition inside.
-function Partition(p::Array{Any,1})
-  return Partition(Array{Int64,1}(p))
+function Partition(p::Vector{Any})
+  return Partition(Vector{Int64}(p))
 end
 
 function Base.copy(P::Partition{T}) where T<:Integer
@@ -357,6 +357,8 @@ function ascending_partitions(n::Integer; alg="ks")
       end
     end
     return P
+  else
+    error("alg must be either ks or m")
   end
 
 end
@@ -482,14 +484,14 @@ end
 
 
 @Markdown.doc """
-    partitions(mu::Array{Integer,1}, m::Integer, v::Array{Integer,1}, n::Integer)
+    partitions(mu::Vector{Integer}, m::Integer, v::Vector{Integer}, n::Integer)
 
 All partitions of an integer ``m >= 0`` into ``n >= 1`` parts, where each part is an element in ``v`` and each ``v[i]`` occurs a maximum of ``mu[i]`` times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in [RJ76](@cite).
 
 # Remark
 The original algorithm lead to BoundsErrors, since r could get smaller than 1. Furthermore x and y are handled as arrays with an infinite length. After finding all valid partitions, the algorithm will continue searching for partitions of length n+1. We thus had to add a few additional checks and interruptions. Done by T. Schmit.
 """
-function partitions(mu::Array{S,1}, m::Integer, v::Array{S,1}, n::Integer) where S<:Integer
+function partitions(mu::Vector{S}, m::Integer, v::Vector{S}, n::Integer) where S<:Integer
   length(mu)==length(v) || throw(ArgumentError("mu and v should have the same length"))
   m>=0 || throw(ArgumentError("m ≥ 0 required"))
   n>=1 || throw(ArgumentError("n ≥ 1 required"))

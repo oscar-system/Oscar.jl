@@ -191,7 +191,7 @@ However, as always, rules sometimes should be broken.
 
 ## Optional arguments for parents of return values
 
-Several objects in Oscar have `parent`s, e.g. polynomials, group elements, ... 
+Several objects in OSCAR have `parent`s, e.g. polynomials, group elements, ... 
 Whenever a function creates such objects from an input which does not involve 
 the output's parent, the user should have the possibility to pass on this 
 parent as an optional argument. 
@@ -235,7 +235,7 @@ This allows for two different entry points for the ring `P` of the output:
 Once as the first argument of a method of `characteristic_polynomial` with 
 an extended signature, and second as an optional keyword argument for `ring` in 
 the original method. This should be the general rule for such implementations 
-within Oscar. 
+within OSCAR. 
 
 ## Deprecating functions
 
