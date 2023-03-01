@@ -268,7 +268,7 @@ julia> G = groebner_basis(I, ordering = o, algorithm = :hilbert);
 julia> length(G)
 296
 
-julia> total_degree(G[296])
+julia> total_degree(G[49])
 30
 ```
 ```jldoctest
@@ -1435,5 +1435,5 @@ function _find_weights(F::Vector{P}) where {P <: MPolyElem}
   ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
   ret = (x -> div(x, gcd(ret))).(ret) 
   # assure that the weights fit in Int32 for singular
-  all(ret .< 2^32) ? return ret : return zeros(Int,ncols)
+  return all(ret .< 2^32) ? ret : zeros(Int,ncols)
 end
