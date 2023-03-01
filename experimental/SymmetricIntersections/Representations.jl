@@ -55,7 +55,7 @@ Here are some tools for representation theory and projective representations.
 We use representation rings as parent object and we represent projective
 representations of a group `G` by a linear lift along a Schur cover of `G`.
 Here we use by default as splitting field the cyclotomic field of degree the
-exponent of the asscoiated group, but a priori functions should work if one
+exponent of the associated group, but a priori functions should work if one
 allows representation ring to be constructed over another splitting field.
 
 Note that all this code is well supported for finite groups and splitting
@@ -238,7 +238,7 @@ function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, 
 end
 
 @doc Markdown.doc"""
-    character_decompositon(rep::LinRep)
+    character_decomposition(rep::LinRep)
                            -> Vector{Tuple{Int, Oscar.GAPGroupClassFunction}}
 
 Return the decomposition of the character afforded by `rep`.
@@ -304,12 +304,12 @@ irreducible character.
 """
 is_isotypical(char::Oscar.GAPGroupClassFunction) = length(character_decomposition(char)) == 1
 
-# We compute all consistuents of chi of degree t
+# We compute all constituents of chi of degree t
 @doc Markdown.doc"""
     constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
                                      -> Vector{Oscar.GAPGroupClassFunction)
 
-Given a character `chi` and an integer `t`, return all the consistuents of
+Given a character `chi` and an integer `t`, return all the constituents of
 `chi` of degree `t`.
 """
 function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
@@ -593,7 +593,7 @@ underlying group of `RR`, return a linear representation in `RR` affording
 `chi`.
 
 Note: we store already computed irreducible representations in `RR` to avoid
-redundacy.
+redundancy.
 """
 function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPGroupClassFunction) where {S, T}
   @req chi in irreducible_characters_underlying_group(RR) "chi is not an irreducible character of RR"
@@ -909,7 +909,7 @@ Base.:(+)(rep1::T, rep2::T) where T <: Union{LinRep, ProjRep} = direct_sum_repre
 ### Some bases operations
 
 """
-Standars basis of `F^n`
+Standard basis of `F^n`
 """
 function _standard_basis(F::U, n::Int) where U
   v = zero_matrix(F, n, 1)
@@ -924,7 +924,7 @@ end
 
 
 @doc Markdown.doc"""
-    basis_exterior_power(B::Vector{T}, t::Int) where T -> Vecotr{Vector{T}}
+    basis_exterior_power(B::Vector{T}, t::Int) where T -> Vector{Vector{T}}
 
 Given a basis `B` of a finite dimensional vector space `V`, return a basis for
 $\bigwedge^t V$, ordered accordingly to the usual Plucker coordinates in the
@@ -956,7 +956,7 @@ function _decompose_in_standard_basis(v)
 end
 
 function _same_support(v::Vector{T}, w::Vector{T}) where T
-  @req length(v) == length(w) "Tensor must have the same number of compoenents"
+  @req length(v) == length(w) "Tensor must have the same number of components"
   return MSet(v).dict == MSet(w).dict
 end
 
@@ -1438,7 +1438,7 @@ end
                                  Tuple{MatElem{U}, MatElem{U}}}
 
 Given a linear representation `rep` in the representation ring `RR` associated
-to a finite group `E` over a field `F`, return a dictionnary whose keys are the
+to a finite group `E` over a field `F`, return a dictionary whose keys are the
 irreducible `F`-characters of `E` which are components of the `F`-character of `E`
 afforded by `rep`. To each key character `chi` is associated a matrix representing
 the projection map corresponding to the isotypical component of `rep` associated
