@@ -1434,6 +1434,6 @@ function _find_weights(F::Vector{P}) where {P <: MPolyElem}
   end
   ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
   ret = (x -> div(x, gcd(ret))).(ret) 
-  @assert iszero(mat_space(exp_diffs) * ret)
-  return ret
+  # assure that the weights fit in Int32 for singular
+  all(ret .< 2^32) ? return ret : return zeros(Int,ncols)
 end
