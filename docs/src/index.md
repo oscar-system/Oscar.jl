@@ -6,13 +6,12 @@ algebraic and polyhedral geometry, and more. It is built upon several well
 established systems for mathematical research joined via the Julia programming
 language. Have a look at our [Architecture](@ref) page for a detailed overview
 and at our [installation
-instructions](https://oscar.computeralgebra.de/install/) for installing OSCAR.
+instructions](https://www.oscar-system.org/install/) for installing OSCAR.
 
 If you have questions about OSCAR, please have a look at our [Frequently Asked
 Questions](@ref) and feel free to contact us under the channels mentioned on
-[our community page](https://oscar.computeralgebra.de/community/). Our main
-communication channels are
-[Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw)
+[our community page](https://www.oscar-system.org/community/). Our main
+communication channels are [Slack](https://oscar-system.org/slack)
 and [Github](https://github.com/oscar-system/Oscar.jl).
 
 If you are a new developer or interested in developing OSCAR, have a look at

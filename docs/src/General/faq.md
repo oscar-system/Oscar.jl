@@ -9,14 +9,7 @@ Pages = ["faq.md"]
 
 **Q: How do I install OSCAR?**
 
-You can find our installation instructions [here](https://oscar.computeralgebra.de/install/).
-
----
-
-**Q: Why do some of your types have funny names like `ZZRingElem` or `QQMatrix`?**
-
-This has historical reasons. We plan to rename these types before OSCAR 1.0
-(the old names will still work indefinitely, though).
+You can find our installation instructions [here](https://www.oscar-system.org/install/).
 
 ---
 
@@ -135,7 +128,7 @@ background. Please read our page on [Complex Algorithms in OSCAR].
 
 **Q: How can I install OSCAR on Windows?**
 
-Please follow [the install instructions on our website](https://oscar.computeralgebra.de/install/).
+Please follow [the install instructions on our website](https://www.oscar-system.org/install/).
 
 ---
 
