@@ -52,7 +52,8 @@ Return the boolean value whether a covered scheme `X` is integral.
 
 """
 @attr function is_integral(X::AbsCoveredScheme)
-  return all(U->(is_integral(U)), affine_charts(X))
+  !is_empty(X) || return false
+  return is_reduced(X) && is_irreducible(X)
 end
 
 # auxilliary function for connectedness of glueing graph
