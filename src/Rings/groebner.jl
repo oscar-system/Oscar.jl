@@ -154,27 +154,23 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
   elseif algorithm == :fglm
     _compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    if all(_is_homogeneous, gens(I))
-      J, target_ordering, weights, hn  = I, ordering, ones(Int, ngens(base_ring(I))), nothing
+    weights = _find_weights(gens(I))
+    if !any(iszero, weights)
+      J, target_ordering, hn = I, ordering, nothing
     else
-      weights = _find_weights(gens(I))
-      if !iszero(weights[1])
-        J, target_ordering, hn = I, ordering, nothing
-      else
-        R = base_ring(I)
-        K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
-        S = base_ring(K)
-        gb = groebner_assure(K, degrevlex(S))
-        K_hom = homogenization(K, "w")
-        gb_hom = IdealGens((p -> homogenization(p, base_ring(K_hom))).(gens(gb)))
-        gb_hom.isGB = true
-        K_hom.gb[degrevlex(S)] = gb_hom
-        singular_assure(K_hom.gb[degrevlex(S)])
-        hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
-        J = homogenization(I, "w")
-        weights = ones(Int, ngens(base_ring(J)))
-        target_ordering = _extend_mon_order(ordering, base_ring(J))
-      end
+      R = base_ring(I)
+      K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
+      S = base_ring(K)
+      gb = groebner_assure(K, degrevlex(S))
+      K_hom = homogenization(K, "w")
+      gb_hom = IdealGens((p -> homogenization(p, base_ring(K_hom))).(gens(gb)))
+      gb_hom.isGB = true
+      K_hom.gb[degrevlex(S)] = gb_hom
+      singular_assure(K_hom.gb[degrevlex(S)])
+      hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
+      J = homogenization(I, "w")
+      weights = ones(Int, ngens(base_ring(J)))
+      target_ordering = _extend_mon_order(ordering, base_ring(J))
     end
     GB = groebner_basis_hilbert_driven(J, ordering=target_ordering,
                                        complete_reduction=complete_reduction,
@@ -1404,6 +1400,11 @@ end
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
 function _find_weights(F::Vector{P}) where {P <: MPolyElem}
+
+  if all(_is_homogeneous, F)
+    return ones(Int, ngens(parent(F[1])))
+  end
+
   nrows = sum((length).(F)) - length(F)
   ncols = ngens(parent(first(F)))
   mat_space = MatrixSpace(QQ, nrows, ncols)
