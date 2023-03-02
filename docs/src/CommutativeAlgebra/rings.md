@@ -334,6 +334,10 @@ grading_group(R::MPolyDecRing)
 homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
 ```
 
+```@docs
+forget_grading(R::MPolyDecRing)
+```
+
 ## Elements of Multivariate Rings
 
 ### Constructors
@@ -472,6 +476,10 @@ is_homogeneous(f::MPolyDecRingElem)
 
 ```@docs
 degree(f::MPolyDecRingElem)
+```
+
+```@docs
+forget_grading(f::MPolyDecRingElem)
 ```
 
 ## Homomorphisms From Multivariate Rings

@@ -22,7 +22,7 @@ function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int
 end
 
 function reduce_hilbert_series_by_primary_degrees(R::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
-  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(f.f) for f in primary_invariants(R) ], chi)
+  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(forget_grading(f)) for f in primary_invariants(R) ], chi)
   @assert fl
   return h
 end
