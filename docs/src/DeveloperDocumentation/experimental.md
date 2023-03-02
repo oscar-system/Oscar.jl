@@ -1,6 +1,6 @@
 # Implementing features from scratch
 
-For new features whose interface naturally will change a lot during the
+For new features whose interface is likely to change a lot during the
 implementation phase, Oscar.jl has a staging area, the `experimental` folder.
 This procedure is also implemented for migrating code from external sources to
 Oscar.
