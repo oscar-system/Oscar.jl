@@ -15,7 +15,7 @@ Oscar.
    new feature.
 4. In the end there are three possibilities:
    1. The feature is considered done and moved into `src` as is.
-   2. The feature is discarded, since it cannot be maintained.
+   2. The feature is discarded, e.g., because it cannot be maintained.
    3. Parts of the feature are moved into `src`, others are discarded.
 
 ## Criteria for acceptance
