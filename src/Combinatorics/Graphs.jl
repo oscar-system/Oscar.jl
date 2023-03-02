@@ -77,9 +77,7 @@ function Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
     return Graph{T}(pmg)
 end
 
-function _has_node(G::Graph, node::Int64)
-    return 0<node && node<=nv(G)
-end
+_has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
 @doc Markdown.doc"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}

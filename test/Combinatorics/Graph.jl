@@ -114,7 +114,7 @@
     end
 
     @testset "errors" begin
-        g = graph{Undirected}(1)
+        g = Graph{Undirected}(1)
         @test_throws ArgumentError add_edge!(g,1,2)
     end
 end
