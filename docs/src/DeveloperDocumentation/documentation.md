@@ -5,6 +5,17 @@ information as possible into the docstrings and only use the doc pages for
 collecting this information and provide some additional general context.
 Exceptions to this philosophy are the developer and general pages.
 
+!!! note "Previewing the documentation"
+    Once you have created a pull request it is possible to preview the
+    documentation on github using the link
+    https://docs.oscar-system.org/previews/PR<prnumber>/
+    where you insert the number of your PR for `prnumber`. Alternatively you
+    can look at the github actions tab of your PR and click the details link
+    next to the documentation action. These things only work if there are no
+    conflicts with the master branch and the documentation action is
+    successful. You can still build the documentation locally with the commands
+    described below.
+
 ## Docstrings of exported functions
 
 Exported function should have docstrings, which look like
