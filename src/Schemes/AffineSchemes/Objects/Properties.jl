@@ -664,11 +664,9 @@ Return the boolean value whether an affine scheme `X` is irreducible.
 """
 @attr function is_irreducible(X::AbsSpec)
   !is_empty(X) || return false
-  if get_attribute(X, is_integral, false)
-## integral = irreducible + reduced
-     return true
-  end 
-  return length(minimal_primes(modulus(OO(X))))==1
+  !get_attribute(X, :is_integral, false) || return true 
+                                           ## integral = irreducible + reduced
+  return (length(minimal_primes(modulus(OO(X)))) == 1)
 end
 
 @doc Markdown.doc"""
