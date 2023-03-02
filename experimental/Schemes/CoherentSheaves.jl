@@ -413,7 +413,7 @@ identifications given by the glueings in the `default_covering`.
       success, _ = _have_common_ancestor(U, V)
       if success
         W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
         gens_V = F(W, V).(gens(F(W)))
         sub_V, inc = sub(F(V), gens_V)
         img_gens = elem_type(F(U))[]
@@ -442,7 +442,7 @@ identifications given by the glueings in the `default_covering`.
       # are only described for those on WU and WV. Thus we need to 
       # implicitly do a base change. This is done by forwarding the generators 
       # of F(WU) to F(U) and expressing it in terms of the generators there. 
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
       gens_V = F(WV, V).(gens(F(WV)))
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
@@ -471,7 +471,7 @@ identifications given by the glueings in the `default_covering`.
       success, _ = _have_common_ancestor(U, V)
       if success
         W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
         gens_V = F(W, V).(gens(F(W)))
         sub_V, inc = sub(F(V), gens_V)
         img_gens = elem_type(F(U))[]
@@ -500,7 +500,7 @@ identifications given by the glueings in the `default_covering`.
       # are only described for those on WU and WV. Thus we need to 
       # implicitly do a base change. This is done by forwarding the generators 
       # of F(WU) to F(U) and expressing it in terms of the generators there. 
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
       gens_V = F(WV, V).(gens(F(WV)))
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
@@ -529,7 +529,7 @@ identifications given by the glueings in the `default_covering`.
       success, _ = _have_common_ancestor(U, V)
       if success
         W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
         gens_V = F(W, V).(gens(F(W)))
         sub_V, inc = sub(F(V), gens_V)
         img_gens = elem_type(F(U))[]
@@ -558,7 +558,7 @@ identifications given by the glueings in the `default_covering`.
       # are only described for those on WU and WV. Thus we need to 
       # implicitly do a base change. This is done by forwarding the generators 
       # of F(WU) to F(U) and expressing it in terms of the generators there. 
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
       gens_V = F(WV, V).(gens(F(WV)))
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
@@ -589,7 +589,7 @@ identifications given by the glueings in the `default_covering`.
       success, _ = _have_common_ancestor(U, V)
       if success
         W = __find_chart(U, default_covering(X))
-        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
         gens_V = F(W, V).(gens(F(W)))
         sub_V, inc = sub(F(V), gens_V)
         img_gens = elem_type(F(U))[]
@@ -618,7 +618,7 @@ identifications given by the glueings in the `default_covering`.
       # are only described for those on WU and WV. Thus we need to 
       # implicitly do a base change. This is done by forwarding the generators 
       # of F(WU) to F(U) and expressing it in terms of the generators there. 
-      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceding clauses
       gens_V = F(WV, V).(gens(F(WV)))
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]

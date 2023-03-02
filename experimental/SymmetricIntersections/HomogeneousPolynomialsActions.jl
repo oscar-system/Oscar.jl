@@ -200,7 +200,7 @@ $\mathbb Z$-graded polynomial algebra `S` associated to `V`, seen as an abstract
 If `check === true` and `j` is provided, then the function checks `j` satisfies the previous
 requirements.
 
-The output is given under the form of a dictionnary whose keys are degree `t` `F`-characters `chi`
+The output is given under the form of a dictionary whose keys are degree `t` `F`-characters `chi`
 of a fixed Schur cover `E` of `G` and the corresponding values are parametrizing space for ideals
 for which the action of `E` on a set of generators is given by `chi`.
 """
@@ -265,7 +265,7 @@ parametrisation for the ideals defining intersections of `t` hypersurfaces
 of the same degree `d` inside $\mathbb P^{n-1}$, which are invariant under the action of
 `G` on the latter projective space.
 
-The output is given by a list of dictionnaries, one for each class of faithful
+The output is given by a list of dictionaries, one for each class of faithful
 linear action of `G` on $\mathbb P^{n-1}$
 """
 function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)

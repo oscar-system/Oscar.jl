@@ -24,6 +24,7 @@ export
     class_lengths,
     class_multiplication_coefficient,
     class_parameters,
+    class_positions_of_center,
     class_positions_of_kernel,
     class_positions_of_pcore,
     decomposition_matrix,
@@ -88,7 +89,6 @@ julia> Oscar.with_unicode() do
          show(atlas_irrationality("3y'''24*13-2&5"))
        end;
 -5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
-
 ```
 """
 function atlas_irrationality(F::AnticNumberField, description::String)
@@ -180,7 +180,6 @@ Sym( [ 1 .. 3 ] ) mod 2
         
 χ₁  1  1
 χ₂  2 -1
-
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
@@ -221,7 +220,6 @@ character_table("A5mod2")
 
 julia> println(character_table("J5"))
 nothing
-
 ```
 """
 function character_table(id::String, p::Int = 0)
@@ -255,7 +253,6 @@ character_table("Sym(5)")
 
 julia> println(character_table(:WeylB, 3))
 character_table("W(B3)")
-
 ```
 
 Currently the following series are supported.
@@ -342,7 +339,6 @@ julia> println(spor_names[1:5])
 
 julia> length(all_character_table_names(number_conjugacy_classes => 1))
 1
-
 ```
 """
 function all_character_table_names(L...; ordered_by = nothing)
@@ -679,7 +675,6 @@ Return the order of the group for which `tbl` is the character table.
 ```jldoctest
 julia> order(character_table(symmetric_group(4)))
 24
-
 ```
 """
 order(tbl::GAPGroupCharacterTable) = order(ZZRingElem, tbl)
@@ -698,7 +693,6 @@ ordered according to the columns of `tbl`.
 ```jldoctest
 julia> println(orders_class_representatives(character_table("A5")))
 [1, 2, 3, 5, 5]
-
 ```
 """
 @gapattribute orders_class_representatives(tbl::GAPGroupCharacterTable) = Vector{Int}(GAP.Globals.OrdersClassRepresentatives(tbl.GAPTable)::GapObj)
@@ -714,7 +708,6 @@ ordered according to the columns of `tbl`.
 ```jldoctest
 julia> println(orders_centralizers(character_table("A5")))
 ZZRingElem[60, 4, 3, 5, 5]
-
 ```
 """
 @gapattribute orders_centralizers(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesCentralizers(tbl.GAPTable)::GAP.Obj)
@@ -726,7 +719,6 @@ ZZRingElem[60, 4, 3, 5, 5]
 ```jldoctest
 julia> println(class_lengths(character_table("A5")))
 ZZRingElem[1, 15, 20, 12, 12]
-
 ```
 """
 @gapattribute class_lengths(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesConjugacyClasses(tbl.GAPTable)::GapObj)
@@ -751,7 +743,6 @@ julia> println(maxes(character_table("M11")))
 
 julia> maxes(character_table("M")) == nothing  # not (yet) known
 true
-
 ```
 """
 function maxes(tbl::GAPGroupCharacterTable)
@@ -771,7 +762,6 @@ It is used mainly for library tables.
 ```jldoctest
 julia> identifier(character_table("A5"))
 "A5"
-
 ```
 """
 @gapattribute identifier(tbl::GAPGroupCharacterTable) = string(GAP.Globals.Identifier(tbl.GAPTable)::GapObj)
@@ -781,16 +771,36 @@ julia> identifier(character_table("A5"))
 
 Return the array of integers ``i`` such that the ``i``-th conjugacy class
 of `tbl` is contained in the `p`-core of the group of `tbl`,
-see [`pcore`](@ref).
+see [`pcore(G::GAPGroup, p::IntegerUnion)`](@ref).
 
 # Examples
 ```jldoctest
-julia> println(Oscar.class_positions_of_pcore(character_table("2.A5"), 2))
+julia> println(class_positions_of_pcore(character_table("2.A5"), 2))
 [1, 2]
-
 ```
 """
 class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion) = Vector{Int}(GAP.Globals.ClassPositionsOfPCore(tbl.GAPTable, GAP.Obj(p))::GapObj)
+
+@doc Markdown.doc"""
+    pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+
+Return the `p`-core of the group of `tbl`,
+see [`pcore(G::GAPGroup, p::IntegerUnion)`](@ref),
+but computed character-theoretically (see [`class_positions_of_pcore`](@ref)).
+
+# Examples
+```jldoctest
+julia> order(pcore(character_table(symmetric_group(4)), 2)[1])
+4
+```
+"""
+function pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    t = tbl.GAPTable
+    pcorepos = GAP.Globals.ClassPositionsOfPCore(t, GAP.Obj(p))::GapObj
+    return _as_subgroup(G, GAP.Globals.NormalSubgroupClasses(t, pcorepos)::GapObj)
+end
 
 function class_positions_of_kernel(fus::Vector{Int})
   return filter(i -> fus[i] == fus[1], 1:length(fus))
@@ -858,7 +868,6 @@ julia> decomposition_matrix(t2)
 [1   1   0   0]
 [0   0   0   1]
 [1   1   1   0]
-
 ```
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
@@ -903,7 +912,6 @@ julia> class_multiplication_coefficient(character_table("A5"), 2, 3, 4)
 
 julia> class_multiplication_coefficient(character_table("A5"), 2, 4, 4)
 0
-
 ```
 """
 function class_multiplication_coefficient(::Type{T}, tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) where T <: IntegerUnion
@@ -928,7 +936,6 @@ julia> possible_class_fusions(character_table("A5"), character_table("A6"))
  [1, 2, 3, 7, 6]
  [1, 2, 4, 6, 7]
  [1, 2, 4, 7, 6]
-
 ```
 """
 function possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
@@ -990,7 +997,6 @@ julia> character_parameters(character_table("S5"))
  [2, 2, 1]
 
 julia> character_parameters(character_table("M11"))
-
 ```
 """
 function character_parameters(tbl::GAPGroupCharacterTable)
@@ -1021,7 +1027,6 @@ julia> class_parameters(character_table("S5"))
  [3, 2]
 
 julia> class_parameters(character_table("M11"))
-
 ```
 """
 function class_parameters(tbl::GAPGroupCharacterTable)
@@ -1177,7 +1182,6 @@ julia> ind = [induced_class_function(chi, t, x) for x in maps];  length(ind)
 4
 julia> length(Set(ind))
 2
-
 ```
 """
 function induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -1207,7 +1211,7 @@ Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values)
 
 @doc Markdown.doc"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
-           where T <: Union{IntegerUnion, ZZRingElem, mpq, QQAbElem}
+           where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
 
 Return `chi[1]`, as an instance of `T`.
 """
@@ -1328,6 +1332,24 @@ end
 Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
 
 @doc Markdown.doc"""
+    is_rational(chi::GAPGroupClassFunction)
+
+Return `true` if all values of `chi` are rational, i.e., in `QQ`,
+and `false` otherwise.
+
+```jldoctest
+julia> all(is_rational, character_table(symmetric_group(4)))
+true
+
+julia> all(is_rational, character_table(alternating_group(4)))
+false
+```
+"""
+function is_rational(chi::GAPGroupClassFunction)
+    return all(is_rational, [x.data for x in values(chi)])
+end
+
+@doc Markdown.doc"""
     is_irreducible(chi::GAPGroupClassFunction)
 
 Return `true` if `chi` is an irreducible character, and `false` otherwise.
@@ -1366,6 +1388,12 @@ end
     class_positions_of_kernel(chi::GAPGroupClassFunction)
 
 Return the array of those integers `i` such that `chi[i] == chi[1]` holds.
+
+# Examples
+```jldoctest
+julia> println(class_positions_of_kernel(character_table("2.A5")[2]))
+[1, 2]
+```
 """
 function class_positions_of_kernel(chi::GAPGroupClassFunction)
     deg = chi[1]
@@ -1376,6 +1404,115 @@ function class_positions_of_kernel(list::Vector{T}) where T
     length(list) == 0 && return T[]
     deg = list[1]
     return filter(i -> list[i] == deg, 1:length(list))
+end
+
+@doc Markdown.doc"""
+    kernel(chi::GAPGroupClassFunction)
+
+Return `C, f` where `C` is the kernel of `chi`
+(i.e. the largest normal subgroup of the underlying group `G` of `chi`
+such that `chi` maps each element of `C` to `chi[1]`)
+and `f` is the embedding morphism of `C` into `G`.
+
+# Examples
+```jldoctest
+julia> t = character_table(symmetric_group(4));
+
+julia> chi = t[3];  chi[1]
+2
+
+julia> C, f = kernel(chi);  order(C)
+4
+```
+"""
+function kernel(chi::GAPGroupClassFunction)
+    tbl = chi.table
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    return _as_subgroup(G, GAP.Globals.KernelOfCharacter(tbl.GAPTable, chi.values))
+end
+
+@doc Markdown.doc"""
+    class_positions_of_center(chi::GAPGroupClassFunction)
+
+Return the array of those integers `i` such that `chi[i]` is `chi[1]` times
+a root of unity.
+
+# Examples
+```jldoctest
+julia> println(class_positions_of_center(character_table("2.A5")[2]))
+[1, 2]
+```
+"""
+function class_positions_of_center(chi::GAPGroupClassFunction)
+    return Vector{Int}(GAP.Globals.ClassPositionsOfCentre(chi.values))
+end
+
+@doc Markdown.doc"""
+    center(chi::GAPGroupClassFunction)
+
+Return `C, f` where `C` is the center of `chi`
+(i.e. the largest normal subgroup of the underlying group `G` of `chi`
+such that `chi` maps each element of `C` to `chi[1]` times a root of unity)
+and `f` is the embedding morphism of `C` into `G`.
+
+# Examples
+```jldoctest
+julia> t = character_table(symmetric_group(4));
+
+julia> chi = t[3];  chi[1]
+2
+
+julia> C, f = center(chi);  order(C)
+4
+```
+"""
+function center(chi::GAPGroupClassFunction)
+    tbl = chi.table
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    return _as_subgroup(G, GAP.Globals.CentreOfCharacter(tbl.GAPTable, chi.values))
+end
+
+@doc Markdown.doc"""
+    det(chi::GAPGroupClassFunction)
+
+Return the determinant character of the character `chi`.
+This is defined to be the character obtained by taking the determinant
+of representing matrices of any representation affording `chi`.
+
+# Examples
+```jldoctest
+julia> t = character_table(symmetric_group(4));
+
+julia> all(chi -> det(chi) == exterior_power(chi, Int(degree(chi))), t)
+true
+```
+"""
+function det(chi::GAPGroupClassFunction)
+    values = GAP.Globals.DeterminantOfCharacter(chi.values)
+    return GAPGroupClassFunction(chi.table, values)
+end
+
+# Note that defining the determinantal order for arbitrary characters
+# is not possible in GAP.
+@doc Markdown.doc"""
+    order(::Type{T} = ZZRingElem, chi::GAPGroupClassFunction)
+          where T <: IntegerUnion
+
+Return the determinantal order of the character `chi`.
+This is defined to be the multiplicative order of `det(chi)`.
+
+# Examples
+```jldoctest
+julia> println([order(chi) for chi in character_table(symmetric_group(4))])
+ZZRingElem[2, 1, 2, 2, 1]
+```
+"""
+order(chi::GAPGroupClassFunction) = order(ZZRingElem, chi)::ZZRingElem
+
+function order(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
+    return T(GAP.Globals.Order(det(chi).values))::T
 end
 
 @doc Markdown.doc"""
