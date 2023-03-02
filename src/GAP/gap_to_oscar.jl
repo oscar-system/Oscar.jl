@@ -44,7 +44,7 @@ function (F::FinField)(x::GAP.FFE)
         # FFE in GAP only exist for "small" characteristic, so we know the int
         # value fits into an Int; telling Julia about this via a type assertion
         # results in slightly better code
-        val = GAPWrap.INT_FFE_DEFAULT(x)::Int
+        val = GAPWrap.INT_FFE_DEFAULT(x)
         return F(val)
     end
 
