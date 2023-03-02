@@ -6,9 +6,9 @@ function convert(p::Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(
     monomials = Matrix{Int}(Polymake.monomials_as_matrix(p))
     n_vars = ncols(monomials)
 
-    # variable labeling from polymake is preserved
+    # variable labeling from polymake is shifted
     if isnothing(parent)
-        parent, _ = polynomial_ring(QQ, "x" => 0:n_vars - 1, cached=false)
+        parent, _ = polynomial_ring(QQ, "x" => 1:n_vars, cached=false)
     end
 
     return parent(coeff_vec, [monomials[i, :] for i in 1:nrows(monomials)]) 
@@ -16,7 +16,7 @@ end
 
 function convert(::Type{MPolyIdeal{QQMPolyRingElem}}, O::Polymake.BigObject)
     n_vars = O.N_VARIABLES
-    R, _ = polynomial_ring(QQ, "x" => 0:n_vars - 1, cached=false)
+    R, _ = polynomial_ring(QQ, "x" => 1:n_vars, cached=false)
     converted_generators = map(p -> convert(p, parent=R), O.GENERATORS)
     
     return ideal(R, converted_generators)

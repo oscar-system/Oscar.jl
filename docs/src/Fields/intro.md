@@ -38,6 +38,6 @@ Please direct questions about this part of OSCAR to the following people:
 * [Tommy Hofmann](https://www.thofma.com/),
 * [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn).
 
-You can ask questions in the [OSCAR Slack](https://oscar.computeralgebra.de/community/#slack).
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
-Alternatively, you can [raise an issue on github](https://oscar.computeralgebra.de/community/#how-to-report-issues).
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).

@@ -13,7 +13,7 @@ into a comprehensive tool for computational algebra.
 
   For more information please visit
 
-  `https://oscar.computeralgebra.de`
+  `https://www.oscar-system.org`
 
 OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
@@ -126,7 +126,7 @@ windows_error() = error("""
 
     This package unfortunately does not run natively under Windows.
     Please install Julia using Windows subsystem for Linux and try again.
-    See also https://oscar.computeralgebra.de/install/.
+    See also https://www.oscar-system.org/install/.
     """)
 
 if Sys.iswindows()
