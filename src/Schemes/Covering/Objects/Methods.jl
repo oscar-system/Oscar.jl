@@ -56,6 +56,7 @@ function neighbor_patches(C::Covering, U::AbsSpec)
   return [C[i] for i in n]
 end
 
+## compute the glueing graph for the given covering and store it
 function update_glueing_graph(C::Covering)
   n = npatches(C)
   gg = Graph{Undirected}(n)
@@ -68,6 +69,9 @@ function update_glueing_graph(C::Covering)
   return gg
 end
 
+## prune the covering by throwing away empty charts and then compute
+## the glueing graph afterwards 
+## (relevant data for connectedness of glueing)
 function pruned_glueing_graph(C::Covering)
   v = findall(U->!is_empty(U), C.patches)
   m = length(v)

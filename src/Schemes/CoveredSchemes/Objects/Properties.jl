@@ -58,6 +58,8 @@ end
 
 # auxilliary function for connectedness of glueing graph
 #      do not confuse with connectedness of the scheme
+# Note: This does not work with glueing_graph, because empty patches
+#      need to be ignored without changing the covering
 @attr function is_connected_glueing(X::AbsCoveredScheme)
   return is_connected(pruned_glueing_graph(default_covering(X)))
 end
@@ -105,6 +107,6 @@ Return the boolean value whether a covered scheme `X` is irreducible.
 @attr function is_irreducible(X::AbsCoveredScheme)
   is_connected_glueing(X) || return false
   !is_empty(X) || return false
-  v=findall(U->!is_empty(U), affine_charts(X))
+  v=findall(U->!is_empty(U), affine_charts(X))  ## only check non-empty patches
   return all(is_irreducible(affine_charts(X)[v[i]]) for i in 1:length(v) )
 end
