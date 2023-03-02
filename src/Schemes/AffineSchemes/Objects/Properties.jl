@@ -666,7 +666,7 @@ Return the boolean value whether an affine scheme `X` is irreducible.
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true 
                                            ## integral = irreducible + reduced
-  return (length(minimal_primes(modulus(OO(X)))) == 1)
+  return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
 end
 
 @doc Markdown.doc"""
