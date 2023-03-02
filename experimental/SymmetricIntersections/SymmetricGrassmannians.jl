@@ -111,7 +111,7 @@ function defining_ideal(M::IsotypicalGrassmannian)
     return defining_ideal(projective_space(F, binomial(n,t)-1))
   end
   t = cd[1]
-  S, _ = GradedPolynomialRing(F, ["x[$j]" for j in 0:binomial(n, t)-1], [1 for i in 1:binomial(n,t)])
+  S, _ = graded_polynomial_ring(F, ["x[$j]" for j in 0:binomial(n, t)-1], [1 for i in 1:binomial(n,t)])
   return grassmann_pluecker_ideal(S, t, n)
 end
 

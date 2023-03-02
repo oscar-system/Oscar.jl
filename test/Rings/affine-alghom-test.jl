@@ -58,7 +58,7 @@ end
   @test t[1] == true
   @test t[2] == gen(T, 1)^2-gen(T, 2)^2+gen(T, 2)
 
-  R, (x, y, z) = GradedPolynomialRing(QQ, [ "x", "y", "z" ], [ 3, 1, 3 ])
+  R, (x, y, z) = graded_polynomial_ring(QQ, [ "x", "y", "z" ], [ 3, 1, 3 ])
   f = x^2 - y^6 + z^2
   v = [ x, y^3, z - y^3 ]
   fl, t = subalgebra_membership_homogeneous(f, v)

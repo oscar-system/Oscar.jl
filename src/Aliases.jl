@@ -91,3 +91,4 @@ export Graphs
 @alias SubQuo SubquoModule
 #@alias SubQuoElem_dec SubquoDecModuleElem
 #@alias SubQuo_dec SubquoDecModule
+@alias GradedPolynomialRing graded_polynomial_ring

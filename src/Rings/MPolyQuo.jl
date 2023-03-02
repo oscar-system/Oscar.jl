@@ -460,7 +460,7 @@ julia> I = ideal(A, [x^2-y])
 ideal(x^2 - y)
 ```
 ```jldoctest
-julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]));
 
@@ -775,7 +775,7 @@ julia> typeof(p(x))
 MPolyQuoRingElem{QQMPolyRingElem}
 ```jldoctest
 ```
-julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
@@ -1036,7 +1036,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"] );
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
@@ -1107,7 +1107,7 @@ and return the homogeneous component of `f` whose degree is that element.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
@@ -1140,7 +1140,7 @@ Given an element `f` of a graded affine algebra, return the homogeneous componen
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
@@ -1166,7 +1166,7 @@ Given an element `f` of a graded affine algebra, return `true` if `f` is homogen
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
@@ -1192,7 +1192,7 @@ If `A` is, say, `G`-graded, return `G`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [x^2*z-y^3, x-y]));
 
@@ -1288,7 +1288,7 @@ return an array containing a minimal set of generators of `a`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
 
