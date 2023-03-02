@@ -1,8 +1,10 @@
-export weight, decorate, is_homogeneous, homogeneous_components, filtrate,
-grade, graded_polynomial_ring, homogeneous_component, jacobi_matrix, jacobi_ideal,
-HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
+export weight, decorate, is_homogeneous, homogeneous_components, filtrate
+export grade, graded_polynomial_ring, homogeneous_component, jacobi_matrix, jacobi_ideal
+export HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading
+export homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
 export MPolyDecRing, MPolyDecRingElem, is_homogeneous, is_graded
+export forget_decoration
+export forget_grading
 
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -61,11 +63,11 @@ function show(io::IO, W::MPolyDecRing)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
   if is_filtered(W)
-    println(io, "$(W.R) filtrated by ")
+    println(io, "$(forget_decoration(W)) filtrated by ")
   else
-    println(io, "$(W.R) graded by ")
+    println(io, "$(forget_decoration(W)) graded by ")
   end
-  R = W.R
+  R = forget_decoration(W)
   g = gens(R)
   for i = 1:ngens(R)
     if i == ngens(R)
@@ -589,44 +591,44 @@ mutable struct MPolyDecRingElem{T, S} <: MPolyRingElem{T}
 end
 
 function Base.deepcopy_internal(f::MPolyDecRingElem{T, S}, dict::IdDict) where {T, S}
-  return MPolyDecRingElem(Base.deepcopy_internal(f.f, dict), f.parent)
+  return MPolyDecRingElem(Base.deepcopy_internal(forget_decoration(f), dict), f.parent)
 end
 
 function show(io::IO, w::MPolyDecRingElem)
-  show(io, w.f)
+  show(io, forget_decoration(w))
 end
 
 parent(a::MPolyDecRingElem{T, S}) where {T, S} = a.parent::MPolyDecRing{T, parent_type(S)}
 
-Nemo.symbols(R::MPolyDecRing) = symbols(R.R)
-Nemo.nvars(R::MPolyDecRing) = nvars(R.R)
+Nemo.symbols(R::MPolyDecRing) = symbols(forget_decoration(R))
+Nemo.nvars(R::MPolyDecRing) = nvars(forget_decoration(R))
 
 elem_type(::MPolyDecRing{T, S}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 elem_type(::Type{MPolyDecRing{T, S}}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, parent_type(S)}
 
-(W::MPolyDecRing)() = MPolyDecRingElem(W.R(), W)
-(W::MPolyDecRing)(i::Int) = MPolyDecRingElem(W.R(i), W)
-(W::MPolyDecRing)(f::Singular.spoly) = MPolyDecRingElem(W.R(f), W)
+(W::MPolyDecRing)() = MPolyDecRingElem(forget_decoration(W)(), W)
+(W::MPolyDecRing)(i::Int) = MPolyDecRingElem(forget_decoration(W)(i), W)
+(W::MPolyDecRing)(f::Singular.spoly) = MPolyDecRingElem(forget_decoration(W)(f), W)
 
 ### Coercion of elements of the underlying polynomial ring 
 # into the graded ring. 
 function (W::MPolyDecRing{S, T})(f::U) where {S, T, U}
   if parent_type(U) === T
-    @assert W.R === parent(f)
+    @assert forget_decoration(W) === parent(f)
     return MPolyDecRingElem(f, W)
   else
-    return W(W.R(f))
+    return W(forget_decoration(W)(f))
   end
 end
 
 function (W::MPolyDecRing{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T
-  return W(W.R(c, e))
+  return W(forget_decoration(W)(c, e))
 end
 
-(W::MPolyDecRing)(g::MPolyDecRingElem) = MPolyDecRingElem(g.f, W)
-one(W::MPolyDecRing) = MPolyDecRingElem(one(W.R), W)
-zero(W::MPolyDecRing) = MPolyDecRingElem(zero(W.R), W)
+(W::MPolyDecRing)(g::MPolyDecRingElem) = MPolyDecRingElem(forget_decoration(g), W)
+one(W::MPolyDecRing) = MPolyDecRingElem(one(forget_decoration(W)), W)
+zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 
 ################################################################################
 #
@@ -636,7 +638,7 @@ zero(W::MPolyDecRing) = MPolyDecRingElem(zero(W.R), W)
 
 for T in [:(+), :(-), :(*), :divexact]
   @eval ($T)(a::MPolyDecRingElem,
-             b::MPolyDecRingElem) = MPolyDecRingElem($T(a.f, b.f), parent(a))
+             b::MPolyDecRingElem) = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
 end
 
 ################################################################################
@@ -645,7 +647,7 @@ end
 #
 ################################################################################
 
--(a::MPolyDecRingElem)   = MPolyDecRingElem(-a.f, parent(a))
+-(a::MPolyDecRingElem)   = MPolyDecRingElem(-forget_decoration(a), parent(a))
 
 ################################################################################
 #
@@ -653,34 +655,34 @@ end
 #
 ################################################################################
 
-divexact(a::MPolyDecRingElem, b::RingElem) = MPolyDecRingElem(divexact(a.f, b), parent(a))
+divexact(a::MPolyDecRingElem, b::RingElem) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
 
-divexact(a::MPolyDecRingElem, b::Integer) = MPolyDecRingElem(divexact(a.f, b), parent(a))
+divexact(a::MPolyDecRingElem, b::Integer) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
 
-divexact(a::MPolyDecRingElem, b::Rational) = MPolyDecRingElem(divexact(a.f, b), parent(a))
+divexact(a::MPolyDecRingElem, b::Rational) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
 
 for T in [:(-), :(+)]
   @eval ($T)(a::MPolyDecRingElem,
-             b::RingElem) = MPolyDecRingElem($(T)(a.f, b), parent(a))
+             b::RingElem) = MPolyDecRingElem($(T)(forget_decoration(a), b), parent(a))
 
   @eval ($T)(a::MPolyDecRingElem,
-             b::Integer) = MPolyDecRingElem($(T)(a.f, b), parent(a))
+             b::Integer) = MPolyDecRingElem($(T)(forget_decoration(a), b), parent(a))
 
   @eval ($T)(a::MPolyDecRingElem,
-             b::Rational) = MPolyDecRingElem($(T)(a.f, b), parent(a))
+             b::Rational) = MPolyDecRingElem($(T)(forget_decoration(a), b), parent(a))
 
   @eval ($T)(a::RingElem,
-             b::MPolyDecRingElem) = MPolyDecRingElem($(T)(a, b.f), b.parent)
+             b::MPolyDecRingElem) = MPolyDecRingElem($(T)(a, forget_decoration(b)), b.parent)
 
   @eval ($T)(a::Integer,
-             b::MPolyDecRingElem) = MPolyDecRingElem($(T)(a, b.f), b.parent)
+             b::MPolyDecRingElem) = MPolyDecRingElem($(T)(a, forget_decoration(b)), b.parent)
 
   @eval ($T)(a::Rational,
-             b::MPolyDecRingElem) = MPolyDecRingElem($(T)(a, b.f), b.parent)
+             b::MPolyDecRingElem) = MPolyDecRingElem($(T)(a, forget_decoration(b)), b.parent)
 end
 
 function *(a::MPolyDecRingElem{T, S}, b::T) where {T <: RingElem, S}
-  return MPolyDecRingElem(a.f * b, parent(a))
+  return MPolyDecRingElem(forget_decoration(a) * b, parent(a))
 end
 
 function *(a::T, b::MPolyDecRingElem{T, S}) where {T <: RingElem, S}
@@ -696,7 +698,7 @@ end
 function factor(x::Oscar.MPolyDecRingElem)
   R = parent(x)
   D = Dict{elem_type(R), Int64}()
-  F = factor(x.f)
+  F = factor(forget_decoration(x))
   n=length(F.fac)
   #if n == 1
   #  return Fac(R(F.unit), D)
@@ -710,17 +712,17 @@ end
 
 function gcd(x::Oscar.MPolyDecRingElem, y::Oscar.MPolyDecRingElem)
   R = parent(x)
-  return R(gcd(x.f, y.f))
+  return R(gcd(forget_decoration(x), forget_decoration(y)))
 end
 
 function div(x::Oscar.MPolyDecRingElem, y::Oscar.MPolyDecRingElem)
   R = parent(x)
-  return R(div(x.f, y.f))
+  return R(div(forget_decoration(x), forget_decoration(y)))
 end
 
 function divrem(x::MPolyDecRingElem, y::MPolyDecRingElem)
   R = parent(x)
-  q, r = divrem(x.f, y.f)
+  q, r = divrem(forget_decoration(x), forget_decoration(y))
   return R(q), R(r)
 end
 
@@ -730,9 +732,9 @@ end
 #
 ################################################################################
 
-==(a::MPolyDecRingElem, b::MPolyDecRingElem) = a.f == b.f
+==(a::MPolyDecRingElem, b::MPolyDecRingElem) = forget_decoration(a) == forget_decoration(b)
 
-^(a::MPolyDecRingElem, i::Int) = MPolyDecRingElem(a.f^i, parent(a))
+^(a::MPolyDecRingElem, i::Int) = MPolyDecRingElem(forget_decoration(a)^i, parent(a))
 
 function mul!(a::MPolyDecRingElem, b::MPolyDecRingElem, c::MPolyDecRingElem)
   return b*c
@@ -742,29 +744,29 @@ function addeq!(a::MPolyDecRingElem, b::MPolyDecRingElem)
   return a+b
 end
 
-length(a::MPolyDecRingElem) = length(a.f)
-total_degree(a::MPolyDecRingElem) = total_degree(a.f)
-AbstractAlgebra.monomial(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.monomial(a.f, i))
-AbstractAlgebra.coeff(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.coeff(a.f, i)
-AbstractAlgebra.term(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.term(a.f, i))
-AbstractAlgebra.exponent_vector(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.exponent_vector(a.f, i)
-AbstractAlgebra.exponent_vector(a::MPolyDecRingElem, i::Int, ::Type{T}) where T = AbstractAlgebra.exponent_vector(a.f, i, T)
-AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int) = AbstractAlgebra.exponent(a.f, i, j)
-AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int, ::Type{T}) where T = AbstractAlgebra.exponent(a.f, i, j, T)
+length(a::MPolyDecRingElem) = length(forget_decoration(a))
+total_degree(a::MPolyDecRingElem) = total_degree(forget_decoration(a))
+AbstractAlgebra.monomial(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.monomial(forget_decoration(a), i))
+AbstractAlgebra.coeff(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.coeff(forget_decoration(a), i)
+AbstractAlgebra.term(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.term(forget_decoration(a), i))
+AbstractAlgebra.exponent_vector(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.exponent_vector(forget_decoration(a), i)
+AbstractAlgebra.exponent_vector(a::MPolyDecRingElem, i::Int, ::Type{T}) where T = AbstractAlgebra.exponent_vector(forget_decoration(a), i, T)
+AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int) = AbstractAlgebra.exponent(forget_decoration(a), i, j)
+AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int, ::Type{T}) where T = AbstractAlgebra.exponent(forget_decoration(a), i, j, T)
 
 function has_weighted_ordering(R::MPolyDecRing)
   grading_to_ordering = false
-  w_ord = degrevlex(gens(R.R)) # dummy, not used
+  w_ord = degrevlex(gens(forget_decoration(R))) # dummy, not used
   # This is not meant to be exhaustive, there a probably more gradings which one
   # can meaningfully translate into a monomial ordering
   # However, we want to stick to global orderings.
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
-      w_ord = degrevlex(gens(R.R))
+      w_ord = degrevlex(gens(forget_decoration(R)))
       grading_to_ordering = true
     elseif all(x -> x > 0, w)
-      w_ord = wdegrevlex(gens(R.R), w)
+      w_ord = wdegrevlex(gens(forget_decoration(R)), w)
       grading_to_ordering = true
     end
   end
@@ -781,13 +783,13 @@ end
 
 function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   if !keep_ordering
-    return singular_poly_ring(R.R, default_ordering(R))
+    return singular_poly_ring(forget_decoration(R), default_ordering(R))
   end
-  return singular_poly_ring(R.R, keep_ordering = keep_ordering)
+  return singular_poly_ring(forget_decoration(R), keep_ordering = keep_ordering)
 end
 
-MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(f.f)
-MPolyExponentVectors(f::MPolyDecRingElem) = MPolyExponentVectors(f.f)
+MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
+MPolyExponentVectors(f::MPolyDecRingElem) = MPolyExponentVectors(forget_decoration(f))
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -800,7 +802,7 @@ function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vect
 end
 
 function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
-  f.f = set_exponent_vector!(f.f, i, exps)
+  f.f = set_exponent_vector!(forget_decoration(f), i, exps)
   return f
 end
 
@@ -938,7 +940,7 @@ function degree(a::MPolyDecRingElem)
   w = W.D[0]
   first = true
   d = W.d
-  for c = MPolyExponentVectors(a.f)
+  for c = MPolyExponentVectors(forget_decoration(a))
     u = W.D[0]
     for i=1:length(c)
       u += c[i]*d[i]
@@ -1008,7 +1010,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   D = parent(F).D
   d = parent(F).d
   S = Set{elem_type(D)}()
-  for c = MPolyExponentVectors(F.f)
+  for c = MPolyExponentVectors(forget_decoration(F))
     u = parent(F).D[0]
     for i=1:length(c)
       u += c[i]*d[i]
@@ -1075,14 +1077,14 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
   d = parent(a).d
   h = Dict{elem_type(D), typeof(a)}()
   W = parent(a)
-  R = W.R
+  R = forget_decoration(W)
   # First assemble the homogeneous components into the build contexts.
   # Afterwards compute the polynomials.
   hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
   dmat = vcat([d[i].coeff for i in 1:length(d)])
   tmat = zero_matrix(ZZ, 1, nvars(R))
   res_mat = zero_matrix(ZZ, 1, ncols(dmat))
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(a.f), AbstractAlgebra.exponent_vectors(a.f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(forget_decoration(a)), AbstractAlgebra.exponent_vectors(forget_decoration(a)))
     # this is non-allocating
     for i in 1:length(e)
       tmat[1, i] = e[i]
@@ -1194,10 +1196,10 @@ z
 ```
 """
 function homogeneous_component(a::MPolyDecRingElem, g::GrpAbFinGenElem)
-  R = parent(a).R
+  R = forget_decoration(parent(a))
   r = R(0)
   d = parent(a).d
-  for (c, m) = Base.Iterators.zip(MPolyCoeffs(a.f), Generic.MPolyMonomials(a.f))
+  for (c, m) = Base.Iterators.zip(MPolyCoeffs(forget_decoration(a)), Generic.MPolyMonomials(forget_decoration(a)))
     e = exponent_vector(m, 1)
     u = parent(a).D[0]
     for i=1:length(e)
@@ -1220,13 +1222,13 @@ function homogeneous_component(a::MPolyDecRingElem, g::Vector{<:IntegerUnion})
   return homogeneous_component(a, grading_group(parent(a))(g))
 end
 
-base_ring(W::MPolyDecRing) = base_ring(W.R)
-Nemo.ngens(W::MPolyDecRing) = Nemo.ngens(W.R)
-Nemo.gens(W::MPolyDecRing) = map(W, gens(W.R))
-Nemo.gen(W::MPolyDecRing, i::Int) = W(gen(W.R, i))
-Base.getindex(W::MPolyDecRing, i::Int) = W(W.R[i])
+base_ring(W::MPolyDecRing) = base_ring(forget_decoration(W))
+Nemo.ngens(W::MPolyDecRing) = Nemo.ngens(forget_decoration(W))
+Nemo.gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
+Nemo.gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
+Base.getindex(W::MPolyDecRing, i::Int) = W(forget_decoration(W)[i])
 
-base_ring(f::MPolyDecRingElem) = base_ring(f.f)
+base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
@@ -1372,7 +1374,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
      k = solve_mixed(transpose(A), transpose(d.coeff), C)    
      for ee = 1:nrows(k)
        e = k[ee, :]
-       a = MPolyBuildCtx(W.R)
+       a = MPolyBuildCtx(forget_decoration(W))
        push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
        push!(B, W(finish(a)))
      end
@@ -2456,19 +2458,70 @@ terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
 and random coefficients via `v...`.
 """
 function rand(S::MPolyDecRing, term_range, deg_range, v...)
-  f = zero(S.R)
+  f = zero(forget_decoration(S))
   d = rand(deg_range)
   for i=1:rand(term_range)
-    t = S.R(rand(base_ring(S), v...))
+    t = forget_decoration(S)(rand(base_ring(S), v...))
     if iszero(t)
       continue
     end
-    for j=1:ngens(S.R)-1
-      t *= gen(S.R, j)^rand(0:(d-total_degree(t)))
+    for j=1:ngens(forget_decoration(S))-1
+      t *= gen(forget_decoration(S), j)^rand(0:(d-total_degree(t)))
     end
     #the last exponent is deterministic...
-    t *= gen(S.R, ngens(S.R))^(d-total_degree(t))
+    t *= gen(forget_decoration(S), ngens(forget_decoration(S)))^(d-total_degree(t))
     f += t
   end
   return S(f)
 end
+
+################################################################################
+#
+#  Forgetting the decoration / grading
+#
+################################################################################
+
+@doc Markdown.doc"""
+    forget_decoration(R::MPolyDecRing)
+
+Return the underlying undecorated ring.
+"""
+forget_decoration(R::MPolyDecRing) = R.R
+
+@doc Markdown.doc"""
+    forget_grading(R::MPolyDecRing)
+
+Return the ungraded undecorated ring.
+"""
+forget_grading(R::MPolyDecRing) = forget_decoration(R)
+
+@doc Markdown.doc"""
+    forget_decoration(f::MPolyDecRingElem)
+
+Return the element in the underlying undecorated ring.
+"""
+forget_decoration(f::MPolyDecRingElem) = f.f
+
+@doc Markdown.doc"""
+    forget_grading(f::MPolyDecRingElem)
+
+Return the element in the underlying ungraded ring.
+"""
+forget_grading(f::MPolyDecRingElem) = forget_decoration(f)
+
+@doc Markdown.doc"""
+    forget_decoration(I::MPolyIdeal{<:MPolyDecRingElem})
+
+Return the ideal in the underlying undecorated ring.
+"""
+function forget_decoration(I::MPolyIdeal{<:MPolyDecRingElem})
+  R = forget_decoration(base_ring(I))
+  return ideal(R, map(forget_decoration, gens(I)))
+end
+
+@doc Markdown.doc"""
+    forget_grading(I::MPolyIdeal{<:MPolyDecRingElem})
+
+Return the ideal in the underlying ungraded ring.
+"""
+forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
