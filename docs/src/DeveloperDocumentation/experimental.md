@@ -2,11 +2,15 @@
 
 For new features whose interface naturally will change a lot during the
 implementation phase, Oscar.jl has a staging area, the `experimental` folder.
+This procedure is also implemented for migrating code from external sources to
+Oscar.
 
 1. The new feature is implemented in the `experimental` folder.
-2. Additionally to the original authors, a maintainer is assigned to guide the
-   authors such that the implementation adheres to the [Developer Style
-   Guide](@ref) and the [Design Decisions](@ref).
+2. For external authors, a maintainer is assigned to guide the authors such
+   that the implementation adheres to the [Developer Style Guide](@ref) and the
+   [Design Decisions](@ref).
+   Please get in touch with us as soon as possible, preferably on the [OSCAR
+   Slack](https://oscar.computeralgebra.de/community/#slack).
 3. The new feature is tested thoroughly, other people are invited to test the
    new feature.
 4. In the end there are three possibilities:
