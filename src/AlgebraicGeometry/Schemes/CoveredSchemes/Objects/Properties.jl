@@ -59,7 +59,7 @@ end
 # auxilliary function for connectedness of glueing graph
 #      do not confuse with connectedness of the scheme
 @attr function is_connected_glueing(X::AbsCoveredScheme)
-  return is_connected(glueing_graph(default_covering(X)))
+  return is_connected(pruned_glueing_graph(default_covering(X)))
 end
 
 ########################################################################
@@ -77,7 +77,7 @@ Return the boolean value whether a covered scheme `X` is connected.
   # note for future implementation: expensive property
   # 1) do primary decomposition
   # 2) check connectedness of lowest two layers of the intersection lattice
-  return(get_attribute(X,:is_connected)
+  return(get_attribute(X,:is_connected))
 end
 
 ##############################################################################
@@ -90,7 +90,7 @@ Return the boolean value whether a covered scheme `X` is reduced.
 
 """
 @attr function is_reduced(X::AbsCoveredScheme)
-  return all(U->is_reduced(U), affine_charts(X))
+  return all(is_reduced, affine_charts(X))
 end
 
 ##############################################################################
@@ -104,5 +104,7 @@ Return the boolean value whether a covered scheme `X` is irreducible.
 """
 @attr function is_irreducible(X::AbsCoveredScheme)
   is_connected_glueing(X) || return false
-  return all(U->is_irreducible(X), affine_charts(X))
+  !is_empty(X) || return false
+  v=findall(U->!is_empty(U), affine_charts(X))
+  return all(is_irreducible(affine_charts(X)[v[i]]) for i in 1:length(v) )
 end

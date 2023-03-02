@@ -68,6 +68,22 @@ function update_glueing_graph(C::Covering)
   return gg
 end
 
+function pruned_glueing_graph(C::Covering)
+  v = findall(U->!is_empty(U), C.patches)
+  m = length(v)
+  gt = Graph{Undirected}(m)
+  for (X, Y) in keys(glueings(C))
+    i = findfirst(==(C[X]),v)
+    !isnothing(i) || continue
+    j = findfirst(==(C[Y]),v)
+    !isnothing(j) || continue
+    (U, V) = glueing_domains(C[X,Y])
+    is_dense(U) && add_edge!(gt, i, j)
+    is_dense(V) && add_edge!(gt, j, i)
+  end
+  return gt
+end
+
 function transition_graph(C::Covering)
   if !isdefined(C, :transition_graph)
     p = length(keys(glueings(C)))
