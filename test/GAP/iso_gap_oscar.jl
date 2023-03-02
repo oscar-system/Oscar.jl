@@ -55,9 +55,7 @@ end
   # We support isomorphisms only from GAP fields that are extensions of
   # the prime field.
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.
-# @testset "with characteristic $p" for p in [5, 65537, next_prime(ZZRingElem(2)^64)]
-#T currently these the additional tests fail due to missing `embed_matrices`
-  @testset "with characteristic $p" for p in [5]
+  @testset "with characteristic $p" for p in [5, 65537, next_prime(ZZRingElem(2)^64)]
     gap_p = GAP.Obj(p)
     @testset "with degree $d" for d in 2:3
       F = GAP.Globals.GF(gap_p, d)
@@ -80,6 +78,17 @@ end
       @test_throws ErrorException preimage(iso, GF(p2)(1))
     end
   end
+
+  # Test the situation where a finite `AlgebraicExtension` field is chosen
+  # on the GAP side.  (The test will fail if GAP will again run into the
+  # problem of https://github.com/gap-system/gap/issues/4694.)
+  R, x = polynomial_ring(GF(2))
+  iso = Oscar.iso_oscar_gap(R)
+  FG = GAP.Globals.AlgebraicExtension(
+           GAP.Globals.LeftActingDomain(codomain(iso)), iso(x^2+x+1))
+  iso = Oscar.iso_gap_oscar(FG)
+  @test GAP.Globals.IsCanonicalBasisAlgebraicExtension(
+            GAP.Globals.Basis(domain(iso)))
 end
 
 @testset "field of rationals, ring of integers" begin
@@ -122,6 +131,50 @@ end
     @test_throws ErrorException image(iso, GAP.Globals.Z(2))
     @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
   end
+end
+
+@testset "number fields" begin
+   @testset "subfield $F of a cyclotomic field" for F in
+     [ GAP.evalstr( "Field( [ Sqrt(5) ] )" ),
+       GAP.evalstr( "Field( [ EC(19) ] )" ) ]
+
+     x = GAP.Globals.GeneratorsOfField(F)[1]
+     y = GAP.Globals.One(F)
+     iso = Oscar.iso_gap_oscar(F)
+     @test iso === Oscar.iso_gap_oscar(F)  # test that everything gets cached
+     ox = iso(x)
+     oy = iso(y)
+     for i in 1:10
+       xi = x^i
+       oxi = iso(xi)
+       @test preimage(iso, oxi) == xi
+       @test oxi == ox^i
+       @test oxi + oy == iso(xi + y)
+     end
+   end
+
+   R, x = polynomial_ring(QQ)
+   iso = Oscar.iso_oscar_gap(R)
+   QQG = GAP.Globals.LeftActingDomain(codomain(iso))
+
+   @testset "`AlgebraicExtension` for polynomial $pol" for pol in
+     [ x^2 - 5, x^2 + 3, x^3 - 2 ]
+
+     F = GAP.Globals.AlgebraicExtension( QQG, iso(pol))
+     x = GAP.Globals.GeneratorsOfField(F)[1]
+     y = GAP.Globals.One(F)
+     f = Oscar.iso_gap_oscar(F)
+     @test f === Oscar.iso_gap_oscar(F)  # test that everything gets cached
+     ox = f(x)
+     oy = f(y)
+     for i in 1:10
+       xi = x^i
+       oxi = f(xi)
+       @test preimage(f, oxi) == xi
+       @test oxi == ox^i
+       @test oxi + oy == f(xi + y)
+     end
+   end
 end
 
 @testset "abelian closure" begin

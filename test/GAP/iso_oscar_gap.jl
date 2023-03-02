@@ -155,12 +155,13 @@ end
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
    my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
-   fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
+   fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, 1))
 
    @testset for (F, z) in fields
       f = Oscar.iso_oscar_gap(F)
-      g = elm -> map_entries(f, elm)
+#     g = elm -> map_entries(f, elm)
+#TODO: add some tests for mapping matrices over F
       for i in 1:10
          a = my_rand_bits(F, 5)
          for j in 1:10
@@ -169,14 +170,35 @@ end
             @test f(a - b) == f(a) - f(b)
          end
       end
-      @test_throws ErrorException f(CyclotomicField(2)[2])
-      @test_throws ErrorException image(f, CyclotomicField(2)[2])
+      @test_throws ErrorException f(cyclotomic_field(2)[2])
+      @test_throws ErrorException image(f, cyclotomic_field(2)[2])
       @test_throws ErrorException preimage(f, GAP.Globals.Z(2))
    end
 
-   K, a = CyclotomicField(10, "a")
+   K, a = cyclotomic_field(10, "a")
    phi = Oscar.iso_oscar_gap(K)
    @test phi(-a^3 + a^2 + 1) == GAP.evalstr("-E(5)^2-E(5)^3")
+end
+
+@testset "number fields" begin
+   # for computing random elements of the fields in question
+   my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
+   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+
+   R, x = polynomial_ring(QQ, "x")
+   @testset for pol in [ x^2 - 5, x^2 + 3, x^3 - 2 ]
+      F, z = number_field(pol)
+      f = Oscar.iso_oscar_gap(F)
+      @test f === Oscar.iso_oscar_gap(F)  # test that everything gets cached
+      for i in 1:10
+         a = my_rand_bits(F, 5)
+         for j in 1:10
+            b = my_rand_bits(F, 5)
+            @test f(a*b) == f(a)*f(b)
+            @test f(a - b) == f(a) - f(b)
+         end
+      end
+   end
 end
 
 @testset "abelian closure" begin
@@ -187,8 +209,8 @@ end
     y = iso(x)
     @test x == preimage(iso, y)
   end
-  @test_throws ErrorException iso(CyclotomicField(2)[2])
-  @test_throws ErrorException image(iso, CyclotomicField(2)[2])
+  @test_throws ErrorException iso(cyclotomic_field(2)[2])
+  @test_throws ErrorException image(iso, cyclotomic_field(2)[2])
   @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
 end
 
