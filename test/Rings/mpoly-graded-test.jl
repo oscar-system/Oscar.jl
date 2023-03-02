@@ -207,7 +207,7 @@ end
 end
 
 @testset "Division" begin
-  R, (x, y) = GradedPolynomialRing(QQ, [ "x", "y" ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ "x", "y" ], [ 1, 2 ])
   f = x^2 + y
   g = x^2
   @test div(f, g) == one(R)
@@ -241,7 +241,7 @@ begin
 end
 
 begin
-  R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
   M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
   t = h(zero(M))
   @assert iszero(t)

@@ -172,7 +172,7 @@ create the projective plane curve defined by `f`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]

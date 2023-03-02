@@ -1,5 +1,5 @@
 export weight, decorate, is_homogeneous, homogeneous_components, filtrate,
-grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
+grade, graded_polynomial_ring, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
 homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
 export MPolyDecRing, MPolyDecRingElem, is_homogeneous, is_graded
@@ -35,7 +35,7 @@ If `R` is, say, `G`-graded, return `G`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
@@ -291,7 +291,7 @@ with components [0 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W);
 
 julia> is_free(G)
 true
@@ -376,7 +376,7 @@ function is_positively_graded(R::MPolyDecRing)
 end
 
 @doc Markdown.doc"""
-    GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
+    graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
 
 Create a multivariate polynomial ring with coefficient ring `C` and variables which
 print according to the strings in `V`, and grade this ring according to the
@@ -384,7 +384,7 @@ data provided by `W` (see the documentation of the `grade`-function for what is
 possible). Return the graded ring as an object of type `MPolyDecRing`, together 
 with the vector of variables.
 
-    GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
+    graded_polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex)
 
 As above, where the grading is the standard $\mathbb Z$-grading. 
 
@@ -397,32 +397,32 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
+julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
   x[1] -> [1 0]
   x[2] -> [0 1]
   x[3] -> [1 0]
   x[4] -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
-julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
   z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 ```
 """
-function GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
+function graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
    return grade(polynomial_ring(C, V; ordering = ordering)[1], W)
 end
-function GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
+function graded_polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex)
    W = ones(Int, length(V))
-   return GradedPolynomialRing(C, V, W; ordering = ordering)
+   return graded_polynomial_ring(C, V, W; ordering = ordering)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
@@ -892,7 +892,7 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
+julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [0 1]
@@ -910,7 +910,7 @@ julia> degree(Vector{Int}, f)
  4
  1
 
-julia>  R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+julia>  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
@@ -973,7 +973,7 @@ Given an element `f` of a graded multivariate ring, return `true` if `f` is homo
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
@@ -990,7 +990,7 @@ julia> W = [1 2 1 0; 3 4 0 1]
  1  2  1  0
  3  4  0  1
 
-julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
+julia> S, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W)
 (Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
   w -> [1 3]
   x -> [2 4]
@@ -1028,7 +1028,7 @@ Given an element `f` of a graded multivariate ring, return the homogeneous compo
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
@@ -1161,7 +1161,7 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
+julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
   x[1] -> [1 0]
   x[2] -> [0 1]
@@ -1174,7 +1174,7 @@ x[1]^2*x[2] + x[4]
 julia> homogeneous_component(f, [2, 1])
 x[1]^2*x[2]
 
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
@@ -1312,7 +1312,7 @@ x[1]*y[3]
 x[1]*y[2]
 x[1]*y[1]
 
-julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -2332,7 +2332,7 @@ Return the dehomogenization of `I` in a polynomial ring as above.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -2368,7 +2368,7 @@ julia> W = [1 2 1 0; 3 4 0 1]
  1  2  1  0
  3  4  0  1
 
-julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
+julia> S, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W)
 (Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
   w -> [1 3]
   x -> [2 4]
