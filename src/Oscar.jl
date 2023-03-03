@@ -480,31 +480,26 @@ include("Modules/local_rings.jl")
 include("Modules/mpolyquo.jl")
 include("Rings/ReesAlgebra.jl")
 
-include("Geometry/basics.jl")
-include("Geometry/K3Auto.jl")
-
 include("NumberTheory/NmbThy.jl")
 
 include("PolyhedralGeometry/main.jl")
 
 include("Polymake/polymake_to_oscar.jl")
+
 include("Combinatorics/Graphs.jl")
 include("Combinatorics/SimplicialComplexes.jl")
-
 include("Combinatorics/Matroids/JMatroids.jl")
-
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
-
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
-include("ToricVarieties/JToric.jl")
-
-include("Schemes/main.jl")
-
-include("TropicalGeometry/main.jl")
+include("AlgebraicGeometry/Schemes/main.jl")
+include("AlgebraicGeometry/ToricVarieties/JToric.jl")
+include("AlgebraicGeometry/TropicalGeometry/main.jl")
+include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+include("AlgebraicGeometry/Miscellaneous/basics.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
