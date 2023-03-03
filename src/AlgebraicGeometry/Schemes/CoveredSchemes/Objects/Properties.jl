@@ -60,6 +60,16 @@ end
 #      do not confuse with connectedness of the scheme
 # Note: This does not work with glueing_graph, because empty patches
 #      need to be ignored without changing the covering
+@doc Markdown.doc"""
+   is_connected_glueing(X::AbsCoveredScheme)
+
+Return the boolean value whether the glueing graph of the default
+covering of the scheme X is connected. .
+
+!!! note
+    This function is designed to ignore empty patches, which may arise e.g. upon creation of subschemes of covered schemes,
+
+"""
 @attr function is_connected_glueing(X::AbsCoveredScheme)
   return is_connected(pruned_glueing_graph(default_covering(X)))
 end

@@ -661,8 +661,11 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 
 Return the boolean value whether an affine scheme `X` is irreducible.
 
+!!! note
+    Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
+
 """
-@attr function is_irreducible(X::AbsSpec)
+@attr function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true 
                                            ## integral = irreducible + reduced
@@ -672,11 +675,10 @@ end
 @doc Markdown.doc"""
    is_integral(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is integral,
-i.e. irreducible and reduced.
+Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
 
 """
-@attr function is_integral(X::AbsSpec)
+@attr function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   if has_attribute(X,:is_reduced) && has_attribute(X,:is_irreducible)
      return get_attribute(X,:is_reduced) && get_attribute(X,:is_irreducible)
