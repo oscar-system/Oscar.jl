@@ -599,7 +599,12 @@ end
 Return whether `x` and `y` are conjugate elements in `G`,
 i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
-is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
+function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+   if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
+     return representative_action_in_gl_or_sl(G, x, y)[1]
+   end
+   return GAPWrap.IsConjugate(G.X, x.X, y.X)
+end
 
 """
     representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
@@ -609,6 +614,9 @@ return `(true, z)`, where `x^z == y` holds;
 otherwise, return `(false, nothing)`.
 """
 function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+   if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
+     return representative_action_in_gl_or_sl(G, x, y)
+   end
    conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
