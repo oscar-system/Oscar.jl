@@ -142,24 +142,23 @@ function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
 end
 
 
-function is_conjugate(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
-   isdefined(G,:descr) || throw(ArgumentError("Group must be general or special linear group"))
-   if G.descr==:GL || G.descr==:SL
-      Jx,ax = jordan_normal_form(x.elm)
-      Jy,ay = jordan_normal_form(y.elm)
-      if Jx != Jy return false, nothing end
-      z = inv(ax)*ay
-      if G.descr==:GL return true, G(z) end
-      ED = pol_elementary_divisors(x.elm)
-      l = gcd([k[2] for k in ED])
-      l = gcd(l, order(G.ring)-1)
-      d = det(z)
-      if isone(d^( div(order(G.ring)-1,l)))
-         corr = _elem_given_det(x, d^-1)
-         return true, G(corr*z)
-      else return false, nothing
-      end
+function representative_action_in_gl_or_sl(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
+   (isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)) ||
+   throw(ArgumentError("Group must be general or special linear group"))
+
+   Jx,ax = jordan_normal_form(x.elm)
+   Jy,ay = jordan_normal_form(y.elm)
+   if Jx != Jy return false, nothing end
+   z = inv(ax)*ay
+   if G.descr==:GL return true, G(z) end
+   ED = pol_elementary_divisors(x.elm)
+   l = gcd([k[2] for k in ED])
+   l = gcd(l, order(G.ring)-1)
+   d = det(z)
+   if isone(d^( div(order(G.ring)-1,l)))
+      corr = _elem_given_det(x, d^-1)
+      return true, G(corr*z)
    else
-      return is_conjugate(G,x,y)
+      return false, nothing
    end
 end
