@@ -1,10 +1,10 @@
-export collector,
-       pc_group,
-       set_commutator!,
-       set_conjugate!,
-       set_power!,
-       set_relative_order!,
-       set_relative_orders!
+export collector
+export pc_group
+export set_commutator!
+export set_conjugate!
+export set_power!
+export set_relative_order!
+export set_relative_orders!
 
 ############################################################################
 

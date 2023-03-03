@@ -1,21 +1,20 @@
 # TODO: in this file are used many methods TEMPORARILY defined in files matrix_manipulation.jl and stuff_field_gen.jl
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
-export
-    alternating_form,
-    corresponding_bilinear_form,
-    corresponding_quadratic_form,
-    hermitian_form,
-    is_alternating_form,
-    is_degenerate,
-    is_hermitian_form,
-    is_quadratic_form,
-    is_singular,
-    is_symmetric_form,
-    quadratic_form,
-    SesquilinearForm,
-    symmetric_form,
-    witt_index
+export alternating_form
+export corresponding_bilinear_form
+export corresponding_quadratic_form
+export hermitian_form
+export is_alternating_form
+export is_degenerate
+export is_hermitian_form
+export is_quadratic_form
+export is_singular
+export is_symmetric_form
+export quadratic_form
+export SesquilinearForm
+export symmetric_form
+export witt_index
 
 
 

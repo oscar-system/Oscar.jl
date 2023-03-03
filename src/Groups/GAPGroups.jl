@@ -1,81 +1,80 @@
 export GroupConjClass
 
-export
-    acting_group,
-    comm,
-    comm!,
-    complement_class_reps, has_complement_class_reps, set_complement_class_reps,
-    complement_system, has_complement_system, set_complement_system,
-    conjugacy_class,
-    conjugacy_classes_maximal_subgroups,
-    conjugacy_classes_subgroups,
-    conjugacy_classes,
-    conjugate_group,
-    core,
-    coset_decomposition,
-    cperm,
-    cycle_structure,
-    degree,
-    describe,
-    div_left,
-    div_left!,
-    div_right,
-    div_right!,
-    elements,
-    has_exponent, set_exponent,
-    fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup,
-    frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup,
-    gen,
-    gens, has_gens,
-    hall_subgroup,
-    hall_subgroup_reps,
-    hall_system, has_hall_system, set_hall_system,
-    inv!,
-    is_almostsimple, has_is_almostsimple, set_is_almostsimple,
-    is_conjugate,
-    is_conjugate_subgroup,
-    isfinite, has_is_finite, set_is_finite,
-    is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
-    is_finiteorder,
-    is_full_fp_group,
-    is_perfect, has_is_perfect, set_is_perfect,
-    is_pgroup, has_is_pgroup, set_is_pgroup,
-    is_pgroup_with_prime,
-    is_quasisimple, has_is_quasisimple, set_is_quasisimple,
-    is_simple, has_is_simple, set_is_simple,
-    is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple,
-    letters,
-    low_index_subgroup_reps,
-    map_word,
-    maximal_subgroup_reps,
-    moved_points, has_moved_points, set_moved_points,
-    mul,
-    mul!,
-    nilpotency_class, has_nilpotency_class, set_nilpotency_class,
-    ngens,
-    normal_closure,
-    normalizer,
-    number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes,
-    number_moved_points, has_number_moved_points, set_number_moved_points,
-    one!,
-    order, has_order, set_order,
-    pcore,
-    perm,
-    prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup,
-    radical_subgroup, has_radical_subgroup, set_radical_subgroup,
-    rand_pseudo,
-    relators,
-    representative_action,
-    right_coset,
-    right_cosets ,
-    right_transversal,
-    short_right_transversal,
-    small_generating_set, has_small_generating_set, set_small_generating_set,
-    socle, has_socle, set_socle,
-    subgroup_reps,
-    syllables,
-    sylow_subgroup,
-    sylow_system, has_sylow_system, set_sylow_system
+export acting_group
+export comm
+export comm!
+export complement_class_reps, has_complement_class_reps, set_complement_class_reps
+export complement_system, has_complement_system, set_complement_system
+export conjugacy_class
+export conjugacy_classes_maximal_subgroups
+export conjugacy_classes_subgroups
+export conjugacy_classes
+export conjugate_group
+export core
+export coset_decomposition
+export cperm
+export cycle_structure
+export degree
+export describe
+export div_left
+export div_left!
+export div_right
+export div_right!
+export elements
+export has_exponent, set_exponent
+export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
+export frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup
+export gen
+export gens, has_gens
+export hall_subgroup
+export hall_subgroup_reps
+export hall_system, has_hall_system, set_hall_system
+export inv!
+export is_almostsimple, has_is_almostsimple, set_is_almostsimple
+export is_conjugate
+export is_conjugate_subgroup
+export isfinite, has_is_finite, set_is_finite
+export is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated
+export is_finiteorder
+export is_full_fp_group
+export is_perfect, has_is_perfect, set_is_perfect
+export is_pgroup, has_is_pgroup, set_is_pgroup
+export is_pgroup_with_prime
+export is_quasisimple, has_is_quasisimple, set_is_quasisimple
+export is_simple, has_is_simple, set_is_simple
+export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
+export letters
+export low_index_subgroup_reps
+export map_word
+export maximal_subgroup_reps
+export moved_points, has_moved_points, set_moved_points
+export mul
+export mul!
+export nilpotency_class, has_nilpotency_class, set_nilpotency_class
+export ngens
+export normal_closure
+export normalizer
+export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
+export number_moved_points, has_number_moved_points, set_number_moved_points
+export one!
+export order, has_order, set_order
+export pcore
+export perm
+export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
+export radical_subgroup, has_radical_subgroup, set_radical_subgroup
+export rand_pseudo
+export relators
+export representative_action
+export right_coset
+export right_cosets 
+export right_transversal
+export short_right_transversal
+export small_generating_set, has_small_generating_set, set_small_generating_set
+export socle, has_socle, set_socle
+export subgroup_reps
+export syllables
+export sylow_subgroup
+export sylow_system, has_sylow_system, set_sylow_system
 
 @alias is_finiteorder isfiniteorder
 

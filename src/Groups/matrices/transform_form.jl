@@ -2,8 +2,7 @@
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
 
-export
-    is_congruent
+export is_congruent
 
 ###############################################################################################################
 

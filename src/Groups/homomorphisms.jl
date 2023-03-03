@@ -1,30 +1,29 @@
-export
-    automorphism_group,
-    codomain,
-    cokernel,
-    domain,
-    haspreimage,
-    hom,
-    id_hom,
-    image,
-    induced_automorphism,
-    inner_automorphism,
-    inner_automorphism_group,
-    is_bijective,
-    is_injective,
-    is_inner_automorphism,
-    is_invariant,
-    is_invertible,
-    is_isomorphic,
-    is_isomorphic_with_map,
-    isomorphism,
-    is_surjective,
-    kernel,
-    order,
-    restrict_automorphism,
-    restrict_homomorphism,
-    simplified_fp_group,
-    trivial_morphism
+export automorphism_group
+export codomain
+export cokernel
+export domain
+export haspreimage
+export hom
+export id_hom
+export image
+export induced_automorphism
+export inner_automorphism
+export inner_automorphism_group
+export is_bijective
+export is_injective
+export is_inner_automorphism
+export is_invariant
+export is_invertible
+export is_isomorphic
+export is_isomorphic_with_map
+export is_surjective
+export isomorphism
+export kernel
+export order
+export restrict_automorphism
+export restrict_homomorphism
+export simplified_fp_group
+export trivial_morphism
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
   print(io, "Group homomorphism from \n")

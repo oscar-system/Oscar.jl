@@ -1,9 +1,9 @@
-export on_indeterminates,
-       on_sets,
-       on_sets_sets,
-       on_tuples,
-       permuted,
-       right_coset_action
+export on_indeterminates
+export on_sets
+export on_sets_sets
+export on_tuples
+export permuted
+export right_coset_action
 
 """
 A *group action* of a group G on a set Ω (from the right) is defined by

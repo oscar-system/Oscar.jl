@@ -1,11 +1,10 @@
-export
-    all_small_groups,
-    has_number_small_groups,
-    has_small_group_identification,
-    has_small_groups,
-    number_small_groups,
-    small_group,
-    small_group_identification
+export all_small_groups
+export has_number_small_groups
+export has_small_group_identification
+export has_small_groups
+export number_small_groups
+export small_group
+export small_group_identification
 
 
 ###################################################################
