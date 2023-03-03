@@ -27,6 +27,8 @@ on these things online.
 4. Please also read our page on [Documenting OSCAR code](@ref).
 5. Look at existing code that does similar things to your project to get an
    idea of what OSCAR code should look like. Try to look at multiple examples.
+6. If you are planning to implement a new feature from scratch, please also read
+   [Implementing features from scratch](@ref).
 
 ## Overview
 In general you have to do
