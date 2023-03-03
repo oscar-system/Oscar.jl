@@ -1,5 +1,13 @@
 @testset "types" begin
     
+    @testset "IncidenceMatrix" begin
+        
+        im = IncidenceMatrix([[1,2,3],[4,5,6]])
+        @test nrows(im) == 2
+        @test ncols(im) == 6
+        
+    end
+    
     @testset "nf_scalar" begin
         
         qe = Polymake.QuadraticExtension{Polymake.Rational}(123, 456, 789)
