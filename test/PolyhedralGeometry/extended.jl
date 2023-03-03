@@ -145,6 +145,10 @@
         @test Polyhedron(matrix(ZZ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
         @test Polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
         
+        # testing different input types
+        @test Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], Float64[0, 0, 0]) == Pos_poly
+        @test Polyhedron(Float64[-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
+        
         let y = convex_hull([0, 0, 0], [1, 0, 0], [[0, 1, 0], [0, 0, 1]])
             @test Polyhedron([-1 0 0], [0]) == y
             @test Polyhedron([-1 0 0], 0) == y
