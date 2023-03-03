@@ -1,4 +1,6 @@
 export linear_quotient
+export has_canonical_singularities
+export has_terminal_singularities
 
 @doc Markdown.doc"""
     linear_quotient(G::MatrixGroup)
@@ -42,6 +44,12 @@ function fixed_root_of_unity(L::LinearQuotient)
   return L.root_of_unity
 end
 
+################################################################################
+#
+#  Class group
+#
+################################################################################
+
 @doc Markdown.doc"""
     class_group(L::LinearQuotient)
 
@@ -76,4 +84,154 @@ function class_group(L::LinearQuotient)
   end
   L.class_group = A, GtoA
   return L.class_group
+end
+
+################################################################################
+#
+#  Age, junior elements, monomial valuation
+#
+################################################################################
+
+@doc Markdown.doc"""
+    age(g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
+
+Return the age of `g` with respect to the chosen root of unity `zeta[1]` of order
+`zeta[2]`.
+If `zeta[2]` is not divisible by `order(g)` an error is raised.
+
+Note that `age(g)` depends on the choice of the root of unity, see [IR96](@cite).
+"""
+function age(g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
+  fl, q = divides(zeta[2], order(Int, g))
+  @assert fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
+
+  powers_of_zeta = _powers_of_root_of_unity(zeta[1]^q, order(Int, g))
+  sp = spectrum(g.elm)
+  return ZZRingElem(sum( m*powers_of_zeta[e] for (e, m) in sp ))//order(g)
+end
+
+@doc Markdown.doc"""
+    representatives_of_junior_elements(G::MatrixGroup, zeta::Tuple{FieldElem, Int})
+
+Return representatives of the conjugacy classes of `G` which consist of junior
+elements, that is, elements `g` in `G` with `age(g, zeta) == 1`.
+"""
+function representatives_of_junior_elements(G::MatrixGroup{T}, zeta::Tuple{T, Int}) where T
+  @assert is_subgroup_of_sl(G) "Group is not a subgroup of SL"
+
+  juniors = Vector{elem_type(G)}()
+  for c in conjugacy_classes(G)
+    if is_one(age(representative(c), zeta))
+      push!(juniors, representative(c))
+    end
+  end
+  return juniors
+end
+
+# Let R = K[x_1, ..., x_n] with a linear action by g. The element g acts on V = K^n
+# and in an eigenbasis this action is given by powers of a root of unity.
+# This functions returns an automorphism of R into an eigenbasis of g.
+# Additionally, the codomain of this automorphism is graded by the weights of the
+# action.
+function weights_of_action(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
+  @assert ngens(R) == degree(parent(g))
+  fl, q = divides(zeta[2], order(Int, g))
+  @assert fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
+
+  zetaq = zeta[1]^q
+  powers_of_zeta = _powers_of_root_of_unity(zetaq, order(Int, g))
+
+  K = coefficient_ring(R)
+  eig = eigenspaces(g.elm, side = :left)
+
+  weights = Int[]
+  V = zero_matrix(K, 0, ncols(g.elm))
+  for (e, v) in eig
+    for i = 1:nrows(v)
+      push!(weights, powers_of_zeta[e])
+    end
+    V = vcat(V, v)
+  end
+
+  to_eig = right_action(R, inv(V))
+  S, _ = grade(R, weights)
+  # The images of the generators of R are in general not homogeneous in S, so
+  # we have to turn of the check, if we want to build this map...
+  RtoS = hom(R, S, [ to_eig(x) for x in gens(R) ], check = false)
+
+  return S, RtoS
+end
+
+@doc Markdown.doc"""
+    monomial_valuation(R::MPolyRing, g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
+
+Return the monomial valuation on `R` defined by `g` with respect to the chosen
+root of unity `zeta[1]` of order `zeta[2]`.
+If `zeta[2]` is not divisible by `order(g)` or if the valuation would not be
+surjective with this choice of root of unity, an error is raised.
+
+Note that monomial valuation depends on the choice of the root of unity, see
+[IR96](@cite).
+"""
+function monomial_valuation(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
+
+  S, RtoS = weights_of_action(R, g, zeta)
+
+  # If the weights are not coprime, the valuation is not surjective...
+  @assert is_one(gcd([ degree(gen(S, i))[1] for i = 1:ngens(S) ])) "Construction of well-defined valuation impossible with given choice of root of unity"
+
+  function val(f::MPolyElem{T})
+    @assert !is_zero(f) "Valuation is infinite"
+
+    h = RtoS(f)
+    mons = ZZRingElem[]
+    for e in AbstractAlgebra.monomials(h)
+      push!(mons, degree(e)[1])
+    end
+    return minimum(mons)
+  end
+
+  return MapFromFunc(val, R, ZZ)
+end
+
+################################################################################
+#
+#  Singularities
+#
+################################################################################
+
+@doc Markdown.doc"""
+    has_canonical_singularities(L::LinearQuotient)
+
+Return `true` if `L` has canonical singularities, `false` otherwise.
+
+This is checked using the Reid--Tai criterion, see Theorem 3.21 in [Kol13](@cite).
+"""
+function has_canonical_singularities(L::LinearQuotient)
+  zeta = fixed_root_of_unity(L)
+  for c in conjugacy_classes(group(L))
+    is_one(representative(c)) && continue
+    if age(representative(c), zeta) < 1
+      return false
+    end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
+    has_terminal_singularities(L::LinearQuotient)
+
+Return `true` if `L` has terminal singularities, `false` otherwise.
+
+This is checked using the Reid--Tai criterion, see Theorem 3.21 in [Kol13](@cite).
+"""
+function has_terminal_singularities(L::LinearQuotient)
+  zeta = fixed_root_of_unity(L)
+  for c in conjugacy_classes(group(L))
+    is_one(representative(c)) && continue
+    if age(representative(c), zeta) <= 1
+      return false
+    end
+  end
+  return true
 end

@@ -40,13 +40,8 @@ function ab_g_degree(GtoAbG::Map, f::MPolyElem, zeta::Tuple{<:FieldElem, Int})
   K = coefficient_ring(parent(f))
   @assert K === parent(zeta[1])
 
+  powers_of_zeta = _powers_of_root_of_unity(zeta...)
   l = zeta[2]
-  powers_of_zeta = Dict{elem_type(K), Int}()
-  t = one(K)
-  for i = 0:l - 1
-    powers_of_zeta[t] = i
-    t *= zeta[1]
-  end
 
   c = zeros(ZZRingElem, ngens(AbG))
   eldivs = elementary_divisors(AbG)
