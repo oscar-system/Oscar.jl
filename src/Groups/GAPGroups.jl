@@ -192,8 +192,8 @@ end
 
 order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x)
 
-@gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)::Bool
-@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GAP.Obj(val))
+has_order(G::GAPGroup) = GAPWrap.HasSize(G.X)
+set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAPWrap.SetSize(G.X, GAP.Obj(val))
 
 
 @gapattribute is_trivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool

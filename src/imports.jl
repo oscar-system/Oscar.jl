@@ -118,7 +118,6 @@ import AbstractAlgebra.GroupsCore:
 
 import GAP:
     @gapattribute,
-    @gapwrap,
     GapInt,
     GapObj
 
