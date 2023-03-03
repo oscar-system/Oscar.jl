@@ -7,10 +7,10 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["standard_constructions.md"]
+Pages = ["miscellaneous.md"]
 ```
 
-# Standard Constructions in Algebraic Geometry
+# Miscellaneous
 
 This page documents a collection of standard constructions in algebraic geometry
 available in OSCAR.
