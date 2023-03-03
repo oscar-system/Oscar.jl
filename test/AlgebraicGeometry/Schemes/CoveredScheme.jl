@@ -140,13 +140,18 @@ end
 
   X = subscheme(P, I)
   Xcov = covered_scheme(X)
+  @test !is_irreducible(Xcov)
+  @test is_reduced(Xcov)
   @test !is_integral(Xcov)
   U = Xcov[1][1]
   @test is_integral(U)
+  @test is_irreducible(U)
+  @test is_reduced(U)
   @test is_integral(hypersurface_complement(U, OO(U)[2]))
 
   Y = subscheme(P, ideal(S, v^2 + w^2 + u^2))
   Ycov = covered_scheme(Y)
+  @test is_irreducible(Ycov)
   @test is_integral(Ycov)
 
   R = S.R 
@@ -156,6 +161,8 @@ end
 
   # The following produces a covered scheme consisting of three disjoint affine patches
   Ysep = CoveredScheme(Covering(affine_charts(Ycov)))
+  @test !is_irreducible(Ysep)
+  @test is_reduced(Ysep)
   @test !is_integral(Ysep)
 
   # Two points, one reduced, the other not
@@ -165,9 +172,12 @@ end
   Z = subscheme(P, J1*J2)
   Zcov = covered_scheme(Z)
   @test !is_integral(Zcov)
+  @test !is_irreducible(Zcov)
 
   Z1 = subscheme(P, J1)
   Z1cov = covered_scheme(Z1)
+  @test is_irreducible(Z1cov)
+  @test !is_reduced(Z1cov)
   @test !is_integral(Z1cov)
 
   Z2 = subscheme(P, J2)

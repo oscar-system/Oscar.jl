@@ -4,43 +4,6 @@ export representative_patch, variety, representative_field
 export representative
 
 
-### Check for irreducibility
-@attr Bool function is_irreducible(X::AbsCoveredScheme)
-  for U in basic_patches(default_covering(X))
-    is_irreducible(U) || return false
-  end
-  C = default_covering(X)
-  # Check that X is connected
-  for U in patches(C)
-    for V in patches(C)
-      A, _ = glueing_domains(C[U, V])
-      is_empty(A) && !is_empty(U) && !is_empty(V) && return false
-    end
-  end
-  return true
-end
-
-
-########################################################################
-# lower checks for irreducibility                                      #
-########################################################################
-@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyRing}) 
-  return true
-end
-
-@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoRing}) 
-  return is_prime(modulus(OO(X)))
-end
-
-@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyLocRing}) 
-  return true
-end
-
-@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoLocRing}) 
-  return is_prime(modulus(OO(X)))
-end
-
-
 ########################################################################
 # Check for emptyness                                                  #
 ########################################################################
