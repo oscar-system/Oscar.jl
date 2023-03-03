@@ -583,8 +583,11 @@ function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGr
   return F, epi
 end
 
-@gapwrap has_maximal_abelian_quotient(G::GAPGroup) = GAP.Globals.HasMaximalAbelianQuotient(G.X)::Bool
-@gapwrap set_maximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T,S}}) where T <: GAPGroup where S = GAP.Globals.SetMaximalAbelianQuotient(G.X, val[2].map)::Nothing
+has_maximal_abelian_quotient(G::GAPGroup) = GAPWrap.HasMaximalAbelianQuotient(G.X)
+
+function set_maximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T}}) where T <: GAPGroup
+  return GAPWrap.SetMaximalAbelianQuotient(G.X, val[2].map)
+end
 
 
 function __create_fun(mp, codom, ::Type{S}) where S
