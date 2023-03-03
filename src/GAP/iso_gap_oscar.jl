@@ -82,9 +82,9 @@ function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
      if p < ZZRingElem(2)^64
        p = UInt64(p)
      end
-     FO = GF(p)
+     FO = Nemo._GF(p)
    else
-     FO = GF(p, d)
+     FO = Nemo._GF(p, d)
    end
 
    finv, f = _iso_oscar_gap_field_finite_functions(FO, FG)
