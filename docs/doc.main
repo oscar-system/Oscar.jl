@@ -201,7 +201,7 @@
      ]
   ],
 
- "Finitely Presented Algebras" => [
+ "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
