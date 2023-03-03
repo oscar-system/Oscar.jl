@@ -1,5 +1,5 @@
-export defines_automorphism,
-       embedding_orthogonal_group
+export defines_automorphism
+export embedding_orthogonal_group
 
 AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
 AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}

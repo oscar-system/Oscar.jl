@@ -14,41 +14,40 @@
 
 # character values are elements from QQAbField
 
-export
-    all_character_table_names,
-    anti_symmetric_parts,
-    atlas_irrationality,
-    character_field,
-    character_parameters,
-    character_table,
-    class_lengths,
-    class_multiplication_coefficient,
-    class_parameters,
-    class_positions_of_center,
-    class_positions_of_kernel,
-    class_positions_of_pcore,
-    decomposition_matrix,
-    exterior_power,
-    identifier,
-    indicator,
-    induced_class_function,
-    induced_cyclic,
-    is_duplicate_table,
-    known_class_fusion,
-    maxes,
-    names_of_fusion_sources,
-    natural_character,
-    orders_centralizers,
-    orders_class_representatives,
-    orthogonal_components,
-    possible_class_fusions,
-    scalar_product,
-    schur_index,
-    symmetric_parts,
-    symmetric_power,
-    symmetrizations,
-    symplectic_components,
-    trivial_character
+export all_character_table_names
+export anti_symmetric_parts
+export atlas_irrationality
+export character_field
+export character_parameters
+export character_table
+export class_lengths
+export class_multiplication_coefficient
+export class_parameters
+export class_positions_of_center
+export class_positions_of_kernel
+export class_positions_of_pcore
+export decomposition_matrix
+export exterior_power
+export identifier
+export indicator
+export induced_class_function
+export induced_cyclic
+export is_duplicate_table
+export known_class_fusion
+export maxes
+export names_of_fusion_sources
+export natural_character
+export orders_centralizers
+export orders_class_representatives
+export orthogonal_components
+export possible_class_fusions
+export scalar_product
+export schur_index
+export symmetric_parts
+export symmetric_power
+export symmetrizations
+export symplectic_components
+export trivial_character
 
 
 #############################################################################
