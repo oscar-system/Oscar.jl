@@ -700,5 +700,5 @@ Return the boolean value whether an affine scheme `X` is connected.
 ## note for future implementation: expensive property
 ## 1) do primary decomposition
 ## 2) check connectedness of lowest two layers of the intersection lattice
-  return(get_attribute(X,:is_connected))
+  return get_attribute(X,:is_connected)
 end
