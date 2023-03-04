@@ -18,7 +18,7 @@ Return the boolean value whether a covered scheme `X` is empty.
   if !isdefined(X, :coverings) 
     return true
   end
-  return all(x->isempty(x), all_patches(default_covering(X)))
+  return all(isempty, all_patches(default_covering(X)))
 end
 
 ########################################################################
@@ -38,7 +38,7 @@ Return the boolean value whether a covered scheme `X` is smooth.
   # the jacobian matrices where we haven't checked in another chart before. 
   # This is a tradeoff between cost of Jacobian criterion and cost of
   # optimizing the use of the covering
-  return all(x->is_smooth(x), affine_charts(X))
+  return all(is_smooth, affine_charts(X))
 end
 
 ########################################################################
@@ -85,11 +85,10 @@ Return the boolean value whether a covered scheme `X` is connected.
 """
 @attr function is_connected(X::AbsCoveredScheme)
   is_connected_glueing(X) || return false
-  has_attribute(X,:is_connected) || error("not implemented yet")
   # note for future implementation: expensive property
   # 1) do primary decomposition
   # 2) check connectedness of lowest two layers of the intersection lattice
-  return get_attribute(X,:is_connected)
+  error("not implemented yet")
 end
 
 ##############################################################################
@@ -117,6 +116,6 @@ Return the boolean value whether a covered scheme `X` is irreducible.
 @attr function is_irreducible(X::AbsCoveredScheme)
   is_connected_glueing(X) || return false
   !is_empty(X) || return false
-  v=findall(U->!is_empty(U), affine_charts(X))  ## only check non-empty patches
+  v=findall(!is_empty, affine_charts(X))  ## only check non-empty patches
   return all(is_irreducible(affine_charts(X)[v[i]]) for i in 1:length(v) )
 end

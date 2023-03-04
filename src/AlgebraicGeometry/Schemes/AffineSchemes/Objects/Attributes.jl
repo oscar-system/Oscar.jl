@@ -570,7 +570,6 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
     set_attribute!(X, :is_smooth, true)
     inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
     return domain(inc), inc
-    return subscheme(X, ideal(OO(X),one(OO(X))))
   end
   R = base_ring(OO(X))
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
