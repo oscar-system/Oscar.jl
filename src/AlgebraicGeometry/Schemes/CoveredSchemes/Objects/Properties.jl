@@ -64,7 +64,7 @@ end
    is_connected_glueing(X::AbsCoveredScheme)
 
 Return the boolean value whether the glueing graph of the default
-covering of the scheme X is connected. .
+covering of the scheme X is connected.
 
 !!! note
     This function is designed to ignore empty patches, which may arise e.g. upon creation of subschemes of covered schemes,
