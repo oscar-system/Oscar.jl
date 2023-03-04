@@ -659,7 +659,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 @doc Markdown.doc"""
    is_irreducible(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is irreducible.
+Return whether the affine scheme `X` is irreducible.
 
 !!! note
     Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
