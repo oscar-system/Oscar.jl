@@ -551,14 +551,13 @@ end
 ##############################################################################
 # (6) Check, if scheme is reduced
 ##############################################################################
-# TODO: projective schemes, covered schemes
+# TODO: projective schemes
 
 @doc Markdown.doc"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Return the boolean value whether a scheme `X` is reduced.
+Return the boolean value whether an affine scheme `X` is reduced.
 
-Currently, this command is available for affine schemes and space germs.
 """
 @attr function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
@@ -575,15 +574,12 @@ end
 # The routine checks whether the module for the cotangent sheaf Ω¹(X)
 # is locally free over 𝒪(X) and returns `true` if this is the case. 
 ########################################################################
-# TODO: Covered schemes, projective schemes
 # TODO: is_regular using Hironaka's criterion
 
 @doc Markdown.doc"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return whether a scheme `X` is smooth.
-
-Currently this command is available for affine schemes and space germs.
 
 Note that smoothness and regularity do not coincide over non-perfect fields. 
 Smoothness implies regularity, but regular non-smooth schemes exist.
@@ -654,6 +650,55 @@ end
 is_smooth(X::AbsSpec{<:Field, <:MPolyRing}) = true
 is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 
-@attr function is_integral(X::AbsSpec)
-  return Oscar._is_integral_domain(OO(X))
+###################################################################
+# Irreducibility and Integrality                                  #
+#    integral iff (irreducible && reduced)                        #
+#    integral = OO(X) is integral domain                          #
+#    irreducible = nilradical of OO(X) is prime                   #
+###################################################################
+@doc Markdown.doc"""
+   is_irreducible(X::AbsSpec)
+
+Return whether the affine scheme `X` is irreducible.
+
+!!! note
+    Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
+
+"""
+@attr function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
+  !is_empty(X) || return false
+  !get_attribute(X, :is_integral, false) || return true 
+                                           ## integral = irreducible + reduced
+  return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
+end
+
+@doc Markdown.doc"""
+   is_integral(X::AbsSpec)
+
+Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
+
+"""
+@attr function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
+  !is_empty(X) || return false
+  if has_attribute(X,:is_reduced) && has_attribute(X,:is_irreducible)
+     return get_attribute(X,:is_reduced) && get_attribute(X,:is_irreducible)
+  end
+  return is_prime(modulus(OO(X)))
+end
+
+###################################################################
+# Connectedness                                                   #
+###################################################################
+@doc Markdown.doc"""
+   is_connected(X::AbsSpec)
+
+Return the boolean value whether an affine scheme `X` is connected.
+
+"""
+@attr function is_connected(X::AbsSpec)
+  error("not implemented yet")
+## note for future implementation: expensive property
+## 1) do primary decomposition
+## 2) check connectedness of lowest two layers of the intersection lattice
+  return get_attribute(X,:is_connected)
 end
