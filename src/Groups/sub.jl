@@ -6,8 +6,8 @@ export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export embedding
 export epimorphism_from_free_group
 export index
-export is_characteristic_subgroup,
-export is_maximal_subgroup,
+export is_characteristic_subgroup
+export is_maximal_subgroup
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
 export is_normal_subgroup
 export is_normalized_by
