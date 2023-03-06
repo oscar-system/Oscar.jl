@@ -31,14 +31,16 @@ trace lattice of `L`.
 """
 function trace_lattice(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(base_field(L)),
                                                 beta::FieldElem = one(base_field(L)),
-                                                order::Integer = 2) where T
+                                                order::Integer = 2,
+                                                l = nothing) where T
 
-  return trace_lattice_with_map(L, alpha=alpha, beta=beta, order=order)[1]
+  return trace_lattice_with_map(L, alpha=alpha, beta=beta, order=order, l = l)[1]
 end
 
 function trace_lattice_with_map(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(base_field(L)),
                                                          beta::FieldElem = gen(base_field(L)),
-                                                         order::Integer = 2) where T
+                                                         order::Integer = 2,
+                                                         l = nothing) where T
   E = base_field(L)
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
   @req order > 0 "The order must be positive"
@@ -66,14 +68,18 @@ function trace_lattice_with_map(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(
   @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "The normalisation of beta must be a $m-primitive root of 1"
 
   Lres, f = restrict_scalars_with_map(L, QQ, alpha)
+  if l === nothing
+    l = identity_matrix(QQ, degree(Lres))
+  end
+  Lres = lattice_in_same_ambient_space(Lres, basis_matrix(Lres)*inv(l))
   iso = zero_matrix(QQ, 0, degree(Lres))
   v = vec(zeros(QQ, 1, degree(Lres)))
 
   for i in 1:degree(Lres)
     v[i] = one(QQ)
-    v2 = f(v)
+    v2 = f(v*inv(l))
     v2 = beta.*v2
-    v3 = f\v2
+    v3 = (f\v2)*l
     iso = vcat(iso, transpose(matrix(v3)))
     v[i] = zero(QQ)
   end
@@ -81,7 +87,7 @@ function trace_lattice_with_map(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(
   return lattice_with_isometry(Lres, iso, ambient_representation=true), f
 end
 
-function trace_lattice(L::Hecke.AbstractLat{T}, f::SpaceRes; beta::FieldElem = gen(base_field(L))) where T
+function trace_lattice(L::Hecke.AbstractLat{T}, f::Hecke.SpaceRes; beta::FieldElem = gen(base_field(L)), l = nothing) where T
   @req codomain(f) === ambient_space(L) "f must be a map of restriction of scalars associated to the ambient space of L"
   E = base_field(L)
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
@@ -97,14 +103,18 @@ function trace_lattice(L::Hecke.AbstractLat{T}, f::SpaceRes; beta::FieldElem = g
   @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "The normalisation of beta must be a $m-primitive root of 1"
 
   Lres = restrict_scalars(L, f)
+  if l === nothing
+    l = identity_matrix(QQ, degree(Lres))
+  end
+  Lres = lattice_in_same_ambient_space(Lres, basis_matrix(Lres)*inv(l))
   iso = zero_matrix(QQ, 0, degree(Lres))
   v = vec(zeros(QQ, 1, degree(Lres)))
 
   for i in 1:degree(Lres)
     v[i] = one(QQ)
-    v2 = f(v)
+    v2 = f(v*inv(l))
     v2 = beta.*v2
-    v3 = f\v2
+    v3 = (f\v2)*l
     iso = vcat(iso, transpose(matrix(v3)))
     v[i] = zero(QQ)
   end
@@ -128,7 +138,8 @@ end
 function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
                                                     n::Integer = -1,
                                                     check::Bool = true,
-                                                    ambient_representation::Bool = true)
+                                                    ambient_representation::Bool = true
+                                                    l = nothing)
   if n <= 0
     n = multiplicative_order(f)
   end
@@ -162,35 +173,31 @@ function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
     b = gen(E)
   end
  
-  mb = absolute_representation_matrix(b)
+  _mb = absolute_representation_matrix(b)
   m = divexact(rank(L), euler_phi(n))
-  bca = Hecke._basis_of_commutator_algebra(f, mb)
-  @assert !is_empty(bca)
-  l = zero_matrix(QQ, 0, ncols(f))
-  while rank(l) != ncols(f)
-    _m = popfirst!(bca)
-    _l = vcat(l, _m)
-    if rank(_l) > rank(l)
-      l = _l
+  mb = block_diagonal_matrix([_mb for i in 1:m])
+  if l === nothing
+    bca = Hecke._basis_of_commutator_algebra(f, _mb)
+    @assert !is_empty(bca)
+    l = zero_matrix(QQ, 0, ncols(f))
+    while rank(l) != ncols(f)
+      _m = popfirst!(bca)
+      _l = vcat(l, _m)
+      if rank(_l) > rank(l)
+        l = _l
+      end
     end
+    @assert det(l) != 0
+    @assert l*f == mb*l
+  elseif check
+    @req l isa QQMatrix "l must be a matrix with rational entries"
+    @req !is_zero(det(l)) "l must be invertible"
+    @req l*f == mb*l "The basis described by l is not compatible with multiplication by a $n-th root of unity"
   end
-  @assert det(l) != 0
-  l = inv(l)
-  B = matrix(absolute_basis(E))
-  gene = Vector{elem_type(E)}[]
-  for i in 1:nrows(l)
-    vv = vec(zeros(E, 1, m))
-    v = l[i,:]
-    for j in 1:m
-      a = (v[1, 1+(j-1)*euler_phi(n):j*euler_phi(n)]*B)[1]
-      vv[j] = a
-    end
-    push!(gene, vv)
-  end
+
   # We choose as basis for the hermitian lattice Lh the identity matrix
-  mb = block_diagonal_matrix([mb for i in 1:m])
   gram = matrix(zeros(E, m, m))
-  G = inv(l)*gram_matrix_of_rational_span(L)*inv(transpose(l))
+  G = l*gram_matrix_of_rational_span(L)*transpose(l)
   v = zero_matrix(QQ, 1, rank(L))
   for i=1:m
     for j=1:m
@@ -206,6 +213,6 @@ function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
   @assert transpose(map_entries(s, gram)) == gram
 
   Lh = hermitian_lattice(E, gene, gram = 1//n*gram)
-  return Lh
+  return Lh, l 
 end
 

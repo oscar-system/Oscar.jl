@@ -93,7 +93,7 @@ minpoly(Lf::LatWithIsom) = minpoly(isometry(Lf))::QQPolyRingElem
     genus(Lf::LatWithIsom) -> ZGenus
 
 Given a lattice with isometry $(L, f)$, return the genus of the underlying 
-lattice `L`.
+lattice `L` (see [`genus(::ZLat)`](@ref)).
 """
 genus(Lf::LatWithIsom) = genus(lattice(Lf))::ZGenus
 
@@ -101,32 +101,100 @@ genus(Lf::LatWithIsom) = genus(lattice(Lf))::ZGenus
     ambient_space(Lf::LatWithIsom) -> QuadSpace
 
 Given a lattice with isometry $(L, f)$, return the ambient space of the underlying
-lattice `L`.
+lattice `L` (see [`ambient_space(::ZLat)`](@ref)).
 """
 ambient_space(Lf::LatWithIsom) = ambient_space(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
 
+@doc Markdown.doc"""
+    basis_matrix(Lf::LatWithIsom) -> QQMatrix
+
+Given a lattice with isometry $(L, f)$, return the basis matrix of the underlying
+lattice `L` (see [`basis_matrix(::ZLat)`](@ref)).
+"""
 basis_matrix(Lf::LatWithIsom) = basis_matrix(lattice(Lf))::QQMatrix
 
+@doc Markdown.doc"""
+    gram_matrix(Lf::LatWithIsom) -> QQMatrix
+
+Given a lattice with isometry $(L, f)$ with basis matric `B` (see [`basis_matrix(Lf::LatWithIsom)`](@ref))
+inside the space $(V, \Phi)$ (see [`ambient_space(Lf::LatWithIsom)`](@ref)), return the gram matrix
+of lattice `L` associted to `B` with respect to $\Phi$.
+"""
 gram_matrix(Lf::LatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
 
+@doc Markdown.doc"""
+    rational_span(Lf::LatWithIsom) -> QuadSpace
+
+Given a lattice with isometry $(L, f)$, return the rational span $L \otimes \mathbb{Q}$
+of the underlying lattice `L`.
+"""
 rational_span(Lf::LatWithIsom) = rational_span(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
 
+@doc Markdown.doc"""
+    det(Lf::LatWithIsom) -> QQRingElem
+
+Given a lattice with isometry $(L, f)$, return the determinant of the
+underlying lattice `L` (see [`det(::ZLat)`](@ref)).
+"""
 det(Lf::LatWithIsom) = det(lattice(Lf))::QQRingElem
 
+@doc Markdown.doc"""
+    scale(Lf::LatWithIsom) -> QQRingElem
+
+Given a lattice with isometry $(L, f)$, return the scale of the underlying
+lattice `L` (see [`scale(::ZLat)`](@ref)).
+"""
 scale(Lf::LatWithIsom) = det(lattice(Lf))::QQRingElem
 
+@doc Markdown.doc"""
+    norm(Lf::LatWithIsom) -> QQRingElem
+
+Given a lattice with isometry $(L, f)$, return the norm of the underlying
+lattice `L` (see [`norm(::ZLat)`](@ref)).
+"""
 norm(Lf::LatWithIsom) = norm(lattice(Lf))::QQRingElem
 
+@doc Markdown.doc"""
+    is_integral(Lf::LatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return whether the underlying lattice
+is integral, i.e. whether its scale is an integer (see [`scale(::LatWithIsom)`](@ref)).
+"""
 is_integral(Lf::LatWithIsom) = is_integral(lattice(Lf))::Bool
 
+@doc Markdown.doc"""
+    degree(Lf::LatWithIsom) -> Int
+
+Given a lattice with isometry $(L, f)$ inside the quadratic space $(V, \Phi)$,
+return the dimension of `V` as a $\mathbb Q$ vector space.
+"""
 degree(Lf::LatWithIsom) = degree(lattice(Lf))::Int
 
+@doc Markdown.doc"""
+    is_even(Lf::LatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return whether the underlying lattice
+`L` is even, i.e. whether its norm is an even integer ([`norn(::LatWithIsom)`](@ref)).
+
+Note that to be even, `L` must be integral (see [`is_integral(::ZLat)`](@ref)).
+"""
 is_even(Lf::LatWithIsom) = is_even(lattice(Lf))::Int
 
+@doc Markdown.doc"""
+    discriminant(Lf::LatWithIsom) -> QQRingElem
+
+Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
+lattice `L` (see [`discriminant(::ZLat)`](@ref)).
+"""
 discriminant(Lf::LatWithIsom) = discriminant(lattice(Lf))::QQRingElem
 
-signature_tuple(Lf::LatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int, Int}
+@doc Markdown.doc"""
+    signature_tuple(Lf::LatWithIsom) -> Tuple{Int, Int, Int}
 
+Given a lattice with isometry $(L, f)$, return the signature tuple of the
+underlying lattice `L` (see [`signature_tuple(::ZLat)`](@ref)).
+"""
+signature_tuple(Lf::LatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int, Int}
 
 ###############################################################################
 #
@@ -224,13 +292,43 @@ end
 #
 ###############################################################################
 
+@doc Markdown.doc"""
+    rescale(Lf::LatWithIsom, a::RationalUnion) -> LatWithIsom
+
+Given a lattice with isometry $(L, f)$ and a rational number `a`, return the lattice
+with isometry $(L(a), f)$ (see [`rescale(::ZLat, ::RationalUnion)`](@ref)).
+"""
 function rescale(Lf::LatWithIsom, a::Hecke.RationalUnion)
     return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), order_of_isometry(Lf), check=false)
 end
 
+@doc Markdown.doc"""
+    dual(Lf::LatWithIsom) -> LatWithIsom
+
+Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that `f` is
+induced by an isometry `g` of $(V, \Phi)$, return the lattice with isometry $(L^{\vee}, h)$
+where $L^{\vee}$ is the dual of `L` in $(V, \Phi)$ (see [`dual(::ZLat)`](@ref)) and `h` is
+induced by `g`.
+"""
 function dual(Lf::LatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
   return lattice_with_isometry(dual(lattice(Lf)), ambient_isometry(Lf), order_of_isometry(Lf), check = false)
+end
+
+@doc Markdown.doc"""
+    lll(Lf::LatWithIsom) -> LatWithIsom
+
+Given a lattice with isometry $(L, f)$, return the same lattice with isometry with a different
+basis matrix for `L` (see [`basis_matrix(::ZLat)`](@ref)) obtained by performing an LLL-reduction
+on the associated gram matrix of `L` (see [`gram_matrix(::ZLat)`](@ref)).
+
+Note that matrix representing the action of `f` on `L` changes but the global action
+on the ambient space of `L` stays the same.
+"""
+function lll(Lf::LatWithIsom)
+  f = ambient_isometry(Lf)
+  L2 = lll(lattice(Lf), same_ambient=true)
+  return lattice_with_isometry(L2, f, ambient_representation = true)
 end
 
 ###############################################################################
@@ -239,6 +337,16 @@ end
 #
 ###############################################################################
 
+@doc Markdown.doc"""
+    is_of_hermitian_type(Lf::LatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
+underlying isometry `f` is (irreducible) cyclotomic.
+
+Note that if $(L, f)$ is of hermitian type with `f` of order `n`, then `L` can
+be seen as a hermitian lattice over the order $\mathbb{Z}[\zeta_n]$ where $\zeta_n$
+is a primitive $n$-th root of unity.
+"""
 function is_of_hermitian_type(Lf::LatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
   n = order_of_isometry(Lf)
@@ -263,8 +371,10 @@ If it exists, the hermitian structure is cached.
   f = isometry(Lf)
   n = order_of_isometry(Lf)
 
-  return Oscar._hermitian_structure(lattice(Lf), f, n = n, check = false,
-                                                     ambient_representation = false)
+  H, l = Oscar._hermitian_structure(lattice(Lf), f, n = n, check = false,
+                                                           ambient_representation = false)
+  set_attribute!(Lf, :transfert_data, l)
+  return H
 end
 
 ###############################################################################
