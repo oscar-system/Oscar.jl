@@ -146,7 +146,7 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
   # TODO: In the modular case we need module syzygies w.r.t. the secondary invariants
 
   Rgraded = polynomial_ring(RG)
-  R = Rgraded.R
+  R = forget_grading(Rgraded)
   K = coefficient_ring(R)
 
   p_invars = [ f.f for f in primary_invariants(RG) ]

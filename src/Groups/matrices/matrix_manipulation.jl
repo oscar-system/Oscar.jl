@@ -6,14 +6,13 @@
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
-export
-    complement,
-    conjugate_transpose,
-    is_hermitian_matrix,
-    is_skewsymmetric_matrix,
-    lower_triangular_matrix,
-    permutation_matrix,
-    upper_triangular_matrix
+export complement
+export conjugate_transpose
+export is_hermitian_matrix
+export is_skewsymmetric_matrix
+export lower_triangular_matrix
+export permutation_matrix
+export upper_triangular_matrix
 
 
 

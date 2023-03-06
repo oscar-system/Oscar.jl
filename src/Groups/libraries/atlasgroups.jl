@@ -1,9 +1,8 @@
-export
-    all_atlas_group_infos,
-    atlas_group,
-    atlas_program,
-    atlas_subgroup,
-    number_atlas_groups
+export all_atlas_group_infos
+export atlas_group
+export atlas_program
+export atlas_subgroup
+export number_atlas_groups
 
 ###################################################################
 # Groups from the Atlas of Group Representations

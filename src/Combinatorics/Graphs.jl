@@ -77,6 +77,7 @@ function Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
     return Graph{T}(pmg)
 end
 
+_has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
 @doc Markdown.doc"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -94,6 +95,7 @@ julia> ne(g)
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+    (_has_node(g, source) && _has_node(g, target)) || throw(ArgumentError("Nodes must be between 1 and $(nv(g)), but edge given is $source -- $target"))
     Polymake._add_edge(pm_object(g), source-1, target-1)
 end
 

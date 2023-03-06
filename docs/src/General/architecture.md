@@ -17,7 +17,7 @@ Pages = ["architecture.md"]
 
 This page aims to give a short technical overview of the architecture of OSCAR.
 A more in-depth overview of the various components of OSCAR is given
-[on the OSCAR homepage](https://oscar.computeralgebra.de/about/).
+[on the OSCAR homepage](https://www.oscar-system.org/about/).
 
 ## Julia packages
 

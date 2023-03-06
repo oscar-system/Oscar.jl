@@ -254,7 +254,7 @@ is_graded(R::MPolyDecRing)
 
 There are two basic ways of creating multivariate rings with gradings:
 While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
-the `GradedPolynomialRing` function is meant to create a graded polynomial ring all at once.
+the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
 grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
@@ -268,7 +268,7 @@ grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
 grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 ```
 ```@docs
-GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
+graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
 
 ## Tests on Graded Rings
@@ -332,6 +332,10 @@ grading_group(R::MPolyDecRing)
 
 ```@docs
 homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
+```
+
+```@docs
+forget_grading(R::MPolyDecRing)
 ```
 
 ## Elements of Multivariate Rings
@@ -472,6 +476,10 @@ is_homogeneous(f::MPolyDecRingElem)
 
 ```@docs
 degree(f::MPolyDecRingElem)
+```
+
+```@docs
+forget_grading(f::MPolyDecRingElem)
 ```
 
 ## Homomorphisms From Multivariate Rings

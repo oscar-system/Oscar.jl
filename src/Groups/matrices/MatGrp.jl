@@ -1,18 +1,17 @@
-export
-    general_linear_group,
-    mat_elem_type,
-    matrix_group,
-    MatrixGroup,
-    MatrixGroupElem,
-    omega_group,
-    orthogonal_group,
-    ring_elem_type,
-    special_linear_group,
-    special_orthogonal_group,
-    special_unitary_group,
-    symplectic_group,
-    unitary_group,
-    GL, GO, GU, SL, SO, Sp, SU
+export general_linear_group
+export mat_elem_type
+export matrix_group
+export MatrixGroup
+export MatrixGroupElem
+export omega_group
+export orthogonal_group
+export ring_elem_type
+export special_linear_group
+export special_orthogonal_group
+export special_unitary_group
+export symplectic_group
+export unitary_group
+export GL, GO, GU, SL, SO, Sp, SU
 
 
 

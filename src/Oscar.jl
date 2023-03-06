@@ -13,7 +13,7 @@ into a comprehensive tool for computational algebra.
 
   For more information please visit
 
-  `https://oscar.computeralgebra.de`
+  `https://www.oscar-system.org`
 
 OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
@@ -126,7 +126,7 @@ windows_error() = error("""
 
     This package unfortunately does not run natively under Windows.
     Please install Julia using Windows subsystem for Linux and try again.
-    See also https://oscar.computeralgebra.de/install/.
+    See also https://www.oscar-system.org/install/.
     """)
 
 if Sys.iswindows()
@@ -209,6 +209,7 @@ function __init__()
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
+    GAP.Packages.load("repsn")
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()
@@ -479,32 +480,27 @@ include("Modules/local_rings.jl")
 include("Modules/mpolyquo.jl")
 include("Rings/ReesAlgebra.jl")
 
-include("Geometry/basics.jl")
-include("Geometry/K3Auto.jl")
-
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/LWI.jl")
 
 include("PolyhedralGeometry/main.jl")
 
 include("Polymake/polymake_to_oscar.jl")
+
 include("Combinatorics/Graphs.jl")
 include("Combinatorics/SimplicialComplexes.jl")
-
 include("Combinatorics/Matroids/JMatroids.jl")
-
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
-
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
-include("ToricVarieties/JToric.jl")
-
-include("Schemes/main.jl")
-
-include("TropicalGeometry/main.jl")
+include("AlgebraicGeometry/Schemes/main.jl")
+include("AlgebraicGeometry/ToricVarieties/JToric.jl")
+include("AlgebraicGeometry/TropicalGeometry/main.jl")
+include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+include("AlgebraicGeometry/Miscellaneous/basics.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 

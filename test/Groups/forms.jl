@@ -356,21 +356,21 @@ end
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test is_conjugate(G,H,Op)[1]
+   @test is_conjugate(G, H, Op)
    B[2,2]=1; B[3,3]=1;
    f = quadratic_form(B)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test is_conjugate(G,H,Om)[1]
+   @test is_conjugate( G, H, Om)
    Q = f
    f = corresponding_bilinear_form(Q)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test is_conjugate(G,H,Sp(4,2))[1]
+   @test is_conjugate(G, H, Sp(4,2))
 
    G = GL(5,9)
    F = base_ring(G)

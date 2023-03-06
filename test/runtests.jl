@@ -105,9 +105,8 @@ include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
 include("Experimental/MPolyRingSparse-test.jl")
 include("Experimental/MatrixGroups-test.jl")
+include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
-
-include("Geometry/K3Auto.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/FreeModElem-orderings-test.jl")
@@ -120,12 +119,13 @@ include("Rings/ReesAlgebra.jl")
 
 include("InvariantTheory/runtests.jl")
 
-include("ToricVarieties/runtests.jl")
-
 include("Modules/ProjectiveModules.jl")
-include("Schemes/runtests.jl")
 
-include("TropicalGeometry/runtests.jl")
+include("AlgebraicGeometry/Schemes/runtests.jl")
+include("AlgebraicGeometry/ToricVarieties/runtests.jl")
+include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
+include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+
 include("Serialization/runtests.jl")
 
 include("StraightLinePrograms/runtests.jl")

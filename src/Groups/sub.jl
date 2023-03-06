@@ -1,25 +1,24 @@
-export
-    centralizer,
-    center, has_center, set_center,
-    characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups,
-    derived_series, has_derived_series, set_derived_series,
-    derived_subgroup, has_derived_subgroup, set_derived_subgroup,
-    embedding,
-    epimorphism_from_free_group,
-    index,
-    is_characteristic,
-    is_maximal,
-    is_nilpotent, has_is_nilpotent, set_is_nilpotent,
-    is_solvable, has_is_solvable, set_is_solvable,
-    is_supersolvable, has_is_supersolvable, set_is_supersolvable,
-    maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient,
-    maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups,
-    maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups,
-    minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups,
-    normal_subgroups, has_normal_subgroups, set_normal_subgroups,
-    quo,
-    sub,
-    trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
+export center, has_center, set_center
+export centralizer
+export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
+export derived_series, has_derived_series, set_derived_series
+export derived_subgroup, has_derived_subgroup, set_derived_subgroup
+export embedding
+export epimorphism_from_free_group
+export index
+export is_characteristic
+export is_maximal
+export is_nilpotent, has_is_nilpotent, set_is_nilpotent
+export is_solvable, has_is_solvable, set_is_solvable
+export is_supersolvable, has_is_supersolvable, set_is_supersolvable
+export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
+export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
+export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
+export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
+export normal_subgroups, has_normal_subgroups, set_normal_subgroups
+export quo
+export sub
+export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 
 ################################################################################
 #

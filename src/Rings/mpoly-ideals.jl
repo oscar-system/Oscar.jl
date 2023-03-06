@@ -36,7 +36,7 @@ ideal(x*y - 3*x, -2*x^2*y + y^3)
 julia> typeof(I)
 MPolyIdeal{QQMPolyRingElem}
 
-julia> S, (x, y) = GradedPolynomialRing(QQ, ["x", "y"],  [1, 2])
+julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"],  [1, 2])
 (Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [2], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
@@ -1290,7 +1290,7 @@ over a field, return an array containing a minimal set of generators of `I`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
 
@@ -1361,7 +1361,7 @@ are given by all $d \times d$ minors of a $d \times n$ matrix. For the algorithm
 # Examples
 ```jldoctest
 julia> grassmann_pluecker_ideal(2, 4)
-ideal(x[0]*x[5] - x[1]*x[4] + x[2]*x[3])
+ideal(x[1]*x[6] - x[2]*x[5] + x[3]*x[4])
 
 julia> R, x = polynomial_ring(residue_ring(ZZ, 7), "x" => (1:2, 1:3), ordering=:degrevlex)
 (Multivariate Polynomial Ring in 6 variables x[1, 1], x[2, 1], x[1, 2], x[2, 2], ..., x[2, 3] over Integers modulo 7, zzModMPolyRingElem[x[1, 1] x[1, 2] x[1, 3]; x[2, 1] x[2, 2] x[2, 3]])

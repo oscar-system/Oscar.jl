@@ -190,7 +190,7 @@ end
   d = absolute_primary_decomposition(I)
   @test length(d) == 3
 
-  R,(x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+  R,(x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
   d = absolute_primary_decomposition(I)
   @test length(d) == 5
