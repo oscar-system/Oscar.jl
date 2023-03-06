@@ -779,7 +779,7 @@ function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
   set_attribute!(R, :variety_dim, n)
   lg = _logg(R(sum(taylor[i+1] * t^i for i in 0:n)))
   comps = lg[1:n]
-  lg = [leading_coefficient(comps[i].f) for i in 1:n]
+  lg = [iszero(comps[i].f) ? zero(coefficient_ring(comps[i].f)) : leading_coefficient(comps[i].f) for i in 1:n]
   comps = x[1:n]
   _expp(sum(factorial(ZZ(i)) * lg[i] * comps[i] for i in 1:n))
 end
