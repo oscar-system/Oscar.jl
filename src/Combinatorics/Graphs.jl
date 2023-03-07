@@ -3,43 +3,6 @@ using JSON
 import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
-export
-    Directed,
-    Edge,
-    Graph,
-    Undirected,
-    add_edge!,
-    add_vertex!,
-    add_vertices!,
-    all_neighbors,
-    complete_graph,
-    complete_bipartite_graph,
-    connected_components,
-    diameter,
-    dst,
-    dualgraph,
-    edgegraph,
-    edges,
-    has_edge,
-    has_vertex,
-    incidence_matrix,
-    inneighbors,
-    is_connected,
-    is_strongly_connected,
-    is_weakly_connected,
-    ne,
-    neighbors,
-    nv,
-    outneighbors,
-    rem_edge!,
-    rem_vertex!,
-    reverse,
-    shortest_path_dijkstra,
-    signed_incidence_matrix,
-    src,
-    strongly_connected_components,
-    weakly_connected_components
-
 ################################################################################
 ################################################################################
 ##  Constructing and modifying
