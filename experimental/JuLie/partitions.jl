@@ -51,19 +51,19 @@ function Base.length(P::Partition)
   return length(P.p)
 end
 
-function Base.getindex(P::Partition, i::Int)
-  return getindex(P.p,i)
+function Base.getindex(P::Partition, i::IntegerUnion)
+  return getindex(P.p,Int(i))
 end
 
-function Base.setindex!(P::Partition, x::Integer, i::Int)
-  return setindex!(P.p,x,i)
+function Base.setindex!(P::Partition, x::IntegerUnion, i::IntegerUnion)
+  return setindex!(P.p,x,Int(i))
 end
 
-function Partition(parts::Integer...)
+function Partition(parts::IntegerUnion...)
   return Partition(collect(Int, parts))
 end
 
-function Partition{T}(parts::Integer...) where T<:Integer
+function Partition{T}(parts::IntegerUnion...) where T<:IntegerUnion
   return Partition(collect(T, parts))
 end
 
@@ -75,12 +75,12 @@ function Partition(p::Vector{Any})
   return Partition(Vector{Int64}(p))
 end
 
-function Base.copy(P::Partition{T}) where T<:Integer
+function Base.copy(P::Partition{T}) where T<:IntegerUnion
   return Partition{T}(copy(P.p))
 end
 
 @Markdown.doc """
-    getindex_safe(P::Partition, i::Int)
+    getindex_safe(P::Partition, i::IntegerUnion)
 
 In algorithms involving partitions it is sometimes convenient to be able to access parts beyond the length of the partition, and then you want to get zero instead of an error. This function is a shortcut for
 ```
@@ -88,14 +88,13 @@ return (i>length(P.p) ? 0 : getindex(P.p,i))
 ```
 If you are sure that ```P[i]``` exists, use ```getindex``` because this will be faster.
 """
-function getindex_safe(P::Partition, i::Int)
-  return (i>length(P.p) ? 0 : getindex(P.p,i))
+function getindex_safe(P::Partition, i::IntegerUnion)
+  return (i>length(P.p) ? 0 : getindex(P.p,Int(i)))
 end
 
 
 @Markdown.doc """
-    num_partitions(n::Integer)
-    num_partitions(n::fmpz)
+    num_partitions(n::IntegerUnion)
 
 The number of integer partitions of the integer ``n ≥ 0``. Uses the function from FLINT, which is very fast.
 
@@ -103,12 +102,9 @@ The number of integer partitions of the integer ``n ≥ 0``. Uses the function f
 1. The On-Line Encyclopedia of Integer Sequences, [A000041](https://oeis.org/A000041)
 2. FLINT, [Number of partitions](http://flintlib.org/doc/arith.html?highlight=partitions#number-of-partitions)
 """
-function num_partitions(n::Integer)
-  return num_partitions(ZZ(n))
-end
-
-function num_partitions(n::fmpz)
+function num_partitions(n::IntegerUnion)
   n >= 0 || throw(ArgumentError("n >= 0 required"))
+  n = ZZ(n)
   z = ZZ()
   ccall((:arith_number_of_partitions, libflint), Cvoid, (Ref{fmpz}, Culong), z, UInt(n))
   return z
@@ -116,21 +112,18 @@ end
 
 
 @Markdown.doc """
-    num_partitions(n::Integer, k::Integer)
-    num_partitions(n::fmpz, k::fmpz)
+    num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 The number of integer partitions of the integer ``n ≥ 0`` into ``k ≥ 0`` parts. The implementation uses a recurrence relation.
 
 # References
 1. The On-Line Encyclopedia of Integer Sequences, [A008284](https://oeis.org/A008284)
 """
-function num_partitions(n::Integer, k::Integer)
-  return num_partitions(ZZ(n), ZZ(k))
-end
-
-function num_partitions(n::fmpz, k::fmpz)
+function num_partitions(n::IntegerUnion, k::IntegerUnion)
   n >= 0 || throw(ArgumentError("n >= 0 required"))
   k >= 0 || throw(ArgumentError("k >= 0 required"))
+  n = ZZ(n)
+  k = ZZ(k)
 
   # Special cases
   if n == k
@@ -172,7 +165,7 @@ end
 
 
 @Markdown.doc """
-    partitions(n::Integer)
+    partitions(n::IntegerUnion)
 
 A list of all partitions of an integer ``n ≥ 0``, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998); see [ZS98](@cite).
 
@@ -181,7 +174,7 @@ A list of all partitions of an integer ``n ≥ 0``, produced in lexicographicall
 julia> partitions(Int8(10)) #Using 8-bit integers
 ```
 """
-function partitions(n::Integer)
+function partitions(n::IntegerUnion)
 
   #Argument checking
   n >= 0 || throw(ArgumentError("n >= 0 required"))
@@ -234,9 +227,8 @@ function partitions(n::Integer)
 end
 
 
-
 @Markdown.doc """
-    ascending_partitions(n::Integer;alg="ks")
+    ascending_partitions(n::IntegerUnion;alg="ks")
 
 Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending* sequence (which is our convention), one can also encode it as an *ascending* sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is said that generating the list of all ascending partitions is more efficient than generating descending ones. To test this, I have implemented the algorithms given in the papers:
 1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
@@ -258,7 +250,7 @@ julia> @btime ascending_partitions(Int8(90),alg="m");
 3.451 s (56634200 allocations: 6.24 GiB)
 ```
 """
-function ascending_partitions(n::Integer; alg="ks")
+function ascending_partitions(n::IntegerUnion; alg="ks")
 
   #Argument checking
   n >= 0 || throw(ArgumentError("n >= 0 required"))
@@ -366,7 +358,7 @@ end
 
 
 @Markdown.doc """
-    partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z=0)
+    partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; z=0)
 
 A list of all partitions of an integer ``m ≥ 0`` into ``n ≥ 0`` parts with lower bound ``l1 ≥ 0`` and upper bound ``l2 ≥ l1`` for the parts. There are two choices for the parameter z:
 * z=0: no further restriction (*default*);
@@ -375,7 +367,7 @@ The partitions are produced in *decreasing* order.
 
 The algorithm used is "parta" in [RJ76](@cite), de-gotoed from old ALGOL code by E. Thiel!
 """
-function partitions(m::Integer, n::Integer, l1::Integer, l2::Integer; z::Integer=0)
+function partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; z::IntegerUnion=0)
 
   # Note that we are considering partitions of m here. I would switch m and n
   # but the algorithm was given like that and I would otherwise confuse myself
@@ -473,25 +465,25 @@ end
 
 
 @Markdown.doc """
-    partitions(m::Integer, n::Integer)
+    partitions(m::IntegerUnion, n::IntegerUnion)
 
 All partitions of an integer ``m ≥ 0`` into ``n ≥ 1`` parts (no further restrictions).
 """
-function partitions(m::Integer, n::Integer)
+function partitions(m::IntegerUnion, n::IntegerUnion)
   return partitions(m,n,1,m,z=0)
 end
 
 
 
 @Markdown.doc """
-    partitions(mu::Vector{Integer}, m::Integer, v::Vector{Integer}, n::Integer)
+    partitions(mu::Vector{IntegerUnion}, m::IntegerUnion, v::Vector{IntegerUnion}, n::IntegerUnion)
 
 All partitions of an integer ``m >= 0`` into ``n >= 1`` parts, where each part is an element in ``v`` and each ``v[i]`` occurs a maximum of ``mu[i]`` times. The partitions are produced in    *decreasing* order. The algorithm used is a de-gotoed version (by E. Thiel!) of algorithm "partb" in [RJ76](@cite).
 
 # Remark
 The original algorithm lead to BoundsErrors, since r could get smaller than 1. Furthermore x and y are handled as arrays with an infinite length. After finding all valid partitions, the algorithm will continue searching for partitions of length n+1. We thus had to add a few additional checks and interruptions. Done by T. Schmit.
 """
-function partitions(mu::Vector{S}, m::Integer, v::Vector{S}, n::Integer) where S<:Integer
+function partitions(mu::Vector{S}, m::IntegerUnion, v::Vector{S}, n::IntegerUnion) where S<:IntegerUnion
   length(mu)==length(v) || throw(ArgumentError("mu and v should have the same length"))
   m>=0 || throw(ArgumentError("m ≥ 0 required"))
   n>=1 || throw(ArgumentError("n ≥ 1 required"))
@@ -653,14 +645,14 @@ end
 
 
 @Markdown.doc """
-    conjugate(lambda::Partition{T}) where T<:Integer
+    conjugate(lambda::Partition{T}) where T<:IntegerUnion
 
 The **conjugate** of a partition is obtained by considering its Young diagram (see [Tableaux](@ref)) and then flipping it along its main diagonal.
 
 # References
 1. Wikipedia, [Partition (number theory)](https://en.wikipedia.org/wiki/Partition_(number_theory)#Conjugate_and_self-conjugate_partitions)
 """
-function conjugate(lambda::Partition{T}) where T<:Integer
+function conjugate(lambda::Partition{T}) where T<:IntegerUnion
   if isempty(lambda)
     return copy(lambda)
   end

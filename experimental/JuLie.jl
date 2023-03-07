@@ -3,6 +3,7 @@ module JuLie
 using ..Oscar
 using Markdown
 import Nemo:libflint
+import Nemo:IntegerUnion
 
 include("JuLie/partitions.jl")
 include("JuLie/schur_polynomials.jl")

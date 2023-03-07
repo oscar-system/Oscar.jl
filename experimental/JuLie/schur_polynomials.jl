@@ -238,7 +238,7 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
 
   #version of the function semistandard_tableaux(shape::Vector{T}, max_val=sum(shape)::Integer)
   len = length(lambda)
-  Tab = [(fill(i,lambda[i])) for i = 1:len]
+  tab = [(fill(i,lambda[i])) for i = 1:len]
   m = len
   n = lambda[m]
 
@@ -248,8 +248,8 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
     count .= 0
     for i = 1:len
       for j = 1:lambda[i]
-        if Tab[i][j] <= k
-          count[Tab[i][j]] += 1
+        if tab[i][j] <= k
+          count[tab[i][j]] += 1
         else
           valid = false
           break
@@ -260,9 +260,9 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
       push_term!(sf, S(1), count)
     end
     #raise one element by 1
-    while !(Tab[m][n] < k &&
-            (n==lambda[m] || Tab[m][n]<Tab[m][n+1]) &&
-            (m==len || lambda[m+1]<n || Tab[m][n]+1<Tab[m+1][n]))
+    while !(tab[m][n] < k &&
+            (n==lambda[m] || tab[m][n]<tab[m][n+1]) &&
+            (m==len || lambda[m+1]<n || tab[m][n]+1<tab[m+1][n]))
       if n > 1
         n -= 1
       elseif m > 1
@@ -273,7 +273,7 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
       end
     end
 
-    Tab[m][n] += 1
+    tab[m][n] += 1
 
     #minimize trailing elements
     if n < lambda[m]
@@ -285,11 +285,11 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
     end
     while (i<=len && j<=lambda[i])
       if i == 1
-        Tab[1][j] = Tab[1][j-1]
+        tab[1][j] = tab[1][j-1]
       elseif j == 1
-        Tab[i][1] = Tab[i-1][1] + 1
+        tab[i][1] = tab[i-1][1] + 1
       else
-        Tab[i][j] = max(Tab[i][j-1], Tab[i-1][j] + 1)
+        tab[i][j] = max(tab[i][j-1], tab[i-1][j] + 1)
       end
       if j < lambda[i]
         j += 1
