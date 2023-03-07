@@ -481,7 +481,6 @@ include("Modules/mpolyquo.jl")
 include("Rings/ReesAlgebra.jl")
 
 include("NumberTheory/NmbThy.jl")
-include("NumberTheory/LWI.jl")
 
 include("PolyhedralGeometry/main.jl")
 
