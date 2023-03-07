@@ -61,6 +61,7 @@ the cones in the fan of the toric variety.
 ### General constructors
 
 ```@docs
+rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
 rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
 ```
 
