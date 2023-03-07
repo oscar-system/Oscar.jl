@@ -76,7 +76,7 @@ end
 
   L = root_lattice(:A, 2)
   q = discriminant_group(L)
-  T = orthogonal_sum(q, q)[1]
+  T = direct_sum(q, q)[1]
   OT = orthogonal_group(T)
   f = matrix(ZZ, 2, 2, [1 1;0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
