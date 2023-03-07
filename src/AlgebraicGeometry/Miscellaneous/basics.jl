@@ -9,7 +9,7 @@ import Oscar: weights
 import AbstractAlgebra, Nemo
 import Base: ==, show, hash
 
-export proj_space, normalize!, coordinate_ring
+export proj_space, normalize!
 
 struct ProjSpc{T}  <: Oscar.ProjSpc{T}
   R::AbstractAlgebra.Ring
