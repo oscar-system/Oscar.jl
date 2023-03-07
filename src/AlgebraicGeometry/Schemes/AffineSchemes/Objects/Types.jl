@@ -9,7 +9,6 @@
 #
 # Consequently, most method must be implemented 4 (or a multiple of 4) times.
 
-export AbsSpec, Spec, StdSpec
 
 
 

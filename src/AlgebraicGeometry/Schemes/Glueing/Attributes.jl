@@ -1,4 +1,3 @@
-export underlying_glueing, patches, glueing_morphisms, inverse, glueing_domains
 
 ########################################################################
 # The interface for abstract glueings of affine schemes                #

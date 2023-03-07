@@ -44,7 +44,6 @@ function random_affine_linear_polynomials(k::Int,Kx,val::TropicalSemiringMap{K,p
 
   return lin_polys
 end
-export random_affine_linear_polynomials
 
 
 
@@ -74,4 +73,3 @@ function tropical_points(I,val::TropicalSemiringMap{K,p} where{K,p})
   return zeros(Int,0,length(symbols(Kx)))
 
 end
-export tropical_points

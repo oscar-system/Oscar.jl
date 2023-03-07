@@ -26,7 +26,6 @@ using RecipesBase
         return new{M,EMB}(Sigma)
     end
 end
-export TropicalCurve
 
 function pm_object(T::TropicalCurve{M, EMB}) where {M, EMB}
     if has_attribute(T,:polymake_bigobject)
@@ -414,18 +413,6 @@ function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTro
     return coeff1 == coeff2
 end
 
-export DivisorOnTropicalCurve,
-    n_nodes,
-    degree,
-    coefficients,
-    is_effective,
-    graph,
-    base_curve,
-    chip_firing_move,
-    v_reduced,
-    is_linearly_equivalent,
-    structure_tropical_jacobian,
-    visualize
 
 ###
 # 4. More properties

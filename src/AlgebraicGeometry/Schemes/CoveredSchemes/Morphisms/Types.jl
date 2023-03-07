@@ -1,4 +1,3 @@
-export AbsCoveredSchemeMorphism, CoveredSchemeMorphism
 
 ########################################################################
 # Morphisms of covered schemes                                         #

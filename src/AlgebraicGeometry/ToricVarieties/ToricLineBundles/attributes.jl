@@ -24,7 +24,6 @@ with components [2]
 function divisor_class(l::ToricLineBundle)
     return l.divisor_class
 end
-export divisor_class
 
 
 @doc Markdown.doc"""
@@ -47,7 +46,6 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 function toric_variety(l::ToricLineBundle)
     return l.toric_variety
 end
-export toric_variety
 
 
 @doc Markdown.doc"""
@@ -80,7 +78,6 @@ true
     set_attribute!(td, :is_cartier, true)
     return td
 end
-export toric_divisor
 
 
 @doc Markdown.doc"""
@@ -103,7 +100,6 @@ julia> degree(l)
 @attr ZZRingElem function degree(l::ToricLineBundle)
     return sum(coefficients(toric_divisor(l)))
 end
-export degree
 
 
 #####################
@@ -143,7 +139,6 @@ julia> basis_of_global_sections_via_rational_functions(l)
     characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
     return MPolyQuoRingElem{QQMPolyRingElem}[character_to_rational_function(toric_variety(l), vec([ZZRingElem(c) for c in characters[i, :]])) for i in 1:nrows(characters)]
 end
-export basis_of_global_sections_via_rational_functions
 
 
 @doc Markdown.doc"""
@@ -193,4 +188,3 @@ julia> basis_of_global_sections(l)
     return MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[hc[2](x) for x in generators]
 end
 basis_of_global_sections(l::ToricLineBundle) = basis_of_global_sections_via_homogeneous_component(l)
-export basis_of_global_sections_via_homogeneous_component, basis_of_global_sections

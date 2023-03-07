@@ -28,7 +28,6 @@ true
 @attr AbstractNormalToricVariety function toric_variety(c::ClosedSubvarietyOfToricVariety)
     return c.toric_variety
 end
-export toric_variety
 
 
 @doc Markdown.doc"""
@@ -54,7 +53,6 @@ true
 @attr MPolyIdeal function defining_ideal(c::ClosedSubvarietyOfToricVariety)
     return c.defining_ideal
 end
-export ideal
 
 
 @doc Markdown.doc"""
@@ -81,4 +79,3 @@ true
 @attr MPolyIdeal function radical(c::ClosedSubvarietyOfToricVariety)
     return radical(defining_ideal(c))
 end
-export radical

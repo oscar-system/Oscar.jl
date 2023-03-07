@@ -400,6 +400,8 @@ function test_module(x::AbstractString, new::Bool = true)
    end
 end
 
+include("Exports.jl")
+
 include("printing.jl")
 include("fallbacks.jl")
 

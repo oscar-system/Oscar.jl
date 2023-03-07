@@ -1,11 +1,5 @@
 # module Tropical
 
-export TropicalSemiring,
-  @tropical,
-  convention,
-  det,
-  data
-
 # using Reexport
 
 # @reexport using Oscar

@@ -1,12 +1,7 @@
-export OO, coordinate_ring, base_ring, dim, codim, name
 
-export ambient_space, ambient_coordinate_ring, ambient_coordinates, ambient_embedding
 
-export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 
-export singular_locus, singular_locus_reduced
 
-export reduced_scheme
 
 ########################################################################
 # (1) Attributes of AbsSpec

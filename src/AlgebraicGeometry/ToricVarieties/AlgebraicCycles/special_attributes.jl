@@ -54,7 +54,6 @@ Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Fi
     stanley_reisner = stanley_reisner_ideal(R, v)
     return quo(R, linear_relations + stanley_reisner)[1]
 end
-export chow_ring
 
 
 @doc Markdown.doc"""
@@ -82,7 +81,6 @@ julia> length(gens_of_rational_equivalence_classes(p2))
     r_list = [rays(c) for c in cones(v)]
     return [prod([g[findfirst(x->x==r, rays(v))] for r in rs]) for rs in r_list]
 end
-export gens_of_rational_equivalence_classes
 
 
 @doc Markdown.doc"""
@@ -117,4 +115,3 @@ julia> length(map_gens_of_chow_ring_to_cox_ring(p2))
     end
     return mapping
 end
-export map_gens_of_chow_ring_to_cox_ring

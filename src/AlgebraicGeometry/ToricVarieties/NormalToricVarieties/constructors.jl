@@ -7,13 +7,11 @@ abstract type AbstractNormalToricVariety <: _FanLikeType{QQFieldElem} end
            polymakeNTV::Polymake.BigObject
            NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
-export NormalToricVariety
 
 @attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
            AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
-export AffineNormalToricVariety
 
 function pm_object(v::AbstractNormalToricVariety)
     return v.polymakeNTV
@@ -56,7 +54,6 @@ function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
     
     return variety
 end
-export affine_normal_toric_variety
 
 
 @doc Markdown.doc"""
@@ -91,7 +88,6 @@ function normal_toric_variety(C::Cone; set_attributes::Bool = true)
     
     return variety
 end
-export normal_toric_variety
 
 
 @doc Markdown.doc"""
@@ -256,7 +252,6 @@ function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool =
     
     return variety
 end
-export affine_space
 
 
 @doc Markdown.doc"""
@@ -306,7 +301,6 @@ function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bo
     
     return variety
 end
-export projective_space
 
 
 @doc Markdown.doc"""
@@ -373,7 +367,6 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
     
     return variety
 end
-export weighted_projective_space
 
 
 @doc Markdown.doc"""
@@ -430,7 +423,6 @@ function hirzebruch_surface(r::Int; set_attributes::Bool = true)
     
     return variety
 end
-export hirzebruch_surface
 
 
 @doc Markdown.doc"""
@@ -543,7 +535,6 @@ function del_pezzo_surface(b::Int; set_attributes::Bool = true)
     
     return variety
 end
-export del_pezzo_surface
 
 
 ############################
@@ -594,7 +585,6 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     
     return new_variety
 end
-export blowup_on_ith_minimal_torus_orbit
 
 
 @doc Markdown.doc"""
@@ -706,7 +696,6 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attr
     # construct the varieties
     return [normal_toric_variety(PolyhedralFan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
 end
-export normal_toric_varieties_from_star_triangulations
 
 
 ############################
@@ -777,7 +766,6 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     return normal_toric_varieties_from_star_triangulations(p; set_attributes = set_attributes)
 end
 normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
-export normal_toric_varieties_from_glsm
 
 
 ############################

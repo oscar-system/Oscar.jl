@@ -1,4 +1,3 @@
-export restrict, generic_fraction, restriction_map, is_identity_map, canonical_isomorphism 
 ########################################################################
 # Methods for SpecOpenRing                                             #
 ########################################################################

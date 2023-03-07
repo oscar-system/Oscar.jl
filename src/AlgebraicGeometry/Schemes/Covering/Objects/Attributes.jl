@@ -1,5 +1,3 @@
-export base_ring_type
-export patches, basic_patches, npatches, glueings, glueing_graph, affine_charts
 
 ########################################################################
 # Type getters                                                         #

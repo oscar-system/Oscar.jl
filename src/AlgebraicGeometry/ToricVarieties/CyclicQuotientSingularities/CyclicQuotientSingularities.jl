@@ -7,7 +7,6 @@
 @attributes mutable struct CyclicQuotientSingularity <: AbstractNormalToricVariety
     polymakeNTV::Polymake.BigObject
 end
-export CyclicQuotientSingularity
 
 function Base.show(io::IO, cqs::CyclicQuotientSingularity)
     n = pm_object(cqs).N
@@ -49,7 +48,6 @@ function cyclic_quotient_singularity(n::T, q::T) where {T <: IntegerUnion}
     pmntv = Polymake.fulton.CyclicQuotient(N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q))
     return CyclicQuotientSingularity(pmntv, Dict())
 end
-export cyclic_quotient_singularity
 
 
 @doc Markdown.doc"""
@@ -82,7 +80,6 @@ julia> ecf = cf[1]-1//(cf[2]-QQFieldElem(1, cf[3]))
 @attr Vector{ZZRingElem} function continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
     return Vector{ZZRingElem}(pm_object(cqs).CONTINUED_FRACTION)
 end
-export continued_fraction_hirzebruch_jung
 
 
 @doc Markdown.doc"""
@@ -114,7 +111,6 @@ julia> edcf = dcf[1] - QQFieldElem(1, dcf[2])
 @attr Vector{ZZRingElem} function dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
     return Vector{ZZRingElem}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
 end
-export dual_continued_fraction_hirzebruch_jung
 
 
 @doc Markdown.doc"""
@@ -146,7 +142,6 @@ julia> continued_fraction_hirzebruch_jung_to_rational(v)
 function continued_fraction_hirzebruch_jung_to_rational(v::Vector{ZZRingElem})
     return convert(QQFieldElem, Polymake.fulton.cf2rational(convert(Vector{Polymake.Integer}, v)))
 end
-export continued_fraction_hirzebruch_jung_to_rational
 
 
 @doc Markdown.doc"""
@@ -200,4 +195,3 @@ function rational_to_continued_fraction_hirzebruch_jung(r::QQFieldElem)
     end
     z
 end
-export rational_to_continued_fraction_hirzebruch_jung

@@ -12,7 +12,6 @@
         return new(v, p)
     end
 end
-export CohomologyClass
 
 
 ######################
@@ -37,7 +36,6 @@ Cohomology class on a normal toric variety given by x1
 ```
 """
 cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = CohomologyClass(v, p)
-export cohomology_class
 
 
 @doc Markdown.doc"""

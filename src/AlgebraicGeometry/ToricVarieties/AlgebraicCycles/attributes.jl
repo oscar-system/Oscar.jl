@@ -25,7 +25,6 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 ```
 """
 toric_variety(ac::RationalEquivalenceClass) = ac.v
-export toric_variety
 
 
 @doc Markdown.doc"""
@@ -52,7 +51,6 @@ julia> polynomial(ac)
 ```
 """
 polynomial(ac::RationalEquivalenceClass) = ac.p
-export polynomial
 
 
 @doc Markdown.doc"""
@@ -109,7 +107,6 @@ function polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
     monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
     return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
 end
-export polynomial
 
 
 ###########################################################################
@@ -148,7 +145,6 @@ julia> representative(ac*ac)
     mapped_monomials = [map_gens_of_chow_ring_to_cox_ring(toric_variety(ac))[m] for m in monomials(polynomial(ac).f)]
     return sum([coeffs[i]*mapped_monomials[i] for i in 1:length(mapped_monomials)])
 end
-export representative
 
 
 @doc Markdown.doc"""
@@ -178,7 +174,6 @@ julia> coefficients(ac*ac)
     end
     return [coefficient_ring(toric_variety(ac))(k) for k in AbstractAlgebra.coefficients(polynomial(ac).f)]
 end
-export coefficients
 
 
 @doc Markdown.doc"""
@@ -217,7 +212,6 @@ julia> length(components(ac*ac))
     expos = [[e for e in AbstractAlgebra.exponent_vectors(m)][1] for m in mons]
     return [closed_subvariety_of_toric_variety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
 end
-export components
 
 
 ###########################################################################
@@ -247,4 +241,3 @@ Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 ```
 """
 @attr CohomologyClass cohomology_class(ac::RationalEquivalenceClass) = CohomologyClass(toric_variety(ac), polynomial(cohomology_ring(toric_variety(ac)),ac))
-export cohomology_class

@@ -1,4 +1,3 @@
-export image_ideal, complement
 
 ########################################################################
 # Attributes for ClosedEmbedding                                       #

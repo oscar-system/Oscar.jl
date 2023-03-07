@@ -1,4 +1,3 @@
-export restrict, fiber_product, product, simplify
 
 
 

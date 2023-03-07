@@ -21,7 +21,6 @@ julia> dim(antv)
 @attr Int function dim(v::AbstractNormalToricVariety)
     return pm_object(v).FAN_DIM
 end
-export dim
 
 
 @doc Markdown.doc"""
@@ -47,7 +46,6 @@ julia> dim_of_torusfactor(antv)
     ambient_dimension = pm_object(v).FAN_AMBIENT_DIM::Int
     return ambient_dimension - dimension_of_fan
 end
-export dim_of_torusfactor
 
 
 @doc Markdown.doc"""
@@ -69,7 +67,6 @@ julia> euler_characteristic(antv)
     f_vector = Vector{Int}(pm_object(v).F_VECTOR)
     return f_vector[dim(v)]
 end
-export euler_characteristic
 
 
 ###############################
@@ -105,7 +102,6 @@ function is_finalized(v::AbstractNormalToricVariety)
     ]
     return any(p -> has_attribute(v, p), properties)
 end
-export is_finalized
 
 
 @doc Markdown.doc"""
@@ -136,7 +132,6 @@ function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::V
     end
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
-export set_coordinate_names
 
 
 @doc Markdown.doc"""
@@ -165,7 +160,6 @@ function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate
     end
     set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
 end
-export set_coordinate_names_of_torus
 
 
 
@@ -210,7 +204,6 @@ julia> coordinate_names(antv)
 @attr Vector{String} function coordinate_names(v::AbstractNormalToricVariety)
     return ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))]
 end
-export coordinate_names
 
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
@@ -270,7 +263,6 @@ Multivariate Polynomial Ring in y1, y2, y3 over Rational Field graded by
     S, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached=false)
     return cox_ring(S, v)
 end
-export cox_ring
 
 
 ########################################
@@ -326,7 +318,6 @@ julia> ngens(stanley_reisner_ideal(p2))
 @attr MPolyIdeal function stanley_reisner_ideal(v::AbstractNormalToricVariety)
     return stanley_reisner_ideal(cox_ring(v), v)
 end
-export stanley_reisner_ideal
 
 
 ########################################
@@ -384,7 +375,6 @@ julia> length(gens(irrelevant_ideal(p2)))
     R = cox_ring(v)
     return irrelevant_ideal(R, v)
 end
-export irrelevant_ideal
 
 
 ########################################
@@ -440,7 +430,6 @@ julia> ngens(ideal_of_linear_relations(p2))
     grade(R, weights)
     return ideal_of_linear_relations(R, v)
 end
-export ideal_of_linear_relations
 
 
 ########################################
@@ -512,7 +501,6 @@ end
     is_affine(ntv) || error("Cannot construct affine toric variety from non-affine input")
     return toric_ideal(affine_normal_toric_variety(ntv))
 end
-export toric_ideal
 
 
 ########################################
@@ -528,7 +516,6 @@ the normal toric variety `v`. The default is `x1, ..., xn`.
 @attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)
     return ["x$(i)" for i in 1:ambient_dim(v)]
 end
-export coordinate_names_of_torus
 
 
 @doc Markdown.doc"""
@@ -566,7 +553,6 @@ Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field
     S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
     return coordinate_ring_of_torus(S, v)
 end
-export coordinate_ring_of_torus
 
 
 #########################################
@@ -625,7 +611,6 @@ function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVari
     return rational_function
 end
 character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(R, v, [ZZRingElem(k) for k in character])
-export character_to_rational_function
 
 
 ##############################################
@@ -649,7 +634,6 @@ GrpAb: Z^2
 @attr GrpAbFinGen function character_lattice(v::AbstractNormalToricVariety)
     return free_abelian_group(ambient_dim(v))
 end
-export character_lattice
 
 
 @doc Markdown.doc"""
@@ -668,7 +652,6 @@ GrpAb: Z^3
 @attr GrpAbFinGen function torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     return free_abelian_group(nrays(v))
 end
-export torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -694,7 +677,6 @@ Abelian group with structure: Z^3
     mat = transpose(matrix(ZZ, rays(v)))
     return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
 end
-export map_from_character_lattice_to_torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -723,7 +705,6 @@ julia> torusinvariant_prime_divisors(p2)
     end
     return prime_divisors
 end
-export torusinvariant_prime_divisors
 
 
 @doc Markdown.doc"""
@@ -742,7 +723,6 @@ GrpAb: Z
 @attr GrpAbFinGen function class_group(v::AbstractNormalToricVariety)
     return codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
 end
-export class_group
 
 
 @doc Markdown.doc"""
@@ -769,7 +749,6 @@ Abelian group with structure: Z
     map2 = inv(snf(codomain(map1))[2])
     return map1*map2
 end
-export map_from_torusinvariant_weil_divisor_group_to_class_group
 
 
 @doc Markdown.doc"""
@@ -852,7 +831,6 @@ Abelian group with structure: Z^3
     # return the image of this embedding
     return image(embedding)[2]
 end
-export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -872,7 +850,6 @@ GrpAb: Z^3
 @attr GrpAbFinGen function torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
     return domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v))
 end
-export torusinvariant_cartier_divisor_group
 
 
 @doc Markdown.doc"""
@@ -907,7 +884,6 @@ Abelian group with structure: Z
     map2 = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
     return restrict_codomain(map1*map2)
 end
-export map_from_torusinvariant_cartier_divisor_group_to_picard_group
 
 
 @doc Markdown.doc"""
@@ -927,7 +903,6 @@ GrpAb: Z
 @attr GrpAbFinGen function picard_group(v::AbstractNormalToricVariety)
     return codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
 end
-export picard_group
 
 
 ############################
@@ -954,7 +929,6 @@ julia> dim(nef)
 @attr Cone function nef_cone(v::NormalToricVariety)
     return Cone(pm_object(v).NEF_CONE)
 end
-export nef_cone
 
 
 """
@@ -977,7 +951,6 @@ julia> dim(mori)
 @attr Cone function mori_cone(v::NormalToricVariety)
     return Cone(pm_object(v).MORI_CONE)
 end
-export mori_cone
 
 
 @doc Markdown.doc"""
@@ -997,7 +970,6 @@ Polyhedral fan in ambient dimension 2
 @attr PolyhedralFan{QQFieldElem} function fan(v::AbstractNormalToricVariety)
     return PolyhedralFan{QQFieldElem}(pm_object(v))
 end
-export fan
 
 
 @doc Markdown.doc"""
@@ -1014,7 +986,6 @@ Polyhedral cone in ambient dimension 2
 @attr Cone function cone(v::AffineNormalToricVariety)
     return maximal_cones(v)[1]
 end
-export cone
 
 
 ############################
@@ -1046,4 +1017,3 @@ julia> affine_open_covering(p2)
     end
     return charts
 end
-export affine_open_covering

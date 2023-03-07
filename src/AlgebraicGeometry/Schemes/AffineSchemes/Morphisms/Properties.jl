@@ -1,4 +1,3 @@
-export is_isomorphism, is_inverse_of, is_identity_map
 
 
 ########################################

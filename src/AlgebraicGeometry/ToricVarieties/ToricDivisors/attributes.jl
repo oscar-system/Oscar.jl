@@ -38,7 +38,6 @@ false
 ```
 """
 @attr Polyhedron polyhedron(td::ToricDivisor) = Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
-export polyhedron
 
 
 @doc Markdown.doc"""
@@ -65,7 +64,6 @@ julia> coefficients(D)
 function coefficients(td::ToricDivisor)
     return td.coeffs
 end
-export coefficients
 
 
 @doc Markdown.doc"""
@@ -86,4 +84,3 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 function toric_variety(td::ToricDivisor)
     return td.toric_variety
 end
-export toric_variety

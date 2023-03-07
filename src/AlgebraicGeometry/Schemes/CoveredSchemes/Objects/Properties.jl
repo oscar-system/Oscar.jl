@@ -1,4 +1,3 @@
-export is_empty, is_smooth, is_reduced, is_integral, is_irreducible
 
 ########################################################################
 # Properties of AbsCoveredSchemes                                      #

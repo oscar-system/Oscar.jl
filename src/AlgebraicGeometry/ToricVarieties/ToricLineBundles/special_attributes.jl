@@ -18,7 +18,6 @@ Toric line bundle on a normal toric variety
 ```
 """
 @attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = toric_line_bundle(v, zero(picard_group(v)))
-export structure_sheaf
 
 
 @doc Markdown.doc"""
@@ -37,7 +36,6 @@ Toric line bundle on a normal toric variety
 ```
 """
 @attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(toric_line_bundle(v, d) for d in torusinvariant_prime_divisors(v))
-export anticanonical_bundle
 
 
 @doc Markdown.doc"""
@@ -56,4 +54,3 @@ Toric line bundle on a normal toric variety
 ```
 """
 @attr ToricLineBundle canonical_bundle(v::AbstractNormalToricVariety) = inv(anticanonical_bundle(v))
-export canonical_bundle
