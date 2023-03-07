@@ -1,4 +1,3 @@
-export AbsCoveredScheme, CoveredScheme
 
 ########################################################################
 # Abstract type for covered schemes                                    #

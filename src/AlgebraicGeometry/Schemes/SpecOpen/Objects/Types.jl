@@ -1,4 +1,3 @@
-export SpecOpen
 
 ########################################################################
 # Type for Zariski-open subsets of affine schemes                      #

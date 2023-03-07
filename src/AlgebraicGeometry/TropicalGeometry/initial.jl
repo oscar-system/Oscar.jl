@@ -63,7 +63,6 @@ function valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::V
   end
 
 end
-export valued_weighted_degree
 
 
 
@@ -184,7 +183,6 @@ end
 function initial(G::Vector, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
   return [initial(g,val,w,perturbation=perturbation) for g in G]
 end
-export initial
 
 
 

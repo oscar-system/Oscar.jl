@@ -1,4 +1,3 @@
-export inclusion_morphism, identity_map, restrict, maximal_extension
 ########################################################################
 # Special constructors for morphisms of SpecOpens                      #
 ########################################################################

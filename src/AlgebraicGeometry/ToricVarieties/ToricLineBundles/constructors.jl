@@ -14,7 +14,6 @@ abstract type ToricCoherentSheaf end
         return new(toric_variety, class)
     end
 end
-export ToricLineBundle
 
 
 ########################
@@ -38,7 +37,6 @@ Toric line bundle on a normal toric variety
 function toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
     return ToricLineBundle(v, class)
 end
-export toric_line_bundle
 
 
 @doc Markdown.doc"""

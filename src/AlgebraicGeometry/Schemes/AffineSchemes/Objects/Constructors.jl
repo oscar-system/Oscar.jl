@@ -1,8 +1,3 @@
-export affine_space
-export closure
-export hypersurface_complement
-export standard_spec
-export subscheme
 
 
 ########################################################

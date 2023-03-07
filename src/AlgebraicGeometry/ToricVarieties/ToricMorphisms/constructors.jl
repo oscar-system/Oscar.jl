@@ -9,7 +9,6 @@
     codomain::AbstractNormalToricVariety
     ToricMorphism(domain, grid_morphism, image, codomain) = new(domain, grid_morphism, image, codomain)
 end
-export ToricMorphism
 
 
 ####################################################
@@ -44,7 +43,6 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vect
       return toric_morphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
     end
 end
-export toric_morphism
 
 
 @doc Markdown.doc"""
@@ -105,7 +103,6 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMa
       return toric_morphism(domain, hom(character_lattice(domain), character_lattice(codomain), mapping_matrix), codomain)
     end
 end
-export toric_morphism
 
 
 @doc Markdown.doc"""
@@ -190,7 +187,6 @@ function toric_identity_morphism(variety::AbstractNormalToricVariety)
     grid_morphism = hom(character_lattice(variety), character_lattice(variety), identity_matrix)
     return ToricMorphism(variety, grid_morphism, variety, variety)
 end
-export toric_identity_morphism
 
 
 ####################################################

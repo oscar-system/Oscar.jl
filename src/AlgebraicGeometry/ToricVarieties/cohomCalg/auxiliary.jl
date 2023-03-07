@@ -111,7 +111,6 @@ function contributing_denominators(variety::AbstractNormalToricVariety)
     return contributing_monomials
     
 end
-export contributing_denominators
 
 
 
@@ -138,4 +137,3 @@ function turn_denominator_into_polyhedron(variety::AbstractNormalToricVariety, m
     return convex_hull(offset, gens)
     
 end
-export turn_denominator_into_polyhedron

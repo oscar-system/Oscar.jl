@@ -19,7 +19,6 @@ A toric morphism
     cox_variety = normal_toric_variety(PolyhedralFan(rays_for_cox_variety, max_cones_for_cox_variety))
     return toric_morphism(cox_variety, mapping_matrix, variety)
 end
-export morphism_from_cox_variety
 
 
 @doc Markdown.doc"""
@@ -39,4 +38,3 @@ Normal toric variety
 @attr AbstractNormalToricVariety function cox_variety(variety::AbstractNormalToricVariety)
     return domain(morphism_from_cox_variety(variety))
 end
-export cox_variety

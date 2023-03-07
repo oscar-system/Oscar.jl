@@ -17,7 +17,6 @@ Divisor class on a normal toric variety
 ```
 """
 @attr ToricDivisorClass trivial_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(trivial_divisor(v))
-export trivial_divisor_class
 
 
 @doc Markdown.doc"""
@@ -35,7 +34,6 @@ Divisor class on a normal toric variety
 ```
 """
 @attr ToricDivisorClass anticanonical_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(anticanonical_divisor(v))
-export anticanonical_divisor_class
 
 
 @doc Markdown.doc"""
@@ -53,4 +51,3 @@ Divisor class on a normal toric variety
 ```
 """
 @attr ToricDivisorClass canonical_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(canonical_divisor(v))
-export canonical_divisor_class

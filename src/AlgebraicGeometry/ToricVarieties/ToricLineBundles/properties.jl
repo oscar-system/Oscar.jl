@@ -1,5 +1,4 @@
 is_trivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
-export is_trivial
 
 
 @doc Markdown.doc"""
@@ -17,7 +16,6 @@ true
 ```
 """
 is_basepoint_free(l::ToricLineBundle) = is_basepoint_free(toric_divisor(l))
-export is_basepoint_free
 
 
 @doc Markdown.doc"""
@@ -35,7 +33,6 @@ false
 ```
 """
 is_ample(l::ToricLineBundle) = is_ample(toric_divisor(l))
-export is_ample
 
 
 @doc Markdown.doc"""
@@ -53,4 +50,3 @@ false
 ```
 """
 is_very_ample(l::ToricLineBundle) = is_very_ample(toric_divisor(l))
-export is_very_ample

@@ -1,8 +1,5 @@
-export is_empty, issubset, is_open_embedding, is_closed_embedding
 
-export is_equidimensional
 
-export is_smooth
 
 ####################################################################################
 # (1) Check if a scheme is empty

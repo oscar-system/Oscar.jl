@@ -1,4 +1,3 @@
-export compose, maximal_extension, restrict
 
 ########################################################################
 # Dummy constructor for documentation only                             #

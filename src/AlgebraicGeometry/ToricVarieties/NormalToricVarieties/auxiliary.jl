@@ -49,7 +49,6 @@ function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, ZZMatrix})
     R, _ = polynomial_ring(QQ, ncols(binoms), cached=false)
     return binomial_exponents_to_ideal(R, binoms)
 end
-export binomial_exponents_to_ideal
 
 
 @doc Markdown.doc"""

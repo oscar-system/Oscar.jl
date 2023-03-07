@@ -16,10 +16,8 @@
         return new(toric_variety, ps, i)
     end
 end
-export ToricVanishingSet
 
 toric_vanishing_set(v::AbstractNormalToricVariety, ps::Vector{Polyhedron{QQFieldElem}}, i::Int) = ToricVanishingSet(v, ps)
-export toric_vanishing_set
 
 
 ######################

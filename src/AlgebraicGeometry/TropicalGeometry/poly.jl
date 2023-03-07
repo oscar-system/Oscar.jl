@@ -2,7 +2,6 @@
 # Tropical polynomial computations in Oscar
 # =========================================
 ###
-export tropical_polynomial
 
 @doc Markdown.doc"""
     tropical_polynomial(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
