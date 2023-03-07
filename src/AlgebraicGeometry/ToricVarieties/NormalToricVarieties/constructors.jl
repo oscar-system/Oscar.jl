@@ -672,7 +672,7 @@ compute the two phases of the famous conifold transition.
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
 Polyhedron in ambient dimension 3
 
-julia> (v1, v2) = normal_toric_varieties_from_star_triangulations(P::Polyhedron)
+julia> (v1, v2) = normal_toric_varieties_from_star_triangulations(P)
 2-element Vector{NormalToricVariety}:
  Normal toric variety
  Normal toric variety
