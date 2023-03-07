@@ -8,6 +8,11 @@ export exterior_algebra_PBWAlgQuo;  # for historical reasons
 # (1) delegating everything to Singular  -- fast, coeff ring must be a field
 # (2) as a quotient of PBW algebra       -- slower, coeff ring must be commutative
 
+# ADVICE: avoid impl (2) which deliberately has an awkward name.
+
+#  See also:
+#   * tests in Oscar.jl/test/Experimental/ExteriorAlgebra-test.jl
+
 
 # -------------------------------------------------------
 # Exterior algebra: delegating everything to Singular.
@@ -34,7 +39,9 @@ function var_names_for_singular(xs::Union{AbstractVector{<:AbstractString},
 ##   L = [""  for _ in 1:NumVars];
 ##   for i = 1:NumVars   L[i] = string(xs[i]);  end;
    L = String[];
-   for var in xs   push!(L, string(var));  end;
+    for var in xs
+        push!(L, string(var));
+    end;
    return L;
 end;
 
@@ -45,6 +52,28 @@ end;
 #  args should be underlying coeff FIELD and number of indets (or list of indet names)
 
 # Returns 2 components: ExtAlg, list of the gens/variables in order (e1,..,en)
+
+# DEVELOPER DOC
+#   This main impl is "inefficient": it must create essentially 2 copies
+#   of the exterior algebra.  One copy is so that Oscar knows the structure
+#   of the ext alg (as a quotient of a PBWAlg); the other copy is a
+#   Singular implementation (seen as a "black box" by Oscar) which
+#   actually does the arithmetic.
+#
+#   To make this work I had to make changes to struct PBWAlgQuo:
+#   (*) previously a PBWAlgQuo had a single datum, namely the (2-sided) ideal
+#       used to make the quotient -- the base ring could be derived from the ideal
+# 
+#   (*) now a PBWAlgQuo has an extra data field "sring" which refers to
+#       the underlying Singular ring structure which actually performs
+#       the arithmetic.  For exterior algebras "sring" refers to a
+#       specific Singular ring "exteriorAlgebra"; in other cases "sring"
+#       refers to the Singular(plural) ring which implements the PBW alg
+#       (i.e. IGNORING the fact that the elems are in a quotient)
+
+#   PBWAlgQuoElem did not need to change.  Its "data" field just refers
+#   to a PBWAlgElem (namely some representative of the class).
+
 
 Markdown.@doc doc"""
     exterior_algebra(CoeffRing::Field, NumVars::Int)
@@ -83,17 +112,36 @@ function exterior_algebra(K::Field, NumVars::Int)
   return exterior_algebra(K, (1:NumVars) .|> (k -> "e$k"));
 end
 
-function exterior_algebra(K::Field, xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+function exterior_algebra(K::Field, VarNames::Union{AbstractVector{<:AbstractString},
+                                              AbstractVector{Symbol},
+                                              AbstractVector{Char}})
     fn_name = "exterior_algebra";
-    NumVars = length(xs)
+    NumVars = length(VarNames)
     if (NumVars == 0)
         throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));
     end;
-    VarNames = var_names_for_singular(xs);
-    if (!allunique(VarNames))  throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));  end;
-    P, _ = Singular.polynomial_ring(K, VarNames)
+  if (NumVars == 1)  throw(NotImplementedError(:exterior_algebra, "NumVars == 1"));  end;  ## WORKAROUND for Singular "bug"
+#    if (!allunique(VarNames))
+#        throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));
+#    end;
+
+    R, indets = polynomial_ring(K, VarNames);
+    SameCoeffRing = singular_coeff_ring(coefficient_ring(R))
+    M = zero_matrix(R, NumVars, NumVars);
+    for i in 1:NumVars-1
+        for j in i+1:NumVars
+            M[i,j] = -indets[i]*indets[j];
+        end;
+    end;
+    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false); # disable check since we know it is OK!
+    I = two_sided_ideal(PBW, PBW_indets.^2);
+    # Now construct the fast exteriorAlgebra in Singular
+    SameVarNames = var_names_for_singular(symbols(PBW));
+    P, _ = Singular.polynomial_ring(SameCoeffRing, SameVarNames);
     SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr));
-    ExtAlg = Singular.create_ring_from_singular_ring(SINGULAR_PTR);
+    ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR);
+    # Create Quotient ring with special implementation:
+    ExtAlg,_ = quo(PBW, I;  SpecialImpl = ExtAlg_singular);  # 2nd result is a QuoMap, apparently not needed
     return ExtAlg, gens(ExtAlg);
 end;
 
@@ -101,7 +149,7 @@ end;
 
 #--------------------------------------------
 # Exterior algebra implementation as a quotient of a PBW algebra;
-# PREFER exterior_algebra over this slow implementation
+# **PREFER** exterior_algebra over this SLOW implementation!
 
 # Returns 2 components: ExtAlg, list of the gens/variables in order (e1,..,en)
 
@@ -150,9 +198,9 @@ function exterior_algebra_PBWAlgQuo(K::Ring, xs::Union{AbstractVector{<:Abstract
     R, indets = polynomial_ring(K, xs);
     M = zero_matrix(R, NumVars, NumVars);
     for i in 1:NumVars-1  for j in i+1:NumVars  M[i,j] = -indets[i]*indets[j];  end;  end;
-    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false); # disable check since we know it is OK!
+    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets);  check = false); # disable check since we know it is OK!
     I = two_sided_ideal(PBW, PBW_indets.^2);
-    ExtAlg,QuoMap = quo(PBW, I);  ## does it make sense to cache here???
+    ExtAlg,QuoMap = quo(PBW, I);
     return ExtAlg, QuoMap.(PBW_indets);
 end;
 
@@ -162,8 +210,3 @@ end;
 # (1)  Computations with elements DO NOT AUTOMATICALLY REDUCE
 #      modulo the squares of the generators.
 # (2)  Do we want/need a special printing function?  (show/display)
-
-
-
-### EXTERNAL FILES:
-#   * tests in Oscar.jl/test/Experimental/ExteriorAlgebra-test.jl
