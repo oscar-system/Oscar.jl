@@ -74,14 +74,16 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
    p = characteristic(FO)
    d = degree(FO)
 
-   # Compute the canonical basis of `FG`.
-   if ! GAPWrap.IsPrimeField(GAPWrap.LeftActingDomain(FG))
-     # The GAP field is not an extension of the prime field.
+   if degree(FO) != absolute_degree(FO) ||
+      ! GAPWrap.IsPrimeField(GAPWrap.LeftActingDomain(FG))
+     # The Oscar field or the GAP field is not an extension of the prime field.
      # What is a reasonable way to compute (on the GAP side) a polynomial
      # w.r.t. the prime field, and to decompose field elements w.r.t.
      # the corresponding basis?
      error("extensions of extension fields are not supported")
    end
+
+   # Compute the canonical basis of `FG`.
    basis_FG = GAPWrap.Basis(FG)
    # Test that we do not run into the problem from
    # https://github.com/gap-system/gap/issues/4694.
