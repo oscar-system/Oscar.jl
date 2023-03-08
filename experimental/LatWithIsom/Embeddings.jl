@@ -1,6 +1,6 @@
-export admissible_equivariant_primitive_extensions,
-export equivariant_primitive_extensions,
-export primitive_embeddings_in_primary_lattice,
+export admissible_equivariant_primitive_extensions
+export equivariant_primitive_extensions
+export primitive_embeddings_in_primary_lattice
 export primitive_embeddings_of_elementary_lattice
 
 const GG = GAP.Globals
@@ -41,7 +41,8 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
 end
 
 function _direct_sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModule)
-  D, [AinD, BinD] = direct_sum(A, B)
+  D, inj = direct_sum(A, B)
+  AinD, BinD = inj
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
@@ -326,7 +327,8 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
   qN = domain(GN)
   qM = domain(GM)
 
-  D, [qNinD, qMinD] = direct_sum(qN, qM)
+  D, inj = direct_sum(qN, qM)
+  qNinD, qMinD = inj
   OD = orthogonal_group(D)
 
   subsN = classes_conjugate_subgroups(GN, rescale(H, -1))
@@ -380,7 +382,7 @@ function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::
   @assert is_one(basis_matrix(N))
   @assert is_one(basis_matrix(M))
   q = elementary_divisors(H)[end]
-  ok, p, _ = is_primme_power_with_data(q)
+  ok, p, _ = is_prime_power_with_data(q)
   @assert ok
   @assert is_elementary(M, p)
   results = Tuple{ZLat, ZLat, ZLat}[]
@@ -389,7 +391,8 @@ function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::
   qN = domain(GN)
   qM = domain(GM)
 
-  D, [qNinD, qMinD] = direct_sum(qN, qM)
+  D, inj = direct_sum(qN, qM)
+  qNinD, qMinD = inj
   OD = orthogonal_group(D)
   VN, VNinqN, _ = _get_V(N, qN, identity_matrix(QQ, rank(N)), id_hom(qN), minpoly(identity_matrix(QQ,1)), p)
   subsN = subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, p)
@@ -474,7 +477,8 @@ function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::Automorph
     return [(M, M, lattice_in_same_ambient_space(M, zero_matrix(QQ, 0, degree(M))))]
   end
   qM = discriminant_group(M)
-  D, [qMinD, qLinD], proj = biproduct(qM, qL)
+  D, inj, proj = biproduct(qM, qL)
+  qMinD, qLinD = inj
   if el
     VM, VMinqM, _ = _get_V(M, qM, identity_matrix(QQ, rank(M)), id_hom(qM), minpoly(identity_matrix(QQ,1)), p)
   else
@@ -543,7 +547,8 @@ function primitive_embeddings_of_elementary_lattice(L::ZLat, M::ZLat, GL::Automo
     end
   end
   qM = discriminant_group(M)
-  D, [qMinD, qLinD], proj = biproduct(qM, qL)
+  D, inj, proj = biproduct(qM, qL)
+  qMinD, qLinD = inj
   VL, VLinqL, _ = _get_V(L, qL, identity_matrix(QQ, rank(L)), id_hom(qL), minpoly(identity_matrix(QQ,1)), p)
   for k  in divisors(gcd(order(qM), order(VL)))
     @info "Glue order: $(k)"

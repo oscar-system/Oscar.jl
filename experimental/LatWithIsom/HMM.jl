@@ -193,9 +193,9 @@ function _get_product_quotient(E::Hecke.NfRel, Fac)
 
   if length(Fac) == 0
     A = abelian_group()
-    function dlog(x::Hecke.NfRelElem); return one(A); end;
-    function exp(x::GrpAbFinGenElem); return one(E); end;
-    return A, dlog, exp
+    function dlog_0(x::Hecke.NfRelElem); return one(A); end;
+    function exp_0(x::GrpAbFinGenElem); return one(E); end;
+    return A, dlog_0, exp_0
   end
 
   for i in 1:length(Fac)
@@ -287,7 +287,7 @@ function _local_determinant_morphism(Lf::LatWithIsom)
   fU = hom(UOEabs, UOK, [mUOK\(norm(OE(EabstoE(Eabs(mUOEabs(k)))))) for k in gens(UOEabs)])
   KU, jU = kernel(fU)
 
-  gene_norm_one = NfRelOrdElem[OE(EabstoE(Eabs(mUOEabs(jU(k))))) for k in gens(KU)]
+  gene_norm_one = Hecke.NfRelOrdElem[OE(EabstoE(Eabs(mUOEabs(jU(k))))) for k in gens(KU)]
 
   FOEmodFsharp, m = sub(RmodFsharp, )
 
@@ -348,7 +348,7 @@ function _transfer_discriminant_isometries(res::Hecke.SpaceRes, g::AutomorphismG
   return gE
 end
 
-function _get_piecewise_actions_modular(H::Hecke.HermLat, g::MatrixSpaceElem{NfRelOrdElem}, p::NfOrdIdl, a::Int)
+function _get_piecewise_actions_modular(H::Hecke.HermLat, g::MatrixElem{Hecke.NfRelOrdElem}, p::Hecke.NfOrdIdl, a::Int)
   @assert g*gram_matrix_of_rational_span(H)*map_entries(involution(H), transpose(g)) == gram_matrix_of_rational_span(H)
   E = base_field(H)
   OE = base_ring(H)
@@ -369,7 +369,7 @@ function _get_piecewise_actions_modular(H::Hecke.HermLat, g::MatrixSpaceElem{NfR
   return exp, local_act
 end
 
-function _local_hermitian_lifting(G::MatrixSpaceElem{NfRelElem}, F::MatrixSpaceElem{NFRelOrdElem}, rho::NfRelElem, l::Int, P::NfRelOrdIdl; check = true)
+function _local_hermitian_lifting(G::MatrixElem{Hecke.NfRelElem}, F::MatrixElem{Hecke.NfRelOrdElem}, rho::Hecke.NfRelElem, l::Int, P::Hecke.NfRelOrdIdl; check = true)
   @assert trace(rho) == 1
   E = base_ring(G)
   @assert G == map_entries(involution(E), transpose(G))
@@ -388,7 +388,7 @@ function _local_hermitian_lifting(G::MatrixSpaceElem{NfRelElem}, F::MatrixSpaceE
 
   if check
     @assert min([valuation(v, P) for v in collect(inv(G)) if !iszero(v)]) >= l+a
-    @assert min([valuation(v, P) for v in diagonal(inv(G)) if !iszero(v)]) >= e=a
+    @assert min([valuation(v, P) for v in diagonal(inv(G)) if !iszero(v)]) >= e+a
     @assert min([valuation(v, P) for v in collect(R) if !iszero(v)]) >= l-a
     @assert min([valuation(v, P) for v in diagonal(R) if !iszero(v)]) >= l+e-1-a
   end
@@ -416,7 +416,7 @@ function _local_hermitian_lifting(G::MatrixSpaceElem{NfRelElem}, F::MatrixSpaceE
   return newF
 end
 
-function _find_rho(P::NfRelOrdIdl)
+function _find_rho(P::Hecke.NfRelOrdIdl)
   OE = order(P)
   E = nf(OE)
   dya = valuation(2, norm(P)) > 0

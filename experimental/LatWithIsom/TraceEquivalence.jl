@@ -138,7 +138,7 @@ end
 function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
                                                     n::Integer = -1,
                                                     check::Bool = true,
-                                                    ambient_representation::Bool = true
+                                                    ambient_representation::Bool = true,
                                                     l = nothing)
   if n <= 0
     n = multiplicative_order(f)

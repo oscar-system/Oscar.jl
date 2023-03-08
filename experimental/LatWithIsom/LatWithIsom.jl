@@ -1,16 +1,17 @@
-export ambient_isometry,
-export coinvariant_lattice,
-export hermitian_structure,
-export image_centralizer_in_Oq,
-export isometry,
-export is_of_hermitian_type,
-export is_of_same_type,
-export is_of_type,
-export is_hermitian,
-export lattice_with_isometry,
-export order_of_isometry,
+export ambient_isometry
+export coinvariant_lattice
+export hermitian_structure
+export image_centralizer_in_Oq
+export isometry
+export is_of_hermitian_type
+export is_of_same_type
+export is_of_type
+export is_hermitian
+export lattice_with_isometry
+export order_of_isometry
 export type
-    
+
+import Hecke: kernel_lattice, invariant_lattice
 ###############################################################################
 #
 #  String I/O
@@ -131,28 +132,28 @@ of the underlying lattice `L`.
 rational_span(Lf::LatWithIsom) = rational_span(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
 
 @doc Markdown.doc"""
-    det(Lf::LatWithIsom) -> QQRingElem
+    det(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the determinant of the
 underlying lattice `L` (see [`det(::ZLat)`](@ref)).
 """
-det(Lf::LatWithIsom) = det(lattice(Lf))::QQRingElem
+det(Lf::LatWithIsom) = det(lattice(Lf))::QQFieldElem
 
 @doc Markdown.doc"""
-    scale(Lf::LatWithIsom) -> QQRingElem
+    scale(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the scale of the underlying
 lattice `L` (see [`scale(::ZLat)`](@ref)).
 """
-scale(Lf::LatWithIsom) = det(lattice(Lf))::QQRingElem
+scale(Lf::LatWithIsom) = det(lattice(Lf))::QQFieldElem
 
 @doc Markdown.doc"""
-    norm(Lf::LatWithIsom) -> QQRingElem
+    norm(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the norm of the underlying
 lattice `L` (see [`norm(::ZLat)`](@ref)).
 """
-norm(Lf::LatWithIsom) = norm(lattice(Lf))::QQRingElem
+norm(Lf::LatWithIsom) = norm(lattice(Lf))::QQFieldElem
 
 @doc Markdown.doc"""
     is_integral(Lf::LatWithIsom) -> Bool
@@ -181,12 +182,12 @@ Note that to be even, `L` must be integral (see [`is_integral(::ZLat)`](@ref)).
 is_even(Lf::LatWithIsom) = is_even(lattice(Lf))::Int
 
 @doc Markdown.doc"""
-    discriminant(Lf::LatWithIsom) -> QQRingElem
+    discriminant(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
 lattice `L` (see [`discriminant(::ZLat)`](@ref)).
 """
-discriminant(Lf::LatWithIsom) = discriminant(lattice(Lf))::QQRingElem
+discriminant(Lf::LatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
 
 @doc Markdown.doc"""
     signature_tuple(Lf::LatWithIsom) -> Tuple{Int, Int, Int}
@@ -216,7 +217,7 @@ Otherwise, an isometry of the ambient space of `L` is constructed, setting the i
 on the complement of the rational span of `L` if it is not of full rank.
 """
 function lattice_with_isometry(L::ZLat, f::QQMatrix, n::IntExt; check::Bool = true,
-                                                                 ambient_representation::Bool = true)
+                                                                ambient_representation::Bool = true)
   if rank(L) == 0
     return LatWithIsom(L, matrix(QQ,0,0,[]), -1)
   end
@@ -249,6 +250,7 @@ function lattice_with_isometry(L::ZLat, f::QQMatrix, n::IntExt; check::Bool = tr
 
   return LatWithIsom(L, f, f_ambient, n)::LatWithIsom
 end
+
 
 @doc Markdown.doc"""
     lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
@@ -299,7 +301,7 @@ Given a lattice with isometry $(L, f)$ and a rational number `a`, return the lat
 with isometry $(L(a), f)$ (see [`rescale(::ZLat, ::RationalUnion)`](@ref)).
 """
 function rescale(Lf::LatWithIsom, a::Hecke.RationalUnion)
-    return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), order_of_isometry(Lf), check=false)
+  return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), order_of_isometry(Lf), check=false)
 end
 
 @doc Markdown.doc"""

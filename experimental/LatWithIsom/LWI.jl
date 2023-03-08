@@ -1,4 +1,4 @@
-module LatWithIsom
+module LWI
 using Oscar, Markdown
 
 macro req(args...)

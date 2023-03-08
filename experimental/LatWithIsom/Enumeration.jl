@@ -1,9 +1,9 @@
-export admissible_triples,
-export is_admissible_triple,
-export splitting_of_hermitian_prime_power,
-export splitting_of_mixed_prime_power,
-export splitting_of_partial_mixed_prime_power,
-export splitting_of_prime_power,
+export admissible_triples
+export is_admissible_triple
+export splitting_of_hermitian_prime_power
+export splitting_of_mixed_prime_power
+export splitting_of_partial_mixed_prime_power
+export splitting_of_prime_power
 export representatives_of_hermitian_type
 
 ##################################################################################
@@ -20,7 +20,7 @@ export representatives_of_hermitian_type
 ##################################################################################
 
 # The tuples in output are pairs of positive integers!
-function _tuples_divisors(d::IntegerUnion)
+function _tuples_divisors(d::Hecke.IntegerUnion)
   div = divisors(d)
   return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
 end
@@ -29,7 +29,7 @@ end
 # discriminant for the genera A and B to glue to fit in C. d is
 # the determinant of C, m the maximal p-valuation of the gcd of
 # d1 and dp.
-function _find_D(d::IntegerUnion, m::Int, p::Int)
+function _find_D(d::Hecke.IntegerUnion, m::Int, p::Int)
   @assert is_prime(p)
   @assert d != 0
 
@@ -55,7 +55,7 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::IntegerUnion, even = true)
+function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::Hecke.IntegerUnion, even = true)
   L = ZGenus[]
   if r == 0 && d == 1
     return ZGenus[genus(Zlattice(gram = matrix(QQ, 0, 0, [])))]
@@ -251,7 +251,7 @@ admissible_triples(L::T, p::Integer) where T <: Union{ZLat, LatWithIsom} = admis
 
 # we compute ideals of E/K whose absolute norm is equal to d
 
-function _ideals_of_norm(E, d::QQRingElem)
+function _ideals_of_norm(E, d::QQFieldElem)
   if denominator(d) == 1
     return _ideals_of_norm(E, numerator(d))
   elseif numerator(d) == 1
