@@ -132,7 +132,7 @@ function one(Q::PBWAlgQuo)
   return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, one(Q.sring)))
 end
 
-function simplify!(a::PBWAlgQuoElem)
+function simplify(a::PBWAlgQuoElem)
   if (have_special_impl(parent(a)))  return a;  end; # short-cut for exterior algebras
   I = parent(a).I
   groebner_assure!(I)
@@ -141,20 +141,16 @@ function simplify!(a::PBWAlgQuoElem)
 end
 
 function Base.hash(a::PBWAlgQuoElem, h::UInt)
-  simplify!(a)
+  simplify(a)
   return hash(a.data, h)
 end
 
 function iszero(a::PBWAlgQuoElem)
-  if (have_special_impl(parent(a)))  # special case for exterior algebras
-    return Singular.is_zero(a.data.sdata);
-  end
-  # a.data is just an elem of the parent PBWalg:
-  if (iszero(a.data))  return true;  end;
-# why not call simplify! here?
-  I = parent(a).I
-  groebner_assure!(I)
-  return iszero(Singular.reduce(a.data.sdata, I.gb))
+    if (have_special_impl(parent(a)))  # special case for exterior algebras
+        return Singular.is_zero(a.data.sdata);
+    end
+    simplify(a); # see GitHub discussion #2014
+    return iszero(a.data.sdata)  # EQUIV  iszero(a.data)
 end
 
 function is_unit(a::PBWAlgQuoElem)
