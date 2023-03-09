@@ -350,6 +350,7 @@ export irrelevant_ideal
 export is_affine
 export is_ample
 export is_basepoint_free
+export is_basic_serialization_type
 export is_bijective
 export is_binary
 export is_bounded
