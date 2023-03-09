@@ -7,7 +7,14 @@
 # by Ulrich Thiel and OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
-export Partition, partitions, ascending_partitions, dominates, conjugate, getindex_safe, num_partitions
+export Partition
+
+export ascending_partitions
+export conjugate
+export dominates
+export getindex_safe
+export num_partitions
+export partitions
 
 @doc Markdown.doc"""
     Partition{T} <: AbstractVector{T}
