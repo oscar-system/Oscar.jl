@@ -79,4 +79,3 @@ function integrate(c::CohomologyClass)::QQFieldElem
     m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
     return QQFieldElem(n//m)
 end
-export integrate

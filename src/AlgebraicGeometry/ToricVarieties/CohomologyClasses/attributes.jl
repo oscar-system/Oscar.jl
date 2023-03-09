@@ -23,7 +23,6 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 ```
 """
 toric_variety(c::CohomologyClass) = c.v
-export toric_variety
 
 
 @doc Markdown.doc"""
@@ -50,7 +49,6 @@ julia> coefficients(cc)
 ```
 """
 coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in AbstractAlgebra.coefficients(polynomial(c).f)]
-export coefficients
 
 
 @doc Markdown.doc"""
@@ -76,7 +74,6 @@ julia> exponents(cc)
 ```
 """
 exponents(c::CohomologyClass) = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
-export exponents
 
 
 @doc Markdown.doc"""
@@ -101,7 +98,6 @@ julia> polynomial(cc)
 ```
 """
 polynomial(c::CohomologyClass) = c.p
-export polynomial
 
 
 @doc Markdown.doc"""
@@ -153,4 +149,3 @@ function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
     monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
     return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
 end
-export polynomial

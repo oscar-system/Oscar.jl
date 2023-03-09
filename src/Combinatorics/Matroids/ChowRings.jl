@@ -1,5 +1,3 @@
-export chow_ring, augmented_chow_ring, _select
-
 @doc Markdown.doc"""
     chow_ring(M::Matroid; ring::MPolyRing=nothing, extended::Bool=false)
 

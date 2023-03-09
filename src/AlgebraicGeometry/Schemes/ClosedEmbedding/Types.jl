@@ -1,4 +1,3 @@
-export ClosedEmbedding
 
 ########################################################################
 # Special Type for closed embeddings of affine schemes                 #

@@ -25,7 +25,6 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 function toric_variety(tvs::ToricVanishingSet)
     return tvs.toric_variety::AbstractNormalToricVariety
 end
-export toric_variety
 
 
 @doc Markdown.doc"""
@@ -52,7 +51,6 @@ julia> polyhedra(vs[3])
 function polyhedra(tvs::ToricVanishingSet)
     return tvs.ps::Vector{Polyhedron{QQFieldElem}}
 end
-export polyhedra
 
 
 @doc Markdown.doc"""
@@ -78,4 +76,3 @@ julia> cohomology_index(vs[3])
 function cohomology_index(tvs::ToricVanishingSet)
     return tvs.i::Int
 end
-export cohomology_index

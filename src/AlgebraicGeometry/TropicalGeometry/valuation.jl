@@ -3,11 +3,6 @@
 # ==================================================
 ###
 
-export TropicalSemiringMap,
-       simulate_valuation,
-       desimulate_valuation,
-       tighten_simulation
-
 @doc Markdown.doc"""
     TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
 

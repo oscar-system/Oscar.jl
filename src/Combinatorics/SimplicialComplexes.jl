@@ -1,19 +1,6 @@
 using Markdown
 import Oscar: Polymake, pm_object
 
-export
-    SimplicialComplex,
-    facets, nvertices,
-    vertexindices,
-    f_vector, h_vector,
-    dim,
-    betti_numbers, euler_characteristic, homology, cohomology,
-    fundamental_group,
-    minimal_nonfaces, alexander_dual, stanley_reisner_ideal, stanley_reisner_ring,
-    real_projective_plane, klein_bottle, torus, # requires a distinction from, e.g., an algebraic group
-    complex_projective_plane,
-    star_subcomplex, link_subcomplex,
-    load_simplicialcomplex, save_simplicialcomplex
 
 ################################################################################
 ##  Constructing

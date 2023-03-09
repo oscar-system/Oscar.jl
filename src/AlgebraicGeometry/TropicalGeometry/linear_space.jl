@@ -3,8 +3,6 @@
 # ===============================
 ###
 
-export TropicalLinearSpace
-
 
 ###
 # 1. Definition

@@ -1,4 +1,3 @@
-export CoveringMorphism
 
 ########################################################################
 # Morphisms of coverings                                               #

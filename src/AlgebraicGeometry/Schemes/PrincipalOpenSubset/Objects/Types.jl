@@ -1,4 +1,3 @@
-export PrincipalOpenSubset
 
 ########################################################################
 # Principal open subsets of affine schemes                             #
