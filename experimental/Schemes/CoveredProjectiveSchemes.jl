@@ -236,21 +236,16 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 
-@Markdown.doc """
-    blow_up(W::AbsSpec, I::Ideal)
 
-Return the blowup of ``W`` at the ideal ``I``; this is a `ProjectiveScheme` 
-with `base_scheme` ``W``.
-"""
-function blow_up(W::AbsSpec, I::Ideal; var_name::String="s")
-  error("method `blow_up` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
+function blow_up_chart(W::AbsSpec, I::Ideal; var_name::String="s")
+  error("method `blow_up_chart` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
 end
 
 ########################################################################
 # Blowups of affine schemes                                            #
 ########################################################################
 
-function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
+function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     var_name::String="s"
   )
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
@@ -324,7 +319,7 @@ function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuo
   return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
 end
 
-function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
+function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     var_name::String="s"
   ) where {RingType<:Union{MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}}
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
@@ -581,6 +576,30 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   return ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
 end
 
+
+@Markdown.doc """
+    blow_up(X::AbsSpec,I::Ideal)
+
+Return the blow-up morphism of blowing up X at I in OO(X).
+"""
+function blow_up(
+    X::AbsSpec{<:Any, <:MPolyAnyRing},
+    I::MPolyAnyIdeal)
+
+  R = OO(X)
+  R == base_ring(I) || error("I is not an ideal in the coordinate ring of X")
+  ## prepare trivially covered scheme and ideal sheaf on it as input for blow_up(I::IdealSheaf)
+  C = Covering([X])
+  XX = CoveredScheme(C)
+  Isheaf = ideal_sheaf(XX,X,gens(I))
+  return(blow_up(Isheaf))
+end
+
+@Markdown.doc """
+    blow_up(I::IdealSheaf)
+
+Return the blow-up morphism of blowing up of the underlying scheme of I  at I.
+"""
 function blow_up(
     I::IdealSheaf;
     verbose::Bool=false,
@@ -591,7 +610,7 @@ function blow_up(
   X = space(I)
   local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
   for U in patches(covering)
-    local_blowups[U] = blow_up(U, I(U), var_name=var_name)
+    local_blowups[U] = blow_up_chart(U, I(U), var_name=var_name)
   end
   projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
 
