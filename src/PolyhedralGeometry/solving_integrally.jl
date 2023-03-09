@@ -1,6 +1,3 @@
-export solve_non_negative, solve_mixed, solve_ineq
-
-
 function solve_mixed(as::Type{SubObjectIterator{PointVector{ZZRingElem}}}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix)
     ncols(A) == ncols(C) || throw(ArgumentError("solve_mixed(A,b,C,d): A and C must have the same number of columns."))
     nrows(A) == nrows(b) || throw(ArgumentError("solve_mixed(A,b,C,d): A and b must have the same number of rows."))
