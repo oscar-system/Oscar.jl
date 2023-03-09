@@ -430,7 +430,6 @@ ideal(x^2 - y)
 
 julia> is_zero(b)
 true
-
 ```
 """
 function is_zero(a::MPolyQuoIdeal)
