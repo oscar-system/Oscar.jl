@@ -207,12 +207,10 @@ function action_on_target(Q::Matrix{Int}, G::PermGroup)
     end
 
     # Create the matrix group.
-    matgroup = MatrixGroup(n, QQ)
-    matgens = [MatrixGroupElem(matgroup, mat) for mat in matgens]
-    matgroup.gens = matgens
+    matgroup = matrix_group(n, QQ, matgens)
 
     # Create the group homomorphism.
-    return Oscar.hom(G, matgroup, permgens, matgens)
+    return Oscar.hom(G, matgroup, permgens, gens(matgroup))
 end
 
 

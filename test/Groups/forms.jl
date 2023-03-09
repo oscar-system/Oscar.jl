@@ -613,12 +613,11 @@ end
       # If the abs. irred. module preserves an antisymmetric invariant
       # bilinear form then there is no nondegenerate quadratic form.
       F = GF(7)
-      G = MatrixGroup(6, F)
       mats = [matrix(F, [0 1 0 0 0 0; 1 0 0 0 0 0; 0 0 0 1 0 0;
                          0 0 1 0 0 0; 5 5 2 2 6 0; 3 3 4 4 0 6]),
               matrix(F, [4 0 0 0 0 0; 0 0 1 0 0 0; 0 6 1 0 0 0;
                          0 0 0 0 1 0; 0 0 0 0 0 1; 6 0 0 2 4 3])]
-      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      G = matrix_group(mats)
       @test describe(G) == "PSU(3,3)"
       @test orthogonal_sign(G) === nothing
    end
