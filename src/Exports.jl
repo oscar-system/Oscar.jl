@@ -52,11 +52,13 @@ export TropicalSemiringMap
 export TropicalVariety
 export Undirected
 export _select
+export action
 export add_edge!
 export add_glueing!
 export add_vertex!
 export add_vertices!
 export adjacent_chamber
+export affine_algebra
 export affine_charts
 export affine_geometry
 export affine_normal_toric_variety
@@ -120,6 +122,7 @@ export codim
 export codomain
 export codomain_covering
 export codomain_type
+export coefficient_ring
 export coefficients
 export cohomology
 export cohomology_class
@@ -185,7 +188,6 @@ export edges
 export empty_covered_scheme
 export empty_covering
 export euler_characteristic
-export euler_characteristic
 export exponents
 export f_vector
 export facet_points
@@ -200,6 +202,7 @@ export free_extension
 export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group
+export fundamental_invariants
 export generic_fraction
 export generic_fractions
 export gens_of_rational_equivalence_classes
@@ -211,6 +214,7 @@ export glueings
 export graph
 export grid_morphism
 export groebner_polyhedron
+export group
 export h_vector
 export has_edge
 export has_torusfactor
@@ -236,7 +240,9 @@ export intersect
 export intersect_stably
 export intersection_form
 export intersections
+export invariant_ring
 export inverse
+export irreducible_secondary_invariants
 export irrelevant_ideal
 export is_affine
 export is_ample
@@ -265,6 +271,7 @@ export is_k_separation
 export is_linearly_equivalent
 export is_loopless
 export is_minor
+export is_modular
 export is_nef
 export is_non_zero_divisor
 export is_normal
@@ -289,6 +296,7 @@ export is_very_ample
 export is_weakly_connected
 export isomorphic_matroid
 export issubset
+export iterate_basis
 export klein_bottle
 export length
 export link_subcomplex
@@ -313,6 +321,7 @@ export matroid_stratum_matrix_coordinates
 export maximal_extension
 export minimal_nonfaces
 export minor
+export molien_series
 export mori_cone
 export morphism_from_cox_variety
 export morphism_on_class_group
@@ -350,7 +359,9 @@ export poly_type
 export polyhedra
 export polyhedron
 export polynomial
+export polynomial_ring
 export preimage
+export primary_invariants
 export principal_extension
 export product
 export proj_space
@@ -367,6 +378,7 @@ export rational_to_continued_fraction_hirzebruch_jung
 export real_projective_plane
 export reduced_characteristic_polynomial
 export reduced_scheme
+export relative_invariants
 export rem_edge!
 export rem_vertex!
 export representative
@@ -376,14 +388,17 @@ export restriction_map
 export restrictions
 export reverse
 export revlex_basis_encoding
+export reynolds_operator
 export ring_type
 export save_simplicialcomplex
 export scheme
+export secondary_invariants
 export separating_hyperplanes
 export series_extension
 export set_coordinate_names
 export set_coordinate_names_of_torus
 export set_name!
+export semi_invariants
 export shortest_path_dijkstra
 export signed_incidence_matrix
 export simplify
