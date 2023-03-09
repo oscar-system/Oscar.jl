@@ -39,8 +39,8 @@ A **Young tableau** of shape ``λ`` is a filling of the boxes of the Young
 diagram of ``λ`` with elements from some set. After relabeling we can (and
 will) assume that we fill from a set of integers from ``1`` up to some number,
 which in applications is often equal to `n`. We encode a tableau as an
-array of arrays and we have implemented an own type ```Tableau{T}```
-as subtype of ```AbstractVector{AbstractVector{T}}``` to work with
+array of arrays and we have implemented an own type `Tableau{T}`
+as subtype of `AbstractVector{AbstractVector{T}}` to work with
 tableaux. As for partitions, you may increase performance by casting
 into smaller integer types, e.g.
 
@@ -89,7 +89,8 @@ end
 @Markdown.doc """
     shape(tab::Tableau{T})
 
-Returns the shape of a tableau, i.e. the partition given by the lengths of the rows of the tableau.
+Returns the shape of a tableau, i.e. the partition given by the lengths of the
+rows of the tableau.
 """
 function shape(tab::Tableau{T}) where T
   return Partition{T}([ length(tab[i]) for i=1:length(tab) ])
@@ -99,7 +100,9 @@ end
 @Markdown.doc """
     weight(tab::Tableau)
 
-The **weight** of a tableau is the number of times each number appears in the tableau. The return value is an array whose `i`-th element gives the number of times the integer `i` appears in the tableau.
+The **weight** of a tableau is the number of times each number appears in the
+tableau. The return value is an array whose `i`-th element gives the number of
+times the integer `i` appears in the tableau.
 """
 function weight(tab::Tableau)
   if isempty(tab)
@@ -126,7 +129,9 @@ end
 @Markdown.doc """
     reading_word(tab::Tableau)
 
-The **reading word** of a tableau is the word obtained by concatenating the fillings of the rows, starting from the *bottom* row. The word is here returned as an array.
+The **reading word** of a tableau is the word obtained by concatenating the
+fillings of the rows, starting from the *bottom* row. The word is here
+returned as an array.
 
 # Examples
 ```jldoctest
@@ -156,7 +161,8 @@ end
 @Markdown.doc """
     is_semistandard(tab::Tableau)
 
-A tableau is called **semistandard** if the entries weakly increase along each row and strictly increase down each column.
+A tableau is called **semistandard** if the entries weakly increase along each
+row and strictly increase down each column.
 """
 function is_semistandard(tab::Tableau)
   s = shape(tab)
@@ -271,7 +277,7 @@ end
 @Markdown.doc """
     semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
 
-Shortcut for ```semistandard_tableaux(Partition(shape), max_val)```.
+Shortcut for `semistandard_tableaux(Partition(shape), max_val)`.
 """
 function semistandard_tableaux(shape::Vector{T}, max_val=sum(shape)::T) where T<:Integer
   return semistandard_tableaux(Partition(shape), max_val)
@@ -570,7 +576,7 @@ end
 @Markdown.doc """
     hook_length(tab::Tableau, i::Integer, j::Integer)
 
-Shortcut for ```hook_length(shape(tab), i, j)```.
+Shortcut for `hook_length(shape(tab), i, j)`.
 """
 function hook_length(tab::Tableau, i::Integer, j::Integer)
   return hook_length(shape(tab),i,j)
@@ -599,9 +605,10 @@ end
 
 Returns the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
 
-$f^λ = \frac{n!}{\prod_{i,j} h_λ(i,j)},$
+$$f^λ = \frac{n!}{\prod_{i,j} h_λ(i,j)},$$
 
-where the product is taken over all boxes in the Young diagram of ``λ`` and ``h_λ`` denotes the hook length of the box (i,j).
+where the product is taken over all boxes in the Young diagram of ``λ`` and
+``h_λ`` denotes the hook length of the box (i,j).
 
 # References
 1. Wikipedia, [Hook length formula](https://en.wikipedia.org/wiki/Hook_length_formula).

@@ -14,9 +14,11 @@ export schur_polynomial
     schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
     schur_polynomial(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where T<:Integer
 
-Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a Multivariate Polynomial.
+Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a
+Multivariate Polynomial.
 
-If neither `R` nor `x` are given, the Schur polynomial will be over `PolynomialRing(ZZ,["x1","x2",...,"xn"])`.
+If neither `R` nor `x` are given, the Schur polynomial will be over
+`PolynomialRing(ZZ,["x1","x2",...,"xn"])`.
 
 # Examples
 ```jldoctest
@@ -35,13 +37,15 @@ x1^2 + x1*x2 + x2^2
 
 # Algorithm
 We use two different Algorithms, depending on the size of the input.
-The Combinatorial Algorithm is used for Partitions of small Integers, or if ``n ≥ 10``. In the other cases we use Cauchy's bialternant formula.
+The Combinatorial Algorithm is used for Partitions of small Integers, or if
+``n ≥ 10``. In the other cases we use Cauchy's bialternant formula.
 
 **Combinatorial Algorithm**
 ```math
 s_λ:=∑_T x_1^{m_1}…x_n^{m_n}
 ```
-where the sum is taken over all semistandard tableaux ``T`` of shape ``λ``, and ``m_i`` gives the weight of ``i`` in ``T``.
+where the sum is taken over all semistandard tableaux ``T`` of shape ``λ``,
+and ``m_i`` gives the weight of ``i`` in ``T``.
 
 **Cauchy's bialternant formula**
 ```math
@@ -152,14 +156,18 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
 
   #=
   To calculate the determinant we use the Laplace expansion along the last row.
-  Furthermore we use the fact, that each column consist of the same variable with decreasing powers.
-  This allows us to factorize by the smallest power, thus our last row of the minors is always 1, this reduces the amount of polynomial multiplications we have to do.
+  Furthermore we use the fact that each column consist of the same variable with decreasing powers.
 
-  To avoid calculating the same minors multiple times, we calculate them from 1x1 up to nxn, always storing them in a Dictionary.
+  This allows us to factorize by the smallest power, thus our last row of the
+  minors is always 1, this reduces the amount of polynomial multiplications we
+  have to do.
+
+  To avoid calculating the same minors multiple times, we calculate them from
+  1x1 up to nxn, always storing them in a Dictionary.
   Keep in mind that each minor consists of k columns and the top k rows.
   =#
 
-  #initializing a few helpful Variables
+  # initializing a few helpful Variables
   exponents = Int[getindex_safe(lambda,i)+n-i for i=1:n] #the exponents from the Matrix read from top to bottom
   exp_incr = zeros(Int,n) #the increment with wich exponents increase
   for i = 1:n-1
@@ -170,8 +178,11 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
   factor = one(R)
   d = R()
 
-  #Initialize Dictionaries (calculating all possible combinations of k=1...n columns)
-  sub_dets = [Dict{BitArray{1},fmpz_mpoly}() for i=1:n] #sub_dets[i] holds all the minors of size i, i.e. sub_dets[2][[false,true,true,false,false]] is the minor of the 2x2 matrix consisting of the first two rows intersected with the 2nd and 3rd columns.
+  # Initialize Dictionaries (calculating all possible combinations of k=1...n columns)
+  sub_dets = [Dict{BitArray{1},fmpz_mpoly}() for i=1:n]
+  # sub_dets[i] holds all the minors of size i, i.e.
+  # sub_dets[2][[false,true,true,false,false]] is the minor of the 2x2 matrix
+  # consisting of the first two rows intersected with the 2nd and 3rd columns.
   b = falses(n)
   ntrues = 0
   pointer = 1
@@ -230,7 +241,8 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
   return sp
 end
 
-#returning the schur polynomial in the first k generators of R using the Combinatorial formula.
+# returning the schur polynomial in the first k generators of R using the
+# Combinatorial formula.
 function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum(lambda)::Int) where T<:Integer
   if isempty(lambda)
     return one(R)
