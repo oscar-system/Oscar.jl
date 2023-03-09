@@ -1,5 +1,3 @@
-export depth, fitting_ideal, is_flat, is_regular_sequence, koszul_homology, non_flat_locus 
-export koszul_matrix, koszul_complex
 
 ###############################################################################
 # functionality supporting computations in homological algebra.
