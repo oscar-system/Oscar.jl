@@ -145,12 +145,11 @@ function Base.hash(a::PBWAlgQuoElem, h::UInt)
   return hash(a.data, h)
 end
 
-function iszero(a::PBWAlgQuoElem)
-    if (have_special_impl(parent(a)))  # special case for exterior algebras
-        return Singular.is_zero(a.data.sdata);
+function is_zero(a::PBWAlgQuoElem)
+    if (!have_special_impl(parent(a)))  # must reduce if not exterior algebras
+        simplify(a); # see GitHub discussion #2014
     end
-    simplify(a); # see GitHub discussion #2014
-    return iszero(a.data.sdata)  # EQUIV  iszero(a.data)
+    return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
 end
 
 function is_unit(a::PBWAlgQuoElem)
@@ -160,7 +159,7 @@ function is_unit(a::PBWAlgQuoElem)
 end
 
 function Base.:(==)(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  return iszero(a - b)
+  return is_zero(a - b)
 end
 
 function Base.:+(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
@@ -251,6 +250,8 @@ function quo(Q::PBWAlgRing, I::PBWAlgIdeal;  SpecialImpl::Union{Nothing, Singula
 end
 
 
+# For some reason we need to specify a promote_rule when both types are the same (why?)
+# Doc might be in packages/AbstractAlgebra/*/docs/src/ring_interface.md (near line 580)
 function AbstractAlgebra.promote_rule(::Type{PBWAlgQuoElem{T, S}}, ::Type{PBWAlgQuoElem{T, S}}) where {T, S}
   return PBWAlgQuoElem{T, S}
 end
@@ -281,26 +282,34 @@ function (Q::PBWAlgQuo)(c::IntegerUnion)
 end
 
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
-  if (parent(a) != Q)   throw(ArgumentError("coercion between quotients of different PBWAlgs not possible"));  end;
-#  parent(a) == Q || error("coercion impossible")   # err mesg was rather too terse!! JAA 2023-03-07
-  return a
+    if (parent(a) != Q)
+        throw(ArgumentError("coercion between different PBWAlg quotients not possible"));
+    end;
+  return a;
 end
 
 #############################################
 ##### Exterior algebras
 #############################################
 
-@doc Markdown.doc"""
-    exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+#---------------------------------------------------------
+# SEE FILE experimental/ExteriorAlgebra/ExteriorAlgebra.jl
+#---------------------------------------------------------
 
-Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th exterior algebra over `K`.
 
-The generators of the returned algebra print according to the entries of `xs`. See the example below.
+# 2023-03-09 JAA  commented out placeholder code below -- should be replaced by code from ExteriorAlgebra.jl
 
-# Examples
-"""
-function exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
-  throw(NotImplementedError(:exterior_algebra, K, xs))
-end
+# @doc Markdown.doc"""
+#     exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
+#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+
+# Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th exterior algebra over `K`.
+
+# The generators of the returned algebra print according to the entries of `xs`. See the example below.
+
+# # Examples
+# """
+# function exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
+#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+#   throw(NotImplementedError(:exterior_algebra, K, xs))
+# end
