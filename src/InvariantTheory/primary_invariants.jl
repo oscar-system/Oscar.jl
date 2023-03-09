@@ -1,4 +1,3 @@
-export primary_invariants
 
 # If d_1, ..., d_n are degrees of primary invariants, then the Hilbert series
 # must be f(t)/\prod_i (1 - t^{d_i}) where f is a polynomial with integer
