@@ -1150,7 +1150,7 @@ end
     fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
                         destination_ordering::MonomialOrdering)
 
-Given a **zero-dimensional** ideal `I`, return a reduced Gröbner basis of `I` with respect to `destination_ordering`.
+Given a **zero-dimensional** ideal `I`, return the reduced Gröbner basis of `I` with respect to `destination_ordering`.
 
 !!! note
     Both `start_ordering` and `destination_ordering` must be global and the base ring of `I` must be a polynomial ring over a field.
