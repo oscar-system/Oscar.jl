@@ -106,7 +106,7 @@ function num_partitions(n::IntegerUnion)
   n >= 0 || throw(ArgumentError("n >= 0 required"))
   n = ZZ(n)
   z = ZZ()
-  ccall((:arith_number_of_partitions, libflint), Cvoid, (Ref{fmpz}, Culong), z, UInt(n))
+  ccall((:arith_number_of_partitions, Nemo.libflint), Cvoid, (Ref{fmpz}, Culong), z, UInt(n))
   return z
 end
 
