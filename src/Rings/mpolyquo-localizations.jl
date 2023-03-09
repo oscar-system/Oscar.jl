@@ -135,6 +135,10 @@ MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
                 MPolyLocRing,MPolyQuoLocRing
                }
 
+MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
+                 MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal
+                }
+
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
