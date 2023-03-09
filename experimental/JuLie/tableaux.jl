@@ -205,7 +205,7 @@ end
 
 
 @Markdown.doc """
-    semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
+    semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
 
 Returns a list of all semistandard tableaux of given shape and filling
 elements bounded by `max_val`. By default, `max_val` is equal to the sum
@@ -213,7 +213,7 @@ of the shape partition (the number of boxes in the Young diagram). The
 list of tableaux is in lexicographic order from left to right and top
 to bottom.
 """
-function semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
+function semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
   SST = Vector{Tableau{T}}()
   len = length(shape)
   if max_val < len
@@ -275,21 +275,21 @@ function semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer)
 end
 
 @Markdown.doc """
-    semistandard_tableaux(shape::Partition{T}, max_val=sum(shape)::Integer) where T<:Integer
+    semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
 
 Shortcut for `semistandard_tableaux(Partition(shape), max_val)`.
 """
-function semistandard_tableaux(shape::Vector{T}, max_val=sum(shape)::T) where T<:Integer
+function semistandard_tableaux(shape::Vector{T}, max_val::T=sum(shape)) where T<:Integer
   return semistandard_tableaux(Partition(shape), max_val)
 end
 
 @Markdown.doc """
-    semistandard_tableaux(box_num::T, max_val=box_num::T) where T<:Integer
+    semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
 
 Returns a list of all semistandard tableaux consisting of `box_num`
 boxes and filling elements bounded by `max_val`.
 """
-function semistandard_tableaux(box_num::T, max_val=box_num::T) where T<:Integer
+function semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
   box_num>=0 || throw(ArgumentError("box_num ≥ 0 required"))
   SST = Vector{Tableau{T}}()
   if max_val<=0

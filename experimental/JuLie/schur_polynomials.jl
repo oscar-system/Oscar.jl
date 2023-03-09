@@ -10,8 +10,8 @@
 export schur_polynomial
 
 @doc Markdown.doc"""
-    schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int; ring::FmpzMPolyRing) where T<:Integer
-    schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
+    schur_polynomial(lambda::Partition{T}, n::Int=sum(lambda); ring::FmpzMPolyRing) where T<:Integer
+    schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lambda)) where T<:Integer
     schur_polynomial(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where T<:Integer
 
 Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a
@@ -58,7 +58,7 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 \end{vmatrix}
 ```
 """
-function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int;
+function schur_polynomial(lambda::Partition{T}, n::Int=sum(lambda);
     ring::AbstractAlgebra.Ring=(n<=0 ? ZZ : begin # the ring for the return value
                                   x = [string("x",string(i)) for i=1:n]
                                   PolynomialRing(ZZ, x)[1]
@@ -78,7 +78,7 @@ function schur_polynomial(lambda::Partition{T}, n=sum(lambda)::Int;
 end
 
 
-function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n=sum(lambda)::Int) where T<:Integer
+function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lambda)) where T<:Integer
   n>=0 || throw(ArgumentError("n≥0 required"))
   if n > R.nvars
     n = R.nvars
@@ -243,7 +243,7 @@ end
 
 # returning the schur polynomial in the first k generators of R using the
 # Combinatorial formula.
-function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum(lambda)::Int) where T<:Integer
+function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k::Int=sum(lambda)) where T<:Integer
   if isempty(lambda)
     return one(R)
   end
@@ -251,7 +251,7 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k=sum
   S = base_ring(R)
   sf = MPolyBuildCtx(R)
 
-  #version of the function semistandard_tableaux(shape::Vector{T}, max_val=sum(shape)::Integer)
+  #version of the function semistandard_tableaux(shape::Vector{T}, max_val=sum(shape))
   len = length(lambda)
   tab = [(fill(i,lambda[i])) for i = 1:len]
   m = len
