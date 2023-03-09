@@ -426,7 +426,6 @@ include("Groups/spinor_norms.jl")
 include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
-include("Rings/rational.jl")
 include("Rings/orderings.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly_types.jl")

@@ -1,5 +1,3 @@
-export katsura
-
 function _get_katsura_exponent(n::Int, m::Int, l::Int)
     e = zeros(Int, n + 1)
     if abs(l) == abs(m - l)

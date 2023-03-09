@@ -1,8 +1,6 @@
 using .StraightLinePrograms: SLProgram
 const SLP = StraightLinePrograms
 
-export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly
-
 ## LazyPolyRing
 
 struct LazyPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
