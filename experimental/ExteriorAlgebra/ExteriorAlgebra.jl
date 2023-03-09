@@ -97,9 +97,6 @@ julia> e2*e1
 julia> (e1+e2)^2  # result is automatically reduced!
 0
 
-julia> is_zero((e1+e2)^2)
-true
-
 julia> ExtAlg, (x,y)  =  exterior_algebra(QQ, ["x","y"]);
 
 julia> y*x
