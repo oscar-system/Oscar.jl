@@ -120,7 +120,9 @@ The keyword `algorithm` can be set to
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
 !!! note
-    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, and `f4` in the OSCAR documention for some more details and for restrictions    on the input data when using these versions of the standard basis algorithm.
+    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
+    and `f4` in the OSCAR documention for some more details and for restrictions    
+    on the input data when using these versions of the standard basis algorithm.
 
 !!! note
     The returned standard basis is reduced if `ordering` is `global` and `complete_reduction = true`.
@@ -202,7 +204,9 @@ The keyword `algorithm` can be set to
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
 !!! note
-    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, and `f4` in the OSCAR documention for some more details and for restrictions    on the input data when using these versions of the standard basis algorithm.
+    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
+    and `f4` in the OSCAR documention for some more details and for restrictions    
+    on the input data when using these versions of the standard basis algorithm.
 
 !!! note
     The returned Gröbner basis is reduced if `complete_reduction = true`.
