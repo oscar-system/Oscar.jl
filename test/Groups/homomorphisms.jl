@@ -537,7 +537,7 @@ TestKernels = function(G,H,f)
       @test (i*f)(K[j])==one(H)
       @test index(G,K)==order(Im)
    end
-   if is_normal(H,Im) 
+   if is_normalized_by(Im, H)
       C,p = cokernel(f)
         @test is_surjective(p)
       for j in 1:ngens(G)
@@ -609,7 +609,8 @@ end
    AA,phi = sub(A,[g1,g2])
    @test is_isomorphic(AA,alt)
    @test index(A,AA)==2
-   @test is_normal(A,AA)
+   @test is_normal_subgroup(AA, A)
+   @test is_normalized_by(AA, A)
    @test phi(AA[1])==AA[1]
    @test phi(AA[2])==AA[2]
    @test order(quo(A,AA)[1])==2
