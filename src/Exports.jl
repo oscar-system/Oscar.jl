@@ -263,6 +263,7 @@ export face_fan
 export faces
 export facet_points
 export facets
+export factorisations
 export fan
 export fano_matroid
 export fano_simplex
@@ -344,6 +345,7 @@ export invariant_ring
 export inverse
 export invert
 export irreducible_secondary_invariants
+export irreducibles
 export irrelevant_ideal
 export is_affine
 export is_ample
@@ -493,6 +495,8 @@ export non_fano_matroid
 export non_flat_locus
 export non_pappus_matroid
 export nonbases
+export norm_equation
+export norm_equation_fac_elem
 export normal_cone
 export normal_fan
 export normal_toric_varieties_from_glsm
