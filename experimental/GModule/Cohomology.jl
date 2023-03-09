@@ -728,9 +728,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
   @vprint :GroupCohomology 1 "starting H^2 for group of size $(order(G)) and module with $(ngens(M)) gens\n"
 
   id = hom(M, M, gens(M), check = false)
-  Ac = action(C)
-  iAc = inv_action(C)
-
   F, mF = fp_group(C) #mF: F -> G
 
   if !force_rws && (isa(G, PcGroup) || is_solvable(G))
@@ -894,6 +891,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     mm = sum(all_T[i]*jinj[i] for i = 1:length(all_T))
   end
   @vprint :GroupCohomology 2 "computing 2-cycles...\n"
+  return mm;
   @vtime :GroupCohomology 2 E, mE = kernel(mm)
   @hassert :GroupCohomology 1 all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
   @hassert :GroupCohomology 1 all(x->iszero(mm(mE(x))), gens(E))
