@@ -1,23 +1,3 @@
-export presentation, coordinates, repres, cokernel, index_of_gen, sub,
-      quo, presentation, present_as_cokernel, is_equal_with_morphism, 
-      standard_basis, groebner_basis, reduced_groebner_basis, leading_module, 
-      reduce, hom_tensor, hom_product, coordinates, 
-      represents_element, free_resolution, free_resolution_via_kernels,
-      element_to_homomorphism, homomorphism_to_element, generator_matrix, 
-      restrict_codomain, restrict_domain, direct_product, tensor_product, 
-      free_module, tor, ext, lift_homomorphism_contravariant, 
-      lift_homomorphism_covariant, hom_without_reversing_direction, transport, 
-      find_morphism, find_morphisms, is_canonically_isomorphic, 
-      is_canonically_isomorphic_with_map, register_morphism!, dense_row,
-      show_subquo, show_morphism, show_morphism_as_map,
-      simplify_light, simplify_with_same_ambient_free_module,
-      matrix_kernel, simplify, map, is_injective,
-      is_surjective, is_bijective, is_welldefined, subquotient,
-      multiplication_morphism, multiplication_induced_morphism,
-      ambient_free_module, ambient_module, ambient_representative,
-      ambient_representatives_generators, relations, img_gens, is_complete,
-      chain_complex, cochain_complex
-
 # TODO replace asserts by error messages?
 
 #TODO: "fix" to allow QuoElem s as well...

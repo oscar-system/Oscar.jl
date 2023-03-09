@@ -1,5 +1,3 @@
-export length
-export composition_series
 
 function length(M::ModuleFP{RingElemType}) where {RingElemType<:AbsLocalizedRingElem{<:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   return length(composition_series(M))
