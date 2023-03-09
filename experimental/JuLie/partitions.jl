@@ -15,14 +15,18 @@ export Partition, partitions, ascending_partitions, dominates, conjugate, getind
 A **partition** of an integer ``n ≥ 0`` is a decreasing sequence ``λ=(λ₁,…,λᵣ)`` of positive integers ``λᵢ`` whose sum is equal to ``n``. The ``λᵢ`` are called the **parts** of the partition. We encode a partition as an array with elements ``λᵢ``. You may increase performance by using smaller integer types, see the examples below. For efficiency, the ```Partition``` constructor does not check whether the given array is in fact a partition, i.e. a decreasing sequence.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> P=Partition([3,2,1]) #The partition 3+2+1 of 6
 [3, 2, 1]
+
 julia> sum(P) #The sum of the parts.
 6
+
 julia> P[1] #First component
 3
+
 julia> P=Partition(Int8[3,2,1]) #Same partition but using 8 bit integers
+Int8[3, 2, 1]
 ```
 
 # Remarks
@@ -170,8 +174,14 @@ end
 A list of all partitions of an integer ``n ≥ 0``, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function ```reverse``` to reverse the order. As usual, you may increase performance by using smaller integer types. The algorithm used is "Algorithm ZS1" by Zoghbi & Stojmenovic (1998); see [ZS98](@cite).
 
 # Examples
-```julia-repl
-julia> partitions(Int8(10)) #Using 8-bit integers
+```jldoctest
+julia> partitions(Int8(4))
+5-element Vector{Partition{Int8}}:
+ Int8[4]
+ Int8[3, 1]
+ Int8[2, 2]
+ Int8[2, 1, 1]
+ Int8[1, 1, 1, 1]
 ```
 """
 function partitions(n::IntegerUnion)

@@ -33,10 +33,13 @@ into smaller integer types, e.g.
 For efficiency, we do not check whether the given array is really a
 tableau, i.e. whether the structure of the array defines a partition.
 
-# Example
-```julia-repl
+# Examples
+```jldoctest
 julia> tab=Tableau([[1,2,3],[4,5],[6]])
+[[1, 2, 3], [4, 5], [6]]
+
 julia> tab=Tableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
+Vector{Int8}[[2, 1], [], [3, 2, 1]]
 ```
 
 # References
@@ -111,16 +114,16 @@ end
 
 The **reading word** of a tableau is the word obtained by concatenating the fillings of the rows, starting from the *bottom* row. The word is here returned as an array.
 
-# Example
-```
+# Examples
+```jldoctest
 julia> reading_word(Tableau([ [1,2,3] , [4,5] , [6] ]))
 6-element Vector{Int64}:
-6
-4
-5
-1
-2
-3
+ 6
+ 4
+ 5
+ 1
+ 2
+ 3
 ```
 """
 function reading_word(tab::Tableau)
@@ -611,9 +614,10 @@ a permutation sigma (given as an array), this function performs the
 Schnested algorithm and returns the corresponding pair of standard
 tableaux (the insertion and recording tableaux).
 
-# Example
-```julia-repl
+# Examples
+```jldoctest
 julia> P,Q = schensted([3,1,6,2,5,4]);
+
 julia> P
 [[1, 2, 4], [3, 5], [6]]
 

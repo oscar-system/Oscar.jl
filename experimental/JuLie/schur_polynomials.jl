@@ -18,14 +18,17 @@ Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a Mult
 
 If neither `R` nor `x` are given, the Schur polynomial will be over `PolynomialRing(ZZ,["x1","x2",...,"xn"])`.
 
-# Example
-```julia-repl
+# Examples
+```jldoctest
 julia> R,x = PolynomialRing(ZZ, ["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Integer Ring, fmpz_mpoly[a, b, c])
+(Multivariate Polynomial Ring in a, b, c over Integer Ring, ZZMPolyRingElem[a, b, c])
+
 julia> schur_polynomial(Partition([2,1]),[x[1],x[2]])
 a^2*b + a*b^2
-julia> schur_polynomial(Partition([2,1]),R)
+
+julia> schur_polynomial(R, Partition([2,1]))
 a^2*b + a^2*c + a*b^2 + 2*a*b*c + a*c^2 + b^2*c + b*c^2
+
 julia> schur_polynomial(Partition([2]))
 x1^2 + x1*x2 + x2^2
 ```
