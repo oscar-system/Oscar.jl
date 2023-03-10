@@ -1318,7 +1318,6 @@ julia> length(GB)
 ```
 
 ```jldoctest
-
 julia> R, (x, y, z) = polynomial_ring(GF(32003), ["x", "y", "z"]);
 
 julia> f1 = x^2*y+169*y^21+151*x*y*z^10;
