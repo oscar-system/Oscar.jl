@@ -1420,12 +1420,21 @@ end
 # check homogeneity w.r.t. some weights
 
 function _is_homogeneous(f::MPolyElem, weights::Vector{Int})
-  all([sum(weights .* e) == sum(weights .* first(exponents(f)))
-       for e in exponents(f)])
+  w = sum(weights .* first(exponents(f)))
+  all(sum(weights .* e) == w for e in exponents(f))
 end
 
-function _is_homogeneous(f::MPolyElem)
-  _is_homogeneous(f, ones(Int, ngens(parent(f))))
+
+# check homogeneity w.r.t. total degree
+function _is_homogeneous(f::MPolyRingElem)
+  leadexpv,tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(f))
+  d = sum(leadexpv)
+  for tailexpv in tailexpvs
+    if d!=sum(tailexpv)
+      return false
+    end
+  end
+  return true
 end
   
 
