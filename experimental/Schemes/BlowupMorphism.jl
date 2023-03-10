@@ -278,3 +278,45 @@ function maps_with_given_codomain(phi::CoveringMorphism, V::AbsSpec)
   return result
 end
 
+function show_details(Bl::BlowupMorphism; more::Bool = false)
+
+## data of the original scheme
+  X0 = codomain(Bl)
+  C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
+  n0 = npatches(C0)
+
+## data of the blown up scheme
+  X1 = domain(Bl)
+  C1 = (has_attribute(X1, :simplified_covering) ? simplified_covering(X1) : default_covering(X1))
+  n1 = npatches(C1)
+
+## data of the blowing up itself
+  ED = exceptional_divisor(Bl)
+  C_X0 = Bl.center
+
+## create the output
+  println("Blow up of a Covered Scheme with ",n0," Charts at a ",dim(C_X0),"-dimensional Center leading to a Covered Scheme with ",n1," Charts.\n")
+
+  if(more)
+    println("=====================================")
+    println("Affine charts of the original scheme:")
+    for U in patches(C0)
+      println(U,"\n")
+    end
+
+    println("=====================================")
+    println("Affine charts of the blown up scheme:")
+    for V in patches(C1)
+      println(V,"\n")
+    end
+
+    println("=====================================")
+    println("Data of center:")
+    show_details(Bl.center)
+
+    println("=====================================")
+    println("Exceptional divisor:")
+    show_details(exceptional_divisor(Bl))
+  end
+end
+

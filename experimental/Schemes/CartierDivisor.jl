@@ -269,3 +269,20 @@ end
 dim(C::EffectiveCartierDivisor) = dim(scheme(C))-1
 dim(C::CartierDivisor) = dim(scheme(C))-1
 
+function show_details(C::EffectiveCartierDivisor)
+  I = ideal_sheaf(C)
+  X = C.X
+
+  # If there is a simplified covering, use it!
+  covering = C.C
+  n = npatches(covering)
+  i=1
+  println("Effective Cartier Divisor on Covered Scheme with ",n," Charts:\n")
+
+    ID = IdDict{AbsSpec, Ideal}()
+
+  for U in patches(covering)
+    println("Chart ",i,":\n\t", I(U),"\n")
+    i=i+1
+  end
+end

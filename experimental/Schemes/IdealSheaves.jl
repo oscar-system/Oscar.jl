@@ -6,6 +6,8 @@ export ideal_sheaf_type
 
 export order_on_divisor
 
+export show_details
+
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
@@ -697,4 +699,22 @@ end
     ID[U] = radical(II(U))
   end
   return IdealSheaf(X, ID, check=false)
+end
+
+function show_details(I::IdealSheaf)
+  X = scheme(I)
+
+  # If there is a simplified covering, use it!
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  n = npatches(covering)
+  i=1
+  println("Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
+
+
+  ID = IdDict{AbsSpec, Ideal}()
+
+  for U in patches(covering)
+    println("Chart ",i,":\n\t", I(U),"\n")
+    i=i+1
+  end
 end
