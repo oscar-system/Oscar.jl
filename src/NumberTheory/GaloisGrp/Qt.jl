@@ -149,7 +149,7 @@ function _subfields(FF::Generic.FunctionField, f::ZZMPolyRingElem; tStart::Int =
   return C, K, p
 end
 
-function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = false)
+function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = false, prime::Int=0, pStart::Int = 0)
   tStart = -1
   tr = -1
   while true

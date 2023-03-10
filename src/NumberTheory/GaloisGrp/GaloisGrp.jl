@@ -2,7 +2,8 @@ module GaloisGrp
 
 using Oscar, Markdown, Random
 import Base: ^, +, -, *, ==
-import Oscar: Hecke, AbstractAlgebra, GAP, extension_field
+import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
+              upper_bound
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
 export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
@@ -2725,7 +2726,6 @@ AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{T}) where {T <: Integ
 
 include("Group.jl")
 include("POSet.jl")
-include("Subfields.jl")
 include("SeriesEval.jl")
 include("Qt.jl")
 include("RelGalois.jl")

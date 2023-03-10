@@ -496,6 +496,7 @@ include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
+include("NumberTheory/GalThy.jl")
 
 include("AlgebraicGeometry/Schemes/main.jl")
 include("AlgebraicGeometry/ToricVarieties/JToric.jl")
