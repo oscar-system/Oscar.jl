@@ -1,10 +1,10 @@
-export is_invariant_ideal,
-       is_semi_invariant_polynomial,
-       projective_group_action,
-       pullback,
-       push_forward,
-       symmetric_intersections,
-       underlying_moduli_space_of_modules
+export is_invariant_ideal
+export is_semi_invariant_polynomial
+export projective_group_action
+export pullback
+export push_forward
+export symmetric_intersections
+export underlying_moduli_space_of_modules
 
 ### Action on homogeneous ideals/polynomials
 
@@ -119,34 +119,34 @@ end
 ### Parametrising certain symmetric intersections
 
 @doc Markdown.doc"""
-    underlying_moduli_space_of_modules(symci::SymmetricIntersections{S, T, U, V})
-                                        where {S, T, U, V} -> CharacterGrassmannian{S, T, U}
+    underlying_moduli_space_of_modules(symci::SymInter{S, T, U, V})
+                                        where {S, T, U, V} -> CharGrass{S, T, U}
 
 Given a parametrizing space `symci` for ideals defining symmetric intersections,
 return the underlying symmetric Grassmannian parametrizing submodule of the corresponding
 homogeneous part of a polynomial algebra generating the ideals in `symci`.
 """
-underlying_moduli_space_of_modules(symci::SymmetricIntersections) = symci.para
+underlying_moduli_space_of_modules(symci::SymInter) = symci.para
 
 @doc Markdown.doc"""
-    projective_group_action(symci::SymmetricIntersections{S, T, U, V})
+    projective_group_action(symci::SymInter{S, T, U, V})
                                                where {S, T, U, V} -> ProjRep{S, T, U, V}
 
 Given a parametrizing space `symci` for ideals defining symmetric intersections,
 return the projective representation of the group on the ambient projective space which
 encodes the symmetry of the complete intersections defined by the ideals in `symci`.
 """
-projective_group_action(symci::SymmetricIntersections) = symci.prep
+projective_group_action(symci::SymInter) = symci.prep
 
 @doc Markdown.doc"""
-    parametrization_data(symci::SymmetricIntersections)
+    parametrization_data(symci::SymInter)
                                         -> Vector{Tuple{Vector{MPolyDecRingElem}, Int}}
 
 Given a parametrizing space `symci` for ideals defining symmetric intersections,
 return a list of tuples `(B, n)` where `B`'s' are bases for the factor spaces of `symci`
 and `n` is the size of a sample in the factor space spanned by `B` to be taken.
 """
-function parametrization_data(symci::SymmetricIntersections)
+function parametrization_data(symci::SymInter)
   pd = parametrization_data(symci.para)
   j = symci.j
   pd2 = Tuple{Vector{Vector{MPolyDecRingElem}}, Int}[]
@@ -163,13 +163,12 @@ function parametrization_data(symci::SymmetricIntersections)
 end
 
 @doc Markdown.doc"""
-    standard_element(symci::SymmetricIntersections)
-                                             -> MPolyIdeal_dec
+    standard_element(symci::SymInter) -> MPolyIdeal_dec
 
 Given a parametrizing space `symci` for ideal defining symmetric intersections,
 return an specific ideal in `symci` made from all possible samples.
 """
-function standard_element(symci::SymmetricIntersections)
+function standard_element(symci::SymInter)
   std_el = standard_element(symci.para)
   j = symci.j
   S = codomain(j)
@@ -187,7 +186,7 @@ end
 @doc Markdown.doc"""
     symmetric_intersections(prep::ProjRep{S, T, U, V}, d::Int, t::Int;
                                      j::MapFromFunc = nothing,
-                                     check::Bool = true) -> Vector{SymmetricIntersections{S, T, U, V}}
+                                     check::Bool = true) -> Vector{SymInter{S, T, U, V}}
 
 Given a projective representation `prep` of a finite group `G` on a `F`-vector space `V`, where `F`
 is a field of characteristic zero, and two integers `d` and `t`, return the parametrizing space
@@ -221,16 +220,29 @@ function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j = nothing, che
   rd = homogeneous_polynomial_representation(prep, d)
   M = invariant_grassmannian(rd, t)
   chis = submodule_character.(irreducible_components(M))
-  reps = SymmetricIntersections[]
+  reps = SymInter[]
   for chi in chis
     N = irreducible_component(M, chi)
-    symci = SymmetricIntersections(prep, N, j)
+    symci = symmetric_intersections(prep, N, j)
     push!(reps, symci)
   end
   return reps
 end
 
-function Base.show(io::IO, ::MIME"text/plain", symci::SymmetricIntersections)
+@doc Markdown.doc"""
+    symmetric_intersections(prep::ProjRep, M::CharGrass, j::MapFromFunc)
+                                                                -> SymInter
+
+Low-level constructor for objects of type `SymInter`, parametrizing ideal in
+in the codomain of `j` with generators in the domain of `j`, where `M` is the moduli space
+parametrizing the underlying modules of the corresponding ideals, invariant under the
+given action `prep` on the projective space of coordinates.
+"""
+function symmetric_intersections(prep::ProjRep, M::CharGrass, j::MapFromFunc)
+  return SymInter(prep, M, j)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", symci::SymInter)
   M = symci.para
   j = symci.j
   RR = representation_ring_linear_lift(symci.prep)
@@ -252,13 +264,13 @@ function Base.show(io::IO, ::MIME"text/plain", symci::SymmetricIntersections)
   print(io, G)
 end
 
-function Base.show(io::IO, symci::SymmetricIntersections)
+function Base.show(io::IO, symci::SymInter)
   print(io, "Parameter space for symmetric intersections")
 end
 
 @doc Markdown.doc"""
     symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
-                              -> Vector{Tuple{ProjRep, Vector{SymmetricIntersections}}}
+                              -> Vector{Tuple{ProjRep, Vector{SymInter}}}
                               
 Given a small group `G` and three integers `n`, `d` and `t`, return a
 parametrisation for the ideals defining intersections of `t` hypersurfaces
@@ -270,7 +282,7 @@ linear action of `G` on $\mathbb P^{n-1}$
 """
 function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   pfr = faithful_projective_representations(G, n)
-  res = Tuple{ProjRep, Vector{SymmetricIntersections}}[]
+  res = Tuple{ProjRep, Vector{SymInter}}[]
   is_empty(pfr) && return res
   F = base_field(representation_ring_linear_lift(pfr[1]))
   S, _ = grade(polynomial_ring(F, "x" => 0:n-1)[1])
