@@ -1370,6 +1370,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   if isdefined(GB, :S)
     GB.S.isGB  = true
   end
+  I.gb[destination_ordering] = GB
   return GB
 end
 
