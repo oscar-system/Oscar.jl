@@ -7,7 +7,6 @@
     p::MPolyQuoRingElem
     RationalEquivalenceClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = new(v, p)
 end
-export RationalEquivalenceClass
 
 
 ####################################################
@@ -42,7 +41,6 @@ function rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRi
     parent(p) == chow_ring(v) || throw(ArgumentError("The polynomial must reside in the Chow ring of the toric variety"))
     return RationalEquivalenceClass(v, p)
 end
-export rational_equivalence_class
 
 
 @doc Markdown.doc"""

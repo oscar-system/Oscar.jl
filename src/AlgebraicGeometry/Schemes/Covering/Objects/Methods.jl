@@ -1,4 +1,3 @@
-export neighbor_patches, update_glueing_graph, transition_graph, fill_transitions!, add_glueing!, all_patches
 ########################################################################
 # Finding patches                                                      #
 ########################################################################

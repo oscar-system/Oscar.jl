@@ -430,7 +430,6 @@ ideal(x^2 - y)
 
 julia> is_zero(b)
 true
-
 ```
 """
 function is_zero(a::MPolyQuoIdeal)
@@ -773,8 +772,8 @@ x
 
 julia> typeof(p(x))
 MPolyQuoRingElem{QQMPolyRingElem}
-```jldoctest
 ```
+```jldoctest
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))

@@ -1,4 +1,3 @@
-export simplify
 
 ########################################################################
 # Methods for CoveredSchemeMorphism                                    #

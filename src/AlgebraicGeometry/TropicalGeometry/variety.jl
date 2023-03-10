@@ -23,7 +23,6 @@
         return new{M,EMB}(Sigma)
     end
 end
-export TropicalVariety
 
 
 function pm_object(T::TropicalVariety)
@@ -126,7 +125,6 @@ function homogenize(I::MPolyIdeal)
 
   return ideal(Gh)
 end
-export homogenize
 
 
 #=======
@@ -355,7 +353,6 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
 
   return TropI
 end
-export tropical_variety
 
 
 
@@ -381,7 +378,6 @@ function anchor_point(P::Polyhedron)
   pt = [pt[i]//pt[1] for i in 2:length(pt)]
   return pt
 end
-export anchor_point
 
 function facet_points(P::Polyhedron)
   points = []
@@ -392,4 +388,3 @@ function facet_points(P::Polyhedron)
   end
   return points
 end
-export facet_points

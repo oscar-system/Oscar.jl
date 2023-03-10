@@ -16,7 +16,6 @@ true
 ```
 """
 @attr Bool is_cartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
-export is_cartier
 
 
 @doc Markdown.doc"""
@@ -37,10 +36,8 @@ false
 ```
 """
 @attr Bool is_principal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
-export is_principal
 
 @attr Bool is_trivial(td::ToricDivisor) = all([c == 0 for c in coefficients(td)])
-export is_trivial
 
 
 @doc Markdown.doc"""
@@ -61,7 +58,6 @@ true
 ```
 """
 @attr Bool is_basepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE
-export is_basepoint_free
 
 
 @doc Markdown.doc"""
@@ -89,7 +85,6 @@ true
 ```
 """
 @attr Bool is_effective(td::ToricDivisor) = all(c -> (c >= 0), coefficients(td))
-export is_effective
 
 
 @doc Markdown.doc"""
@@ -109,7 +104,6 @@ true
 ```
 """
 @attr Bool is_integral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
-export is_integral
 
 
 @doc Markdown.doc"""
@@ -129,7 +123,6 @@ false
 ```
 """
 @attr Bool is_ample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
-export is_ample
 
 
 @doc Markdown.doc"""
@@ -149,7 +142,6 @@ false
 ```
 """
 @attr Bool is_very_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE
-export is_very_ample
 
 
 @doc Markdown.doc"""
@@ -169,7 +161,6 @@ true
 ```
 """
 @attr Bool is_nef(td::ToricDivisor) = pm_tdivisor(td).NEF
-export is_nef
 
 
 @doc Markdown.doc"""
@@ -189,7 +180,6 @@ true
 ```
 """
 @attr Bool is_q_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER
-export is_q_cartier
 
 
 @doc Markdown.doc"""
@@ -216,4 +206,3 @@ true
         return all(y -> (y == 1 || y == 0), coefficients(td))
     end
 end
-export is_prime

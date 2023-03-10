@@ -487,7 +487,7 @@ This is equivalent to ask that the center of `chi` contains the kernel of `p`.
 """
 function is_projective(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
   @req chi.table.GAPGroup === domain(p) "Incompatible representation ring of rep and domain of the cover p"
-  return is_subgroup(center(chi)[1], kernel(p)[1])[1]
+  return is_subgroup(kernel(p)[1], center(chi)[1])[1]
 end
 
 is_projective(rep::LinRep, p::GAPGroupHomomorphism) = is_projective(character_representation(rep), p)

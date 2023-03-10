@@ -1,4 +1,3 @@
-export intersect
 
 ########################################################################
 # Implementations of methods for SpecOpen                              #

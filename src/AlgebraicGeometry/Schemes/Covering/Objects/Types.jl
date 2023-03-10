@@ -1,4 +1,3 @@
-export Covering
 
 ########################################################################
 # Coverings for covered schemes                                        #

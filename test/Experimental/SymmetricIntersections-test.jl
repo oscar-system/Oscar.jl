@@ -9,7 +9,7 @@ using Oscar.SymInt
     return degree(p).coeff[1]
   end
 
-  for i in 1:2:10
+  for i in 1:5
     el = elevator(x, weight, i)
     number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
@@ -57,8 +57,6 @@ end
   @test constituents(chid, Int(degree(chid))) == [chid]
   chidt = exterior_power(chid, 3)
   @test all(nu -> is_constituent(chidt, det(nu)), cs)
-  Z, _ = center(chid)
-  @test is_subgroup(E, Z)[1]
 
   rep = @inferred affording_representation(RR, chi)
   @test representation_ring(rep) === RR

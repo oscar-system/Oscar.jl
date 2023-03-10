@@ -1,4 +1,3 @@
-export empty_covered_scheme
 
 ########################################################################
 # Constructors for CoveredScheme                                       #

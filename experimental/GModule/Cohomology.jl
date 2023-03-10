@@ -385,8 +385,7 @@ end
    - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
-   - is_subgroup has the "wrong" order of arguments (and cannot apply
-     to modules)
+   - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
    - mat or matrix is used to get "the matrix" from a hom
    - zero_hom/ zero_obj/ identity_hom is missing
@@ -2118,7 +2117,7 @@ Sort:
 # - a magic(?) function to get idel-aproximations in and out?
 
 function restrict(C::GModule, U::Oscar.GAPGroup)
-  fl, m = is_subgroup(C.G, U)
+  fl, m = is_subgroup(U, C.G)
   @assert fl
   return gmodule(U, [action(C, m(g)) for g = gens(U)])
 end

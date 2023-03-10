@@ -16,7 +16,6 @@ Compute the vanishing sets of an abstract toric variety `v` by use of the cohomC
     end
     return vs::Vector{ToricVanishingSet}
 end
-export vanishing_sets
 
 
 ###########################
@@ -154,7 +153,6 @@ function all_cohomologies(l::ToricLineBundle)
         return result
     end
 end
-export all_cohomologies
 
 
 @doc Markdown.doc"""
@@ -187,4 +185,3 @@ function cohomology(l::ToricLineBundle, i::Int)
     end
     return all_cohomologies(l)[i+1]
 end
-export cohomology

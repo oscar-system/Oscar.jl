@@ -1,4 +1,3 @@
-export covering_morphism, domain_covering, codomain_covering
 
 ########################################################################
 # Interface for AbsCoveredSchemeMorphism                               #
