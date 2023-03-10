@@ -270,7 +270,7 @@ function Nemo.roots_upper_bound(f::ZZPolyRingElem)
   a = coeff(f, degree(f))
   b = ceil(ZZRingElem, abs(coeff(f, degree(f)-1)//a))
   for i=0:degree(f)-2
-    b = max(b, root(ceil(ZZRingElem, abs(coeff(f, i)//a)), degree(f)-i)+1)
+    b = max(b, iroot(ceil(ZZRingElem, abs(coeff(f, i)//a)), degree(f)-i)+1)
   end
   return 2*b
   return max(ZZRingElem(1), maximum([ceil(ZZRingElem, abs(coeff(f, i)//a)) for i=0:degree(f)]))
