@@ -66,7 +66,7 @@ function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <
 end
 
 function sub(gens::GAPGroupElem...)
-   length(gens) > 0 || throw(ArgumentError("Empty list"))
+   @req length(gens) > 0 "Empty list"
    l = collect(gens)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]), l, check = false)
@@ -117,7 +117,7 @@ An exception is thrown if `H` is not a subgroup of `G`.
 """
 function embedding(H::T, G::T) where T <: GAPGroup
    a, f = is_subgroup(H, G)
-   a || throw(ArgumentError("H is not a subgroup of G"))
+   @req a "H is not a subgroup of G"
    return f
 end
 

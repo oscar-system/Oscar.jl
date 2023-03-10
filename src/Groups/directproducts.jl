@@ -258,8 +258,8 @@ julia> emb1(h)*emb2(k)
 ```
 """
 function embedding(G::DirectProductGroup, j::Int)
-   j in 1:length(G.L) || throw(ArgumentError("index not valid"))
-   G.isfull || throw(ArgumentError("Embedding is not defined for proper subgroups of direct products"))
+   @req j in 1:length(G.L) "index not valid"
+   @req G.isfull "Embedding is not defined for proper subgroups of direct products"
    f=GAP.Globals.Embedding(G.X,j)
    gr=G.L[j]
    typeG=typeof(gr)
@@ -312,7 +312,7 @@ julia> proj2(g)
 """
 function projection(G::DirectProductGroup, j::Int)
    f=GAP.Globals.Projection(G.Xfull,j)
-   j in 1:length(G.L) || throw(ArgumentError("index not valid"))
+   @req j in 1:length(G.L) "index not valid"
    H = G.L[j]
    p = GAPWrap.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(G,H,p)
@@ -320,10 +320,10 @@ end
 
 
 function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
-   length(V)==length(G.L) || throw(ArgumentError("Wrong number of entries"))
+   @req length(V)==length(G.L) "Wrong number of entries"
    arr = [GAPWrap.Image(GAP.Globals.Embedding(G.Xfull,i),V[i].X) for i in 1:length(V)]
    xgap = prod(arr)
-   xgap in G.X || throw(ArgumentError("Element not in the group"))
+   @req xgap in G.X "Element not in the group"
    return group_element(G,xgap)
 end
 
@@ -363,7 +363,7 @@ function write_as_full(G::DirectProductGroup)
       LK = [image(projection(G,j))[1] for j in 1:length(G.L)]
       H = direct_product(LK)
 # index(H,G)==1 does not work because it does not recognize G as a subgroup of H
-      order(H)==order(G) || throw(ArgumentError("G is not a direct product of groups"))
+      @req order(H)==order(G) "G is not a direct product of groups"
       return H
    end
 end
@@ -399,7 +399,7 @@ end
 function (G::SemidirectProductGroup{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T}) where {S,T}
 # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
    xgap = GAPWrap.Image(GAP.Globals.Embedding(G.Xfull,1),b.X)*GAPWrap.Image(GAP.Globals.Embedding(G.Xfull,2),a.X)
-   xgap in G.X || throw(ArgumentError("Element not in the group"))
+   @req xgap in G.X "Element not in the group"
    return group_element(G,xgap)
 end
 
@@ -544,13 +544,13 @@ end
 # return the element (L[1],L[2],...) in W
 function (W::WreathProductGroup)(L::Union{GAPGroupElem{T},GAPGroupElem{PermGroup}}...) where T <: GAPGroup
    d = GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map))
-   length(L)==d+1 || throw(ArgumentError("Wrong number of arguments"))
+   @req length(L)==d+1 "Wrong number of arguments"
    for i in 1:d @assert L[i] in W.G "Wrong input" end
-   L[d+1] in W.H || throw(ArgumentError("Wrong input"))
+   @req L[d+1] in W.H "Wrong input"
 # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
    arr = [GAPWrap.Image(GAP.Globals.Embedding(W.Xfull,i),L[i].X) for i in 1:length(L)]
    xgap = prod(arr)
-   xgap in W.X || throw(ArgumentError("Element not in the group"))
+   @req xgap in W.X "Element not in the group"
    return group_element(W,xgap)
 end
 
@@ -633,8 +633,8 @@ end
 Return the embedding of the `n`-th component of `G` into `G`.
 """
 function embedding(W::WreathProductGroup, n::Int)
-   W.isfull || throw(ArgumentError("Embedding not defined for proper subgroups of wreath products"))
-   n <= GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map))+1 || throw(ArgumentError("n is too big"))
+   @req W.isfull "Embedding not defined for proper subgroups of wreath products"
+   @req n <= GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map))+1 "n is too big"
    f = GAP.Globals.Embedding(W.Xfull,n)
    if n== GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map))+1 C=W.H
    else C=W.G

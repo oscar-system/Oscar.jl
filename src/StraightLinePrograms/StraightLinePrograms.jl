@@ -6,6 +6,7 @@ import ..AbstractAlgebra: evaluate
 export SLProgram
 export AbstractSLProgram, GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision, Lazy
 export slpcst, slpgen, slpgens, compile, evaluate, nsteps, list, call
+import ..@req
 
 abstract type AbstractSLProgram end
 
