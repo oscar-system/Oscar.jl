@@ -895,7 +895,7 @@ function is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
   end
   s = short_right_transversal(G, U, sigma)
   for t = s
-    if is_subset(V^inv(t), U)
+    if is_subgroup(U, V^inv(t))[1]
       return true, inv(t)
     end
   end
