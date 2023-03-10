@@ -34,6 +34,7 @@ for its second argument, and this function becomes redundant.
 function var_names_for_singular(xs::Union{AbstractVector{<:AbstractString},
                                           AbstractVector{Symbol},
                                           AbstractVector{Char}})
+##??? return string.(xs);  # shorter but equivalent ???
    NumVars = length(xs);
 # This commented out code appears to be a bit slower.
 ##   L = [""  for _ in 1:NumVars];
@@ -76,15 +77,17 @@ end;
 
 
 Markdown.@doc doc"""
-    exterior_algebra(CoeffRing::Field, NumVars::Int)
-    exterior_algebra(CoeffRing::Field, ListOfVarNames::Vector{String})
+    exterior_algebra(coeffRing::Field, numVars::Int)
+    exterior_algebra(coeffRing::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
+                                                             AbstractVector{Symbol},
+                                                             AbstractVector{Char}})
 
-The first form returns an exterior algebra with given `CoeffRing` and `NumVars` variables;
-the variables are called `e1, e2, ...`.  The value of `NumVars` must be positive; be aware that
-large values will create an object occupying a lot of memory (probably cubic in `NumVars`).
+The first form returns an exterior algebra with given `coeffRing` and `numVars` variables;
+the variables are called `e1, e2, ...`.  The value of `numVars` must be positive; be aware that
+large values will create an object occupying a lot of memory (probably cubic in `numVars`).
 
-The second form returns an exterior algebra with given `CoeffRing`, and variables named
-as specified in `ListOfVarNames` (which must be non-empty).
+The second form returns an exterior algebra with given `coeffRing`, and variables named
+as specified in `listOfVarNames` (which must be non-empty).
 
 
 # Examples
@@ -103,30 +106,32 @@ julia> y*x
 -x*y
 ```
 """
-function exterior_algebra(K::Field, NumVars::Int)
+function exterior_algebra(K::Field, numVars::Int)
   fn_name = "exterior_algebra";
-  if (NumVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) NumVars must be strictly positive"));  end;
-  return exterior_algebra(K, (1:NumVars) .|> (k -> "e$k"));
+  if (numVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) must be strictly positive, but numVars=$numVars"));  end;
+  return exterior_algebra(K, (1:numVars) .|> (k -> "e$k"));
 end
 
-function exterior_algebra(K::Field, VarNames::Union{AbstractVector{<:AbstractString},
-                                              AbstractVector{Symbol},
-                                              AbstractVector{Char}})
+function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
+                                                          AbstractVector{Symbol},
+                                                          AbstractVector{Char}})
     fn_name = "exterior_algebra";
-    NumVars = length(VarNames)
-    if (NumVars == 0)
+    numVars = length(listOfVarNames)
+    if (numVars == 0)
         throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));
     end;
-  if (NumVars == 1)  throw(NotImplementedError(:exterior_algebra, "NumVars == 1"));  end;  ## WORKAROUND for Singular "bug"
+    if (numVars == 1)    ## WORKAROUND for Singular "bug/feature"
+        throw(NotImplementedError(:exterior_algebra, "numVars == 1  (requires Singular update)"));
+    end;
 #    if (!allunique(VarNames))
 #        throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));
 #    end;
 
-    R, indets = polynomial_ring(K, VarNames);
+    R, indets = polynomial_ring(K, listOfVarNames);
     SameCoeffRing = singular_coeff_ring(coefficient_ring(R))
-    M = zero_matrix(R, NumVars, NumVars);
-    for i in 1:NumVars-1
-        for j in i+1:NumVars
+    M = zero_matrix(R, numVars, numVars);
+    for i in 1:numVars-1
+        for j in i+1:numVars
             M[i,j] = -indets[i]*indets[j];
         end;
     end;
@@ -152,17 +157,17 @@ end;
 
 
 Markdown.@doc doc"""
-    exterior_algebra_PBWAlgQuo(CoeffRing::Ring, NumVars::Int)
-    exterior_algebra_PBWAlgQuo(CoeffRing::Ring, ListOfVarNames::Vector{String})
+    exterior_algebra_PBWAlgQuo(coeffRing::Ring, numVars::Int)
+    exterior_algebra_PBWAlgQuo(coeffRing::Ring, listOfVarNames::Vector{String})
 
-Use `exterior_algebra` in preference to this function when `CoeffRing` is a field.
+Use `exterior_algebra` in preference to this function when `coeffRing` is a field.
 
-The first form returns an exterior algebra with given `CoeffRing` and `NumVars` variables;
-the variables are called `e1, e2, ...`.  The value `NumVars` must be positive; be aware that
-large values will create an object occupying a lot of memory (probably cubic in `NumVars`).
+The first form returns an exterior algebra with given `coeffRing` and `numVars` variables;
+the variables are called `e1, e2, ...`.  The value `numVars` must be positive; be aware that
+large values will create an object occupying a lot of memory (probably cubic in `numVars`).
 
-The second form returns an exterior algebra with given `CoeffRing`, and variables named
-as specified in `ListOfVarNames` (which must be non-empty).
+The second form returns an exterior algebra with given `coeffRing`, and variables named
+as specified in `listOfVarNames` (which must be non-empty).
 
 
 # Examples
@@ -181,20 +186,24 @@ julia> y*x
 -x*y
 ```
 """
-function exterior_algebra_PBWAlgQuo(K::Ring, NumVars::Int)
+function exterior_algebra_PBWAlgQuo(K::Ring, numVars::Int)
   fn_name = "exterior_algebra_PBWAlgQuo";
-  if (NumVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) NumVars must be strictly positive"));  end;
-  return exterior_algebra_PBWAlgQuo(K, (1:NumVars) .|> (k -> "e$k"));
+  if (numVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) must be strictly positive: numVars=$numVars"));  end;
+  return exterior_algebra_PBWAlgQuo(K, (1:numVars) .|> (k -> "e$k"));
 end
 
-function exterior_algebra_PBWAlgQuo(K::Ring, xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+function exterior_algebra_PBWAlgQuo(K::Ring, listOfVarNames::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
     fn_name = "exterior_algebra_PBWAlgQuo";
-    NumVars = length(xs)
-    if (NumVars == 0)  throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));  end;
-    if (!allunique(xs))  throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));  end;
-    R, indets = polynomial_ring(K, xs);
-    M = zero_matrix(R, NumVars, NumVars);
-    for i in 1:NumVars-1  for j in i+1:NumVars  M[i,j] = -indets[i]*indets[j];  end;  end;
+    numVars = length(listOfVarNames)
+    if (numVars == 0)  throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));  end;
+    if (!allunique(listOfVarNames))  throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));  end;
+    R, indets = polynomial_ring(K, listOfVarNames);
+    M = zero_matrix(R, numVars, numVars);
+    for i in 1:numVars-1
+        for j in i+1:numVars
+            M[i,j] = -indets[i]*indets[j];
+        end;
+    end;
     PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets);  check = false); # disable check since we know it is OK!
     I = two_sided_ideal(PBW, PBW_indets.^2);
     ExtAlg,QuoMap = quo(PBW, I);
