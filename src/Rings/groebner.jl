@@ -1311,10 +1311,24 @@ julia> I = ideal(R, [f1, f2,f3]);
 
 julia> W = [10, 1, 1];
 
-julia> GB1 = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
 
-julia> length(GB1)
+julia> length(GB)
 40
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(GF(32003), ["x", "y", "z"]);
+
+julia> f1 = x^2*y+169*y^21+151*x*y*z^10;
+
+julia> f2 = 6*x^2*y^4+x*z^14+3*z^24;
+
+julia> f3 = 11*x^3+5*x*y^10*z^10+2*y^20*z^10+y^10*z^20;
+
+julia> I = ideal(R, [f1, f2,f3]);
+
+julia> W = [10, 1, 1];
 
 julia> S, t = polynomial_ring(ZZ, "t")
 (Univariate Polynomial Ring in t over Integer Ring, t)
@@ -1322,10 +1336,10 @@ julia> S, t = polynomial_ring(ZZ, "t")
 julia> hn = -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 
-julia> GB2 = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
 
-julia> gens(GB1) == gens(GB2)
-true
+julia> length(GB)
+40
 ```
 """
 function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
@@ -1370,6 +1384,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   if isdefined(GB, :S)
     GB.S.isGB  = true
   end
+  I.gb[destination_ordering] = GB
   return GB
 end
 
