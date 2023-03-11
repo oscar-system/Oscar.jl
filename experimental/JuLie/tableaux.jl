@@ -708,7 +708,7 @@ end
 
 Inserts `x` into tab according to the bumping algorithm by applying the
 Schensted insertion. Traces the change with `Q` by inserting `y` at the same
-Position in `Q` as `x` in tab.
+position in `Q` as `x` in tab.
 """
 function bump!(tab::Tableau, x::Integer, Q::Tableau, y::Integer)
   if isempty(tab)
