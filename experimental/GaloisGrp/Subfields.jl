@@ -1,3 +1,10 @@
+module SubfieldLattice_Module
+
+using Oscar
+using Oscar.GaloisGrp
+import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
+                        primitive_by_shape, bound_to_precision
+
 
 function embedding_hom(k, K)
   return MapFromFunc(x->K(x), k, K)
@@ -432,3 +439,5 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
     all(isequal(1), done) && return S
   end
 end
+
+end #module
