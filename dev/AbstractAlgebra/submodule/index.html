@@ -9,10 +9,8 @@ julia&gt; n = M([ZZ(2), ZZ(-1)])
 (2, -1)
 
 julia&gt; N, f = sub(M, [m, n])
-(Submodule over Integers with 2 generators and no relations
-, Module homomorphism with
+(Submodule over Integers with 2 generators and no relations, Module homomorphism with
 Domain: Submodule over Integers with 2 generators and no relations
-
 Codomain: Free module of rank 2 over Integers)
 
 julia&gt; v = N([ZZ(3), ZZ(4)])
@@ -31,10 +29,8 @@ julia&gt; n = V([QQ(2), QQ(-1)])
 (2//1, -1//1)
 
 julia&gt; N, f = sub(V, [m, n])
-(Subspace over Rationals with 2 generators and no relations
-, Module homomorphism with
+(Subspace over Rationals with 2 generators and no relations, Module homomorphism with
 Domain: Subspace over Rationals with 2 generators and no relations
-
 Codomain: Vector space of dimension 2 over Rationals)
 </code></pre><h2 id="Functionality-for-submodules"><a class="docs-heading-anchor" href="#Functionality-for-submodules">Functionality for submodules</a><a id="Functionality-for-submodules-1"></a><a class="docs-heading-anchor-permalink" href="#Functionality-for-submodules" title="Permalink"></a></h2><p>In addition to the Module interface, AbstractAlgebra submodules implement the following functionality.</p><h3 id="Basic-manipulation"><a class="docs-heading-anchor" href="#Basic-manipulation">Basic manipulation</a><a id="Basic-manipulation-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-manipulation" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="supermodule-Union{Tuple{AbstractAlgebra.Generic.Submodule{T}}, Tuple{T}} where T&lt;:RingElement" href="#supermodule-Union{Tuple{AbstractAlgebra.Generic.Submodule{T}}, Tuple{T}} where T&lt;:RingElement"><code>supermodule</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">supermodule(M::Submodule{T}) where T &lt;: RingElement</code></pre><p>Return the module that this module is a submodule of.</p></div></section></article><article class="docstring"><header><a class="docstring-binding" id="is_submodule-Union{Tuple{T}, Tuple{AbstractAlgebra.FPModule{T}, AbstractAlgebra.FPModule{T}}} where T&lt;:RingElement" href="#is_submodule-Union{Tuple{T}, Tuple{AbstractAlgebra.FPModule{T}, AbstractAlgebra.FPModule{T}}} where T&lt;:RingElement"><code>is_submodule</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_submodule(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T &lt;: RingElement</code></pre><p>Return <code>true</code> if <span>$N$</span> was constructed as a submodule of <span>$M$</span>. The relation is taken transitively (i.e. subsubmodules are submodules for the purposes of this relation, etc). The module <span>$M$</span> is also considered a submodule of itself for this relation.</p></div></section></article><article class="docstring"><header><a class="docstring-binding" id="is_compatible-Union{Tuple{T}, Tuple{AbstractAlgebra.FPModule{T}, AbstractAlgebra.FPModule{T}}} where T&lt;:RingElement" href="#is_compatible-Union{Tuple{T}, Tuple{AbstractAlgebra.FPModule{T}, AbstractAlgebra.FPModule{T}}} where T&lt;:RingElement"><code>is_compatible</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_compatible(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T &lt;: RingElement</code></pre><p>Return <code>true, P</code> if the given modules are compatible, i.e. that they are (transitively) submodules of the same module, P. Otherwise return <code>false, M</code>.</p></div></section></article><article class="docstring"><header><a class="docstring-binding" id="dim-Union{Tuple{AbstractAlgebra.Generic.Submodule{T}}, Tuple{T}} where T&lt;:FieldElement" href="#dim-Union{Tuple{AbstractAlgebra.Generic.Submodule{T}}, Tuple{T}} where T&lt;:FieldElement"><code>dim</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dim(N::Submodule{T}) where T &lt;: FieldElement</code></pre><p>Return the dimension of the given vector subspace.</p></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = FreeModule(ZZ, 2)
 Free module of rank 2 over Integers
@@ -46,17 +42,13 @@ julia&gt; n = M([ZZ(1), ZZ(4)])
 (1, 4)
 
 julia&gt; N1, = sub(M, [m, n])
-(Submodule over Integers with 2 generators and no relations
-, Module homomorphism with
+(Submodule over Integers with 2 generators and no relations, Module homomorphism with
 Domain: Submodule over Integers with 2 generators and no relations
-
 Codomain: Free module of rank 2 over Integers)
 
 julia&gt; N2, = sub(M, [m])
-(Submodule over Integers with 1 generator and no relations
-, Module homomorphism with
+(Submodule over Integers with 1 generator and no relations, Module homomorphism with
 Domain: Submodule over Integers with 1 generator and no relations
-
 Codomain: Free module of rank 2 over Integers)
 
 julia&gt; supermodule(N1) == M
@@ -76,10 +68,8 @@ julia&gt; m = V([QQ(2), QQ(3)])
 (2//1, 3//1)
 
 julia&gt; N, = sub(V, [m])
-(Subspace over Rationals with 1 generator and no relations
-, Module homomorphism with
+(Subspace over Rationals with 1 generator and no relations, Module homomorphism with
 Domain: Subspace over Rationals with 1 generator and no relations
-
 Codomain: Vector space of dimension 2 over Rationals)
 
 julia&gt; dim(V)
@@ -97,18 +87,14 @@ julia&gt; n = M([ZZ(1), ZZ(4)])
 (1, 4)
 
 julia&gt; N1 = sub(M, [m, n])
-(Submodule over Integers with 2 generators and no relations
-, Module homomorphism with
+(Submodule over Integers with 2 generators and no relations, Module homomorphism with
 Domain: Submodule over Integers with 2 generators and no relations
-
 Codomain: Free module of rank 2 over Integers)
 
 julia&gt; N2 = sub(M, [m])
-(Submodule over Integers with 1 generator and no relations
-, Module homomorphism with
+(Submodule over Integers with 1 generator and no relations, Module homomorphism with
 Domain: Submodule over Integers with 1 generator and no relations
-
 Codomain: Free module of rank 2 over Integers)
 
 julia&gt; I = intersect(N1, N2)
-Union{AbstractAlgebra.Generic.ModuleHomomorphism{BigInt}, AbstractAlgebra.Generic.Submodule{BigInt}}[]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../free_module/">« Free Modules and Vector Spaces</a><a class="docs-footer-nextpage" href="../quotient_module/">Quotient modules »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 9 March 2023 15:25">Thursday 9 March 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Union{AbstractAlgebra.Generic.ModuleHomomorphism{BigInt}, AbstractAlgebra.Generic.Submodule{BigInt}}[]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../free_module/">« Free Modules and Vector Spaces</a><a class="docs-footer-nextpage" href="../quotient_module/">Quotient modules »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 11 March 2023 01:32">Saturday 11 March 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

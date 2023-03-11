@@ -130,17 +130,8 @@ Argument must be non-negative
 
 julia&gt; isqrtrem(ZZ(5))
 (2, 1)
-</code></pre><h3 id="General-roots"><a class="docs-heading-anchor" href="#General-roots">General roots</a><a id="General-roots-1"></a><a class="docs-heading-anchor-permalink" href="#General-roots" title="Permalink"></a></h3><ul><li><code>root(a::ZZRingElem, n::Int) -&gt; ZZRingElem</code></li></ul><p>Return the value <span>$r$</span> of largest absolute value such that <span>$r^n \leq a$</span>. When <span>$a$</span> is a perfect <span>$n$</span>-th power, the return value will be an <span>$n$</span>-th root of <span>$a$</span>.</p><p>When <span>$n$</span> is even, the non-negative root is always returned. An exception is raised if <span>$n \leq 0$</span> or if <span>$n$</span> is even and <span>$a &lt; 0$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; root(ZZ(16), 4)
+</code></pre><h3 id="General-roots"><a class="docs-heading-anchor" href="#General-roots">General roots</a><a id="General-roots-1"></a><a class="docs-heading-anchor-permalink" href="#General-roots" title="Permalink"></a></h3><ul><li><code>root(a::ZZRingElem, n::Int) -&gt; ZZRingElem</code></li></ul><p>Return an <span>$n$</span>-th root of <span>$a$</span> or throw an error if it does not exist.</p><p>When <span>$n$</span> is even, the non-negative root is always returned. An exception is raised if <span>$n \leq 0$</span> or if <span>$n$</span> is even and <span>$a &lt; 0$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; root(ZZ(16), 4)
 2
-
-julia&gt; root(ZZ(5), 2)
-2
-
-julia&gt; root(ZZ(-5), 3)
--1
-
-julia&gt; root(ZZ(0), 4)
-0
 
 julia&gt; root(ZZ(-5), 2)
 ERROR: DomainError with (-5, 2):
@@ -148,8 +139,7 @@ Argument `x` must be positive if exponent `n` is even
 
 julia&gt; root(ZZ(12), -2)
 ERROR: DomainError with -2:
-Exponent must be positive
-</code></pre><h2 id="Conversions"><a class="docs-heading-anchor" href="#Conversions">Conversions</a><a id="Conversions-1"></a><a class="docs-heading-anchor-permalink" href="#Conversions" title="Permalink"></a></h2><ul><li><code>Int(n::ZZRingElem) -&gt; Int</code></li><li><code>BigInt(n::ZZRingElem) -&gt; BigInt</code></li></ul><p>Convert the OSCAR integer to the respective Julia integer.</p><pre><code class="language-julia-repl hljs">julia&gt; n = ZZ(123)
+Exponent must be positive</code></pre><h2 id="Conversions"><a class="docs-heading-anchor" href="#Conversions">Conversions</a><a id="Conversions-1"></a><a class="docs-heading-anchor-permalink" href="#Conversions" title="Permalink"></a></h2><ul><li><code>Int(n::ZZRingElem) -&gt; Int</code></li><li><code>BigInt(n::ZZRingElem) -&gt; BigInt</code></li></ul><p>Convert the OSCAR integer to the respective Julia integer.</p><pre><code class="language-julia-repl hljs">julia&gt; n = ZZ(123)
 123
 
 julia&gt; Int(n)
@@ -232,4 +222,4 @@ julia&gt; fibonacci(-2)
 806220408
 </code></pre><h3 id="Euler-totient-function"><a class="docs-heading-anchor" href="#Euler-totient-function">Euler totient function</a><a id="Euler-totient-function-1"></a><a class="docs-heading-anchor-permalink" href="#Euler-totient-function" title="Permalink"></a></h3><ul><li><code>euler_phi(n::Int) -&gt; Int</code></li><li><code>euler_phi(n::ZZRingElem) -&gt; ZZRingElem</code></li></ul><p>Return the Euler totient function <span>$\varphi(n)$</span>, i.e. the number of positive integers <span>$1 \leq x \leq n$</span> which are coprime to <span>$n$</span>. Note that <span>$\varphi(1) = 1$</span>. We raise an exception if <span>$n \leq 0$</span>.</p><pre><code class="language-julia-repl hljs">julia&gt; euler_phi(200)
 80
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../AbstractAlgebra/ring/">« Ring functionality</a><a class="docs-footer-nextpage" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 9 March 2023 15:25">Thursday 9 March 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../AbstractAlgebra/ring/">« Ring functionality</a><a class="docs-footer-nextpage" href="../../AbstractAlgebra/polynomial/">Univariate polynomial functionality »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 11 March 2023 01:32">Saturday 11 March 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
