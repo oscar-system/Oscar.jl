@@ -609,7 +609,7 @@ end
       @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
       # Odd dimensional orthogonal groups in char. 2 are not irreducible.
       @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
-      @test orthogonal_sign(general_linear_group(4, 2)) == nothing
+      @test orthogonal_sign(general_linear_group(4, 2)) === nothing
       # If the abs. irred. module preserves an antisymmetric invariant
       # bilinear form then there is no nondegenerate quadratic form.
       F = GF(7)
@@ -620,7 +620,7 @@ end
                          0 0 0 0 1 0; 0 0 0 0 0 1; 6 0 0 2 4 3])]
       G.gens = [MatrixGroupElem(G, m) for m in mats]
       @test describe(G) == "PSU(3,3)"
-      @test orthogonal_sign(G) == nothing
+      @test orthogonal_sign(G) === nothing
    end
 end
 

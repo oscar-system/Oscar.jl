@@ -798,7 +798,7 @@ function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
   # Find the chart where a belongs to
   X = covered_scheme(P)
   i = findfirst(V->(U===V), affine_charts(X))
-  i == nothing && error("the given affine scheme is not one of the standard affine charts")
+  i === nothing && error("the given affine scheme is not one of the standard affine charts")
   
   # Determine those variables which come from the homogeneous 
   # coordinates
