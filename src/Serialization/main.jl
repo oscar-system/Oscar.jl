@@ -326,13 +326,13 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-    haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
+    @req haskey(jsondict, :_ns) "Namespace is missing"
     _ns = jsondict[:_ns]
     if haskey(_ns, :polymake)
         # If this is a polymake file
         return load_from_polymake(jsondict)
     end
-    haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
+    @req haskey(_ns, :Oscar) "Not an Oscar object"
 
     file_version = get_file_version(jsondict)
 

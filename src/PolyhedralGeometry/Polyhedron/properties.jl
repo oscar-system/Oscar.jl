@@ -576,7 +576,7 @@ julia> matrix(ZZ, lattice_points(S))
 ```
 """
 function lattice_points(P::Polyhedron{QQFieldElem})
-    pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    @req pm_object(P).BOUNDED "Polyhedron not bounded"
     return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
 
@@ -607,7 +607,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 ```
 """
 function interior_lattice_points(P::Polyhedron{QQFieldElem})
-    pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    @req pm_object(P).BOUNDED "Polyhedron not bounded"
     return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
 
@@ -647,7 +647,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 ```
 """
 function boundary_lattice_points(P::Polyhedron{QQFieldElem})
-    pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    @req pm_object(P).BOUNDED "Polyhedron not bounded"
     return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
 
@@ -1069,7 +1069,7 @@ julia> h_vector(cross_polytope(3))
 ```
 """
 function h_vector(P::Polyhedron)::Vector{ZZRingElem}
-    is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    @req is_bounded(P) "defined for bounded polytopes only"
     return pm_object(P).H_VECTOR
 end
 
@@ -1090,7 +1090,7 @@ julia> g_vector(cross_polytope(3))
 ```
 """
 function g_vector(P::Polyhedron)::Vector{ZZRingElem}
-    is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    @req is_bounded(P) "defined for bounded polytopes only"
     return pm_object(P).G_VECTOR
 end
 

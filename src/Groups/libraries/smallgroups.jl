@@ -26,7 +26,7 @@ false
 ```
 """
 function has_number_small_groups(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.NumberSmallGroupsAvailable(GAP.Obj(n))
 end
 
@@ -46,7 +46,7 @@ false
 ```
 """
 function has_small_groups(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.SmallGroupsAvailable(GAP.Obj(n))
 end
 
@@ -66,7 +66,7 @@ false
 ```
 """
 function has_small_group_identification(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.IdGroupsAvailable(GAP.Obj(n))
 end
 
@@ -104,7 +104,7 @@ end
 
 function _small_group(n::IntegerUnion, m::IntegerUnion)
   N = number_small_groups(n)
-  m <= N || throw(ArgumentError("There are only $N groups of order $n, up to isomorphism."))
+  @req m <= N "There are only $N groups of order $n, up to isomorphism."
   return GAP.Globals.SmallGroup(GAP.Obj(n), GAP.Obj(m))
 end
 
@@ -209,7 +209,7 @@ julia> all_small_groups(1:10, !is_abelian)
 ```
 """
 function all_small_groups(L...)
-   !isempty(L) || throw(ArgumentError("must specify at least one filter"))
+   @req !isempty(L) "must specify at least one filter"
    if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
       L = (order => L[1], L[2:end]...)
    end

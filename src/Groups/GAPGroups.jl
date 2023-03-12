@@ -1034,7 +1034,7 @@ Return `C, f`, where `C` is the `p`-core
 and `f` is the embedding morphism of `C` into `G`.
 """
 function pcore(G::GAPGroup, p::IntegerUnion)
-   is_prime(p) || throw(ArgumentError("p is not a prime"))
+   @req is_prime(p) "p is not a prime"
    return _as_subgroup(G, GAP.Globals.PCore(G.X,GAP.Obj(p)))
 end
 
@@ -1117,15 +1117,15 @@ julia> s = sylow_subgroup(g, 3); order(s[1])
 ```
 """
 function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
-   is_prime(p) || throw(ArgumentError("p is not a prime"))
+   @req is_prime(p) "p is not a prime"
    return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p))::GapObj)
 end
 
 # no longer documented, better use `hall_subgroup_reps`
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
-   is_solvable(G) || throw(ArgumentError("The group is not solvable"))
+   @req all(is_prime, P) "The integers must be prime"
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true))::GapObj)
 end
 
@@ -1165,7 +1165,7 @@ julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
 """
 function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
+   @req all(is_prime, P) "The integers must be prime"
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
@@ -1542,7 +1542,7 @@ julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 ```
 """
 function relators(G::FPGroup)
-  is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
+  @req is_full_fp_group(G) "the group must be a full f. p. group"
   L = GAPWrap.RelatorsOfFpGroup(G.X)::GapObj
   F = free_group(G)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
@@ -1767,7 +1767,7 @@ ERROR: ArgumentError: the element does not lie in a free group
 """
 function length(g::FPGroupElem)
   gX = g.X
-  GAPWrap.IsAssocWord(gX) || throw(ArgumentError("the element does not lie in a free group"))
+  @req GAPWrap.IsAssocWord(gX) "the element does not lie in a free group"
   return length(gX)
 end
 
@@ -1794,11 +1794,11 @@ true
 ```
 """
 function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
-   is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
+   @req is_full_fp_group(G) "the group must be a full f. p. group"
    n = ngens(G)
    ll = GAP.Obj[]
    for p in pairs
-     0 < p.first && p.first <= n || throw(ArgumentError("generator number is at most $n"))
+     @req 0 < p.first && p.first <= n "generator number is at most $n"
      if p.second != 0
        push!(ll, GAP.Obj(p.first))
        push!(ll, GAP.Obj(p.second))

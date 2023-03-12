@@ -29,7 +29,7 @@ gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, SLP.Gen(s))
 
 function check_parent(p::LazyPoly, q::LazyPoly)
     par = parent(p)
-    par === parent(q) || throw(ArgumentError("incompatible parents"))
+    @req par === parent(q) "incompatible parents"
     par
 end
 

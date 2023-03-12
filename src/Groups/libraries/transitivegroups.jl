@@ -57,7 +57,7 @@ false
 ```
 """
 function has_transitive_groups(deg::Int)
-  deg >= 1 || throw(ArgumentError("degree must be positive, not $deg"))
+  @req deg >= 1 "degree must be positive, not $deg"
   return deg == 1 || GAP.Globals.TransitiveGroupsAvailable(deg)::Bool
 end
 
@@ -78,7 +78,7 @@ ERROR: ArgumentError: the number of transitive groups of degree 64 is not availa
 ```
 """
 function number_transitive_groups(deg::Int)
-  has_number_transitive_groups(deg) || throw(ArgumentError("the number of transitive groups of degree $(deg) is not available"))
+  @req has_number_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
   return GAP.Globals.NrTransitiveGroups(deg)::Int
 end
 
@@ -99,9 +99,9 @@ ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
 ```
 """
 function transitive_group(deg::Int, i::Int)
-  has_transitive_groups(deg) || throw(ArgumentError("transitive groups of degree $deg are not available"))
+  @req has_transitive_groups(deg) "transitive groups of degree $deg are not available"
   N = number_transitive_groups(deg)
-  i <= N || throw(ArgumentError("there are only $N transitive groups of degree $deg, not $i"))
+  @req i <= N "there are only $N transitive groups of degree $deg, not $i"
   return PermGroup(GAP.Globals.TransitiveGroup(deg,i), deg)
 end
 

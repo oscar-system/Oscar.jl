@@ -1037,11 +1037,11 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingE
      throw(ArgumentError("The coefficient ring must be a field."))
   end
   if p isa MPolyRing
-      p isa MPolyDecRing && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
+      @req p isa MPolyDecRing && is_positively_graded(p) "The base ring must be positively graded"
   else
-      base_ring(p) isa MPolyDecRing && is_graded(p) || throw(ArgumentError("The base ring must be graded"))
+      @req base_ring(p) isa MPolyDecRing && is_graded(p) "The base ring must be graded"
   end
-  all(is_homogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+  @req all(is_homogeneous, V) "The input data is not homogeneous"
   # iterate over the generators, starting with those in lowest degree, then work up
   W = sort(V, by = x -> degree(x)[1])
   result = [ W[1] ]

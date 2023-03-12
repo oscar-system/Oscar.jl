@@ -93,7 +93,7 @@ false
 ```
 """
 function has_perfect_groups(n::Int)
-  n >= 1 || throw(ArgumentError("order must be positive, not $n"))
+  @req n >= 1 "order must be positive, not $n"
   return n <= 2_000_000
 end
 
@@ -127,10 +127,10 @@ ERROR: ArgumentError: there are only 1 perfect groups of order 60
 ```
 """
 function perfect_group(::Type{T}, n::IntegerUnion, k::IntegerUnion) where T <: GAPGroup
-   n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
-   k >= 1 || throw(ArgumentError("group index must be positive, not $k"))
+   @req n >= 1 "group order must be positive, not $n"
+   @req k >= 1 "group index must be positive, not $k"
    N = number_perfect_groups(n)
-   k <= N || throw(ArgumentError("there are only $N perfect groups of order $n"))
+   @req k <= N "there are only $N perfect groups of order $n"
    if T == PermGroup
       G = T(GAP.Globals.PerfectGroup(GAP.Globals.IsPermGroup, GAP.Obj(n), GAP.Obj(k)))
    elseif T == FPGroup
@@ -181,7 +181,7 @@ julia> number_perfect_groups(1966080)
 ```
 """
 function number_perfect_groups(n::IntegerUnion)
-   n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+   @req n >= 1 "group order must be positive, not $n"
    res = GAP.Globals.NumberPerfectGroups(GAP.Obj(n))
    res !== GAP.Globals.fail || error("the number of perfect groups of order $n is not available")
    return res::Int

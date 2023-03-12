@@ -247,7 +247,7 @@ function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=fals
     is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
     is_bounded(P) || error("Input polytope must be bounded.")
     zero = [0 for i in 1:ambient_dim(P)]
-    contains(P, zero) || throw(ArgumentError("Input polyhedron must contain origin."))
+    @req contains(P, zero) "Input polyhedron must contain origin."
     V = vertices(P)
     V = [Vector{QQFieldElem}(v) for v in V if !iszero(v)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, transpose(hcat(V...))))
