@@ -1405,7 +1405,7 @@ function _mod_rand_prime(I::MPolyIdeal)
     p = Hecke.next_prime(p)
     
     base_field = GF(p)
-    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)))
     I_mod_p_gens =
       try
         [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
