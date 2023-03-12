@@ -704,7 +704,7 @@ Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to
 obtain the dehomogenization map from the `ambient_coordinate_ring` of `P` 
 to the `coordinate_ring` of `U`.
 
-# Example
+# Examples
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 
