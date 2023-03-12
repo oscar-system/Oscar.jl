@@ -194,23 +194,15 @@ end
 ####################################################
 
 function Base.:+(tm1::ToricMorphism, tm2::ToricMorphism)
-    if domain(tm1) !== domain(tm2)
-        throw(ArgumentError("The toric morphism must be defined with identically the same domain"))
-    end
-    if codomain(tm1) !== codomain(tm2)
-        throw(ArgumentError("The toric morphism must be defined with identically the same codomain"))
-    end
+    @req domain(tm1) === domain(tm2) "The toric morphisms must have identical domains"
+    @req codomain(tm1) === codomain(tm2) "The toric morphisms must have identical codomains"
     return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
 end
 
 
 function Base.:-(tm1::ToricMorphism, tm2::ToricMorphism)
-    if domain(tm1) !== domain(tm2)
-        throw(ArgumentError("The toric morphism must be defined with identically the same domain"))
-    end
-    if codomain(tm1) !== codomain(tm2)
-        throw(ArgumentError("The toric morphism must be defined with identically the same codomain"))
-    end
+    @req domain(tm1) === domain(tm2) "The toric morphisms must have identical domains"
+    @req codomain(tm1) === codomain(tm2) "The toric morphisms must have identical codomains"
     return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
 end
 

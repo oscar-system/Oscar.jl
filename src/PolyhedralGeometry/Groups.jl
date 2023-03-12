@@ -15,13 +15,10 @@ function PermGroup_to_polymake_array(G::PermGroup)
 end
 
 
-function _gens_to_group(gens:: Vector{PermGroupElem})
-    if length(gens) == 0
-        throw(ArgumentError("List of generators empty, could not deduce degree."))
-    else
-        S = parent(gens[1])
-        return sub(S, gens)[1]
-    end
+function _gens_to_group(gens::Vector{PermGroupElem})
+    @req length(gens) > 0 "List of generators empty, could not deduce degree"
+    S = parent(gens[1])
+    return sub(S, gens)[1]
 end
 function _gens_to_group(gens::Dict{Symbol,  Vector{PermGroupElem}})
     return Dict{Symbol, PermGroup}([k => _gens_to_group(v) for (k,v) in gens])

@@ -131,8 +131,8 @@ end
 
 # coercion embeds a group element into a different parent
 function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
-   x.X in G.X && return group_element(G, x.X)
-   throw(ArgumentError("the element does not embed in the group"))
+   @req x.X in G.X "the element does not embed in the group"
+   return group_element(G, x.X)
 end
 
 """
@@ -1190,7 +1190,7 @@ Sylow systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function sylow_system(G::GAPGroup)
-   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
 end
 
@@ -1234,7 +1234,7 @@ Complement systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function complement_system(G::GAPGroup)
-   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
 end
 
@@ -1248,7 +1248,7 @@ Hall systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function hall_system(G::GAPGroup)
-   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroups(G, GAP.Globals.HallSystem(G.X))
 end
 
