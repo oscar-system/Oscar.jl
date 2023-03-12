@@ -275,7 +275,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
-  @assert is_subgroup(domain(f), H)[1] "Not a subgroup!"
+  @assert is_subset(H, domain(f)) "Not a subgroup!"
   return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X)::GapObj)
 end
 

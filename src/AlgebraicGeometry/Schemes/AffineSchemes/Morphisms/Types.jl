@@ -1,5 +1,3 @@
-export AbsSpecMor, SpecMor
-export OpenInclusion
 
 
 ########################################################################

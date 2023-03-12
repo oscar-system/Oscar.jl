@@ -1,4 +1,3 @@
-export empty_covering, disjoint_union, standard_covering
 ########################################################################
 # Constructors for Covering                                            #
 ########################################################################

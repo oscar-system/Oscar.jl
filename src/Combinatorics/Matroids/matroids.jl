@@ -1,15 +1,3 @@
-export
-    Matroid, matroid_groundset, 
-    matroid_from_revlex_basis_encoding,
-    matroid_from_bases, matroid_from_nonbases, matroid_from_circuits, matroid_from_hyperplanes,
-    matroid_from_matrix_columns, matroid_from_matrix_rows,
-    cycle_matroid, bond_matroid, cocycle_matroid,
-    dual_matroid, direct_sum, restriction, deletion, contraction, minor,
-    principal_extension, free_extension, series_extension, parallel_extension,
-    uniform_matroid, fano_matroid, non_fano_matroid, pappus_matroid, non_pappus_matroid, vamos_matroid,
-    all_subsets_matroid, projective_plane, projective_geometry, affine_geometry, automorphism_group
-
-
 ################################################################################
 ##  Constructing
 ################################################################################

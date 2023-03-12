@@ -10,12 +10,12 @@ using Oscar
 Pages = ["miscellaneous.md"]
 ```
 
-# Miscellaneous
+# Some Special Ideals
 
-This page documents a collection of standard constructions in algebraic geometry
-available in OSCAR.
+This page is still in its development stage. Currently, it only contains the function below:
 
 ## Grassmann Plücker Ideal
+
 ```@docs
 grassmann_pluecker_ideal
 ```

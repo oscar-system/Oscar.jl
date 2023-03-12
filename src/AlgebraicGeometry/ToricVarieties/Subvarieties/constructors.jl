@@ -15,7 +15,6 @@
       return new(toric_variety, defining_ideal)
     end
 end
-export ClosedSubvarietyOfToricVariety
 
 
 ##############################################################
@@ -44,7 +43,6 @@ Closed subvariety of a normal toric variety
 ```
 """
 closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
-export closed_subvariety_of_toric_variety
 
 
 @doc Markdown.doc"""
@@ -67,7 +65,6 @@ Closed subvariety of a normal toric variety
 ```
 """
 closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal) = ClosedSubvarietyOfToricVariety(toric_variety, defining_ideal)
-export closed_subvariety_of_toric_variety
 
 
 ######################

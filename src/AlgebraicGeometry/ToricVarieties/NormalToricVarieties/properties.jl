@@ -16,7 +16,6 @@ true
 function is_normal(v::AbstractNormalToricVariety)
     return true
 end
-export is_normal
 
 
 @doc Markdown.doc"""
@@ -31,7 +30,6 @@ false
 ```
 """
 @attr Bool is_affine(v::AbstractNormalToricVariety) = pm_object(v).AFFINE
-export is_affine
 
 
 @doc Markdown.doc"""
@@ -46,7 +44,6 @@ true
 ```
 """
 @attr Bool is_projective(v::AbstractNormalToricVariety) = pm_object(v).PROJECTIVE
-export is_projective
 
 
 @doc Markdown.doc"""
@@ -88,7 +85,6 @@ true
     end
     return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
 end
-export is_projective_space
 
 
 @doc Markdown.doc"""
@@ -103,7 +99,6 @@ true
 ```
 """
 @attr Bool is_smooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
-export is_smooth
 
 
 @doc Markdown.doc"""
@@ -118,7 +113,6 @@ true
 ```
 """
 @attr Bool is_complete(v::AbstractNormalToricVariety) = pm_object(v).COMPLETE
-export is_complete
 
 
 @doc Markdown.doc"""
@@ -133,7 +127,6 @@ false
 ```
 """
 @attr Bool has_torusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(v)) < ambient_dim(v)
-export has_torusfactor
 
 
 @doc Markdown.doc"""
@@ -148,7 +141,6 @@ true
 ```
 """
 @attr Bool is_orbifold(v::AbstractNormalToricVariety) = pm_object(v).SIMPLICIAL
-export is_orbifold
 
 
 @doc Markdown.doc"""
@@ -163,7 +155,6 @@ true
 ```
 """
 is_simplicial(v::AbstractNormalToricVariety) = is_orbifold(v)
-export is_simplicial
 
 
 @doc Markdown.doc"""
@@ -178,7 +169,6 @@ true
 ```
 """
 @attr Bool is_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
-export is_gorenstein
 
 
 @doc Markdown.doc"""
@@ -193,7 +183,6 @@ true
 ```
 """
 @attr Bool is_q_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).Q_GORENSTEIN
-export is_q_gorenstein
 
 
 @doc Markdown.doc"""
@@ -208,4 +197,3 @@ true
 ```
 """
 @attr Bool is_fano(v::AbstractNormalToricVariety) = pm_object(v).FANO
-export is_fano

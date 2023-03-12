@@ -6,9 +6,11 @@ export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export embedding
 export epimorphism_from_free_group
 export index
-export is_characteristic
-export is_maximal
+export is_characteristic_subgroup
+export is_maximal_subgroup
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
+export is_normal_subgroup
+export is_normalized_by
 export is_solvable, has_is_solvable, set_is_solvable
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
@@ -71,13 +73,36 @@ function sub(gens::GAPGroupElem...)
 end
 
 """
-    is_subgroup(G::T, H::T) where T <: GAPGroup
+    is_subset(H::T, G::T) where T <: GAPGroup
+
+Return `true` if `H` is a subset of `G`, otherwise return `false`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(300); h = derived_subgroup(g)[1];
+
+julia> is_subset(h, g)
+true
+
+julia> is_subset(g, h)
+false
+```
+"""
+function is_subset(H::T, G::T) where T <: GAPGroup
+   return all(h -> h in G, gens(H))
+end
+
+"""
+    is_subgroup(H::T, G::T) where T <: GAPGroup
 
 Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding
 homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
+
+If you do not need the embedding then better call
+[`is_subset(H::T, G::T) where T <: GAPGroup`](@ref).
 """
-function is_subgroup(G::T, H::T) where T <: GAPGroup
-   if !all(h -> h in G, gens(H))
+function is_subgroup(H::T, G::T) where T <: GAPGroup
+   if !is_subset(H, G)
       return (false, nothing)
    else
       return (true, _as_subgroup(G, H.X)[2])
@@ -85,13 +110,13 @@ function is_subgroup(G::T, H::T) where T <: GAPGroup
 end
 
 """
-    embedding(G::T, H::T) where T <: GAPGroup
+    embedding(H::T, G::T) where T <: GAPGroup
 
 Return the embedding morphism of `H` into `G`.
 An exception is thrown if `H` is not a subgroup of `G`.
 """
-function embedding(G::T, H::T) where T <: GAPGroup
-   a, f = is_subgroup(G,H)
+function embedding(H::T, G::T) where T <: GAPGroup
+   a, f = is_subgroup(H, G)
    a || throw(ArgumentError("H is not a subgroup of G"))
    return f
 end
@@ -233,31 +258,43 @@ const centraliser = centralizer
 
 ################################################################################
 #
-#  IsNormal, IsCharacteristic, IsSolvable, IsNilpotent
+#  is_normal_subgroup, is_characteristic_subgroup, is_solvable, is_nilpotent
 #
 ################################################################################
 
 """
-    is_maximal(G::T, H::T) where T <: GAPGroup
+    is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
 
 Return whether `H` is a maximal subgroup of `G`, i. e.,
 whether `H` is a proper subgroup of `G` and there is no proper subgroup of `G`
 that properly contains `H`.
 
+If `check` is set to `false` then it is not checked
+whether `H` is a subgroup of `G`.
+If `check` is not set to `false` then an exception is thrown
+if `H` is not a subgroup of `G`.
+
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4);
 
-julia> is_maximal(G, sylow_subgroup(G, 2)[1])
+julia> is_maximal_subgroup(sylow_subgroup(G, 2)[1], G)
 true
 
-julia> is_maximal(G, sylow_subgroup(G, 3)[1])
+julia> is_maximal_subgroup(sylow_subgroup(G, 3)[1], G)
 false
 
+julia> is_maximal_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
+ERROR: ArgumentError: H is not a subgroup of G
 ```
 """
-function is_maximal(G::T, H::T) where T <: GAPGroup
-  is_subgroup(G, H)[1] || return false
+function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+  # In earlier times, `is_maximal` returned `false` if `H` was not a subgroup
+  # if `G`, but at that time `G` was the first argument.
+  # In order to avoid wrong results due to the reordering of arguments,
+  # we throw an exception if `H` is not a subgroup of `G`.
+  # (Just in case that you think about removing this exception.)
+  check && !is_subset(H, G) && throw(ArgumentError("H is not a subgroup of G"))
   if order(G) // order(H) < 100
     t = right_transversal(G, H)[2:end] #drop the identity
     return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
@@ -265,29 +302,99 @@ function is_maximal(G::T, H::T) where T <: GAPGroup
   return any(M -> is_conjugate(G, M, H), maximal_subgroup_reps(G))
 end
 
+# `is_maximal` had the wrong order of arguments,
+# see https://github.com/oscar-system/Oscar.jl/issues/1793
+@deprecate is_maximal(G::T, H::T) where T <: GAPGroup is_maximal_subgroup(H, G)
+
 """
-    is_normal(G::T, H::T) where T <: GAPGroup
+    is_normalized_by(H::T, G::T) where T <: GAPGroup
 
 Return whether the group `H` is normalized by `G`, i.e.,
 whether `H` is invariant under conjugation with elements of `G`.
 
-!!! note
-    To test whether `H` is a normal subgroup, use `is_normal(G, H) && issubset(H, G)`
+Note that `H` need not be a subgroup of `G`.
+To test whether `H` is a normal subgroup of `G`,
+use [`is_normal_subgroup`](@ref).
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> is_normalized_by(sylow_subgroup(G, 2)[1], G)
+false
+
+julia> is_normalized_by(derived_subgroup(G)[1], G)
+true
+
+julia> is_normalized_by(derived_subgroup(G)[1], sylow_subgroup(G, 2)[1])
+true
+```
 """
-is_normal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
+is_normalized_by(H::T, G::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
+
+# `is_normal` had the wrong order of arguments,
+# see https://github.com/oscar-system/Oscar.jl/issues/1793
+@deprecate is_normal(G::T, H::T) where T <: GAPGroup is_normalized_by(H, G)
 
 """
-    is_characteristic(G::T, H::T) where T <: GAPGroup
+    is_normal_subgroup(H::T, G::T) where T <: GAPGroup
 
-Return whether the subgroup `H` is characteristic in `G`,
+Return whether the group `H` is a normal subgroup of `G`, i.e., whether `H`
+is a subgroup of `G` that is invariant under conjugation with elements of `G`.
+
+(See [`is_normalized_by`](@ref) for an invariance check only.)
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> is_normal_subgroup(sylow_subgroup(G, 2)[1], G)
+false
+
+julia> is_normal_subgroup(derived_subgroup(G)[1], G)
+true
+
+julia> is_normal_subgroup(derived_subgroup(G)[1], sylow_subgroup(G, 2)[1])
+false
+```
+"""
+function is_normal_subgroup(H::T, G::T) where T <: GAPGroup
+  return is_subset(H, G) && is_normalized_by(H, G)
+end
+
+"""
+    is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+
+Return whether the subgroup `H` of `G` is characteristic in `G`,
 i.e., `H` is invariant under all automorphisms of `G`.
 
-!!! note
-    To test whether `H` is a characteristic subgroup, use `is_characteristic(G, H) && issubset(H, G)`
+If `check` is set to `false` then it is not checked
+whether `H` is a subgroup of `G`.
+If `check` is not set to `false` then an exception is thrown
+if `H` is not a subgroup of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> is_characteristic_subgroup(derived_subgroup(G)[1], G)
+true
+
+julia> is_characteristic_subgroup(sylow_subgroup(G, 3)[1], G)
+false
+
+julia> is_characteristic_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
+ERROR: ArgumentError: H is not a subgroup of G
+```
 """
-function is_characteristic(G::T, H::T) where T <: GAPGroup
+function is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+  check && !is_subset(H, G)[1] && throw(ArgumentError("H is not a subgroup of G"))
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
 end
+
+# `is_characteristic` had the wrong order of arguments,
+# see https://github.com/oscar-system/Oscar.jl/issues/1793
+@deprecate is_characteristic(G::T, H::T) where T <: GAPGroup is_characteristic_subgroup(H, G)
 
 """
     is_solvable(G::GAPGroup)

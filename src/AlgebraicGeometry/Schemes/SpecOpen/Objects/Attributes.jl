@@ -1,5 +1,3 @@
-export open_subset_type, ambient_type, poly_type
-export ambient, ambient_coordinate_ring, npatches, affine_patches, intersections, affine_patch, complement_ideal
 
 ########################################################################
 # (1) Type getters for SpecOpen                                        #

@@ -1,7 +1,3 @@
-export weyl_vector, separating_hyperplanes, walls, K3_surface_automorphism_group,
-      adjacent_chamber, aut, K3Chamber, chamber, borcherds_method
-
-
 ################################################################################
 # Types
 ################################################################################
@@ -221,7 +217,6 @@ mutable struct K3Chamber
   end
 end
 
-export chamber, BorcherdsCtx
 
 @doc Markdown.doc"""
     chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, [parent_wall::ZZMatrix, walls::Vector{ZZMatrix}])

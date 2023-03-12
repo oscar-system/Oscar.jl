@@ -188,4 +188,3 @@ end
 end # module Geometry
 
 using .Geometry
-export proj_space

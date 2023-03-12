@@ -1,4 +1,3 @@
-export AbsGlueing, Glueing, SimpleGlueing
 
 ########################################################################
 # Abstract glueings for affine schemes                                 #

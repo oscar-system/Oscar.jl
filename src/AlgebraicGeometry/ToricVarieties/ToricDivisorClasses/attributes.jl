@@ -18,7 +18,6 @@ with components [1]
 ```
 """
 divisor_class(tdc::ToricDivisorClass) = tdc.class
-export divisor_class
 
 
 @doc Markdown.doc"""
@@ -39,7 +38,6 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 ```
 """
 toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
-export toric_variety
 
 
 @doc Markdown.doc"""
@@ -64,4 +62,3 @@ Torus-invariant, prime divisor on a normal toric variety
     coeffs = vec([ZZRingElem(x) for x in preimage(f, divisor_class(tdc)).coeff])
     return toric_divisor(toric_variety(tdc), coeffs)
 end
-export toric_divisor

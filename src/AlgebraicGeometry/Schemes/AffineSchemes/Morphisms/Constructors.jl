@@ -1,4 +1,3 @@
-export SpecMor, identity_map, inclusion_morphism, restrict, compose
 
 
 

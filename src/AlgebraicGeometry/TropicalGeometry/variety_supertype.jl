@@ -41,7 +41,6 @@ Polyhedral complex in ambient dimension 2
 function underlying_polyhedral_complex(TV::TropicalVarietySupertype)
     return TV.polyhedralComplex
 end
-export underlying_polyhedral_complex
 
 
 ###
@@ -91,7 +90,6 @@ end
 function stably_intersect(T1::TropicalVarietySupertype{M, EMB}, T2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
     return TropicalVariety{M, EMB}(intersect_stably(T1.polyhedralComplex,T2.polyhedralComplex))
 end
-export intersect_stably
 
 
 

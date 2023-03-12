@@ -13,7 +13,6 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 ```
 """
 domain(tm::ToricMorphism) = tm.domain
-export domain
 
 
 @doc Markdown.doc"""
@@ -31,7 +30,6 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 ```
 """
 codomain(tm::ToricMorphism) = tm.codomain
-export codomain
 
 
 @doc Markdown.doc"""
@@ -49,7 +47,6 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 ```
 """
 image(tm::ToricMorphism) = tm.image
-export image
 
 
 @doc Markdown.doc"""
@@ -73,7 +70,6 @@ Abelian group with structure: Z^2
 ```
 """
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
-export grid_morphism
 
 
 @doc Markdown.doc"""
@@ -110,7 +106,6 @@ Abelian group with structure: Z^4
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), mapping_matrix)
 end
-export morphism_on_torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -142,7 +137,6 @@ Abelian group with structure: Z^4
     codomain_post_inverse = postinverse(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(codomain_variety))
     return domain_embedding * morphism_on_weil_divisors * codomain_post_inverse
 end
-export morphism_on_torusinvariant_cartier_divisor_group
 
 
 @doc Markdown.doc"""
@@ -174,7 +168,6 @@ Abelian group with structure: Z^2
     codomain_projection = map_from_torusinvariant_weil_divisor_group_to_class_group(codomain_variety)
     return domain_preinverse * morphism_on_weil_divisors * codomain_projection
 end
-export morphism_on_class_group
 
 
 @doc Markdown.doc"""
@@ -206,4 +199,3 @@ Abelian group with structure: Z^2
     codomain_projection = map_from_torusinvariant_cartier_divisor_group_to_picard_group(codomain_variety)
     return domain_preinverse * morphism_on_cartier_divisors * codomain_projection
 end
-export morphism_on_picard_group

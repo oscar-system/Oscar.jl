@@ -46,4 +46,3 @@ function contains(tvs::ToricVanishingSet, l::ToricLineBundle)
     end
     return true
 end
-export contains

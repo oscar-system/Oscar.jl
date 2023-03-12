@@ -1,4 +1,3 @@
-export maximal_extension
 
 ########################################################################
 # Constructors for SpecOpenRing                                        #

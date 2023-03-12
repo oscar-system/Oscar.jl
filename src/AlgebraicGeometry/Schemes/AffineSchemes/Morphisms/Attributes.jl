@@ -1,5 +1,3 @@
-export underlying_morphism, domain, codomain, pullback, inverse, preimage
-export pullback_type, domain_type, codomain_type, morphism_type
 
 
 

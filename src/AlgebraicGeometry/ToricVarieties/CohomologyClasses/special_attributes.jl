@@ -26,7 +26,6 @@ julia> ngens(cohomology_ring(p2))
     stanley_reisner = stanley_reisner_ideal(R, v)
     return quo(R, linear_relations + stanley_reisner)[1]
 end
-export cohomology_ring
 
 
 @doc Markdown.doc"""
@@ -57,7 +56,6 @@ julia> polynomial(volume_form(hirzebruch_surface(5)))
     end
     return CohomologyClass(v, poly)
 end
-export volume_form
 
 
 @attr function _intersection_form_via_exponents(v::NormalToricVariety)
@@ -108,4 +106,3 @@ function intersection_form(v::NormalToricVariety)
     end
     return intersection_dict_for_user
 end
-export intersection_form

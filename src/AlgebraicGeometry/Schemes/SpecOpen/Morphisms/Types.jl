@@ -1,4 +1,3 @@
-export SpecOpenMor
 
 ########################################################################
 # Morphisms of Zariski-open subsets of affine schemes                  #

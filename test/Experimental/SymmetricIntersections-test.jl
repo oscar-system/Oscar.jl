@@ -59,7 +59,7 @@ end
     chidt = exterior_power(chid, 3)
     @test all(nu -> is_constituent(chidt, determinant(nu)), cs)
     Z, _ = center_of_character(chid)
-    @test is_subgroup(E, Z)[1]
+    @test is_subset(Z, E)
 
     rep = @inferred affording_representation(RR, chi)
     @test representation_ring(rep) === RR

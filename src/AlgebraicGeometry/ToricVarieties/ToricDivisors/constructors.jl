@@ -10,7 +10,6 @@
                         toric_variety::AbstractNormalToricVariety,
                         coeffs::Vector{T}) where {T <: IntegerUnion} = new(polymake_divisor, toric_variety, [ZZRingElem(c) for c in coeffs])
 end
-export ToricDivisor
 
 function pm_tdivisor(td::ToricDivisor)
     return td.polymake_divisor
@@ -55,7 +54,6 @@ function toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {
     # return the result
     return td
 end
-export toric_divisor
 
 
 ######################
@@ -82,7 +80,6 @@ function divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T
     coeffs = [ZZRingElem(x) for x in transpose(f(char).coeff)][:, 1]
     return toric_divisor(v, coeffs)
 end
-export divisor_of_character
 
 
 ########################

@@ -17,7 +17,6 @@ Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor trivial_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, zeros(ZZRingElem, nrays(v)))
-export trivial_divisor
 
 
 @doc Markdown.doc"""
@@ -35,7 +34,6 @@ Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, fill(ZZRingElem(1), nrays(v)))
-export anticanonical_divisor
 
 
 @doc Markdown.doc"""
@@ -53,4 +51,3 @@ Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor canonical_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, fill(ZZRingElem(-1), nrays(v)))
-export canonical_divisor
