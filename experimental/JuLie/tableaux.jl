@@ -290,7 +290,7 @@ Returns a list of all semistandard tableaux consisting of `box_num`
 boxes and filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
-  box_num>=0 || throw(ArgumentError("box_num ≥ 0 required"))
+  @req box_num>=0 "box_num >= 0 required"
   SST = Vector{Tableau{T}}()
   if max_val<=0
     return SST
@@ -315,7 +315,7 @@ requires that `sum(s) = sum(weight)`.
 """
 function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
   n_max = sum(s)
-  n_max==sum(weight) || throw(ArgumentError("sum(s) = sum(weight) required"))
+  @req n_max == sum(weight) "sum(s) == sum(weight) required"
 
   tabs = Vector{Tableau}()
   if isempty(s)
@@ -544,7 +544,7 @@ end
 Returns a list of all standard tableaux with n boxes.
 """
 function standard_tableaux(n::Integer)
-  n>=0 || throw(ArgumentError("n ≥ 0 required"))
+  @req n>=0 "n >= 0 required"
   ST = Vector{Tableau}()
   for s in partitions(n)
     append!(ST, standard_tableaux(s))

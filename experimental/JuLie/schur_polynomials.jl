@@ -65,7 +65,7 @@ function schur_polynomial(lambda::Partition{T}, n::Int=sum(lambda);
                                 end
                                )
   ) where T<:Integer
-  n>=0 || throw(ArgumentError("n≥0 required"))
+  @req n >= 0 "n >= 0 required"
   if n==0 || n < length(lambda)
     if isempty(lambda)
       return 1
@@ -79,7 +79,7 @@ end
 
 
 function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lambda)) where T<:Integer
-  n>=0 || throw(ArgumentError("n≥0 required"))
+  @req n >= 0 "n >= 0 required"
   if n > R.nvars
     n = R.nvars
   end

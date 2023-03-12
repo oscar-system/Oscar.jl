@@ -129,7 +129,7 @@ from FLINT, which is very fast.
 2. FLINT, [Number of partitions](http://flintlib.org/doc/arith.html?highlight=partitions#number-of-partitions)
 """
 function num_partitions(n::IntegerUnion)
-  n >= 0 || throw(ArgumentError("n >= 0 required"))
+  @req n >= 0 "n >= 0 required"
   n = ZZ(n)
   z = ZZ()
   ccall((:arith_number_of_partitions, Nemo.libflint), Cvoid, (Ref{fmpz}, Culong), z, UInt(n))
@@ -147,8 +147,8 @@ parts. The implementation uses a recurrence relation.
 1. The On-Line Encyclopedia of Integer Sequences, [A008284](https://oeis.org/A008284)
 """
 function num_partitions(n::IntegerUnion, k::IntegerUnion)
-  n >= 0 || throw(ArgumentError("n >= 0 required"))
-  k >= 0 || throw(ArgumentError("k >= 0 required"))
+  @req n >= 0 "n >= 0 required"
+  @req k >= 0 "k >= 0 required"
   n = ZZ(n)
   k = ZZ(k)
 
@@ -215,7 +215,7 @@ julia> partitions(Int8(4))
 function partitions(n::IntegerUnion)
 
   #Argument checking
-  n >= 0 || throw(ArgumentError("n >= 0 required"))
+  @req n >= 0 "n >= 0 required"
 
   # Use type of n
   T = typeof(n)
@@ -299,7 +299,7 @@ julia> @btime ascending_partitions(Int8(90),alg="m");
 function ascending_partitions(n::IntegerUnion; alg="ks")
 
   #Argument checking
-  n >= 0 || throw(ArgumentError("n >= 0 required"))
+  @req n >= 0 "n >= 0 required"
 
   # Use type of n
   T = typeof(n)
@@ -422,8 +422,8 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
   # implementing it.
 
   #Argument checking
-  m >= 0 || throw(ArgumentError("m >= 0 required"))
-  n >= 0 || throw(ArgumentError("n >= 0 required"))
+  @req m >= 0 "m >= 0 required"
+  @req n >= 0 "n >= 0 required"
 
   # Use type of n
   n = convert(T, n)
@@ -523,9 +523,9 @@ partitions of length n+1. We thus had to add a few additional checks and
 interruptions. Done by T. Schmit.
 """
 function partitions(mu::Vector{S}, m::T, v::Vector{S}, n::IntegerUnion) where {T<:IntegerUnion, S<:IntegerUnion}
-  length(mu)==length(v) || throw(ArgumentError("mu and v should have the same length"))
-  m>=0 || throw(ArgumentError("m ≥ 0 required"))
-  n>=1 || throw(ArgumentError("n ≥ 1 required"))
+  @req length(mu)==length(v) "mu and v should have the same length"
+  @req m >= 0 "m >= 0 required"
+  @req n >= 1 "n >= 1 required"
 
   if isempty(mu)
     return Partition{T}[]
