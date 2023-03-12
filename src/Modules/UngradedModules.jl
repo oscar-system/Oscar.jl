@@ -6288,7 +6288,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
     for H in A.incoming_morphisms
       B = domain(H)
       if B!==A # on trees "B!==A" is enough!
-        if findfirst(x->x===B,modules) == nothing #if !(B in modules) doesn't work since it uses == instead of ===
+        if findfirst(x->x===B,modules) === nothing #if !(B in modules) doesn't work since it uses == instead of ===
           parent_hom[B] = H
           push!(modules,B)
         end

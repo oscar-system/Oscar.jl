@@ -649,11 +649,11 @@ end
 
 @testset "create character tables" begin
   @testset "library of character tables" begin
-    @test character_table("J5") == nothing
+    @test character_table("J5") === nothing
     @test_throws ErrorException character_table("A5mod2", 3)
   end
 
-  @test character_table(alternating_group(5), 2) == nothing
+  @test character_table(alternating_group(5), 2) === nothing
 end
 
 @testset "characters" begin
@@ -725,7 +725,7 @@ end
 
   g = symmetric_group(5)
   t = character_table(g)
-  @test mod(t, 2) == nothing
+  @test mod(t, 2) === nothing
 
   g = general_linear_group(2, 3)
   h = derived_subgroup(g)[1]

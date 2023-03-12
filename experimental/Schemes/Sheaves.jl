@@ -102,7 +102,7 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   # First, look up whether this restriction had already been asked for previously.
   inc = incoming_restrictions(F, F(V)) 
-  !(inc == nothing) && haskey(inc, U) && return (inc[U])::RestrictionType
+  inc !== nothing && haskey(inc, U) && return (inc[U])::RestrictionType
 
   # Check whether the given pair is even admissible.
   check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
@@ -140,7 +140,7 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   # First, look up the incoming restriction maps for F(V).
   # This will create the dictionary, if necessary.
   incoming_res = incoming_restrictions(F, M)
-  incoming_res == nothing && return F # This indicates that no 
+  incoming_res === nothing && return F # This indicates that no 
   incoming_res::IdDict{<:OpenType, <:RestrictionType}
   # sanity checks
   domain(rho) === F(U) || error("domain is not correct")
