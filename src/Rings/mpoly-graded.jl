@@ -1348,9 +1348,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
-  if !(coefficient_ring(W) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   D = W.D
   is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), W.d)
@@ -1498,17 +1496,9 @@ mutable struct HilbertData
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     
-    if !(minimum(W)>0)
-       throw(ArgumentError("The weights must be positive."))
-    end
-    
-    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-    end
-
-    if !(all(is_homogeneous, gens(I)))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-    end
+    @req minimum(W) > 0 "The weights must be positive"
+    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+    @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
     
     G = groebner_assure(I)
     h = Singular.hilbert_series(G.S, W)
