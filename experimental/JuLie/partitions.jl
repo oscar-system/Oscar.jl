@@ -404,18 +404,18 @@ end
 
 
 @Markdown.doc """
-    partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; z=0)
+    partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
 
 A list of all partitions of an integer ``m ≥ 0`` into ``n ≥ 0`` parts with
 lower bound ``l1 ≥ 0`` and upper bound ``l2 ≥ l1`` for the parts. There are
-two choices for the parameter z:
-* z=0: no further restriction (*default*);
-* z=1: only distinct parts.
+two choices for the parameter `only_distinct_parts`:
+* `false`: no further restriction (*default*);
+* `true`: only distinct parts.
 The partitions are produced in *decreasing* order.
 
 The algorithm used is "parta" in [RJ76](@cite), de-gotoed from old ALGOL code by E. Thiel!
 """
-function partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; z::IntegerUnion=0)
+function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 
   # Note that we are considering partitions of m here. I would switch m and n
   # but the algorithm was given like that and I would otherwise confuse myself
@@ -426,23 +426,14 @@ function partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::Inte
   n >= 0 || throw(ArgumentError("n >= 0 required"))
 
   # Use type of n
-  T = typeof(m)
   n = convert(T, n)
 
   # Some trivial cases
-  if m == 0
-    if n == 0
-      return Partition{T}[ Partition{T}([]) ]
-    else
-      return Partition{T}[]
-    end
+  if m == 0 && n == 0
+    return Partition{T}[ Partition{T}([]) ]
   end
 
-  if n == 0
-    return Partition{T}[]
-  end
-
-  if n > m
+  if n == 0 || n > m
     return Partition{T}[]
   end
 
@@ -450,44 +441,37 @@ function partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::Inte
   P = Partition{T}[]    #this will be the array of all partitions
   x = zeros(T, n)
   y = zeros(T, n)
-  num = 0
-  j = z*n*(n-1)
+  j = only_distinct_parts*n*(n-1)
   m = m-n*l1-div(j,2)
   l2 = l2 - l1
-  if m>=0 && m<=n*l2-j
+  if 0 <= m <= n*l2-j
 
     for i = 1:n
-      x[i] = l1+z*(n-i)
-      y[i] = x[i]
+      y[i] = x[i] = l1+only_distinct_parts*(n-i)
     end
 
     i = 1
-    l2 = l2-z*(n-1)
+    l2 = l2-only_distinct_parts*(n-1)
 
-    lcycle = true
-    while lcycle
-      lcycle = false
-      if m > l2
-        m = m-l2
+    while true
+      while m > l2
+        m -= l2
         x[i] = y[i] + l2
-        i = i + 1
-        lcycle = true
-        continue
+        i += 1
       end
 
       x[i] = y[i] + m
-      num = num + 1
       push!(P, Partition{T}(x[1:n]))
 
       if i<n && m>1
         m = 1
-        x[i] = x[i]-1
-        i = i+1
+        x[i] = x[i] - 1
+        i += 1
         x[i] = y[i] + 1
-        num = num + 1
         push!(P, Partition{T}(x[1:n]))
       end
 
+      lcycle = false
       for j = i-1:-1:1
         l2 = x[j] - y[j] - 1
         m = m + 1
@@ -518,7 +502,7 @@ end
 All partitions of an integer ``m ≥ 0`` into ``n ≥ 1`` parts (no further restrictions).
 """
 function partitions(m::IntegerUnion, n::IntegerUnion)
-  return partitions(m,n,1,m,z=0)
+  return partitions(m,n,1,m; only_distinct_parts = false)
 end
 
 
@@ -538,12 +522,11 @@ finding all valid partitions, the algorithm will continue searching for
 partitions of length n+1. We thus had to add a few additional checks and
 interruptions. Done by T. Schmit.
 """
-function partitions(mu::Vector{S}, m::IntegerUnion, v::Vector{S}, n::IntegerUnion) where S<:IntegerUnion
+function partitions(mu::Vector{S}, m::T, v::Vector{S}, n::IntegerUnion) where {T<:IntegerUnion, S<:IntegerUnion}
   length(mu)==length(v) || throw(ArgumentError("mu and v should have the same length"))
   m>=0 || throw(ArgumentError("m ≥ 0 required"))
   n>=1 || throw(ArgumentError("n ≥ 1 required"))
 
-  T = typeof(m)
   if isempty(mu)
     return Partition{T}[]
   end

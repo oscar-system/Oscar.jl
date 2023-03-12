@@ -174,7 +174,7 @@
 		for k = 0:n+1
 			for l1 = 0:n
 				for l2 = l1:n
-					P = partitions(n,k,l1,l2,z=1)
+					P = partitions(n,k,l1,l2; only_distinct_parts=true)
 					# check that partitions have k parts
 					if length(P) !=0 && unique([ length(p) for p in P ]) != [k]
 						check = false
@@ -275,12 +275,12 @@
 			if partitions(n,k) != partitions(fill(n,n),n,collect(1:n),k)
 				check = false
 			end
-			if partitions(n, k, 1, n, z=1) != partitions(fill(1,n),n,collect(1:n),k)
+			if partitions(n, k, 1, n; only_distinct_parts=true) != partitions(fill(1,n),n,collect(1:n),k)
 				check = false
 			end
 			for l1 = 1:n
 				for l2 = l1:n
-					if partitions(n, k, l1, l2, z=1) != partitions(fill(1,l2-l1+1),n,collect(l1:l2),k)
+					if partitions(n, k, l1, l2; only_distinct_parts=true) != partitions(fill(1,l2-l1+1),n,collect(l1:l2),k)
 						check = false
 					end
 					if partitions(n, k, l1, l2) != partitions(fill(n,l2-l1+1),n,collect(l1:l2),k)
