@@ -1,13 +1,3 @@
-export saturation, saturation_with_index, quotient, eliminate
-export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
-          equidimensional_decomposition_radical, equidimensional_hull,
-          equidimensional_hull_radical, vdim
-export absolute_primary_decomposition
-export iszero, isone, is_subset, ideal_membership, radical_membership, inradical, is_prime, is_primary
-export ngens, gens
-export minimal_generating_set
-export grassmann_pluecker_ideal
-
 # constructors #######################################################
 
 @doc Markdown.doc"""
@@ -36,7 +26,7 @@ ideal(x*y - 3*x, -2*x^2*y + y^3)
 julia> typeof(I)
 MPolyIdeal{QQMPolyRingElem}
 
-julia> S, (x, y) = GradedPolynomialRing(QQ, ["x", "y"],  [1, 2])
+julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"],  [1, 2])
 (Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [2], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
@@ -1290,7 +1280,7 @@ over a field, return an array containing a minimal set of generators of `I`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
 

@@ -1,5 +1,8 @@
 import Polymake: IncidenceMatrix
 
+nrows(i::IncidenceMatrix) = Polymake.nrows(i)
+ncols(i::IncidenceMatrix) = Polymake.ncols(i)
+
 const nf_scalar = Union{nf_elem, QQFieldElem}
 
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
@@ -32,7 +35,7 @@ end
 
 assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
+assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}) = v
 
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])

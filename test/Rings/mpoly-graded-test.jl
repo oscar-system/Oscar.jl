@@ -207,7 +207,7 @@ end
 end
 
 @testset "Division" begin
-  R, (x, y) = GradedPolynomialRing(QQ, [ "x", "y" ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ "x", "y" ], [ 1, 2 ])
   f = x^2 + y
   g = x^2
   @test div(f, g) == one(R)
@@ -241,7 +241,7 @@ begin
 end
 
 begin
-  R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
   M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
   t = h(zero(M))
   @assert iszero(t)
@@ -301,3 +301,17 @@ end
   end
 end
 
+@testset "Forget decoration" begin
+  R, (x, y) = polynomial_ring(QQ, [ "x", "y" ])
+  S, (u, v) = grade(R, [ 1, 1 ])
+  @test forget_decoration(S) === R
+  @test forget_grading(S) === R
+
+  f = u + v
+  @test forget_decoration(f) == x + y
+  @test forget_grading(f) == x + y
+
+  I = ideal(S, [ f ])
+  @test forget_decoration(I) == ideal(R, [ x + y ])
+  @test forget_grading(I) == ideal(R, [ x + y ])
+end

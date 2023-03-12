@@ -1,7 +1,3 @@
-export invariant_ring, affine_algebra
-export coefficient_ring, polynomial_ring, action, group
-export is_modular
-export reynolds_operator, molien_series
 
 ################################################################################
 #
@@ -244,7 +240,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
 end
 
 function reynolds_operator(IR::InvRing, f::MPolyRingElem)
-  @assert parent(f) === polynomial_ring(IR).R
+  @assert parent(f) === forget_grading(polynomial_ring(IR))
   return reynolds_operator(IR, polynomial_ring(IR)(f))
 end
 
@@ -331,7 +327,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassF
 end
 
 function reynolds_operator(IR::InvRing, f::MPolyRingElem, chi::GAPGroupClassFunction)
-  @assert parent(f) === polynomial_ring(IR).R
+  @assert parent(f) === forget_grading(polynomial_ring(IR))
   return reynolds_operator(IR, polynomial_ring(IR)(f), chi)
 end
 

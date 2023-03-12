@@ -1,5 +1,3 @@
-export real_solutions, rational_solutions
-
 @doc Markdown.doc"""
     real_solutions(I::MPolyIdeal, <keyword arguments>)
 

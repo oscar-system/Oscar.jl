@@ -339,6 +339,46 @@ fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_rin
 
 ### The Hilbert driven Buchberger Algorithm
 
+Calling the functions `standard_basis` and `groebner_basis` with `algorithm = :hilbert` in OSCAR
+triggers a version of the Hilbert driven Gröbner basis algorithm which proceeds along the following lines.
+
+1. Given an ideal $I$ of a multivariate polynomial ring $R$ over a field $K$ and a slow `destination_ordering`, check whether $I$ is homogeneous with respect to the standard $\mathbb Z$-grading on $R$. If so, set `start_ordering` to `degrevlex` and go to step 3.
+
+2. Check whether there exists a $\mathbb Z$-grading on $R$ with positive weights such that $I$ is homogeneous with respect to this grading. If so, let `start_ordering` be the corresponding weight ordering. If not, go to step 5.
+
+3. Compute a Gröbner basis of $I$ with respect to `start_ordering` and use this Gröbner basis to compute the Hilbert function of $R/I$.
+
+4. Compute a Gröbner basis with respect to `destination_ordering`,  proceeding by increasing (weighted) degree, and skipping all further Buchberger tests in a given (weighted) degree as soon as the leading terms found so far account for the Hilbert function in that (weighted) degree. Return the computed Gröbner basis.
+
+5. Extend $R$ to a polynomial ring $S$ by appending an extra variable,
+   equip $S$ with the standard $\mathbb Z$-grading, and let
+   $I^{h}\subset S$ be the homogenization of $I$ with respect to the
+   extra variable. Compute a Gröbner basis of $I$ with respect to
+   `degrevlex` on `R`, and homogenize its elements to obtain a Gröbner
+   basis of $I^{h}$ with respect to `degrevlex` on $S$. Use the latter
+   basis to compute the Hilbert function of $S/I^{h}$. Extend
+   `destination_ordering` to a block ordering on `S`. Following the
+   recipe in step 4, compute a Gröbner basis of $S/I^{h}$ with respect
+   to the extended ordering. Return the dehomogenization of this basis
+   with respect to the extra variable.
+
+If the characteristic of $K$ is zero,  by semi-continuity of the Hilbert function,
+it is sufficient to perform step 3 for the reduction of $I$ modulo a conveniently
+chosen prime number rather than for $I$ itself.
+
+!!! note
+    If appropriate weights and/or the Hilbert function with respect to appropriate weights
+    are already known to the user, this information can be entered when calling the Hilbert
+	driven Gröbner basis algorithm as follows:
+    
+```@docs
+groebner_basis_hilbert_driven(I::MPolyIdeal{P};
+    destination_ordering::MonomialOrdering,
+    complete_reduction::Bool = false,
+    weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+    hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
+```
+	
 ### Faugère's F4 Algorithm
 
 !!! warning "Expert function for computing Gröbner bases"

@@ -1,30 +1,29 @@
-export
-    automorphism_group,
-    codomain,
-    cokernel,
-    domain,
-    haspreimage,
-    hom,
-    id_hom,
-    image,
-    induced_automorphism,
-    inner_automorphism,
-    inner_automorphism_group,
-    is_bijective,
-    is_injective,
-    is_inner_automorphism,
-    is_invariant,
-    is_invertible,
-    is_isomorphic,
-    is_isomorphic_with_map,
-    isomorphism,
-    is_surjective,
-    kernel,
-    order,
-    restrict_automorphism,
-    restrict_homomorphism,
-    simplified_fp_group,
-    trivial_morphism
+export automorphism_group
+export codomain
+export cokernel
+export domain
+export haspreimage
+export hom
+export id_hom
+export image
+export induced_automorphism
+export inner_automorphism
+export inner_automorphism_group
+export is_bijective
+export is_injective
+export is_inner_automorphism
+export is_invariant
+export is_invertible
+export is_isomorphic
+export is_isomorphic_with_map
+export is_surjective
+export isomorphism
+export kernel
+export order
+export restrict_automorphism
+export restrict_homomorphism
+export simplified_fp_group
+export trivial_morphism
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
   print(io, "Group homomorphism from \n")
@@ -276,7 +275,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
-  @assert is_subgroup(domain(f), H)[1] "Not a subgroup!"
+  @assert is_subset(H, domain(f)) "Not a subgroup!"
   return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X)::GapObj)
 end
 
@@ -552,8 +551,8 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
-     is_abelian(G) || throw(ArgumentError("the group is not abelian"))
-     isfinite(G) || throw(ArgumentError("the group is not finite"))
+     @req is_abelian(G) "the group is not abelian"
+     @req isfinite(G) "the group is not finite"
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj

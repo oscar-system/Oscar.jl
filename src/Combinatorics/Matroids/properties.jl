@@ -1,19 +1,3 @@
-export
-    isomorphic_matroid, length,
-    bases, nonbases, circuits, hyperplanes, flats, cyclic_flats, closure, 
-    rank, nullity, 
-    fundamental_circuit, fundamental_cocircuit,
-    spanning_sets, independent_sets,
-    cobases, cocircuits, cohyperplanes, corank,
-    is_clutter,
-    is_regular, is_binary, is_ternary,
-    n_connected_components, connected_components, is_connected,
-    loops, coloops, is_loopless, is_coloopless, is_simple, direct_sum_components,
-    connectivity_function, is_vertical_k_separation, is_k_separation,
-    vertical_connectivity, girth, tutte_connectivity,
-    tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
-    revlex_basis_encoding, is_isomorphic, is_minor
-
 ################################################################################
 ##  Properties and basic functions
 ################################################################################

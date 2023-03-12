@@ -1,5 +1,3 @@
-export chow_ring, augmented_chow_ring, _select
-
 @doc Markdown.doc"""
     chow_ring(M::Matroid; ring::MPolyRing=nothing, extended::Bool=false)
 
@@ -35,7 +33,7 @@ The following computes the Chow ring of the free matroid on three elements in a 
 ```jldoctest
 julia> M = uniform_matroid(3,3);
 
-julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f"]);
+julia> GR, _ = graded_polynomial_ring(QQ,["a","b","c","d","e","f"]);
 
 julia> R = chow_ring(M, ring=GR);
 

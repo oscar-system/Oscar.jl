@@ -109,25 +109,17 @@ include("Experimental/JuLie-test.jl")
 include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 
-include("Geometry/K3Auto.jl")
-
-include("Modules/UngradedModules.jl")
-include("Modules/FreeModElem-orderings-test.jl")
-include("Modules/ModulesGraded.jl")
-include("Modules/module-localizations.jl")
-include("Modules/local_rings.jl")
-include("Modules/MPolyQuo.jl")
-include("Modules/homological-algebra_test.jl")
 include("Rings/ReesAlgebra.jl")
+
+include("Modules/runtests.jl")
 
 include("InvariantTheory/runtests.jl")
 
-include("ToricVarieties/runtests.jl")
+include("AlgebraicGeometry/Schemes/runtests.jl")
+include("AlgebraicGeometry/ToricVarieties/runtests.jl")
+include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
+include("AlgebraicGeometry/Surfaces/K3Auto.jl")
 
-include("Modules/ProjectiveModules.jl")
-include("Schemes/runtests.jl")
-
-include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")
 
 include("StraightLinePrograms/runtests.jl")

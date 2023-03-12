@@ -294,7 +294,7 @@ function linear_matrix_for_polymake(iter::SubObjectIterator)
         return _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
     elseif hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
         res = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-        iszero(res[:, 1]) || throw(ArgumentError("Input not linear."))
+        @req iszero(res[:, 1]) "Input not linear."
         return res[:, 2:end]
     end
     throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))

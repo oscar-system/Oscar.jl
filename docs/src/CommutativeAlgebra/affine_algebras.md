@@ -342,9 +342,9 @@ kernel(F::AffAlgHom)
 ###### Examples
 
 ```jldoctest
-julia> D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> D1, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
-julia> C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"]);
+julia> C1, (s,t) = graded_polynomial_ring(QQ, ["s", "t"]);
 
 julia> V1 = [s^3, s^2*t, s*t^2, t^3];
 
@@ -368,7 +368,7 @@ ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> C2, p2 = quo(D1, twistedCubic);
 
-julia> D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"]);
+julia> D2, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"]);
 
 julia> V2 = [p2(w-y), p2(x), p2(z)];
 

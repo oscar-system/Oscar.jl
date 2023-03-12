@@ -149,6 +149,19 @@ end
    TestConjCentr(G,x)
 end
 
+@testset "Conjugation in matrix group (different from GL and SL)" begin
+   G = sylow_subgroup(general_linear_group(2, 3), 2)[1]
+   M = G(matrix(G.ring, 2, 2, [0, 1, 2, 0]))
+   @test order(M) == 4
+   @test is_conjugate(G, M, inv(M))
+   @test ! is_conjugate(G, M, M^2)
+   flag, N = representative_action(G, M, inv(M))
+   @test flag
+   @test M^N == inv(M)
+   flag, _ = representative_action(G, M, M^2)
+   @test ! flag
+end
+
 @testset "Conjugation and centralizers for GL and SL" begin
    G = GL(8,25)
    S = SL(8,25)
@@ -159,14 +172,14 @@ end
    y = generalized_jordan_block(t-1,8)
    x[7,8]=l
    x=S(x); y=S(y);
-   vero, z = is_conjugate(G,x,y)
+   vero, z = representative_action(G, x, y)
    @test vero
    @test z in G
    @test x^z==y
-   vero, z = is_conjugate(S,x,y)
+   vero, z = representative_action(S, x, y)
    @test !vero
    x.elm[7,8]=l^8
-   vero, z = is_conjugate(S,x,y)
+   vero, z = representative_action(S, x, y)
    @test z in S
    @test x^z==y
 

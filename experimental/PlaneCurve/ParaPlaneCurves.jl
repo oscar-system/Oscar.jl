@@ -38,7 +38,7 @@ Return a rational parametrization of  `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
 Projective plane curve defined by -2*x^3*z + 3*x^2*z^2 + y^4 - 2*y^2*z^2
@@ -67,7 +67,7 @@ Return the Gorenstein adjoint ideal of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
 Projective plane curve defined by -2*x^3*z + 3*x^2*z^2 + y^4 - 2*y^2*z^2
@@ -92,7 +92,7 @@ If no such point exists, return a point on `D` defined over a quadratic field ex
  
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> D = ProjPlaneCurve(x^2 + 2*y^2 + 5*z^2 - 4*x*y + 3*x*z + 17*y*z);
 
@@ -147,7 +147,7 @@ Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2);
 
@@ -178,7 +178,7 @@ where R is the basering.
 
 # Examples
 ```jldoctest
-julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"])
+julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, ["v", "w", "x", "y", "z"])
 (Multivariate Polynomial Ring in v, w, x, y, z over Rational Field graded by 
   v -> [1]
   w -> [1]
@@ -227,7 +227,7 @@ representatives of elements in `R/I`, where `R` is the basering.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> M = matrix(R, 2, 3, [w x y; x y z])
 [w   x   y]
@@ -280,7 +280,7 @@ representatives of elements in `R/I`, where `R` is the basering.
 
 # Examples
 ```jldoctest
-julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"]);
+julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, ["v", "w", "x", "y", "z"]);
 
 julia> M = matrix(R, 2, 4, [v w x y; w x y z])
 [v   w   x   y]

@@ -1,11 +1,3 @@
-
-export normalization_with_delta
-export noether_normalization, normalization, integral_basis
-export is_reduced, subalgebra_membership, subalgebra_membership_homogeneous, minimal_subalgebra_generators
-export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
-export is_surjective, is_injective, is_bijective, inverse, preimage, is_finite
-export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
-export is_cohen_macaulay
 ##############################################################################
 #
 # Data associated to affine algebras
@@ -101,14 +93,14 @@ See also `hilbert_series_reduced`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series(A)
 (2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
 
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -141,14 +133,14 @@ See also `hilbert_series`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_reduced(A)
 (2*t + 1, t^2 - 2*t + 1)
 
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -176,14 +168,14 @@ positive integer weights to the variables, return the Hilbert series of $A$ to p
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_expanded(A, 7)
 1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
 
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -209,14 +201,14 @@ is the Hilbert function of $A$.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_function(A,7)
 22
 
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -242,7 +234,7 @@ return the Hilbert polynomial of $A$.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -274,7 +266,7 @@ return the degree of $A$.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -351,7 +343,7 @@ Return the Hilbert series of the positively graded affine algebra `A`.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
+julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
@@ -389,7 +381,7 @@ with components [0 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -432,7 +424,7 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
       isoinv = hom(G, H, V)
       W = R.d
       W = [isoinv(W[i]) for i = 1:length(W)]
-      S, _ = GradedPolynomialRing(coefficient_ring(R), map(string, symbols(R)), W)
+      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
       change = hom(R, S, gens(S))
       I = change(A.I)
       R = S
@@ -488,7 +480,7 @@ end
 #      isoinv = hom(G, H, V)
 #      W = R.d
 #      W = [isoinv(W[i]) for i = 1:length(W)]
-#      S, _ = GradedPolynomialRing(coefficient_ring(R), map(string, symbols(R)), W)
+#      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
 #      change = hom(R, S, gens(S))
 #      I = change(A.I)
 #      R = S
@@ -526,7 +518,7 @@ end
 #   else
 #      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
 #     if minMI<0
-#         RNEW, _ = GradedPolynomialRing(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
+#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
 #         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
 #      end
 #      p = _numerator_monomial_multi_hilbert_series(LI, S)
@@ -547,7 +539,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
+julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
@@ -585,7 +577,7 @@ with components [0 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -661,7 +653,7 @@ of $A$, and return the value $H(A, g)$ as above.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
+julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
   x[1] -> [1 0]
   x[2] -> [1 0]
@@ -674,7 +666,7 @@ julia> A, _ = quo(R, I);
 julia> multi_hilbert_function(A::MPolyQuoRing, [1, 0])
 2
 
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], [-1, -1, -1, -1]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], [-1, -1, -1, -1]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -687,7 +679,7 @@ julia> g = gen(G, 1);
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -804,7 +796,7 @@ return `true` if `A` is a Cohen-Macaulay ring, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> I = ideal(R, [x*z-y^2, w*z-x*y, w*y-x^2]);
 
@@ -815,7 +807,7 @@ true
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [x*z, y*z]);
 
@@ -1024,7 +1016,7 @@ the same subalgebra as all elements in `V`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = GradedPolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
 
 julia> V = [x, y, x^2+y^2]
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -1045,11 +1037,11 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingE
      throw(ArgumentError("The coefficient ring must be a field."))
   end
   if p isa MPolyRing
-      p isa MPolyDecRing && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
+      @req p isa MPolyDecRing && is_positively_graded(p) "The base ring must be positively graded"
   else
-      base_ring(p) isa MPolyDecRing && is_graded(p) || throw(ArgumentError("The base ring must be graded"))
+      @req base_ring(p) isa MPolyDecRing && is_graded(p) "The base ring must be graded"
   end
-  all(is_homogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+  @req all(is_homogeneous, V) "The input data is not homogeneous"
   # iterate over the generators, starting with those in lowest degree, then work up
   W = sort(V, by = x -> degree(x)[1])
   result = [ W[1] ]

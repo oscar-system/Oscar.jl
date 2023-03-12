@@ -218,7 +218,6 @@ end
 
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.Globals.E(4))
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[]"))
-    @test_throws MethodError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
 
     F, z = quadratic_field(5)
     @test_throws ArgumentError matrix(F, GAP.evalstr("[ [ Sqrt(5) ] ]"))
