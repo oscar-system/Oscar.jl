@@ -1,9 +1,5 @@
 # module Tropical
 
-# using Reexport
-
-# @reexport using Oscar
-
 # import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, polynomial_ring
 
 ################################################################################

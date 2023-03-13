@@ -59,8 +59,6 @@ end
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
-# export nf_scalar
-
 Base.zero(::Type{nf_scalar}) = QQFieldElem()
 # Base.one(::Type{nf_scalar}) = QQFieldElem(1)
 
