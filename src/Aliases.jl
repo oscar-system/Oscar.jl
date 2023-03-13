@@ -76,7 +76,6 @@
 
 # Allow backwards compatibility after removal of Oscar.Graphs module.
 Graphs = Oscar
-export Graphs
 
 # Compatibility with pre-0.12.x
 @alias MPolyElem_dec MPolyDecRingElem

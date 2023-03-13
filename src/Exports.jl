@@ -2,6 +2,7 @@ export *
 export @pbw_relations
 export @perm
 export @tropical
+export ANTIC
 export AbsCoveredScheme
 export AbsCoveredSchemeMorphism
 export AbsGlueing
@@ -12,6 +13,7 @@ export AbsLocalizedRingHom
 export AbsMultSet
 export AbsSpec
 export AbsSpecMor
+export AbstractAlgebra
 export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
@@ -42,6 +44,7 @@ export FreeMod_dec
 export FreeModuleHom
 export FreeModuleHom_dec
 export FreeResolution
+export GAP
 export GAPGroupElem
 export GAPGroupHomomorphism
 export GL
@@ -50,10 +53,12 @@ export GSet
 export GU
 export Glueing
 export Graph
+export Graphs
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
 export Halfspace
+export Hecke
 export HilbertData
 export Hyperplane
 export IncidenceMatrix
@@ -95,8 +100,10 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export Nemo
 export NormalToricVariety
 export OO
+export OSCAR
 export OpenInclusion
 export PBWAlgElem
 export PBWAlgQuo
@@ -110,6 +117,7 @@ export PointVector
 export PolyhedralComplex
 export PolyhedralFan
 export Polyhedron
+export Polymake
 export PrincipalOpenSubset
 export QQ
 export RationalEquivalenceClass
@@ -125,6 +133,7 @@ export SemidirectProductGroup
 export SesquilinearForm
 export SimpleGlueing
 export SimplicialComplex
+export Singular
 export Sp
 export Spec
 export SpecMor
@@ -188,6 +197,7 @@ export all_small_groups
 export all_subsets_matroid
 export all_transitive_groups
 export all_triangulations
+export allow_unicode
 export alternating_form
 export alternating_group
 export ambient
@@ -243,6 +253,7 @@ export borcherds_method
 export boundary_lattice_points
 export bring_to_common_denominator
 export build_ctx
+export build_doc
 export canonical_bundle
 export canonical_divisor
 export canonical_divisor_class
@@ -250,6 +261,7 @@ export canonical_isomorphism
 export canonical_matrix
 export cartesian_power
 export catalan_solid
+export cauchy_ideal
 export cellular_associated_primes
 export cellular_decomposition
 export cellular_decomposition_macaulay
@@ -411,6 +423,7 @@ export edgegraph
 export edges
 export ehrhart_polynomial
 export element_to_homomorphism
+export elementary_symmetric
 export elements
 export eliminate
 export embedding
@@ -426,6 +439,8 @@ export euler_characteristic
 export euler_phi
 export exponents
 export ext
+export extension_field
+export exterior_power
 export f_vector
 export face_fan
 export faces
@@ -447,6 +462,8 @@ export find_morphisms
 export find_non_zero_divisor
 export fits
 export fitting_ideal
+export fitting_subgroup
+export fixed_field
 export flats
 export forget_decoration
 export forget_grading
@@ -467,6 +484,9 @@ export fundamental_cocircuit
 export fundamental_group
 export fundamental_invariants
 export g_vector
+export galois_group
+export galois_ideal
+export galois_quotient
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -977,6 +997,7 @@ export orders_perfect_groups
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
+export oscar
 export outneighbors
 export pappus_matroid
 export parallel_extension
@@ -1008,6 +1029,7 @@ export polynomial
 export polynomial_ring
 export positive_hull
 export possible_class_fusions
+export power_sum
 export powers_of_element
 export preimage
 export present_as_cokernel
@@ -1147,6 +1169,9 @@ export singular_coeff_ring
 export singular_locus
 export singular_locus_reduced
 export singular_poly_ring
+export slope
+export slpoly_ring
+export small_generating_set
 export small_group
 export small_group_identification
 export solve_ineq
@@ -1197,6 +1222,7 @@ export tensor_product
 export terms
 export tetrahedron
 export tighten_simulation
+export to_elementary_symmetric
 export tor
 export toric_divisor
 export toric_divisor_class
@@ -1244,6 +1270,7 @@ export upper_bound_g_vector
 export upper_bound_h_vector
 export upper_triangular_matrix
 export v_reduced
+export valuation_of_roots
 export valued_weighted_degree
 export vamos_matroid
 export vanishing_sets

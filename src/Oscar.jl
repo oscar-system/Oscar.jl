@@ -23,11 +23,6 @@ using Preferences
 
 include("imports.jl")
 
-# to allow access to the cornerstones! Otherwise, not even import or using from the
-# user level will work as none of them will have been "added" by the user.
-# possibly all should add a doc string to the module?
-export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
-
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
                         "libpolymake_julia_jll", "libsingular_julia_jll",
@@ -332,7 +327,6 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   end
 end
 
-export build_doc
 # This can be used in
 #
 # module A
@@ -537,8 +531,5 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
 module ANTIC
 using Markdown
 end
-export ANTIC
-
-export OSCAR, oscar
 
 end # module
