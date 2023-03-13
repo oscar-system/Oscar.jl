@@ -1,11 +1,3 @@
-export collector
-export pc_group
-export set_commutator!
-export set_conjugate!
-export set_power!
-export set_relative_order!
-export set_relative_orders!
-
 ############################################################################
 
 # Create GAP filters that describe

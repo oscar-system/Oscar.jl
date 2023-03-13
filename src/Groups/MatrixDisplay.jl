@@ -20,7 +20,6 @@
 ##  Some open items (to be addressed if there is interest):
 ##  Support left/centered/right alignment of columns and of the whole table.
 
-export labelled_matrix_formatted
 
 
 # `lpad` is wrong for example for strings containing overlined characters,
