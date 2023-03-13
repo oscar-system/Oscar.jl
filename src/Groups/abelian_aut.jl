@@ -257,11 +257,11 @@ function embedding_orthogonal_group(i::TorQuadModuleMor)
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
 
-  # D = A+B, so in particular {a+b | a \in A, b\in B} generates D
-  gene = vec(collect([data(D(lift(a)) + D(lift(b))) for a in gens(A), b in gens(B)]))
+  # D = A+B
+  gene = data.(union(i.(gens(A)), j.(gens(B))))
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
-    imgf = vec(collect([data(D(lift(f(a))) + D(lift(b))) for a in gens(A), b in gens(B)]))
+    imgf = data.(union(i.(f.(gens(A))), j.(gens(B))))
     fab = hom(gene, imgf)
     fD = OD(hom(D, D, fab.map))
     push!(geneOAinOD, fD)

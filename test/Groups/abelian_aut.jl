@@ -136,5 +136,11 @@ end
   @test is_injective(f) && !is_surjective(f)
   @test order(domain(f)) == 12
   @test all(g -> order(f(g)) == order(g), domain(f))
+
+  U2 = hyperbolic_plane_lattice(2)
+  q = discriminant_group(U2)
+  qq, qqinq = sub(q, [q[1] + q[2]])
+  OqqinOq = @inferred embedding_orthogonal_group(qqinq)
+  @test is_injective(OqqinOq)
 end
 
