@@ -2,20 +2,20 @@ import AbstractAlgebra: is_empty
 
 import Oscar: defining_ideal, describe, irreducible_components
 
-export character_grassmannian,
-       determinant_grassmannian,
-       invariant_grassmannian,
-       irreducible_component,
-       isotypical_factor,
-       isotypical_factors,
-       isotypical_grassmannian,
-       module_representation,
-       parametrization_data,
-       projective_dimension,
-       standard_element,
-       submodule_character,
-       submodule_determinant_character,
-       submodule_dimension
+export character_grassmannian
+export determinant_grassmannian
+export invariant_grassmannian
+export irreducible_component
+export isotypical_factor
+export isotypical_factors
+export isotypical_grassmannian
+export module_representation
+export parametrization_data
+export projective_dimension
+export standard_element
+export submodule_character
+export submodule_determinant_character
+export submodule_dimension
 
 ###############################################################################
 #
@@ -24,83 +24,83 @@ export character_grassmannian,
 ###############################################################################
 
 @doc Markdown.doc"""
-    is_irreducible(M::T) where T <: SymmetricGrassmannian -> Bool
+    is_irreducible(M::T) where T <: SymGrass -> Bool
 
 Given a symmetric Grassmannian, return whether it is irreducible.
 """
-is_irreducible(M::T) where T <: SymmetricGrassmannian
+is_irreducible(M::T) where T <: SymGrass
 
 @doc Markdown.doc"""
-    is_empty(M::T) where T <: SymmetricGrassmannian -> Bool
+    is_empty(M::T) where T <: SymGrass -> Bool
 
 Given a symmetric Grassmannian, return whether it is empty.
 """
-is_empty(M::T) where T <: SymmetricGrassmannian
+is_empty(M::T) where T <: SymGrass
 
 @doc Markdown.doc"""
-    projective_dimension(M::T) where T <: SymmetricGrassmannian -> Int
+    projective_dimension(M::T) where T <: SymGrass -> Int
 
 Given a symmetric Grassmannian, return its dimension as projective
 variety.
 """
-projective_dimension(M::T) where T <: SymmetricGrassmannian
+projective_dimension(M::T) where T <: SymGrass
 
 @doc Markdown.doc"""
-    submodule_dimension(M::T) where T <: SymmetricGrassmannian -> Int
+    submodule_dimension(M::T) where T <: SymGrass -> Int
 
 Given a symmetric Grassmannian, return the dimension of the submodules
 it parametrizes.
 """
-submodule_dimension(M::T) where T <: SymmetricGrassmannian
+submodule_dimension(M::T) where T <: SymGrass
 
 @doc Markdown.doc"""
-    module_representation(M::T) where T <: SymmetricGrassmannian -> LinRep
+    module_representation(M::T) where T <: SymGrass -> LinRep
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V`,
 return the representation mapping associated to `V`.
 """
-module_representation(M::T) where T <: SymmetricGrassmannian
+module_representation(M::T) where T <: SymGrass
 
 @doc Markdown.doc"""
-    defining_ideal(M::T) where T <: SymmetricGrassmannian -> MPolyIdeal
+    defining_ideal(M::T) where T <: SymGrass -> MPolyIdeal
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V`,
 return the ideal defining its structure as projective variety.
 """
-defining_ideal(M::T) where T <: SymmetricGrassmannian
+defining_ideal(M::T) where T <: SymGrass
 
 @doc Markdown.doc"""
-    describe(M::T) where T <: Union{IsotypicalGrassmannian,
-                                    CharacterGrassmannian}  -> nothing
+    describe(M::T) where T <: Union{IsotGrass,
+                                    CharGrass}  -> nothing
                            
 Given a symmetric Grassmannian parametrizing submodules of a module `V`,
 return a description of M in terms of Grassmannian varieties.
 """
-describe(M::T) where T <: Union{IsotypicalGrassmannian, CharacterGrassmannian}
+describe(M::T) where T <: Union{IsotGrass, CharGrass}
 
 ###############################################################################
 
 ### Isotypical Grassmannians
 
 @doc Markdown.doc"""
-    submodule_character(M::IsotypicalGrassmannian) -> Oscar.GAPGroupClassFunction
+    submodule_character(M::IsotGrass) -> Oscar.GAPGroupClassFunction
 
 Given the isotypical Grassmannian variety `M` parametrizing isotypical submodules
 with character `chi` of a module `V`, return `chi`.
 """
-submodule_character(M::IsotypicalGrassmannian) = M.chi
+submodule_character(M::IsotGrass) = M.chi
 
-submodule_dimension(M::IsotypicalGrassmannian) = Int(degree(M.chi))
+submodule_dimension(M::IsotGrass) = Int(degree(M.chi))
 
-module_representation(M::IsotypicalGrassmannian) = M.rep_mod
+module_representation(M::IsotGrass) = M.rep_mod
 
-is_irreducible(M::IsotypicalGrassmannian) = true
+is_irreducible(M::IsotGrass) = true
 
-is_empty(M::IsotypicalGrassmannian) = false
+is_empty(M::IsotGrass) = false
 
-projective_dimension(M::IsotypicalGrassmannian) = M.t
+projective_dimension(M::IsotGrass) = M.t
 
-function defining_ideal(M::IsotypicalGrassmannian)
+function defining_ideal(M::IsotGrass)
   rep = module_representation(M)
   F = base_field(representation_ring(rep))
   chi = submodule_character(M)
@@ -115,7 +115,7 @@ function defining_ideal(M::IsotypicalGrassmannian)
   return grassmann_pluecker_ideal(S, t, n)
 end
 
-function describe(M::IsotypicalGrassmannian)
+function describe(M::IsotGrass)
   rep = module_representation(M)
   F = base_field(representation_ring(rep))
   chi = submodule_character(M)
@@ -132,7 +132,7 @@ function describe(M::IsotypicalGrassmannian)
 end
 
 @doc Markdown.doc"""
-    parametrization_data(M::IsotypicalGrassmannian)
+    parametrization_data(M::IsotGrass)
                                         -> Tuple{Vector{MatSpaceElem}, Int}
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
@@ -143,7 +143,7 @@ to `chi` and `n` is the size of the submodules of `Hom(N, V)` parametrized by `M
 
 The elements of `B` are given by matrices in the standard coordinates of `V` and `N`.
 """
-function parametrization_data(M::IsotypicalGrassmannian{S, T, U}) where {S, T, U}
+function parametrization_data(M::IsotGrass{S, T, U}) where {S, T, U}
   f = M.vs_struct
   chi = submodule_character(M)
   n, _ = character_decomposition(chi)[1]
@@ -152,14 +152,14 @@ function parametrization_data(M::IsotypicalGrassmannian{S, T, U}) where {S, T, U
 end
 
 @doc Markdown.doc"""
-    standard_element(M::IsotypicalGrassmannian)
+    standard_element(M::IsotGrass)
                                              -> Vector{MatSpaceElem}
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
 given isotypical character, return a specific elements parametrized by `M`
 made from all possible elements in `M`.
 """
-function standard_element(M::IsotypicalGrassmannian)
+function standard_element(M::IsotGrass)
   B, n = parametrization_data(M)
   std_el = eltype(B)[]
   for i in 1:n
@@ -173,26 +173,26 @@ end
 ### Character Grassmannians
 
 @doc Markdown.doc"""
-    isotypical_factors(M::CharacterGrassmannian{S, T, U})
-                    where {S, T, U} -> Vector{IsotypicalGrassmannian{S, T, U}}
+    isotypical_factors(M::CharGrass{S, T, U})
+                    where {S, T, U} -> Vector{IsotGrass{S, T, U}}
 
 Given the character Grassmannian variety `M` parametrizing `t`-dimensional
 submodules of a module `V` with given character, return the isotypical
 Grassmannian which define `M` as product variety.
 """
-isotypical_factors(M::CharacterGrassmannian) = M.constituents
+isotypical_factors(M::CharGrass) = M.constituents
 
 @doc Markdown.doc"""
-    isotypical_factor(M::CharacterGrassmannian{S, T, U},
+    isotypical_factor(M::CharGrass{S, T, U},
                       chi::Oscar.GAPGroupClassFunction)
-                           where {S, T, U} -> IsotypicalGrassmannian{S, T, U}
+                           where {S, T, U} -> IsotGrass{S, T, U}
 
 Given the character Grassmannian variety `M` parametrizing `t`-dimensional
 submodules of a module `V` with given character, return the isotypical
 Grassmannian in the factors of `M` corresponding to the isotypical character
 `chi`.
 """
-function isotypical_factor(M::CharacterGrassmannian{S, T, U},
+function isotypical_factor(M::CharGrass{S, T, U},
                               chi::Oscar.GAPGroupClassFunction) where {S, T, U}
   @req is_isotypical(chi) "chi must be an isotypical character"
   @req chi in character_decomposition(M) "chi does not define the character of a factor of M"
@@ -202,36 +202,36 @@ function isotypical_factor(M::CharacterGrassmannian{S, T, U},
 end
 
 @doc Markdown.doc"""
-    character_decomposition(M::CharacterGrassmannian)
+    character_decomposition(M::CharGrass)
                                      -> Vector{Oscar.GAPGroupClassFunction}
 
 Given the character Grassmannian variety `M` parametrizing `t`-dimensional
 submodules of a module `V` with given character, return the isotypical
 characters associated to its isotypical factors.
 """
-character_decomposition(M::CharacterGrassmannian) = M.dec
+character_decomposition(M::CharGrass) = M.dec
 
 @doc Markdown.doc"""
-    submodule_character(M::CharacterGrassmannian) -> Oscar.GAPGroupClassFunction
+    submodule_character(M::CharGrass) -> Oscar.GAPGroupClassFunction
 
 Given the character Grassmannian variety `M` parametrizing submodules
 with character `chi` of a module `V`, return `chi`.
 """
-submodule_character(M::CharacterGrassmannian) = sum(M.dec)
+submodule_character(M::CharGrass) = sum(M.dec)
 
-submodule_dimension(M::CharacterGrassmannian) = Int(degree(sum(M.dec)))
+submodule_dimension(M::CharGrass) = Int(degree(sum(M.dec)))
 
-module_representation(M::CharacterGrassmannian) = module_representation(isotypical_factors(M)[1])
+module_representation(M::CharGrass) = module_representation(isotypical_factors(M)[1])
 
-is_irreducible(M::CharacterGrassmannian) = true
+is_irreducible(M::CharGrass) = true
 
-is_empty(M::CharacterGrassmannian) = false
+is_empty(M::CharGrass) = false
 
-projective_dimension(M::CharacterGrassmannian) = sum(projective_dimension.(isotypical_factors(M)))
+projective_dimension(M::CharGrass) = sum(projective_dimension.(isotypical_factors(M)))
 
-defining_ideal(M::CharacterGrassmannian) = error("Not yet implemented")
+defining_ideal(M::CharGrass) = error("Not yet implemented")
 
-function describe(M::CharacterGrassmannian)
+function describe(M::CharGrass)
   ifs = isotypical_factors(M)
   length(ifs) == 1 && return describe(ifs[1])
   str = ""
@@ -267,7 +267,7 @@ function describe(M::CharacterGrassmannian)
 end
 
 @doc Markdown.doc"""
-    parametrization_data(M::CharacterGrassmannian)
+    parametrization_data(M::CharGrass)
                                         -> Vector{Tuple{Vector{MatSpaceElem}, Int}}
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
@@ -279,53 +279,53 @@ to an isotypical component of `chi` and `n` is the size of the submodules of
 
 The elements of `B` are given by matrices in the standard coordinates of `V` and `N`.
 """
-parametrization_data(M::CharacterGrassmannian) = parametrization_data.(isotypical_factors(M))
+parametrization_data(M::CharGrass) = parametrization_data.(isotypical_factors(M))
 
 @doc Markdown.doc"""
-    standard_element(M::CharacterGrassmannian)
+    standard_element(M::CharGrass)
                                              -> Vector{Vector{MatSpaceElem}}
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
 given character, return a list whose entries are specific elements parametrized
 by the isotypical factors of`M`.
 """
-standard_element(M::CharacterGrassmannian) = standard_element.(isotypical_factors(M))
+standard_element(M::CharGrass) = standard_element.(isotypical_factors(M))
 
 ###############################################################################
 
 ### Determinant Grassmannians
 
-submodule_dimension(M::DeterminantGrassmannian) = M.d
+submodule_dimension(M::DetGrass) = M.d
 
-module_representation(M::DeterminantGrassmannian) = M.rep
+module_representation(M::DetGrass) = M.rep
 
 @doc Markdown.doc"""
-    submodule_determinant_character(M::DeterminantGrassmannian)
+    submodule_determinant_character(M::DetGrass)
                                                  -> Oscar.GAPGroupClassFunction
 
 Given the determinant Grassmannian `M` parametrizing `d`-dimensional submodule
 of a module `V` with determinant character `chi`, return `chi`.
 """
-submodule_determinant_character(M::DeterminantGrassmannian) = M.det_char
+submodule_determinant_character(M::DetGrass) = M.det_char
 
 @doc Markdown.doc"""
-    irreducible_components(M::DeterminantGrassmannian{S, T, U}) where {S, T, U}
-                                        -> Vector{CharacterGrassmannian{S, T, U}}
+    irreducible_components(M::DetGrass{S, T, U}) where {S, T, U}
+                                        -> Vector{CharGrass{S, T, U}}
 
 Given the determinant Grassmannian `M` parametrizing `d`-dimensional submodule
 of a module `V` with determinantal character `chi`, return the irreducible
 components of `M`. These are the character Grassmannians parametrizing submodules
 of `V` with a given character `mu` such that `mu` has dimension `d` and determinant `chi`.
 """
-irreducible_components(M::DeterminantGrassmannian) = M.irr_comp
+irreducible_components(M::DetGrass) = M.irr_comp
 
-is_irreducible(M::DeterminantGrassmannian) = length(irreducible_components(M)) == 1
+is_irreducible(M::DetGrass) = length(irreducible_components(M)) == 1
 
-is_empty(M::DeterminantGrassmannian) = length(irreducible_components(M)) == 0
+is_empty(M::DetGrass) = length(irreducible_components(M)) == 0
 
-projective_dimension(M::DeterminantGrassmannian) = maximum(projective_dimension.(M.irr_comp); init = -1)
+projective_dimension(M::DetGrass) = maximum(projective_dimension.(M.irr_comp); init = -1)
 
-function defining_ideal(M::DeterminantGrassmannian)
+function defining_ideal(M::DetGrass)
   @req !is_empty(M) "M is empty"
   r = module_representation(M)
   chi = submodule_determinant_character(M)
@@ -337,22 +337,22 @@ end
 
 ### Invariant Grassmannians
 
-submodule_dimension(M::InvariantGrassmannian) = M.d
+submodule_dimension(M::InvGrass) = M.d
 
-module_representation(M::InvariantGrassmannian) = M.rep
+module_representation(M::InvGrass) = M.rep
 
 @doc Markdown.doc"""
-    irreducible_components(M::InvariantGrassmannian{S, T, U}) where {S, T, U}
-                                        -> Vector{CharacterGrassmannian{S, T, U}}
+    irreducible_components(M::InvGrass{S, T, U}) where {S, T, U}
+                                        -> Vector{CharGrass{S, T, U}}
 
 Given the invariant Grassmannian `M` parametrizing `d`-dimensional submodule
 of a module `V`, return the irreducible components of `M`. These are the character
 Grassmannians parametrizing submodules of `V` with a given character `mu` such that
 `mu` has dimension `d`.
 """
-irreducible_components(M::InvariantGrassmannian) = M.irr_comp
+irreducible_components(M::InvGrass) = M.irr_comp
 
-function irreducible_component(M::InvariantGrassmannian, chi::Oscar.GAPGroupClassFunction)
+function irreducible_component(M::InvGrass, chi::Oscar.GAPGroupClassFunction)
   irr = irreducible_components(M)
   chis = submodule_character.(irr)
   j = findfirst(j -> chis[j] == chi, 1:length(chis))
@@ -360,13 +360,13 @@ function irreducible_component(M::InvariantGrassmannian, chi::Oscar.GAPGroupClas
   return irr[j]
 end
 
-is_irreducible(M::InvariantGrassmannian) = length(M.irr_comp) == 1
+is_irreducible(M::InvGrass) = length(M.irr_comp) == 1
 
-is_empty(M::InvariantGrassmannian) = length(M.irr_comp) == 0
+is_empty(M::InvGrass) = length(M.irr_comp) == 0
 
-projective_dimension(M::InvariantGrassmannian) = maximum(projective_dimension.(M.irr_comp); init = -1)
+projective_dimension(M::InvGrass) = maximum(projective_dimension.(M.irr_comp); init = -1)
 
-function defining_ideal(M::InvariantGrassmannian)
+function defining_ideal(M::InvGrass)
   @req !is_empty(M) "M is empty"
   r = module_representation(M)
   t = submodule_dimension(M)
@@ -381,7 +381,7 @@ end
 
 ### Isotypical Grassmannian
 
-function Base.show(io::IO, ::MIME"text/plain", M::IsotypicalGrassmannian)
+function Base.show(io::IO, ::MIME"text/plain", M::IsotGrass)
   chi = submodule_character(M)
   println(io, "Symmetric Grassmannian of $(degree(chi))-dimensional submodules of")
   println(io, module_representation(M))
@@ -389,7 +389,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::IsotypicalGrassmannian)
   print(io, chi)
 end
 
-function Base.show(io::IO, M::IsotypicalGrassmannian)
+function Base.show(io::IO, M::IsotGrass)
   print(io, "Isotypical Grassmannian of dimension $(projective_dimension(M))")
 end
 
@@ -397,7 +397,7 @@ end
 
 ### Character Grassmannian
 
-function Base.show(io::IO, ::MIME"text/plain", M::CharacterGrassmannian)
+function Base.show(io::IO, ::MIME"text/plain", M::CharGrass)
   chi = submodule_character(M)
   println(io, "Symmetric Grassmannian of $(degree(chi))-dimensional submodules of")
   println(io, module_representation(M))
@@ -405,7 +405,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::CharacterGrassmannian)
   print(io, chi)
 end
 
-function Base.show(io::IO, M::CharacterGrassmannian)
+function Base.show(io::IO, M::CharGrass)
   print(io, "Character Grassmannian of dimension $(projective_dimension(M))")
 end
 
@@ -413,7 +413,7 @@ end
 
 ### Determinant Grassmannian
 
-function Base.show(io::IO, ::MIME"text/plain", M::DeterminantGrassmannian)
+function Base.show(io::IO, ::MIME"text/plain", M::DetGrass)
   chi = submodule_determinant_character(M)
   println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules of")
   println(io, module_representation(M))
@@ -421,7 +421,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::DeterminantGrassmannian)
   print(io, chi)
 end
 
-function Base.show(io::IO, M::DeterminantGrassmannian)
+function Base.show(io::IO, M::DetGrass)
   print(io, "Determinant Grassmannian of dimension $(projective_dimension(M))")
 end
 
@@ -429,12 +429,12 @@ end
 
 ### Invariant Grassmannian
 
-function Base.show(io::IO, ::MIME"text/plain", M::InvariantGrassmannian)
+function Base.show(io::IO, ::MIME"text/plain", M::InvGrass)
   println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules of")
   print(io, module_representation(M))
 end
 
-function Base.show(io::IO, M::InvariantGrassmannian)
+function Base.show(io::IO, M::InvGrass)
   print(io, "Invariant Grassmannian of dimension $(projective_dimension(M))")
 end
 
@@ -467,7 +467,7 @@ end
 @doc Markdown.doc"""
     isotypical_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
     isotypical_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
-                                                                                                          -> IsotypicalGrassmannian{S, T, U}
+                                                                                                          -> IsotGrass{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
 `F`-vector space `V`  and an isotypical `F`-character `chi` of `E` where `F` is a 
@@ -475,7 +475,7 @@ splitting field of `E` of characteristic zero, return the symmetric Grassmannian
 parametrizing isotypical $FE$-submodules of $(V, rep)$ affording the character `chi`.
 
 In the case of we are given a projective representation `prep`, it is constructed
-with respect to a stored linear lift `prep`.
+with respect to a stored linear lift `rep`.
 """
 function isotypical_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
   nu = character_representation(rep)
@@ -483,7 +483,7 @@ function isotypical_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassF
   @req is_constituent(nu, chi) "chi is not a constituent of the character of rep"
   f = _submodules_space_isotypical_as_vs(rep, chi)
   d = Int(scalar_product(chi, nu-chi))
-  return IsotypicalGrassmannian(chi, rep, d, f)
+  return IsotGrass(chi, rep, d, f)
 end
 
 isotypical_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = isotypical_grassmannian(linear_lift(prep), chi)
@@ -491,7 +491,7 @@ isotypical_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = isoty
 @doc Markdown.doc"""
     character_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
     character_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
-                                                                                            -> CharacterGrassmannian{S, T, U}
+                                                                                            -> CharGrass{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
 `F`-vector space `V`  and a `F`-character `chi` of `E` where `F` is a splitting
@@ -499,19 +499,19 @@ field of `E` of characteristic zero, return the symmetric Grassmannian parametri
 $FE$-submodules of $(V, rep)$ affording the character `chi`.
 
 In the case of we are given a projective representation `prep`, it is constructed
-with respect to a stored linear lift `prep`.
+with respect to a stored linear lift `rep`.
 """
 function character_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
   nu = character_representation(rep)
   @req is_constituent(nu, chi) "chi is not a constituent of the character of prep"
   dec = character_decomposition(chi)
-  constituents = IsotypicalGrassmannian{S, T, U}[]
+  constituents = IsotGrass{S, T, U}[]
   for d in  dec
     M = isotypical_grassmannian(rep, d[1]*d[2])
     push!(constituents, M)
   end
 
-  modi = CharacterGrassmannian(constituents)
+  modi = CharGrass(constituents)
   @assert projective_dimension(modi) == scalar_product(chi, nu-chi)
   return modi
 end
@@ -521,7 +521,7 @@ character_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = charac
 @doc Markdown.doc"""
     invariant_grassmannian(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
     invariant_grassmannian(prep::ProjRep{S, T, U, V}, t::Int) where {S, T, U, V}
-                                                                     -> InvariantGrassmannian{S, T, U}
+                                                                     -> InvGrass{S, T, U}
 
 Given a linear representation `rep` of a finite group `E` on a finite dimensional
 `F`-vector space `V` where `F` is a splitting field of `E` of characteristic zero,
@@ -529,18 +529,18 @@ and an integer `t`, return the symmetric Grassmannian parametrizing `t`-dimensio
 $FE$-submodules of $(V, rep)$.
 
 In the case of we are given a projective representation `prep`, it is constructed
-with respect to a stored linear lift `prep`.
+with respect to a stored linear lift `rep`.
 """
 function invariant_grassmannian(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
   @req 1 <= t < dimension_representation(rep) "t must be positive and (strictly) smaller than the dimension of rep"
   chis = constituents(character_representation(rep), t)
-  M = CharacterGrassmannian{S, T, U}[]
+  M = CharGrass{S, T, U}[]
   for chi in chis
     N = character_grassmannian(rep, chi)
     push!(M, N)
   end
 
-  return InvariantGrassmannian(rep, M, t)
+  return InvGrass(rep, M, t)
 end
 
 invariant_grassmannian(prep::ProjRep, t::Int) = invariant_grassmannian(linear_lift(prep), t)
@@ -556,17 +556,17 @@ of `E` of characteristic zero, return the symmetric Grassmannian parametrizing
 `t`-dimensional $FE$-submodules of $(V, rep)$ with determinant character `chi`.
 
 In the case of we are given a projective representation `prep`, it is constructed
-with respect to a stored linear lift `prep`.
+with respect to a stored linear lift `rep`.
 """
 function determinant_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U}
   @req Int(degree(chi)) == 1 "chi must be a degree 1 character"
   chis = constituents(character_representation(rep), t)
-  filter!(nu -> determinant(nu) == chi, chis)
-  irr_comp = CharacterGrassmannian{S, T, U}[]
+  filter!(nu -> det(nu) == chi, chis)
+  irr_comp = CharGrass{S, T, U}[]
   for nu in chis
     push!(irr_comp, character_grassmannian(rep, nu))
   end
-  return DeterminantGrassmannian(rep, chi, irr_comp, t)
+  return DetGrass(rep, chi, irr_comp, t)
 end
 
 determinant_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction, t::Int) = determinant_grassmannian(linear_lift(prep), chi, t)

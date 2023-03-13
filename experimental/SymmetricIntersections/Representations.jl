@@ -2,53 +2,50 @@ const GG = GAP.Globals
 
 import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective
 
-export action_on_submodule,
-       affording_representation,
-       all_characters,
-       all_irreducible_representations,
-       associated_schur_cover,
-       basis_exterior_power,
-       basis_isotypical_component,
-       center_of_character,
-       character_decomposition,
-       character_linear_lift,
-       character_representation,
-       character_table_underlying_group,
-       complement_submodule,
-       constituents,
-       determinant,
-       dimension_linear_lift,
-       dimension_representation,
-       direct_sum_representation,
-       dual_representation,
-       exterior_power_representation,
-       faithful_projective_representations,
-       generators_underlying_group,
-       homogeneous_polynomial_representation,
-       irreducible_characters_underlying_group,
-       irreducible_affording_representation,
-       is_character,
-       is_constituent,
-       is_faithful,
-       is_isotypical,
-       is_isotypical_component,
-       is_similar,
-       is_subrepresentation,
-       isotypical_components,
-       linear_lift,
-       linear_representation,
-       matrix_representation,
-       matrix_representation_linear_lift,
-       projective_representation,
-       quotient_representation,
-       representation,
-       representation_mapping,
-       representation_mapping_linear_lift,
-       representation_ring,
-       representation_ring_linear_lift,
-       symmetric_power_representation,
-       to_equivalent_block_representation,
-       underlying_group
+export action_on_submodule
+export affording_representation
+export all_characters
+export all_irreducible_representations
+export associated_schur_cover
+export basis_exterior_power
+export basis_isotypical_component
+export character_decomposition
+export character_linear_lift
+export character_representation
+export character_table_underlying_group
+export complement_submodule
+export constituents
+export dimension_linear_lift
+export dimension_representation
+export direct_sum_representation
+export dual_representation
+export exterior_power_representation
+export faithful_projective_representations
+export generators_underlying_group
+export homogeneous_polynomial_representation
+export irreducible_characters_underlying_group
+export irreducible_affording_representation
+export is_character
+export is_constituent
+export is_faithful
+export is_isotypical
+export is_isotypical_component
+export is_similar
+export is_subrepresentation
+export isotypical_components
+export linear_lift
+export linear_representation
+export matrix_representation
+export matrix_representation_linear_lift
+export projective_representation
+export quotient_representation
+export representation_mapping
+export representation_mapping_linear_lift
+export representation_ring
+export representation_ring_linear_lift
+export symmetric_power_representation
+export to_equivalent_block_representation
+export underlying_group
 
 """
 Here are some tools for representation theory and projective representations.
@@ -359,30 +356,6 @@ function all_characters(RR::RepRing, t::Int)
   return Oscar.GAPGroupClassFunction[sum(chis[l]) for l in el]
 end
 
-@doc Markdown.doc"""
-    determinant(chi::Oscar.GAPGroupClassFunction) -> Oscar.GAPGroupClassFunction
-
-Given a character `chi` of degree `n`, return its determinant character,
-which corresponds to the `n`-th antisymmetric parts of `chi`.
-"""
-determinant(chi::Oscar.GAPGroupClassFunction) = exterior_power(chi, Int(degree(chi)))
-
-@doc Markdown.doc"""
-    center_of_character(chi::Oscar.GAPGroupClassFunction) -> GAPGroup, GAPGroupHomomorphism
-
-Return the center of the character `chi` which corresponds to the subgroup
-of the underlying group `E` of `chi` consisting on the elements `e` of `E`
-such that $chi(e)$ is a primitive root of unity times the degree of `chi`.
-"""
-function center_of_character(chi::Oscar.GAPGroupClassFunction)
-  E = chi.table.GAPGroup
-  _H = GG.CenterOfCharacter(chi.values)::GAP.GapObj
-  H = typeof(E)(_H)
-  ok, j = is_subgroup(H, E)
-  @assert ok
-  return H, j
-end
-
 ###########################################################################
 #
 # I/O printing
@@ -514,17 +487,17 @@ This is equivalent to ask that the center of `chi` contains the kernel of `p`.
 """
 function is_projective(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
   @req chi.table.GAPGroup === domain(p) "Incompatible representation ring of rep and domain of the cover p"
-  return is_subset(kernel(p)[1], center_of_character(chi)[1])
+  return is_subgroup(kernel(p)[1], center(chi)[1])[1]
 end
 
 is_projective(rep::LinRep, p::GAPGroupHomomorphism) = is_projective(character_representation(rep), p)
 
 @doc Markdown.doc"""
-    projective_representation(RR::RepRing, f::GAPGroupHomomorphism,
-                                           p::GAPGroupHomomorphism) -> ProjRep
+    projective_representation(RR::RepRing, f::GAPGroupHomomorphism, p::GAPGroupHomomorphism) -> ProjRep
+    projective_representation(rep::LinRep, p::GAPGroupHomomorphism) -> ProjRep
 
-Return a linear representation in `RR` and associating mapping `f` representation
-a lift along the cover `p` of a projective representation of $codomain(p)$.
+Return a linear representation `rep` in `RR` and associating mapping `f` representating
+a lift along the cover `p` of a projective representation of the codomain of `p`.
 
 If `check=true`, `f` is check to be `p`-projective.
 """
@@ -535,6 +508,15 @@ function projective_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T,
     @req is_projective(lr, p) "f is not p-projective"
   end
   return ProjRep{S, T, U, V}(lr, p)
+end
+
+function projective_representation(rep::LinRep{S, T, U}, p::V; check::Bool = true) where {S, T, U, V}
+  RR = representation_ring(rep)
+  if check
+    @req underlying_group(RR) === domain(p) "Incompatible representation ring and cover"
+    @req is_projective(lr, p) "rep is not p-projective"
+  end
+  return ProjRep{S, T, U, V}(rep, p)
 end
 
 @doc Markdown.doc"""
@@ -700,7 +682,7 @@ cached list of generators of the underlying group of `LR`.
 """
 function matrix_representation(LR::LinRep{S, T, U}) where {S, T, U}
   f = representation_mapping(LR)
-  return matrix.(gens(codomain(f)))::Vector{dense_matrix_type(U)}
+  return matrix.(f.(gens(domain(f))))::Vector{dense_matrix_type(U)}
 end
 
 @doc Markdown.doc"""
@@ -740,7 +722,7 @@ function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T
   E = chi.table.GAPGroup::T
   @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
   @req is_projective(chi, p) "chi is not afforded by a p-projective representation"
-  Z = center_of_character(chi)[1]::T
+  Z = center(chi)[1]::T
   Q = kernel(p)[1]
   return Q.X == Z.X
 end
@@ -789,7 +771,7 @@ function is_similar(prep1::T, prep2::T) where T <: ProjRep
   RR = representation_ring_linear_lift(prep1)
   chi1 = character_linear_lift(prep1)
   chi2 = character_linear_lift(prep2)
-  Irr = irreducible_characters_underlying_group(RR)
+  Irr = Oscar.GAPGroupClassFunction[irr for irr in irreducible_characters_underlying_group(RR) if irr[1] == 1]
   return any(irr -> irr*chi1 == chi2, Irr)
 end
 
