@@ -6,6 +6,7 @@ include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
 include("SymmetricIntersections.jl")
+include("LinearQuotients.jl")
 
 include("JuLie.jl")
 

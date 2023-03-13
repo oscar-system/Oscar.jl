@@ -925,6 +925,9 @@ end
 
 matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V))
 
+matrix_group(m::Int, F::Ring) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m, F)
+
+matrix_group(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatElem, AbstractMatrixGroupElem} = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m, F, V)
 
 ########################################################################
 #
