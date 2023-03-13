@@ -284,12 +284,6 @@ end
 For a `BlowupMorphism` ``p : Y → X`` display domain, codomain, center and exceptional divisor in a detailed view.
 # Examples
 ```jldoctest
-  R, (x,y,z) = QQ["x", "y", "z"];
-  A3 = Spec(R);
-  I = ideal(R,[x,y,z]);
-  bl = blow_up(A3,I)
-  show_details(bl)
-  show_details(bl;more=true)
 julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> A3 = Spec(R);
