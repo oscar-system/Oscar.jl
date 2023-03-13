@@ -5,9 +5,9 @@
 # underlying GAP function object directly and also has information about the
 # return type.
 #
-# Note that the macro GAP.@wrap has a similar purpose as @gapwrap and @gappatribute
+# Note that the macro GAP.@wrap has a similar purpose as @gappatribute
 # have, but works on a much lower level on purpose. We may actually phase out
-# use of @gapwrap and @gappatribute in the future.
+# use of @gappatribute in the future.
 module GAPWrap
 
 using GAP
@@ -22,8 +22,8 @@ GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap Characteristic(x::Any)::GapInt
 GAP.@wrap Coefficients(x::Any, y::Any)::GapObj
-GAP.@wrap CoeffsCyc(x::GAP.Obj, y::Int)::GapObj
 GAP.@wrap CoefficientsOfUnivariatePolynomial(x::GapObj)::GapObj
+GAP.@wrap CoeffsCyc(x::GAP.Obj, y::Int)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
 GAP.@wrap CycList(x::GapObj)::GapInt
 GAP.@wrap CyclotomicPol(x::Int)::GapObj
@@ -49,15 +49,17 @@ GAP.@wrap GF(x::Any)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
+GAP.@wrap HasMaximalAbelianQuotient(x::Any)::Bool
+GAP.@wrap HasSize(x::Any)::Bool
 GAP.@wrap Image(x::Any, y::Any)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
 GAP.@wrap IndeterminateNumberOfUnivariateRationalFunction(x::GapObj)::Int
 GAP.@wrap IndeterminatesOfPolynomialRing(x::GapObj)::GapObj
-GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap IntFFE(x::Any)::GapInt
+GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap IsAbelian(x::Any)::Bool
 GAP.@wrap IsAlgebraicElementCollCollColl(x::Any)::Bool
 GAP.@wrap IsAlgebraicExtension(x::Any)::Bool
@@ -93,8 +95,8 @@ GAP.@wrap IsFFECollCollColl(x::Any)::Bool
 GAP.@wrap IsField(x::Any)::Bool
 GAP.@wrap IsFinite(x::Any)::Bool
 GAP.@wrap IsFinitelyGeneratedGroup(x::Any)::Bool
-GAP.@wrap IsFreeGroup(x::Any)::Bool
 GAP.@wrap IsFpGroup(x::Any)::Bool
+GAP.@wrap IsFreeGroup(x::Any)::Bool
 GAP.@wrap IsGroupOfAutomorphisms(x::Any)::Bool
 GAP.@wrap IsHandledByNiceMonomorphism(x::Any)::Bool
 GAP.@wrap IsHermitianForm(x::Any)::Bool
@@ -175,6 +177,8 @@ GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
+GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
+GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap Size(x::Any)::GapInt
 GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj

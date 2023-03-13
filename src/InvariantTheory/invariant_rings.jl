@@ -1,7 +1,3 @@
-export invariant_ring, affine_algebra
-export coefficient_ring, polynomial_ring, action, group
-export is_modular
-export reynolds_operator, molien_series
 
 ################################################################################
 #

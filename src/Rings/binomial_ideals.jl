@@ -1,7 +1,5 @@
 import Oscar.Singular.lib4ti2_jll
-export is_binomial, is_cellular, is_unital, binomial_primary_decomposition, 
-       cellular_decomposition, cellular_associated_primes, cellular_minimal_associated_primes, cellular_hull, cellular_primary_decomposition
-export cellular_decomposition_macaulay
+
 @doc Markdown.doc"""
     is_binomial(f::MPolyRingElem)
 

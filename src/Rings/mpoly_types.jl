@@ -1,5 +1,3 @@
-export mpoly_type, mpoly_ring_type, mpoly_dec_ring_type, mpoly_dec_type
-
 mpoly_ring_type(R::T) where {T<:AbstractAlgebra.Ring} = Generic.MPolyRing{elem_type(T)}
 mpoly_ring_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = Generic.MPolyRing{elem_type(T)}
 mpoly_type(R::T) where {T<:AbstractAlgebra.Ring} = Generic.MPolyRingElem{elem_type(T)}

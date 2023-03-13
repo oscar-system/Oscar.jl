@@ -1,11 +1,5 @@
 #module MPolyModule
 
-export polynomial_ring, total_degree, degree,  MPolyIdeal, MPolyRingElem, ideal, coordinates,
-       jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
-       coefficients, coefficients_and_exponents, exponents, monomials, terms,
-       leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
-       leading_monomial, leading_term, singular_poly_ring, tail
-
 ##############################################################################
 #
 # could/ should be in AbstractAlgebra
@@ -156,12 +150,6 @@ end
 ###################################################
 
 using .Orderings
-export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
-       negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       matrix_ordering, MonomialOrdering, singular, is_total,
-       is_global, is_local, is_mixed, monomial_ordering, opposite_ordering,
-       permutation_of_terms, index_of_leading_term, weight_ordering,
-       canonical_matrix, is_elimination_ordering, induced_ring_ordering
 
 
 ##############################################################################

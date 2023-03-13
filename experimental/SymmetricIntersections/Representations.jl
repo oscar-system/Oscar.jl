@@ -378,7 +378,7 @@ function center_of_character(chi::Oscar.GAPGroupClassFunction)
   E = chi.table.GAPGroup
   _H = GG.CenterOfCharacter(chi.values)::GAP.GapObj
   H = typeof(E)(_H)
-  ok, j = is_subgroup(E, H)
+  ok, j = is_subgroup(H, E)
   @assert ok
   return H, j
 end
@@ -514,7 +514,7 @@ This is equivalent to ask that the center of `chi` contains the kernel of `p`.
 """
 function is_projective(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
   @req chi.table.GAPGroup === domain(p) "Incompatible representation ring of rep and domain of the cover p"
-  return is_subgroup(center_of_character(chi)[1], kernel(p)[1])[1]
+  return is_subset(kernel(p)[1], center_of_character(chi)[1])
 end
 
 is_projective(rep::LinRep, p::GAPGroupHomomorphism) = is_projective(character_representation(rep), p)

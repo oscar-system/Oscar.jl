@@ -358,7 +358,7 @@ function save_internal(s::SerializerState, r::arb)
     arb_unsafe_str = unsafe_string(c_str)
 
     # free memory
-    ccall((:flint_free, Nemo.FLINT_jll.libflint), Nothing, (Ptr{UInt8},), c_str)
+    ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),

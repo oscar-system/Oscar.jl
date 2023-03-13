@@ -487,7 +487,7 @@ end
    O = GO(1,2,F)
    H = intersect(S,O)[1]
    @test H==SO(1,2,F)
-   @test is_normal(O,H)
+   @test is_normal_subgroup(H, O)
    @test index(O,H)==2
 #   @test index(GO(0,3,3), omega_group(0,3,3))==4
    @test index(GO(1,2,8), omega_group(1,2,8))==2

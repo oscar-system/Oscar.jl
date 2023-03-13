@@ -37,8 +37,8 @@ Rational equivalence classon a normal toric variety represented by V(x3)
 ```
 """
 function rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
-    (is_simplicial(v) && is_complete(v)) || throw(ArgumentError("Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"))
-    parent(p) == chow_ring(v) || throw(ArgumentError("The polynomial must reside in the Chow ring of the toric variety"))
+    @req (is_simplicial(v) && is_complete(v)) "Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"
+    @req parent(p) == chow_ring(v) "The polynomial must reside in the Chow ring of the toric variety"
     return RationalEquivalenceClass(v, p)
 end
 
@@ -58,8 +58,8 @@ Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6
 ```
 """
 function rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
-    (is_simplicial(v) && is_complete(v)) || throw(ArgumentError("Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"))
-    length(coefficients) == length(cones(v)) || throw(ArgumentError("The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"))
+    @req (is_simplicial(v) && is_complete(v)) "Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"
+    @req length(coefficients) == length(cones(v)) "The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"
     mons = gens_of_rational_equivalence_classes(v)
     return RationalEquivalenceClass(v, sum(coefficients[i]*mons[i] for i in 1:length(coefficients)))
 end

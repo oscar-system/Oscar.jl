@@ -168,7 +168,7 @@ original roots
 max_prec can be given to limit the internal precision
 """
 function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, max_prec::Int = typemax(Int))
-  @hassert :SolveRadical 1 is_subgroup(S.grp, U)[1]
+  @hassert :SolveRadical 1 is_subset(U, S.grp)
   t = right_transversal(S.grp, U)
   @assert isone(t[1])
   if invar !== nothing

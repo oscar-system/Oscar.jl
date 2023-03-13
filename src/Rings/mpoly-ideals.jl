@@ -1,13 +1,3 @@
-export saturation, saturation_with_index, quotient, eliminate
-export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
-          equidimensional_decomposition_radical, equidimensional_hull,
-          equidimensional_hull_radical, vdim
-export absolute_primary_decomposition
-export iszero, isone, is_subset, ideal_membership, radical_membership, inradical, is_prime, is_primary
-export ngens, gens
-export minimal_generating_set
-export grassmann_pluecker_ideal
-
 # constructors #######################################################
 
 @doc Markdown.doc"""

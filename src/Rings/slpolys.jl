@@ -121,7 +121,7 @@ SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, SLProgram{T}())
 isvalid(p::SLPoly) = !SLP.hasmultireturn(p.slprogram)
 
 function assert_valid(p::SLPoly)
-    isvalid(p) || throw(ArgumentError("SLPoly is in an invalid state"))
+    @req isvalid(p) "SLPoly is in an invalid state"
     p
 end
 

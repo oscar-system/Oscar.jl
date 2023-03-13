@@ -102,9 +102,16 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
      # The two fields are compatible.
      F = FO
 
-     f = function(x)
-       v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
-       return sum([v[i]*basis_FG[i] for i in 1:d])
+     if FO isa FqField
+       f = function(x)
+         v = [GAP.Obj(Nemo._coeff(x, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
+     else
+       f = function(x)
+         v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
      end
 
      finv = function(x::GAP.Obj)
@@ -122,9 +129,18 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
      emb = embed(FO2, FO)
      F = FO2
 
-     f = function(x)
-       v = [GAP.Obj(coeff(preimage(emb, x), i)) for i in 0:(d - 1)]
-       return sum([v[i]*basis_FG[i] for i in 1:d])
+     if FO isa FqField
+       f = function(x)
+         y = preimage(emb, x)
+         v = [GAP.Obj(Nemo._coeff(y, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
+     else
+       f = function(x)
+         y = preimage(emb, x)
+         v = [GAP.Obj(coeff(y, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
      end
 
      finv = function(x::GAP.Obj)
