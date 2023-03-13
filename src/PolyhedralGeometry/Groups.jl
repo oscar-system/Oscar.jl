@@ -182,7 +182,7 @@ Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
 ```
 """
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
-    is_bounded(P) || throw(ArgumentError("Automorphism groups not supported for unbounded polyhedra."))
+    @req is_bounded(P) "Automorphism groups not supported for unbounded polyhedra."
     if type == :combinatorial
         IM = vertex_indices(facets(P))
         if action == :all

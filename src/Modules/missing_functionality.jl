@@ -1,4 +1,3 @@
-export subquo_type
 ########################################################################
 #
 # This file contains hacks for functionality that was found missing. 

@@ -8,6 +8,8 @@ include("MPolyRingSparse.jl")
 include("SymmetricIntersections.jl")
 include("LinearQuotients.jl")
 
+include("JuLie.jl")
+
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
 include("Schemes/ProjectiveSchemes.jl")

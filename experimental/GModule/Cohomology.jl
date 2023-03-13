@@ -165,14 +165,14 @@ end
 
 function Oscar.relations(G::Oscar.GAPGroup)
    f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
 function Oscar.relations(G::PcGroup)
    f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.Obj("g"))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end

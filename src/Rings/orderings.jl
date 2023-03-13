@@ -38,7 +38,7 @@ struct WSymbOrdering{S} <: AbsGenOrdering
         throw(ArgumentError("unsupported ordering $S"))
     length(v) == length(w) ||
         throw(ArgumentError("number of variables should match the number of weights"))
-    all(>(0), v) || throw(ArgumentError("all weights should be positive"))
+    @req all(>(0), v) "all weights should be positive"
     return new{S}(v, w)
   end
 end
@@ -60,7 +60,7 @@ struct MatrixOrdering <: AbsGenOrdering
         throw(ArgumentError("weight matrix is rank deficient"))
       else
         @assert nrows(m) == ncols(m)
-        !iszero(det(m)) || throw(ArgumentError("weight matrix is not invertible"))
+        @req !iszero(det(m)) "weight matrix is not invertible"
       end
     end
     return new(v, m, fullrank)
@@ -1738,7 +1738,7 @@ returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
   n = length(f)
-  n > 0 || throw(ArgumentError("zero polynomial does not have a leading term"))
+  @req n > 0 "zero polynomial does not have a leading term"
   res = 1
   for i in 2:n
     if Orderings._cmp_monomials(f, res, f, i, ord.o) < 0

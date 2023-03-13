@@ -83,13 +83,13 @@ function translate_group_library_args(args::Tuple; filter_attrs::Dict = _group_f
          func = arg[1]
          data = arg[2]
          expected_type, gapfunc, _ = find_index_function(func, filter_attrs)
-         data isa expected_type || throw(ArgumentError("bad argument $(data) for function $(func)"))
+         @req data isa expected_type "bad argument $(data) for function $(func)"
          push!(gapargs, gapfunc, GAP.Obj(data))
       elseif arg isa Function
          # handle e.g. `is_abelian` or `! is_abelian`
          func = arg
          expected_type, gapfunc, default = find_index_function(func, filter_attrs)
-         default !== nothing || throw(ArgumentError("missing argument for function $(func)"))
+         @req default !== nothing "missing argument for function $(func)"
          push!(gapargs, gapfunc, default)
       else
          throw(ArgumentError("expected a function or a pair, got $arg"))

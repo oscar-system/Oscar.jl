@@ -855,7 +855,7 @@ end
 Given a matroid `m` return its automorphism group as a `PermGroup`.
 The group acts on the elements of `m`.
 
-# Example
+# Examples
 ```jldoctest
 julia> M = uniform_matroid(2, 4)
 Matroid of rank 2 on 4 elements

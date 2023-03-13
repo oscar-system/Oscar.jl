@@ -824,7 +824,7 @@ ERROR: ArgumentError: the group is not transitive
 ```
 """
 function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-   is_transitive(G, L) || throw(ArgumentError("the group is not transitive"))
+   @req is_transitive(G, L) "the group is not transitive"
    length(L) == 0 && throw(ArgumentError("the action domain is empty"))
    H = stabilizer(G, L[1])[1]
    return length(orbits(gset(H, L, closed = true)))

@@ -189,4 +189,5 @@ end
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
+  @test haskey(I.gb, lex(R))
 end

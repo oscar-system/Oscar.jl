@@ -1,5 +1,3 @@
-export kernel, cokernel, image, coordinates, represents_element
-export syz, has_nonempty_intersection, base_ring_module
 
 ########################################################################
 # 
