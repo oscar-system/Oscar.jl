@@ -187,6 +187,9 @@ end
   to understand; it is also more difficult to see all the code at once. Consider
   splitting the function into multiple ones, if it is sensibly possible.
 
+- Every export statement must export exactly one identifier. If multiple
+  export statements appear in sequence, they must be sorted alphabetically.
+
 However, as always, rules sometimes should be broken.
 
 
