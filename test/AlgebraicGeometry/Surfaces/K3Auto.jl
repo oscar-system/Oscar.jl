@@ -71,7 +71,7 @@ end
   @test length(rational_mod_aut) == 3
 
   # Another example with finite automorphism group
-  S,_,_=orthogonal_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
+  S,_ = direct_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test order(matrix_group(k3aut))==6
   @test length(chambers) == 1
@@ -87,7 +87,7 @@ end
   @test length(chambers) == 1
   @test length(rational_mod_aut) == 4
 
-  S,_,_=orthogonal_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
+  S,_ = direct_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=false)
   @test length(k3aut)==0
   @test length(chambers) == 6
@@ -99,7 +99,7 @@ end
   # we hardcode the embedding of the following lattice
   # because length(chambers) depends on the embedding
   #=
-  S,iU,_=orthogonal_sum(Zlattice(gram=ZZ[0 1; 1 -2]),Zlattice(gram=ZZ[-50;]))
+  S, _ = direct_sum(Zlattice(gram=ZZ[0 1; 1 -2]),Zlattice(gram=ZZ[-50;]))
   k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test length(k3aut)==2
   @test length(chambers) == 74

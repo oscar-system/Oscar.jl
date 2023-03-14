@@ -1701,7 +1701,7 @@ function weyl_vector(L::ZLat, U0::ZLat)
   elseif rank(L) == 18
     # normalize the basis
     e8 = rescale(root_lattice(:E,8), -1)
-    e8e8,_,_ = orthogonal_sum(e8, e8)
+    e8e8, _ = direct_sum(e8, e8)
     while true
       R = Hecke.orthogonal_submodule(L,U)
       @vprint :K3Auto 1 "starting isometry test\n"
