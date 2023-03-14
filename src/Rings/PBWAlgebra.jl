@@ -1005,7 +1005,7 @@ function Base.in(f::PBWAlgElem, I::PBWAlgIdeal)
 end
 
 @doc Markdown.doc"""
-    issubset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
+    is_subset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
 
 Return `true` if `I` is contained in `J`, `false` otherwise.
 # Examples
@@ -1018,11 +1018,11 @@ left_ideal(dx^2)
 julia> J = left_ideal(D, [x*dx^4, x^3*dx^2])
 left_ideal(x*dx^4, x^3*dx^2)
 
-julia> issubset(I, J)
+julia> is_subset(I, J)
 true
 ```
 """
-function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+function is_subset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
   @assert base_ring(a) === base_ring(b)
   if D <= 0
     # Ditto comment ideal_membership
@@ -1033,6 +1033,10 @@ function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {
     opgroebner_assure!(b)
     return Singular.is_zero(Singular.reduce(a.sopdata, b.opgb))
   end
+end
+
+function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+    return is_subset(a,b);
 end
 
 @doc Markdown.doc"""
@@ -1057,7 +1061,7 @@ true
 function Base.:(==)(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
   a === b && return true
   gens(a) == gens(b) && return true
-  return issubset(a, b) && issubset(b, a)
+  return is_subset(a, b) && is_subset(b, a)
 end
 
 

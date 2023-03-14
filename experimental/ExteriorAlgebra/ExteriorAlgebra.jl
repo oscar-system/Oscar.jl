@@ -77,16 +77,16 @@ end;
 
 
 Markdown.@doc doc"""
-    exterior_algebra(coeffRing::Field, numVars::Int)
-    exterior_algebra(coeffRing::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
-                                                             AbstractVector{Symbol},
-                                                             AbstractVector{Char}})
+    exterior_algebra(K::Field, numVars::Int)
+    exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
+                                                     AbstractVector{Symbol},
+                                                     AbstractVector{Char}})
 
-The first form returns an exterior algebra with given `coeffRing` and `numVars` variables;
+The first form returns an exterior algebra with coefficient field `K` and `numVars` variables;
 the variables are called `e1, e2, ...`.  The value of `numVars` must be positive; be aware that
 large values will create an object occupying a lot of memory (probably cubic in `numVars`).
 
-The second form returns an exterior algebra with given `coeffRing`, and variables named
+The second form returns an exterior algebra with coefficient field `K`, and variables named
 as specified in `listOfVarNames` (which must be non-empty).
 
 

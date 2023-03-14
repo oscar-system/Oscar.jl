@@ -46,8 +46,9 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+    exterior_algebra(K::Field, xs::Union{AbstractVector{<:AbstractString}, 
+                                         AbstractVector{Symbol},
+					 AbstractVector{Char}})
 ```
 
 ## Data Associated to Affine GR-Algebras
