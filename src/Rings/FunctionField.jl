@@ -1,5 +1,5 @@
 function check_char(A::Ring, B::Ring)
-  characteristic(A) == characteristic(B) || throw(ArgumentError("wrong characteristic"))
+  @req characteristic(A) == characteristic(B) "wrong characteristic"
 end
 
 # conversion between fraction_field and Singular function field
@@ -11,14 +11,14 @@ end
 
 function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQPolyRingElem, fpPolyRingElem}
   check_char(F, parent(x))
-  Singular.transcendence_degree(F) == 1 || throw(ArgumentError("wrong number of generators"))
+  @req Singular.transcendence_degree(F) == 1 "wrong number of generators"
   a = Singular.transcendence_basis(F)[1]
   numerator(x)(a) // denominator(x)(a)
 end
 
 function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where T <: Union{QQPolyRingElem, fpPolyRingElem}
   check_char(F, parent(x))
-  Singular.transcendence_degree(parent(x)) == 1 || throw(ArgumentError("wrong number of generators"))
+  @req Singular.transcendence_degree(parent(x)) == 1 "wrong number of generators"
   n, d = Singular.n_transExt_to_spoly.([numerator(x), denominator(x)])
   F(n) // F(d)
 end
@@ -31,14 +31,14 @@ end
 
 function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
   check_char(F, parent(x))
-  Singular.transcendence_degree(F) == ngens(base_ring(parent(x))) || throw(ArgumentError("wrong number of generators"))
+  @req Singular.transcendence_degree(F) == ngens(base_ring(parent(x))) "wrong number of generators"
   a = Singular.transcendence_basis(F)
   numerator(x)(a...) // denominator(x)(a...)
 end
 
 function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
   check_char(F, parent(x))
-  ngens(base_ring(F)) == Singular.transcendence_degree(parent(x)) || throw(ArgumentError("wrong number of generators"))
+  @req ngens(base_ring(F)) == Singular.transcendence_degree(parent(x)) "wrong number of generators"
   n, d = Singular.n_transExt_to_spoly.([numerator(x), denominator(x)])
   F(n) // F(d)
 end

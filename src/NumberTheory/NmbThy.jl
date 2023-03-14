@@ -1,5 +1,3 @@
-export norm_equation_fac_elem, norm_equation, irreducibles, factorisations
-
 function norm_equation_fac_elem(R::NfAbsOrd, k::ZZRingElem; abs::Bool = false)
   @assert Hecke.is_maximal(R)
   lp = factor(k)

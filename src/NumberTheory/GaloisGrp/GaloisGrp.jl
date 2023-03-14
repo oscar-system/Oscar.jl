@@ -2,7 +2,8 @@ module GaloisGrp
 
 using Oscar, Markdown, Random
 import Base: ^, +, -, *, ==
-import Oscar: Hecke, AbstractAlgebra, GAP, extension_field
+import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
+              upper_bound
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
 export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
@@ -270,7 +271,7 @@ function Nemo.roots_upper_bound(f::ZZPolyRingElem)
   a = coeff(f, degree(f))
   b = ceil(ZZRingElem, abs(coeff(f, degree(f)-1)//a))
   for i=0:degree(f)-2
-    b = max(b, root(ceil(ZZRingElem, abs(coeff(f, i)//a)), degree(f)-i)+1)
+    b = max(b, iroot(ceil(ZZRingElem, abs(coeff(f, i)//a)), degree(f)-i)+1)
   end
   return 2*b
   return max(ZZRingElem(1), maximum([ceil(ZZRingElem, abs(coeff(f, i)//a)) for i=0:degree(f)]))
@@ -2725,7 +2726,6 @@ AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{T}) where {T <: Integ
 
 include("Group.jl")
 include("POSet.jl")
-include("Subfields.jl")
 include("SeriesEval.jl")
 include("Qt.jl")
 include("RelGalois.jl")

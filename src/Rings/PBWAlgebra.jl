@@ -1,9 +1,3 @@
-export build_ctx, PBWAlgElem, PBWAlgRing,
-       is_two_sided, is_left, is_right,
-       left_ideal, two_sided_ideal, right_ideal,
-       pbw_algebra, weyl_algebra, opposite_algebra, is_admissible_ordering,
-       @pbw_relations
-
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations::Singular.smatrix{Singular.spoly{S}}

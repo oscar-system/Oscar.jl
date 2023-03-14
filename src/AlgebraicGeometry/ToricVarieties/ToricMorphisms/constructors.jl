@@ -36,7 +36,7 @@ A toric morphism
 ```
 """
 function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
-    (length(mapping_matrix) > 0 && length(mapping_matrix[1]) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
+    @req (length(mapping_matrix) > 0 && length(mapping_matrix[1]) > 0) "The mapping matrix must not be empty"
     if codomain == nothing
       return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(length(mapping_matrix[1])), matrix(ZZ, mapping_matrix)), codomain)
     else
@@ -65,7 +65,7 @@ A toric morphism
 ```
 """
 function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
-    (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
+    @req (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) "The mapping matrix must not be empty"
     if codomain == nothing
       return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), matrix(ZZ, mapping_matrix)), codomain)
     else
@@ -96,7 +96,7 @@ A toric morphism
 ```
 """
 function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
-    (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
+    @req (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) "The mapping matrix must not be empty"
     if codomain == nothing
       return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), mapping_matrix), codomain)
     else
@@ -137,7 +137,7 @@ A toric morphism
 """
 function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
     # avoid empty mapping
-    (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
+    @req (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) "The mapping matrix must not be empty"
 
     # check for a well-defined map
     if nrows(matrix(grid_morphism)) !== rank(character_lattice(domain))
@@ -159,7 +159,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
       codomain_cones = maximal_cones(codomain)
       image_cones = [positive_hull(matrix(ZZ, rays(c)) * matrix(grid_morphism)) for c in maximal_cones(domain)]
       for c in image_cones
-        any([intersect(c, ic) == c for ic in image_cones]) || throw(ArgumentError("Toric morphism not well-defined"))
+        @req any([intersect(c, ic) == c for ic in image_cones]) "Toric morphism not well-defined"
       end
       return ToricMorphism(domain, grid_morphism, image, codomain)
     end

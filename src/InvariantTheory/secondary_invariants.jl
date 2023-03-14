@@ -1,6 +1,3 @@
-export secondary_invariants, irreducible_secondary_invariants,
-semi_invariants, relative_invariants
-
 function add_invariant!(C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}) where T
   push!(C.invars, f)
   push!(C.is_irreducible, isirred)

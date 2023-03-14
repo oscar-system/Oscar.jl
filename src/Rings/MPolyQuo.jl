@@ -1,7 +1,3 @@
-export singular_coeff_ring, MPolyQuoRing, MPolyQuoRingElem, MPolyQuoIdeal
-export quo, base_ring, modulus, gens, ngens, dim, simplify, default_ordering
-export is_subset
-export saturated_ideal
 ##############################################################################
 #
 # quotient rings

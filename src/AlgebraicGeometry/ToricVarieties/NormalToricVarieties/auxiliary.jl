@@ -4,7 +4,7 @@
 
 function binomial_exponents_to_ideal(R::MPolyRing, binoms::Union{AbstractMatrix, ZZMatrix})
     nvariables = ncols(binoms)
-    nvariables == nvars(R) || throw(ArgumentError("Ring has wrong number of variables"))
+    @req nvariables == nvars(R) "Ring has wrong number of variables"
     if nrows(binoms) == 0
         return ideal([zero(R)])
     end

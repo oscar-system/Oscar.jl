@@ -470,7 +470,7 @@ julia> primitive_collections(normal_fan(simplex(3)))
 ```
 """
 function primitive_collections(PF::_FanLikeType)
-    is_simplicial(PF) || throw(ArgumentError("PolyhedralFan must be simplicial."))
+    @req is_simplicial(PF) "PolyhedralFan must be simplicial."
     I = ray_indices(maximal_cones(PF))
     K = SimplicialComplex(I)
     return minimal_nonfaces(K)

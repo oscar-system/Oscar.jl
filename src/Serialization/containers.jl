@@ -1,4 +1,3 @@
-export is_basic_serialization_type
 ################################################################################
 # Saving and loading vectors
 

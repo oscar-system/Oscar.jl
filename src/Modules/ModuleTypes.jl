@@ -1,7 +1,3 @@
-export ModuleFP, ModuleFPElem, ModuleFPHom, FreeMod,
-       FreeModElem, SubquoModule, SubquoModuleElem, FreeModuleHom, SubQuoHom,
-       FreeMod_dec, FreeModElem_dec, FreeModuleHom_dec, FreeResolution
-
 @doc Markdown.doc"""
     ModuleFP{T}
 

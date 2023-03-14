@@ -551,8 +551,8 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
-     is_abelian(G) || throw(ArgumentError("the group is not abelian"))
-     isfinite(G) || throw(ArgumentError("the group is not finite"))
+     @req is_abelian(G) "the group is not abelian"
+     @req isfinite(G) "the group is not finite"
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj

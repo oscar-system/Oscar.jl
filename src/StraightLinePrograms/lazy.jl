@@ -39,8 +39,7 @@ function gens(x::Lazy, xs::Lazy...)
         if length(gy) > length(gx)
             gx, gy = gy, gx
         end
-        gy == view(gx, eachindex(gy)) || throw(ArgumentError(
-            "incompatible symbols"))
+        @req gy == view(gx, eachindex(gy)) "incompatible symbols"
     end
     gx
 end
@@ -80,8 +79,7 @@ list(::Type{Lazy}, xs) = Lazy(List(LazyRec[x.x for x in xs]), gens(xs...))
 
 function compose(p::Lazy, q::Lazy; flatten=true)
     if flatten
-        q.x isa List || throw(ArgumentError(
-            "first argument must return a list"))
+        @req q.x isa List "first argument must return a list"
         gs = gens(q)
         evaluate(p, [Lazy(qi, gs) for qi in q.x.xs])::Lazy
     else
@@ -414,8 +412,7 @@ struct Compose <: LazyRec
     q::LazyRec # q must return a list!
 
     function Compose(p::LazyRec, q::LazyRec)
-        q isa List || throw(ArgumentError(
-            "second argument of Compose must return a list"))
+        @req q isa List "second argument of Compose must return a list"
         new(p, q)
     end
 end
@@ -616,8 +613,7 @@ function pushlazy!(p, l::Decision, gs)
 end
 
 function pushlazy!(p, g::Getindex, gs)
-    length(g.is) == 1 ||
-        throw(ArgumentError("getindex with multiple indices not supported"))
+    @req length(g.is) == 1 "getindex with multiple indices not supported"
     i = pushlazy!(p, g.p, gs)
     j = pushlazy!(p, g.is[1], gs)
     pushop!(p, getindex_, i, j)

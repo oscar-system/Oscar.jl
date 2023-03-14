@@ -235,7 +235,7 @@ Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by
 """
 function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
     weights = _cox_ring_weights(v)
-    length(weights) == nvars(R) || throw(ArgumentError("Wrong number of variables"))
+    @req length(weights) == nvars(R) "Wrong number of variables"
     return grade(R, weights)[1]
 end
 
@@ -295,7 +295,7 @@ julia> ngens(stanley_reisner_ideal(R, p2))
 """
 function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     n = nrays(v)
-    n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
+    @req n == nvars(R) "Wrong number of variables"
     mnf = _minimal_nonfaces(v)
     Polymake.nrows(mnf) > 0 || return ideal([zero(R)])
     return ideal([ R([1], [Vector{Int}(mnf[i, :])]) for i in 1:Polymake.nrows(mnf) ])
@@ -353,7 +353,7 @@ julia> length(gens(irrelevant_ideal(R, p2)))
 """
 function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     monoms = _irrelevant_ideal_monomials(v)
-    nvars(R) == nrays(v) || throw(ArgumentError("Wrong number of variables in polynomial ring"))
+    @req nvars(R) == nrays(v) "Wrong number of variables in polynomial ring"
     return ideal([R([1], [x]) for x in monoms])
 end
 
