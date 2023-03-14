@@ -1485,10 +1485,6 @@ end
 
 # modular gröbner basis techniques
 
-# TODO: what is the purpose of using rational reconstruction in the middle of this algorithm?
-# it is done both in experimental/modstd and in the paper sasaki - a modular method for gröbner basis construction
-
-# TODO: how to protect against the case where the first prime is unlucky?
 function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
                                 ordering::MonomialOrdering)
 
@@ -1520,7 +1516,6 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
   unlucky_primes_in_a_row = 0
   while n_stable_primes < 2
     p = iterate(primes, p)[1]
-    println("prime $p")
     Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
     std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
 
@@ -1528,7 +1523,8 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
     if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
            enumerate(std_basis_mod_p_lifted))
       unlucky_primes_in_a_row += 1
-      # if we get unlucky twice in a row we assume that we started with an unlucky prime
+      # if we get unlucky twice in a row we assume that
+      # we started with an unlucky prime
       if unlucky_primes_in_a_row == 2
         std_basis_crt_previous = std_basis_mod_p_lifted
       end
@@ -1551,7 +1547,7 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
   final_gb = fmpq_mpoly[]
   for f in std_basis_crt_previous
     did_succeed, f_QQ = induce_rational_reconstruction(f, d, parent = base_ring(I)) 
-    did_succeed || error("ask christian")
+    did_succeed || error("rational reconstruction failed")
     push!(final_gb, f_QQ)
   end
   return IdealGens(final_gb, ordering, isGB = true)
