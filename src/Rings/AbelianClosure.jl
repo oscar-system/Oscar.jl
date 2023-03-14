@@ -996,9 +996,9 @@ import .AbelianClosure:
        set_variable!,
        get_variable
 
-export abelian_closure,
-       QQAbAutomorphism,
-       QQAbField,
-       QQAbElem,
-       set_variable!,
-       get_variable
+export abelian_closure
+export get_variable
+export QQAbAutomorphism
+export QQAbElem
+export QQAbField
+export set_variable!
