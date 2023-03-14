@@ -1,4 +1,6 @@
-export is_projective, annihilator
+export annihilator
+export is_projective
+
 
 function annihilator(M::SubquoModule)
   R = base_ring(M)

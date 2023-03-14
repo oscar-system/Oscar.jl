@@ -1,10 +1,13 @@
-export IdealSheaf, ideal_sheaf
-
-export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
-
+export IdealSheaf
+export covered_patches
+export covering
+export extend!
+export ideal_dict
+export ideal_sheaf
 export ideal_sheaf_type
-
 export order_on_divisor
+export scheme
+export subscheme
 
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I

@@ -1,14 +1,21 @@
-export ProjectiveGlueing
-export glueing_type, base_glueing
-
 export CoveredProjectiveScheme
-export base_scheme, base_covering, projective_patches, covered_scheme
-
-export blow_up, empty_covered_projective_scheme
-
-export strict_transform, total_transform, weak_transform, controlled_transform
-
-export prepare_smooth_center, as_smooth_local_complete_intersection, as_smooth_lci_of_cod, _non_degeneration_cover
+export ProjectiveGlueing
+export _non_degeneration_cover
+export as_smooth_lci_of_cod
+export as_smooth_local_complete_intersection
+export base_covering
+export base_glueing
+export base_scheme
+export blow_up
+export controlled_transform
+export covered_scheme
+export empty_covered_projective_scheme
+export glueing_type
+export prepare_smooth_center
+export projective_patches
+export strict_transform
+export total_transform
+export weak_transform
 
 abstract type AbsProjectiveGlueing{
                                    GlueingType<:AbsGlueing,

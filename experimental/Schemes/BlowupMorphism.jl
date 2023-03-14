@@ -1,5 +1,8 @@
 export BlowupMorphism
-export center, projection, exceptional_divisor
+export center
+export exceptional_divisor
+export projection
+
 
 ########################################################################
 # BlowupMorphism 
