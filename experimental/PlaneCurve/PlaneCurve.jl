@@ -2,9 +2,21 @@ module PlaneCurveModule
 using Oscar, Markdown
 import Base.==
 
-export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, is_irreducible, is_reduced, reduction,
-       union, defining_equation, ring, ProjectivePlaneCurve
+export AffinePlaneCurve
+export Point
+export ProjPlaneCurve
+export ProjectivePlaneCurve
+export curve_components
+export defining_equation
+export degree
+export hash
+export ideal_point
+export is_irreducible
+export is_reduced
+export jacobi_ideal
+export reduction
+export ring
+export union
 
 ################################################################################
 
