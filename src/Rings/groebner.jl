@@ -179,7 +179,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
-    f4(I, complete_reduction=complete_reduction)
+    groebner_basis_f4(I, complete_reduction=complete_reduction)
   end
   return I.gb[ordering]
 end
@@ -279,7 +279,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc Markdown.doc"""
-	f4(I::MPolyIdeal, <keyword arguments>)
+	groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -304,7 +304,7 @@ julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
-julia> f4(I)
+julia> groebner_basis_f4(I)
 Gröbner basis with elements
 1 -> x + 2*y + 2*z + 100
 2 -> y*z + 82*z^2 + 10*y + 40*z
@@ -312,12 +312,9 @@ Gröbner basis with elements
 4 -> z^3 + 28*z^2 + 64*y + 13*z
 with respect to the ordering
 degrevlex([x, y, z])
-
-julia> isdefined(I, :gb)
-true
 ```
 """
-function f4(
+function groebner_basis_f4(
         I::MPolyIdeal;
         initial_hts::Int=17,
         nr_thrds::Int=1,
