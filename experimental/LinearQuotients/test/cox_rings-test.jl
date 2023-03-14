@@ -37,7 +37,7 @@
   end
 end
 
-@testset "Cox rings of QQ-factorial terminalization" begin
+@testset "Cox rings of QQ-factorial terminalizations" begin
   K, a = cyclotomic_field(4)
   G = matrix_group(
        matrix(K, 4, 4, [ 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0 ]),
