@@ -107,7 +107,7 @@ field over which the GR-algebra is defined (the type `S` is added for internal u
 ### Creating Elements of GR-Algebras
 
 Elements of a GR-algebra $Q = A/I$ are created as images of elements of $A$ under the projection map
-or by directly coercing elements of $A$ into $Q$. The function `simplify!` reduces a given element
+or by directly coercing elements of $A$ into $Q$. The function `simplify` reduces a given element
 with regard to the modulus $I$.
 
 ###### Examples
@@ -131,7 +131,7 @@ julia> f = q(y*x+z^2)
 julia> typeof(f)
 PBWAlgQuoElem{QQFieldElem, Singular.n_Q}
 
-julia> simplify!(f);
+julia> simplify(f);
 
 julia> f
 -x*y
