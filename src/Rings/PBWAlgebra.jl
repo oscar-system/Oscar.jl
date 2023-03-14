@@ -156,13 +156,13 @@ end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
   b = Base.iterate(a.second)
-  b == nothing && return b
+  b === nothing && return b
   return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
   b = Base.iterate(a.second, state)
-  b == nothing && return b
+  b === nothing && return b
   return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
@@ -180,13 +180,13 @@ end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
   b = Base.iterate(a.second)
-  b == nothing && return b
+  b === nothing && return b
   return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
   b = Base.iterate(a.second, state)
-  b == nothing && return b
+  b === nothing && return b
   return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
@@ -204,13 +204,13 @@ end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
   b = Base.iterate(a.second)
-  b == nothing && return b
+  b === nothing && return b
   return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
   b = Base.iterate(a.second, state)
-  b == nothing && return b
+  b === nothing && return b
   return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 

@@ -294,7 +294,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     incidence_vector = Vector{Int}()
     for vert in vertices(C)
       i = findfirst(isequal(vert),verts_rays)
-      if i == nothing
+      if i === nothing
         # if vert does not occur in verts_rays
         # add it to verts_rays
         push!(verts_rays,vert)
@@ -305,7 +305,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     end
     for ray in rays(C)
       i = findfirst(isequal(ray),verts_rays)
-      if i == nothing || !(i in far_vertices)
+      if i === nothing || !(i in far_vertices)
         # if ray does not occur in verts_rays or if it occurs but not as a ray,
         # add it to verts_rays
         push!(verts_rays,ray)

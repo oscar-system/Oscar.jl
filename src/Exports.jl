@@ -335,7 +335,6 @@ export euler_characteristic
 export euler_phi
 export exponents
 export ext
-export f4
 export f_vector
 export face_fan
 export faces
@@ -394,6 +393,7 @@ export graph
 export grassmann_pluecker_ideal
 export grid_morphism
 export groebner_basis
+export groebner_basis_f4
 export groebner_basis_hilbert_driven
 export groebner_basis_with_transformation_matrix
 export groebner_polyhedron

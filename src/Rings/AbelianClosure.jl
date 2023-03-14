@@ -946,7 +946,7 @@ function quadratic_irrationality_info(a::QQAbElem)
       end
     end
 
-    if cand == nothing
+    if cand === nothing
       # The value is rational.
       return (coeff(a.data, 0), 0, 1)
     end

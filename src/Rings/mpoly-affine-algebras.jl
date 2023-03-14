@@ -411,9 +411,7 @@ with structure of Abelian group with structure: Z
 function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
    R = base_ring(A)
    I = A.I
-   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-   end
+   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
    if !(R isa MPolyDecRing && is_graded(R) && is_positively_graded(R))
        throw(ArgumentError("The base ring must be positively graded."))
    end
@@ -467,9 +465,7 @@ end
 #function multi_hilbert_series(A::MPolyQuoRing)
 #   R = base_ring(A)
 #   I = A.I
-#   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-#       throw(ArgumentError("The coefficient ring must be a field."))
-#   end
+#   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 #   if !(R isa MPolyDecRing && is_graded(R) && is_positively_graded(R))
 #       throw(ArgumentError("The base ring must be positively graded."))
 #   end
@@ -689,9 +685,7 @@ julia> multi_hilbert_function(A, 7*g)
 """
 function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
     R = base_ring(A)
-    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of must be a field."))
-    end
+    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
     ### to another degree-compatible ordering is already available
@@ -770,9 +764,7 @@ true
 ```
 """
 function is_normal(A::MPolyQuoRing)
-  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
-  end
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if base_ring(A) isa MPolyDecRing
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
@@ -820,9 +812,7 @@ false
 function is_cohen_macaulay(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-    throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  if !((R isa Oscar.MPolyDecRing) && is_standard_graded(R))
     throw(ArgumentError("The base ring must be standard ZZ-graded."))
  end
@@ -905,9 +895,7 @@ julia> subalgebra_membership(f, V)
 """
 function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyRingElem, MPolyQuoRingElem}
    r = parent(f)
-   if !(coefficient_ring(r) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-   end
+   @req coefficient_ring(r) isa AbstractAlgebra.Field "The coefficient ring must be a field"
    @assert !isempty(v)
    @assert all(x->parent(x) == r, v)
    (R, I, W, F) = _ring_helper(r, f, v)
@@ -1033,9 +1021,7 @@ julia> minimal_subalgebra_generators(V)
 function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
   p = parent(V[1])
   @assert all(x->parent(x) == p, V)
-  if !(coefficient_ring(p) isa AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(p) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if p isa MPolyRing
       @req p isa MPolyDecRing && is_positively_graded(p) "The base ring must be positively graded"
   else
@@ -1151,9 +1137,7 @@ julia> LL[1][3]
 ```
 """
 function normalization(A::MPolyQuoRing; alg=:equidimDec)
-  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if base_ring(A) isa MPolyDecRing
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
@@ -1212,9 +1196,7 @@ julia> L[3]
 ```
 """
 function normalization_with_delta(A::MPolyQuoRing; alg=:equidimDec)
-  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if base_ring(A) isa MPolyDecRing
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
@@ -1245,9 +1227,7 @@ Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such
 
 """
 function noether_normalization(A::MPolyQuoRing)
- if !(coefficient_ring(A) isa AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring must be a field."))
- end
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  if base_ring(A) isa MPolyDecRing && !(is_standard_graded(A))
    throw(ArgumentError("If the base ring is decorated, it must be standard graded."))
  end

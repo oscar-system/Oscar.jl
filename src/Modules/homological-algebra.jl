@@ -59,18 +59,14 @@ end
 
 function fitting_ideal(F::FreeMod{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  if i < rank(F) return ideal(R, [zero(R)]) end
  return R
 end
 
 function fitting_ideal(M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
@@ -124,17 +120,13 @@ end
 
 function is_flat(F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  return true
 end
 
 function is_flat(M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
@@ -185,17 +177,13 @@ end
 
 function non_flat_locus(F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  return ideal(R, [one(R)])
 end
 
 function non_flat_locus(M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
@@ -245,9 +233,7 @@ end
 
 function is_regular_sequence(V::Vector{T}, F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -261,9 +247,7 @@ end
 
 function is_regular_sequence(V::Vector{T}, M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -357,9 +341,7 @@ end
 
 function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -375,9 +357,7 @@ end
 
 function koszul_homology(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -470,9 +450,8 @@ function depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 end
 
 function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
- if !(coefficient_ring(base_ring(I)) isa AbstractAlgebra.Field)
-    throw(ArgumentError("The coefficient ring must be a field."))
- end
+ R = base_ring(I)
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(F)
  if is_zero(F) || is_equal((I*F)[1], F) return -1 end
  MX = singular_module(F)
@@ -482,9 +461,8 @@ function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
 end
 
 function depth(I::MPolyIdeal{T}, M::SubquoModule{T}) where T <: MPolyRingElem
- if !(coefficient_ring(base_ring(I)) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ R = base_ring(I)
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(M)
  if is_zero(M) || is_equal((I*M)[1], M) return -1 end
  singular_assure(I)

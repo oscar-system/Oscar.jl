@@ -59,7 +59,9 @@ true
 """
 function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <: GAPGroupElem
   @assert elem_type(G) == S
-  check && ! all(x -> parent(x) === G || x in G, gens) && throw(ArgumentError("not all elements of gens lie in G"))
+  if check
+    @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
+  end
   elems_in_GAP = GapObj([x.X for x in gens])
   H = GAP.Globals.SubgroupNC(G.X, elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
@@ -294,7 +296,9 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
   # In order to avoid wrong results due to the reordering of arguments,
   # we throw an exception if `H` is not a subgroup of `G`.
   # (Just in case that you think about removing this exception.)
-  check && !is_subset(H, G) && throw(ArgumentError("H is not a subgroup of G"))
+  if check
+    @req is_subset(H, G) "H is not a subgroup of G"
+  end
   if order(G) // order(H) < 100
     t = right_transversal(G, H)[2:end] #drop the identity
     return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
@@ -388,7 +392,9 @@ ERROR: ArgumentError: H is not a subgroup of G
 ```
 """
 function is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
-  check && !is_subset(H, G)[1] && throw(ArgumentError("H is not a subgroup of G"))
+  if check
+    @req is_subset(H, G) "H is not a subgroup of G"
+  end
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
 end
 

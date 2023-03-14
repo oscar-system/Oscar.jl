@@ -36,8 +36,7 @@ struct WSymbOrdering{S} <: AbsGenOrdering
   function WSymbOrdering(S::Symbol, v, w::Vector{Int})
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
-    length(v) == length(w) ||
-        throw(ArgumentError("number of variables should match the number of weights"))
+    @req length(v) == length(w) "number of variables should match the number of weights"
     @req all(>(0), v) "all weights should be positive"
     return new{S}(v, w)
   end
@@ -50,18 +49,14 @@ struct MatrixOrdering <: AbsGenOrdering
   matrix::ZZMatrix
   fullrank::Bool
   function MatrixOrdering(v, m::ZZMatrix, fullrank::Bool)
-    length(v) == ncols(m) ||
-        throw(ArgumentError("number of variables should match the number of columns"))
+    @req length(v) == ncols(m) "number of variables should match the number of columns"
     if fullrank
       if nrows(m) > ncols(m)
         m = _canonical_matrix(m)
       end
-      if nrows(m) < ncols(m)
-        throw(ArgumentError("weight matrix is rank deficient"))
-      else
-        @assert nrows(m) == ncols(m)
-        @req !iszero(det(m)) "weight matrix is not invertible"
-      end
+      @req nrows(m) >= ncols(m) "weight matrix is rank deficient"
+      @assert nrows(m) == ncols(m)
+      @req !iszero(det(m)) "weight matrix is not invertible"
     end
     return new(v, m, fullrank)
   end

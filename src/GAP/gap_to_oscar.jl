@@ -202,7 +202,7 @@ end
 ## nonempty list of GAP matrices over the same field
 function matrices_over_field(gapmats::GapObj)
     @req GAPWrap.IsList(gapmats) "gapmats is not a GAP list"
-    GAPWrap.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
+    @req !GAPWrap.IsEmpty(gapmats)  "gapmats is empty"
 
     if GAPWrap.IsFFECollCollColl(gapmats) ||
        GAPWrap.IsCyclotomicCollCollColl(gapmats)

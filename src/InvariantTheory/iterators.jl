@@ -604,7 +604,7 @@ function Base.iterate(VSI::VectorSpaceIteratorFiniteField, state)
   n = length(VSI.basis_collected)
   j = n
   ab = iterate(VSI.field, b[j])
-  while ab == nothing
+  while ab === nothing
     a[j], b[j] = iterate(VSI.field)
     j -= 1
     if j == 0
