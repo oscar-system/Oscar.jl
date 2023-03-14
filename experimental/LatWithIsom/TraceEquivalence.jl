@@ -30,7 +30,7 @@ Note that the isometry `f` computed is given by its action on the ambient space 
 trace lattice of `L`.
 """
 function trace_lattice(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(base_field(L)),
-                                                beta::FieldElem = one(base_field(L)),
+                                                beta::FieldElem = gen(base_field(L)),
                                                 order::Integer = 2,
                                                 l = nothing) where T
 
@@ -77,18 +77,17 @@ function trace_lattice_with_map(L::Hecke.AbstractLat{T}; alpha::FieldElem = one(
 
   for i in 1:degree(Lres)
     v[i] = one(QQ)
-    v2 = f(v*inv(l))
+    v2 = f(v)
     v2 = beta.*v2
-    v3 = (f\v2)*l
+    v3 = (f\v2)
     iso = vcat(iso, transpose(matrix(v3)))
     v[i] = zero(QQ)
   end
-
   return lattice_with_isometry(Lres, iso, ambient_representation=true), f
 end
 
-function trace_lattice(L::Hecke.AbstractLat{T}, f::Hecke.SpaceRes; beta::FieldElem = gen(base_field(L)), l = nothing) where T
-  @req codomain(f) === ambient_space(L) "f must be a map of restriction of scalars associated to the ambient space of L"
+function trace_lattice(L::Hecke.AbstractLat{T}, res::Hecke.SpaceRes; beta::FieldElem = gen(base_field(L)), l = nothing) where T
+  @req codomain(res) === ambient_space(L) "f must be a map of restriction of scalars associated to the ambient space of L"
   E = base_field(L)
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
   @req degree(L) == rank(L) "Lattice must be of full rank"
@@ -102,24 +101,29 @@ function trace_lattice(L::Hecke.AbstractLat{T}, f::Hecke.SpaceRes; beta::FieldEl
   bool, m = Hecke.is_cyclotomic_type(E)
   @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "The normalisation of beta must be a $m-primitive root of 1"
 
-  Lres = restrict_scalars(L, f)
+  #Lres = restrict_scalars(L, f)
   if l === nothing
-    l = identity_matrix(QQ, degree(Lres))
+    il = identity_matrix(QQ, rank(domain(res)))
+    l = il
+  else
+    il = inv(l)
   end
-  Lres = lattice_in_same_ambient_space(Lres, basis_matrix(Lres)*inv(l))
-  iso = zero_matrix(QQ, 0, degree(Lres))
-  v = vec(zeros(QQ, 1, degree(Lres)))
-
-  for i in 1:degree(Lres)
-    v[i] = one(QQ)
-    v2 = f(v*inv(l))
-    v2 = beta.*v2
-    v3 = (f\v2)*l
-    iso = vcat(iso, transpose(matrix(v3)))
-    v[i] = zero(QQ)
+  Babs = absolute_basis(E)
+  Mabs = zero_matrix(QQ, 0, rank(domain(res)))
+  for w in absolute_basis(L)
+    w = transpose(matrix(reduce(vcat, absolute_coordinates.(w))))
+    v = w*l
+    Mabs = vcat(Mabs, v)
   end
-
-  return lattice_with_isometry(Lres, iso, ambient_representation=true)
+  Lres = Hecke.lattice(domain(res), Mabs)
+  mb = absolute_representation_matrix(beta)
+  iso = deepcopy(mb)
+  for i in 2:degree(L)
+    iso = diagonal_matrix(iso, mb)
+  end
+  println(iso)
+  println(gram_matrix(Lres))
+  return lattice_with_isometry(Lres, il*iso*l, ambient_representation=true)
 end
 
 function absolute_representation_matrix(b::Hecke.NfRelElem)
@@ -135,21 +139,34 @@ function absolute_representation_matrix(b::Hecke.NfRelElem)
   return m
 end
 
-function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
-                                                    n::Integer = -1,
-                                                    check::Bool = true,
-                                                    ambient_representation::Bool = true,
-                                                    l = nothing)
+function _hermitian_structure(_L::ZLat, f::QQMatrix; E = nothing,
+                                                     n::Integer = -1,
+                                                     check::Bool = true,
+                                                     ambient_representation::Bool = true,
+                                                     l = nothing)
+  if rank(_L) != degree(_L)
+    L = Zlattice(gram = gram_matrix(_L))
+    if ambient_representation
+      ok, f = can_solve_with_solution(basis_matrix(_L), basis_matrix(_L)*f, side=:left)
+      @req ok "Isometry does not restrict to L"
+    end
+  else
+    L = _L
+    if !ambient_representation
+      V = ambient_space(_L)
+      B = basis_matrix(_L)
+      B2 = orthogonal_complement(V, B)
+      C = vcat(B, B2)
+      f_ambient = block_diagonal_matrix([f, identity_matrix(QQ, nrows(B2))])
+      f = inv(C)*f_ambient*C
+    end
+  end
+
   if n <= 0
     n = multiplicative_order(f)
   end
   
   @req is_finite(n) && n > 0 "Isometry must be non-trivial and of finite exponent"
-
-  if ambient_representation
-    ok, f = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*f, side =:left)
-    @req ok "Isometry does not restrict to L"
-  end
 
   if check
     @req n >= 3 "No hermitian structure for order less than 3"
@@ -195,9 +212,22 @@ function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
     @req l*f == mb*l "The basis described by l is not compatible with multiplication by a $n-th root of unity"
   end
 
+  B = matrix(absolute_basis(E))
+  BL = basis_matrix(L)
+  gene = Vector{elem_type(E)}[]
+  for i in 1:nrows(l)
+    vv = vec(zeros(E, 1, m))
+    v = BL[i,:]*inv(l)
+    for j in 1:m
+      a = (v[1, 1+(j-1)*euler_phi(n):j*euler_phi(n)]*B)[1]
+      vv[j] = a
+    end
+    push!(gene, vv)
+  end
+
   # We choose as basis for the hermitian lattice Lh the identity matrix
   gram = matrix(zeros(E, m, m))
-  G = l*gram_matrix_of_rational_span(L)*transpose(l)
+  G = l*gram_matrix(ambient_space(L))*transpose(l)
   v = zero_matrix(QQ, 1, rank(L))
   for i=1:m
     for j=1:m
@@ -213,6 +243,6 @@ function _hermitian_structure(L::ZLat, f::QQMatrix; E = nothing,
   @assert transpose(map_entries(s, gram)) == gram
 
   Lh = hermitian_lattice(E, gene, gram = 1//n*gram)
-  return Lh, l 
+  return Lh, l
 end
 

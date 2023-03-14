@@ -1,5 +1,6 @@
 module LWI
 using Oscar, Markdown
+import Hecke
 
 macro req(args...)
   @assert length(args) == 2

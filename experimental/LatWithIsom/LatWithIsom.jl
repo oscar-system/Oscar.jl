@@ -11,7 +11,10 @@ export lattice_with_isometry
 export order_of_isometry
 export type
 
-import Hecke: kernel_lattice, invariant_lattice
+import Hecke: kernel_lattice, invariant_lattice, rank, genus, basis_matrix,
+              gram_matrix, ambient_space, rational_span, scale, signature_tuple,
+              is_integral, det, norm, degree, discriminant, charpoly, minpoly,
+              rescale, dual, lll, discriminant_group
 ###############################################################################
 #
 #  String I/O
@@ -373,7 +376,7 @@ If it exists, the hermitian structure is cached.
   f = isometry(Lf)
   n = order_of_isometry(Lf)
 
-  H, l = Oscar._hermitian_structure(lattice(Lf), f, n = n, check = false,
+  H, l = LWI._hermitian_structure(lattice(Lf), f, n = n, check = false,
                                                            ambient_representation = false)
   set_attribute!(Lf, :transfert_data, l)
   return H

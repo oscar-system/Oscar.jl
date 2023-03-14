@@ -239,7 +239,7 @@ function _local_determinant_morphism(Lf::LatWithIsom)
   DKQ = different(base_ring(OE))*OE
   DEK = different(OE)
   DEQ = DEK*DKQ
-  DinvH = inv(DEQ)*H
+  DinvHdash = inv(DEQ)*dual(H)
   res = Hecke.SpaceRes(ambient_space(Lf), ambient_space(H))
   Lv = trace_lattice(DinvH, res, l = l)
   @assert cover(q) === lattice(Lv)
