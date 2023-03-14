@@ -1517,6 +1517,7 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
 
   n_stable_primes = 0
   d = fmpz(p)
+  unlucky_primes_in_a_row = 0
   while n_stable_primes < 2
     p = iterate(primes, p)[1]
     println("prime $p")
@@ -1526,8 +1527,14 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
     # test for unlucky prime
     if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
            enumerate(std_basis_mod_p_lifted))
+      unlucky_primes_in_a_row += 1
+      # if we get unlucky twice in a row we assume that we started with an unlucky prime
+      if unlucky_primes_in_a_row == 2
+        std_basis_crt_previous = std_basis_mod_p_lifted
+      end
       continue
     end
+    unlucky_primes_in_a_row = 0
     
     is_stable = true
     for (i, f) in enumerate(std_basis_mod_p_lifted)
