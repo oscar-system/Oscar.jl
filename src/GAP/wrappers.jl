@@ -5,18 +5,20 @@
 # underlying GAP function object directly and also has information about the
 # return type.
 #
-# Note that the macro GAP.@wrap has a similar purpose as @gappatribute
-# have, but works on a much lower level on purpose. We may actually phase out
-# use of @gappatribute in the future.
+# Note that the macro GAP.@wrap has a similar purpose as @gapattribute has,
+# but works on a much lower level on purpose. We may actually phase out
+# use of @gapattribute in the future.
 module GAPWrap
 
 using GAP
 
+GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap AlgebraicExtension(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap AsList(x::GapObj)::GapObj
 GAP.@wrap AsSet(x::GapObj)::GapObj
 GAP.@wrap Basis(x::GapObj)::GapObj
 GAP.@wrap Basis(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
@@ -39,6 +41,7 @@ GAP.@wrap ElementsFamily(x::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap ExtRepPolynomialRatFun(x::GapObj)::GapObj
 GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
+GAP.@wrap Field(x::Any)::GapObj
 GAP.@wrap FreeAbelianGroup(x::Int)::GapObj
 GAP.@wrap FreeGeneratorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap FreeGroupOfFpGroup(x::GapObj)::GapObj
@@ -181,6 +184,7 @@ GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap Size(x::Any)::GapInt
 GAP.@wrap Source(x::GapObj)::GapObj
+GAP.@wrap Sqrt(x::Int64)::GAP.Obj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
 GAP.@wrap UnivariatePolynomialByCoefficients(x::GapObj, y::GapObj, z::Int)::GapObj

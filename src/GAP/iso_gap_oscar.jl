@@ -41,10 +41,12 @@ function _iso_gap_oscar(F::GAP.GapObj)
        elseif GAPWrap.IsCyclotomicCollection(F)
          if GAPWrap.IsCyclotomicField(F)
            return _iso_gap_oscar_field_cyclotomic(F)
-         elseif GAPWrap.IsNumberField(F)
-           return _iso_gap_oscar_number_field(F)
          elseif F === GAP.Globals.Cyclotomics
            return _iso_gap_oscar_abelian_closure(F)
+         elseif GAPWrap.DegreeOverPrimeField(F) == 2
+           return _iso_gap_oscar_field_quadratic(F)
+         elseif GAPWrap.IsNumberField(F)
+           return _iso_gap_oscar_number_field(F)
          end
        elseif GAPWrap.IsAlgebraicExtension(F)
          return _iso_gap_oscar_number_field(F)
@@ -100,6 +102,36 @@ end
 function _iso_gap_oscar_field_cyclotomic(FG::GAP.GapObj)
    FO = cyclotomic_field(GAPWrap.Conductor(FG))[1]
    finv, f = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
+
+   return MapFromFunc(f, finv, FG, FO)
+end
+
+function _iso_gap_oscar_field_quadratic(FG::GAP.GapObj)
+   if GAPWrap.IsCyclotomicCollection(FG)
+     # Determine the root that is contained in `FG`.
+     N = GAPWrap.Conductor(FG)
+     if mod(N, 4) == 3
+       N = -N
+     elseif mod(N, 8) == 4
+       N = div(N, 4)
+       if mod(N, 4 ) == 1
+         N = -N
+       end
+     elseif mod(N, 8) == 0
+       N = div(N, 4)
+       FGgens = GAP.Globals.GeneratorsOfField(FG)
+       if any(x -> GAP.Globals.GaloisCyc(x,-1) != x, FGgens)
+         N = -N
+       end
+     end
+     FO = quadratic_field(N)[1]
+     finv, f = _iso_oscar_gap_field_quadratic_functions(FO, FG)
+   elseif GAPWrap.IsAlgebraicExtension(FG)
+     # For the moment, do not try to interpret an algebraic extension.
+     return _iso_gap_oscar_number_field(FG)
+   else
+     error("do not know how to handle FG")
+   end
 
    return MapFromFunc(f, finv, FG, FO)
 end
