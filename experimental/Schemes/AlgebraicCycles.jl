@@ -1,7 +1,10 @@
 export AbsAlgebraicCycle
-export scheme, components
-
 export AlgebraicCycle
+export components
+export scheme
+
+
+
 ########################################################################
 #
 # AbsAlgebraicCycle

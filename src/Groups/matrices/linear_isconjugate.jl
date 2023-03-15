@@ -3,14 +3,6 @@
 
 
 
-export
-    generalized_jordan_block,
-    generalized_jordan_form,
-    is_conjugate,
-    is_semisimple,
-    is_unipotent,
-    pol_elementary_divisors,
-    multiplicative_jordan_decomposition
 
 
 

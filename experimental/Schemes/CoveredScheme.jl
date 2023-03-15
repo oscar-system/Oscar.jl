@@ -1,4 +1,5 @@
-export morphism_type, morphisms
+export morphism_type
+export morphisms
 export refinements
 
 ########################################################################

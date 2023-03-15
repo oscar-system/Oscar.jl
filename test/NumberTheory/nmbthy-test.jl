@@ -1,3 +1,6 @@
+using Oscar
+using Test
+
 function evalu(x::Fac)
   return x.unit * prod(p*k for (p,k) = x.fac)
 end

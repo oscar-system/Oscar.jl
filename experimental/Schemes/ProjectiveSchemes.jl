@@ -1,13 +1,39 @@
-export ProjectiveScheme, base_ring, fiber_dimension, ambient_coordinate_ring, gens, getindex, affine_patch_type
-export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
-export projective_space, subscheme
-export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, covered_scheme, covered_projection_to_base, dehomogenize
-export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
-export fiber_product, inclusion_morphism, identity_map
-
 export ==
-
+export ProjectiveScheme
+export ProjectiveSchemeMor
+export affine_cone
+export affine_patch_type
+export affine_patch_type
+export ambient_coordinate_ring
+export base_ring
+export base_ring_type
+export base_scheme
+export base_scheme_type
+export codomain
+export covered_projection_to_base
+export covered_scheme
 export covered_scheme_morphism
+export dehomogenize
+export domain
+export fiber_dimension
+export fiber_product
+export frac_to_homog_pair
+export gens
+export getindex
+export homog_to_frac
+export homogeneous_coordinates
+export identity_map
+export images_of_variables
+export inclusion_morphism
+export is_well_defined
+export map_on_affine_cones
+export morphism_type
+export poly_to_homog
+export projection_to_base
+export projective_scheme_type
+export projective_space
+export set_base_scheme!
+export subscheme
 
 ########################################################################
 # Interface for abstract projective schemes                            #

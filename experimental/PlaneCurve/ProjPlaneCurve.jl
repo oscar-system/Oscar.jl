@@ -1,9 +1,17 @@
 #module ProjPlaneCurveModule
 
-export is_smooth, tangent, common_components, curve_intersect,
-       curve_singular_locus, is_smooth_curve, multiplicity,
-       tangent_lines, intersection_multiplicity, aretransverse,
-       arithmetic_genus, geometric_genus
+export aretransverse
+export arithmetic_genus
+export common_components
+export curve_intersect
+export curve_singular_locus
+export geometric_genus
+export intersection_multiplicity
+export is_smooth
+export is_smooth_curve
+export multiplicity
+export tangent
+export tangent_lines
 
 
 ################################################################################

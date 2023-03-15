@@ -187,6 +187,13 @@ end
   to understand; it is also more difficult to see all the code at once. Consider
   splitting the function into multiple ones, if it is sensibly possible.
 
+- Every export statement must be confined to a single line; the intention is to
+  make it easy to use tools like `git grep` to find exports. In general it is
+  recommended export exactly one identifier per export statement. Exceptions may
+  be made for certain tightly related identifiers, e.g. `is_finite`, `set_is_finite`
+  and `has_is_finite` could be put on a single line. In general if multiple
+  export statements appear in sequence, they must be sorted alphabetically.
+
 However, as always, rules sometimes should be broken.
 
 

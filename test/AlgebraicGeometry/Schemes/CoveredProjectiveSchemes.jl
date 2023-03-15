@@ -13,19 +13,19 @@
   @test codomain(p) === covered_scheme(P)
 end
 
-@testset "blowups II" begin
+@testset "Oscar.blow_up_chart" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   A3 = Spec(R)
   M = R[x y z; y-1 z-2 x-3]
   I = ideal(R, minors(M, 2))
-  BlA3 = blow_up(A3, I)
+  BlA3 = Oscar.blow_up_chart(A3, I)
   p = covered_projection_to_base(BlA3)
   @test domain(p) === covered_scheme(BlA3)
   @test codomain(p)[1][1] === A3
   @test is_smooth(covered_scheme(BlA3))
 
   J = ideal(R, [x,y,z])
-  Blo = blow_up(A3, J)
+  Blo = Oscar.blow_up_chart(A3, J)
   p2 = covered_projection_to_base(Blo)
   @test domain(p2) === covered_scheme(Blo)
   @test codomain(p2)[1][1] === A3
@@ -41,7 +41,7 @@ end
   S, inc = singular_locus(X);
   @test S isa AbsSpec
   @test inc isa ClosedEmbedding
-  B1 = blow_up(X, ideal(OO(X), [x,y,z]))
+  B1 = Oscar.blow_up_chart(X, ideal(OO(X), [x,y,z]))
   @test B1 isa AbsProjectiveScheme
   Y = covered_scheme(B1)
   @test !is_smooth(Y)

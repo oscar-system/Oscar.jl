@@ -3,14 +3,37 @@ module Orderings
 using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyRingElem, weights, IntegerUnion, base_ring,
        support, matrix
-export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
-       neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
-       negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
-       isweighted, is_global, is_local, is_mixed, is_total,
-       permutation_of_terms, index_of_leading_term,
-       weight_ordering, canonical_matrix,
-       MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
-       is_elimination_ordering, induced_ring_ordering
+
+export ModuleOrdering
+export MonomialOrdering
+export anti_diagonal
+export canonical_matrix
+export deglex
+export degrevlex
+export index_of_leading_term
+export induced_ring_ordering
+export is_elimination_ordering
+export is_global
+export is_local
+export is_mixed
+export is_total
+export isweighted
+export lex
+export matrix_ordering
+export monomial_ordering
+export negdeglex
+export negdegrevlex
+export neglex
+export negrevlex
+export negwdeglex
+export negwdegrevlex
+export opposite_ordering
+export permutation_of_terms
+export revlex
+export singular
+export wdeglex
+export wdegrevlex
+export weight_ordering
 
 abstract type AbsOrdering end
 

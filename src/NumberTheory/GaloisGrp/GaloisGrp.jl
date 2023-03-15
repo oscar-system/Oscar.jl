@@ -6,9 +6,16 @@ import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
               upper_bound
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
-export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal,
-       fixed_field, valuation_of_roots
+export cauchy_ideal
+export elementary_symmetric
+export fixed_field
+export galois_group
+export galois_ideal
+export galois_quotient
+export power_sum
+export slpoly_ring
+export to_elementary_symmetric
+export valuation_of_roots
 
 import Hecke: orbit, fixed_field, extension_field
 
@@ -2733,11 +2740,7 @@ include("RelGalois.jl")
 end
 
 using .GaloisGrp
-export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, 
-       fixed_field, maximal_subgroup_reps, extension_field, slope,
-       valuation_of_roots
-       
+
 #=
        M12: 2-transitive, hence msum is a waste
 x^12 - 4*x^11 + 4*x^10 + 12*x^9 - 72*x^8 + 168*x^7 - 132*x^6 - 324*x^5 + 1197*x^4 - 1752*x^3 + 1500*x^2 - 672*x + 207 

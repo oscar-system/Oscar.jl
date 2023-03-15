@@ -2055,8 +2055,17 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   end
 end
 
-export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
-       action, cohomology_group, extension, is_coboundary, pc_group
+export GModule
+export action
+export cohomology_group
+export confluent_fp_group
+export extension
+export fp_group
+export gmodule
+export induce
+export is_coboundary
+export pc_group
+export word
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)

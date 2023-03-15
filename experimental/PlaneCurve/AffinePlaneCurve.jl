@@ -4,10 +4,19 @@
 include("Variety.jl")
 using .VarietyModule
 
-export is_smooth, tangent, common_components, curve_intersect, intersect,
-       curve_singular_locus, multiplicity, tangent_lines,
-       intersection_multiplicity, aretransverse, is_smooth_curve,
-       arithmetic_genus, geometric_genus
+export aretransverse
+export arithmetic_genus
+export common_components
+export curve_intersect
+export curve_singular_locus
+export geometric_genus
+export intersect
+export intersection_multiplicity
+export is_smooth
+export is_smooth_curve
+export multiplicity
+export tangent
+export tangent_lines
 
 ################################################################################
 # To check if a point is smooth: return true if the point is a smooth point on

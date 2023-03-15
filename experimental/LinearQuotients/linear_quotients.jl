@@ -1,6 +1,6 @@
-export linear_quotient
 export has_canonical_singularities
 export has_terminal_singularities
+export linear_quotient
 
 @doc Markdown.doc"""
     linear_quotient(G::MatrixGroup)

@@ -6,27 +6,6 @@
 
 import Hecke.orbit
 
-export GSet
-
-export action_homomorphism
-export all_blocks
-export as_gset
-export blocks
-export gset
-export is_primitive
-export is_regular
-export is_semiregular
-export is_transitive
-export maximal_blocks
-export minimal_block_reps
-export orbit_representatives_and_stabilizers
-export orbits
-export permutation
-export rank_action
-export representative_action
-export transitivity
-export unwrap
-
 
 # G-sets are "sets" (in a very general sense, these do not need to be objects of type `Set`)
 # with an action by a group G::T.
