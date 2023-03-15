@@ -9,6 +9,8 @@ export order_on_divisor
 export scheme
 export subscheme
 
+export show_details
+
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
@@ -303,9 +305,9 @@ function extend!(
   return D
 end
 
-function Base.show(io::IO, I::IdealSheaf)
-  print(io, "sheaf of ideals on $(space(I))")
-end
+#function Base.show(io::IO, I::IdealSheaf)
+#  print(io, "sheaf of ideals on $(space(I))")
+#end
 
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
@@ -700,4 +702,35 @@ end
     ID[U] = radical(II(U))
   end
   return IdealSheaf(X, ID, check=false)
+end
+
+###########################################################################
+## show functions for Ideal sheaves
+########################################################################### 
+function Base.show(io::IO, I::IdealSheaf)
+    X = scheme(I)
+
+  # If there is a simplified covering, use it!
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  n = npatches(covering)
+  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+end
+
+function show_details(I::IdealSheaf)
+   show_details(stdout,I)
+end
+
+function show_details(io::IO, I::IdealSheaf)
+  X = scheme(I)
+
+  # If there is a simplified covering, use it!
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  n = npatches(covering)
+  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
+
+  for (i,U) in enumerate(patches(covering))
+    println(io,"Chart $i:")
+    println(io,"   $(I(U))")
+    println(io," ")
+  end
 end
