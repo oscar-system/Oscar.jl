@@ -1022,7 +1022,10 @@ julia> is_subset(I, J)
 true
 ```
 """
-function is_subset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+    # This fn should be called is_subset, but... it didn't work properly
+    # (in pre-release Julia-1.9 there was an infinite recursive loop).
+    # NB There is an alias is_subset = issubset.
   @assert base_ring(a) === base_ring(b)
   if D <= 0
     # Ditto comment ideal_membership
@@ -1035,9 +1038,11 @@ function is_subset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T
   end
 end
 
-function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
-    return is_subset(a,b);
-end
+
+
+##function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+##    return is_subset(a,b);
+##end
 
 @doc Markdown.doc"""
     ==(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
