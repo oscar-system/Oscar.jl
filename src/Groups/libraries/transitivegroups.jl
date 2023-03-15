@@ -1,11 +1,3 @@
-export all_transitive_groups
-export has_number_transitive_groups
-export has_transitive_group_identification
-export has_transitive_groups
-export number_transitive_groups
-export transitive_group
-export transitive_group_identification
-
 """
     has_number_transitive_groups(deg::Int)
 

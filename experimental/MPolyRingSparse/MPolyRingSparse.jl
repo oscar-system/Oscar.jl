@@ -24,7 +24,9 @@ import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring,
 
 import AbstractAlgebra.Generic: ordering
 
-export MPolyRingSparse, MPolySparse, PolynomialRingSparse
+export MPolyRingSparse
+export MPolySparse
+export PolynomialRingSparse
 
 ###############################################################################
 #

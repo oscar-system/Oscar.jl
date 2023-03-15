@@ -3,9 +3,23 @@ module StraightLinePrograms
 import Base: +, -, *, ^, parent
 
 import ..AbstractAlgebra: evaluate
+
+export AbstractSLProgram
+export AtlasSLDecision
+export AtlasSLProgram
+export GAPSLDecision
+export GAPSLProgram
+export Lazy
 export SLProgram
-export AbstractSLProgram, GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision, Lazy
-export slpcst, slpgen, slpgens, compile, evaluate, nsteps, list, call
+export call
+export compile
+export evaluate
+export list
+export nsteps
+export slpcst
+export slpgen
+export slpgens
+
 import ..@req
 
 abstract type AbstractSLProgram end

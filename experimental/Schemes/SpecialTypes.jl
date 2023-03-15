@@ -1,8 +1,8 @@
-export underlying_morphism, complement_ideal, complement_scheme
-
-export image_ideal
-
+export complement_ideal
+export complement_scheme
 export ideal_type
+export image_ideal
+export underlying_morphism
 
 function is_constant(a::MPolyLocRingElem) 
   reduce_fraction(a)
