@@ -592,7 +592,7 @@ function blow_up(
   C = Covering([X])
   XX = CoveredScheme(C)
   Isheaf = ideal_sheaf(XX,X,gens(I))
-  return(blow_up(Isheaf))
+  return blow_up(Isheaf)
 end
 
 @Markdown.doc """
