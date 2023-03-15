@@ -276,7 +276,6 @@ export character_lattice
 export character_parameters
 export character_table
 export character_to_rational_function
-export characteristic_polynomial
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
 export chip_firing_move
