@@ -1,7 +1,3 @@
-export singular_coeff_ring, MPolyQuoRing, MPolyQuoRingElem, MPolyQuoIdeal
-export quo, base_ring, modulus, gens, ngens, dim, simplify, default_ordering
-export is_subset
-export saturated_ideal
 ##############################################################################
 #
 # quotient rings
@@ -430,7 +426,6 @@ ideal(x^2 - y)
 
 julia> is_zero(b)
 true
-
 ```
 """
 function is_zero(a::MPolyQuoIdeal)
@@ -773,8 +768,8 @@ x
 
 julia> typeof(p(x))
 MPolyQuoRingElem{QQMPolyRingElem}
-```jldoctest
 ```
+```jldoctest
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
@@ -1313,9 +1308,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}; ordering::
 
   @assert is_graded(Q)
 
-  if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
-    throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   QS = singular_poly_ring(Q)
   singular_assure(I)

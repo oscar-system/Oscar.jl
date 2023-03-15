@@ -2,10 +2,6 @@
 # Tropical hypersurfaces in Oscar
 ###
 
-export TropicalHypersurface,
-       dualsubdivision,
-       polynomial
-
 ################################################################################
 #
 #  Definition
@@ -243,7 +239,6 @@ function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
 
     return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
 end
-export dual_subdivision
 
 
 @doc Markdown.doc"""
@@ -271,7 +266,6 @@ function polynomial(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
     end
     return get_attribute(TH,:tropical_polynomial)
 end
-export polynomial
 
 
 @doc Markdown.doc"""

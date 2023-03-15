@@ -7,6 +7,9 @@ include("GModule.jl")
 include("MPolyRingSparse.jl")
 include("SymmetricIntersections.jl")
 include("LatWithIsom.jl")
+include("LinearQuotients.jl")
+
+include("JuLie.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")

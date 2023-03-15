@@ -482,7 +482,6 @@ end
    @test_throws DomainError isqrtrem(ZZ(-4))
 
    @test root(ZZ(16), 2) == 4
-   @test root(ZZ(5), 3) == 1
    @test root(ZZ(-8), 3) == -2
    @test root(ZZ(0), 2) == 0
    @test root(ZZ(0), 3) == 0

@@ -38,7 +38,6 @@ function homogeneity_space(I; compute_groebner_basis::Bool=false)
 
   return Polyhedron((zeros(Int,0,n),zeros(Int,0)),(A,b))
 end
-export homogeneity_space
 
 
 function pivots(M)
@@ -57,7 +56,6 @@ function pivots(M)
   end
   return pivotsM
 end
-export pivots
 
 
 function rational_matrix_clear_denom(M)
@@ -141,7 +139,7 @@ function tropical_link(inI; p_adic_prime=1000003)
       commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
       pointOfSlice = [numerator(commonDenominator*pj) for pj in pointOfSlice] # = integer vector
       j = findfirst(isequal(pointOfSlice),pointsOfSlice)
-      if j == nothing
+      if j === nothing
         push!(pointsOfSlice,pointOfSlice)
         push!(multsOfSlice,1)
       else
@@ -160,7 +158,7 @@ function tropical_link(inI; p_adic_prime=1000003)
     ###
     for (pointOfSlice,m) in zip(pointsOfSlice,multsOfSlice)
       j = findfirst(isequal(pointOfSlice),rayGenerators)
-      if j == nothing
+      if j === nothing
         push!(rayGenerators,pointOfSlice)
         # push!(rayMultiplicities,m)
       end
@@ -169,4 +167,3 @@ function tropical_link(inI; p_adic_prime=1000003)
 
   return rayGenerators,rayMultiplicities
 end
-export tropical_link

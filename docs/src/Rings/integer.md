@@ -499,9 +499,7 @@ julia> isqrtrem(ZZ(5))
 
 * `root(a::ZZRingElem, n::Int) -> ZZRingElem`
 
-Return the value ``r`` of largest absolute value such that ``r^n \leq a``.
-When ``a`` is a perfect ``n``-th power, the return value will be an ``n``-th
-root of ``a``.
+Return an ``n``-th root of ``a`` or throw an error if it does not exist.
 
 When ``n`` is even, the non-negative root is always returned. An exception is
 raised if ``n \leq 0`` or if ``n`` is even and ``a < 0``.
@@ -510,15 +508,6 @@ raised if ``n \leq 0`` or if ``n`` is even and ``a < 0``.
 julia> root(ZZ(16), 4)
 2
 
-julia> root(ZZ(5), 2)
-2
-
-julia> root(ZZ(-5), 3)
--1
-
-julia> root(ZZ(0), 4)
-0
-
 julia> root(ZZ(-5), 2)
 ERROR: DomainError with (-5, 2):
 Argument `x` must be positive if exponent `n` is even
@@ -526,7 +515,6 @@ Argument `x` must be positive if exponent `n` is even
 julia> root(ZZ(12), -2)
 ERROR: DomainError with -2:
 Exponent must be positive
-
 ```
 
 ## Conversions

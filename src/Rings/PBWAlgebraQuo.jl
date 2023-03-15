@@ -1,5 +1,3 @@
-export PBWAlgQuo, PBWAlgQuoElem
-
 mutable struct PBWAlgQuo{T, S} <: NCRing
   I::PBWAlgIdeal{0, T, S}
 end

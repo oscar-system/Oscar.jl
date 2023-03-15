@@ -1,9 +1,3 @@
-export reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
-       standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
-       groebner_basis_with_transformation_matrix,
-       leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
-       groebner_basis_hilbert_driven
-
 # groebner stuff #######################################################
 @doc Markdown.doc"""
     groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
@@ -120,7 +114,9 @@ The keyword `algorithm` can be set to
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
 !!! note
-    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, and `f4` for restrictions on the input data when using these versions of the standard basis algorithm.
+    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
+    and `f4` in the OSCAR documention for some more details and for restrictions    
+    on the input data when using these versions of the standard basis algorithm.
 
 !!! note
     The returned standard basis is reduced if `ordering` is `global` and `complete_reduction = true`.
@@ -172,7 +168,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       weights = ones(Int, ngens(base_ring(J)))
       target_ordering = _extend_mon_order(ordering, base_ring(J))
     end
-    GB = groebner_basis_hilbert_driven(J, ordering=target_ordering,
+    GB = groebner_basis_hilbert_driven(J, destination_ordering=target_ordering,
                                        complete_reduction=complete_reduction,
                                        weights=weights,
                                        hilbert_numerator=hn)
@@ -183,7 +179,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
-    f4(I, complete_reduction=complete_reduction)
+    groebner_basis_f4(I, complete_reduction=complete_reduction)
   end
   return I.gb[ordering]
 end
@@ -202,7 +198,9 @@ The keyword `algorithm` can be set to
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
 !!! note
-    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
+    See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
+    and `f4` in the OSCAR documention for some more details and for restrictions    
+    on the input data when using these versions of the standard basis algorithm.
 
 !!! note
     The returned Gröbner basis is reduced if `complete_reduction = true`.
@@ -253,24 +251,7 @@ Gröbner basis with elements
 with respect to the ordering
 wdegrevlex([x, y], [1, 3])
 ```
-```jldoctest
-julia> R, (a, b, c, d, e, f, g) = polynomial_ring(QQ, ["a", "b", "c", "d", "e", "f", "g"]);
 
-julia> V = [-3*a^2+2*f*b+3*f*d, (3*g*b+3*g*e)*a-3*f*c*b,
-               -3*g^2*a^2-c*b^2*a-g^2*f*e-g^4, e*a-f*b-d*c];
-
-julia> I = ideal(R, V);
-
-julia> o = degrevlex([a, b, c])*degrevlex([d, e, f, g]);
-
-julia> G = groebner_basis(I, ordering = o, algorithm = :hilbert);
-
-julia> length(G)
-296
-
-julia> total_degree(G[49])
-30
-```
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
@@ -298,7 +279,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc Markdown.doc"""
-	f4(I::MPolyIdeal, <keyword arguments>)
+	groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -323,7 +304,7 @@ julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
-julia> f4(I)
+julia> groebner_basis_f4(I)
 Gröbner basis with elements
 1 -> x + 2*y + 2*z + 100
 2 -> y*z + 82*z^2 + 10*y + 40*z
@@ -331,12 +312,9 @@ Gröbner basis with elements
 4 -> z^3 + 28*z^2 + 64*y + 13*z
 with respect to the ordering
 degrevlex([x, y, z])
-
-julia> isdefined(I, :gb)
-true
 ```
 """
-function f4(
+function groebner_basis_f4(
         I::MPolyIdeal;
         initial_hts::Int=17,
         nr_thrds::Int=1,
@@ -1163,7 +1141,7 @@ end
     fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
                         destination_ordering::MonomialOrdering)
 
-Given a **zero-dimensional** ideal `I`, return a Gröbner basis of `I` with respect to `destination_ordering`.
+Given a **zero-dimensional** ideal `I`, return the reduced Gröbner basis of `I` with respect to `destination_ordering`.
 
 !!! note
     Both `start_ordering` and `destination_ordering` must be global and the base ring of `I` must be a polynomial ring over a field.
@@ -1266,46 +1244,104 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 end
 
 @doc Markdown.doc"""
-         groebner_basis_hilbert_driven(I::MPolyIdeal{P};
-                                       ordering::MonomialOrdering,
-                                       complete_reduction::Bool = false,
-                                       weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
-                                       hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
+    groebner_basis_hilbert_driven(I::MPolyIdeal{P}; destination_ordering::MonomialOrdering,
+                    complete_reduction::Bool = false,
+                    weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+                    hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) 
+                    where {P <: MPolyElem}
 
+Return a Gröbner basis of `I` with respect to `destination_ordering`.
 
-Compute a Gröbner basis of `I` with respect to `ordering` using the
-Hilbert series of `I` to optimize the computation. If the numerator of
-the hilbert series of `I` is not passed by the user, it is computed
-internally.
+!!! note
+    The function implements a version of the Hilbert driven Gröbner basis algorithm.
+    See the correspending section of the OSCAR documentation for some details.
 
-`I` must be given by generators homogeneous w.r.t. `weights` and
-`hilbert_numerator` must be either `nothing` or the numerator of the
-hilbert series of `I` w.r.t.  weights computed by Oscar.
+!!! note
+    All weights must be positive. If no weight vector is entered by the user, all weights 
+    are set to 1. An error is thrown if the generators of `I` are not homogeneous with 
+    respect to the corresponding (weighted) degree.  
+
+!!! note
+    If $R$ denotes the parent ring of $I$, and $p, q\in\mathbb Z[t]$ are polynomials
+    such that $p/q$ represents the Hilbert series of $R/I$ as a rational function with 
+    denominator $q = (1-t^{w_1})\cdots (1-t^{w_n}),$ where $n$ is the number of variables 
+    of $R$, and $w_1, \dots, w_n$ are the assigned weights, then `hilbert_numerator` is 
+    meant to be $p$. If this numerator is not entered by the user, it will be computed 
+    internally.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (a, b, c, d, e, f, g) = polynomial_ring(QQ, ["a", "b", "c", "d", "e", "f", "g"]);
 
-julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
+julia> V = [-3*a^2+2*f*b+3*f*d, (3*g*b+3*g*e)*a-3*f*c*b,
+                      -3*g^2*a^2-c*b^2*a-g^2*f*e-g^4, e*a-f*b-d*c];
 
-julia> groebner_basis_hilbert_driven(I, ordering = deglex(R), complete_reduction = true)
-Gröbner basis with elements
-1 -> x*y - y*z
-2 -> x^2 + y*z
-3 -> y^2*z + y*z^2
-with respect to the ordering
-deglex([x, y, z])
+julia> I = ideal(R, V);
+
+julia> o = degrevlex([a, b, c])*degrevlex([d, e, f, g]);
+
+julia> G = groebner_basis_hilbert_driven(I, destination_ordering = o);
+
+julia> length(G)
+296
+
+julia> total_degree(G[49])
+30
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(GF(32003), ["x", "y", "z"]);
+
+julia> f1 = x^2*y+169*y^21+151*x*y*z^10;
+
+julia> f2 = 6*x^2*y^4+x*z^14+3*z^24;
+
+julia> f3 = 11*x^3+5*x*y^10*z^10+2*y^20*z^10+y^10*z^20;
+
+julia> I = ideal(R, [f1, f2,f3]);
+
+julia> W = [10, 1, 1];
+
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
+
+julia> length(GB)
+40
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(GF(32003), ["x", "y", "z"]);
+
+julia> f1 = x^2*y+169*y^21+151*x*y*z^10;
+
+julia> f2 = 6*x^2*y^4+x*z^14+3*z^24;
+
+julia> f3 = 11*x^3+5*x*y^10*z^10+2*y^20*z^10+y^10*z^20;
+
+julia> I = ideal(R, [f1, f2,f3]);
+
+julia> W = [10, 1, 1];
+
+julia> S, t = polynomial_ring(ZZ, "t")
+(Univariate Polynomial Ring in t over Integer Ring, t)
+
+julia> hn = -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
+-t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
+
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
+
+julia> length(GB)
+40
 ```
 """
-
 function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
-                                       ordering::MonomialOrdering,
+                                       destination_ordering::MonomialOrdering,
                                        complete_reduction::Bool = false,
                                        weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
                                        hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
   
   all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
   isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
+  ordering = destination_ordering
   is_global(ordering) || error("Destination ordering must be global.")
   haskey(I.gb, ordering) && return I.gb[ordering]
   if isnothing(hilbert_numerator)
@@ -1339,6 +1375,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   if isdefined(GB, :S)
     GB.S.isGB  = true
   end
+  I.gb[destination_ordering] = GB
   return GB
 end
 
@@ -1368,7 +1405,7 @@ function _mod_rand_prime(I::MPolyIdeal)
     p = Hecke.next_prime(p)
     
     base_field = GF(p)
-    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)))
     I_mod_p_gens =
       try
         [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
@@ -1389,12 +1426,21 @@ end
 # check homogeneity w.r.t. some weights
 
 function _is_homogeneous(f::MPolyElem, weights::Vector{Int})
-  all([sum(weights .* e) == sum(weights .* first(exponents(f)))
-       for e in exponents(f)])
+  w = sum(weights .* first(exponents(f)))
+  all(sum(weights .* e) == w for e in exponents(f))
 end
 
-function _is_homogeneous(f::MPolyElem)
-  _is_homogeneous(f, ones(Int, ngens(parent(f))))
+
+# check homogeneity w.r.t. total degree
+function _is_homogeneous(f::MPolyRingElem)
+  leadexpv,tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(f))
+  d = sum(leadexpv)
+  for tailexpv in tailexpvs
+    if d!=sum(tailexpv)
+      return false
+    end
+  end
+  return true
 end
   
 

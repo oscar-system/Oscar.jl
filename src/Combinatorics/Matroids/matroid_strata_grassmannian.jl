@@ -1,6 +1,3 @@
-export
-    matroid_stratum_matrix_coordinates, matroid_realization_space
-
 @doc Markdown.doc"""
     matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType, F::AbstractAlgebra.Ring = ZZ)
 

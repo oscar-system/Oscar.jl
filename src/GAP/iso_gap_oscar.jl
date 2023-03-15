@@ -76,16 +76,7 @@ function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
 end
 
 function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
-   p = characteristic(FG)  # of type `ZZRingElem`
-   d = GAPWrap.DegreeOverPrimeField(FG)
-   if d == 1
-     if p < ZZRingElem(2)^64
-       p = UInt64(p)
-     end
-     FO = GF(p)
-   else
-     FO = GF(p, d)
-   end
+   FO = Nemo._GF(characteristic(FG), GAPWrap.DegreeOverPrimeField(FG))
 
    finv, f = _iso_oscar_gap_field_finite_functions(FO, FG)
 

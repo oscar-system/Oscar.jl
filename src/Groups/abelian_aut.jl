@@ -254,19 +254,18 @@ function embedding_orthogonal_group(i::TorQuadModuleMor)
   A = domain(i)
   B = domain(j)
   D = codomain(i)
-  Dorth = direct_sum(A, B)[1]
-  ok, phi = is_isometric_with_isometry(Dorth, D)
-  @assert ok
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
 
-  geneOAinDorth = TorQuadModuleMor[]
+  # D = A+B
+  gene = data.(union(i.(gens(A)), j.(gens(B))))
+  geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
-    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
-    m = hom(Dorth, Dorth, m)
-    push!(geneOAinDorth, m)
+    imgf = data.(union(i.(f.(gens(A))), j.(gens(B))))
+    fab = hom(gene, imgf)
+    fD = OD(hom(D, D, fab.map))
+    push!(geneOAinOD, fD)
   end
-  geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
   OAtoOD = hom(OA, OD, geneOAinOD, check = false)
   return OAtoOD::GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}
 end

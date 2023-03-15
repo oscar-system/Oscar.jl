@@ -1,21 +1,15 @@
 import Oscar: elem_type
 
-# We work always with finite groups and splitting fields of characteristic zero.
-# So by default, we take as splitting field the `e`-th cyclotomic field where
-# `e` is the exponent of the group we work with.
-
-
-export CharacterGrassmannian,
-       DeterminantGrassmannian,
-       ElevCtx,
-       InvariantGrassmannian,
-       IsotypicalGrassmannian,
-       LinRep,
-       ParameterMap,
-       ProjRep,
-       RepRing,
-       SymmetricGrassmannian,
-       SymmetricIntersections
+export CharGrass
+export DetGrass
+export ElevCtx
+export InvGrass
+export IsotGrass
+export LinRep
+export ProjRep
+export RepRing
+export SymGrass
+export SymInter
 
 ###############################################################################
 #
@@ -24,14 +18,17 @@ export CharacterGrassmannian,
 ###############################################################################
 
 @doc Markdown.doc"""
-  Given a sorted list of integers `L` and an integer `d`, we call a `d`-elevation
-  of `L` any set of indices for which the sum of the corresponding elements in `L`
-  is `d`. The set of all `d`-elevations of `L` is called the `d`-elevator of `L`.
-  For any `d`-elevations `e` of `L`, `d` is called the degree of `e`.
+A structure encoding a computational context to enumerate elevations of a given
+pair `(L, f)`.
 
-  If `(L, f)` consists of a list `L` of objects of the same type and a $\mathbb Z$-
-  valued function `f` such that `f(L)` is a sorted list of integers, the `d`-elevator
-  of `(L, f)` is defined to be the `d`-elevator of `f(L)`.
+Given a sorted list of integers `L` and an integer `d`, we call a `d`-elevation
+of `L` any set of indices for which the sum of the corresponding elements in `L`
+is `d`. The set of all `d`-elevations of `L` is called the `d`-elevator of `L`.
+For any `d`-elevations `e` of `L`, `d` is called the degree of `e`.
+
+If `(L, f)` consists of a list `L` of objects of the same type and a $\mathbb Z$-
+valued function `f` such that `f(L)` is a sorted list of integers, the `d`-elevator
+of `(L, f)` is defined to be the `d`-elevator of `f(L)`.
 """
 @attributes mutable struct ElevCtx{T, U}
   L::Vector{T}
@@ -59,15 +56,14 @@ end
 
 ### Representation ring
 
-"""
-A structure encoding a representation ring.
+@doc Markdown.doc"""
+A structure encoding a representation ring of a finite group over a splitting field
+of characteristic zero.
 
-Here a representation ring is a "parent" for linear representation, used to store
-the underlying group, a splitting field, a set of generators for the group, the
-character table, the irreducible characters and, iteratively, representations
-affording some of the irreducible characters (only the one needed so far). We could
-drop some of these since irreducible characters store the character table which
-itself stores the group, but it is easily accessed like this.
+Here a representation ring is a "parent" for linear representations, used to store
+the underlying group, a splitting field of characteristic zero, a set of generators
+for the group, the character table, the irreducible characters and, iteratively,
+representations affording some of the irreducible characters (only the one needed so far).
 """
 @attributes mutable struct RepRing{S, T}
   field::S
@@ -92,11 +88,13 @@ elem_type(::Type{RepRing{S, T}}) where {S, T} = LinRep{S, T, Oscar.elem_type(S)}
 ###############################################################################
 ### Linear representations of finite groups
 
-"""
-Linear representations: an object of a representation ring, which is used as a parent
+@doc Markdown.doc"""
+A structure encoding a linear representation of a finite group.
+
+Here a linear representation is an object of a representation ring, which is used as a parent
 via caching. We also store the character. Representations are represented by a homomorphism
-from the cached underlying group of their representation ring, to a matrix group whose matrices
-have entries in the cached splitting field of the representation ring.
+from the underlying group of their representation ring, to a matrix group whose matrices
+have entries in the base field of the representation ring.
 """
 @attributes mutable struct LinRep{S, T, U}
   rep_ring::RepRing{S, T}
@@ -115,8 +113,10 @@ end
 ###############################################################################
 ### Projective representation of finite groups
 
-"""
-Projective representations of a group are represented by a linear lift along a
+@doc Markdown.doc"""
+A structure encoding a projective representation of a finite group.
+
+Here a projective representation of a group is represented by a linear lift along a
 Schur cover of the group. We store the underlying Schur cover and the linear lift.
 """
 @attributes mutable struct ProjRep{S, T, U, V}
@@ -130,7 +130,6 @@ Schur cover of the group. We store the underlying Schur cover and the linear lif
     return z
   end
 end
-export ProjRep
 
 ###############################################################################
 #
@@ -138,15 +137,31 @@ export ProjRep
 #
 ###############################################################################
 
-abstract type SymmetricGrassmannian{S, T, U} end
+@doc Markdown.doc"""
+Abstract supertype for different kinds of symmetric Grassmannians:
 
-@attributes mutable struct IsotypicalGrassmannian{S, T, U} <: SymmetricGrassmannian{S, T, U}
+- `IsotGrass` for parametrising submodules of an isotypical group algebra module
+  affording a given character;
+- `CharGrass` for parametrising submodules of a group algebra module affording a
+  given character;
+- `DetGrass` for parametrising submodules of a group algebra module with a given
+  determinant character;
+- `InvGrass` for parametrising submodules of a group algebra module of a given
+  dimension.
+"""
+abstract type SymGrass{S, T, U} end
+
+@doc Markdown.doc"""
+A structure encoding a symmetric Grassmannian parametrising submodules of
+a fixed isotypical group algebra module affording a given character.
+"""
+@attributes mutable struct IsotGrass{S, T, U} <: SymGrass{S, T, U}
   chi::Oscar.GAPGroupClassFunction
   rep_mod::LinRep{S, T, U}
   t::Int
   vs_struct::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, AbstractAlgebra.Generic.MatSpace{U}}
   
-  function IsotypicalGrassmannian(chi::Oscar.GAPGroupClassFunction, rep::LinRep{S, T, U}, dim::Int, vs::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, AbstractAlgebra.Generic.MatSpace{U}}) where {S, T, U}
+  function IsotGrass(chi::Oscar.GAPGroupClassFunction, rep::LinRep{S, T, U}, dim::Int, vs::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, AbstractAlgebra.Generic.MatSpace{U}}) where {S, T, U}
     z = new{S, T, U}()
     z.chi = chi
     z.rep_mod = rep
@@ -156,11 +171,15 @@ abstract type SymmetricGrassmannian{S, T, U} end
   end
 end
 
-@attributes mutable struct CharacterGrassmannian{S, T, U} <: SymmetricGrassmannian{S, T, U}
+@doc Markdown.doc"""
+A structure encoding a symmetric Grassmannian parametrising submodules of
+a fixed group algebra module affording a given character.
+"""
+@attributes mutable struct CharGrass{S, T, U} <: SymGrass{S, T, U}
   dec::Vector{Oscar.GAPGroupClassFunction}
-  constituents::Vector{IsotypicalGrassmannian{S, T, U}}
+  constituents::Vector{IsotGrass{S, T, U}}
 
-  function CharacterGrassmannian(prod::Vector{IsotypicalGrassmannian{S, T, U}}) where {S, T, U}
+  function CharGrass(prod::Vector{IsotGrass{S, T, U}}) where {S, T, U}
     z = new{S, T, U}()
     dec = [M.chi for M in prod]
     z.dec = dec
@@ -169,23 +188,31 @@ end
   end
 end
 
-@attributes mutable struct DeterminantGrassmannian{S, T, U} <: SymmetricGrassmannian{S, T, U}
+@doc Markdown.doc"""
+A structure encoding a symmetric Grassmannian parametrising submodules of a
+fixed group algebra module having a given determinant character.
+"""
+@attributes mutable struct DetGrass{S, T, U} <: SymGrass{S, T, U}
   rep::LinRep{S, T, U}
   det_char::Oscar.GAPGroupClassFunction
-  irr_comp::Vector{CharacterGrassmannian{S, T, U}}
+  irr_comp::Vector{CharGrass{S, T, U}}
   d::Int
 
-  function DeterminantGrassmannian(rep::LinRep{S, T, U}, dc::Oscar.GAPGroupClassFunction, ic::Vector{CharacterGrassmannian{S, T, U}}, d::Int) where {S, T, U}
+  function DetGrass(rep::LinRep{S, T, U}, dc::Oscar.GAPGroupClassFunction, ic::Vector{CharGrass{S, T, U}}, d::Int) where {S, T, U}
     return new{S, T, U}(rep, dc, ic, d)
   end
 end
 
-@attributes mutable struct InvariantGrassmannian{S, T, U} <: SymmetricGrassmannian{S, T, U}
+@doc Markdown.doc"""
+A structure encoding a symmetric Grassmannian parametrising submodules of a
+fixed group algebra module of a given dimension.
+"""
+@attributes mutable struct InvGrass{S, T, U} <: SymGrass{S, T, U}
   rep::LinRep{S, T, U}
-  irr_comp::Vector{CharacterGrassmannian{S, T, U}}
+  irr_comp::Vector{CharGrass{S, T, U}}
   d::Int
   
-  function InvariantGrassmannian(r::LinRep{S, T, U}, ic::Vector{CharacterGrassmannian{S, T, U}}, d::Int) where {S, T, U}
+  function InvGrass(r::LinRep{S, T, U}, ic::Vector{CharGrass{S, T, U}}, d::Int) where {S, T, U}
     return new{S, T, U}(r, ic, d)
   end
 end
@@ -196,12 +223,21 @@ end
 #
 ###############################################################################
 
-@attributes mutable struct SymmetricIntersections{S, T, U, V}
+@doc Markdown.doc"""
+A structure encoding a parameter space for ideals generated by homogeneous
+polynomials of the same degree, and fixed under a linear action of a group
+on the projective space of coordinates.
+
+We represent such a space by the underlying moduli space of group algebra modules
+(generating the invariant ideals), together with an injection of the corresponding
+homogeneous component of the polynomial algebra (seen as an abstract vector space).
+"""
+@attributes mutable struct SymInter{S, T, U, V}
   prep::ProjRep{S, T, U, V}
-  para::CharacterGrassmannian{S, T, U}
+  para::CharGrass{S, T, U}
   j::MapFromFunc{AbstractAlgebra.Generic.FreeModule{U}, MPolyDecRing{U, AbstractAlgebra.Generic.MPolyRing{U}}}
   
-  function SymmetricIntersections(prep::ProjRep{S, T, U, V}, para::CharacterGrassmannian{S, T, U}, j::MapFromFunc) where {S, T, U, V}
+  function SymInter(prep::ProjRep{S, T, U, V}, para::CharGrass{S, T, U}, j::MapFromFunc) where {S, T, U, V}
     z = new{S, T, U, V}(prep, para, j)
     return z
   end

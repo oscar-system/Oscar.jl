@@ -400,6 +400,8 @@ function test_module(x::AbstractString, new::Bool = true)
    end
 end
 
+include("Exports.jl")
+
 include("printing.jl")
 include("fallbacks.jl")
 
@@ -424,7 +426,6 @@ include("Groups/spinor_norms.jl")
 include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
-include("Rings/rational.jl")
 include("Rings/orderings.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly_types.jl")
@@ -494,6 +495,7 @@ include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
+include("NumberTheory/GalThy.jl")
 
 include("AlgebraicGeometry/Schemes/main.jl")
 include("AlgebraicGeometry/ToricVarieties/JToric.jl")

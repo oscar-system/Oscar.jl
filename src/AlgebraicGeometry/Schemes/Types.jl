@@ -1,4 +1,3 @@
-export Scheme, SchemeMor, EmptyScheme
 
 
 ### Abstract type for arbitrary schemes ###############################

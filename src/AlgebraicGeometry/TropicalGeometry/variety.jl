@@ -23,7 +23,6 @@
         return new{M,EMB}(Sigma)
     end
 end
-export TropicalVariety
 
 
 function pm_object(T::TropicalVariety)
@@ -126,7 +125,6 @@ function homogenize(I::MPolyIdeal)
 
   return ideal(Gh)
 end
-export homogenize
 
 
 #=======
@@ -296,7 +294,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     incidence_vector = Vector{Int}()
     for vert in vertices(C)
       i = findfirst(isequal(vert),verts_rays)
-      if i == nothing
+      if i === nothing
         # if vert does not occur in verts_rays
         # add it to verts_rays
         push!(verts_rays,vert)
@@ -307,7 +305,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     end
     for ray in rays(C)
       i = findfirst(isequal(ray),verts_rays)
-      if i == nothing || !(i in far_vertices)
+      if i === nothing || !(i in far_vertices)
         # if ray does not occur in verts_rays or if it occurs but not as a ray,
         # add it to verts_rays
         push!(verts_rays,ray)
@@ -355,7 +353,6 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
 
   return TropI
 end
-export tropical_variety
 
 
 
@@ -381,7 +378,6 @@ function anchor_point(P::Polyhedron)
   pt = [pt[i]//pt[1] for i in 2:length(pt)]
   return pt
 end
-export anchor_point
 
 function facet_points(P::Polyhedron)
   points = []
@@ -392,4 +388,3 @@ function facet_points(P::Polyhedron)
   end
   return points
 end
-export facet_points

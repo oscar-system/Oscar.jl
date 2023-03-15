@@ -1,11 +1,3 @@
-export weight, decorate, is_homogeneous, homogeneous_components, filtrate
-export grade, graded_polynomial_ring, homogeneous_component, jacobi_matrix, jacobi_ideal
-export HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading
-export homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
-export MPolyDecRing, MPolyDecRingElem, is_homogeneous, is_graded
-export forget_decoration
-export forget_grading
-
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
@@ -1356,9 +1348,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
-  if !(coefficient_ring(W) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   D = W.D
   is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), W.d)
@@ -1506,17 +1496,9 @@ mutable struct HilbertData
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     
-    if !(minimum(W)>0)
-       throw(ArgumentError("The weights must be positive."))
-    end
-    
-    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-    end
-
-    if !(all(is_homogeneous, gens(I)))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-    end
+    @req minimum(W) > 0 "The weights must be positive"
+    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+    @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
     
     G = groebner_assure(I)
     h = Singular.hilbert_series(G.S, W)
@@ -1545,7 +1527,7 @@ end
 #Decker-Lossen, p23/24
 function hilbert_polynomial(H::HilbertData)
 
-  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
+  @req all(isone, H.weights) "All weights must be 1"
   
   q, dn = hilbert_series(H, 2)
   a = QQFieldElem[]
@@ -1570,7 +1552,7 @@ end
 
 function Oscar.degree(H::HilbertData)
 
-  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
+  @req all(isone, H.weights) "All weights must be 1"
   
   P = hilbert_polynomial(H)
   if iszero(P)
@@ -2098,7 +2080,7 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::String, pos::Int = 
   R = parent(f)
   A = String.(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
      insert!(A, pos, var)
   else
@@ -2178,7 +2160,7 @@ function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}
   R = parent(V[1])
   A = String.(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
      insert!(A, pos, var)
   else
@@ -2268,7 +2250,7 @@ function homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
   R = parent(f)
   A = String.(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l+1 "Index out of range."
   insert!(A, pos, var)
   L, _ = polynomial_ring(R.base_ring, A)
   S, = grade(L)
@@ -2279,7 +2261,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   R = parent(V[1])
   A = String.(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l+1 "Index out of range."
   insert!(A, pos, var)
   L, _ = polynomial_ring(R.base_ring, A)
   S, = grade(L)
@@ -2390,7 +2372,7 @@ function dehomogenization(F::MPolyDecRingElem, pos::Int)
   l = ngens(S)
   G = grading_group(S)
   m = ngens(G)
-  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
       @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
@@ -2406,7 +2388,7 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
   l = ngens(S)
   G = grading_group(S)
   m = ngens(G)
-  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
       @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end

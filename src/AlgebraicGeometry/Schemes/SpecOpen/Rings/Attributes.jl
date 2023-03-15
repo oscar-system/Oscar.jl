@@ -1,5 +1,3 @@
-export spec_open_ring_type, ring_type 
-export scheme, restrictions, affine_patches
 
 ########################################################################
 # Attributes of SpecOpenRing                                           #

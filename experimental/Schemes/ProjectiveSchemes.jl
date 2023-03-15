@@ -704,7 +704,7 @@ Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to
 obtain the dehomogenization map from the `ambient_coordinate_ring` of `P` 
 to the `coordinate_ring` of `U`.
 
-# Example
+# Examples
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 
@@ -798,7 +798,7 @@ function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
   # Find the chart where a belongs to
   X = covered_scheme(P)
   i = findfirst(V->(U===V), affine_charts(X))
-  i == nothing && error("the given affine scheme is not one of the standard affine charts")
+  i === nothing && error("the given affine scheme is not one of the standard affine charts")
   
   # Determine those variables which come from the homogeneous 
   # coordinates

@@ -1,5 +1,3 @@
-export SpecOpenRing
-export SpecOpenRingElem
 
 ########################################################################
 # Rings of regular functions on Zariski open sets of affine schemes    #

@@ -1,4 +1,3 @@
-export underlying_scheme, ambient_scheme, complement_equation, is_dense, inclusion_morphism
 
 ########################################################################
 # Attributes of PrincipalOpenSubsets                                   #

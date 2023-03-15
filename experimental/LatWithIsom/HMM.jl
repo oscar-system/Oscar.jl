@@ -1,5 +1,4 @@
 
-
 ###############################################################################
 #
 #  Local determinants morphism
@@ -244,7 +243,7 @@ function _local_determinant_morphism(Lf::LatWithIsom)
   Lv = trace_lattice(DinvH, res, l = l)
   @assert cover(q) === lattice(Lv)
   @assert ambient_isometry(Lv) == ambient_isometry(Lf)
-  gene_herm = [_transfer_discriminant_isometries(res, g) for g in gens(G)]
+  gene_herm = [_transfer_discriminant_isometries(DinvHdash, res, g, l) for g in gens(G)]
   @assert all(m -> m*gram_matrix_of_rational_span(DinvH)*map_entries(involution(E), transpose(m)) == gram_matrix_of_rational_span(DinvH), gene_herm)
 
   S = elementary_divisors(DinvH, H)
@@ -328,21 +327,40 @@ end
 #
 ###############################################################################
 
-function _transfer_discriminant_isometries(res::Hecke.SpaceRes, g::AutomorphismGroupElem{TorQuadModule})
-  E = base_ring(codomain(res))
-  OE = maximal_order(OE)
+function _get_ambient_isometry(g::AutomorphismGroupElem{TorQuadModule})
   q = domain(g)
+  L = cover(q)
+  @assert rank(L) == degree(L)
+  B = basis_matrix(L)
+  iB = inv(B)
+  M = zero_matrix(QQ, 0, rank(L))
+  for i in 1:nrows(B)
+    v = vec(collect(B[i, :]))
+    vq = q(v)
+    gvq = g(vq)
+    gv = transpose(matrix(lift(gvq)))*iB
+    M = vcat(M, gv)
+  end
+  return iB*M*B
+end
+
+function _transfer_discriminant_isometries(res::Hecke.SpaceRes, g::AutomorphismGroupElem{TorQuadModule}, l::QQMatrix)
+  E = base_ring(codomain(res))
+  OE = maximal_order(E)
+  m = _get_ambient_isometry(g)
+  q = domain(g)
+  il = inv(l)
   @assert ambient_space(cover(q)) === domain(res)
-  gE = zero_matrix(OE, 0, degree(H))
-  vE = zeros(E, 1, degree(H))
-  for i in 1:degree(H)
+  gE = zero_matrix(OE, 0, rank(codomain(res)))
+  vE = vec(collect(zeros(E, 1, rank(codomain(res)))))
+  for i in 1:rank(codomain(res))
     vE[i] = one(E)
     vQ = res\vE
-    vq = q(vQ)
-    gvq = g(vq)
-    gvQ = lift(gvq)
+    vQ = matrix(QQ, 1, length(vQ), vQ)*l
+    gvq = vQ*m
+    gvQ = vec(collect(gvq*il))
     gvE = res(gvQ)
-    gE = vcat(gE, gvE)
+    gE = vcat(gE, matrix(OE, 1, length(gvE), gvE))
     vE[i] = zero(E)
   end
   return gE

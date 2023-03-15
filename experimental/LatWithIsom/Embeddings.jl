@@ -935,7 +935,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       stab = union(stab, kerB)
       stab = TorQuadModuleMor[restrict_automorphism(g, j) for g in stab]
       stab = TorQuadModuleMor[hom(disc, disc, [disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
-      stab = Oscar._orthogonal_group(discriminant_group(C2)[1], [compose(phi2, compose(g, inv(phi2))).map_ab.map for g in stab])
+      stab = Oscar._orthogonal_group(qC2, [compose(phi2, compose(g, inv(phi2))).map_ab.map for g in stab])
       set_attribute!(C2, :image_centralizer_in_Oq, stab)
       push!(results, C2)
     end

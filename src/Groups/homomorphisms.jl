@@ -275,7 +275,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
-  @assert is_subgroup(domain(f), H)[1] "Not a subgroup!"
+  @assert is_subset(H, domain(f)) "Not a subgroup!"
   return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X)::GapObj)
 end
 
@@ -551,8 +551,8 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
-     is_abelian(G) || throw(ArgumentError("the group is not abelian"))
-     isfinite(G) || throw(ArgumentError("the group is not finite"))
+     @req is_abelian(G) "the group is not abelian"
+     @req isfinite(G) "the group is not finite"
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj

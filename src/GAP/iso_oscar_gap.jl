@@ -74,14 +74,16 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
    p = characteristic(FO)
    d = degree(FO)
 
-   # Compute the canonical basis of `FG`.
-   if ! GAPWrap.IsPrimeField(GAPWrap.LeftActingDomain(FG))
-     # The GAP field is not an extension of the prime field.
+   if degree(FO) != absolute_degree(FO) ||
+      ! GAPWrap.IsPrimeField(GAPWrap.LeftActingDomain(FG))
+     # The Oscar field or the GAP field is not an extension of the prime field.
      # What is a reasonable way to compute (on the GAP side) a polynomial
      # w.r.t. the prime field, and to decompose field elements w.r.t.
      # the corresponding basis?
      error("extensions of extension fields are not supported")
    end
+
+   # Compute the canonical basis of `FG`.
    basis_FG = GAPWrap.Basis(FG)
    # Test that we do not run into the problem from
    # https://github.com/gap-system/gap/issues/4694.
@@ -100,9 +102,16 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
      # The two fields are compatible.
      F = FO
 
-     f = function(x)
-       v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
-       return sum([v[i]*basis_FG[i] for i in 1:d])
+     if FO isa FqField
+       f = function(x)
+         v = [GAP.Obj(Nemo._coeff(x, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
+     else
+       f = function(x)
+         v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
      end
 
      finv = function(x::GAP.Obj)
@@ -120,9 +129,18 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
      emb = embed(FO2, FO)
      F = FO2
 
-     f = function(x)
-       v = [GAP.Obj(coeff(preimage(emb, x), i)) for i in 0:(d - 1)]
-       return sum([v[i]*basis_FG[i] for i in 1:d])
+     if FO isa FqField
+       f = function(x)
+         y = preimage(emb, x)
+         v = [GAP.Obj(Nemo._coeff(y, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
+     else
+       f = function(x)
+         y = preimage(emb, x)
+         v = [GAP.Obj(coeff(y, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
      end
 
      finv = function(x::GAP.Obj)

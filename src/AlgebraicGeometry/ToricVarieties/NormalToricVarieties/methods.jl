@@ -49,4 +49,3 @@ function betti_number(v::AbstractNormalToricVariety, i::Int)
     # return result
     return betti_numbers[k+1]
 end
-export betti_number

@@ -1,5 +1,4 @@
 #TODO make d and S a function optionally - to support HUGE degree
-export presentation, grading_group, ModuleOrdering
 
 abstract type ModuleFP_dec{T} end
 

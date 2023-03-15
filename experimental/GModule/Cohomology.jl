@@ -165,14 +165,14 @@ end
 
 function Oscar.relations(G::Oscar.GAPGroup)
    f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
 function Oscar.relations(G::PcGroup)
    f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.Obj("g"))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
@@ -385,8 +385,7 @@ end
    - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
-   - is_subgroup has the "wrong" order of arguments (and cannot apply
-     to modules)
+   - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
    - mat or matrix is used to get "the matrix" from a hom
    - zero_hom/ zero_obj/ identity_hom is missing
@@ -2118,7 +2117,7 @@ Sort:
 # - a magic(?) function to get idel-aproximations in and out?
 
 function restrict(C::GModule, U::Oscar.GAPGroup)
-  fl, m = is_subgroup(C.G, U)
+  fl, m = is_subgroup(U, C.G)
   @assert fl
   return gmodule(U, [action(C, m(g)) for g = gens(U)])
 end

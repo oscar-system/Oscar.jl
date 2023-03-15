@@ -12,7 +12,6 @@
         return new(toric_variety, class)
     end
 end
-export ToricDivisorClass
 
 
 ######################
@@ -35,7 +34,6 @@ Divisor class on a normal toric variety
 ```
 """
 toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
-export toric_divisor_class
 
 
 @doc Markdown.doc"""
