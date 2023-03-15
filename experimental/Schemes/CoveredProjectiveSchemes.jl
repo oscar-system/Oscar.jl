@@ -587,7 +587,7 @@ function blow_up(
     I::MPolyAnyIdeal)
 
   R = OO(X)
-  R == base_ring(I) || error("I is not an ideal in the coordinate ring of X")
+  @req R == base_ring(I) "I must be an ideal in the coordinate ring of X"
   ## prepare trivially covered scheme and ideal sheaf on it as input for blow_up(I::IdealSheaf)
   C = Covering([X])
   XX = CoveredScheme(C)
