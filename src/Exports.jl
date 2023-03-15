@@ -442,6 +442,7 @@ export equidimensional_hull
 export equidimensional_hull_radical
 export euler_characteristic
 export euler_phi
+export exponent, has_exponent, set_exponent
 export exponents
 export ext
 export extension_field
@@ -531,7 +532,6 @@ export hall_subgroup
 export hall_subgroup_reps
 export hall_system, has_hall_system, set_hall_system
 export has_edge
-export has_exponent, set_exponent
 export has_nonempty_intersection
 export has_perfect_groups
 export has_primitive_groups
