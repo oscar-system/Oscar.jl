@@ -236,6 +236,15 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 
+Markdown.doc """
+    blow_up_chart(W::AbsSpec, I::Ideal)
+
+Return the blowup of ``W`` at the ideal ``I``; this is a `ProjectiveScheme`
+with `base_scheme` ``W``.
+
+!!! note
+    blow_up relies on this internal method for computing the blow ups of all chartsand appropriately assembles the returnd projective schemes to a single coverec scheme.
+"""
 
 function blow_up_chart(W::AbsSpec, I::Ideal; var_name::String="s")
   error("method `blow_up_chart` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
