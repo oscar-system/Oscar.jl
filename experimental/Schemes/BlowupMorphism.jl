@@ -282,6 +282,7 @@ end
 # show functions for Blowup morphisms
 ##############################################################################
 function Base.show(io::IO,Bl::BlowupMorphism)
+
 ## data of the original scheme
   X0 = codomain(Bl)
   C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
@@ -293,12 +294,11 @@ function Base.show(io::IO,Bl::BlowupMorphism)
   n1 = npatches(C1)
 
 ## create the output
-  println(io,"Blow up of a Covered Scheme with ",n0," Charts leading to a Covered Scheme with ",n1," Charts)
-
+  println(io,"Blow up of a Covered Scheme with ",n0," Charts leading to a Covered Scheme with ",n1," Charts")
 end
 
 @Markdown.doc """
-  show_details(Bl::BlowupMorphism; more::Bool = false)
+  show_details(Bl::BlowupMorphism)
 
 For a `BlowupMorphism` ``p : Y → X`` display domain, codomain, center and exceptional divisor in a detailed view.
 # Examples
@@ -350,7 +350,7 @@ Chart 3:
 ```
 """
 function show_details(Bl::BlowupMorphism)
-   show_details(stdout, Bl; more)
+   show_details(stdout, Bl)
 end
 
 function show_details(io::IO, Bl::BlowupMorphism)
