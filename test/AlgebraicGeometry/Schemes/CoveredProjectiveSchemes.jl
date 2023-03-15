@@ -13,7 +13,7 @@
   @test codomain(p) === covered_scheme(P)
 end
 
-@testset "testing Oscar.blow_up_chart" begin
+@testset "Oscar.blow_up_chart" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   A3 = Spec(R)
   M = R[x y z; y-1 z-2 x-3]
