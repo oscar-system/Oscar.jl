@@ -502,7 +502,7 @@ export generalized_jordan_form
 export generator_matrix
 export generic_fraction
 export generic_fractions
-export gens
+export gens, has_gens
 export gens_of_rational_equivalence_classes
 export girth
 export gkz_vector
@@ -532,20 +532,11 @@ export hall_subgroup_reps
 export hall_system, has_hall_system, set_hall_system
 export has_edge
 export has_exponent, set_exponent
-export has_gens
 export has_nonempty_intersection
-export has_number_perfect_groups
-export has_number_primitive_groups
-export has_number_small_groups
-export has_number_transitive_groups
-export has_perfect_group_identification
 export has_perfect_groups
-export has_primitive_group_identification
 export has_primitive_groups
-export has_small_group_identification
 export has_small_groups
 export has_torusfactor
-export has_transitive_group_identification
 export has_transitive_groups
 export has_vertex
 export haspreimage
@@ -960,10 +951,10 @@ export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjug
 export number_moved_points, has_number_moved_points, set_number_moved_points
 export number_of_factors
 export number_of_partitions
-export number_perfect_groups
-export number_primitive_groups
-export number_small_groups
-export number_transitive_groups
+export number_perfect_groups, has_number_perfect_groups
+export number_primitive_groups, has_number_primitive_groups
+export number_small_groups, has_number_small_groups
+export number_transitive_groups, has_number_transitive_groups
 export numerator
 export nv
 export nvertices
@@ -1035,7 +1026,7 @@ export prime_ideal
 export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
 export primitive_collections
 export primitive_group
-export primitive_group_identification
+export primitive_group_identification, has_primitive_group_identification
 export primorial
 export principal_extension
 export print_constraints
@@ -1169,7 +1160,7 @@ export slpoly_ring
 export small_generating_set
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
-export small_group_identification
+export small_group_identification, has_small_group_identification
 export socle, has_socle, set_socle
 export solve_ineq
 export solve_lp
@@ -1237,7 +1228,7 @@ export torusinvariant_weil_divisor_group
 export total_degree
 export transition_graph
 export transitive_group
-export transitive_group_identification
+export transitive_group_identification, has_transitive_group_identification
 export transitivity
 export transport
 export trivial_character
