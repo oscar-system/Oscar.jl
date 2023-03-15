@@ -711,7 +711,6 @@ function show_details(io::IO, I::IdealSheaf)
   # If there is a simplified covering, use it!
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   n = npatches(covering)
-  i=1
   println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
 
 
