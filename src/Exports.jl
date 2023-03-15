@@ -161,7 +161,6 @@ export TropicalVariety
 export Undirected
 export WreathProductGroup
 export ZZ
-export _select
 export abelian_group
 export absolute_primary_decomposition
 export acting_domain
