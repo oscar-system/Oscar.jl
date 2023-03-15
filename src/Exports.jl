@@ -268,6 +268,7 @@ export cellular_decomposition_macaulay
 export cellular_hull
 export cellular_minimal_associated_primes
 export cellular_primary_decomposition
+export center, has_center, set_center
 export centralizer
 export chain_complex
 export chamber
@@ -277,6 +278,7 @@ export character_parameters
 export character_table
 export character_to_rational_function
 export characteristic_polynomial
+export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
 export chip_firing_move
 export chow_ring
@@ -315,10 +317,12 @@ export comm!
 export common_denominator
 export common_refinement
 export complement
+export complement_class_reps, has_complement_class_reps, set_complement_class_reps
 export complement_equation
 export complement_ideal
 export complement_of_point_ideal
 export complement_of_prime_ideal
+export complement_system, has_complement_system, set_complement_system
 export complete_bipartite_graph
 export complete_graph
 export complex_projective_plane
@@ -386,6 +390,8 @@ export denominator
 export denominators
 export dense_row
 export depth
+export derived_series, has_derived_series, set_derived_series
+export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
 export desimulate_valuation
 export det
@@ -463,6 +469,7 @@ export find_non_zero_divisor
 export fits
 export fitting_ideal
 export fitting_subgroup
+export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
 export fixed_field
 export flats
 export forget_decoration
@@ -472,6 +479,7 @@ export fraction_field
 export fractional_cut_polytope
 export fractional_ideal
 export fractional_matching_polytope
+export frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup
 export free_abelian_group
 export free_extension
 export free_group
@@ -522,68 +530,24 @@ export h_vector
 export halfspace_matrix_pair
 export hall_subgroup
 export hall_subgroup_reps
-export has_center, set_center, center
-export has_characteristic_subgroups, set_characteristic_subgroups, characteristic_subgroups
-export has_complement_class_reps, set_complement_class_reps, complement_class_reps
-export has_complement_system, set_complement_system, complement_system
-export has_derived_series, set_derived_series, derived_series
-export has_derived_subgroup, set_derived_subgroup, derived_subgroup
+export hall_system, has_hall_system, set_hall_system
 export has_edge
 export has_exponent, set_exponent
-export has_fitting_subgroup, set_fitting_subgroup, fitting_subgroup
-export has_frattini_subgroup, set_frattini_subgroup, frattini_subgroup
 export has_gens
-export has_hall_system, set_hall_system, hall_system
-export has_is_abelian, set_is_abelian, is_abelian
-export has_is_almostsimple, set_is_almostsimple, is_almostsimple
-export has_is_cyclic, set_is_cyclic, is_cyclic
-export has_is_dihedral_group, set_is_dihedral_group, is_dihedral_group
-export has_is_elementary_abelian, set_is_elementary_abelian, is_elementary_abelian
-export has_is_finite, set_is_finite, is_finite
-export has_is_finitelygenerated, set_is_finitelygenerated, is_finitelygenerated
-export has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group, is_isomorphic_with_alternating_group
-export has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group, is_isomorphic_with_symmetric_group
-export has_is_natural_alternating_group, set_is_natural_alternating_group, is_natural_alternating_group
-export has_is_natural_symmetric_group, set_is_natural_symmetric_group, is_natural_symmetric_group
-export has_is_nilpotent, set_is_nilpotent, is_nilpotent
-export has_is_perfect, set_is_perfect, is_perfect
-export has_is_pgroup, set_is_pgroup, is_pgroup
-export has_is_quasisimple, set_is_quasisimple, is_quasisimple
-export has_is_quaternion_group, set_is_quaternion_group, is_quaternion_group
-export has_is_simple, set_is_simple, is_simple
-export has_is_solvable, set_is_solvable, is_solvable
-export has_is_sporadic_simple, set_is_sporadic_simple, is_sporadic_simple
-export has_is_supersolvable, set_is_supersolvable, is_supersolvable
-export has_maximal_abelian_quotient, set_maximal_abelian_quotient, maximal_abelian_quotient
-export has_maximal_normal_subgroups, set_maximal_normal_subgroups, maximal_normal_subgroups
-export has_maximal_subgroups, set_maximal_subgroups, maximal_subgroups
-export has_minimal_normal_subgroups, set_minimal_normal_subgroups, minimal_normal_subgroups
-export has_moved_points, set_moved_points, moved_points
-export has_nilpotency_class, set_nilpotency_class, nilpotency_class
 export has_nonempty_intersection
-export has_normal_subgroups, set_normal_subgroups, normal_subgroups
-export has_number_conjugacy_classes, set_number_conjugacy_classes, number_conjugacy_classes
-export has_number_moved_points, set_number_moved_points, number_moved_points
 export has_number_perfect_groups
 export has_number_primitive_groups
 export has_number_small_groups
 export has_number_transitive_groups
-export has_order, set_order, order
 export has_perfect_group_identification
 export has_perfect_groups
-export has_prime_of_pgroup, set_prime_of_pgroup, prime_of_pgroup
 export has_primitive_group_identification
 export has_primitive_groups
-export has_radical_subgroup, set_radical_subgroup, radical_subgroup
-export has_small_generating_set, set_small_generating_set, small_generating_set
 export has_small_group_identification
 export has_small_groups
-export has_socle, set_socle, socle
-export has_sylow_system, set_sylow_system, sylow_system
 export has_torusfactor
 export has_transitive_group_identification
 export has_transitive_groups
-export has_trivial_subgroup, set_trivial_subgroup, trivial_subgroup
 export has_vertex
 export haspreimage
 export height
@@ -668,8 +632,10 @@ export inverted_set
 export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
+export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
+export is_almostsimple, has_is_almostsimple, set_is_almostsimple
 export is_alternating_form
 export is_ample
 export is_basepoint_free
@@ -693,10 +659,13 @@ export is_congruent
 export is_conjugate
 export is_conjugate_subgroup
 export is_connected
+export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
+export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_duplicate_table
 export is_effective
+export is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian
 export is_elimination_ordering
 export is_embedded
 export is_empty
@@ -705,6 +674,8 @@ export is_equidimensional
 export is_fano
 export is_feasible
 export is_finalized
+export is_finite, has_is_finite, set_is_finite
+export is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated
 export is_finiteorder
 export is_flat
 export is_full_direct_product
@@ -728,7 +699,9 @@ export is_inverse_of
 export is_invertible
 export is_irreducible
 export is_isomorphic
+export is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group
 export is_isomorphic_with_map
+export is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group
 export is_isomorphism
 export is_k_separation
 export is_left
@@ -739,14 +712,19 @@ export is_maximal_subgroup
 export is_minor
 export is_mixed
 export is_modular
+export is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group
+export is_natural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group
 export is_nef
+export is_nilpotent, has_is_nilpotent, set_is_nilpotent
 export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
 export is_normalized_by
 export is_open_embedding
 export is_orbifold
+export is_perfect, has_is_perfect, set_is_perfect
 export is_pgroup_with_prime
+export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pointed
 export is_positively_graded
 export is_primary
@@ -760,21 +738,27 @@ export is_pure
 export is_q_cartier
 export is_q_gorenstein
 export is_quadratic_form
+export is_quasisimple, has_is_quasisimple, set_is_quasisimple
+export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_reduced
 export is_regular
 export is_regular_sequence
 export is_right
 export is_semiregular
 export is_semisimple
+export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
 export is_skewsymmetric_matrix
 export is_smooth
+export is_solvable, has_is_solvable, set_is_solvable
+export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
 export is_standard_basis
 export is_standard_graded
 export is_strongly_connected
 export is_subset
+export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
 export is_symmetric_form
 export is_ternary
@@ -874,12 +858,15 @@ export matroid_groundset
 export matroid_realization_space
 export matroid_stratum_matrix_coordinates
 export maxes
+export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
 export maximal_blocks
 export maximal_cells
 export maximal_cones
 export maximal_extension
+export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra
 export maximal_subgroup_reps
+export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
 export min_weights
 export minimal_block_reps
 export minimal_denominators
@@ -887,6 +874,7 @@ export minimal_faces
 export minimal_generating_set
 export minimal_generators
 export minimal_nonfaces
+export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
 export minimal_subalgebra_generators
 export minkowski_sum
@@ -904,6 +892,7 @@ export morphism_on_torusinvariant_cartier_divisor_group
 export morphism_on_torusinvariant_weil_divisor_group
 export morphism_type
 export morphisms
+export moved_points, has_moved_points, set_moved_points
 export mpoly_dec_ring_type
 export mpoly_dec_type
 export mpoly_ring_type
@@ -939,6 +928,7 @@ export neighbors
 export newton_polytope
 export nfacets
 export ngens
+export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid
 export non_flat_locus
@@ -950,6 +940,7 @@ export normal_closure
 export normal_cone
 export normal_fan
 export normal_subgroup
+export normal_subgroups, has_normal_subgroups, set_normal_subgroups
 export normal_toric_varieties_from_glsm
 export normal_toric_varieties_from_star_triangulations
 export normal_toric_variety
@@ -966,6 +957,8 @@ export npolyhedra
 export nrays
 export nullity
 export number_atlas_groups
+export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
+export number_moved_points, has_number_moved_points, set_number_moved_points
 export number_of_factors
 export number_of_partitions
 export number_perfect_groups
@@ -991,6 +984,7 @@ export optimal_vertex
 export orbit_polytope
 export orbit_representatives_and_stabilizers
 export orbits
+export order, has_order, set_order
 export orders_centralizers
 export orders_class_representatives
 export orders_perfect_groups
@@ -1039,6 +1033,7 @@ export preserved_sesquilinear_forms
 export primary_decomposition
 export primary_invariants
 export prime_ideal
+export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
 export primitive_collections
 export primitive_group
 export primitive_group_identification
@@ -1061,6 +1056,7 @@ export quo
 export quotient
 export radical
 export radical_membership
+export radical_subgroup, has_radical_subgroup, set_radical_subgroup
 export rand
 export rand_pseudo
 export rand_spherical_polytope
@@ -1084,8 +1080,8 @@ export reduced_characteristic_polynomial
 export reduced_groebner_basis
 export reduced_scheme
 export register_morphism!
-export regular_120_cell
 export regular_24_cell
+export regular_120_cell
 export regular_600_cell
 export regular_triangulation
 export regular_triangulations
@@ -1159,9 +1155,9 @@ export signed_incidence_matrix
 export simplex
 export simplified_fp_group
 export simplify
-export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
+export simplify!
 export simulate_valuation
 export singular
 export singular_assure
@@ -1172,8 +1168,10 @@ export singular_poly_ring
 export slope
 export slpoly_ring
 export small_generating_set
+export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification
+export socle, has_socle, set_socle
 export solve_ineq
 export solve_lp
 export solve_milp
@@ -1208,6 +1206,7 @@ export subscheme
 export support_function
 export syllables
 export sylow_subgroup
+export sylow_system, has_sylow_system, set_sylow_system
 export symmetric_form
 export symmetric_group
 export symmetric_parts
@@ -1246,6 +1245,7 @@ export trivial_character
 export trivial_divisor
 export trivial_divisor_class
 export trivial_morphism
+export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_link
 export tropical_points
 export tropical_polynomial
