@@ -991,7 +991,7 @@ export pbw_algebra
 export pc_group
 export pcore
 export perfect_group
-export perfect_group_identification
+export perfect_group_identification, has_perfect_group_identification
 export perm
 export permutation
 export permutation_matrix
