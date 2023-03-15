@@ -701,6 +701,18 @@ end
   return IdealSheaf(X, ID, check=false)
 end
 
+###########################################################################
+## show functions for Ideal sheaves
+########################################################################### 
+function Base.show(io::IO, I::IdealSheaf)
+    X = scheme(I)
+
+  # If there is a simplified covering, use it!
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  n = npatches(covering)
+  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+end
+
 function show_details(I::IdealSheaf)
    show_details(stdout,I)
 end

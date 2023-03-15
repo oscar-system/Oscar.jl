@@ -278,6 +278,25 @@ function maps_with_given_codomain(phi::CoveringMorphism, V::AbsSpec)
   return result
 end
 
+##############################################################################
+# show functions for Blowup morphisms
+##############################################################################
+function Base.show(io::IO,Bl::BlowupMorphism)
+## data of the original scheme
+  X0 = codomain(Bl)
+  C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
+  n0 = npatches(C0)
+
+## data of the blown up scheme
+  X1 = domain(Bl)
+  C1 = (has_attribute(X1, :simplified_covering) ? simplified_covering(X1) : default_covering(X1))
+  n1 = npatches(C1)
+
+## create the output
+  println(io,"Blow up of a Covered Scheme with ",n0," Charts leading to a Covered Scheme with ",n1," Charts)
+
+end
+
 @Markdown.doc """
   show_details(Bl::BlowupMorphism; more::Bool = false)
 
@@ -294,10 +313,6 @@ julia> bl = blow_up(A3,I)
 BlowupMorphism{CoveredScheme{QQField}}(relative projective scheme over covered scheme with 1 affine patches in its default covering, covered scheme with 1 affine patches in its default covering, sheaf of ideals on covered scheme with 1 affine patches in its default covering, #undef, #undef, Oscar.EffectiveCartierDivisor{CoveredScheme{QQField}}(covered scheme with 3 affine patches in its default covering, sheaf of ideals on covered scheme with 3 affine patches in its default covering, Covering with 3 patches, #undef))
 
 julia> show_details(bl)
-Blow up of a Covered Scheme with 1 Charts at a 0-dimensional Center leading to a Covered Scheme with 3 Charts.
-
-
-julia> show_details(bl;more=true)
 Blow up of a Covered Scheme with 1 Charts at a 0-dimensional Center leading to a Covered Scheme with 3 Charts.
 
 =====================================
@@ -334,11 +349,11 @@ Chart 3:
 
 ```
 """
-function show_details(Bl::BlowupMorphism; more::Bool = false)
+function show_details(Bl::BlowupMorphism)
    show_details(stdout, Bl; more)
 end
 
-function show_details(io::IO, Bl::BlowupMorphism; more::Bool = false)
+function show_details(io::IO, Bl::BlowupMorphism)
 ## data of the original scheme
   X0 = codomain(Bl)
   C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
@@ -356,26 +371,24 @@ function show_details(io::IO, Bl::BlowupMorphism; more::Bool = false)
 ## create the output
   println(io,"Blow up of a Covered Scheme with ",n0," Charts at a ",dim(C_X0),"-dimensional Center leading to a Covered Scheme with ",n1," Charts.\n")
 
-  if more
-    println(io,"=====================================")
-    println(io,"Affine charts of the original scheme:")
-    for U in patches(C0)
-      println(io,U,"\n")
-    end
-
-    println(io,"=====================================")
-    println(io,"Affine charts of the blown up scheme:")
-    for V in patches(C1)
-      println(io,V,"\n")
-    end
-
-    println(io,"=====================================")
-    println(io,"Data of center:")
-    show_details(io,Bl.center)
-
-    println(io,"=====================================")
-    println(io,"Exceptional divisor:")
-    show_details(io,exceptional_divisor(Bl))
+  println(io,"=====================================")
+  println(io,"Affine charts of the original scheme:")
+  for U in patches(C0)
+    println(io,U,"\n")
   end
+
+  println(io,"=====================================")
+  println(io,"Affine charts of the blown up scheme:")
+  for V in patches(C1)
+    println(io,V,"\n")
+  end
+
+  println(io,"=====================================")
+  println(io,"Data of center:")
+  show_details(io,Bl.center)
+
+  println(io,"=====================================")
+  println(io,"Exceptional divisor:")
+  show_details(io,exceptional_divisor(Bl))
 end
 

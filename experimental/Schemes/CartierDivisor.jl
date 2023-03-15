@@ -268,7 +268,18 @@ end
 
 dim(C::EffectiveCartierDivisor) = dim(scheme(C))-1
 dim(C::CartierDivisor) = dim(scheme(C))-1
- 
+
+###########################################################################
+## show functions for Cartier divisors
+########################################################################### 
+function Base.show(io::IO, C::EffectiveCartierDivisor)
+  I = ideal_sheaf(C)
+  X = C.X
+  covering = C.C
+  n = npatches(covering)
+
+  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts")
+end
 
 function show_details(C::EffectiveCartierDivisor)
    show_details(stdout,C)
@@ -278,10 +289,9 @@ function show_details(io::IO,C::EffectiveCartierDivisor)
   I = ideal_sheaf(C)
   X = C.X
 
-  # If there is a simplified covering, use it!
   covering = C.C
   n = npatches(covering)
-  i=1
+
   println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts:\n")
 
   for (i,U) in enumerate(patches(covering))

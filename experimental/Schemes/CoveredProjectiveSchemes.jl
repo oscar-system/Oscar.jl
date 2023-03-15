@@ -236,7 +236,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 
-Markdown.doc """
+@Markdown.doc """
     blow_up_chart(W::AbsSpec, I::Ideal)
 
 Return the blowup of ``W`` at the ideal ``I``; this is a `ProjectiveScheme`
