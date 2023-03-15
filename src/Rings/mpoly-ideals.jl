@@ -1,13 +1,3 @@
-export saturation, saturation_with_index, quotient, eliminate
-export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
-          equidimensional_decomposition_radical, equidimensional_hull,
-          equidimensional_hull_radical, vdim
-export absolute_primary_decomposition
-export iszero, isone, is_subset, ideal_membership, radical_membership, inradical, is_prime, is_primary
-export ngens, gens
-export minimal_generating_set
-export grassmann_pluecker_ideal
-
 # constructors #######################################################
 
 @doc Markdown.doc"""
@@ -721,9 +711,7 @@ julia> L = equidimensional_decomposition_weak(I)
 """
 function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
-  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-      throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
   return [ideal(R, i) for i in l]
@@ -759,9 +747,7 @@ julia> L = equidimensional_decomposition_radical(I)
 """
 function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
-  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-      throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
   return [ideal(R, i) for i in l]
@@ -853,9 +839,7 @@ ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 """
 function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)
-  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-      throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
   return ideal(R, i)
@@ -1312,9 +1296,7 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::Mon
 
   @assert is_graded(R)
 
-  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   singular_assure(I, ordering)
   IS = I.gens.S

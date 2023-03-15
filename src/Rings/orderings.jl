@@ -3,14 +3,37 @@ module Orderings
 using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyRingElem, weights, IntegerUnion, base_ring,
        support, matrix
-export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
-       neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
-       negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
-       isweighted, is_global, is_local, is_mixed, is_total,
-       permutation_of_terms, index_of_leading_term,
-       weight_ordering, canonical_matrix,
-       MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
-       is_elimination_ordering, induced_ring_ordering
+
+export ModuleOrdering
+export MonomialOrdering
+export anti_diagonal
+export canonical_matrix
+export deglex
+export degrevlex
+export index_of_leading_term
+export induced_ring_ordering
+export is_elimination_ordering
+export is_global
+export is_local
+export is_mixed
+export is_total
+export isweighted
+export lex
+export matrix_ordering
+export monomial_ordering
+export negdeglex
+export negdegrevlex
+export neglex
+export negrevlex
+export negwdeglex
+export negwdegrevlex
+export opposite_ordering
+export permutation_of_terms
+export revlex
+export singular
+export wdeglex
+export wdegrevlex
+export weight_ordering
 
 abstract type AbsOrdering end
 
@@ -36,9 +59,8 @@ struct WSymbOrdering{S} <: AbsGenOrdering
   function WSymbOrdering(S::Symbol, v, w::Vector{Int})
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
-    length(v) == length(w) ||
-        throw(ArgumentError("number of variables should match the number of weights"))
-    all(>(0), v) || throw(ArgumentError("all weights should be positive"))
+    @req length(v) == length(w) "number of variables should match the number of weights"
+    @req all(>(0), v) "all weights should be positive"
     return new{S}(v, w)
   end
 end
@@ -50,18 +72,14 @@ struct MatrixOrdering <: AbsGenOrdering
   matrix::ZZMatrix
   fullrank::Bool
   function MatrixOrdering(v, m::ZZMatrix, fullrank::Bool)
-    length(v) == ncols(m) ||
-        throw(ArgumentError("number of variables should match the number of columns"))
+    @req length(v) == ncols(m) "number of variables should match the number of columns"
     if fullrank
       if nrows(m) > ncols(m)
         m = _canonical_matrix(m)
       end
-      if nrows(m) < ncols(m)
-        throw(ArgumentError("weight matrix is rank deficient"))
-      else
-        @assert nrows(m) == ncols(m)
-        !iszero(det(m)) || throw(ArgumentError("weight matrix is not invertible"))
-      end
+      @req nrows(m) >= ncols(m) "weight matrix is rank deficient"
+      @assert nrows(m) == ncols(m)
+      @req !iszero(det(m)) "weight matrix is not invertible"
     end
     return new(v, m, fullrank)
   end
@@ -1738,7 +1756,7 @@ returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
   n = length(f)
-  n > 0 || throw(ArgumentError("zero polynomial does not have a leading term"))
+  @req n > 0 "zero polynomial does not have a leading term"
   res = 1
   for i in 2:n
     if Orderings._cmp_monomials(f, res, f, i, ord.o) < 0

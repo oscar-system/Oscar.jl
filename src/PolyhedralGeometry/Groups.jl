@@ -15,13 +15,10 @@ function PermGroup_to_polymake_array(G::PermGroup)
 end
 
 
-function _gens_to_group(gens:: Vector{PermGroupElem})
-    if length(gens) == 0
-        throw(ArgumentError("List of generators empty, could not deduce degree."))
-    else
-        S = parent(gens[1])
-        return sub(S, gens)[1]
-    end
+function _gens_to_group(gens::Vector{PermGroupElem})
+    @req length(gens) > 0 "List of generators empty, could not deduce degree"
+    S = parent(gens[1])
+    return sub(S, gens)[1]
 end
 function _gens_to_group(gens::Dict{Symbol,  Vector{PermGroupElem}})
     return Dict{Symbol, PermGroup}([k => _gens_to_group(v) for (k,v) in gens])
@@ -182,7 +179,7 @@ Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
 ```
 """
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
-    is_bounded(P) || throw(ArgumentError("Automorphism groups not supported for unbounded polyhedra."))
+    @req is_bounded(P) "Automorphism groups not supported for unbounded polyhedra."
     if type == :combinatorial
         IM = vertex_indices(facets(P))
         if action == :all

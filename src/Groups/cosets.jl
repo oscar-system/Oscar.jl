@@ -1,21 +1,3 @@
-export acting_domain
-export double_coset
-export double_cosets
-export GroupCoset
-export GroupDoubleCoset
-export is_bicoset
-export is_left
-export is_right
-export left_acting_group
-export left_coset
-export left_cosets
-export left_transversal
-export representative
-export right_acting_group
-export right_coset
-export right_cosets
-export right_transversal
-
 # T=type of the group, S=type of the element
 """
     GroupCoset{T<: Group, S <: GAPGroupElem}
@@ -471,8 +453,8 @@ function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
    if !check
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else
-      @assert is_subgroup(G,H)[1] "H is not a subgroup of G"
-      @assert is_subgroup(G,K)[1] "K is not a subgroup of G"
+      @assert is_subset(H, G) "H is not a subgroup of G"
+      @assert is_subset(K, G) "K is not a subgroup of G"
       dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
    end
    res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))

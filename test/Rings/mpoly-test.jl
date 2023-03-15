@@ -79,7 +79,7 @@ end
   J = ideal(R, [x*y^2, x^2])
   S = ideal(R, [x^2, y^2, x*y^2])
   P = ideal(R, [x^3*y^2, x^4, x*y^4, x^2*y^2])
-  @test Oscar.check_base_rings(I, J) == nothing
+  @test Oscar.check_base_rings(I, J) === nothing
   @test I+J == I-J == S
   @test I*J == P
   f = x^2 + y^2

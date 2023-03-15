@@ -14,41 +14,6 @@
 
 # character values are elements from QQAbField
 
-export all_character_table_names
-export anti_symmetric_parts
-export atlas_irrationality
-export character_field
-export character_parameters
-export character_table
-export class_lengths
-export class_multiplication_coefficient
-export class_parameters
-export class_positions_of_center
-export class_positions_of_kernel
-export class_positions_of_pcore
-export decomposition_matrix
-export exterior_power
-export identifier
-export indicator
-export induced_class_function
-export induced_cyclic
-export is_duplicate_table
-export known_class_fusion
-export maxes
-export names_of_fusion_sources
-export natural_character
-export orders_centralizers
-export orders_class_representatives
-export orthogonal_components
-export possible_class_fusions
-export scalar_product
-export schur_index
-export symmetric_parts
-export symmetric_power
-export symmetrizations
-export symplectic_components
-export trivial_character
-
 
 #############################################################################
 ##
@@ -740,7 +705,7 @@ stored on these tables.
 julia> println(maxes(character_table("M11")))
 ["A6.2_3", "L2(11)", "3^2:Q8.2", "A5.2", "2.S4"]
 
-julia> maxes(character_table("M")) == nothing  # not (yet) known
+julia> maxes(character_table("M")) === nothing  # not (yet) known
 true
 ```
 """

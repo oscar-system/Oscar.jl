@@ -1,11 +1,11 @@
-export possible_ideals_for_cubics,
-       possible_ideals_for_k3
+export possible_ideals_for_cubics
+export possible_ideals_for_k3
 
 function _subgroup_trivial_action_on_H20(chi1::Oscar.GAPGroupClassFunction, chi2::Oscar.GAPGroupClassFunction)
   @assert chi1.table === chi2.table
   h =  conjugacy_classes(chi1.table)
-  dchi1 = determinant(chi1)
-  dchi2 = determinant(chi2)
+  dchi1 = det(chi1)
+  dchi2 = det(chi2)
   ker = elem_type(chi1.table.GAPGroup)[]
   for i in 1:length(h)
     if dchi1[i] == dchi2[i]
@@ -67,9 +67,9 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, Gs::Oscar.GAPGroup, n::Int, d
     length(chis) == 0 ? continue : nothing
     @info "$(length(chis)) possibility.ies"
     rep = affording_representation(RR, chi)
-    poss = CharacterGrassmannian[character_grassmannian(homogeneous_polynomial_representation(rep, d), nu) for nu in chis]
-    prep = ProjRep(rep, p)
-    poss = SymmetricIntersections[SymmetricIntersections(prep, M, j) for M in poss]
+    poss = CharGrass[character_grassmannian(homogeneous_polynomial_representation(rep, d), nu) for nu in chis]
+    prep = projective_representation(rep, p, check=false)
+    poss = SymInter[symmetric_intersections(prep, M, j) for M in poss]
     push!(res, (prep, poss))
   end
   return res
@@ -106,12 +106,12 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   for l in sum_index
     @info "Test a character"
     chi = sum(Irr[l])
-    detchi = determinant(chi)
+    detchi = det(chi)
     chid = symmetric_power(conj(chi), d)
     ct = constituents(chid, t)
     chis = Oscar.GAPGroupClassFunction[]
     for chi2 in ct
-      detchi2 = determinant(chi2)
+      detchi2 = det(chi2)
       if detchi == detchi2
         push!(chis, chi2)
       end
@@ -119,9 +119,9 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
     length(chis) == 0 && continue
     @info "$(length(chis)) possibility.ies"
     rep = affording_representation(RR, chi)
-    poss = CharacterGrassmannian[character_grassmannian(homogeneous_polynomial_representation(rep, d), nu) for nu in chis]
-    prep = ProjRep(rep, p)
-    poss = SymmetricIntersections[SymmetricIntersections(prep, M, j) for M in poss]
+    poss = CharGrass[character_grassmannian(homogeneous_polynomial_representation(rep, d), nu) for nu in chis]
+    prep = projective_representation(rep, p, check=false)
+    poss = SymInter[symmetric_intersections(prep, M, j) for M in poss]
     push!(res, (prep, poss))
   end
   return res
@@ -154,12 +154,12 @@ function possible_ideals_for_cubics(G::Oscar.GAPGroup)
   for l in sum_index
     @info "Test a character"
     chi = sum(Irr[l])
-    detchi = determinant(chi)
+    detchi = det(chi)
     chid = symmetric_power(conj(chi), 3)
     ct = constituents(chid, 1)
     chis = Oscar.GAPGroupClassFunction[]
     for chi2 in ct
-      detchi2 = determinant(chi2)
+      detchi2 = det(chi2)
       if detchi == detchi2*detchi2
         push!(chis, chi2)
       end
@@ -167,9 +167,9 @@ function possible_ideals_for_cubics(G::Oscar.GAPGroup)
     length(chis) == 0 && continue
     @info "$(length(chis)) possibility.ies"
     rep = affording_representation(RR, chi)
-    poss = CharacterGrassmannian[character_grassmannian(homogeneous_polynomial_representation(rep, 3), nu) for nu in chis]
-    prep = ProjRep(rep, p)
-    poss = SymmetricIntersections[SymmetricIntersections(prep, M, j) for M in poss]
+    poss = CharGrass[character_grassmannian(homogeneous_polynomial_representation(rep, 3), nu) for nu in chis]
+    prep = projective_representation(rep, p, check=false)
+    poss = SymInter[symmetric_intersections(prep, M, j) for M in poss]
     push!(res, (prep, poss))
   end
   return res

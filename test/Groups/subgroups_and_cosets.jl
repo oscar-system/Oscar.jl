@@ -12,16 +12,16 @@
    @test codomain(f)==G
    @test [f(x) for x in gens(H)]==gens(H)
    @test (H,f)==(K,g)
-   @test is_subgroup(G,K)[1]
-   @test g==is_subgroup(G,K)[2]
-   @test g==embedding(G,K)
-   @test is_normal(G,H)
+   @test is_subset(K, G)
+   @test g == is_subgroup(K, G)[2]
+   @test g == embedding(K, G)
+   @test is_normal_subgroup(H, G)
    H,f=sub(G,[x,z])
    @test H==G
    @test f==id_hom(G)
 
-   @test !is_subgroup(G,symmetric_group(8))[1]
-   @test_throws ArgumentError embedding(G,symmetric_group(8))
+   @test !is_subset(symmetric_group(8), G)
+   @test_throws ArgumentError embedding(symmetric_group(8), G)
 
    H=sub(G,[G([2,3,1]),G([2,1])])[1]
    @test H != symmetric_group(3)
@@ -34,7 +34,7 @@
    L = subgroups(G)
    @test length(L)==30
    @test L[1] isa PermGroup
-   L1 = [x for x in L if is_normal(G,x)]
+   L1 = [x for x in L if is_normal_subgroup(x, G)]
    K = normal_subgroups(G)
    @test length(K)==4
    for H in L1
@@ -47,7 +47,7 @@
    @test minimal_normal_subgroups(G)==[H]
    @test length(characteristic_subgroups(G))==4
    @test H in characteristic_subgroups(G)
-   @test is_characteristic(G,H)
+   @test is_characteristic_subgroup(H, G)
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
@@ -100,8 +100,8 @@ end
 
    Nx = normalizer(G,Cx)[1]
    Ny = normalizer(G,Cy)[1]
-   @test is_normal(Nx,Cx)
-   @test is_normal(Ny,Cy)
+   @test is_normal_subgroup(Cx, Nx)
+   @test is_normal_subgroup(Cy, Ny)
    notx = setdiff(G,Nx)
    noty = setdiff(G,Ny)
    @testset for i in 1:3
@@ -131,12 +131,12 @@ end
    Q=quaternion_group(16)
    H=sub(Q,[Q[1]])[1]
    C=core(Q,H)[1]
-   @test is_normal(Q,C)
+   @test is_normal_subgroup(C, Q)
    @test order(C)==2
    S=symmetric_group(4)
    P2=pcore(S,2)[1]
    @test order(P2)==4
-   @test is_normal(S,P2)
+   @test is_normal_subgroup(P2, S)
    P3=pcore(S,3)[1]
    @test order(P3)==1
    @test_throws ArgumentError pcore(S,4)
@@ -321,7 +321,7 @@ end
    @test [is_prime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
 
    L = hall_system(symmetric_group(4))
-   @test is_subgroup(symmetric_group(4),L[1])[1]
+   @test is_subset(L[1], symmetric_group(4))
    @test Set(order(H) for H in L)==Set(ZZRingElem[1,3,8,24])
    @test_throws ArgumentError hall_system(symmetric_group(5))
    
@@ -362,7 +362,7 @@ end
    @test frattini_subgroup(S)==sub(S,[one(S)])
    @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==center(G)
-   @test is_characteristic(G,center(G)[1])
+   @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S

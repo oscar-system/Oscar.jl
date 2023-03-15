@@ -139,7 +139,7 @@ function tropical_link(inI; p_adic_prime=1000003)
       commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
       pointOfSlice = [numerator(commonDenominator*pj) for pj in pointOfSlice] # = integer vector
       j = findfirst(isequal(pointOfSlice),pointsOfSlice)
-      if j == nothing
+      if j === nothing
         push!(pointsOfSlice,pointOfSlice)
         push!(multsOfSlice,1)
       else
@@ -158,7 +158,7 @@ function tropical_link(inI; p_adic_prime=1000003)
     ###
     for (pointOfSlice,m) in zip(pointsOfSlice,multsOfSlice)
       j = findfirst(isequal(pointOfSlice),rayGenerators)
-      if j == nothing
+      if j === nothing
         push!(rayGenerators,pointOfSlice)
         # push!(rayMultiplicities,m)
       end

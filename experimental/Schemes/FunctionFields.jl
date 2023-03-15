@@ -1,7 +1,9 @@
-export function_field, FunctionField
-export representative_patch, variety, representative_field
-
+export FunctionField
+export function_field
 export representative
+export representative_field
+export representative_patch
+export variety
 
 
 ########################################################################

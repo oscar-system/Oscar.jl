@@ -1,10 +1,3 @@
-export on_indeterminates
-export on_sets
-export on_sets_sets
-export on_tuples
-export permuted
-export right_coset_action
-
 """
 A *group action* of a group G on a set Ω (from the right) is defined by
 a map μ: Ω × G → Ω that satisfies the compatibility conditions
@@ -477,7 +470,7 @@ true
 """
 function right_coset_action(G::T, U::T) where T <: GAPGroup
   mp = GAP.Globals.FactorCosetAction(G.X, U.X)
-  mp == GAP.Globals.fail && throw(ArgumentError("Invalid input"))
+  @req mp != GAP.Globals.fail "Invalid input"
   H = PermGroup(GAPWrap.Range(mp))
   return GAPGroupHomomorphism(G, H, mp)
 end

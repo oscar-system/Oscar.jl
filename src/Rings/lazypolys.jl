@@ -1,8 +1,6 @@
 using .StraightLinePrograms: SLProgram
 const SLP = StraightLinePrograms
 
-export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly
-
 ## LazyPolyRing
 
 struct LazyPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
@@ -31,7 +29,7 @@ gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, SLP.Gen(s))
 
 function check_parent(p::LazyPoly, q::LazyPoly)
     par = parent(p)
-    par === parent(q) || throw(ArgumentError("incompatible parents"))
+    @req par === parent(q) "incompatible parents"
     par
 end
 

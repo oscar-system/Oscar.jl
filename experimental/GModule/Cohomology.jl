@@ -165,14 +165,14 @@ end
 
 function Oscar.relations(G::Oscar.GAPGroup)
    f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
 function Oscar.relations(G::PcGroup)
    f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.Obj("g"))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
@@ -385,8 +385,7 @@ end
    - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
-   - is_subgroup has the "wrong" order of arguments (and cannot apply
-     to modules)
+   - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
    - mat or matrix is used to get "the matrix" from a hom
    - zero_hom/ zero_obj/ identity_hom is missing
@@ -2056,8 +2055,17 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   end
 end
 
-export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
-       action, cohomology_group, extension, is_coboundary, pc_group
+export GModule
+export action
+export cohomology_group
+export confluent_fp_group
+export extension
+export fp_group
+export gmodule
+export induce
+export is_coboundary
+export pc_group
+export word
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -2118,7 +2126,7 @@ Sort:
 # - a magic(?) function to get idel-aproximations in and out?
 
 function restrict(C::GModule, U::Oscar.GAPGroup)
-  fl, m = is_subgroup(C.G, U)
+  fl, m = is_subgroup(U, C.G)
   @assert fl
   return gmodule(U, [action(C, m(g)) for g = gens(U)])
 end

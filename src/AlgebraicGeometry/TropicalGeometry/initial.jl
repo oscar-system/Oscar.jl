@@ -71,7 +71,6 @@ end
 #   trivial_val = TropicalSemiringMap(coefficient_ring(f))
 #   return valued_weighted_degree(f, trivial_val, w, return_vector=return_vector)
 # end
-# export weighted_degree
 
 
 

@@ -228,7 +228,7 @@ end
    G = atlas_group("M11")
    H, emb = atlas_subgroup(G, 1)
    @test order(H) == 720
-   @test is_subgroup(G, H)[1]
+   @test is_subset(H, G)
    @test domain(emb) == H
    @test codomain(emb) == G
    # the group was not created with `atlas_group`

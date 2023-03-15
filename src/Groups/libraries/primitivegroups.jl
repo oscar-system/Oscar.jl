@@ -1,11 +1,3 @@
-export all_primitive_groups
-export has_number_primitive_groups
-export has_primitive_group_identification
-export has_primitive_groups
-export number_primitive_groups
-export primitive_group_identification
-export primitive_group
-
 """
     has_number_primitive_groups(deg::Int)
 
@@ -62,7 +54,7 @@ false
 ```
 """
 function has_primitive_groups(deg::Int)
-  deg >= 1 || throw(ArgumentError("degree must be positive, not $deg"))
+  @req deg >= 1 "degree must be positive, not $deg"
   return GAP.Globals.PrimitiveGroupsAvailable(GAP.Obj(deg))
 end
 
@@ -82,7 +74,7 @@ ERROR: ArgumentError: the number of primitive permutation groups of degree 4096 
 ```
 """
 function number_primitive_groups(deg::Int)
-  has_number_primitive_groups(deg) || throw(ArgumentError("the number of primitive permutation groups of degree $deg is not available"))
+  @req has_number_primitive_groups(deg) "the number of primitive permutation groups of degree $deg is not available"
   return GAP.Globals.NrPrimitiveGroups(deg)::Int
 end
 
@@ -103,9 +95,9 @@ ERROR: ArgumentError: there are only 9 primitive permutation groups of degree 10
 ```
 """
 function primitive_group(deg::Int, i::Int)
-  has_primitive_groups(deg) || throw(ArgumentError("primitive permutation groups of degree $deg are not available"))
+  @req has_primitive_groups(deg) "primitive permutation groups of degree $deg are not available"
   N = number_primitive_groups(deg)
-  i <= N || throw(ArgumentError("there are only $N primitive permutation groups of degree $deg, not $i"))
+  @req i <= N "there are only $N primitive permutation groups of degree $deg, not $i"
   return PermGroup(GAP.Globals.PrimitiveGroup(deg,i), deg)
 end
 
@@ -202,7 +194,7 @@ julia> all_primitive_groups(degree => 3:5, is_abelian)
 returns the list of all abelian primitive permutation groups acting on 3, 4 or 5 points.
 """
 function all_primitive_groups(L...)
-   !isempty(L) || throw(ArgumentError("must specify at least one filter"))
+   @req !isempty(L) "must specify at least one filter"
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllPrimitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]

@@ -1,17 +1,3 @@
-export general_linear_group
-export mat_elem_type
-export matrix_group
-export MatrixGroup
-export MatrixGroupElem
-export omega_group
-export orthogonal_group
-export ring_elem_type
-export special_linear_group
-export special_orthogonal_group
-export special_unitary_group
-export symplectic_group
-export unitary_group
-export GL, GO, GU, SL, SO, Sp, SU
 
 
 
@@ -353,7 +339,7 @@ end
 function (G::MatrixGroup)(x::MatElem; check::Bool=true)
    if check
       _is_true, x_gap = lies_in(x,G,nothing)
-      _is_true || throw(ArgumentError("Element not in the group"))
+      @req _is_true "Element not in the group"
       x_gap != nothing && return MatrixGroupElem(G,x,x_gap)
    end
    return MatrixGroupElem(G,x)
@@ -370,15 +356,15 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    if isdefined(x,:X)
       if isdefined(x,:elm)
          _is_true = lies_in(x.elm,G,x.X)[1]
-         _is_true || throw(ArgumentError("Element not in the group"))
+         @req _is_true "Element not in the group"
          return MatrixGroupElem(G,x.elm,x.X)
       else
-         x.X in G.X || throw(ArgumentError("Element not in the group"))
+         @req x.X in G.X "Element not in the group"
          return MatrixGroupElem(G,x.X)
       end
    else
       _is_true, x_gap = lies_in(x.elm,G,nothing)
-      _is_true || throw(ArgumentError("Element not in the group"))
+      @req _is_true "Element not in the group"
       if x_gap==nothing return MatrixGroupElem(G,x.elm)
       else return MatrixGroupElem(G,x.elm,x_gap)
       end
@@ -583,7 +569,7 @@ end
 
 function _field_from_q(q::Int)
    (n,p) = is_power(q)
-   is_prime(p) || throw(ArgumentError("The field size must be a prime power"))
+   @req is_prime(p) "The field size must be a prime power"
    return GF(p, n)
 end
 
@@ -681,7 +667,7 @@ julia> gens(H)
 ```
 """
 function symplectic_group(n::Int, R::Ring)
-   iseven(n) || throw(ArgumentError("The dimension must be even"))
+   @req iseven(n) "The dimension must be even"
    G = MatrixGroup(n,R)
    G.descr = :Sp
    return G
@@ -719,15 +705,15 @@ julia> gens(H)
 """
 function orthogonal_group(e::Int, n::Int, R::Ring)
    if e==1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("GO+")
    elseif e==-1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("GO-")
    elseif e==0
-      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      @req isodd(n) "The dimension must be odd"
       G = MatrixGroup(n,R)
       G.descr = :GO
    else
@@ -773,15 +759,15 @@ julia> gens(H)
 function special_orthogonal_group(e::Int, n::Int, R::Ring)
    characteristic(R) == 2 && return GO(e,n,R)
    if e==1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("SO+")
    elseif e==-1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("SO-")
    elseif e==0
-      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      @req isodd(n) "The dimension must be odd"
       G = MatrixGroup(n,R)
       G.descr = :SO
    else
@@ -824,15 +810,15 @@ julia> gens(H)
 function omega_group(e::Int, n::Int, R::Ring)
    n==1 && return SO(e,n,R)
    if e==1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("Omega+")
    elseif e==-1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("Omega-")
    elseif e==0
-      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      @req isodd(n) "The dimension must be odd"
       G = MatrixGroup(n,R)
       G.descr = :Omega
    else
@@ -868,7 +854,7 @@ julia> gens(H)
 """
 function unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
+   @req is_prime(b) "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -895,7 +881,7 @@ julia> gens(H)
 """
 function special_unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
+   @req is_prime(b) "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G
@@ -925,6 +911,9 @@ end
 
 matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V))
 
+matrix_group(m::Int, F::Ring) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m, F)
+
+matrix_group(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatElem, AbstractMatrixGroupElem} = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m, F, V)
 
 ########################################################################
 #

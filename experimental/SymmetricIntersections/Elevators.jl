@@ -1,12 +1,12 @@
 import Base: length, IteratorSize, eltype
 
-export associated_bounds,
-       associated_function,
-       degree_of_elevations,
-       elevator,
-       number_of_elevations,
-       underlying_iterator,
-       underlying_list
+export associated_bounds
+export associated_function
+export degree_of_elevations
+export elevator
+export number_of_elevations
+export underlying_iterator
+export underlying_list
 
 ###############################################################################
 #

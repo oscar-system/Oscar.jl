@@ -1,10 +1,18 @@
-export WeilDivisor, weil_divisor
-export scheme_type, ideal_sheaf_type, coefficient_ring_type, coefficient_type
-export scheme, components, coefficient_dict, coefficient_ring
+export LinearSystem
+export WeilDivisor
+export coefficient_dict
+export coefficient_ring
+export coefficient_ring_type
+export coefficient_type
+export components
+export divisor
+export ideal_sheaf_type
 export in_linear_system
-
-export LinearSystem, linear_system
-export divisor, subsystem
+export linear_system
+export scheme
+export scheme_type
+export subsystem
+export weil_divisor
 
 @Markdown.doc """
     WeilDivisor

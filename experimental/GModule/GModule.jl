@@ -1173,9 +1173,10 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem)
   return true, c
 end
 
-
-export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
-       indecomposition
+export indecomposition
+export irreducible_modules
+export is_absolutely_irreducible
+export is_decomposable
 
 ## Fill in some stubs for Hecke
 
@@ -1221,8 +1222,10 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
-export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
-       indecomposition
+export indecomposition
+export irreducible_modules
+export is_absolutely_irreducible
+export is_decomposable
 
 module RepPc
 using Oscar

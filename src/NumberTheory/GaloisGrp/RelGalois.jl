@@ -123,10 +123,10 @@ function find_prime(f::PolyRingElem{nf_elem}, extra::Int = 5; pStart::Int = degr
   return P, ct
 end
 
-function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0)
+function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0, pStart::Int = degree(K)+1)
   f = defining_polynomial(K)
 
-  P, ct = find_prime(f, prime = prime)
+  P, ct = find_prime(f, prime = prime, pStart = pStart)
   C = GaloisCtx(f, P)
 
   if an_sn_by_shape(ct, degree(K))

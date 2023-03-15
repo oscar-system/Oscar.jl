@@ -1,9 +1,3 @@
-export all_atlas_group_infos
-export atlas_group
-export atlas_program
-export atlas_subgroup
-export number_atlas_groups
-
 ###################################################################
 # Groups from the Atlas of Group Representations
 ###################################################################
@@ -213,9 +207,9 @@ function all_atlas_group_infos(name::String, L...)
       # handle e.g. `is_primitive => false`
       func = arg[1]
       data = arg[2]
-      haskey(_atlas_group_filter_attrs, func) || throw(ArgumentError("Function not supported"))
+      @req haskey(_atlas_group_filter_attrs, func) "Function not supported"
       expected_type, gapfunc, _ = _atlas_group_filter_attrs[func]
-      data isa expected_type || throw(ArgumentError("bad argument $(data) for function $(func)"))
+      @req data isa expected_type "bad argument $(data) for function $(func)"
       if func === base_ring
         # we will need the isomorphism later on
         iso = iso_oscar_gap(data)
@@ -229,9 +223,9 @@ function all_atlas_group_infos(name::String, L...)
     elseif arg isa Function
       # handle e.g. `is_primitive` or `! is_primitive`
       func = arg
-      haskey(_atlas_group_filter_attrs, func) || throw(ArgumentError("Function not supported"))
+      @req haskey(_atlas_group_filter_attrs, func) "Function not supported"
       expected_type, gapfunc, default = _atlas_group_filter_attrs[func]
-      default !== nothing || throw(ArgumentError("missing argument for function $(func)"))
+      @req default !== nothing "missing argument for function $(func)"
       push!(gapargs, gapfunc, default)
     else
       throw(ArgumentError("expected a function or a pair, got $arg"))

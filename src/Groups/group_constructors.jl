@@ -4,27 +4,6 @@
 #
 ################################################################################
 
-export
-    abelian_group,
-    alternating_group,
-    cyclic_group,
-    dihedral_group,
-    free_abelian_group,
-    free_group,
-    is_abelian, has_is_abelian, set_is_abelian,
-    is_cyclic, has_is_cyclic, set_is_cyclic,
-    is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group,
-    is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian,
-    is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group,
-    is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group,
-    is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group,
-    is_natural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group,
-    is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group,
-    mathieu_group,
-    quaternion_group,
-    symmetric_group
-
-
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
 _gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
 _gap_filter(::Type{FPGroup}) = GAP.Globals.IsSubgroupFpGroup
@@ -49,7 +28,7 @@ julia> order(G)
 ```
 """
 function symmetric_group(n::Int)
-  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  @req n >= 1 "n must be a positive integer"
   return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
 end
 
@@ -85,7 +64,7 @@ julia> order(G)
 ```
 """
 function alternating_group(n::Int)
-  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  @req n >= 1 "n must be a positive integer"
   return PermGroup(GAP.Globals.AlternatingGroup(n)::GapObj)
 end
 
@@ -127,7 +106,7 @@ Pcp-group with orders [ 0 ]
 cyclic_group(n::Union{IntegerUnion,PosInf}) = cyclic_group(PcGroup, n)
 
 function cyclic_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: GAPGroup
-  n > 0 || throw(ArgumentError("n must be a positive integer or infinity"))
+  @req n > 0 "n must be a positive integer or infinity"
   return T(GAP.Globals.CyclicGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 
@@ -217,7 +196,7 @@ false
 @gapattribute is_elementary_abelian(G::GAPGroup) = GAP.Globals.IsElementaryAbelian(G.X)::Bool
 
 function mathieu_group(n::Int)
-  9 <= n <= 12 || 21 <= n <= 24 || throw(ArgumentError("n must be a 9-12 or 21-24"))
+  @req 9 <= n <= 12 || 21 <= n <= 24 "n must be a 9-12 or 21-24"
   return PermGroup(GAP.Globals.MathieuGroup(n), n)
 end
 
@@ -251,7 +230,7 @@ where the `i`-th generator is printed as `L[i]`.
     Variables named like the group generators are *not* created by this function.
 """
 function free_group(n::Int, s::Union{String, Symbol} = "f"; eltype::Symbol = :letter)
-   n >= 0 || throw(ArgumentError("n must be a non-negative integer"))
+   @req n >= 0 "n must be a non-negative integer"
    if eltype == :syllable
      return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
    else

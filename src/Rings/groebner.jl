@@ -1,9 +1,3 @@
-export reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
-       standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
-       groebner_basis_with_transformation_matrix,
-       leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
-       groebner_basis_hilbert_driven
-
 # groebner stuff #######################################################
 @doc Markdown.doc"""
     groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
@@ -185,7 +179,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
-    f4(I, complete_reduction=complete_reduction)
+    groebner_basis_f4(I, complete_reduction=complete_reduction)
   end
   return I.gb[ordering]
 end
@@ -285,7 +279,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc Markdown.doc"""
-	f4(I::MPolyIdeal, <keyword arguments>)
+	groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -310,7 +304,7 @@ julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
-julia> f4(I)
+julia> groebner_basis_f4(I)
 Gröbner basis with elements
 1 -> x + 2*y + 2*z + 100
 2 -> y*z + 82*z^2 + 10*y + 40*z
@@ -318,12 +312,9 @@ Gröbner basis with elements
 4 -> z^3 + 28*z^2 + 64*y + 13*z
 with respect to the ordering
 degrevlex([x, y, z])
-
-julia> isdefined(I, :gb)
-true
 ```
 """
-function f4(
+function groebner_basis_f4(
         I::MPolyIdeal;
         initial_hts::Int=17,
         nr_thrds::Int=1,
@@ -1311,10 +1302,24 @@ julia> I = ideal(R, [f1, f2,f3]);
 
 julia> W = [10, 1, 1];
 
-julia> GB1 = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
 
-julia> length(GB1)
+julia> length(GB)
 40
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(GF(32003), ["x", "y", "z"]);
+
+julia> f1 = x^2*y+169*y^21+151*x*y*z^10;
+
+julia> f2 = 6*x^2*y^4+x*z^14+3*z^24;
+
+julia> f3 = 11*x^3+5*x*y^10*z^10+2*y^20*z^10+y^10*z^20;
+
+julia> I = ideal(R, [f1, f2,f3]);
+
+julia> W = [10, 1, 1];
 
 julia> S, t = polynomial_ring(ZZ, "t")
 (Univariate Polynomial Ring in t over Integer Ring, t)
@@ -1322,10 +1327,10 @@ julia> S, t = polynomial_ring(ZZ, "t")
 julia> hn = -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 
-julia> GB2 = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
 
-julia> gens(GB1) == gens(GB2)
-true
+julia> length(GB)
+40
 ```
 """
 function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
@@ -1370,6 +1375,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   if isdefined(GB, :S)
     GB.S.isGB  = true
   end
+  I.gb[destination_ordering] = GB
   return GB
 end
 
@@ -1399,7 +1405,7 @@ function _mod_rand_prime(I::MPolyIdeal)
     p = Hecke.next_prime(p)
     
     base_field = GF(p)
-    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)))
     I_mod_p_gens =
       try
         [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
@@ -1420,12 +1426,21 @@ end
 # check homogeneity w.r.t. some weights
 
 function _is_homogeneous(f::MPolyElem, weights::Vector{Int})
-  all([sum(weights .* e) == sum(weights .* first(exponents(f)))
-       for e in exponents(f)])
+  w = sum(weights .* first(exponents(f)))
+  all(sum(weights .* e) == w for e in exponents(f))
 end
 
-function _is_homogeneous(f::MPolyElem)
-  _is_homogeneous(f, ones(Int, ngens(parent(f))))
+
+# check homogeneity w.r.t. total degree
+function _is_homogeneous(f::MPolyRingElem)
+  leadexpv,tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(f))
+  d = sum(leadexpv)
+  for tailexpv in tailexpvs
+    if d!=sum(tailexpv)
+      return false
+    end
+  end
+  return true
 end
   
 

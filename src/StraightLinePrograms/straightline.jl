@@ -31,8 +31,7 @@ struct Arg
     x::UInt64
 
     function Arg(x::UInt64)
-        iszero(x & ~argmask ) ||
-            throw(ArgumentError("argument too big"))
+        @req iszero(x & ~argmask ) "argument too big"
         new(x)
     end
 end
@@ -395,11 +394,10 @@ function updatelen!(p, op, i, j)
         if ptr == p.len + 1
             p.len += 1
         end
-        1 <= ptr <= p.len ||
-            throw(ArgumentError("invalid `assign` destination"))
+        @req 1 <= ptr <= p.len "invalid `assign` destination"
     elseif iskeep(op)
         ptr = Int(i.x)
-        ptr <= p.len || throw(ArgumentError("cannot `keep` so many items"))
+        @req ptr <= p.len "cannot `keep` so many items"
         p.len = ptr
     elseif isdecision(op)
         ptr = argmask # cf. hasdecision
@@ -556,8 +554,7 @@ function expeq!(p::SLProgram, e::Integer)
 end
 
 function testeq!(p::SLProgram, q::SLProgram)
-    hasdecision(p) && hasdecision(q) || throw(ArgumentError(
-        "cannot &-combine two programs which are not decisions"))
+    @req hasdecision(p) && hasdecision(q) "cannot &-combine two programs which are not decisions"
     _combine!(p, q)
     setdecision!(p)
 end
@@ -621,13 +618,11 @@ function list(::Type{SL}, ps) where {SL<:SLProgram}
 end
 
 function composewith!(q::SLProgram, p::SLProgram)
-    hasmultireturn(q) || throw(ArgumentError(
-        "second argument of `compose` must return a list"))
+    @req hasmultireturn(q) "second argument of `compose` must return a list"
     ninp = q.len # max ninputs that p can use
     _, j = _combine!(q, p, makeinput = function (i::Arg)
                   idx = inputidx(i)
-                  idx <= ninp || throw(ArgumentError(
-                      "inner compose argument does not provide enough input"))
+                  @req idx <= ninp "inner compose argument does not provide enough input"
                   asregister(idx)
               end)
     if j.x == 0 && p.len != 0 # multireturn

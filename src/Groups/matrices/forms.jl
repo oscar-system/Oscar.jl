@@ -1,20 +1,6 @@
 # TODO: in this file are used many methods TEMPORARILY defined in files matrix_manipulation.jl and stuff_field_gen.jl
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
-export alternating_form
-export corresponding_bilinear_form
-export corresponding_quadratic_form
-export hermitian_form
-export is_alternating_form
-export is_degenerate
-export is_hermitian_form
-export is_quadratic_form
-export is_singular
-export is_symmetric_form
-export quadratic_form
-export SesquilinearForm
-export symmetric_form
-export witt_index
 
 
 
@@ -204,7 +190,7 @@ end
 Given a quadratic form `Q`, return the bilinear form `B` defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
 """
 function corresponding_bilinear_form(B::SesquilinearForm)
-   B.descr==:quadratic || throw(ArgumentError("The form must be a quadratic form"))
+   @req B.descr==:quadratic "The form must be a quadratic form"
    M = gram_matrix(B)+transpose(gram_matrix(B))
    if characteristic(base_ring(B))==2 return alternating_form(M)
    else return symmetric_form(M)
@@ -218,8 +204,8 @@ Given a symmetric form `f`, returns the quadratic form `Q` defined by `Q(v) = f(
 It is defined only in odd characteristic.
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
-   B.descr==:symmetric || throw(ArgumentError("The form must be a symmetric form"))
-   characteristic(base_ring(B))!=2 || throw(ArgumentError("Corresponding quadratic form not uniquely determined"))
+   @req B.descr==:symmetric "The form must be a symmetric form"
+   @req characteristic(base_ring(B))!=2 "Corresponding quadratic form not uniquely determined"
    M = deepcopy(gram_matrix(B))
    l = inv(base_ring(B)(2))
    for i in 1:nrows(M)
@@ -327,8 +313,8 @@ end
 ########################################################################
 
 function Base.:*(f::SesquilinearForm, l::FieldElem)
-   l !=0 || throw(ArgumentError("Zero is not admitted"))
-   parent(l)==base_ring(f) || throw(ArgumentError("The scalar does not belong to the base ring of the form"))
+   @req l !=0 "Zero is not admitted"
+   @req parent(l)==base_ring(f) "The scalar does not belong to the base ring of the form"
    if !isdefined(f,:matrix)
       return SesquilinearForm(l*f.pol, f.descr)
    else

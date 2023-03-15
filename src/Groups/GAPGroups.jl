@@ -1,81 +1,3 @@
-export GroupConjClass
-
-export acting_group
-export comm
-export comm!
-export complement_class_reps, has_complement_class_reps, set_complement_class_reps
-export complement_system, has_complement_system, set_complement_system
-export conjugacy_class
-export conjugacy_classes_maximal_subgroups
-export conjugacy_classes_subgroups
-export conjugacy_classes
-export conjugate_group
-export core
-export coset_decomposition
-export cperm
-export cycle_structure
-export degree
-export describe
-export div_left
-export div_left!
-export div_right
-export div_right!
-export elements
-export has_exponent, set_exponent
-export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
-export frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup
-export gen
-export gens, has_gens
-export hall_subgroup
-export hall_subgroup_reps
-export hall_system, has_hall_system, set_hall_system
-export inv!
-export is_almostsimple, has_is_almostsimple, set_is_almostsimple
-export is_conjugate
-export is_conjugate_subgroup
-export isfinite, has_is_finite, set_is_finite
-export is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated
-export is_finiteorder
-export is_full_fp_group
-export is_perfect, has_is_perfect, set_is_perfect
-export is_pgroup, has_is_pgroup, set_is_pgroup
-export is_pgroup_with_prime
-export is_quasisimple, has_is_quasisimple, set_is_quasisimple
-export is_simple, has_is_simple, set_is_simple
-export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
-export letters
-export low_index_subgroup_reps
-export map_word
-export maximal_subgroup_reps
-export moved_points, has_moved_points, set_moved_points
-export mul
-export mul!
-export nilpotency_class, has_nilpotency_class, set_nilpotency_class
-export ngens
-export normal_closure
-export normalizer
-export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
-export number_moved_points, has_number_moved_points, set_number_moved_points
-export one!
-export order, has_order, set_order
-export pcore
-export perm
-export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
-export radical_subgroup, has_radical_subgroup, set_radical_subgroup
-export rand_pseudo
-export relators
-export representative_action
-export right_coset
-export right_cosets 
-export right_transversal
-export short_right_transversal
-export small_generating_set, has_small_generating_set, set_small_generating_set
-export socle, has_socle, set_socle
-export subgroup_reps
-export syllables
-export sylow_subgroup
-export sylow_system, has_sylow_system, set_sylow_system
-
 @alias is_finiteorder isfiniteorder
 
 # TODO: as soon as GAP packages like `polycyclic` or `rcwa` are loaded,
@@ -131,8 +53,8 @@ end
 
 # coercion embeds a group element into a different parent
 function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
-   x.X in G.X && return group_element(G, x.X)
-   throw(ArgumentError("the element does not embed in the group"))
+   @req x.X in G.X "the element does not embed in the group"
+   return group_element(G, x.X)
 end
 
 """
@@ -192,8 +114,8 @@ end
 
 order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x)
 
-@gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)::Bool
-@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GAP.Obj(val))
+has_order(G::GAPGroup) = GAPWrap.HasSize(G.X)
+set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAPWrap.SetSize(G.X, GAP.Obj(val))
 
 
 @gapattribute is_trivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
@@ -895,7 +817,7 @@ function is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
   end
   s = short_right_transversal(G, U, sigma)
   for t = s
-    if is_subgroup(U, V^inv(t))[1]
+    if is_subset(V^inv(t), U)
       return true, inv(t)
     end
   end
@@ -1034,7 +956,7 @@ Return `C, f`, where `C` is the `p`-core
 and `f` is the embedding morphism of `C` into `G`.
 """
 function pcore(G::GAPGroup, p::IntegerUnion)
-   is_prime(p) || throw(ArgumentError("p is not a prime"))
+   @req is_prime(p) "p is not a prime"
    return _as_subgroup(G, GAP.Globals.PCore(G.X,GAP.Obj(p)))
 end
 
@@ -1117,15 +1039,15 @@ julia> s = sylow_subgroup(g, 3); order(s[1])
 ```
 """
 function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
-   is_prime(p) || throw(ArgumentError("p is not a prime"))
+   @req is_prime(p) "p is not a prime"
    return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p))::GapObj)
 end
 
 # no longer documented, better use `hall_subgroup_reps`
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
-   is_solvable(G) || throw(ArgumentError("The group is not solvable"))
+   @req all(is_prime, P) "The integers must be prime"
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true))::GapObj)
 end
 
@@ -1165,7 +1087,7 @@ julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
 """
 function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
+   @req all(is_prime, P) "The integers must be prime"
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
@@ -1190,7 +1112,7 @@ Sylow systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function sylow_system(G::GAPGroup)
-   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
 end
 
@@ -1234,7 +1156,7 @@ Complement systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function complement_system(G::GAPGroup)
-   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
 end
 
@@ -1248,7 +1170,7 @@ Hall systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function hall_system(G::GAPGroup)
-   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
+   @req is_solvable(G) "The group is not solvable"
    return _as_subgroups(G, GAP.Globals.HallSystem(G.X))
 end
 
@@ -1542,7 +1464,7 @@ julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 ```
 """
 function relators(G::FPGroup)
-  is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
+  @req is_full_fp_group(G) "the group must be a full f. p. group"
   L = GAPWrap.RelatorsOfFpGroup(G.X)::GapObj
   F = free_group(G)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
@@ -1767,7 +1689,7 @@ ERROR: ArgumentError: the element does not lie in a free group
 """
 function length(g::FPGroupElem)
   gX = g.X
-  GAPWrap.IsAssocWord(gX) || throw(ArgumentError("the element does not lie in a free group"))
+  @req GAPWrap.IsAssocWord(gX) "the element does not lie in a free group"
   return length(gX)
 end
 
@@ -1794,11 +1716,11 @@ true
 ```
 """
 function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
-   is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
+   @req is_full_fp_group(G) "the group must be a full f. p. group"
    n = ngens(G)
    ll = GAP.Obj[]
    for p in pairs
-     0 < p.first && p.first <= n || throw(ArgumentError("generator number is at most $n"))
+     @req 0 < p.first && p.first <= n "generator number is at most $n"
      if p.second != 0
        push!(ll, GAP.Obj(p.first))
        push!(ll, GAP.Obj(p.second))

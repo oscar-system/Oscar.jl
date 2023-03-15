@@ -668,5 +668,3 @@ macro perm(n,gens)
        end
     end
 end
-
-export @perm
