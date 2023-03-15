@@ -193,5 +193,5 @@ versions before 1.8 that ignored the parent argument for the `tempname`
 function when the `TMPDIR` environment variable is set and GNU parallel by
 default sets `TMPDIR` to `/tmp`.
 
-Either upgrade to Julia 1.8 or later, or add `ENV["TMPDIR"]=nothing;` to the
+Either upgrade to Julia 1.8 or later, or add `delete!(ENV, "TMPDIR");` to the
 beginning of your julia code (before importing / using Oscar).
