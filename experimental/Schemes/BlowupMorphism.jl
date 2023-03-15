@@ -335,7 +335,10 @@ Chart 3:
 ```
 """
 function show_details(Bl::BlowupMorphism; more::Bool = false)
+   show_details(stdout, Bl; more)
+end
 
+function show_details(io::IO, Bl::BlowupMorphism; more::Bool = false)
 ## data of the original scheme
   X0 = codomain(Bl)
   C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
@@ -351,28 +354,28 @@ function show_details(Bl::BlowupMorphism; more::Bool = false)
   C_X0 = Bl.center
 
 ## create the output
-  println("Blow up of a Covered Scheme with ",n0," Charts at a ",dim(C_X0),"-dimensional Center leading to a Covered Scheme with ",n1," Charts.\n")
+  println(io,"Blow up of a Covered Scheme with ",n0," Charts at a ",dim(C_X0),"-dimensional Center leading to a Covered Scheme with ",n1," Charts.\n")
 
   if more
-    println("=====================================")
-    println("Affine charts of the original scheme:")
+    println(io,"=====================================")
+    println(io,"Affine charts of the original scheme:")
     for U in patches(C0)
-      println(U,"\n")
+      println(io,U,"\n")
     end
 
-    println("=====================================")
-    println("Affine charts of the blown up scheme:")
+    println(io,"=====================================")
+    println(io,"Affine charts of the blown up scheme:")
     for V in patches(C1)
-      println(V,"\n")
+      println(io,V,"\n")
     end
 
-    println("=====================================")
-    println("Data of center:")
-    show_details(Bl.center)
+    println(io,"=====================================")
+    println(io,"Data of center:")
+    show_details(io,Bl.center)
 
-    println("=====================================")
-    println("Exceptional divisor:")
-    show_details(exceptional_divisor(Bl))
+    println(io,"=====================================")
+    println(io,"Exceptional divisor:")
+    show_details(io,exceptional_divisor(Bl))
   end
 end
 
