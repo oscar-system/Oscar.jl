@@ -912,7 +912,6 @@ function characteristic_polynomial(M::Matroid)
     R, q = polynomial_ring(ZZ, 'q')
     return (-1)^M.pm_matroid.RANK*tutte_polynomial(M)(1-q,0)
 end
-charpoly(M::Matroid) = characteristic_polynomial(M)
 
 @doc Markdown.doc"""
     reduced_characteristic_polynomial(M::Matroid)
