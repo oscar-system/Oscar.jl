@@ -1442,7 +1442,6 @@ function _is_homogeneous(f::MPolyRingElem)
   end
   return true
 end
-  
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
 function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
@@ -1484,7 +1483,31 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
 end
 
 # modular gröbner basis techniques
+@doc Markdown.doc"""
+    groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
+                           ordering::MonomialOrdering)
 
+Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
+multi-modular strategy.
+
+!!! note
+    This function is probabilistic and returns a correct result
+    only with high probability.
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x","y","z"]);
+
+julia> I = ideal([x^2, x*y + 32771*y^2]);
+
+julia> gb = groebner_basis_modular(I, ordering=degrevlex(R))
+Gröbner basis with elements
+1 -> y^3
+2 -> x^2
+3 -> x*y + 32771*y^2
+with respect to the ordering
+degrevlex([x, y, z])
+```
+"""
 function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
                                 ordering::MonomialOrdering)
 
@@ -1501,7 +1524,7 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
     return I.gb[ordering]
   end
 
-  primes = Hecke.PrimesSet(2^15, -1)
+  primes = Hecke.PrimesSet(rand(2^15:2^16), -1)
 
   p = iterate(primes)[1]
   Qt = base_ring(I)
@@ -1554,7 +1577,7 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
 end
 
 # taken straight from experimental/ModStd with unused arguments removed
-function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent=1)
+function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
