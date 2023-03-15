@@ -607,7 +607,7 @@ end
 @Markdown.doc """
     blow_up(I::IdealSheaf)
 
-Return the blow-up morphism of blowing up of the underlying scheme of I  at I.
+Return the blow-up morphism of blowing up of the underlying scheme of ``I``  at ``I``.
 """
 function blow_up(
     I::IdealSheaf;
