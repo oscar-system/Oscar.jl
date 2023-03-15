@@ -353,7 +353,7 @@ function show_details(Bl::BlowupMorphism; more::Bool = false)
 ## create the output
   println("Blow up of a Covered Scheme with ",n0," Charts at a ",dim(C_X0),"-dimensional Center leading to a Covered Scheme with ",n1," Charts.\n")
 
-  if(more)
+  if more
     println("=====================================")
     println("Affine charts of the original scheme:")
     for U in patches(C0)
