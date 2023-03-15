@@ -580,7 +580,7 @@ end
 @Markdown.doc """
     blow_up(X::AbsSpec, I::Ideal)
 
-Return the blow-up morphism of blowing up X at I in OO(X).
+Return the blow-up morphism of blowing up `X` at `I` in `OO(X)`.
 """
 function blow_up(
     X::AbsSpec{<:Any, <:MPolyAnyRing},
