@@ -578,7 +578,7 @@ end
 
 
 @Markdown.doc """
-    blow_up(X::AbsSpec,I::Ideal)
+    blow_up(X::AbsSpec, I::Ideal)
 
 Return the blow-up morphism of blowing up X at I in OO(X).
 """
