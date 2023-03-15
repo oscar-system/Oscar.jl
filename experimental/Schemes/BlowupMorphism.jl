@@ -310,7 +310,7 @@ julia> A3 = Spec(R);
 julia> I = ideal(R,[x,y,z]);
 
 julia> bl = blow_up(A3,I)
-BlowupMorphism{CoveredScheme{QQField}}(relative projective scheme over covered scheme with 1 affine patches in its default covering, covered scheme with 1 affine patches in its default covering, sheaf of ideals on covered scheme with 1 affine patches in its default covering, #undef, #undef, Oscar.EffectiveCartierDivisor{CoveredScheme{QQField}}(covered scheme with 3 affine patches in its default covering, sheaf of ideals on covered scheme with 3 affine patches in its default covering, Covering with 3 patches, #undef))
+Blow up of a Covered Scheme with 1 Charts leading to a Covered Scheme with 3 Charts
 
 julia> show_details(bl)
 Blow up of a Covered Scheme with 1 Charts at a 0-dimensional Center leading to a Covered Scheme with 3 Charts.

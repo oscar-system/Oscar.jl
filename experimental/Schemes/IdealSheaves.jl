@@ -302,9 +302,9 @@ function extend!(
   return D
 end
 
-function Base.show(io::IO, I::IdealSheaf)
-  print(io, "sheaf of ideals on $(space(I))")
-end
+#function Base.show(io::IO, I::IdealSheaf)
+#  print(io, "sheaf of ideals on $(space(I))")
+#end
 
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
