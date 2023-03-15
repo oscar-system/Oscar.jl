@@ -714,9 +714,6 @@ function show_details(io::IO, I::IdealSheaf)
   i=1
   println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
 
-
-  ID = IdDict{AbsSpec, Ideal}()
-
   for (i,U) in enumerate(patches(covering))
     println(io,"Chart $i:")
     println(io,"   $(I(U))")

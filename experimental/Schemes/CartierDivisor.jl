@@ -284,8 +284,6 @@ function show_details(io::IO,C::EffectiveCartierDivisor)
   i=1
   println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts:\n")
 
-    ID = IdDict{AbsSpec, Ideal}()
-
   for (i,U) in enumerate(patches(covering))
     println(io,"Chart $i:")
     println(io,"   $(I(U))")
