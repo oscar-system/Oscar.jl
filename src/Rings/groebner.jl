@@ -1567,25 +1567,17 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
     end
     d *= fmpz(p)
   end
-  final_gb = fmpq_mpoly[]
-  for f in std_basis_crt_previous
-    did_succeed, f_QQ = induce_rational_reconstruction(f, d, parent = base_ring(I)) 
-    did_succeed || error("rational reconstruction failed")
-    push!(final_gb, f_QQ)
-  end
+  final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I))
+                        for f in std_basis_crt_previous]
   return IdealGens(final_gb, ordering, isGB = true)
 end
 
-# taken straight from experimental/ModStd with unused arguments removed
 function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
-    if !fl
-      return false, finish(g)
-    end
-    push_term!(g, r//s, v)
+    fl ? push_term!(g, r//s, v) : push_term!(g, c, v)
   end
-  return true, finish(g)
+  return finish(g)
 end
 
