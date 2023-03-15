@@ -714,7 +714,7 @@ function show_details(I::IdealSheaf)
   ID = IdDict{AbsSpec, Ideal}()
 
   for U in patches(covering)
-    println("Chart ",i,":\n\t", I(U),"\n")
+    println("Chart ",i,":\n   ", I(U),"\n")
     i=i+1
   end
 end
