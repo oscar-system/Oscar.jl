@@ -39,16 +39,17 @@ quo(A::PBWAlgRing, I::PBWAlgIdeal)
 
 The *$n$-th exterior algebra over a field $K$* is the quotient of the PBW-algebra
 
-$A=K \langle e_1,\dots, e_n \mid e_ie_j = - e_je_i \ \text { for }\ i\neq j\rangle$
+$A=K \langle e_1,\dots, e_n \mid e_i e_j = - e_j e_i \ \text { for }\ i\neq j\rangle$
 
 modulo the two-sided ideal
 
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra(K::Field, xs::Union{AbstractVector{<:AbstractString}, 
-                                         AbstractVector{Symbol},
-					 AbstractVector{Char}})
+    exterior_algebra(K::Field, numVars::Int)
+    exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
+                                                     AbstractVector{Symbol},
+                                                     AbstractVector{Char}})
 ```
 
 ## Data Associated to Affine GR-Algebras
