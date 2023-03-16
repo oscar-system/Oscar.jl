@@ -19,20 +19,20 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
 
-  gene = GrpAbFinGenElem[data(D(lift(a))+D(lift(b))) for a in gens(A), b in gens(B)]
-  geneOAinOD = TorQuadModuleMor[]
+  gene = data.(union(AinD.(gens(A), BinD.(gens(B)))))
+  geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
-    imgf = GrpAbFinGenElem[data(D(lift(f(a))) + D(lift(b))) for a in gens(A), b in gens(B)]
+    imgf = data.(union(AinD.(f.(gens(A))), BinD.(gens(B))))
     fab = hom(gene, imgf)
-    fD = hom(D, D, fab.map)
+    fD = OD(hom(D, D, fab.map))
     push!(geneOAinOD, fD)
   end
 
-  geneOBinOD = TorQuadModuleMor[]
+  geneOBinOD = elem_type(OD)[]
   for f in gens(OB)
-    imgf = GrpAbFinGenElem[data(D(lift(a)) + D(lift(f(b)))) for a in gens(A), b in gens(B)]
+    imgf = data.(union(AinD.(gens(A)), BinD.(f.(gens(B)))))
     fab = hom(gene, imgf)
-    fD = hom(D, D, fab.map)
+    fD = OD(hom(D, D, fab.map))
     push!(geneOBinOD, fD)
   end
   OAtoOD = hom(OA, OD, geneOAinOD, check = false)
@@ -47,17 +47,17 @@ function _direct_sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQ
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
 
-  geneOAinOD = TorQuadModuleMor[]
+  geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
-    m = block_diagonal_matrix([matrix(f), indentity_matrix(ZZ, ngens(B))])
-    fD = hom(D, D, m)
+    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
+    fD = OD(hom(D, D, m), check=false)
     push!(geneOAinOD, fD)
   end
 
-  geneOBinOD = TorQuadModuleMor[]
+  geneOBinOD = elem_type(OD)[]
   for f in gens(OB)
     m = block_diagonal_matrix([identity_matrix(ZZ, ngens(A)), matrix(f)])
-    fD = hom(D, D, m)
+    fD = OD(hom(D, D, m), check=false)
     push!(geneOBinOD, fD)
   end
   OAtoOD = hom(OA, OD, geneOAinOD, check = false)
@@ -153,7 +153,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
   OA = automorphism_group(A)
   OinOA, _ = sub(OA, OA.([g.X for g in gens(O)]))
   N, _ = sub(A, togap.(i.(gens(domain(i)))))
-  stab, _ = stabilizer(OinOA, N, on_subgroup)
+  stab, _ = Oscar.stabilizer(OinOA, N, on_subgroup)
   return sub(O, O.([h.X for h in gens(stab)]))
 end
 
@@ -296,7 +296,7 @@ function subgroups_orbit_representatives_and_stabilizers(O::AutomorphismGroup{To
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
   for orb in orbs
     rep = representative(orb)
-    stab, _ = stabilizer(OinOAgap, rep, on_subgroup)
+    stab, _ = Oscar.stabilizer(OinOAgap, rep, on_subgroup)
     _, rep = sub(q, TorQuadModuleElem[tooscar(Agap(g)) for g in gens(rep)])
     stab, _ = sub(O, O.([h.X for h in gens(stab)]))
     push!(res, (rep, stab))
@@ -341,9 +341,11 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
     @assert ok
 
     HNinqN, stabN = H1
+    HN = domain(HNinqN)
     OHN = orthogonal_group(HN)
 
     HMinqM, stabM = H2
+    HM = domain(HMinqM)
     OHM = orthogonal_group(HM)
 
     actN = hom(stabN, OHN, [OHN(restrict_automorphism(x, HNinqN)) for x in gens(stabN)])
@@ -365,7 +367,7 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
       glue = FakeFmpqMat(glue)
       _B = hnf(glue)
       _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
-      L = lattice(ambient_space(cover(D)), _B[end-rank(N)-rank(M)+1:end, :])
+      L = Hecke.lattice(ambient_space(cover(D)), _B[end-rank(N)-rank(M)+1:end, :])
       N2 = lattice_in_same_ambient_space(L, identity_matrix(QQ, rank(L))[1:rank(N),:])
       @assert genus(N) == genus(N2)
       M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
@@ -755,6 +757,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
 
   # this is where we will perform the glueing
   if ambient_space(A) === ambient_space(B)
+    println("same_amb")
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _sum_with_embeddings_orthogonal_groups(qA, qB)
   else
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _direct_sum_with_embeddings_orthogonal_groups(qA, qB)
@@ -766,6 +769,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
     # if the glue valuation is zero, then we glue along the trivial group and we don't
   # have much more to do. Since the triple is p-admissible, A+B = C
   if g == 0
+    println(0)
     geneA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(OqA(a.X)) for a in gens(GA)]
     geneB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(OqB(b.X)) for b in gens(GB)]
     gene = vcat(geneA, geneB)
@@ -781,13 +785,17 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       fC2 = block_diagonal_matrix([isometry(A), isometry(B)])
     end
     if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), type(C))
+      qC2 = discriminant_group(C2)
+      ok, phi2 = is_isometric_with_isometry(qC2, D)
+      @assert ok
+      GC = Oscar._orthogonal_group(qC2, [compose(phi2, compose(hom(g), inv(phi2))).map_ab.map for g in gens(GC2)])
       C2fc2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
-      set_attribute!(C2fc2, :image_centralizer_in_Oq, GC2)
+      set_attribute!(C2fc2, :image_centralizer_in_Oq, GC)
       push!(results, C2fc2)
     end
     return results
   end
-
+  println("not 0")
   # these are GA|GB-invariant, fA|fB-stable, and should contain the kernels of any glue map
   VA, VAinqA, fVA = _get_V(lattice(A), qA, isometry(A), fqA, minpoly(B), p)
   VB, VBinqB, fVB = _get_V(lattice(B), qB, isometry(B), fqB, minpoly(A), p)
@@ -823,15 +831,12 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
   # corresponding overlattice and check whether it satisfies the type condition
   for (H1, H2, phi) in R
     SAinqA, stabA = H1
-    OSAinOqA = embedding_orthogonal_group(SAinqA)
-    OSA = domain(OSAinOqA)
-    OSAinOD = compose(OSAinOqA, OqAinOD)
+    SA = domain(SAinqA)
+    OSA = orthogonal_group(SA)
 
     SBinqB, stabB = H2
     SB = domain(SBinqB)
-    OSBinOqB = embedding_orthogonal_group(SBinqB)
-    OSB = domain(OSBinOqB)
-    OSBinOD = compose(OSBinOqB, OqBinOD)
+    OSB = orthogonal_group(SB)
 
     # we compute the image of the stabalizers in the respective OS* and we keep track
     # of the elements of the stabilizers acting trivially in the respective S*
@@ -906,7 +911,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
         glue = FakeFmpqMat(glue)
         _B = hnf(glue)
         _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
-        C2 = lattice(ambient_space(cover(D)), _B[end-rank(A)-rank(B)+1:end, :])
+        C2 = Hecke.lattice(ambient_space(cover(D)), _B[end-rank(A)-rank(B)+1:end, :])
         fC2 = block_diagonal_matrix([isometry(A), isometry(B)])
         __B = solve_left(block_diagonal_matrix(basis_matrix.([A,B])), basis_matrix(C2))
         fC2 = __B*fC2*inv(__B)
@@ -918,19 +923,21 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       end
 
       ext, _ = sub(D, D.(_glue))
+      println(ext == C2)
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
 
       qC2 = discriminant_group(C2)
-      ok, phi2 = is_isometric_with_isometry(qC2, disc)
-      @assert ok
+      OqC2 = orthogonal_group(C2)
+      phi2 = hom(qC2, disc, [disc(lift(x)) for x in gens(qC2)])
+      @assert is_bijective(phi2)
 
       C2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
       im2_phi, _ = sub(OSA, OSA.([compose(phig, compose(hom(g1), inv(phig))) for g1 in gens(imB)]))
       im3, _ = sub(imA, gens(intersect(imA, im2_phi)[1]))
-      stab = Tuple{AutomorphismGroupElem{TorQuadModule}, AutomorphismGroupElem{TorQuadModule}}[(x, imB(compose(inv(phig), compose(hom(x), phig)))) for x in gens(im3)]
-      stab = AutomorphismGroupElem{TorQuadModule}[OSAinOD(x[1])*OSBinOD(x[2]) for x in stab]
+      stab = Tuple{AutomorphismGroupElem{TorQuadModule}, AutomorphismGroupElem{TorQuadModule}}[(actA\x, actB\(imB(compose(inv(phig), compose(hom(x), phig))))) for x in gens(im3)]
+      stab = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x[1])*OqBinOD(x[2]) for x in stab]
       stab = union(stab, kerA)
       stab = union(stab, kerB)
       stab = TorQuadModuleMor[restrict_automorphism(g, j) for g in stab]

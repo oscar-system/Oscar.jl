@@ -14,7 +14,7 @@ export type
 import Hecke: kernel_lattice, invariant_lattice, rank, genus, basis_matrix,
               gram_matrix, ambient_space, rational_span, scale, signature_tuple,
               is_integral, det, norm, degree, discriminant, charpoly, minpoly,
-              rescale, dual, lll, discriminant_group
+              rescale, dual, lll, discriminant_group, divides, lattice
 ###############################################################################
 #
 #  String I/O
@@ -377,7 +377,7 @@ If it exists, the hermitian structure is cached.
   n = order_of_isometry(Lf)
 
   H, l = LWI._hermitian_structure(lattice(Lf), f, n = n, check = false,
-                                                           ambient_representation = false)
+                                                         ambient_representation = false)
   set_attribute!(Lf, :transfert_data, l)
   return H
 end
@@ -505,7 +505,10 @@ end
 #
 ###############################################################################
 
-divides(k::PosInf, n::Int) = true
+function _divides(k::IntExt, n::Int)
+  is_finite(k) && return Hecke.divides(k, n)[1]
+  return true
+end
 
 @doc Markdown.doc"""
     kernel_lattice(Lf::LatWithIsom, p::Union{fmpz_poly, QQPolyRingElem})
@@ -543,7 +546,7 @@ Given a lattice with isometry $(L, f)$ and an integer `l`, return the kernel
 lattice of $(L, f)$ associated to the `l`-th cyclotomic polynomial.
 """
 function kernel_lattice(Lf::LatWithIsom, l::Integer)
-  @req divides(order_of_isometry(Lf), l)[1] "l must divide the order of the underlying isometry"
+  @req _divides(order_of_isometry(Lf), l)[1] "l must divide the order of the underlying isometry"
   p = cyclotomic_polynomial(l)
   return kernel_lattice(Lf, p)
 end

@@ -20,7 +20,7 @@ export representatives_of_hermitian_type
 ##################################################################################
 
 # The tuples in output are pairs of positive integers!
-function _tuples_divisors(d::Hecke.IntegerUnion)
+function _tuples_divisors(d::T) where T <: Hecke.IntegerUnion
   div = divisors(d)
   return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
 end
@@ -29,7 +29,7 @@ end
 # discriminant for the genera A and B to glue to fit in C. d is
 # the determinant of C, m the maximal p-valuation of the gcd of
 # d1 and dp.
-function _find_D(d::Hecke.IntegerUnion, m::Int, p::Int)
+function _find_D(d::T, m::Int, p::Int) where T <: Hecke.IntegerUnion
   @assert is_prime(p)
   @assert d != 0
 
@@ -55,16 +55,24 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::Hecke.IntegerUnion, even = true)
+function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::Hecke.IntegerUnion, even = true; pos::Int = -1)
   L = ZGenus[]
   if r == 0 && d == 1
     return ZGenus[genus(Zlattice(gram = matrix(QQ, 0, 0, [])))]
   end
-  for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
-    gen = Zgenera((s1,s2), d, even=even)
-    filter!(G -> divides(numerator(scale(G)), s)[1], gen)
-    filter!(G -> divides(p*l, numerator(level(G)))[1], gen)
+  if pos >= 0
+    neg = r-pos
+    gen = Zgenera((pos, neg), d, even=even)
+    filter!(G -> Hecke.divides(numerator(scale(G)), s)[1], gen)
+    filter!(G -> Hecke.divides(p*l, numerator(level(G)))[1], gen)
     append!(L, gen)
+  else
+    for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
+      gen = Zgenera((s1,s2), d, even=even)
+      filter!(G -> Hecke.divides(numerator(scale(G)), s)[1], gen)
+      filter!(G -> Hecke.divides(p*l, numerator(level(G)))[1], gen)
+      append!(L, gen)
+    end
   end
   return L
 end
@@ -89,7 +97,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
     return false
   end
 
-  @req divides(rank(B), p-1)[1] "p-1 must divide the rank of B"
+  @req Hecke.divides(rank(B), p-1)[1] "p-1 must divide the rank of B"
 
   lA = ngens(discriminant_group(A))
   lB = ngens(discriminant_group(B))
@@ -113,7 +121,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
     return false
   end
 
-  if !(divides(scale(AperpB), scale(C))[1] && divides(p*level(C), level(AperpB))[1])
+  if !(Hecke.divides(scale(AperpB), scale(C))[1] && Hecke.divides(p*level(C), level(AperpB))[1])
     return false
   end
 
@@ -121,7 +129,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   qA = discriminant_group(A)
   qB = discriminant_group(B)
-  if !divides(numerator(det(C)), p)[1]
+  if !Hecke.divides(numerator(det(C)), p)[1]
     return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
   end
 
@@ -216,21 +224,39 @@ $\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
 
 See Algorithm 1 of [BH22].
 """
-function admissible_triples(G::ZGenus, p::Int64)
+function admissible_triples(G::ZGenus, p::Int64; pA::Int = -1, pB::Int = -1)
   @req is_prime(p) "p must be a prime number"
   @req is_integral(G) "G must be a genus of integral lattices"
   n = rank(G)
+  p, _ = signature_pair(G)
+  if pA >= 0
+    @req pA <= p "Wrong restrictions"
+    if pB >= 0
+      @req pA + pB == p "Wrong restrictions"
+    else
+      pB = p - pA
+    end
+  elseif pB >= 0
+    @req pB <= p "Wrong restrictions"
+    pA = p - pB
+  end
   d = numerator(det(G))
   even = iseven(G)
   L = Tuple{ZGenus, ZGenus}[]
   for ep in 0:div(n, p-1)
     rp = (p-1)*ep
+    if pB >= 0
+      rp >= pB || continue
+    end
     r1 = n - rp
+    if pA >= 0
+      r1 >= pA || continue
+    end
     m = min(ep, r1) 
     D = _find_D(d, m, p)
     for (d1, dp) in D
-      L1 = _find_L(r1, d1, numerator(scale(G)), numerator(level(G)), p, even)
-      Lp = _find_L(rp, dp, numerator(scale(G)), numerator(level(G)), p, even)
+      L1 = _find_L(r1, d1, numerator(scale(G)), numerator(level(G)), p, even, pos = pA)
+      Lp = _find_L(rp, dp, numerator(scale(G)), numerator(level(G)), p, even, pos = pB)
       for (A, B) in [(A, B) for A in L1 for B in Lp]
         if is_admissible_triple(A, B, G, p)
           push!(L, (A, B))
@@ -241,7 +267,7 @@ function admissible_triples(G::ZGenus, p::Int64)
   return L
 end
 
-admissible_triples(L::T, p::Integer) where T <: Union{ZLat, LatWithIsom} = admissible_triples(genus(L), p)
+admissible_triples(L::T, p::Integer; pA::Int = -1, pB::Int = -1) where T <: Union{ZLat, LatWithIsom} = admissible_triples(genus(L), p, pA = pA, pB = pB)
 
 ##################################################################################
 #
@@ -301,7 +327,7 @@ function _possible_signatures(s1, s2, E, rk)
   ok, q = Hecke.is_cyclotomic_type(E)
   @assert ok
   @assert iseven(s2)
-  @assert divides(2*(s1+s2), euler_phi(q))[1]
+  @assert Hecke.divides(2*(s1+s2), euler_phi(q))[1]
   n = 
   l = divexact(s2, 2)
   K = base_field(E)
@@ -370,7 +396,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
 
   @info "Order bigger than 3"
 
-  ok, rk = divides(rk, euler_phi(n*m))
+  ok, rk = Hecke.divides(rk, euler_phi(n*m))
 
   ok || return reps
 
@@ -455,7 +481,7 @@ function _representative(t::Dict; check::Bool = true)
     return trace_lattice(L, order = n)
   end
 
-  ok, rk = divides(rk, euler_phi(n))
+  ok, rk = Hecke.divides(rk, euler_phi(n))
 
   ok || reps
   
@@ -524,14 +550,8 @@ function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -
 
   reps = LatWithIsom[]
   @info "Compute admissible triples"
-  atp = admissible_triples(Lf, p)
-  if pA >= 0
-    filter!(t -> signature_pair(t[1])[1] == pA, atp)
-  end
-  if pB >= 0
-    filter!(t -> singature_pair(t[2][1]) == pB, atp)
-  end
-  @info "$(atp) admissible triple(s)"
+  atp = admissible_triples(Lf, p, pA = pA, pB = pB)
+  @info "$(length(atp)) admissible triple(s)"
   for (A, B) in atp
     LB = lattice_with_isometry(representative(B))
     RB = representatives_of_hermitian_type(LB, p*q^d)
@@ -607,7 +627,7 @@ function splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0)
   is_empty(A) && return reps
   B = splitting_of_prime_power(B0, p)
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B])
-    b == 1 && !divides(order_of_isometry(L1), p)[1] && !divides(order_of_isometry(L2), p)[1] && continue
+    b == 1 && !Hecke.divides(order_of_isometry(L1), p)[1] && !Hecke.divides(order_of_isometry(L2), p)[1] && continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, check=false)
     @assert b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
@@ -653,7 +673,7 @@ function splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
   phi = minpoly(Lf)
   chi = prod([cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e])
 
-  @req divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
+  @req Hecke.divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
 
   reps = LatWithIsom[]
 
@@ -662,7 +682,7 @@ function splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
   end
 
   A0 = kernel_lattice(Lf, p^d*q^e)
-  bool, r = divides(phi, cyclotomic_polynomial(p^d*q^e, parent(phi)))
+  bool, r = Hecke.divides(phi, cyclotomic_polynomial(p^d*q^e, parent(phi)))
   @assert bool
 
   B0 = kernel_lattice(Lf, r)
