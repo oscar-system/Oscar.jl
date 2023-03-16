@@ -1,6 +1,6 @@
-export exterior_algebra;  # MAIN EXPORT!
+export exterior_algebra  # MAIN EXPORT!
 
-export exterior_algebra_PBWAlgQuo;  # for historical reasons
+export exterior_algebra_PBWAlgQuo  # for historical reasons
 
 
 #--------------------------------------------
@@ -34,17 +34,17 @@ for its second argument, and this function becomes redundant.
 function var_names_for_singular(xs::Union{AbstractVector{<:AbstractString},
                                           AbstractVector{Symbol},
                                           AbstractVector{Char}})
-##??? return string.(xs);  # shorter but equivalent ???
-   NumVars = length(xs);
+##??? return string.(xs)  # shorter but equivalent ???
+   NumVars = length(xs)
 # This commented out code appears to be a bit slower.
-##   L = [""  for _ in 1:NumVars];
-##   for i = 1:NumVars   L[i] = string(xs[i]);  end;
-   L = String[];
+##   L = [""  for _ in 1:NumVars]
+##   for i = 1:NumVars   L[i] = string(xs[i]);  end
+   L = String[]
     for var in xs
-        push!(L, string(var));
-    end;
-   return L;
-end;
+        push!(L, string(var))
+    end
+   return L
+end
 
 
 #---------------------- MAIN FUNCTION ----------------------
@@ -107,45 +107,45 @@ julia> y*x
 ```
 """
 function exterior_algebra(K::Field, numVars::Int)
-  fn_name = "exterior_algebra";
-  if (numVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) must be strictly positive, but numVars=$numVars"));  end;
-  return exterior_algebra(K, (1:numVars) .|> (k -> "e$k"));
+    if (numVars < 1)
+        throw(ArgumentError("numVars must be strictly positive, but numVars=$numVars"))
+    end
+    return exterior_algebra(K,  (1:numVars) .|> (k -> "e$k"))
 end
 
 function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
                                                           AbstractVector{Symbol},
                                                           AbstractVector{Char}})
-    fn_name = "exterior_algebra";
     numVars = length(listOfVarNames)
     if (numVars == 0)
-        throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));
-    end;
+        throw(ArgumentError("no variables/indeterminates given"))
+    end
     if (numVars == 1)    ## WORKAROUND for Singular "bug/feature"
-        throw(NotImplementedError(:exterior_algebra, "numVars == 1  (requires Singular update)"));
-    end;
+        throw(NotImplementedError(:exterior_algebra, "1 variable not yet supported  (requires Singular update)"))
+    end
 #    if (!allunique(VarNames))
-#        throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));
-#    end;
+#        throw(ArgumentError("variable names must be distinct"))
+#    end
 
-    R, indets = polynomial_ring(K, listOfVarNames);
+    R, indets = polynomial_ring(K, listOfVarNames)
     SameCoeffRing = singular_coeff_ring(coefficient_ring(R))
-    M = zero_matrix(R, numVars, numVars);
+    M = zero_matrix(R, numVars, numVars)
     for i in 1:numVars-1
         for j in i+1:numVars
-            M[i,j] = -indets[i]*indets[j];
-        end;
-    end;
-    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false); # disable check since we know it is OK!
-    I = two_sided_ideal(PBW, PBW_indets.^2);
+            M[i,j] = -indets[i]*indets[j]
+        end
+    end
+    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false) # disable check since we know it is OK!
+    I = two_sided_ideal(PBW, PBW_indets.^2)
     # Now construct the fast exteriorAlgebra in Singular
-    SameVarNames = var_names_for_singular(symbols(PBW));
-    P, _ = Singular.polynomial_ring(SameCoeffRing, SameVarNames);
-    SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr));
-    ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR);
+    SameVarNames = var_names_for_singular(symbols(PBW))
+    P, _ = Singular.polynomial_ring(SameCoeffRing, SameVarNames)
+    SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr))
+    ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
     # Create Quotient ring with special implementation:
-    ExtAlg,_ = quo(PBW, I;  SpecialImpl = ExtAlg_singular);  # 2nd result is a QuoMap, apparently not needed
-    return ExtAlg, gens(ExtAlg);
-end;
+    ExtAlg,_ = quo(PBW, I;  SpecialImpl = ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
+    return ExtAlg, gens(ExtAlg)
+end
 
 
 
@@ -187,28 +187,32 @@ julia> y*x
 ```
 """
 function exterior_algebra_PBWAlgQuo(K::Ring, numVars::Int)
-  fn_name = "exterior_algebra_PBWAlgQuo";
-  if (numVars < 1)  throw(ArgumentError("$fn_name ctor: (arg2) must be strictly positive: numVars=$numVars"));  end;
-  return exterior_algebra_PBWAlgQuo(K, (1:numVars) .|> (k -> "e$k"));
+    if (numVars < 1)
+        throw(ArgumentError("numVars must be strictly positive: numVars=$numVars"))
+    end
+    return exterior_algebra_PBWAlgQuo(K,  (1:numVars) .|> (k -> "e$k"))
 end
 
 function exterior_algebra_PBWAlgQuo(K::Ring, listOfVarNames::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
-    fn_name = "exterior_algebra_PBWAlgQuo";
     numVars = length(listOfVarNames)
-    if (numVars == 0)  throw(ArgumentError("$fn_name: (arg2) no variables/indeterminates given"));  end;
-    if (!allunique(listOfVarNames))  throw(ArgumentError("$fn_name: (arg2) variable names must be distinct"));  end;
-    R, indets = polynomial_ring(K, listOfVarNames);
-    M = zero_matrix(R, numVars, numVars);
+    if (numVars == 0)
+        throw(ArgumentError("no variables/indeterminates given"))
+    end
+    # if (!allunique(listOfVarNames))
+    #     throw(ArgumentError("variable names must be distinct"))
+    # end
+    R, indets = polynomial_ring(K, listOfVarNames)
+    M = zero_matrix(R, numVars, numVars)
     for i in 1:numVars-1
         for j in i+1:numVars
-            M[i,j] = -indets[i]*indets[j];
-        end;
-    end;
-    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets);  check = false); # disable check since we know it is OK!
-    I = two_sided_ideal(PBW, PBW_indets.^2);
-    ExtAlg,QuoMap = quo(PBW, I);
-    return ExtAlg, QuoMap.(PBW_indets);
-end;
+            M[i,j] = -indets[i]*indets[j]
+        end
+    end
+    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets);  check = false) # disable check since we know it is OK!
+    I = two_sided_ideal(PBW, PBW_indets.^2)
+    ExtAlg,QuoMap = quo(PBW, I)
+    return ExtAlg, QuoMap.(PBW_indets)
+end
 
 
 
