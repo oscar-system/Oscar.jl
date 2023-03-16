@@ -789,10 +789,11 @@ Compute the Ehrhart polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
+```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
     R, x = polynomial_ring(QQ, "x")
