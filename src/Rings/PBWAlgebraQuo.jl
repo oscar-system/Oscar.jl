@@ -35,12 +35,6 @@ export PBWAlgQuo, PBWAlgQuoElem
 mutable struct PBWAlgQuo{T, S} <: NCRing
     I::PBWAlgIdeal{0, T, S}
     sring::Singular.PluralRing{S}  # For ExtAlg this is the Singular impl; o/w same as I.basering.sring
-
-##    # THIS DOES NOT WORK: no idea why!  [try Julia manual "parametric constructors"]
-##    function PBWAlgQuo{T, S}(I::PBWAlgIdeal{0, T, S}, sring::Singular.PluralRing{S})  where {T,S}
-##        @assert coefficient_ring(sring) == coefficient_ring(I.basering.sring) && symbols(sring) == symbols(I.basering.sring); 
-##        return new(I, sring);
-##    end
 end
 
 # For backward compatibility: ctor with 1 arg:
@@ -50,7 +44,7 @@ function PBWAlgQuo(I::PBWAlgIdeal{0, T, S})  where {T, S}
 end
 
 
-function have_special_impl(Q::PBWAlgQuo) :: Bool
+function have_special_impl(Q::PBWAlgQuo)
     return (Q.sring != Q.I.basering.sring)
 end
 
@@ -133,11 +127,13 @@ function one(Q::PBWAlgQuo)
 end
 
 function simplify(a::PBWAlgQuoElem)
-  if (have_special_impl(parent(a)))  return a;  end; # short-cut for exterior algebras
-  I = parent(a).I
-  groebner_assure!(I)
-  a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
-  return a
+    if have_special_impl(parent(a))
+        return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
+    end
+    I = parent(a).I
+    groebner_assure!(I)
+    a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
+    return a
 end
 
 function Base.hash(a::PBWAlgQuoElem, h::UInt)
@@ -146,8 +142,8 @@ function Base.hash(a::PBWAlgQuoElem, h::UInt)
 end
 
 function is_zero(a::PBWAlgQuoElem)
-    if (!have_special_impl(parent(a)))  # must reduce if not exterior algebras
-        simplify(a); # see GitHub discussion #2014
+    if !have_special_impl(parent(a))  # must reduce if not exterior algebras
+        simplify(a); # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
     end
     return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
 end
@@ -282,7 +278,7 @@ function (Q::PBWAlgQuo)(c::IntegerUnion)
 end
 
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
-    if (parent(a) != Q)
+    if parent(a) != Q
         throw(ArgumentError("coercion between different PBWAlg quotients not possible"));
     end;
   return a;
