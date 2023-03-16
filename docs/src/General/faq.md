@@ -1,3 +1,14 @@
+```@meta
+CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
+```
+
+```@setup oscar
+using Oscar
+```
+
 ```@contents
 Pages = ["faq.md"]
 ```
@@ -18,9 +29,9 @@ You can find our installation instructions [here](https://www.oscar-system.org/i
 Yes, Julia provides the function [methodswith](https://docs.julialang.org/en/v1/stdlib/InteractiveUtils/#InteractiveUtils.methodswith) for this very purpose.
 
 For your convenience, let us give an example here. To this end, we first create a projective space in OSCAR:
-```julia
+```jldoctest
 julia> v = projective_space(NormalToricVariety,2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> typeof(v)
 NormalToricVariety
