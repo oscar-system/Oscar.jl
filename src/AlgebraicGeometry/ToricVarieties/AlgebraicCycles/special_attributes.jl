@@ -38,7 +38,7 @@ julia> set_coordinate_names(v, ["x_{1}", "x_{2}", "x_{3}"])
 julia> chow_ring(v)
 Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Field by ideal(x_{1} - x_{3}, x_{2} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
 
-julia> M = cycle_matroid(Graphs.complete_graph(3))
+julia> M = cycle_matroid(complete_graph(3))
 Matroid of rank 2 on 3 elements
 
 julia> chow_ring(M)
