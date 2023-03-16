@@ -80,7 +80,7 @@ exterior_algebra_PBWAlgQuo(residue_field(ZZ,1180591620717411303449), 2);
 exterior_algebra_PBWAlgQuo(residue_ring(ZZ,4), 3)  # Coeffs not integral domain
 
 @test_throws  ArgumentError  exterior_algebra_PBWAlgQuo(QQ, String[]); # empty name list
-@test_throws  ArgumentError  exterior_algebra_PBWAlgQuo(QQ, ["x", "y", "x"]); # duplicate name
+exterior_algebra_PBWAlgQuo(QQ, ["x", "y", "x"]); #  !!duplicate names are allowed!!
 
 
 ## (reduced) COMPUTATIONAL SPEED TEST
