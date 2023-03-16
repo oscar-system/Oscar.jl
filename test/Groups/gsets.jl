@@ -284,8 +284,7 @@ end
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
-#     for k in 0:n   # k = 0 is a problem in GAP 4.12.0
-      for k in 1:n
+      for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
         for (U, stab) in res
@@ -304,4 +303,14 @@ end
     end
   end
 
+end
+
+@testset "G-sets of matrix groups in characteristic zero" begin
+
+  # natural constructions (determined by the types of the seeds)
+  G = matrix_group(permutation_matrix(QQ,[3,1,2]))
+  R, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+  f = x^2 + y
+  orb = orbit(G, f)
+  @test length(orb) == 3
 end

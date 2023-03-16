@@ -149,6 +149,11 @@ function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = fal
   return GSetByElements(G, ^, Omega; closed = closed)
 end
 
+## action of matrices on polynomials via `on_indeterminates`
+function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
+  return GSetByElements(G, on_indeterminates, Omega; closed = closed)
+end
+
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
 
 ## natural action of a permutation group on the integers 1, ..., degree
