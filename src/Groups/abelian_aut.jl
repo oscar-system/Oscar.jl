@@ -240,14 +240,15 @@ end
     embedding_orthogonal_group(i::TorQuadModuleMor) -> GAPGroupHomomorphism
 
 Given an embedding $i\colon A \to D$ between two torsion quadratic modules,
-such that `A` admits a complement `B` in $D \cong A \oplus B$, return the
-embedding $O(A) \to O(D)$ obtained by extending the isometries of `A` by
-the identity on `B`.
+such that `A` admits a complement `B` in $D \cong A \oplus B$ to which it is
+orthogonal, return the embedding $O(A) \to O(D)$ obtained by extending the
+isometries of `A` by the identity on `B`.
 """
 function embedding_orthogonal_group(i::TorQuadModuleMor)
   @req is_injective(i) "i must be injective"
   ok, j = has_complement(i)
   @req ok "The domain of i must have a complement in the codomain"
+  @req all(v -> i(v[1])*j(v[2]) == 0, Hecke.cartesian_product_iterator([gens(domain(i)), gens(domain(j))], inplace=true)) "The domain of i and its complement must be in orthogonal direct sum"
   A = domain(i)
   B = domain(j)
   D = codomain(i)
