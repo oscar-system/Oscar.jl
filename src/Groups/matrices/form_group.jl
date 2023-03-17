@@ -1,20 +1,6 @@
 # TODO: in this file several ways to get the preserved forms by a matrix group are implemented
 # we can choose to keep all of them or only some of them
 
-export invariant_alternating_forms
-export invariant_bilinear_forms
-export invariant_hermitian_forms
-export invariant_quadratic_forms
-export invariant_sesquilinear_forms
-export invariant_symmetric_forms
-export isometry_group
-export preserved_quadratic_forms
-export preserved_sesquilinear_forms
-export automorphism_group
-export orthogonal_group
-export orthogonal_sign
-export unitary_group
-
 ########################################################################
 #
 # From group to form #TODO: there are different approaches. Which is the best?

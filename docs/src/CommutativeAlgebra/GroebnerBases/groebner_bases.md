@@ -387,7 +387,7 @@ groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     only if you know what you are doing.
 
 ```@docs
-f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
+groebner_basis_f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
 ```
 
 ## Leading Ideals

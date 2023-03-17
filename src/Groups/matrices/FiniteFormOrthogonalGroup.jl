@@ -845,7 +845,7 @@ function _compute_gens_split_degenerate(T::TorQuadModule)
     push!(ni, ngens(domain(_f)))
     popfirst!(pd)
   end
-  Torth, _, _ = Hecke._orthogonal_sum_with_injections_and_projections(domain.(blocks))
+  Torth, _ = direct_sum(domain.(blocks))
   ok, phi = is_isometric_with_isometry(Torth, T)
   @assert ok # Same module with different basis, somehow
 
@@ -918,7 +918,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
   # defined because N and rd are orthogonal and the quadratic form on rd is trivial.
   R, psi = hom(abelian_group(N), abelian_group(rd), task = :map)
   Ntord = ZZMatrix[matrix(psi(f)) for f in gens(R)]
-  Torth, _, _ = Hecke._orthogonal_sum_with_injections_and_projections([rd, N])
+  Torth, _ = direct_sum(rd, N)
 
   # Same module with different basis
   ok, phi = is_isometric_with_isometry(Torth, T)
@@ -975,7 +975,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
     push!(ni, ngens(domain(_f)))
     popfirst!(pd)
   end
-  Torth, _, _ = Hecke._orthogonal_sum_with_injections_and_projections(domain.(blocks))
+  Torth, _ = direct_sum(domain.(blocks))
   ok, phi = is_isometric_with_isometry(Torth, T)
   @assert ok
 

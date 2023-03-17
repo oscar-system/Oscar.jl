@@ -1308,9 +1308,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}; ordering::
 
   @assert is_graded(Q)
 
-  if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
-    throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   QS = singular_poly_ring(Q)
   singular_assure(I)

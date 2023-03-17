@@ -1,5 +1,9 @@
-export ProjCurve, defining_ideal, curve_components, reduction, is_irreducible,
-       jacobi_ideal
+export ProjCurve
+export curve_components
+export defining_ideal
+export is_irreducible
+export jacobi_ideal
+export reduction
 
 import Oscar.defining_ideal
 ################################################################################

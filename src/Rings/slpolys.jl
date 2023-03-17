@@ -130,13 +130,12 @@ parent(p::SLPoly) = p.parent
 parent_type(::Type{SLPoly{T,SLPR}}) where {T,SLPR} = SLPR
 
 function check_parent(p::SLPoly, q::SLPoly)
-    p.parent === q.parent ||
-        throw(ArgumentError("incompatible parents"))
+    @req p.parent === q.parent "incompatible parents"
     p.parent
 end
 
 function (S::SLPolyRing{T})(p::SLPoly{T}) where T <: RingElement
-    parent(p) != S && throw(ArgumentError("unable to coerce polynomial"))
+    @req parent(p) == S "unable to coerce polynomial"
     p
 end
 
@@ -369,8 +368,7 @@ end
 
 function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     # TODO: currently handles only default ordering
-    symbols(R) == symbols(parent(p)) ||
-        throw(ArgumentError("incompatible symbols"))
+    @req symbols(R) == symbols(parent(p)) "incompatible symbols"
     q = SLPoly(R)
     @assert lastindex(p.coeffs) < SLP.cstmark
     qcs = SLP.constants(q)
@@ -462,8 +460,7 @@ end
 ## conversion SLPoly -> MPoly
 
 function Base.convert(R::MPolyRing, p::SLPoly)
-    symbols(R) == symbols(parent(p)) ||
-        throw(ArgumentError("incompatible symbols"))
+    @req symbols(R) == symbols(parent(p)) "incompatible symbols"
     assert_valid(p)
     evaluate(p, gens(R))
 end

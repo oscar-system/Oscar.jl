@@ -305,3 +305,13 @@ end
   end
 
 end
+
+@testset "G-sets of matrix groups in characteristic zero" begin
+
+  # natural constructions (determined by the types of the seeds)
+  G = matrix_group(permutation_matrix(QQ,[3,1,2]))
+  R, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+  f = x^2 + y
+  orb = orbit(G, f)
+  @test length(orb) == 3
+end

@@ -44,7 +44,6 @@ function allow_unicode(flag::Bool)
   @set_preferences!("unicode" => flag)
   return old_flag
 end
-export allow_unicode
 
 function is_unicode_allowed()
   return @load_preference("unicode", default = false)

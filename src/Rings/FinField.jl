@@ -64,9 +64,10 @@ function disc_log(a::T) where {T <: FinFieldElem}
   return crt([x[2] for x = res], [x[1] for x= res])
 end
 
-export disc_log, generator
+export disc_log
+export generator
 
 end # module DiscLog
 
-export generator, disc_log
-
+export disc_log
+export generator

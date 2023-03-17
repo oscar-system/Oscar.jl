@@ -1,3 +1,7 @@
+if VERSION < v"1.9.0-DEV"
+  error("Julia >= 1.9 required")
+end
+
 using Pkg
 Pkg.add("PackageCompiler")
 Pkg.add("Libdl")

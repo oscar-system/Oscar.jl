@@ -76,7 +76,7 @@ end
 
   L = root_lattice(:A, 2)
   q = discriminant_group(L)
-  T = orthogonal_sum(q, q)[1]
+  T = direct_sum(q, q)[1]
   OT = orthogonal_group(T)
   f = matrix(ZZ, 2, 2, [1 1;0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
@@ -136,5 +136,11 @@ end
   @test is_injective(f) && !is_surjective(f)
   @test order(domain(f)) == 12
   @test all(g -> order(f(g)) == order(g), domain(f))
+
+  U2 = hyperbolic_plane_lattice(2)
+  q = discriminant_group(U2)
+  qq, qqinq = sub(q, [q[1] + q[2]])
+  OqqinOq = @inferred embedding_orthogonal_group(qqinq)
+  @test is_injective(OqqinOq)
 end
 

@@ -141,7 +141,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # A file without version number is treated as the "first" version
     if dict[:type] == string(backref_sym)
         backref = s.objs[UUID(dict[:id])]
-        backref isa T || throw(ErrorException("Backref of incorrect type encountered: $backref !isa $T"))
+        backref isa T || error("Backref of incorrect type encountered: $backref !isa $T")
         return backref
     end
 
@@ -154,7 +154,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
     # these checks later on, depending on what we actually need...
     U = decodeType(dict[:type])
-    U <: T || U >: T || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T"))
+    U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
     Base.issingletontype(T) && return T()
 

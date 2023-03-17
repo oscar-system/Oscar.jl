@@ -117,6 +117,7 @@ MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
                 MPolyLocRing,MPolyQuoLocRing
                }
 
+
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
@@ -1507,6 +1508,12 @@ base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
 pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
+
+### a shorthand notation for any MPolyIdeal 
+MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
+                 MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal
+                }
+
 
 ### Additional constructors
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)

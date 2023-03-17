@@ -641,7 +641,6 @@ end
 
 Hecke.lines(P::Hecke.Polygon) = P.lines
 slope(l::Hecke.Line) = l.slope
-export slope
 
 function valuation_of_roots(f::ZZPolyRingElem, p::ZZRingElem)
   @assert is_prime(p)

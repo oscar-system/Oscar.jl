@@ -1,12 +1,3 @@
-export has_number_perfect_groups
-export has_perfect_group_identification
-export has_perfect_groups
-export number_perfect_groups
-export orders_perfect_groups
-export perfect_group_identification
-export perfect_group
-
-
 ###################################################################
 # Perfect groups
 ###################################################################

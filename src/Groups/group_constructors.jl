@@ -4,27 +4,6 @@
 #
 ################################################################################
 
-export
-    abelian_group,
-    alternating_group,
-    cyclic_group,
-    dihedral_group,
-    free_abelian_group,
-    free_group,
-    is_abelian, has_is_abelian, set_is_abelian,
-    is_cyclic, has_is_cyclic, set_is_cyclic,
-    is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group,
-    is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian,
-    is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group,
-    is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group,
-    is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group,
-    is_natural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group,
-    is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group,
-    mathieu_group,
-    quaternion_group,
-    symmetric_group
-
-
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
 _gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
 _gap_filter(::Type{FPGroup}) = GAP.Globals.IsSubgroupFpGroup

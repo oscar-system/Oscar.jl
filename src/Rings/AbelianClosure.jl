@@ -946,7 +946,7 @@ function quadratic_irrationality_info(a::QQAbElem)
       end
     end
 
-    if cand == nothing
+    if cand === nothing
       # The value is rational.
       return (coeff(a.data, 0), 0, 1)
     end
@@ -996,9 +996,9 @@ import .AbelianClosure:
        set_variable!,
        get_variable
 
-export abelian_closure,
-       QQAbAutomorphism,
-       QQAbField,
-       QQAbElem,
-       set_variable!,
-       get_variable
+export abelian_closure
+export get_variable
+export QQAbAutomorphism
+export QQAbElem
+export QQAbField
+export set_variable!

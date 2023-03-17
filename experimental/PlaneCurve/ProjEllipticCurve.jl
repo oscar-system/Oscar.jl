@@ -1,6 +1,13 @@
-export ProjEllipticCurve, discriminant, is_smooth, j_invariant,
-       Point_EllCurve, curve, weierstrass_form, toweierstrass,
-       iselliptic, list_rand
+export Point_EllCurve
+export ProjEllipticCurve
+export curve
+export discriminant
+export is_smooth
+export iselliptic
+export j_invariant
+export list_rand
+export toweierstrass
+export weierstrass_form
 
 ################################################################################
 # Helping functions

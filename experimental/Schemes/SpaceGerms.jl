@@ -1,10 +1,9 @@
-export SpaceGerm, germ_at_point
-
-export representative, point
-
+export SpaceGerm
 export ambient_germ
-
+export germ_at_point
+export point
 export rational_point_coordinates
+export representative
 
 import AbstractAlgebra: Ring
 

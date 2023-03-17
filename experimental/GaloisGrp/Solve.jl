@@ -272,7 +272,7 @@ Given a descending chain of subgroups, each being maximal in the previous
 one, compute the corresponding subfields as a tower.
 
 # Examples
-```julia
+```jldoctest
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-3*x+17)
@@ -285,9 +285,8 @@ julia> d = derived_series(G)
  Group(())
 
 julia> fixed_field(C, d)
-(Relative number field over with defining polynomial x^3 - 3*x + 17
+(Relative number field with defining polynomial x^3 - 3*x + 17
  over Number field over Rational Field with defining polynomial x^2 + 7695, a2)
-
 ```
 """
 function Oscar.fixed_field(C::GaloisCtx, s::Vector{PermGroup})
