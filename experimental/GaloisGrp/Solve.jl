@@ -306,6 +306,9 @@ function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldEl
   if degree(S.fld) == 1
     return ceil(ZZRingElem, abs(x))
   end
+  if iszero(x)
+    return ZZRingElem(1)
+  end
   f = parent(defining_polynomial(S.fld))(x)
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val
   return sum(length_bound(C, S.coeff_field, coeff(f, i))*B^i for i=0:degree(f))
