@@ -121,11 +121,16 @@ export test_base
 
 
 ################################################################
-# 6: Compute singularity Kodaira type and refined Tate type
+# 6: Check if an ideal/subvariety is nontrivial
 ################################################################
 
-# TODO: The below assumes that the singular locus is given by a single coordinate
-# Only works for codimension 1
+_is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyElem{fmpq}} = !is_one(id) && !is_one(saturation(id, irr))
+export _is_nontrivial
+
+
+################################################################
+# 7: Compute singularity Kodaira type and refined Tate type
+################################################################
 
 _count_factors(poly::fmpq_mpoly) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
 
@@ -212,67 +217,88 @@ end
 
 
 ################################################################
-# 7: Blowups
+# 8: Blowups
 ################################################################
 
-function _blowup_ideal(id::MPolyIdeal{T}, center_gens::Vector{T}, irr::MPolyIdeal{T}, sri::MPolyIdeal{T}, lin::MPolyIdeal{U}; index::Integer = 1) where {T,U<:MPolyElem{fmpq}}
-    @warn "The function _blowup_ideal is experimental; absence of bugs and proper results are not guaranteed"
-    
-    id_gens = gens(id)
+function _blowup_global(id::MPolyIdeal{fmpq_mpoly}, center::MPolyIdeal{fmpq_mpoly}, irr::MPolyIdeal{fmpq_mpoly}, sri::MPolyIdeal{fmpq_mpoly}, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1)
+    # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
+
     R = base_ring(id)
-    
-    if any(g -> parent(g) != R, center_gens)
-        throw(ArgumentError("The generators of the blowup center must reside in the parent ring of the given ideal"))
+    center_size = length(gens(center))
+
+    # Various sanity checks
+    if is_zero(center)
+        throw(ArgumentError("The blowup center must be non-empty"))
     end
-    
+    # if !is_subset(id, center)
+    #     throw(ArgumentError("The ideal of the blowup center must contain the ideal to be blown up"))
+    # end
     if base_ring(irr) != R
-        throw(ArgumentError("The given irrelevant ideal must share the parent ring of the given ideal"))
+        throw(ArgumentError("The given irrelevant ideal must share the base ring of the ideal to be blown up"))
     end
     if base_ring(sri) != R
-        throw(ArgumentError("The given Stanley–Reisner ideal must share the parent ring of the given ideal"))
+        throw(ArgumentError("The given Stanley–Reisner ideal must share the base ring of the ideal to be blown up"))
     end
-    # if base_ring(lin) != R.R # Replace with getter function once it exists
-    #     throw(ArgumentError("The given ideal of linear relations must share the (underlying ungraded) parent ring of the given ideal"))
-    # end
-    
-    S, S_gens = PolynomialRing(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:length(center_gens)]; [string(v) for v in gens(R)]], cached = false)
-    (_e, new_gs...) = S_gens[1:length(center_gens) + 1]
-    ring_map = hom(R, S, S_gens[length(center_gens) + 2:end])
-    
-    result_id = ideal([[ring_map(poly) for poly in id_gens]; [g * _e - center_gen for (g, center_gen) in zip(new_gs, map(ring_map, center_gens))]])
-    
-    result_irr = ideal([ring_map(gens(irr)[i]) * new_gs[j] for i in 1:length(gens(irr)) for j in 1:length(new_gs)])
-    result_sri = ideal([map(ring_map, gens(sri)); prod(new_gs)])
-    result_lin = lin
-    
-    return result_id, result_irr, result_sri, result_lin, S, S_gens
-end
-export _blowup_ideal
+    if length(gens(base_ring(lin))) != length(gens(R))
+        throw(ArgumentError("The base ring of ideal of linear relations must have the same number of generators as the base ring of the ideal to be blown up"))
+    end
 
-function _blowup_ideal_sequence(id::MPolyIdeal{T}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{T}, sri::MPolyIdeal{T}, lin::MPolyIdeal{U}; index::Integer = 1, proper::Bool = true) where {T,U<:MPolyElem{fmpq}}
-    @warn "The function _blowup_ideal_sequence is experimental; absence of bugs and proper results are not guaranteed"
-    
-    (cur_ids, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_index) = ([id], irr, sri, lin, nothing, gens(base_ring((id))), index)
-    
+    # Make sure the ideal of linear relations has the same base ring as the others
+    lin = ideal(map(hom(base_ring(lin), R, collect(1:length(gens(R)))), gens(lin)))
+
+    # Create new base ring for the blown up ideal and a map between the rings
+    S, S_gens = PolynomialRing(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)
+    (_e, new_coords...) = S_gens[1:center_size + 1]
+    ring_map = hom(R, S, S_gens[center_size + 2:end])
+
+    # Compute the total transform
+    center_gens_S = map(ring_map, gens(center))
+    total_transform = ideal(map(ring_map, gens(id))) + ideal([new_coords[i] * _e - center_gens_S[i] for i in 1:center_size])
+
+    # Compute the exceptional locus and strict transform, checking for crepancy
+    # Could alternatively replace _e with center_gens_S in the exceptional locus here, then take the
+    #   primary decomposition and remove parts whose saturation by the irrelevant ideal is the whole ring
+    exceptional_ideal = total_transform + ideal([_e])
+    strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
+    crepant = (exceptional_factor == center_size - 1)
+
+    # Compute the new irrelevant ideal, SRI, and ideal of linear relations
+    # These may need to be changed after reintroducing e
+    new_irr = ideal(map(ring_map, gens(irr))) * ideal(new_coords)
+    new_sri = ideal(map(ring_map, gens(sri))) + ideal([prod(new_coords)])
+    new_lin = ideal(map(ring_map, gens(lin))) + ideal([g - new_coords[end] for g in new_coords[1:end - 1]])
+
+    return total_transform, strict_transform, exceptional_ideal, crepant, new_irr, new_sri, new_lin, S, S_gens, ring_map
+end
+_blowup_global(id::T, center::T, irr::T, sri::T, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1) where {T<:MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}} = _blowup_global(ideal(map(g -> g.f, gens(id))), ideal(map(g -> g.f, gens(center))), ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+export _blowup_global
+
+function _blowup_global_sequence(id::MPolyIdeal{fmpq_mpoly}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{fmpq_mpoly}, sri::MPolyIdeal{fmpq_mpoly}, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1)
+    # @warn "The function _blowup_global_sequence is experimental; absence of bugs and proper results are not guaranteed"
+
+    (cur_strict_transform, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_index) = (id, irr, sri, lin, base_ring(id), gens(base_ring((id))), index)
+    crepant = true
+    ring_map = hom(cur_S, cur_S, cur_S_gens) # Identity map
+
+    exceptionals = MPolyIdeal{<:MPolyElem{fmpq}}[]
     for center in centers
-        if !(all(ind -> 1 <= ind <= length(cur_S_gens), center))
+        if !all(ind -> 1 <= ind <= length(cur_S_gens), center)
             throw(ArgumentError("The given indices for the center generators are out of bounds"))
         end
-        
-        next_ids = MPolyIdeal{<:MPolyElem{fmpq}}[]
-        for cur_id in cur_ids
-            (next_id, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens) = _blowup_ideal(cur_id, map(ind -> cur_S_gens[ind], center), cur_irr, cur_sri, cur_lin, index = cur_index)
-            all_ids = map(pair -> pair[2], primary_decomposition(next_id))
-            append!(next_ids, filter(id -> !(cur_S_gens[1] in gens(id)), all_ids))
-        end
-        
-        cur_ids = next_ids
+
+        (_, cur_strict_transform, cur_ex, cur_crep, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_ring_map) = _blowup_global(cur_strict_transform, ideal(map(ind -> cur_S_gens[ind], center)), cur_irr, cur_sri, cur_lin, index = cur_index)
+
+        map!(cur_ring_map, exceptionals, exceptionals)
+        push!(exceptionals, cur_ex)
+
+        crepant = crepant && cur_crep 
+
+        ring_map = compose(ring_map, cur_ring_map)
+
         cur_index += 1
     end
-    
-    return cur_ids, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens
-end
-export _blowup_ideal_sequence
 
-_is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyElem{fmpq}} = !(is_one(id)) && !(is_one(saturation(id, irr)))
-export _is_nontrivial
+    return cur_strict_transform, exceptionals, crepant, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, ring_map
+end
+_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1) where {T<:MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+export _blowup_global_sequence

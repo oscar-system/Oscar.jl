@@ -237,6 +237,11 @@ end
     irr_i5_s = irrelevant_ideal(tas);
     sri_i5_s = stanley_reisner_ideal(tas);
     lin_i5_s = ideal_of_linear_relations(tas);
-    id_fin, _, _, _, _, _ = _blowup_ideal_sequence(id_i5_s, [[7, 8, 6], [2, 3, 1], [3, 4], [2, 4]], irr_i5_s, sri_i5_s, lin_i5_s)
-    @test string(gens(id_fin[1])[end - 3]) == "b_4_1*b_2_1*a1p*z + b_4_1*b_2_2 + b_4_1*b_2_3*b_1_3^2*a3p*z^3 - b_4_2*b_3_2*b_2_1^2*b_1_1 - b_4_2*b_3_2*b_2_1^2*b_1_3*a2p*z^2 - b_4_2*b_3_2*b_2_1*b_2_3*b_1_3^3*a4p*z^4 - b_4_2*b_3_2*b_2_3^2*b_1_3^5*a6p*z^6"
+    id_fin,  = _blowup_global_sequence(id_i5_s, [[7, 8, 6], [2, 3, 1], [3, 4], [2, 4]], irr_i5_s, sri_i5_s, lin_i5_s)
+    @test string(gens(id_fin)[end]) == "-b_4_1*b_2_1*a1p*z - b_4_1*b_2_2 - b_4_1*b_2_3*b_1_3^2*a3p*z^3 + b_4_2*b_3_2*b_2_1^2*b_1_1 + b_4_2*b_3_2*b_2_1^2*b_1_3*a2p*z^2 + b_4_2*b_3_2*b_2_1*b_2_3*b_1_3^3*a4p*z^4 + b_4_2*b_3_2*b_2_3^2*b_1_3^5*a6p*z^6"
+end
+
+@testset "Fibers" begin
+    inters = analyze_fibers(t_i5_s, [[7, 8, 6], [2, 3, 1], [3, 4], [2, 4]])
+    @test string(inters[1][2][1][2][1]) == "ideal(e_2*b_2_1 - b_1_1, b_3_1*a1p*z - b_3_2*b_1_1^2, b_4_1*a1p*z - b_4_2*b_3_2*b_2_1*b_1_1, b_4_1*b_1_1 - b_4_2*b_3_1*b_2_1, b_4_1*e_2 - b_4_2*b_3_1, e_4*b_4_2 - e_2, e_4*b_4_1 - b_3_1, y, x, v, b_1_3, b_1_2, e_1, b_2_3, b_2_2, e_3)"
 end

@@ -14,15 +14,15 @@ A global Tate model describes a particular form of an elliptic fibration.
 We focus on elliptic fibrations over base 3-folds ``B3``. Consider
 the weighted projective space ``\mathbb{P}^{2,3,1}`` with coordinates
 ``x, y, z``. In addition, consider
-- ``a_1 \in H^0( B_3, \overline{K}_{B_3} )``,
-- ``a_2 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 2} )``,
-- ``a_3 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 3} )``,
-- ``a_4 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 4} )``,
-- ``a_6 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 6} )``.
+* ``a_1 \in H^0( B_3, \overline{K}_{B_3} )``,
+* ``a_2 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 2} )``,
+* ``a_3 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 3} )``,
+* ``a_4 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 4} )``,
+* ``a_6 \in H^0( B_3, \overline{K}_{B_3}^{\otimes 6} )``.
 Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B3`` such that
-- ``x`` transforms as a section of ``2 \overline{K}_{B_3}``,
-- ``y`` transforms as a section of ``3 \overline{K}_{B_3}``,
-- ``z`` transforms as a section of ``0 \overline{K}_{B_3} = \mathcal{O}_{B_3}``.
+* ``x`` transforms as a section of ``2 \overline{K}_{B_3}``,
+* ``y`` transforms as a section of ``3 \overline{K}_{B_3}``,
+* ``z`` transforms as a section of ``0 \overline{K}_{B_3} = \mathcal{O}_{B_3}``.
 In this 5-fold ambient space, a global Tate model is the hypersurface defined
 by the vanishing of the Tate polynomial
 ``P_T = x^3 - y^2 - x y z a_1 + x^2 z^2 a_2 - y z^3 a_3 + x z^4 a_4 + z^6 a_6``.
@@ -54,11 +54,11 @@ the backbone of many F-theory constructions.
 To this end, this method accepts a polynomial ring whose variables are the sections
 used in the desired factorization of the Tate sections ``a_i``. For example, if we
 desired a factorization:
-- ``a_1 = a_{10} w^0``,
-- ``a_2 = a_{21} w^1``,
-- ``a_3 = a_{32} w^2``,
-- ``a_4 = a_{43} w^3``,
-- ``a_6 = a_{65} w^5``,
+* ``a_1 = a_{10} w^0``,
+* ``a_2 = a_{21} w^1``,
+* ``a_3 = a_{32} w^2``,
+* ``a_4 = a_{43} w^3``,
+* ``a_6 = a_{65} w^5``,
 then the polynomial ring in question is the ring with indeterminates
 ``a_{10}``, ``a_{21}``, ``a_{32}``, ``a_{43}``, ``a_{65}`` and ``w``.
 
