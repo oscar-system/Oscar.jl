@@ -75,15 +75,41 @@ a = floor(exp(RR(1)))
 b = sinpi(QQ(5,6), RR)
 c = gamma(QQ(1,3), ArbField(256))
 d = bernoulli(1000, ArbField(53))
-f = polylog(3, RR(-10))</code></pre><h3 id="Linear-dependence"><a class="docs-heading-anchor" href="#Linear-dependence">Linear dependence</a><a id="Linear-dependence-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-dependence" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="lindep-Tuple{Vector{arb}, Int64}" href="#lindep-Tuple{Vector{arb}, Int64}"><code>lindep</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lindep(A::Vector{arb}, bits::Int)</code></pre><p>Find a small linear combination of the entries of the array <span>$A$</span> that is small (using LLL). The entries are first scaled by the given number of bits before truncating to integers for use in LLL. This function can be used to find linear dependence between a list of real numbers. The algorithm is heuristic only and returns an array of Nemo integers representing the linear combination.</p></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia hljs">RR = ArbField(128)
+f = polylog(3, RR(-10))</code></pre><h3 id="Linear-dependence"><a class="docs-heading-anchor" href="#Linear-dependence">Linear dependence</a><a id="Linear-dependence-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-dependence" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="lindep-Tuple{Vector{arb}, Int64}" href="#lindep-Tuple{Vector{arb}, Int64}"><code>lindep</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lindep(A::Vector{arb}, bits::Int)</code></pre><p>Find a small linear combination of the entries of the array <span>$A$</span> that is small (using LLL). The entries are first scaled by the given number of bits before truncating to integers for use in LLL. This function can be used to find linear dependence between a list of real numbers. The algorithm is heuristic only and returns an array of Nemo integers representing the linear combination.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; RR = ArbField(64)
+Real Field with 64 bits of precision and error bounds
+
+julia&gt; a = RR(-0.33198902958450931620250069492231652319)
+[-0.33198902958450932088 +/- 4.15e-22]
+
+julia&gt; V = [RR(1), a, a^2, a^3, a^4, a^5]
+6-element Vector{arb}:
+ 1.0000000000000000000
+ [-0.33198902958450932088 +/- 4.15e-22]
+ [0.11021671576446420510 +/- 7.87e-21]
+ [-0.03659074051063616184 +/- 4.17e-21]
+ [0.012147724433904692427 +/- 4.99e-22]
+ [-0.004032911246472051677 +/- 6.25e-22]
+
+julia&gt; W = lindep(V, 20)
+6-element Vector{ZZRingElem}:
+ 1
+ 3
+ 0
+ 0
+ 0
+ 1</code></pre></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia hljs">RR = ArbField(128)
 
 a = RR(-0.33198902958450931620250069492231652319)
 
 V = [RR(1), a, a^2, a^3, a^4, a^5]
-W = lindep(V, 20)</code></pre><article class="docstring"><header><a class="docstring-binding" id="simplest_rational_inside-Tuple{arb}" href="#simplest_rational_inside-Tuple{arb}"><code>simplest_rational_inside</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">  simplest_rational_inside(x::arb)</code></pre><p>Return the simplest fraction inside the ball <span>$x$</span>. A canonical fraction <span>$a_1/b_1$</span> is defined to be simpler than <span>$a_2/b_2$</span> iff <span>$b_1 &lt; b_2$</span> or <span>$b_1 = b_2$</span> and <span>$a_1 &lt; a_2$</span>.</p></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia hljs">RR = ArbField(64)
+W = lindep(V, 20)</code></pre><article class="docstring"><header><a class="docstring-binding" id="simplest_rational_inside-Tuple{arb}" href="#simplest_rational_inside-Tuple{arb}"><code>simplest_rational_inside</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">  simplest_rational_inside(x::arb)</code></pre><p>Return the simplest fraction inside the ball <span>$x$</span>. A canonical fraction <span>$a_1/b_1$</span> is defined to be simpler than <span>$a_2/b_2$</span> iff <span>$b_1 &lt; b_2$</span> or <span>$b_1 = b_2$</span> and <span>$a_1 &lt; a_2$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; RR = ArbField(64)
+Real Field with 64 bits of precision and error bounds
+
+julia&gt; simplest_rational_inside(const_pi(RR))
+8717442233//2774848045</code></pre></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia hljs">RR = ArbField(64)
 simplest_rational_inside(const_pi(RR))</code></pre><h3 id="Random-generation"><a class="docs-heading-anchor" href="#Random-generation">Random generation</a><a id="Random-generation-1"></a><a class="docs-heading-anchor-permalink" href="#Random-generation" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="rand-Tuple{ArbField}" href="#rand-Tuple{ArbField}"><code>rand</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rand(r::ArbField; randtype::Symbol=:urandom)</code></pre><p>Return a random element in given Arb field.</p><p>The <code>randtype</code> default is <code>:urandom</code> which return an <code>arb</code> contained in <span>$[0,1]$</span>.</p><p>The rest of the methods return non-uniformly distributed values in order to exercise corner cases. The option <code>:randtest</code> will return a finite number, and <code>:randtest_exact</code> the same but with a zero radius. The option <code>:randtest_precise</code> return an <code>arb</code> with a radius around <span>$2^{-\mathrm{prec}}$</span> the magnitude of the midpoint, while <code>:randtest_wide</code> return a radius that might be big relative to its midpoint. The <code>:randtest_special</code>-option might return a midpoint and radius whose values are <code>NaN</code> or <code>inf</code>.</p></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia hljs">RR = ArbField(100)
 
 a = rand(RR)
 b = rand(RR; randtype = :null_exact)
 c = rand(RR; randtype = :exact)
-d = rand(RR; randtype = :special)</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 16 March 2023 18:31">Thursday 16 March 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+d = rand(RR; randtype = :special)</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 16 March 2023 21:49">Thursday 16 March 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
