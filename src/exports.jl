@@ -345,7 +345,7 @@ export coefficients
 export coefficients_and_exponents
 export cohomology
 export cohomology_class
-export cohomology_index
+export cohomology_indices
 export cohomology_ring
 export cohyperplanes
 export cokernel
@@ -677,6 +677,7 @@ export image_ideal
 export image_in_Oq
 export images
 export img_gens
+export immaculate_line_bundles
 export incidence_matrix
 export inclusion_morphism
 export independent_sets
@@ -780,6 +781,7 @@ export is_graded
 export is_groebner_basis
 export is_homogeneous
 export is_identity_map
+export is_immaculate
 export is_injective
 export is_inner_automorphism
 export is_integral
