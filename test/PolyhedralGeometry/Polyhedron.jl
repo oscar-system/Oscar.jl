@@ -9,7 +9,7 @@
     Q1 = convex_hull(T, pts, [1 1])
     Q2 = convex_hull(T, pts, [1 1], [1 1])
     square = cube(T, 2)
-    C1 = cube(T, 2, 0, 1)
+    CR = cube(T, 2, 0, 3//2)
     Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
     L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
@@ -18,6 +18,7 @@
         affine_hull(point)
     end
     s = simplex(T, 2)
+    R,x = polynomial_ring(QQ, "x")
 
     @testset "core functionality" begin
         @test nvertices(Q0) == 3
@@ -39,6 +40,15 @@
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
             @test is_smooth(Q0)
             @test is_normal(Q0)
+            @test is_lattice_polytope(Q0)
+            @test is_very_ample(square)
+            @test is_smooth(square)
+            @test ehrhart_polynomial(R, square) == 4*x^2 + 4*x + 1
+            @test h_star_polynomial(R, CR) == x^4 + 3*x^3 + 10*x^2 + 3*x + 1
+            @test is_normal(square)
+            @test_throws ArgumentError ehrhart_polynomial(CR)
+            @test_throws ArgumentError is_normal(CR)
+            @test_throws ArgumentError is_smooth(Q1)
         end
         @test is_feasible(Q0)
         @test is_bounded(Q0)

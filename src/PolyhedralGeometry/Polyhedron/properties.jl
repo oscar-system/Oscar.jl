@@ -509,7 +509,7 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron{QQFieldElem})::ZZRingElem = (pm_object(P)).LATTICE_VOLUME
+lattice_volume(P::Polyhedron{QQFieldElem})::ZZRingElem = _assert_lattice(P) && pm_object(P).LATTICE_VOLUME
 
 
 @doc Markdown.doc"""
@@ -819,8 +819,9 @@ julia> ehrhart_polynomial(R, c)
 ```
 """
 function ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
-    coeffs = Polymake.polytope.ehrhart_polynomial_coeff(pm_object(P))
-    return (R)(Vector{QQFieldElem}(coeffs))
+  _assert_lattice(P)
+  coeffs = Polymake.polytope.ehrhart_polynomial_coeff(pm_object(P))
+  return (R)(Vector{QQFieldElem}(coeffs))
 end
 
 
@@ -836,6 +837,7 @@ A polyhedron in ambient dimension 3
 
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
+```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
     R, x = polynomial_ring(QQ, "x")
@@ -869,6 +871,32 @@ end
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
+    is_lattice_polytope(P::Polyhedron{QQFieldElem})
+
+Check whether `P` is a lattice polytope, i.e. it is bounded and has integral vertices.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+Polyhedron in ambient dimension 3
+
+julia> is_lattice_polytope(c)
+true
+
+julia> c = cube(3, 0, 4//3)
+Polyhedron in ambient dimension 3
+
+julia> is_lattice_polytope(c)
+false
+```
+"""
+is_lattice_polytope(P::Polyhedron{QQFieldElem}) = (is_bounded(P) && pm_object(P).LATTICE)::Bool
+
+_assert_lattice(P::Polyhedron{QQFieldElem}) = is_lattice_polytope(P) ||
+  throw(ArgumentError("This is only defined for lattice polytopes."))
+
+
+@doc Markdown.doc"""
     is_very_ample(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is very ample.
@@ -888,7 +916,7 @@ julia> is_very_ample(P)
 false
 ```
 """
-is_very_ample(P::Polyhedron{QQFieldElem}) = pm_object(P).VERY_AMPLE::Bool
+is_very_ample(P::Polyhedron{QQFieldElem}) = _assert_lattice(P) && pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -941,7 +969,7 @@ julia> is_smooth(C)
 true
 ```
 """
-is_smooth(P::Polyhedron{QQFieldElem}) = pm_object(P).SMOOTH::Bool
+is_smooth(P::Polyhedron{QQFieldElem}) = _assert_lattice(P) && pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
@@ -966,7 +994,7 @@ julia> is_normal(P)
 false
 ```
 """
-is_normal(P::Polyhedron{QQFieldElem}) = pm_object(P).NORMAL::Bool
+is_normal(P::Polyhedron{QQFieldElem}) = _assert_lattice(P) && pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
