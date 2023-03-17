@@ -46,10 +46,9 @@ function good_reduction(matrices::Vector{<:MatrixElem{T}}, p::Int = 2) where T <
 end
 
 # Small helper function to make the reduction call uniform
-function _reduce(M::MatrixElem{nf_elem}, OtoFq::Hecke.NfOrdToFqMor)
-  O = domain(OtoFq)
-  Fq = codomain(OtoFq)
-  return matrix(Fq, [ OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))) for a in M])
+function _reduce(M::MatrixElem{nf_elem}, OtoFq)
+  e = extend(OtoFq, nf(domain(OtoFq)))
+  return map_entries(e, M)
 end
 
 function _reduce(M::MatrixElem{QQFieldElem}, Fp)
@@ -142,13 +141,13 @@ end
 function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem}
    @assert length(matrices) != 0
    K = base_ring(matrices[1])
-   matrices_Fq = Vector{FqPolyRepMatrix}(undef, length(matrices))
+   matrices_Fq = Vector{FqMatrix}(undef, length(matrices))
    if p == 2
-      return false, FiniteField(ZZRingElem(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    O = EquationOrder(K)
    if mod(discriminant(O), p) == 0
-      return false, FiniteField(ZZRingElem(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    for M in matrices
       for i = 1:nrows(M)
@@ -158,7 +157,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
             end
 
             if mod(denominator(M[i, j]), p) == 0
-               return false, FiniteField(ZZRingElem(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
+               return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
             end
          end
       end
@@ -168,6 +167,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    # have to work in the maximal order here.
    P = prime_ideals_over(O, p)
    Fq, OtoFq = residue_field(O, P[1])
+   matrices_Fq = Vector{dense_matrix_type(elem_type(Fq))}(undef, length(matrices))
    # I don't want to invert everything in char 0, so I just check whether the
    # matrices are still invertible mod p.
    for i = 1:length(matrices)
