@@ -35,18 +35,18 @@ Return the vector of the polyhedra whose complement defines the vanishing set `t
 # Examples
 ```jldoctest
 julia> dP1 = del_pezzo_surface(1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)
 3-element Vector{ToricVanishingSet}:
- A toric vanishing set for cohomology index 0
- A toric vanishing set for cohomology index 1
- A toric vanishing set for cohomology index 2
+ Toric vanishing set for cohomology index 0
+ Toric vanishing set for cohomology index 1
+ Toric vanishing set for cohomology index 2
 
 julia> polyhedra(vs[3])
-1-element Vector{Polyhedra{QQFieldElem}}:
- A polyhedron in ambient dimension 2
-
+1-element Vector{Polyhedron{QQFieldElem}}:
+ Polyhedron in ambient dimension 2
+```
 """
 function polyhedra(tvs::ToricVanishingSet)
     return tvs.ps::Vector{Polyhedron{QQFieldElem}}
