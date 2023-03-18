@@ -91,7 +91,7 @@ function exterior_algebra end
 # -- Method where caller specifies just number of variables
 
 function exterior_algebra(K::Field, numVars::Int)
-    if (numVars < 1)
+    if numVars < 1
         throw(ArgumentError("numVars must be strictly positive, but numVars=$numVars"))
     end
     return exterior_algebra(K,  (1:numVars) .|> (k -> "e$k"))
@@ -104,7 +104,7 @@ function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:Abstr
                                                           AbstractVector{Symbol},
                                                           AbstractVector{Char}})
     numVars = length(listOfVarNames)
-    if (numVars == 0)
+    if numVars == 0
         throw(ArgumentError("no variables/indeterminates given"))
     end
 #    if (!allunique(VarNames))
