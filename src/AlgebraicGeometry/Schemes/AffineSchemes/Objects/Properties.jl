@@ -530,7 +530,7 @@ true
 
 julia> is_equidimensional(Y)
 false
-'''
+```
 """
 @attr Bool function is_equidimensional(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = modulus(OO(X))

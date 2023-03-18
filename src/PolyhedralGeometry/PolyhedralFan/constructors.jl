@@ -39,6 +39,7 @@ A polyhedral fan in ambient dimension 2
 
 julia> is_complete(PF)
 true
+```
 """
 struct PolyhedralFan{T} <:_FanLikeType{T}
    pm_fan::Polymake.BigObject
