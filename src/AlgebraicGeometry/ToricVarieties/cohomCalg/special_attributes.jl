@@ -54,6 +54,7 @@ x₁ - x₂ ≦ -2
 julia> print_constraints(polyhedra(ilb)[4])
 x₁ - x₂ ≦ -2
 x₁ ≦ -3
+```
 """
 @attr function immaculate_line_bundles(variety::AbstractNormalToricVariety)
     denominator_contributions = reduce(vcat, contributing_denominators(variety))
