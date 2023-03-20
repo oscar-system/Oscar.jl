@@ -125,6 +125,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyRingElem},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
+    # ensure backrefs in parent are loaded
     _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
@@ -172,6 +173,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyRingElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
+    # ensure backrefs in parent are loaded
     _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
