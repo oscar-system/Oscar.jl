@@ -198,6 +198,11 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
+    # make Oscar module accessible from GAP (it may not be available as
+    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
@@ -205,10 +210,8 @@ function __init__()
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
     GAP.Packages.load("repsn")
-    __init_IsoGapOscar()
     __init_group_libraries()
-    __init_JuliaData()
-    __init_PcGroups()
+
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 end
