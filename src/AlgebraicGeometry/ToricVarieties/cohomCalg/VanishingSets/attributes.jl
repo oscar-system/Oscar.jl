@@ -71,5 +71,5 @@ julia> cohomology_indices(vs[3])
 ```
 """
 function cohomology_indices(tvs::ToricVanishingSet)
-    return tvs.cis::Vector{Int}
+    return tvs.cis
 end
