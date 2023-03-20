@@ -371,12 +371,13 @@ end
 
 @doc Markdown.doc"""
     graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
+    graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:Union{Symbol, AbstractString, Char}
 
-Create a multivariate polynomial ring with coefficient ring `C` and variables which
-print according to the variable names in `V`, and grade this ring according to the
-data provided by `W` (see the documentation of the `grade`-function for what is
-possible). Return the graded ring as an object of type `MPolyDecRing`, together
-with the vector of variables.
+Create a [multivariate polynomial ring](@ref `polynomial_ring(C, [:x])`) with
+coefficient ring `C` and variables which print according to the variable names
+in `V` (respectively as "$(s)1" up to "$s$n"), and [`grade`](@ref) this ring
+according to the data provided by `W`. Return the graded ring as an object of
+type `MPolyDecRing`, together with the vector of variables.
 
     graded_polynomial_ring(C::Ring, V; ordering=:lex)
 
@@ -391,12 +392,12 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
-  x[1] -> [1 0]
-  x[2] -> [0 1]
-  x[3] -> [1 0]
-  x[4] -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
+julia> R, x = graded_polynomial_ring(QQ, 4, :x, W)
+(Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field graded by
+  x1 -> [1 0]
+  x2 -> [0 1]
+  x3 -> [1 0]
+  x4 -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1, x2, x3, x4])
 
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
@@ -405,7 +406,7 @@ julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
   z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> T, (x, y, z) = graded_polynomial_ring(QQ, 'x':'z')
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -415,6 +416,11 @@ function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVect
       W=ones(Int, length(V)); ordering=:lex) where
       T<:Union{Symbol, AbstractString, Char}
    return grade(polynomial_ring(C, V; ordering)[1], W)
+end
+
+function graded_polynomial_ring(C::Ring, n::Int, s::Union{Symbol, AbstractString, Char},
+      W=ones(Int, n); ordering=:lex)
+   return grade(polynomial_ring(C, n, s; ordering)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
