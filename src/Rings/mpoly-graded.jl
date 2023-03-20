@@ -370,17 +370,17 @@ function is_positively_graded(R::MPolyDecRing)
 end
 
 @doc Markdown.doc"""
-    graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
+    graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
 
 Create a multivariate polynomial ring with coefficient ring `C` and variables which
-print according to the strings in `V`, and grade this ring according to the
+print according to the variable names in `V`, and grade this ring according to the
 data provided by `W` (see the documentation of the `grade`-function for what is
-possible). Return the graded ring as an object of type `MPolyDecRing`, together 
+possible). Return the graded ring as an object of type `MPolyDecRing`, together
 with the vector of variables.
 
-    graded_polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex)
+    graded_polynomial_ring(C::Ring, V; ordering=:lex)
 
-As above, where the grading is the standard $\mathbb Z$-grading. 
+As above, where the grading is the standard $\mathbb Z$-grading.
 
 # Examples
 ```jldoctest
@@ -398,25 +398,23 @@ julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
   x[3] -> [1 0]
   x[4] -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
-julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
   z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, 'x':'z')
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 ```
 """
-function graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
-   return grade(polynomial_ring(C, V; ordering = ordering)[1], W)
-end
-function graded_polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex)
-   W = ones(Int, length(V))
-   return graded_polynomial_ring(C, V, W; ordering = ordering)
+function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
+      W=ones(Int, length(V)); ordering=:lex) where
+      T<:Union{Symbol, AbstractString, Char}
+   return grade(polynomial_ring(C, V; ordering)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
