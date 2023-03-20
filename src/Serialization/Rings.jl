@@ -125,6 +125,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyRingElem},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
+    _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(parent_ring)
@@ -171,6 +172,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyRingElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
+    _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
