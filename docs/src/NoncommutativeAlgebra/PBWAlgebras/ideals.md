@@ -127,15 +127,15 @@ eliminate(I::PBWAlgIdeal, V::Vector{<:PBWAlgElem}; ordering = nothing)
 ## Tests on Ideals
 
 ```@docs
-iszero(I:: PBWAlgIdeal)
+is_zero(I:: PBWAlgIdeal)
 ```
 
 ```@docs
-isone(I:: PBWAlgIdeal)
+is_one(I:: PBWAlgIdeal)
 ```
 
 ```@docs
-issubset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
+is_subset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
 ```
 
 ```@docs

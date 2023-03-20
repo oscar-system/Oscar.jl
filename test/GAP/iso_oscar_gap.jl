@@ -180,6 +180,29 @@ end
    @test phi(-a^3 + a^2 + 1) == GAP.evalstr("-E(5)^2-E(5)^3")
 end
 
+@testset "quadratic number fields" begin
+   # for computing random elements of the fields in question
+   my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
+   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+
+   @testset for N in [ 5, -3, 12, -8 ]
+      F, z = quadratic_field(N)
+      f = Oscar.iso_oscar_gap(F)
+      @test f === Oscar.iso_oscar_gap(F)  # test that everything gets cached
+      for i in 1:10
+         a = my_rand_bits(F, 5)
+         for j in 1:10
+            b = my_rand_bits(F, 5)
+            @test f(a*b) == f(a)*f(b)
+            @test f(a - b) == f(a) - f(b)
+         end
+      end
+
+      m = matrix([z z; z z])
+      @test map_entries(inv(f), map_entries(f, m)) == m
+   end
+end
+
 @testset "number fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)

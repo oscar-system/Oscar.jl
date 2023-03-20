@@ -5,7 +5,7 @@
 using Oscar
 using Markdown
 
-import Nemo.zzModRing
+import Oscar.Nemo.zzModRing
 import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 

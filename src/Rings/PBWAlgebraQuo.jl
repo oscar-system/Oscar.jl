@@ -1,5 +1,51 @@
+export PBWAlgQuo, PBWAlgQuoElem
+
+# DEVELOPER DOC  (code revised 2023-03-early)
+#  The revised code allows 2 slightly different implementations:
+#  (1) original impl where PBWAlgQuoElem is just a PBWAlgElem with a
+#      simple (almost transparent) wrapper -- all arithmetic is
+#      delegated to the PBWAlg (hence values are not automatic reduced
+#      after multiplication).
+#
+#  (2) modified impl, currently just for the case of exterior algebra.
+#      Arithmetic is delegated to the Singular impl of exterior algebra
+#      (which does automatically reduced after multiplication).  To
+#      achieve this a "new" pointer to the Singular ring is needed;
+#      this pointer is a new data field (sring) in PBQAlgQuo.
+#
+#  To preserve the original behaviour the new field "sdata" in PBWAlgQuo
+#  is set to the same value as the field "sdata" in PBWAlg (unless
+#  created by constructor for exterior_algebra.
+#
+# NOTE ABOUT PBWAlgQuoElem
+#   Values of type PBWAlgQuoElem are "wrapped" many times: the situation is
+#       an internal Singular value: a NC-polynomial & pointer to "quotient ring"
+#                                   (which contains the overlying PBWAlg in Singular
+#                                    & the reducing ideal)
+#       The NC-polynomial has a data repr which is compatible with the overlying
+#       Singular PBWAlg, so may be operated upon also by that ring (inside Singular).
+#       The Singular repr is then "wrapped" into an Oscar PBWAlgElem (which also
+#       contains a "parent" reference to the Oscar object representing the PBWAlg).
+#       This PBWAlgElem is "wrapped" once again into  PBWAlgQuoElem (which also
+#       contains a "parent" reference to the Oscar object representing the PBWAlgQuo).
+#   EXERCISE: sit down and draw a box-and-arrow diagram of values and references!!
+
+
+
 mutable struct PBWAlgQuo{T, S} <: NCRing
-  I::PBWAlgIdeal{0, T, S}
+    I::PBWAlgIdeal{0, T, S}
+    sring::Singular.PluralRing{S}  # For ExtAlg this is the Singular impl; o/w same as I.basering.sring
+end
+
+# For backward compatibility: ctor with 1 arg:
+#    uses "default" arith impl -- namely that from basering!
+function PBWAlgQuo(I::PBWAlgIdeal{0, T, S})  where {T, S}
+    return PBWAlgQuo{T, S}(I, I.basering.sring)
+end
+
+
+function have_special_impl(Q::PBWAlgQuo)
+    return (Q.sring != Q.I.basering.sring)
 end
 
 mutable struct PBWAlgQuoElem{T, S} <: NCRingElem
@@ -25,9 +71,9 @@ parent_type(::Type{PBWAlgQuoElem{T, S}}) where {T, S} = PBWAlgQuo{T, S}
 
 parent(a::PBWAlgQuoElem) = a.parent
 
-symbols(Q::PBWAlgQuo) = symbols(Q.I.basering)
+symbols(Q::PBWAlgQuo) = symbols(Q.I.basering)  # EQUIV symbols(Q.sring)  ???
 
-coefficient_ring(Q::PBWAlgQuo) = coefficient_ring(Q.I.basering)
+coefficient_ring(Q::PBWAlgQuo) = coefficient_ring(Q.I.basering)  # EQUIV coefficient_ring(Q.sring)  ???
 
 coefficient_ring(a::PBWAlgQuoElem) = coefficient_ring(parent(a))
 
@@ -47,7 +93,7 @@ end
 
 @enable_all_show_via_expressify PBWAlgQuoElem
 
-function expressify(Q::PBWAlgQuo; context = nothing)
+function expressify(Q::PBWAlgQuo; context = nothing)  # what about new sring data-field ???
   return Expr(:call, :/, expressify(Q.I.basering; context = nothing),
                          expressify(Q.I; context = nothing))
 end
@@ -57,15 +103,15 @@ end
 ####
 
 function ngens(Q::PBWAlgQuo)
-  return ngens(base_ring(Q))
+  return ngens(base_ring(Q))  # EQUIV  ngens(Q.sring)  ???
 end
 
 function gens(Q::PBWAlgQuo)
-  return elem_type(Q)[PBWAlgQuoElem(Q, x) for x in gens(base_ring(Q))]
+  return elem_type(Q)[PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering,x)) for x in gens(Q.sring)]
 end
 
 function gen(Q::PBWAlgQuo, i::Int)
-  return PBWAlgQuoElem(Q, gen(base_ring(Q), i))
+  return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, gen(Q.sring, i)))
 end
 
 function Base.getindex(Q::PBWAlgQuo, i::Int)
@@ -73,30 +119,33 @@ function Base.getindex(Q::PBWAlgQuo, i::Int)
 end
 
 function zero(Q::PBWAlgQuo)
-  return PBWAlgQuoElem(Q, zero(base_ring(Q)))
+  return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, zero(Q.sring)))
 end
 
 function one(Q::PBWAlgQuo)
-  return PBWAlgQuoElem(Q, one(base_ring(Q)))
+  return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, one(Q.sring)))
 end
 
-function simplify!(a::PBWAlgQuoElem)
-  I = parent(a).I
-  groebner_assure!(I)
-  a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
-  return a
+function simplify(a::PBWAlgQuoElem)
+    if have_special_impl(parent(a))
+        return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
+    end
+    I = parent(a).I
+    groebner_assure!(I)
+    a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
+    return a
 end
 
 function Base.hash(a::PBWAlgQuoElem, h::UInt)
-  simplify!(a)
+  simplify(a)
   return hash(a.data, h)
 end
 
-function iszero(a::PBWAlgQuoElem)
-  iszero(a.data) && return true
-  I = parent(a).I
-  groebner_assure!(I)
-  return iszero(Singular.reduce(a.data.sdata, I.gb))
+function is_zero(a::PBWAlgQuoElem)
+    if !have_special_impl(parent(a))  # must reduce if not exterior algebras
+        simplify(a); # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
+    end
+    return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
 end
 
 function is_unit(a::PBWAlgQuoElem)
@@ -106,7 +155,7 @@ function is_unit(a::PBWAlgQuoElem)
 end
 
 function Base.:(==)(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  return iszero(a - b)
+  return is_zero(a - b)
 end
 
 function Base.:+(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
@@ -176,9 +225,16 @@ PBW-algebra over Rational Field in x, y, z with relations y*x = -x*y, z*x = -x*z
     For reasons of efficiency, it is recommended to use the built-in constructor `exterior_algebra` when working with 
     exterior algebras in OSCAR.
 """
-function quo(Q::PBWAlgRing, I::PBWAlgIdeal)
-  @assert Q == base_ring(I)
-  q = PBWAlgQuo(I)
+function quo(Q::PBWAlgRing, I::PBWAlgIdeal;  SpecialImpl::Union{Nothing, Singular.PluralRing{S}} = nothing)  where {S}
+  @assert (Q == base_ring(I));
+  ### No idea how to check whether SpecialImpl is sane!
+#??? Check if I is ideal of squares of gens then produce ExtAlg???
+##??if isnothing(SpecialImpl)  SpecialImpl = I.basering.sring;  end;
+  if isnothing(SpecialImpl)
+    q = PBWAlgQuo(I)
+  else
+    q = PBWAlgQuo(I, SpecialImpl)
+  end
   function im(a::PBWAlgElem)
     @assert parent(a) == Q
     return PBWAlgQuoElem(q, a)
@@ -189,6 +245,9 @@ function quo(Q::PBWAlgRing, I::PBWAlgIdeal)
   return q, MapFromFunc(im, pr, Q, q)
 end
 
+
+# For some reason we need to specify a promote_rule when both types are the same (why?)
+# Doc might be in packages/AbstractAlgebra/*/docs/src/ring_interface.md (near line 580)
 function AbstractAlgebra.promote_rule(::Type{PBWAlgQuoElem{T, S}}, ::Type{PBWAlgQuoElem{T, S}}) where {T, S}
   return PBWAlgQuoElem{T, S}
 end
@@ -215,29 +274,38 @@ function (Q::PBWAlgQuo{T, S})(c::T) where {T, S}
 end
 
 function (Q::PBWAlgQuo)(c::IntegerUnion)
-  return PBWAlgQuoElem(Q, base_ring(Q)(c))
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(c)))
 end
 
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
-  parent(a) == Q || error("coercion impossible")
-  return a
+    if parent(a) != Q
+        throw(ArgumentError("coercion between different PBWAlg quotients not possible"));
+    end;
+  return a;
 end
 
 #############################################
 ##### Exterior algebras
 #############################################
 
-@doc Markdown.doc"""
-    exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+#---------------------------------------------------------
+# SEE FILE experimental/ExteriorAlgebra/ExteriorAlgebra.jl
+#---------------------------------------------------------
 
-Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th exterior algebra over `K`.
 
-The generators of the returned algebra print according to the entries of `xs`. See the example below.
+# 2023-03-09 JAA  commented out placeholder code below -- should be replaced by code from ExteriorAlgebra.jl
 
-# Examples
-"""
-function exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
-  throw(NotImplementedError(:exterior_algebra, K, xs))
-end
+# @doc Markdown.doc"""
+#     exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
+#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+
+# Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th exterior algebra over `K`.
+
+# The generators of the returned algebra print according to the entries of `xs`. See the example below.
+
+# # Examples
+# """
+# function exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
+#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+#   throw(NotImplementedError(:exterior_algebra, K, xs))
+# end

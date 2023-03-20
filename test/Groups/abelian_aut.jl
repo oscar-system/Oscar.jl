@@ -140,7 +140,6 @@ end
   U2 = hyperbolic_plane_lattice(2)
   q = discriminant_group(U2)
   qq, qqinq = sub(q, [q[1] + q[2]])
-  OqqinOq = @inferred embedding_orthogonal_group(qqinq)
-  @test is_injective(OqqinOq)
+  @test_throws ArgumentError embedding_orthogonal_group(qqinq)
 end
 
