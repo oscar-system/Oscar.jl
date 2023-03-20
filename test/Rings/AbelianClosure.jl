@@ -254,6 +254,42 @@ end
     end
 
     @test Oscar.AbelianClosure.quadratic_irrationality_info(z(5)) === nothing
+
+    @testset for d in -50:50
+      if d == 0
+        N = 1
+      elseif mod(d, 4) == 1
+        N = abs(d)
+      else
+        N = 4*abs(d)
+      end
+      x = Oscar.AbelianClosure.square_root_in_cyclotomic_field(K, d, N)
+      @test x^2 == d
+    end
+
+    @test Oscar.AbelianClosure.square_root_in_cyclotomic_field(K, 7, 7) === nothing
+    @test Oscar.AbelianClosure.square_root_in_cyclotomic_field(K, 7, 5) === nothing
+  end
+
+  @testset "Natural embeddings" begin
+    K, _ = abelian_closure(QQ)
+    @testset "Natural embeddings of cyclotomic fields" for N in 1:50
+      F, z = cyclotomic_field(N)
+      x = K(z)
+      @test order(x) == N
+    end
+
+    @testset "Natural embeddings of quadratic fields" for d in -50:50
+      if ! is_square(d)
+        F, z = quadratic_field(d)
+        x = K(z)
+        @test x^2 == d
+      end
+    end
+
+    R, x = polynomial_ring(QQ)
+    F, z = number_field(x^3-2)
+    @test_throws ArgumentError K(z)
   end
 
   @testset "Polynomial" begin

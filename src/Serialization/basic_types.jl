@@ -15,7 +15,7 @@ function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
     return false
   end
 
-  throw(ErrorException("Error parsing boolean string: $str"))
+  error("Error parsing boolean string: $str")
 end
 
 ################################################################################

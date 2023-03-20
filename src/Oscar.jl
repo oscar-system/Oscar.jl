@@ -396,6 +396,10 @@ end
 
 include("Exports.jl")
 
+# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
+@alias characteristic_polynomial charpoly  # FIXME
+@alias minimal_polynomial minpoly  # FIXME
+
 include("printing.jl")
 include("fallbacks.jl")
 

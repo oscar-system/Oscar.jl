@@ -553,7 +553,7 @@ The return value is an array
 
 # Examples     
 
-```julia
+```jldoctest
 julia> Qa, a = polynomial_ring(QQ, :a=>1:2);
 
 julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
@@ -561,14 +561,14 @@ julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
 julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
- (X[1] + t*X[2], X[1] - t*X[2], 1)
  (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
+ (X[1] + t*X[2], X[1] - t*X[2], 1)
 
 julia> parent(f[3][1])
-Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
+Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
 
 julia> parent(f[2][1])
-Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
+Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
 ```  
 """
 function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
