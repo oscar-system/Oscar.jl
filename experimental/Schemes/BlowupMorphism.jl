@@ -138,10 +138,7 @@ function iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
   return Itemp,k
 end
 
-function has_simplified_covering(CY::Covering)
-## TODO: fill after simplified_covering and simplifying_map have been written ....
-  return false
-end
+has_simplified_covering(C::Covering) = has_attribute(C, :simplified_covering)
 
 #@Markdown.doc """
 #  strict_transform(p::BlowupMorphism, I::IdealSheaf)
@@ -206,7 +203,7 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
 ## CAUTION:
 ## simplification already taken into account, but switched off in has_simplified_covering!!!!
   CY_simp = (has_simplified_covering(CY) ? simplified_covering(Y) : CY)
-  phi = (has_simplified_covering(CY) ? simplifying_map(CY) : identity_map(CY_simp))
+  phi = (has_simplified_covering(CY) ? Y[CY_simp,CY] : identity_map(CY_simp))
   p_cov = compose(phi,p_cov_temp)    # blow up using simplified covering
 
   ## do the transform on the charts
