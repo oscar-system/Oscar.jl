@@ -5,7 +5,6 @@
     haskey(ENV, "JULIA_PKGEVAL") && return
 
     using Oscar
-    using Oscar.Graphs
 
     # macos on github actions is very slow
     factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 5.0 : 1.0

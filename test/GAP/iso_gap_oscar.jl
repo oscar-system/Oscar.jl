@@ -133,10 +133,13 @@ end
   end
 end
 
-@testset "number fields" begin
+@testset "number fields" begin  # includes quadratic fields
    @testset "subfield $F of a cyclotomic field" for F in
      [ GAP.evalstr( "Field( [ Sqrt(5) ] )" ),
-       GAP.evalstr( "Field( [ EC(19) ] )" ) ]
+       GAP.evalstr( "Field( [ Sqrt(-1) ] )" ),
+       GAP.evalstr( "Field( [ Sqrt(6) ] )" ),
+       GAP.evalstr( "Field( [ Sqrt(-6) ] )" ),
+       GAP.evalstr( "Field( [ EC(19) ] )" ) ]  # not a quadratic field
 
      x = GAP.Globals.GeneratorsOfField(F)[1]
      y = GAP.Globals.One(F)

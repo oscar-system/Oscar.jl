@@ -267,6 +267,41 @@ end
 
 (K::QQAbField)() = zero(K)
 
+function (K::QQAbField)(a::nf_elem)
+  # Cyclotomic fields are naturally embedded into `K`.
+  fl, f = Hecke.is_cyclotomic_type(parent(a))
+  fl && return QQAbElem(a, f)
+
+  # Quadratic fields are naturally embedded into `K`.
+  fl, f = Hecke.is_quadratic_type(parent(a))
+  if fl
+    x = coeff(a, 0)
+    y = coeff(a, 1)
+    iszero(y) && return QQAbElem(parent(a)(x), 1)
+    d = sign(f)
+    c = 1
+    for (p, e) in factor(f)
+      if mod(e, 2) == 1
+        d = d*p
+        c = c*p^div(e-1, 2)
+      else
+        c = c*p^div(e, 2)
+      end
+    end
+    # `d` is the signed squarefree part of `f`, and `f == d*c^2`
+    if mod(d, 4) == 1
+      N = abs(d)
+    else
+      N = 4*abs(d)
+    end
+    r = square_root_in_cyclotomic_field(K, Int(d), Int(N))
+    return x + y*c*r
+  end
+
+  # We have no natural embeddings for other (abelian) number fields.
+  throw(ArgumentError("no natural embedding of $(parent(a)) into QQAbField"))
+end
+
 ################################################################################
 #
 #  String I/O
@@ -852,7 +887,12 @@ is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
 function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
+  N > 0 || throw(ArgumentError("conductor ($N) must be positive"))
   z = root_of_unity(F, N)
+  if n == 0
+    return zero(z)
+  end
+
   cf = 1
   sqf = 1
   for (p,e) in collect(factor(n))
@@ -862,7 +902,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
     end
   end
   nn = Int(sqf)  # nn is positive and squarefree
-  @assert N % nn == 0
+  N % nn == 0 || return
 
   n4 = nn % 4
   if n4 == 1
@@ -881,8 +921,9 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
     N8 = div(N, 8)
     z8 = z^N8
     cf = cf * (z8 - z8^3)
-    if n < 0
-      cf = cf * z8^2
+    nn = div(nn, 2)
+    if mod(sign(n)*nn, 4) == 3
+      cf = cf * (-z8^2)
     end
   elseif n4 == 3
     if n > 0

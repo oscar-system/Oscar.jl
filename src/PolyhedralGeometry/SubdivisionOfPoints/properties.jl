@@ -27,6 +27,7 @@ julia> points(MOAE)
  [2, 1, 1]
  [1, 2, 1]
  [1, 1, 2]
+```
 """
 function points(SOP::SubdivisionOfPoints)
     return SubObjectIterator{PointVector{QQFieldElem}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))

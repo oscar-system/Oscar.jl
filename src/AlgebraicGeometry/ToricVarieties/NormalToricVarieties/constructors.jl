@@ -349,7 +349,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
     set_attribute!(variety, :class_group, free_abelian_group(1))
-    weights = matrix(ZZ,hcat([w[i] for i in 1:length(w)]))
+    weights = matrix(ZZ,hcat(w))
     set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
     
     if set_attributes

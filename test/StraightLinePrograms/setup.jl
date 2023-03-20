@@ -1,6 +1,6 @@
 using Oscar.StraightLinePrograms
 
-using AbstractAlgebra: AbstractAlgebra, Perm, SymmetricGroup, order, @perm_str
+using Oscar.AbstractAlgebra: AbstractAlgebra, Perm, SymmetricGroup, order, @perm_str
 
 using Oscar.StraightLinePrograms: Const, Exp, Gen, Minus, Plus, LazyRec,
     Times, UniMinus, Call, pushconst!, pushop!,

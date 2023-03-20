@@ -248,11 +248,42 @@ function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP
    return (f, finv)
 end
 
+# Assume that `FO` and `FG` are quadratic fields with the same square root
+# in Oscar and GAP, respectively.
+# (Quadratic fields are easier to handle than general number fields.)
+function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.GapObj)
+   flag, N = Hecke.is_quadratic_type(FO)
+   @assert flag
+
+   oO = one(FO)
+   zO = gen(FO)
+   oG = 1
+   zG = GAPWrap.Sqrt(GAP.Obj(N))
+   B = GAPWrap.BasisNC(FG, GapObj([oG, zG]))
+
+   f = function(x::Nemo.nf_elem)
+      return GAP.Obj(coeff(x,0)) * oG + GAP.Obj(coeff(x,1)) * zG
+   end
+
+   finv = function(x::GAP.Obj)
+      GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
+      coeffs = GAPWrap.Coefficients(B, x)
+      coeffs === GAP.Globals.fail && throw(ArgumentError("$x is not an element oof $FG"))
+      return QQFieldElem(coeffs[1]) * oO + QQFieldElem(coeffs[2]) * zO
+   end
+
+   return (f, finv)
+end
+
 function _iso_oscar_gap(FO::AnticNumberField)
-   flag, N = Hecke.is_cyclotomic_type(FO)
-   if flag
-     FG = GAPWrap.CF(GAP.Obj(N))
+   flag1, N1 = Hecke.is_cyclotomic_type(FO)
+   flag2, N2 = Hecke.is_quadratic_type(FO)
+   if flag1
+     FG = GAPWrap.CF(GAP.Obj(N1))
      f, finv = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
+   elseif flag2
+     FG = GAPWrap.Field(GAPWrap.Sqrt(GAP.Obj(N2)))
+     f, finv = _iso_oscar_gap_field_quadratic_functions(FO, FG)
    else
      polFO = FO.pol
      N = degree(polFO)
@@ -265,7 +296,7 @@ function _iso_oscar_gap(FO::AnticNumberField)
 
      f = function(x::Nemo.nf_elem)
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
-        return GAPWrap.ObjByExtRep(fam, coeffs)
+        return GAPWrap.AlgExtElm(fam, coeffs)
      end
 
      finv = function(x::GapObj)
