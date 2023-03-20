@@ -52,14 +52,14 @@ false
 is_very_ample(l::ToricLineBundle) = is_very_ample(toric_divisor(l))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_immaculate(l::ToricLineBundle)
 
 Return `true` if all sheaf cohomologies of `l` are trivial and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> l = toric_line_bundle(F4, [1,0])
