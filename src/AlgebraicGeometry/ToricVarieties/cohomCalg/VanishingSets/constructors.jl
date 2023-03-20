@@ -6,7 +6,7 @@
     toric_variety::NormalToricVarietyType
     ps::Vector{Polyhedron{QQFieldElem}}
     cis::Vector{Int}
-    function ToricVanishingSet(toric_variety::AbstractNormalToricVariety, ps::Vector{Polyhedron{QQFieldElem}}, cis::Vector{Int})
+    function ToricVanishingSet(toric_variety::NormalToricVarietyType, ps::Vector{Polyhedron{QQFieldElem}}, cis::Vector{Int})
         if !all(p -> ambient_dim(p) == rank(picard_group(toric_variety)), ps)
             throw(ArgumentError("The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety"))
         end
@@ -17,7 +17,7 @@
     end
 end
 
-toric_vanishing_set(v::AbstractNormalToricVariety, ps::Vector{Polyhedron{QQFieldElem}}, cis::Vector{Int}) = ToricVanishingSet(v, ps, cis)
+toric_vanishing_set(v::NormalToricVarietyType, ps::Vector{Polyhedron{QQFieldElem}}, cis::Vector{Int}) = ToricVanishingSet(v, ps, cis)
 
 
 ######################

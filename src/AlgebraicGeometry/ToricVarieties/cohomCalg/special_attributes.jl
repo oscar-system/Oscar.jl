@@ -1,6 +1,6 @@
 ###########################
 # (1) Special attributes of toric varieties
-###########################
+###########################R
 
 @doc raw"""
     vanishing_sets(variety::NormalToricVarietyType)
@@ -18,18 +18,18 @@ Compute the vanishing sets of an abstract toric variety `v` by use of the cohomC
 end
 
 
-@doc Markdown.doc"""
-    immaculate_line_bundles(variety::AbstractNormalToricVariety)
+@doc raw"""
+    immaculate_line_bundles(variety::NormalToricVarietyType)
 
 Computes all immaculate line bundles as a toric vanishing set by
 intersecting the vanishing sets for all cohomology indices.
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo_surface(1)
+julia> dP1 = del_pezzo_surface(NormalToricVariety, 1)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia>  ilb = immaculate_line_bundles(dP1)
+julia> ilb = immaculate_line_bundles(dP1)
 Toric vanishing set for cohomology indices [0, 1, 2]
 
 julia> polyhedra(ilb)
@@ -40,26 +40,26 @@ julia> polyhedra(ilb)
  Polyhedron in ambient dimension 2
 
 julia> print_constraints(polyhedra(ilb)[1])
--x₁ ≦ 0
--x₁ + x₂ ≦ 0
+-x_1 <= 0
+-x_1 + x_2 <= 0
 
 julia> print_constraints(polyhedra(ilb)[2])
--x₁ + x₂ ≦ 0
-x₂ ≦ -2
+-x_1 + x_2 <= 0
+x_2 <= -2
 
 julia> print_constraints(polyhedra(ilb)[3])
--x₂ ≦ -1
-x₁ - x₂ ≦ -2
+-x_2 <= -1
+x_1 - x_2 <= -2
 
 julia> print_constraints(polyhedra(ilb)[4])
-x₁ - x₂ ≦ -2
-x₁ ≦ -3
+x_1 - x_2 <= -2
+x_1 <= -3
 ```
 """
-@attr function immaculate_line_bundles(variety::AbstractNormalToricVariety)
+@attr function immaculate_line_bundles(variety::NormalToricVarietyType)
     denominator_contributions = reduce(vcat, contributing_denominators(variety))
     list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions]
-    return ToricVanishingSet(variety, list_of_polyhedra, [i for i in 0:dim(variety)])
+    return ToricVanishingSet(variety, list_of_polyhedra, collect(0:dim(variety)))
 end
 
 

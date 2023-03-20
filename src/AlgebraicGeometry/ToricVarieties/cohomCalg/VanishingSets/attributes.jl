@@ -70,6 +70,5 @@ julia> cohomology_indices(vs[3])
  2
 ```
 """
-function cohomology_indices(tvs::ToricVanishingSet)
-    return tvs.cis
-end
+cohomology_indices(tvs::ToricVanishingSet) = tvs.cis
+
