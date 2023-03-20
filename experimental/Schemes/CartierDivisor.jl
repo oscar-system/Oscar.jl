@@ -1,4 +1,5 @@
 export CartierDivisor
+export EffectiveCartierDivisor
 export trivializing_covering
 
 @attributes mutable struct EffectiveCartierDivisor{
