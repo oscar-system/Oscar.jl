@@ -143,8 +143,10 @@ function components(X::AbsSpec)
                                          saturated_ideal(modulus(OO(C2)))
                                         ))
           comp[i] = C_new
+          break
         end
       end
+      found_intersection && break
     end
   end
 
