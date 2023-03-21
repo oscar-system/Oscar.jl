@@ -1,7 +1,7 @@
 #module ProjPlaneCurveModule
 
 export aretransverse
-export arithmetic_genus
+#export arithmetic_genus
 export common_components
 export curve_intersect
 export curve_singular_locus
@@ -472,7 +472,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
 
-julia> Oscar.arithmetic_genus(C)
+julia> Oscar.PlaneCurveModule.arithmetic_genus(C)
 1
 ```
 """

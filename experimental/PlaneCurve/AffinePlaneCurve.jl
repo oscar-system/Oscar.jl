@@ -5,7 +5,7 @@ include("Variety.jl")
 using .VarietyModule
 
 export aretransverse
-export arithmetic_genus
+#export arithmetic_genus
 export common_components
 export curve_intersect
 export curve_singular_locus
