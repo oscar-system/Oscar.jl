@@ -2088,7 +2088,7 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::String, pos::Int = 
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
-  L, _ = polynomial_ring(R.base_ring, A)
+  L, _ = polynomial_ring(base_ring(R), A)
   Lgens = gens(L)
   ###ff = evaluate(f, vcat(Lgens[1:pos-1], Lgens[pos + size(W, 1):end]))
   G = abelian_group(zeros(Int, size(W, 1)))
@@ -2168,7 +2168,7 @@ function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
-  L, _ = polynomial_ring(R.base_ring, A)
+  L, _ = polynomial_ring(base_ring(R), A)
   G = abelian_group(zeros(Int, size(W, 1)))
   WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
   S, _ = grade(L, [G(WH[:, i]) for i = 1:size(WH, 2)])
@@ -2252,7 +2252,7 @@ function homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   insert!(A, pos, var)
-  L, _ = polynomial_ring(R.base_ring, A)
+  L, _ = polynomial_ring(base_ring(R), A)
   S, = grade(L)
   return _homogenization(f, S, pos)
 end
@@ -2263,7 +2263,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   insert!(A, pos, var)
-  L, _ = polynomial_ring(R.base_ring, A)
+  L, _ = polynomial_ring(base_ring(R), A)
   S, = grade(L)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
