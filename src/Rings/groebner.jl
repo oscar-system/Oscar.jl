@@ -342,7 +342,7 @@ function groebner_basis_f4(
 end
 
 @doc Markdown.doc"""
-    _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -369,21 +369,8 @@ julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 ```
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-   if !isdefined(B, :ordering)
-      singular_assure(B, ordering)
-   elseif ordering != B.ordering
-     R = singular_poly_ring(B.Ox, ordering)
-     i = Singular.Ideal(R, [R(x) for x = B])
-     i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
-     return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
-   end
-
-   if !isdefined(B, :S)
-     B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
-   end
-
-   i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
-   return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
+  istd, m = Singular.lift_std(singular_ideal(B, ordering), complete_reduction = complete_reduction)
+  return IdealGens(B.Ox, istd), map_entries(x -> B.Ox(x), m)
 end
 
 @doc Markdown.doc"""
