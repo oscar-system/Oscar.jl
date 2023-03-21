@@ -65,7 +65,9 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     A = coefficient_ring(S)
     I = modulus(Q)
     r = ngens(S)-1
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    result = new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    set_attribute!(result, :affine_algebra, Q)
+    return result
   end
 end
 
