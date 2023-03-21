@@ -375,7 +375,7 @@ end
 
 Create a [multivariate polynomial ring](@ref `polynomial_ring(C, [:x])`) with
 coefficient ring `C` and variables which print according to the variable names
-in `V` (respectively as "$(s)1" up to "$s$n"), and [`grade`](@ref) this ring
+in `V` (respectively as "\$(s)1" up to "\$s\$n"), and [`grade`](@ref) this ring
 according to the data provided by `W`. Return the graded ring as an object of
 type `MPolyDecRing`, together with the vector of variables.
 
