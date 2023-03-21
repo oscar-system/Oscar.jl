@@ -1153,6 +1153,7 @@ export simulate_valuation
 export singular
 export singular_assure
 export singular_coeff_ring
+export singular_ideal
 export singular_locus
 export singular_locus_reduced
 export singular_poly_ring

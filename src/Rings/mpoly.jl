@@ -381,6 +381,19 @@ function elements(I::IdealGens)
   return collect(I)
 end
 
+function singular_ideal(B::IdealGens, ordering::MonomialOrdering)
+  singular_assure(B)
+  isdefined(B, :ord) && B.ord == ordering && return B.gens.S
+  SR = singular_poly_ring(B.Ox, ordering)
+  f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
+  return Singular.map_ideal(f, B.gens.S)
+end
+
+function singular_ideal(B::IdealGens)
+  singular_assure(B)
+  return B.gens.S
+end
+
 ##############################################################################
 #
 # Conversion to and from Singular: in particular, some Rings are

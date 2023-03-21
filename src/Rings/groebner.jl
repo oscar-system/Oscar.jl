@@ -85,17 +85,15 @@ degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-	singular_assure(B, ordering)
-	R = B.Sx
-	I  = Singular.Ideal(R, gens(B.S)...)
-	i  = Singular.std(I, complete_reduction = complete_reduction)
-	BA = IdealGens(B.Ox, i, complete_reduction)
-	BA.isGB = true
-	BA.ord = ordering
-	if isdefined(BA, :S)
-	   BA.S.isGB  = true
-	end
-	return BA
+    gensSord = singular_ideal(B, ordering)
+    i = Singular.std(gensSord, complete_reduction = complete_reduction)
+    BA = IdealGens(B.Ox, i, complete_reduction)
+    BA.isGB = true
+    BA.ord = ordering
+    if isdefined(BA, :S)
+        BA.S.isGB = true
+    end
+    return BA
 end
 
 # standard basis for non-global orderings #############################
