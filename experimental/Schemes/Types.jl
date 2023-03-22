@@ -11,11 +11,6 @@ export VarietyFunctionFieldElem
 
 
 ########################################################################
-# Abstract projective schemes                                          #
-########################################################################
-abstract type AbsProjectiveScheme{BaseRingType, RingType} <: Scheme{BaseRingType} end
-
-########################################################################
 # Concrete type for projective schemes                                 #
 ########################################################################
 @Markdown.doc """
