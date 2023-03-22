@@ -128,6 +128,7 @@
             end
             @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
         end
+        @test facet_indices(vertices(Pos)) == IncidenceMatrix([[1,2,3]])
         if T == nf_elem
             @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
         else

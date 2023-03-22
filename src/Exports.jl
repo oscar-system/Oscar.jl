@@ -449,6 +449,7 @@ export exterior_power
 export f_vector
 export face_fan
 export faces
+export facet_indices
 export facet_points
 export facets
 export factor_of_direct_product
