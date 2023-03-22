@@ -44,7 +44,7 @@ end
 # (3) Check for zero divisors in rings
 ########################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_non_zero_divisor(f::RingElem, X::AbsSpec)
 
 Checks if a ring element is a non-zero divisor
@@ -120,7 +120,7 @@ end
 # It seems likely that the implementation can be tuned so that, for 
 # instance, the massive use of primary decompositions can be avoided. 
 # This should eventually be addressed. 
-@Markdown.doc """
+@doc Markdown.doc"""
     components(X::AbsSpec)
 
 This returns a decomposition of ``X`` into its connected components 

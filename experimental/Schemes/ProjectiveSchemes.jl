@@ -43,7 +43,7 @@ function base_ring(P::AbsProjectiveScheme)
   return base_ring(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
@@ -62,7 +62,7 @@ end
   return base_scheme(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     affine_cone(X::ProjectiveScheme) 
 
 On ``X ⊂ ℙʳ(𝕜)`` this returns the affine cone ``C(X)⊂ 𝕜ʳ⁺¹`` and similar 
@@ -72,7 +72,7 @@ function affine_cone(P::AbsProjectiveScheme)
   return affine_cone(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     homog_to_frac(X::ProjectiveScheme) 
 
 Returns a map that converts a polynomial in the 
@@ -83,7 +83,7 @@ function homog_to_frac(P::AbsProjectiveScheme)
   return homog_to_frac(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     poly_to_homog(X::ProjectiveScheme)
 
 Return a map that converts an element of the `ambient_coordinate_ring` 
@@ -94,7 +94,7 @@ function poly_to_homog(P::AbsProjectiveScheme)
   return poly_to_homog(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     frac_to_homog_pair(X::ProjectiveScheme)
 
 Return a map that converts an element ``f = p/q`` of the ring of 
@@ -128,14 +128,14 @@ projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     base_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A``.
 """
 base_ring(P::ProjectiveScheme) = P.A
 
-@Markdown.doc """
+@doc Markdown.doc"""
     base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocRing, CRET, RT, RET}
 
 Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined over a field ``𝕜``.
@@ -167,21 +167,21 @@ function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<
   return X.projection_to_base
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     fiber_dimension(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``r``.
 """
 fiber_dimension(P::ProjectiveScheme) = P.r
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_coordinate_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
 ambient_coordinate_ring(P::ProjectiveScheme) = P.S
 
-@Markdown.doc """
+@doc Markdown.doc"""
     homogeneous_coordinates(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns a vector with the homogeneous 
@@ -197,7 +197,7 @@ end
 
 homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
 
-@Markdown.doc """
+@doc Markdown.doc"""
     defining_ideal(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns the homogeneous 
@@ -680,7 +680,7 @@ fiber_product(X::AbsSpec,
 
 ### canonical map constructors
 
-@Markdown.doc """
+@doc Markdown.doc"""
     inclusion_morphism(P::T, Q::T)
 
 Assuming that ``P ⊂ Q`` is a subscheme, both proper over an inclusion of 
@@ -721,7 +721,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                            )
                                                        )
 
-@Markdown.doc """
+@doc Markdown.doc"""
     covered_scheme(P::ProjectiveScheme)
     
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
@@ -969,7 +969,7 @@ end
 
 gens(A::MPolyDecRing, i::Int) = A[i]
 
-@Markdown.doc """
+@doc Markdown.doc"""
     covered_scheme_morphism(f::ProjectiveSchemeMor)
 
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 

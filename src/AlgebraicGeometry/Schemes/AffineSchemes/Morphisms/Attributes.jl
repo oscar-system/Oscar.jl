@@ -12,7 +12,7 @@
 underlying_morphism(f::AbsSpecMor) = error("`underlying_morphism(f)` not implemented for `f` of type $(typeof(f))")
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     domain(f::AbsSpecMor)
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
@@ -43,7 +43,7 @@ Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Fie
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     codomain(f::AbsSpecMor)
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
@@ -74,7 +74,7 @@ Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     pullback(f::AbsSpecMor)
 
 On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
@@ -179,7 +179,7 @@ end
 # (5) The graph of a morphism
 ##############################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     graph(f::AbsSpecMor)
 
 Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the two projections to ``X`` and ``Y``.

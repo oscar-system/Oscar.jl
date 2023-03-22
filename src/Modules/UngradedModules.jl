@@ -6970,7 +6970,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubquoModule) where
 end
 
 ### Duals of modules
-@Markdown.doc """
+@doc Markdown.doc"""
     dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
@@ -6985,7 +6985,7 @@ function dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
   return hom(M, cod)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     double_dual(M::ModuleFP)
 
 For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
@@ -7007,7 +7007,7 @@ function double_dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
   return M_double_dual, psi
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     dual(f::ModuleFPHom; cod::FreeMod)
 
 For a morphism of modules ``f : M → N`` this returns the morphism 

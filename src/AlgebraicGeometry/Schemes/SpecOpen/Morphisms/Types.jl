@@ -2,7 +2,7 @@
 ########################################################################
 # Morphisms of Zariski-open subsets of affine schemes                  #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen}
 
 Morphisms ``f : U → V`` of open sets ``U ⊂ X`` and ``V ⊂ Y`` of affine schemes.

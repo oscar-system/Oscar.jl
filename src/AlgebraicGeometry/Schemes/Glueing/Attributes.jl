@@ -6,7 +6,7 @@ function underlying_glueing(G::AbsGlueing)
   error("trying to call for `underlying_glueing` of $G but nothing is implemented")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     patches(G::AbsGlueing)
 
 Return a pair of affine schemes `(X, Y)` which are glued by `G`.
@@ -15,7 +15,7 @@ function patches(G::AbsGlueing)
   return patches(underlying_glueing(G))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     glueing_morphisms(G::AbsGlueing)
 
 Return a pair of mutually inverse isomorphisms `(f, g)` 
@@ -27,7 +27,7 @@ function glueing_morphisms(G::AbsGlueing)
   return glueing_morphisms(underlying_glueing(G))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     glueing_domains(G::AbsGlueing)
 
 Return a pair of open subsets ``U`` and ``V`` of the 
@@ -38,7 +38,7 @@ function glueing_domains(G::AbsGlueing)
   return glueing_domains(underlying_glueing(G))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     inverse(G::AbsGlueing)
 
 Return the glueing `H` with `patches`, `glueing_domains`, 

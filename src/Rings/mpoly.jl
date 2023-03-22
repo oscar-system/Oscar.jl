@@ -558,7 +558,7 @@ end
 #
 ##############################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     mutable struct MPolyIdeal{S} <: Ideal{S}
 
 Ideal in a multivariate polynomial ring R with elements of type `S`.

@@ -9,7 +9,7 @@
 # Groebner machinery operating purely on the Oscar types, and hence not
 # necessarily be confined to a degree bound.
 
-@Markdown.doc """
+@doc Markdown.doc"""
     mutable struct FreeAssAlgIdeal{T} <: FreeAssAlgIdeal{T}
 
 Two-sided ideal of a free associative algebra with elements of type `T`.

@@ -287,7 +287,7 @@ end
 subscheme(X::AbsSpec, f::RingElem) = subscheme(X, ideal(OO(X), [f]))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     subscheme(X::AbsSpec, I::Ideal)
 
 For a scheme ``X = Spec(R)`` and an ideal ``I ⊂ 𝒪(X)``
@@ -324,7 +324,7 @@ end
 # (6) Open subschemes
 ########################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     hypersurface_complement(X::AbsSpec, f::RingElem)
 
 For a scheme ``X = Spec(R)`` and an element ``f ∈ R``
@@ -392,7 +392,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
 
 For a scheme ``X = Spec(R)`` and elements ``f₁, f₂, ... ∈ R``
@@ -478,7 +478,7 @@ Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT<:Ring} = E
 # TODO  intersect X,Y for X<Y should return a copy of X with === ambient_coordinate_rings
 # Spec(X) does not apply for instance to principal open subsets hence a change
 # is necessary
-@Markdown.doc """
+@doc Markdown.doc"""
     Base.intersect(X::AbsSpec, Y::AbsSpec)
 
 This method computes the intersection to two affine
@@ -647,7 +647,7 @@ end
 ########################################################
 
 #TODO: Add more cross-type methods as needed.
-@Markdown.doc """
+@doc Markdown.doc"""
     closure(X::AbsSpec, Y::AbsSpec) 
 
 Returns the closure of ``X`` in ``Y``.
