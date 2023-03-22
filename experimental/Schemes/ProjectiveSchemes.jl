@@ -1016,7 +1016,7 @@ of ``X`` and ``Y``, respectively.
 end
 
 # Basic functionality required for Warham
-@attr Int64 function dim(P::AbsProjectiveScheme{<:Field})
+@attr Int function dim(P::AbsProjectiveScheme{<:Field})
   return dim(defining_ideal(P))-1
 end
 
