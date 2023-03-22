@@ -53,14 +53,19 @@ end
 # registerSerializationType is a macro to ensure that the string we generate
 # matches exactly the expression passed as first argument, and does not change
 # in unexpected ways when import/export statements are adjusted.
-macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
+macro registerSerializationType(
+    ex::Any,
+    uses_id::Bool = false,
+    str::Union{String,Nothing} = nothing)
   if str === nothing
     str = string(ex)
   end
-  return esc(quote
-    registerSerializationType($ex, $str)
-    encodeType(::Type{<:$ex}) = $str
-  end)
+    return esc(
+        quote
+            registerSerializationType($ex, $str)
+            encodeType(::Type{<:$ex}) = $str
+            serialize_with_id(::Type{<:$ex}) = $uses_id
+        end)
 end
 
 function encodeType(::Type{T}) where T
@@ -93,8 +98,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         return save_internal(s, obj)
     end
 
-    if !isprimitivetype(T) && !Base.issingletontype(T)
-        # if obj is already serialzed, just output
+    if !isprimitivetype(T) && !Base.issingletontype(T) && serialize_with_id(T)
+        # if obj is already serialized, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
         if ref !== nothing

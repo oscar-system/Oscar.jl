@@ -3,8 +3,8 @@ using JSON
 ###############################################################################
 ## Graphs
 ###############################################################################
-@registerSerializationType(Graph{Directed}, "Graph{Directed}")
-@registerSerializationType(Graph{Undirected}, "Graph{Undirected}")
+@registerSerializationType(Graph{Directed}, false, "Graph{Directed}")
+@registerSerializationType(Graph{Undirected}, false, "Graph{Undirected}")
 
 function save_internal(s::SerializerState, g::Graph{T}) where {T <: Union{Directed, Undirected}}
     smallobject = pm_object(g)

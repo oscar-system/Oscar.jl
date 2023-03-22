@@ -67,7 +67,7 @@ end
 @registerSerializationType(Int8)
 @registerSerializationType(Int16)
 @registerSerializationType(Int32)
-@registerSerializationType(Int64, "Base.Int")
+@registerSerializationType(Int64, false, "Base.Int")
 @registerSerializationType(Int128)
 
 @registerSerializationType(UInt8)

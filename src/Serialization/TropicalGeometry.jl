@@ -1,6 +1,6 @@
 # Tropical Semiring
-@registerSerializationType(TropicalSemiring{typeof(min)})
-@registerSerializationType(TropicalSemiring{typeof(max)})
+@registerSerializationType(TropicalSemiring{typeof(min)}, true)
+@registerSerializationType(TropicalSemiring{typeof(max)}, true)
 
 ## elements
 @registerSerializationType(TropicalSemiringElem)
@@ -29,7 +29,7 @@ end
 
 
 # Tropical Hypersurfaces
-@registerSerializationType(TropicalHypersurface)
+@registerSerializationType(TropicalHypersurface, true)
 
 function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
     return Dict(
@@ -45,7 +45,7 @@ function load_internal(s::DeserializerState,
 end
 
 # Tropical Curves
-@registerSerializationType(TropicalCurve)
+@registerSerializationType(TropicalCurve, true)
 
 function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
   if EMB

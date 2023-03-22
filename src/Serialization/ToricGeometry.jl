@@ -1,7 +1,7 @@
 ################################################################################
 # Toric varieties
-@registerSerializationType(AffineNormalToricVariety)
-@registerSerializationType(NormalToricVariety)
+@registerSerializationType(AffineNormalToricVariety, true)
+@registerSerializationType(NormalToricVariety, true)
 
 function save_internal(s::SerializerState, ntv::AbstractNormalToricVariety)
     return Dict(

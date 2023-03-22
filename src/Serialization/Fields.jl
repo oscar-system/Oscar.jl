@@ -5,7 +5,7 @@
 ################################################################################
 # non-ZZRingElem variant
 @registerSerializationType(Nemo.fpFieldElem)
-@registerSerializationType(Nemo.fpField)
+@registerSerializationType(Nemo.fpField, true)
 
 function save_internal(s::SerializerState, F::Nemo.fpField)
     return Dict(
@@ -42,7 +42,7 @@ end
 ################################################################################
 # ZZRingElem variant
 @registerSerializationType(Nemo.FpFieldElem)
-@registerSerializationType(Nemo.FpField)
+@registerSerializationType(Nemo.FpField, true)
 
 function save_internal(s::SerializerState, F::Nemo.FpField)
     return Dict(
@@ -77,9 +77,9 @@ end
 ################################################################################
 # SimpleNumField
 
-@registerSerializationType(Hecke.NfRel)
+@registerSerializationType(Hecke.NfRel, true)
 
-@registerSerializationType(AnticNumberField)
+@registerSerializationType(AnticNumberField, true)
 
 function save_internal(s::SerializerState, K::SimpleNumField)
     return Dict(
@@ -97,7 +97,7 @@ end
 
 ################################################################################
 # FqNmodfinitefield
-@registerSerializationType(fqPolyRepField)
+@registerSerializationType(fqPolyRepField, true)
 
 function save_internal(s::SerializerState, K::fqPolyRepField)
     return Dict(
@@ -150,9 +150,9 @@ end
 ################################################################################
 # Non Simple Extension
 
-@registerSerializationType(Hecke.NfRelNS)
+@registerSerializationType(Hecke.NfRelNS, true)
 
-@registerSerializationType(NfAbsNS)
+@registerSerializationType(NfAbsNS, true)
 @registerSerializationType(NfAbsNSElem)
 
 function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
@@ -222,7 +222,7 @@ end
 ################################################################################
 # FracField
 
-@registerSerializationType(FracField)
+@registerSerializationType(FracField, true)
 
 function save_internal(s::SerializerState, K::FracField)
     return Dict(
@@ -271,7 +271,9 @@ end
 ################################################################################
 # RationalFunctionField
 
-@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionField, "RationalFunctionField")
+@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionField,
+                           true,
+                           "RationalFunctionField")
 
 function save_internal(s::SerializerState,
                        RF::AbstractAlgebra.Generic.RationalFunctionField)
@@ -296,7 +298,9 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
-@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionFieldElem, "RationalFunctionFieldElem")
+@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionFieldElem,
+                           true,
+                           "RationalFunctionFieldElem")
 
 function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
     frac_elem_parent = save_type_dispatch(s, parent(denominator(f)))
@@ -338,7 +342,7 @@ end
 
 ################################################################################
 # ArbField
-@registerSerializationType(ArbField)
+@registerSerializationType(ArbField, true)
 @registerSerializationType(arb)
 
 function save_internal(s::SerializerState, RR::Nemo.ArbField)
@@ -394,7 +398,7 @@ end
 ################################################################################
 # AcbField
 
-@registerSerializationType(AcbField)
+@registerSerializationType(AcbField, true)
 @registerSerializationType(acb)
 
 function save_internal(s::SerializerState, CC::AcbField)
@@ -437,7 +441,7 @@ end
 ################################################################################
 # Field Embeddings
 
-@registerSerializationType(Hecke.NumFieldEmbNfAbs)
+@registerSerializationType(Hecke.NumFieldEmbNfAbs, true)
 
 function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
     K = number_field(E)
@@ -457,7 +461,7 @@ function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dic
     return complex_embedding(K, gen_ball)
 end
 
-@registerSerializationType(Hecke.NumFieldEmbNfAbsNS)
+@registerSerializationType(Hecke.NumFieldEmbNfAbsNS, true)
 
 function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
     K = number_field(E)
@@ -479,7 +483,7 @@ end
 ################################################################################
 # Padic Field
 
-@registerSerializationType(FlintPadicField)
+@registerSerializationType(FlintPadicField, true)
 @registerSerializationType(padic)
 
 function save_internal(s::SerializerState, P::FlintPadicField)

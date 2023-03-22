@@ -5,7 +5,9 @@
 
 ################################################################################
 #  non simpleton base rings
-@registerSerializationType(Nemo.zzModRing, "Nemo.zzModRing")
+@registerSerializationType(Nemo.zzModRing,
+                           true,
+                           "Nemo.zzModRing")
 
 function save_internal(s::SerializerState, R::Nemo.zzModRing)
     return Dict(
@@ -46,19 +48,19 @@ end
 ################################################################################
 #  Polynomial Rings
 
-@registerSerializationType(PolyRing)
+@registerSerializationType(PolyRing, true)
 
-@registerSerializationType(MPolyRing)
+@registerSerializationType(MPolyRing, true)
 
-@registerSerializationType(QQMPolyRing)
-@registerSerializationType(QQPolyRing)
-@registerSerializationType(ZZMPolyRing)
-@registerSerializationType(ZZPolyRing)
-@registerSerializationType(fqPolyRepMPolyRing)
-@registerSerializationType(fqPolyRepPolyRing)
-@registerSerializationType(fpPolyRing)
-@registerSerializationType(zzModMPolyRing)
-@registerSerializationType(zzModPolyRing)
+@registerSerializationType(QQMPolyRing, true)
+@registerSerializationType(QQPolyRing, true)
+@registerSerializationType(ZZMPolyRing, true)
+@registerSerializationType(ZZPolyRing, true)
+@registerSerializationType(fqPolyRepMPolyRing, true)
+@registerSerializationType(fqPolyRepPolyRing, true)
+@registerSerializationType(fpPolyRing, true)
+@registerSerializationType(zzModMPolyRing, true)
+@registerSerializationType(zzModPolyRing, true)
 
 function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
     return Dict(
@@ -244,7 +246,7 @@ end
 
 ################################################################################
 # Power Series
-@registerSerializationType(SeriesRing)
+@registerSerializationType(SeriesRing, true)
 
 function save_internal(s::SerializerState, R::Union{
     Generic.RelPowerSeriesRing,
@@ -379,9 +381,9 @@ end
 
 ################################################################################
 # Laurent Series
-@registerSerializationType(Generic.LaurentSeriesRing, "LaurentSeriesRing")
+@registerSerializationType(Generic.LaurentSeriesRing, true, "LaurentSeriesRing")
 
-@registerSerializationType(Generic.LaurentSeriesField, "LaurentSeriesField")
+@registerSerializationType(Generic.LaurentSeriesField, true, "LaurentSeriesField")
 
 @registerSerializationType(ZZLaurentSeriesRing)
 
@@ -410,9 +412,9 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-@registerSerializationType(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
+@registerSerializationType(Generic.LaurentSeriesFieldElem, false, "LaurentSeriesFieldElem")
 
-@registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
+@registerSerializationType(Generic.LaurentSeriesRingElem, false, "LaurentSeriesRingElem")
 
 @registerSerializationType(ZZLaurentSeriesRingElem)
 
