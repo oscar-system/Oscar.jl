@@ -816,8 +816,8 @@ function is_cohen_macaulay(A::MPolyQuoRing)
  if !((R isa Oscar.MPolyDecRing) && is_standard_graded(R))
     throw(ArgumentError("The base ring must be standard ZZ-graded."))
  end
- singular_assure(I, negdegrevlex(gens(R)))
- res = Singular.LibHomolog.isCM(I.gens.gens.S)
+ sI = singular_ideal(I.gens, negdegrevlex(gens(R)))
+ res = Singular.LibHomolog.isCM(sI)
  if res == 1 return true end
  return false
 end
