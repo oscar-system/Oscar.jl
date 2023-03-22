@@ -1,3 +1,19 @@
+@doc Markdown.doc"""
+    AbsAffineAlgebraicSet <: AbsSpec
+
+An affine, geometrically reduced scheme of finite type over a field.
+"""
+abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType}# where {BaseField <:Field, RingType}
+end
+
+@doc Markdown.doc"""
+    AbsProjectiveAlgebraicSet <: AbsProjectiveScheme
+
+An affine, geometrically reduced scheme of finite type over a field.
+"""
+abstract type AbsProjectiveAlgebraicSet{BaseField<:Field, RingType} <:AbsProjectiveScheme{BaseField, RingType}# where {BaseField <:Field, RingType}
+end
+
 ################################################################################
 #
 # Abstract types for varieties
@@ -5,24 +21,24 @@
 ################################################################################
 
 @doc Markdown.doc"""
-    AbsAffineVariety <: AbsSpec{<:Field}
+    AbsAffineVariety <: AbsAffineAlgebraicSet
 
 An affine, geometrically integral scheme of finite type over a field.
 """
-abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType}# where {BaseField <:Field, RingType}
+abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicSet{BaseField, RingType}# where {BaseField <:Field, RingType}
 end
 
 @doc Markdown.doc"""
-    AbsProjectiveVariety <: AbsProjectiveScheme{<:Field}
+    AbsProjectiveVariety <: AbsProjectiveAlgebraicSet
 
 A projective variety over a field.
 
 That is a projective, geometrically integral scheme over a field.
 """
-abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveScheme{BaseField, GradedRingType} end
+abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseField, GradedRingType} end
 
 @doc Markdown.doc"""
-    AbsCoveredVariety <: Scheme{<:Field}
+    AbsCoveredVariety <: Scheme
 
 A separated, geometrically integral scheme of finite type over a field.
 
