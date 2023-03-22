@@ -1,6 +1,6 @@
 @testset "Conformance tests" begin
 
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     lin = [0 1 0]
     Cone1=positive_hull(pts)
     Q0 = convex_hull(pts)
@@ -12,7 +12,7 @@
     @testset "(de)homogenize" begin
         dehomogenize, homogenize = Oscar.dehomogenize, Oscar.homogenize
 
-        m = [1 2 3; 4 5 6]'
+        m = [1 2; 3 4; 5 6]
         @test dehomogenize(homogenize(m, 0 // 1)) == m
         @test dehomogenize(homogenize(m)) == m
         @test dehomogenize(homogenize(pm.Matrix(m))) == m

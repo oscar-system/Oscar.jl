@@ -2,7 +2,7 @@
 
 @testset "Polyhedron{$T}" for T in [QQFieldElem, nf_elem]
 
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     @test convex_hull(T, pts) isa Polyhedron{T}
     Q0 = convex_hull(T, pts)
     @test convex_hull(T, pts; non_redundant = true) == Q0
