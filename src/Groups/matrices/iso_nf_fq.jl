@@ -1,16 +1,23 @@
 # Detinko, Flannery, O'Brien "Recognizing finite matrix groups over infinite
 # fields", Section 4.2
-function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}
+function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}
    @assert !isempty(matrices)
 
-   # One should probably check whether all matrices are n by n (and invertible
-   # and such ...)
-
    K = base_ring(matrices[1])
+   n = nrows(matrices[1])
+   if check
+      # Check whether all matrices have the same base ring,
+      # are square of the same size, and invertible.
+      for mat in matrices
+         K == mat.base_ring || throw(ArgumentError("matrices are not over the same base ring"))
+         is_unit(det(mat)) || throw(ArgumentError("matrices must be invertible"))
+         size(mat) == (n, n) || throw(ArgumentError("matrices must be square of the same size"))
+      end
+   end
+
    if K isa ZZRing
       K = QQ
    end
-   n = nrows(matrices[1])
 
    Fq, matrices_Fq, OtoFq = good_reduction(matrices, 2)
 

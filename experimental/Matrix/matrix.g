@@ -123,8 +123,8 @@ InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
         Assert(0, ForAll(gens, IsJuliaMatrixRep));
         
         ele := gens[1];
-        hom := Julia.Oscar._iso_oscar_gap(Julia.base_ring(ele!.m));
-        
+        hom := Julia.Oscar.iso_oscar_gap(Julia.base_ring(ele!.m));
+
         GAPGenerators := List(gens, g -> Julia.Oscar.map_entries(hom, g!.m));
         
         GAPGroup := GroupByGenerators(GAPGenerators);
@@ -154,8 +154,8 @@ InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], m -> Julia.Oscar.tr(m!.m));
 
 BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
     local x, hom, res, i;
-    
-        hom := Julia.Oscar._iso_oscar_gap(Julia.base_ring(pol.parent));
+
+        hom := Julia.Oscar.iso_oscar_gap(Julia.base_ring(pol.parent));
         x := Indeterminate(Julia.codomain(hom),"x");
         
         res := Zero(hom.header.codomain);
@@ -165,3 +165,30 @@ BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
         
         return res;
     end);
+
+# The following code is a workaround for the problem described at
+# https://github.com/gap-system/gap/issues/5422
+DeclareFilter( "IsPreImagesByAction" );
+
+InstallMethod( PreImagesRepresentative,
+    FamRangeEqFamElm,
+    [ IsBijective and IsSPGeneralMapping and IsPreImagesByAction,
+      IsMultiplicativeElementWithInverse ], 2000,
+    function( map, elm )
+    local R, gens_imgs, nice, intermed, comp;
+
+    if not IsBound( map!.nice_inverse ) then
+      R:= Range( map );
+      Assert( 1, IsHandledByNiceMonomorphism( R ) );
+      gens_imgs:= MappingGeneratorsImages( map );
+      nice:= NiceMonomorphism( R );
+      intermed:= List( gens_imgs[2], x -> ImagesRepresentative( nice, x ) );
+      comp:= CompositionMapping(
+                 GroupHomomorphismByImagesNC( NiceObject( R ), Source( map ),
+                                              intermed, gens_imgs[1] ),
+                 nice );
+      map!.nice_inverse:= comp;
+    fi;
+
+    return ImagesRepresentative( map!.nice_inverse, elm );
+    end );
