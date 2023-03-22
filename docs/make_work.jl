@@ -4,7 +4,7 @@
 #
 module BuildDoc
 
-using Documenter, DocumenterMarkdown, DocumenterCitations
+using Documenter, DocumenterCitations
 
 
 # Overwrite printing to make the header not full of redundant nonsense

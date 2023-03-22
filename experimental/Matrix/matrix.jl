@@ -76,7 +76,7 @@ function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) whe
        M -> map_entries(iso, Oscar._reduce(GAP.getbangproperty(M, :m), OtoFq)))
      GAP.Globals.SetIsBijective(JuliaGAPMap, true)
      GAP.Globals.SetFilterObj(JuliaGAPMap, GAP.Globals.IsPreImagesByAction)
-     GAP.Globals.SetNiceMonomorphism(G, JuliaGAPMap);
+     GAP.Globals.SetNiceMonomorphism(G, JuliaGAPMap)
      GAP.Globals.SetIsHandledByNiceMonomorphism(G, true);
 
      return G

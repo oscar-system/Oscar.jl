@@ -124,7 +124,7 @@ InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
         
         ele := gens[1];
         hom := Julia.Oscar.iso_oscar_gap(Julia.base_ring(ele!.m));
-        
+
         GAPGenerators := List(gens, g -> Julia.Oscar.map_entries(hom, g!.m));
         
         GAPGroup := GroupByGenerators(GAPGenerators);
@@ -154,7 +154,7 @@ InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], m -> Julia.Oscar.tr(m!.m));
 
 BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
     local x, hom, res, i;
-    
+
         hom := Julia.Oscar.iso_oscar_gap(Julia.base_ring(pol.parent));
         x := Indeterminate(Julia.codomain(hom),"x");
         
