@@ -381,10 +381,15 @@ function elements(I::IdealGens)
   return collect(I)
 end
 
-function singular_ideal(B::IdealGens, ordering::MonomialOrdering)
+# Note: the check 
+# B.ord == monomial_ordering(B.Ox, ordering(base_ring(B.S)))
+# in the following function should not be necessary, 
+# but the constructor does not keep those consistent always. Trap, fix.
+
+function singular_ideal(B::IdealGens, monorder::MonomialOrdering)
   singular_assure(B)
-  isdefined(B, :ord) && B.ord == ordering && return B.gens.S
-  SR = singular_poly_ring(B.Ox, ordering)
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
   return Singular.map_ideal(f, B.gens.S)
 end

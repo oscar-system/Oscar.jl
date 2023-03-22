@@ -611,11 +611,11 @@ julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
 ```
 """
 function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-	@assert base_ring(J) == base_ring(I)
-	singular_assure(I, ordering)
-	singular_assure(J, ordering)
-	res = reduce(I.gens.S, J.gens.S)
-	return [J.gens.Ox(x) for x = gens(res)]
+  @assert base_ring(J) == base_ring(I)
+  Is = singular_ideal(I, ordering)
+  Js = singular_ideal(J, ordering)
+  res = reduce(Is, Js)
+  return [J.Ox(x) for x = gens(res)]
 end
 
 @doc Markdown.doc"""
