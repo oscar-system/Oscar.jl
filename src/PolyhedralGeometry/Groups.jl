@@ -74,9 +74,8 @@ julia> order(G)
 2
 ```
 """
-function combinatorial_symmetries(P::Polyhedron)
-    return automorphism_group(P; type=:combinatorial, action=:on_vertices)
-end
+combinatorial_symmetries(P::Polyhedron) = automorphism_group(P; type=:combinatorial, action=:on_vertices)
+
 
 @doc Markdown.doc"""
     linear_symmetries(P::Polyhedron)
@@ -112,9 +111,7 @@ julia> order(G)
 2
 ```
 """
-function linear_symmetries(P::Polyhedron)
-    return automorphism_group(P; type=:linear, action=:on_vertices)
-end
+linear_symmetries(P::Polyhedron) = automorphism_group(P; type=:linear, action=:on_vertices)
 
 
 @doc Markdown.doc"""

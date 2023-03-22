@@ -18,9 +18,7 @@ julia> dim(antv)
 1
 ```
 """
-@attr Int function dim(v::AbstractNormalToricVariety)
-    return pm_object(v).FAN_DIM
-end
+@attr Int dim(v::AbstractNormalToricVariety) = pm_object(v).FAN_DIM
 
 
 @doc Markdown.doc"""
@@ -315,9 +313,7 @@ julia> ngens(stanley_reisner_ideal(p2))
 1
 ```
 """
-@attr MPolyIdeal function stanley_reisner_ideal(v::AbstractNormalToricVariety)
-    return stanley_reisner_ideal(cox_ring(v), v)
-end
+@attr MPolyIdeal stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox_ring(v), v)
 
 
 ########################################
@@ -631,9 +627,7 @@ julia> character_lattice(p2)
 GrpAb: Z^2
 ```
 """
-@attr GrpAbFinGen function character_lattice(v::AbstractNormalToricVariety)
-    return free_abelian_group(ambient_dim(v))
-end
+@attr GrpAbFinGen character_lattice(v::AbstractNormalToricVariety) = free_abelian_group(ambient_dim(v))
 
 
 @doc Markdown.doc"""
@@ -649,9 +643,7 @@ julia> torusinvariant_weil_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen function torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
-    return free_abelian_group(nrays(v))
-end
+@attr GrpAbFinGen torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety) = free_abelian_group(nrays(v))
 
 
 @doc Markdown.doc"""
@@ -720,9 +712,7 @@ julia> class_group(p2)
 GrpAb: Z
 ```
 """
-@attr GrpAbFinGen function class_group(v::AbstractNormalToricVariety)
-    return codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
-end
+@attr GrpAbFinGen class_group(v::AbstractNormalToricVariety) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
 
 
 @doc Markdown.doc"""
@@ -926,9 +916,7 @@ julia> dim(nef)
 1
 ```
 """
-@attr Cone function nef_cone(v::NormalToricVariety)
-    return Cone(pm_object(v).NEF_CONE)
-end
+@attr Cone nef_cone(v::NormalToricVariety) = Cone(pm_object(v).NEF_CONE)
 
 
 """
@@ -948,9 +936,7 @@ julia> dim(mori)
 1
 ```
 """
-@attr Cone function mori_cone(v::NormalToricVariety)
-    return Cone(pm_object(v).MORI_CONE)
-end
+@attr Cone mori_cone(v::NormalToricVariety) = Cone(pm_object(v).MORI_CONE)
 
 
 @doc Markdown.doc"""
@@ -967,9 +953,7 @@ julia> fan(p2)
 Polyhedral fan in ambient dimension 2
 ```
 """
-@attr PolyhedralFan{QQFieldElem} function fan(v::AbstractNormalToricVariety)
-    return PolyhedralFan{QQFieldElem}(pm_object(v))
-end
+@attr PolyhedralFan{QQFieldElem} fan(v::AbstractNormalToricVariety) = PolyhedralFan{QQFieldElem}(pm_object(v))
 
 
 @doc Markdown.doc"""
@@ -983,9 +967,7 @@ julia> cone(affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1])))
 Polyhedral cone in ambient dimension 2
 ```
 """
-@attr Cone function cone(v::AffineNormalToricVariety)
-    return maximal_cones(v)[1]
-end
+@attr Cone cone(v::AffineNormalToricVariety) = maximal_cones(v)[1]
 
 
 ############################
