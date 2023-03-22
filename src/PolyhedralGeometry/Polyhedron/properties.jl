@@ -201,7 +201,7 @@ _vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertic
 
 function _facet_indices(::Val{_vertex_polyhedron}, P::Polymake.BigObject)  
 	A=P.VERTICES
-	return P.FACETS_THRU_VERTICES[findfirst(!iszero, view(A, :, 1)):end,1:(_facet_at_infinity(P) - 1)]
+	return P.FACETS_THRU_VERTICES[findall(!iszero, view(A, :, 1)),[collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))]]
 end
 
 @doc Markdown.doc"""
