@@ -975,8 +975,9 @@ julia> normal_form(A, J)
 ```
 """
 function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-    singular_assure(J, ordering)
-    I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
+    sJ = singular_ideal(J.gens, ordering)
+    S = base_ring(sJ)
+    I = Singular.Ideal(S, S(f))
     N = normal_form_internal(I, J, ordering)
     return N[1]
 end
