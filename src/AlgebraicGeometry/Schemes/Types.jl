@@ -41,3 +41,10 @@ struct EmptyScheme{BaseRingType}<:Scheme{BaseRingType}
     return new{BaseRingType}(k)
   end
 end
+
+
+
+########################################################################
+# Abstract projective schemes                                          #
+########################################################################
+abstract type AbsProjectiveScheme{BaseRingType, RingType} <: Scheme{BaseRingType} end
