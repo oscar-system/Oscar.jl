@@ -9,9 +9,9 @@
 # TODO: This should not be in this file and integrated in the general groebner_basis
 # functionality
 function _groebner_basis(I::MPolyIdeal, d::Int; ordering::MonomialOrdering = default_ordering(base_ring(I)))
-  singular_assure(I, ordering)
-  R = I.gens.Sx
-  J = Singular.Ideal(R, gens(I.gens.S)...)
+  sI = singular_ideal(I.gens, ordering)
+  R = base_ring(sI)
+  J = Singular.Ideal(R, gens(sI)...)
   G = Singular.with_degBound(d) do
         return Singular.std(J)
       end
