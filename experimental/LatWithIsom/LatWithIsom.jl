@@ -362,14 +362,14 @@ function is_of_hermitian_type(Lf::LatWithIsom)
 end
 
 @doc Markdown.doc"""
-    hermitian_structure(Lf::LatWithIsom; check::Bool = true) -> HermLat
+    hermitian_structure(Lf::LatWithIsom) -> HermLat
 
 Given a lattice with isometry $(L, f)$ such that the minimal polynomial of the
 underlying isometry `f` is irreducible and cyclotomic, return the
 hermitian structure of the underlying lattice `L` over the $n$th cyclotomic
 field, where $n$ is the order of `f`.
 
-If it exists, the hermitian structure is cached.
+If it exists, the hermitian structure is stored.
 """
 @attr HermLat function hermitian_structure(Lf::LatWithIsom)
   @req is_of_hermitian_type(Lf) "Lf is not of hermitian type"
@@ -610,7 +610,7 @@ $\mathbb{Z}$-lattice $\Ker(f^k-1)$.
   for l in divs
     Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = Oscar._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)
+      Hl = LWI._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)[1]
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
@@ -631,7 +631,7 @@ function is_of_type(L::LatWithIsom, t::Dict)
     Hl = kernel_lattice(L, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1, 1, 2])
       t[l][1] isa Hecke.HermGenus || return false
-      Hl = Oscar._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false, E = base_field(t[l][1]))
+      Hl = LWI._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false, E = base_field(t[l][1]))
     end
     genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)

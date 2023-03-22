@@ -15,6 +15,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   D = A+B
   AinD = hom(A, D, TorQuadModuleElem[D(lift(a)) for a in gens(A)])
   BinD = hom(B, D, TorQuadModuleElem[D(lift(b)) for b in gens(B)])
+  @assert all(v -> AinD(v[1])*BinD(v[2]) == 0, Hecke.cartesian_product_iterator([gens(A), gens(B)], inplce=true))
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
@@ -766,10 +767,9 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
   OqA = domain(OqAinOD)
   OqB = domain(OqBinOD)
 
-    # if the glue valuation is zero, then we glue along the trivial group and we don't
+  # if the glue valuation is zero, then we glue along the trivial group and we don't
   # have much more to do. Since the triple is p-admissible, A+B = C
   if g == 0
-    println(0)
     geneA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(OqA(a.X)) for a in gens(GA)]
     geneB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(OqB(b.X)) for b in gens(GB)]
     gene = vcat(geneA, geneB)
@@ -795,7 +795,6 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
     end
     return results
   end
-  println("not 0")
   # these are GA|GB-invariant, fA|fB-stable, and should contain the kernels of any glue map
   VA, VAinqA, fVA = _get_V(lattice(A), qA, isometry(A), fqA, minpoly(B), p)
   VB, VBinqB, fVB = _get_V(lattice(B), qB, isometry(B), fqB, minpoly(A), p)
@@ -809,7 +808,6 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
   # discriminant groups
   l = level(genus(C))
   
-
   # We look for the GA|GB-invariant and fA|fB-stable subgroups of VA|VB which respectively
   # contained lqA|lqB. This is done by computing orbits and stabilisers of VA/lqA (resp VB/lqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones

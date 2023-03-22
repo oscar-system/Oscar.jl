@@ -328,7 +328,6 @@ function _possible_signatures(s1, s2, E, rk)
   @assert ok
   @assert iseven(s2)
   @assert Hecke.divides(2*(s1+s2), euler_phi(q))[1]
-  n = 
   l = divexact(s2, 2)
   K = base_field(E)
   inf = real_places(K)
@@ -429,6 +428,9 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
     if !is_integral(DE*scale(H))
       continue
     end
+    if iseven(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
+      continue
+    end
     @info "$H"
     M = trace_lattice(H)
     @assert det(M) == d
@@ -507,6 +509,9 @@ function _representative(t::Dict; check::Bool = true)
   for g in gene
     H = representative(g)
     if !is_integral(DE*scale(H))
+      continue
+    end
+    if iseven(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
       continue
     end
     H = H
