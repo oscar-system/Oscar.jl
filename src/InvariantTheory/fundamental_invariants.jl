@@ -30,8 +30,8 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   ordR = degrevlex(gens(R))
 
   S = elem_type(R)[]
-  G = IdealGens(R, elem_type(R)[])
-  singular_assure(G, ordR)
+  G = IdealGens(R, elem_type(R)[], ordR)
+  singular_assure(G)
   GO = elem_type(R)[]
 
   g = order(Int, group(RG))
