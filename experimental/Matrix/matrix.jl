@@ -62,7 +62,7 @@ function matrix_group(matrices::Vector{<:MatrixElem{T}}) where T <: Union{ZZRing
      is_invertible(x) = is_unit(det(x))
      K = base_ring(matrices[1])
      for mat in matrices
-          if K != mat.base_ring
+          if K != base_ring(mat)
               error("Matrices are not from the same base ring.")
           end
           if !is_invertible(mat)
@@ -79,7 +79,7 @@ function matrix_group(matrices::Vector{<:MatrixElem{T}}) where T <: Union{ZZRing
      Fq, matrices_Fq, OtoFq = Oscar.good_reduction(matrices, 2)
 
      ele = matrices_Fq[1]
-     hom = Oscar._iso_oscar_gap(ele.base_ring)
+     hom = Oscar._iso_oscar_gap(base_ring(ele))
 
      gap_matrices_Fq = GAP.Obj([map_entries(hom, m) for m in matrices_Fq])
      G2 = GAP.Globals.Group(gap_matrices_Fq)
