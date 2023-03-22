@@ -1007,6 +1007,7 @@ export polarize
 export poly_type
 export polyhedra
 export polyhedra_of_dim
+export polyhedral_fan_from_rays_action
 export polyhedron
 export polynomial
 export polynomial_ring

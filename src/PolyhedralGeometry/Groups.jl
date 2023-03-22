@@ -1,17 +1,25 @@
 function PermGroup_to_polymake_array(G::PermGroup)
    generators = gens(G)
    d = degree(G)
-   result = Polymake.Array{Polymake.Array{Polymake.to_cxx_type(Int)}}(length(generators))
-   i = 1
-   for g in generators
-      array = Polymake.Array{Polymake.to_cxx_type(Int)}(d)
-      for j in 1:d
-         array[j] = g(j)-1
-      end
-      result[i] = array
-      i = i+1
-   end
-   return result
+   return _group_generators_to_pm_arr_arr(generators, d)
+end
+
+
+function _group_generators_to_pm_arr_arr(generators::AbstractVector{PermGroupElem}, d::Int)
+    if length(generators) == 0
+        generators = elements(trivial_subgroup(symmetric_group(d))[1])
+    end
+    result = Polymake.Array{Polymake.Array{Polymake.to_cxx_type(Int)}}(length(generators))
+    i = 1
+    for g in generators
+        array = Polymake.Array{Polymake.to_cxx_type(Int)}(d)
+        for j in 1:d
+            array[j] = g(j)-1
+        end
+        result[i] = array
+        i = i+1
+    end
+    return result
 end
 
 
