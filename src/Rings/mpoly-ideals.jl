@@ -1298,9 +1298,8 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::Mon
 
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  singular_assure(I, ordering)
-  IS = I.gens.S
-  RS = I.gens.Sx
+  IS = singular_ideal(I.gens, ordering)
+  RS = base_ring(IS)
   GC.@preserve IS RS begin
     ptr = Singular.libSingular.idMinBase(IS.ptr, RS.ptr)
     gensS = gens(typeof(IS)(RS, ptr))
