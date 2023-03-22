@@ -975,17 +975,16 @@ julia> normal_form(A, J)
 ```
 """
 function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-    sJ = singular_ideal(J.gens, ordering)
-    S = base_ring(sJ)
-    I = Singular.Ideal(S, S(f))
+    SR = J.gens.Sx
+    I = Singular.Ideal(SR, SR(f))
     N = normal_form_internal(I, J, ordering)
     return N[1]
 end
 
-function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-    singular_assure(J, ordering)
-    I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
-    normal_form_internal(I, J, ordering)
+function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
+  SR = J.gens.Sx
+  I = Singular.Ideal(SR, [SR(x) for x in A])
+  normal_form_internal(I, J, ordering)
 end
 
 @doc Markdown.doc"""
