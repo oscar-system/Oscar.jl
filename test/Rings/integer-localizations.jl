@@ -16,7 +16,7 @@ export FmpzLocalizedRing, FmpzLocalizedRingElem
 # Multiplicatively closed sets given by powers of a specific integer            #
 #################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
 FmpzPowersOfElement
 
 The multiplicative set given by the powers of some element.
@@ -58,7 +58,7 @@ Base.in(a::Oscar.IntegerUnion, S::FmpzPowersOfElement) = (ZZ(a) in S)
 # Complements of prime ideals in ℤ                                              #
 #################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
 FmpzComplementOfPrimeIdeal
 
 The multiplicatively closed set `S = ℤ ∖ ⟨p⟩` of integers outside a prime ideal `⟨p⟩`.
@@ -92,7 +92,7 @@ Base.in(a::Oscar.IntegerUnion, S::FmpzComplementOfPrimeIdeal) = (ZZ(a) in S)
 # The complement of the zero ideal in ℤ                                         #
 #################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
 FmpzComplementOfZeroIdeal 
 
 The complement of the zero ideal in `ℤ`.
@@ -119,7 +119,7 @@ Base.in(b::Oscar.IntegerUnion, S::FmpzComplementOfZeroIdeal) = (ZZ(b) in S)
 # Localizations of ℤ                                                            #
 #################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
 FmpzLocalizedRing{MultSetType <: AbsMultSet{ZZRing, ZZRingElem}} <: AbsLocalizedRing{ZZRing, ZZRingElem, MultSetType} 
 
 A minimal implementation for the localization `ℤ[S⁻¹]` of the ring of integers 
@@ -163,7 +163,7 @@ end
 # Elements of localizations of ℤ                                      #
 #######################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     FmpzLocalizedRingElem{MultSetType}
 
 Elements `a/b ∈ ℤ[S⁻¹]` of localizations of the ring of integers 

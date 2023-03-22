@@ -13,7 +13,7 @@ export VarietyFunctionFieldElem
 ########################################################################
 # Concrete type for projective schemes                                 #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 
 Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r``
@@ -65,7 +65,7 @@ end
 ########################################################################
 # Morphisms of projective schemes                                      #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ProjectiveSchemeMor
 
 A morphism of projective schemes
@@ -231,7 +231,7 @@ end
 ########################################################################
 # Sheaves                                                              #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
 Abstract type for a sheaf ℱ on a space X.
@@ -256,7 +256,7 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     PreSheafOnScheme
 
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
@@ -325,7 +325,7 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     StructureSheafOfRings <: AbsPreSheaf
 
 On an `AbsCoveredScheme` ``X`` this returns the sheaf ``𝒪`` of rings of
@@ -565,7 +565,7 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     IdealSheaf <: AbsPreSheaf
 
 A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.

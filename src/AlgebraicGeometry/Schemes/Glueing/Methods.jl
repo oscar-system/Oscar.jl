@@ -12,7 +12,7 @@ end
 ########################################################################
 # Composition of Glueings                                              #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     compose(G::AbsGlueing, H::AbsGlueing)
 
 Given glueings `X ↩ U ≅ V ↪  Y` and `Y ↩ V' ≅ W ↪ Z`, return the glueing
@@ -59,7 +59,7 @@ function compose(G::Glueing, H::Glueing)
 	     )
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     maximal_extension(G::Glueing)
 
 Given a glueing `X ↩ U ≅ V ↪ Y`, try to find the maximal extension to an open 
