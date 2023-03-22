@@ -10,8 +10,9 @@ export ToricCoveredScheme
     C = maximal_cones(F)
 
     antv = affine_open_covering(ntv)
-    rings = [polynomial_ring(coefficient_ring(antv[k]), ["x_$(i)_$(k)" for i in 1:ngens(base_ring(toric_ideal(antv[k])))], cached=false)[1] for k in 1:length(antv)]
-    patch_list = [ToricSpec(U, R=R) for (U, R) in zip(antv, rings)]
+    var_names = [Symbol.(["x_$(i)_$(k)" for i in 1:ngens(base_ring(toric_ideal(antv[k])))]) for k in 1:length(antv)]
+    #rings = [polynomial_ring(coefficient_ring(antv[k]), ["x_$(i)_$(k)" for i in 1:ngens(base_ring(toric_ideal(antv[k])))], cached=false)[1] for k in 1:length(antv)]
+    patch_list = [ToricSpec(U, var_names=n) for (U, n) in zip(antv, var_names)]
     cov = Covering(patch_list)
 
     for i in 1:(length(patch_list)-1)

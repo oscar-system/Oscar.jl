@@ -21,7 +21,19 @@ julia> underlying_scheme(affine_toric_scheme)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2 over Rational Field by ideal()
 ```
 """
-underlying_scheme(X::ToricSpec) = X.X
+function underlying_scheme(X::ToricSpec)
+  if !isdefined(X, :X)
+    if length(X.var_names) == 0
+      I = toric_ideal(affine_normal_toric_variety(X))
+      X.X = Spec(base_ring(I), I)
+    else
+      R, _ = polynomial_ring(QQ, X.var_names)
+      I = toric_ideal(R, hilbert_basis(X))
+      X.X = Spec(R, I)
+    end
+  end
+  return X.X
+end
 export underlying_scheme
 
 
@@ -99,7 +111,12 @@ julia> polarize(cone(affine_toric_scheme)) == dual_cone(affine_toric_scheme)
 true
 ```
 """
-dual_cone(X::ToricSpec) = X.dual_cone
+function dual_cone(X::ToricSpec) 
+  if !isdefined(X, :dual_cone)
+    X.dual_cone = polarize(cone(X))
+  end
+  return X.dual_cone
+end
 export dual_cone
 
 
@@ -135,5 +152,11 @@ julia> hilbert_basis(affine_toric_scheme)
 [ 0   1]
 ```
 """
-hilbert_basis(X::ToricSpec) = X.hb
+function hilbert_basis(X::ToricSpec)
+  if !isdefined(X, :hb)
+    X.hb = matrix(ZZ, hilbert_basis(dual_cone(X)))
+  end
+  return X.hb
+end
 export hilbert_basis
+
