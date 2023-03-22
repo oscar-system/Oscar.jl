@@ -917,9 +917,9 @@ end
 
 function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	@assert base_ring(J) == base_ring(I)
-	singular_assure(I, ordering)
-	singular_assure(J, ordering)
-	res = Singular.division(I.gens.S, J.gens.S)
+	sI = singular_ideal(I, ordering)
+  sJ = singular_ideal(J, ordering)
+  res = Singular.division(sI, sJ)
 	return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
