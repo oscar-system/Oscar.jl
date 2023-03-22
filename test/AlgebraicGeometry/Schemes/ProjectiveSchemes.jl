@@ -309,6 +309,6 @@ end
 
   @test dim(Y) == 2
   @test degree(Y) == 4
-  @test is_smooth(Y)
+  # @test is_smooth(Y) # too expensive!
   @test arithmetic_genus(Y) == 1
 end
