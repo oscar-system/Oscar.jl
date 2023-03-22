@@ -3,16 +3,14 @@
 
 An affine, geometrically reduced scheme of finite type over a field.
 """
-abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType}# where {BaseField <:Field, RingType}
-end
+abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType} end
 
 @doc Markdown.doc"""
     AbsProjectiveAlgebraicSet <: AbsProjectiveScheme
 
-An affine, geometrically reduced scheme of finite type over a field.
+A projective, geometrically reduced scheme of finite type over a field.
 """
-abstract type AbsProjectiveAlgebraicSet{BaseField<:Field, RingType} <:AbsProjectiveScheme{BaseField, RingType}# where {BaseField <:Field, RingType}
-end
+abstract type AbsProjectiveAlgebraicSet{BaseField<:Field, RingType} <:AbsProjectiveScheme{BaseField, RingType} end
 
 ################################################################################
 #
@@ -25,8 +23,7 @@ end
 
 An affine, geometrically integral scheme of finite type over a field.
 """
-abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicSet{BaseField, RingType}# where {BaseField <:Field, RingType}
-end
+abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicSet{BaseField, RingType} end
 
 @doc Markdown.doc"""
     AbsProjectiveVariety <: AbsProjectiveAlgebraicSet
@@ -41,8 +38,6 @@ abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: Ab
     AbsCoveredVariety <: Scheme
 
 A separated, geometrically integral scheme of finite type over a field.
-
-Note that we allow reducible varieties.
 """
 abstract type AbsCoveredVariety{BaseField<:Field} <: AbsCoveredScheme{BaseField} end
 
@@ -68,14 +63,12 @@ A projective curve embedded in an ambient projective space.
 """
 abstract type AbsProjectiveCurve{BaseField<:Field, RingType<:Ring} <: AbsProjectiveVariety{BaseField, RingType} end
 
-
 @doc Markdown.doc"""
     AbsCoveredCurve
 
 A curve represented in terms of a covering.
 
-A curve is a geometrically integral scheme of finite type over a field which is
-of dimension one.
+A curve is a geometrically integral scheme of dimension 1 of finite type over a field.
 """
 abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 
@@ -84,7 +77,7 @@ abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 # Plane curves
 ################################################################################
 @doc Markdown.doc"""
-    ProjectivePlaneCurve
+    PlaneProjectiveCurve
 
 A plane projective curve embedded in an ambient projective space.
 """
