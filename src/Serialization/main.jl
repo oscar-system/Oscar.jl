@@ -53,6 +53,8 @@ end
 # registerSerializationType is a macro to ensure that the string we generate
 # matches exactly the expression passed as first argument, and does not change
 # in unexpected ways when import/export statements are adjusted.
+# It also set the value of serializa_with_id, which determines
+# whether or not the type can be back referenced.
 macro registerSerializationType(
     ex::Any,
     uses_id::Bool = false,
