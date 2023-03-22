@@ -66,6 +66,15 @@
         @test minkowski_sum(C0,C0) == cube(2,-2,2)
         @test minkowski_sum(C0,C0; algorithm=:fukuda) == cube(2,-2, 2)
         @test intersect(C0,C0) == C0
+        Cs = [C0,C0,C0]
+        @test intersect(Cs) isa Polyhedron{QQFieldElem}
+        @test intersect(Cs...) isa Polyhedron{QQFieldElem}
+        @test intersect(Cs) == C0
+        @test intersect(Cs...) == C0
+        @test convex_hull(Cs) isa Polyhedron{QQFieldElem}
+        @test convex_hull(Cs...) isa Polyhedron{QQFieldElem}
+        @test convex_hull(Cs) == C0
+        @test convex_hull(Cs...) == C0
     end
 
     @testset "newton_polytope" begin

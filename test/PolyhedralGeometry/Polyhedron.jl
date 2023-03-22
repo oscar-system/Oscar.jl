@@ -46,6 +46,11 @@
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
+        Ps = [Q0,Q0,Q0]
+        @test intersect(Ps) isa Polyhedron{T}
+        @test intersect(Ps...) isa Polyhedron{T}
+        @test intersect(Ps) == Q0
+        @test intersect(Ps...) == Q0
         @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
