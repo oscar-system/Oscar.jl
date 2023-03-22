@@ -738,7 +738,7 @@ julia> Pcov = covered_scheme(P)
 covered scheme with 3 affine patches in its default covering
 ```
 """
-@attr function covered_scheme(P::ProjectiveScheme)
+@attr AbsCoveredScheme function covered_scheme(P::ProjectiveScheme)
     C = standard_covering(P) 
     X = CoveredScheme(C)
     return X
@@ -1016,27 +1016,28 @@ of ``X`` and ``Y``, respectively.
 end
 
 # Basic functionality required for Warham
-function dim(P::AbsProjectiveScheme{<:Field})
+@attr Integer function dim(P::AbsProjectiveScheme{<:Field})
   return dim(defining_ideal(P))-1
 end
 
-@attr function affine_algebra(P::AbsProjectiveScheme)
+@attr MPolyQuoRing function affine_algebra(P::AbsProjectiveScheme)
   return quo(ambient_coordinate_ring(P), defining_ideal(P))[1]
 end
 
-@attr function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
+@attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
   return hilbert_polynomial(affine_algebra(P))
 end
 
-function degree(P::AbsProjectiveScheme{<:Field})
+@attr ZZRingElem function degree(P::AbsProjectiveScheme{<:Field})
   return degree(affine_algebra(P))
 end
 
-function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
   h = hilbert_polynomial(P)
   return (-1)^dim(P) * (first(coefficients(h)) - 1)
 end
 
-@attr function is_smooth(P::AbsProjectiveScheme)
+@attr Bool function is_smooth(P::AbsProjectiveScheme)
   return is_smooth(covered_scheme(P))
 end
+
