@@ -480,8 +480,8 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
                             for v in rays])
                       for rays in rays_maxcones]
 
-    # the indices of rays that belong to each repres. cone (0-based)
-    index_result_cones = [sort([findfirst(x -> x == v, allrays)-1
+    # the indices of rays that belong to each repres. cone
+    index_result_cones = [sort([findfirst(x -> x == v, allrays)
                             for v in rays])
                       for rays in rays_result_cones]
 
@@ -497,7 +497,6 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
     # - representatives of the G-orbits on the maximal cones,
     #   each given by its defining rays, via the row indices (zero based)
     #   in the matrix of rays.
-    pm_rays = Polymake.Matrix(hcat(allrays...)')
     matgens = [image(hom, x) for x in gens(domain(hom))]
     mats_transp = [Matrix{Rational{BigInt}}(x.X)' for x in matgens]
 
@@ -516,16 +515,7 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
 
     rewr = [as_permutation(x, allrays, actfun, ==) for x in mats_transp]
 
-    rewr2 = [Vector(x) .- 1 for x in rewr]  # zero based
-    pm_gens = Polymake.@convert_to Array{Array{Int}} rewr2
-
-    pm_mc_reps = Polymake.@convert_to Array{Array{Int}} index_result_cones
-
-    # Create the fan object, and set the attributes.
-    pf = Polymake.fan.PolyhedralFan()
-    Polymake.take(pf, "RAYS", pm_rays)
-    Polymake.take(pf, "GROUP.REPRESENTATIVE_MAXIMAL_CONES", pm_mc_reps)
-    Polymake.take(pf, "GROUP.RAYS_ACTION.GENERATORS", pm_gens)
+    pf = polyhedral_fan_from_rays_action(allrays, IncidenceMatrix(index_result_cones), rewr)
 
     return pf
 end

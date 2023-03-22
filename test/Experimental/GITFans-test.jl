@@ -33,7 +33,7 @@
     G, emb = sub([sym10(x) for x in perms_list]...);
 
     fanobj = GITFans.git_fan(a, Q, G)
-    @test fanobj.F_VECTOR == [20, 110, 240, 225, 76]
+    @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
     collector_cones = GITFans.orbit_cones(a, Q, G)
     matrix_action = GITFans.action_on_target(Q, G)
@@ -64,7 +64,7 @@
     full_intergraph = Polymake.graph.graph_from_edges(collect(full_edges));
 
     fanobj = GITFans.hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
-    @test fanobj.F_VECTOR == [20, 110, 240, 225, 76]
+    @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
 #   # Now try the construction with trivial symmetry group.
 #   G2 = trivial_subgroup(G)[1]
