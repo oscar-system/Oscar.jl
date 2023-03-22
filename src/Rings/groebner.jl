@@ -1349,9 +1349,9 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     h = (Int32).([coeff(hilbert_numerator, i) for i in 0:degree(hilbert_numerator)+1])
   end
 
-  singular_assure(I.gens, ordering)
-  singular_ring = I.gens.Sx
-  J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
+  singular_I_gens = singular_ideal(I.gens, ordering)
+  singular_ring = base_ring(singular_I_gens)
+  J = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
   i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
   GB = IdealGens(I.gens.Ox, i, complete_reduction)
