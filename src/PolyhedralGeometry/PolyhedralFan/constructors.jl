@@ -156,7 +156,6 @@ function polyhedral_fan_from_rays_action(::Type{T}, Rays::AbstractCollection[Ray
     return PolyhedralFan{T}(pf)
 end
 polyhedral_fan_from_rays_action(Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) = polyhedral_fan_from_rays_action(QQFieldElem, Rays, MC_reps, perms)
-export polyhedral_fan_from_rays_action
 
 
 ###############################################################################
