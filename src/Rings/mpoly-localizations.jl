@@ -1959,7 +1959,7 @@ function (W::MPolyLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {B
   r = ngens(I)
   A = zero_matrix(SMat, W, 0, r)
   for i in 1:r
-    push!(A, sparse_row(W, [(i, W(gens(I)[i]))]))
+    push!(A, sparse_row(W, [(i, one(W))]))
   end
   result.pre_saturation_data = A
   return result
