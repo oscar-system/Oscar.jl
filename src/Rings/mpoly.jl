@@ -653,10 +653,12 @@ function singular_assure(I::IdealGens)
   end
 end
 
+# will be removed TODO
 function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
    singular_assure(I.gens, ordering)
 end
 
+# will be removed TODO
 function singular_assure(I::IdealGens, ordering::MonomialOrdering)
   if !isdefined(I.gens, :S)
       I.ord = ordering
