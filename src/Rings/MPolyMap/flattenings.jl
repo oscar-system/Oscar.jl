@@ -122,7 +122,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form (𝕜[x][u])/J
+  # Flattenings of quotient rings of the form (𝕜[x][u])/J → 𝕜[x, u]/J'
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyRingElem}}
@@ -143,7 +143,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J
+  # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J → 𝕜[x, u]/(I' + J')
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoRingElem}}
@@ -166,7 +166,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J
+  # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J → (𝕜[x, u]/(I' + J'))[U'⁻¹]
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoLocRingElem}}
@@ -205,7 +205,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J
+  # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J → (𝕜[x, u])[U'⁻¹]/J'
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyLocRingElem}}
