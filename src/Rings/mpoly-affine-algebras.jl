@@ -848,7 +848,7 @@ function _containment_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vec
       O = degrevlex(GG[1:M])*degrevlex(GG[M+1:M+N])
    end
    groebner_assure(J, O, true)
-   return (T, phi, J)
+   return (T, phi, J, O)
 end
 
 # helper function to obtain information about qring status and 
@@ -903,7 +903,7 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyRingEle
    m = ngens(R)
 
    # Build auxiliary objects
-   (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
+   (T, phi, J, _) = _containment_helper(R, n, m, I, W, :degrevlex)
    TT, _ = polynomial_ring(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    
    # Check containment

@@ -566,9 +566,13 @@ julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
 """
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
   groebner_assure(J, o)
-  G = J.gb[o]  
-  singular_assure(G)
-  K = ideal(base_ring(J), reduce(I, G.S))
+  G = J.gb[o]
+  R = base_ring(J)
+  SR = singular_poly_ring(R, o)
+  f = Singular.AlgebraHomomorphism(base_ring(I), SR, gens(SR))
+  IS = Singular.map_ideal(f, I)
+  GS = singular_ideal(G, o)
+  K = ideal(base_ring(J), reduce(IS, GS))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 

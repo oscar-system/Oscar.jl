@@ -78,10 +78,11 @@ function _groebner_data(F::AffAlgHom, ord::Symbol)
   return get_attribute!(F, ord) do
     (S, I, W, _) = _ring_helper(s, zero(s), _images(F))
     # Build auxiliary objects
-    (T, inc, J) = _containment_helper(S, n, m, I, W, ord)
-    # make sure to compute the NF with respect to the correct ordering  
-    D = normal_form([gen(T, i) for i in 1:m], J,
-                    ordering = first(collect(keys(J.gb))))
+    (T, inc, J, O) = _containment_helper(S, n, m, I, W, ord)
+    # make sure to compute the NF with respect to the correct ordering
+    R1 = base_ring(J)
+    D = normal_form([gen(R1, i) for i in 1:m], J,
+                    ordering = O)
     A = [zero(r) for i in 1:m]
     B = [gen(r, i) for i in 1:n]
     pr = hom(T, r, vcat(A, B))
