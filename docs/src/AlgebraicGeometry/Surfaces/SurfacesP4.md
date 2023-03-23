@@ -35,43 +35,43 @@ veronese()
 castelnuovo()
 ```
 
-#### A Rational Surface with $d=6$ and $\pi=3$
+#### A Rational Surface with $d=6$, $\pi=3$
 
 ```@docs
 bordiga()
 ```
 
-#### A Rational Surface with $d=7$ and $\pi=4$
+#### A Rational Surface with $d=7$, $\pi=4$
 
 ```@docs
 rational_d7_pi4()
 ```
 
-#### A Rational Surface with $d=8$ and $\pi=5$
+#### A Rational Surface with $d=8$, $\pi=5$
 
 ```@docs
 rational_d8_pi5()
 ```
 
-#### A Rational Surface with $d=8$ and $\pi=6$
+#### A Rational Surface with $d=8$, $\pi=6$
 
 ```@docs
 rational_d8_pi6()
 ```
 
-#### A Rational Surface with $d=9$ and $\pi=6$
+#### A Rational Surface with $d=9$, $\pi=6$
 
 ```@docs
 rational_d9_pi6()
 ```
 
-#### A Rational Surface with $d=9$ and $\pi=7$
+#### A Rational Surface with $d=9$, $\pi=7$
 
 ```@docs
 rational_d9_pi7()
 ```
 
-#### A Rational Surface with $d=10$ and $\pi=8$
+#### A Rational Surface with $d=10$, $\pi=8$
 
 ```@docs
 rational_d10_pi8()
@@ -173,7 +173,7 @@ k3_d9_pi8
 k3_d10_pi9_quart_1()
 ```
 
-#### A K3 Surface with $d=10$, $\pi=9$ which is Contained in a Net of Quartics
+#### A K3 Surface with $d=10$, $\pi=9$ which is Contained in a Pencil of Quartics
 
 ```@docs
 k3_d10_pi9_quart_2()
@@ -317,4 +317,13 @@ elliptic_d12_pi14_ss_0()
 ```@docs
 elliptic_d12_pi14_ss_inf()
 ```
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker).
+
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
 

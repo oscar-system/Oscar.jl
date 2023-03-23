@@ -68,7 +68,7 @@ Base.:/(x::RingElem, y::RingElement) = divexact(x, y; check=true)
 @doc Markdown.doc"""
     abelian_d10_pi6()
 
-Return a smooth abelian surface in $P^4$ with degree `d10` and sectional genus `6`.
+Return a smooth abelian surface in $\mathbb P^4$ with degree `10` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -81,7 +81,7 @@ end
 @doc Markdown.doc"""
     abelian_d15_pi21_quintic_3()
 
-Return a smooth abelian surface in $P^4$ with degree `15` and sectional genus `21` which is contained in three quintic hypersurfaces.
+Return a smooth abelian surface in $\mathbb P^4$ with degree `15` and sectional genus `21` which is contained in a net of quintics.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -95,7 +95,7 @@ end
 @doc Markdown.doc"""
     abelian_d15_pi21_quintic_1()
 
-Return a smooth abelian surface in $P^4$ with degree `15` and sectional genus `21` which is ontained in precisely one quintic.
+Return a smooth abelian surface in $\mathbb P^4$ with degree `15` and sectional genus `21` which is ontained in precisely one quintic.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -109,7 +109,7 @@ end
 @doc Markdown.doc"""
     bielliptic_d10_pi6()
 
-Return a smooth bielliptic surface in $P^4$ with degree `10` and sectional genus `6`.
+Return a smooth bielliptic surface in $\mathbb P^4$ with degree `10` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 911.
 """
@@ -123,7 +123,7 @@ end
 @doc Markdown.doc"""
     bielliptic_d15_pi21()
 
-Return a smooth bielliptic surface in $P^4$ with degree `15` and sectional genus `21`.
+Return a smooth bielliptic surface in $\mathbb P^4$ with degree `15` and sectional genus `21`.
 
 The returned surface is defined over a prime field of characteristic 911.
 """
@@ -137,7 +137,7 @@ end
 @doc Markdown.doc"""
     bordiga()
 
-Return a smooth rational surface in $P^4$ with degree `6` and sectional genus `3`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `6` and sectional genus `3`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -151,7 +151,7 @@ end
 @doc Markdown.doc"""
     castelnuovo()
 
-Return a smooth rational surface in $P^4$ with degree `5` and sectional genus `2`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `5` and sectional genus `2`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -165,7 +165,7 @@ end
 @doc Markdown.doc"""
     cubic_scroll()
 
-Return a smooth rational surface in $P^4$ with degree `5` and sectional genus `2`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `5` and sectional genus `0`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -179,7 +179,7 @@ end
 @doc Markdown.doc"""
     elliptic_d10_pi10()
 
-Return a smooth elliptic surface in $P^4$ with degree `10` and sectional genus `10`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `10` and sectional genus `10`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -193,7 +193,7 @@ end
 @doc Markdown.doc"""
     elliptic_d10_pi9()
 
-Return a smooth elliptic surface in $P^4$ with degree `10` and sectional genus `10`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `10` and sectional genus `9`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -207,7 +207,7 @@ end
 @doc Markdown.doc"""
     elliptic_d11_pi12()
 
-Return a smooth elliptic surface in $P^4$ with degree `11` and sectional genus `12`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `11` and sectional genus `12`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -221,7 +221,7 @@ end
 @doc Markdown.doc"""
     elliptic_d12_pi13()
 
-Return a smooth elliptic surface in $P^4$ with degree `12` and sectional genus `13`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `12` and sectional genus `13`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -235,7 +235,7 @@ end
 @doc Markdown.doc"""
     elliptic_d12_pi14_ss_0()
 
-Return a smooth elliptic surface in $P^4$ with degree `12`, sectional genus `14`, and no 6-secant.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `12`, sectional genus `14`, and no 6-secant.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -249,7 +249,7 @@ end
 @doc Markdown.doc"""
     elliptic_d12_pi14_ss_inf()
 
-Return a smooth elliptic surface in $P^4$ with degree `12`, sectional genus `14`, and infinitely many 6-secants.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `12`, sectional genus `14`, and infinitely many 6-secants.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -263,7 +263,7 @@ end
 @doc Markdown.doc"""
     elliptic_d7_pi6()
 
-Return a smooth elliptic surface in $P^4$ with degree `7` and sectional genus `6`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `7` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -277,7 +277,7 @@ end
 @doc Markdown.doc"""
     elliptic_d8_pi7()
 
-Return a smooth elliptic surface in $P^4$ with degree `8` and sectional genus `7`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `8` and sectional genus `7`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -291,7 +291,7 @@ end
 @doc Markdown.doc"""
     elliptic_d9_pi7()
 
-Return a smooth elliptic surface in $P^4$ with degree `9` and sectional genus `7`.
+Return a smooth elliptic surface in $\mathbb P^4$ with degree `9` and sectional genus `7`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -305,7 +305,7 @@ end
 @doc Markdown.doc"""
     quintic_elliptic_scroll()
 
-Return a ruled surface with degree `5` and sectional genus `1`.
+Return a smooth ruled surface in $\mathbb P^4$ with degree `5` and sectional genus `1`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -319,7 +319,7 @@ end
 @doc Markdown.doc"""
     enriques_d10_pi8()
 
-Return an Enriques surface with degree `10` and sectional genus `8`.
+Return a smooth Enriques surface in $\mathbb P^4$ with degree `10` and sectional genus `8`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -333,7 +333,7 @@ end
 @doc Markdown.doc"""
     enriques_d11_pi10()
 
-Return an Enriques surface with degree `11` and sectional genus `10`.
+Return a smooth Enriques surface in $\mathbb P^4$ with degree `11` and sectional genus `10`.
 
 The returned surface is defined over a prime field of characteristic 43.
 """
@@ -347,7 +347,7 @@ end
 @doc Markdown.doc"""
     enriques_d13_pi16()
 
-Return an Enriques surface with degree `13` and sectional genus `16`.
+Return a smooth Enriques surface in $\mathbb P^4$ with degree `13` and sectional genus `16`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -361,7 +361,7 @@ end
 @doc Markdown.doc"""
     enriques_d13_pi16_two()
 
-Return an Enriques surface with degree `13` and sectional genus `16`.
+Return a smooth Enriques surface in $\mathbb P^4$ with degree `13` and sectional genus `16`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -375,7 +375,7 @@ end
 @doc Markdown.doc"""
     enriques_d9_pi6()
 
-Return an Enriques surface with degree `9` and sectional genus `6`.
+Return a smooth Enriques surface in $\mathbb P^4$ with degree `9` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -389,7 +389,7 @@ end
 @doc Markdown.doc"""
     k3_d10_pi9_quart_1()
 
-Return a K3 surface with degree `10` and sectional genus `9` which is contained in precisely one quartic.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in precisely one quartic.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -404,7 +404,7 @@ end
 @doc Markdown.doc"""
     k3_d10_pi9_quart_2()
 
-Return a K3 surface with degree `10` and sectional genus `9` which is contained in a pencil of quartics.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in a pencil of quartics.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -418,7 +418,7 @@ end
 @doc Markdown.doc"""
     k3_d11_pi11_ss_0()
 
-Return a K3 surface with degree `11`, sectional genus `11`, and no 6-secant.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and no 6-secant.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -432,7 +432,7 @@ end
 @doc Markdown.doc"""
     k3_d11_pi11_ss_1()
 
-Return a K3 surface with degree `11`, sectional genus `11`, and one 6-secant.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and one 6-secant.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -446,7 +446,7 @@ end
 @doc Markdown.doc"""
     k3_d11_pi11_ss_2()
 
-Return a K3 surface with degree `11`, sectional genus `11`, and two 6-secants.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and two 6-secants.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -460,7 +460,7 @@ end
 @doc Markdown.doc"""
     k3_d11_pi11_ss_3()
 
-Return a K3 surface with degree `11`, sectional genus `11`, and three 6-secants.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and three 6-secants.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -474,7 +474,7 @@ end
 @doc Markdown.doc"""
     k3_d11_pi12()
 
-Return a K3 surface with degree `11` and sectional genus `12`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `11` and sectional genus `12`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -488,7 +488,7 @@ end
 @doc Markdown.doc"""
     k3_d12_pi14()
 
-Return a K3 surface with degree `12` and sectional genus `14`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `12` and sectional genus `14`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -502,7 +502,7 @@ end
 @doc Markdown.doc"""
     k3_d13_pi16()
 
-Return a K3 surface with degree `13` and sectional genus `16`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `13` and sectional genus `16`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -516,7 +516,7 @@ end
 @doc Markdown.doc"""
     k3_d14_pi19()
 
-Return a K3 surface with degree `14` and sectional genus `19`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `14` and sectional genus `19`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -530,7 +530,7 @@ end
 @doc Markdown.doc"""
     k3_d7_pi5()
 
-Return a K3 surface with degree `7` and sectional genus `5`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `7` and sectional genus `5`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -544,7 +544,7 @@ end
 @doc Markdown.doc"""
     k3_d8_pi6()
 
-Return a K3 surface with degree `8` and sectional genus `6`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `8` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -558,7 +558,7 @@ end
 @doc Markdown.doc"""
     k3_d9_pi8()
 
-Return a K3 surface with degree `9` and sectional genus `8`.
+Return a smooth K3 surface in $\mathbb P^4$ with degree `9` and sectional genus `8`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -572,7 +572,7 @@ end
 @doc Markdown.doc"""
     rational_d10_pi8()
 
-Return a rational surface with degree `10` and sectional genus `8`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `10` and sectional genus `8`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -586,7 +586,7 @@ end
 @doc Markdown.doc"""
     rational_d10_pi9_quart_1()
 
-Return a rational surface with degree `10` and sectional genus `9` which is contained in precisely one quartic.
+Return a smooth rational surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in precisely one quartic.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -600,7 +600,7 @@ end
 @doc Markdown.doc"""
     rational_d10_pi9_quart_2()
 
-Return a rational surface with degree `10` and sectional genus `9` which is contained in a pencil of quartics.
+Return a smooth rational surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in a pencil of quartics.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -614,7 +614,7 @@ end
 @doc Markdown.doc"""
     rational_d11_pi11_ss_0()
 
-Return a rational surface with degree `11`, sectional genus `11`, and no 6-secant.
+Return a smooth rational surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and no 6-secant.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -628,7 +628,7 @@ end
 @doc Markdown.doc"""
     rational_d11_pi11_ss_1()
 
-Return a rational surface with degree `11`, sectional genus `11`, and one 6-secant.
+Return a smooth rational surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and one 6-secant.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -642,7 +642,7 @@ end
 @doc Markdown.doc"""
     rational_d11_pi11_ss_inf()
 
-Return a rational surface with degree `11`, sectional genus `11`, and infinitely many 6-secants.
+Return a smooth rational surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and infinitely many 6-secants.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -656,7 +656,7 @@ end
 @doc Markdown.doc"""
     rational_d7_pi4()
 
-Return a rational surface with degree `7` and sectional genus `4`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `7` and sectional genus `4`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -670,7 +670,7 @@ end
 @doc Markdown.doc"""
     rational_d8_pi5()
 
-Return a rational surface with degree `8` and sectional genus `5`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `8` and sectional genus `5`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -684,7 +684,7 @@ end
 @doc Markdown.doc"""
     rational_d8_pi6()
 
-Return a rational surface with degree `8` and sectional genus `6`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `8` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -698,7 +698,7 @@ end
 @doc Markdown.doc"""
     rational_d9_pi6()
 
-Return a rational surface with degree `9` and sectional genus `6`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `9` and sectional genus `6`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -712,7 +712,7 @@ end
 @doc Markdown.doc"""
     rational_d9_pi7()
 
-Return a rational surface with degree `9` and sectional genus `7`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `9` and sectional genus `7`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
@@ -726,7 +726,7 @@ end
 @doc Markdown.doc"""
     veronese()
 
-Return a smooth rational surface in $P^4$ with degree `4` and sectional genus `0`.
+Return a smooth smooth rational surface in $\mathbb P^4$ with degree `4` and sectional genus `0`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
