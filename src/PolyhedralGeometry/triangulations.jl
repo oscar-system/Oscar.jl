@@ -31,8 +31,8 @@ function topcom_regular_triangulations(pts::AbstractCollection[PointVector]; ful
     end
     wait(task)
     if !success(proc)
-        error = eof(err) ? "unknown error" : readchomp(err)
-        throw("Failed to run TOPCOM: $error")
+        msg = eof(err) ? "unknown error" : readchomp(err)
+        error("Failed to run TOPCOM: $msg")
     end
     return result
 end
@@ -70,8 +70,8 @@ function topcom_regular_triangulation(pts::AbstractCollection[PointVector]; full
     end
     wait(task)
     if !success(proc)
-        error = eof(err) ? "unknown error" : readchomp(err)
-        throw("Failed to run TOPCOM: $error")
+        msg = eof(err) ? "unknown error" : readchomp(err)
+        error("Failed to run TOPCOM: $msg")
     end
     return result
 end

@@ -6,27 +6,6 @@
 
 import Hecke.orbit
 
-export GSet
-
-export action_homomorphism
-export all_blocks
-export as_gset
-export blocks
-export gset
-export is_primitive
-export is_regular
-export is_semiregular
-export is_transitive
-export maximal_blocks
-export minimal_block_reps
-export orbit_representatives_and_stabilizers
-export orbits
-export permutation
-export rank_action
-export representative_action
-export transitivity
-export unwrap
-
 
 # G-sets are "sets" (in a very general sense, these do not need to be objects of type `Set`)
 # with an action by a group G::T.
@@ -168,6 +147,11 @@ end
 ## action of matrices on subspaces via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: AbstractAlgebra.Generic.Submodule{E} where E where M
   return GSetByElements(G, ^, Omega; closed = closed)
+end
+
+## action of matrices on polynomials via `on_indeterminates`
+function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
+  return GSetByElements(G, on_indeterminates, Omega; closed = closed)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -447,42 +431,6 @@ end
 ############################################################################
 ##
 ##  action homomorphisms
-
-# Use a GAP attribute for caching the mapping.
-# The following must be executed at runtime,
-# the function gets called in Oscar's `__init__`.
-function __init_JuliaData()
-    if ! hasproperty(GAP.Globals, :JuliaData)
-      GAP.evalstr("""
-DeclareAttribute( "JuliaData", IsObject );
-
-InstallOtherMethod( ImagesRepresentative,
-[ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
-function( hom, elm )
-local data;
-data:= JuliaData( hom );
-return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
-end );
-
-InstallMethod( RestrictedMapping,
-CollFamSourceEqFamElms,
-[ IsActionHomomorphism and HasJuliaData, IsGroup ],
-function( hom, H )
-local data, OscarG, xset, Omega, Hgens, Hacts, OscarH, res;
-data:= JuliaData( hom ); # the Oscar G-set and the acting Oscar group G
-OscarG:= data[2]; # the acting Oscar group G
-xset:= UnderlyingExternalSet( hom );
-Omega:= HomeEnumerator( xset ); # the set of Oscar objects
-Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
-Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
-OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
-res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
-SetJuliaData( res, [ data[1], OscarH ] );
-return res;
-end );
-""")
-    end
-end
 
 """
     action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup

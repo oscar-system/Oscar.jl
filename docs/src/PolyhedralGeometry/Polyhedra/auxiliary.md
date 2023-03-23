@@ -27,6 +27,7 @@ codim(P::Polyhedron)
 is_bounded(P::Polyhedron)
 is_feasible(P::Polyhedron)
 is_fulldimensional(P::Polyhedron)
+is_lattice_polytope(P::Polyhedron{QQFieldElem})
 lineality_dim(P::Polyhedron)
 lineality_space(P::Polyhedron{T}) where T<:scalar_types
 recession_cone(P::Polyhedron{T}) where T<:scalar_types

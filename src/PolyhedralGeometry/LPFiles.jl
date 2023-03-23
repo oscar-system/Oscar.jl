@@ -141,7 +141,7 @@ function load_mps(file::String)
     Polymake.attach(milp, "convention", "max")
     return MixedIntegerLinearProgram(Polyhedron(poly), milp, :max)
   else
-    throw(ErrorException("load_mps: cannot find LP or MILP subobject in polymake object"))
+    error("load_mps: cannot find LP or MILP subobject in polymake object")
   end
 end
 
@@ -164,7 +164,7 @@ function load_lp(file::String)
     Polymake.attach(milp, "convention", String(convention))
     return MixedIntegerLinearProgram(Polyhedron(poly), milp, convention)
   else
-    throw(ErrorException("load_lp: cannot find LP or MILP subobject in polymake object"))
+    error("load_lp: cannot find LP or MILP subobject in polymake object")
   end
 end
 

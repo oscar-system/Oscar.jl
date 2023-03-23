@@ -17,7 +17,7 @@ ring_type(U::SpecOpen) = ring_type(typeof(U))
 ########################################################################
 # Basic attributes                                                     #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     scheme(R::SpecOpenRing)
 
 The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this returns 
@@ -26,7 +26,7 @@ the scheme ``X`` on which ``𝒪`` is defined.
 scheme(R::SpecOpenRing) = R.scheme
 gens(R::SpecOpenRing) = R.(gens(ambient_coordinate_ring(scheme(R))))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     domain(R::SpecOpenRing)
 
 For a ring ``R = 𝒪(X, U)``, return ``U``.

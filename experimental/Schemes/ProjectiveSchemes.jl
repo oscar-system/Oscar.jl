@@ -1,13 +1,39 @@
-export ProjectiveScheme, base_ring, fiber_dimension, ambient_coordinate_ring, gens, getindex, affine_patch_type
-export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
-export projective_space, subscheme
-export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, covered_scheme, covered_projection_to_base, dehomogenize
-export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
-export fiber_product, inclusion_morphism, identity_map
-
 export ==
-
+export ProjectiveScheme
+export ProjectiveSchemeMor
+export affine_cone
+export affine_patch_type
+export affine_patch_type
+export ambient_coordinate_ring
+export base_ring
+export base_ring_type
+export base_scheme
+export base_scheme_type
+export codomain
+export covered_projection_to_base
+export covered_scheme
 export covered_scheme_morphism
+export dehomogenize
+export domain
+export fiber_dimension
+export fiber_product
+export frac_to_homog_pair
+export gens
+export getindex
+export homog_to_frac
+export homogeneous_coordinates
+export identity_map
+export images_of_variables
+export inclusion_morphism
+export is_well_defined
+export map_on_affine_cones
+export morphism_type
+export poly_to_homog
+export projection_to_base
+export projective_scheme_type
+export projective_space
+export set_base_scheme!
+export subscheme
 
 ########################################################################
 # Interface for abstract projective schemes                            #
@@ -17,7 +43,7 @@ function base_ring(P::AbsProjectiveScheme)
   return base_ring(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
@@ -36,7 +62,7 @@ end
   return base_scheme(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     affine_cone(X::ProjectiveScheme) 
 
 On ``X ⊂ ℙʳ(𝕜)`` this returns the affine cone ``C(X)⊂ 𝕜ʳ⁺¹`` and similar 
@@ -46,7 +72,7 @@ function affine_cone(P::AbsProjectiveScheme)
   return affine_cone(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     homog_to_frac(X::ProjectiveScheme) 
 
 Returns a map that converts a polynomial in the 
@@ -57,7 +83,7 @@ function homog_to_frac(P::AbsProjectiveScheme)
   return homog_to_frac(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     poly_to_homog(X::ProjectiveScheme)
 
 Return a map that converts an element of the `ambient_coordinate_ring` 
@@ -68,7 +94,7 @@ function poly_to_homog(P::AbsProjectiveScheme)
   return poly_to_homog(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     frac_to_homog_pair(X::ProjectiveScheme)
 
 Return a map that converts an element ``f = p/q`` of the ring of 
@@ -102,14 +128,14 @@ projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     base_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A``.
 """
 base_ring(P::ProjectiveScheme) = P.A
 
-@Markdown.doc """
+@doc Markdown.doc"""
     base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocRing, CRET, RT, RET}
 
 Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined over a field ``𝕜``.
@@ -141,21 +167,21 @@ function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<
   return X.projection_to_base
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     fiber_dimension(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``r``.
 """
 fiber_dimension(P::ProjectiveScheme) = P.r
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_coordinate_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
 ambient_coordinate_ring(P::ProjectiveScheme) = P.S
 
-@Markdown.doc """
+@doc Markdown.doc"""
     homogeneous_coordinates(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns a vector with the homogeneous 
@@ -171,7 +197,7 @@ end
 
 homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
 
-@Markdown.doc """
+@doc Markdown.doc"""
     defining_ideal(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns the homogeneous 
@@ -654,7 +680,7 @@ fiber_product(X::AbsSpec,
 
 ### canonical map constructors
 
-@Markdown.doc """
+@doc Markdown.doc"""
     inclusion_morphism(P::T, Q::T)
 
 Assuming that ``P ⊂ Q`` is a subscheme, both proper over an inclusion of 
@@ -695,7 +721,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                            )
                                                        )
 
-@Markdown.doc """
+@doc Markdown.doc"""
     covered_scheme(P::ProjectiveScheme)
     
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
@@ -712,7 +738,7 @@ julia> Pcov = covered_scheme(P)
 covered scheme with 3 affine patches in its default covering
 ```
 """
-@attr function covered_scheme(P::ProjectiveScheme)
+@attr AbsCoveredScheme function covered_scheme(P::ProjectiveScheme)
     C = standard_covering(P) 
     X = CoveredScheme(C)
     return X
@@ -943,7 +969,7 @@ end
 
 gens(A::MPolyDecRing, i::Int) = A[i]
 
-@Markdown.doc """
+@doc Markdown.doc"""
     covered_scheme_morphism(f::ProjectiveSchemeMor)
 
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
@@ -988,3 +1014,30 @@ of ``X`` and ``Y``, respectively.
   ff = CoveredSchemeMorphism(X, Y, phi)
   return ff
 end
+
+# Basic functionality required for Warham
+@attr Int function dim(P::AbsProjectiveScheme{<:Field})
+  return dim(defining_ideal(P))-1
+end
+
+@attr MPolyQuoRing function affine_algebra(P::AbsProjectiveScheme)
+  return quo(ambient_coordinate_ring(P), defining_ideal(P))[1]
+end
+
+@attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
+  return hilbert_polynomial(affine_algebra(P))
+end
+
+@attr ZZRingElem function degree(P::AbsProjectiveScheme{<:Field})
+  return degree(affine_algebra(P))
+end
+
+@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+  h = hilbert_polynomial(P)
+  return (-1)^dim(P) * (first(coefficients(h)) - 1)
+end
+
+@attr Bool function is_smooth(P::AbsProjectiveScheme)
+  return is_smooth(covered_scheme(P))
+end
+

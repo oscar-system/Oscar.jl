@@ -23,11 +23,6 @@ using Preferences
 
 include("imports.jl")
 
-# to allow access to the cornerstones! Otherwise, not even import or using from the
-# user level will work as none of them will have been "added" by the user.
-# possibly all should add a doc string to the module?
-export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
-
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
                         "libpolymake_julia_jll", "libsingular_julia_jll",
@@ -203,6 +198,11 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
+    # make Oscar module accessible from GAP (it may not be available as
+    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
@@ -210,10 +210,8 @@ function __init__()
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
     GAP.Packages.load("repsn")
-    __init_IsoGapOscar()
     __init_group_libraries()
-    __init_JuliaData()
-    __init_PcGroups()
+
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 end
@@ -332,7 +330,6 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   end
 end
 
-export build_doc
 # This can be used in
 #
 # module A
@@ -401,6 +398,10 @@ function test_module(x::AbstractString, new::Bool = true)
 end
 
 include("Exports.jl")
+
+# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
+@alias characteristic_polynomial charpoly  # FIXME
+@alias minimal_polynomial minpoly  # FIXME
 
 include("printing.jl")
 include("fallbacks.jl")
@@ -537,8 +538,5 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
 module ANTIC
 using Markdown
 end
-export ANTIC
-
-export OSCAR, oscar
 
 end # module

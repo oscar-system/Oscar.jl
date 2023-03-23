@@ -95,3 +95,9 @@ include("CoveredSchemes/Objects/Methods.jl")
 include("CoveredSchemes/Morphisms/Constructors.jl")
 include("CoveredSchemes/Morphisms/Attributes.jl")
 include("CoveredSchemes/Morphisms/Methods.jl")
+
+########################################################################
+# Varieties                                                            #
+########################################################################
+include("Varieties/Types.jl")
+

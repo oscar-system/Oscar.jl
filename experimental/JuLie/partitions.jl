@@ -102,7 +102,7 @@ function Base.copy(P::Partition{T}) where T<:IntegerUnion
   return Partition{T}(copy(P.p))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     getindex_safe(P::Partition, i::IntegerUnion)
 
 In algorithms involving partitions it is sometimes convenient to be able to
@@ -118,7 +118,7 @@ function getindex_safe(P::Partition, i::IntegerUnion)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     num_partitions(n::IntegerUnion)
 
 The number of integer partitions of the integer ``n ≥ 0``. Uses the function
@@ -137,7 +137,7 @@ function num_partitions(n::IntegerUnion)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 The number of integer partitions of the integer ``n ≥ 0`` into ``k ≥ 0``
@@ -191,7 +191,7 @@ function num_partitions(n::IntegerUnion, k::IntegerUnion)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(n::IntegerUnion)
 
 A list of all partitions of an integer ``n ≥ 0``, produced in
@@ -265,7 +265,7 @@ function partitions(n::IntegerUnion)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ascending_partitions(n::IntegerUnion;alg="ks")
 
 Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending*
@@ -403,7 +403,7 @@ end
 
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
 
 A list of all partitions of an integer ``m ≥ 0`` into ``n ≥ 0`` parts with
@@ -496,7 +496,7 @@ end
 
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(m::IntegerUnion, n::IntegerUnion)
 
 All partitions of an integer ``m ≥ 0`` into ``n ≥ 1`` parts (no further restrictions).
@@ -507,7 +507,7 @@ end
 
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(mu::Vector{IntegerUnion}, m::IntegerUnion, v::Vector{IntegerUnion}, n::IntegerUnion)
 
 All partitions of an integer ``m >= 0`` into ``n >= 1`` parts, where each part
@@ -651,7 +651,7 @@ end
 
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ``⊵`` defined by
@@ -684,7 +684,7 @@ function dominates(lambda::Partition, mu::Partition)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     conjugate(lambda::Partition{T}) where T<:IntegerUnion
 
 The **conjugate** of a partition is obtained by considering its Young diagram

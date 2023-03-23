@@ -190,7 +190,7 @@ Base.eltype(C::Covering) = AbsSpec
 ########################################################################
 # Building a Covering                                                  #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     add_glueing!(C::Covering, G::AbsGlueing)
 
 Add a glueing `G` to the covering `C`. 
@@ -249,7 +249,7 @@ end
 # Refinements                                                          #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     common_refinement(C::Covering, D::Covering)
 
 For two `Covering`s `C` and `D`, calculate a common refinement 

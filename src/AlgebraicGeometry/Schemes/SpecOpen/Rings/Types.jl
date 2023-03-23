@@ -2,7 +2,7 @@
 ########################################################################
 # Rings of regular functions on Zariski open sets of affine schemes    #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     SpecOpenRing{SpecType, OpenType}
 
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an
@@ -31,7 +31,7 @@ end
 ########################################################################
 # Elements of SpecOpenRings                                            #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     SpecOpenRingElem{SpecOpenType}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on

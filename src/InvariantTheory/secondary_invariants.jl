@@ -309,7 +309,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
@@ -343,7 +343,7 @@ computed and cached first).
 ```jldoctest
 julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
-julia> G = MatrixGroup(5, QQ, [M]);
+julia> G = matrix_group(M);
 
 julia> IR = invariant_ring(G);
 

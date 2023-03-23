@@ -1,7 +1,12 @@
-export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
-       parametrization_conic, map_to_rational_normal_curve,
-       rat_normal_curve_anticanonical_map, rat_normal_curve_It_Proj_Odd,
-       rat_normal_curve_It_Proj_Even, invert_birational_map
+export parametrization_plane_curve
+export adjoint_ideal
+export rational_point_conic
+export parametrization_conic
+export map_to_rational_normal_curve
+export rat_normal_curve_anticanonical_map
+export rat_normal_curve_It_Proj_Odd
+export rat_normal_curve_It_Proj_Even
+export invert_birational_map
 
 
 ################################################################################

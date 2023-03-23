@@ -1,5 +1,3 @@
-export image_in_Oq
-
 @doc Markdown.doc"""
     sigma_sharp(L::ZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
 

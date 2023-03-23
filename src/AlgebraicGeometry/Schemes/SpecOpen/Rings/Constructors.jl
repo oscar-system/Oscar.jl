@@ -49,7 +49,7 @@ end
 ########################################################################
 # Maximal extensions of rational functions on affine schemes           #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
 
 Return the maximal extension of the restriction of ``f``
@@ -123,7 +123,7 @@ function maximal_extension(
   return R(g)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
 
 Return the extension of the restriction of the ``fᵢ`` as a

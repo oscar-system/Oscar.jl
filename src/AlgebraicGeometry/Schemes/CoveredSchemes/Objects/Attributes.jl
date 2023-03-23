@@ -14,7 +14,7 @@ base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 ########################################################################
 base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     coverings(X::AbsCoveredScheme)
 
 Return the list of internally stored `Covering`s of ``X``.
@@ -34,7 +34,7 @@ function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
   return coverings(underlying_scheme(X))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     default_covering(X::AbsCoveredScheme)
 
 Return the default covering for ``X``.
@@ -61,14 +61,14 @@ function default_covering(X::AbsCoveredScheme)
   return default_covering(underlying_scheme(X))::Covering
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
 Return the affine patches in the `default_covering` of ``X``.
 """
 patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     affine_charts(X::AbsCoveredScheme)
 
 Return the affine charts in the `default_covering` of ``X``.

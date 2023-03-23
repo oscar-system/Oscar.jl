@@ -952,12 +952,6 @@ function gmodule(K::AnticNumberField, M::GModule{<:Any, <:Generic.FreeModule{nf_
   return gmodule(F, group(M), [hom(F, F, map_entries(K, mat(x))) for x = M.ac])
 end
 
-function (K::QQAbField)(a::nf_elem)
-  fl, f = Hecke.is_cyclotomic_type(parent(a))
-  @assert fl
-  return QQAbElem(a, f)
-end
-
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QQAbElem}}
   C1 = gmodule(CyclotomicField, C)
   D1 = gmodule(CyclotomicField, D)
@@ -1173,9 +1167,10 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem)
   return true, c
 end
 
-
-export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
-       indecomposition
+export indecomposition
+export irreducible_modules
+export is_absolutely_irreducible
+export is_decomposable
 
 ## Fill in some stubs for Hecke
 
@@ -1221,8 +1216,10 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
-export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
-       indecomposition
+export indecomposition
+export irreducible_modules
+export is_absolutely_irreducible
+export is_decomposable
 
 module RepPc
 using Oscar

@@ -4,28 +4,6 @@
 #
 ################################################################################
 
-export acting_subgroup
-export as_perm_group
-export as_polycyclic_group
-export cartesian_power
-export direct_product
-export embedding
-export factor_of_direct_product
-export homomorphism_of_semidirect_product
-export homomorphism_of_wreath_product
-export inner_cartesian_power
-export inner_direct_product
-export is_full_direct_product
-export is_full_semidirect_product
-export is_full_wreath_product
-export normal_subgroup
-export number_of_factors
-export projection
-export semidirect_product
-export sub
-export wreath_product
-export write_as_full
-
 """
     direct_product(L::AbstractVector{<:GAPGroup}; morphisms)
     direct_product(L::GAPGroup...)

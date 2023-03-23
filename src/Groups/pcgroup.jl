@@ -1,27 +1,3 @@
-export collector
-export pc_group
-export set_commutator!
-export set_conjugate!
-export set_power!
-export set_relative_order!
-export set_relative_orders!
-
-############################################################################
-
-# Create GAP filters that describe
-# - the union of `IsMultiplicativeElementWithInverseByPolycyclicCollector`
-#   and `IsPcpElement` and
-# - the union of `IsPcGroup` and `IsPcpGroup`.
-# This must be done at runtime.
-function __init_PcGroups()
-  GAP.evalstr("""
-      DeclareFilter("IsPcElementOrPcpElement");
-      InstallTrueMethod(IsPcElementOrPcpElement, IsMultiplicativeElementWithInverseByPolycyclicCollector);
-      InstallTrueMethod(IsPcElementOrPcpElement, IsPcpElement);
-      BindGlobal("IsPcGroupOrPcpGroup", IsGroup and CategoryCollections(IsPcElementOrPcpElement));
-      """)
-end
-
 ############################################################################
 
 # Create an Oscar collector object, its type parameter `T` describes
