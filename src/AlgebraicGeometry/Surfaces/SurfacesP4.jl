@@ -726,7 +726,7 @@ end
 @doc Markdown.doc"""
     veronese()
 
-Return a smooth smooth rational surface in $\mathbb P^4$ with degree `4` and sectional genus `0`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `4` and sectional genus `0`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
