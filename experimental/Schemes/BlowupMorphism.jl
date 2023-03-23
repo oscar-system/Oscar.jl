@@ -34,6 +34,7 @@ end
 function domain(p::BlowupMorphism)
   if !isdefined(p, :domain)
     p.domain = covered_scheme(p.projective_bundle)
+    simplify!(p.domain)        # if simplify hangs, no other computation would go through anyway
   end
   return p.domain
 end
@@ -97,7 +98,7 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
 end
 
 ## THIS SHOULD GO TO mpolyquo-localization.jl
-## it is the localized and/or quotient counterpart to the MPolyIdeal-method
+## it is the localized and/or quotient wrapper to the MPolyIdeal-method
 function saturation(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
   R = base_ring(I)
   R == base_ring(J) || error("Ideals do no live in the same ring.")
@@ -109,18 +110,30 @@ function saturation(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedId
   return ideal(R,gens(I_result))
 end
 
+function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do no live in the same ring.")
+
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+
+  I_result,k = Oscar.saturation_with_index(I_sat,J_sat)  ## why is saturation_with_index not exported from Rings/mpoly-ideal.jl?
+  return (ideal(R,gens(I_result)),k)
+end
+
 ## WHERE SHOULD THIS GO?
-#@Markdown.doc """
-#  iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
-#
-#Return ``I:J^b`` and b, for a given natural number b.
-#Return this for the highest b such that ``J(I:J^b)== J^(b-1)``, if given b is zero.
-#
-#Internal function for weak and strict transform.
-#"""
+@Markdown.doc """
+  iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
+
+Return ``I:J^b`` and ``b``, for a given natural number ``b``.
+Return this for the highest ``b`` such that ``J(I:J^b)== (I:J^(b-1))``, if given ``b`` is zero.
+
+Internal function for weak and controlled transform.
+"""
 function iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
   R = base_ring(I)
   R == base_ring(J) || error("Ideals do no live in the same ring.")
+  b > -1 || error("negative multiplicity not allowed")
 
   Itemp = I
   k = 0
@@ -138,25 +151,23 @@ function iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
   return Itemp,k
 end
 
-has_simplified_covering(C::Covering) = has_attribute(C, :simplified_covering)
+@Markdown.doc """
+  strict_transform(p::BlowupMorphism, I::IdealSheaf)
 
-#@Markdown.doc """
-#  strict_transform(p::BlowupMorphism, I::IdealSheaf)
-#
-#For a 'BlowupMorphism'  ``p : Y → X`` and an IdealSheaf ''I'' on ''X'' return the
-#strict transform of ''I'' on ''Y''.
-#"""
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+strict transform of ``I`` on ``Y``.
+"""
 function strict_transform(p::BlowupMorphism, I::IdealSheaf)
   Istrict,_ =_do_transform(p,I,-1)
   return Istrict
 end
 
-#@Markdown.doc """
-#  weak_transform(p::BlowupMorphism, I::IdealSheaf)
-#
-#For a 'BlowupMorphism'  ``p : Y → X`` and an IdealSheaf ''I'' on ''X'' return the
-#weak transform of ''I'' on ''Y'' and the multiplicity of the exceptional divisor in the total transform of ''I''.
-#"""
+@Markdown.doc """
+  weak_transform(p::BlowupMorphism, I::IdealSheaf)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+weak transform of ``I`` on ``Y`` and the multiplicity of the exceptional divisor in the total transform of ``I``.
+"""
 function weak_transform(p::BlowupMorphism, I::IdealSheaf)
   Iweak,_ =_do_transform(p,I,0)
   return Iweak
@@ -167,12 +178,12 @@ function weak_transform_decorated(p::BlowupMorphism, I::IdealSheaf)
   return Iweak,multi
 end
 
-#@Markdown.doc """
-#  controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::int)
-#
-#For a 'BlowupMorphism'  ``p : Y → X`` and an IdealSheaf ''I'' on ''X'' return the
-#controlled transform of ''I'' on ''Y'' with control ''b''.
-#"""
+@Markdown.doc """
+  controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::int)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+controlled transform of ``I`` on ``Y`` with control ``b``.
+"""
 function controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
   Icontrol,_ = _do_transform(p,I,b)
   return Icontrol
@@ -200,14 +211,12 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
   p_cov_temp = covering_morphism(pr)
   CX = codomain(p_cov_temp)
   CY = domain(p_cov_temp)
-## CAUTION:
-## simplification already taken into account, but switched off in has_simplified_covering!!!!
-  CY_simp = (has_simplified_covering(CY) ? simplified_covering(Y) : CY)
-  phi = (has_simplified_covering(CY) ? Y[CY_simp,CY] : identity_map(CY_simp))
+  CY_simp = (CY === default_covering(Y) ? simplified_covering(Y) : CY)
+  phi = (CY === default_covering(Y) ? Y[CY_simp,CY] : identity_map(CY_simp))
   p_cov = compose(phi,p_cov_temp)    # blow up using simplified covering
 
   ## do the transform on the charts
-  b = -2
+  b = -2                               # safe initialization of multiplicity return value
   for U in patches(CY_simp)
     V = codomain(p_cov[U])             # affine patch on X
     Iorig_chart = I(V)                 # I on this patch
@@ -215,16 +224,23 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
                                        # total transform on Chart
     IE_chart = IE(U)
 
+    ## don't try saturating with respect to an empty set
+    if one(OO(U)) in IE_chart
+      ID[U] = Itotal_chart
+      continue
+    end
+
   ## do different methods according to integer argument method
     if method == -1
-      Itrans_chart = saturation(Itotal_chart, IE_chart)                 # strict
-      b = -1
-    elseif method == 0
-      Itrans_chart,btemp = iterated_quotients(Itotal_chart,IE_chart, method)  # weak
+      Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                 # strict
+      btemp == b || b == -2 || error("different multiplicities in different charts!!")
+      b = btemp
+   elseif method == 0
+      Itrans_chart,btemp = iterated_quotients(Itotal_chart,IE_chart, method)             # weak
       btemp == b || b == -2 || error("different multiplicities in different charts!!")
       b = btemp
     else
-      Itrans_chart,b = iterated_quotients(Itotal_chart,IE_chart, method)  # controlled
+      Itrans_chart,b = iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
     end
     ID[U] = Itrans_chart
   end
@@ -236,18 +252,18 @@ end
 ##########################################################################################################
 ## Handle Cartier divisors separately, as ideal quotients are quotients of ring elements in this case
 ##########################################################################################################
-#@Markdown.doc """
-#  strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
-#
-#For a 'BlowupMorphism'  ``p : Y → X`` and an EffectiveCartierDivisor ''C'' on ''X'' return the
-#strict transform of ''C'' on ''Y''.
-#"""
+@Markdown.doc """
+  strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `EffectiveCartierDivisor` ``C`` on ``X`` return the
+strict transform of ``C`` on ``Y``.
+"""
 function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
   X = scheme(C)
   Y = domain(p) 
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
   E = exceptional_divisor(p)
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsSpec, RingElem}()
 
   ## get our hands on the coverings -- trivializing covering for C leading the way
   CX = trivializing_covering(C)
@@ -258,13 +274,13 @@ function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
   ## do the transform on the charts
   multEInC = -1
   for U in patches(CY)
-    V = codomain(p_refined[U])        # affine patch on X
+    V = codomain(pr_refined[U])        # affine patch on X
 
     ## determine single generator of Cartier divisor C on V
-    length(C(V)) == 1 || error("ideal for divisor is not principal")
+    length(C(V)) == 1 || error("ideal of divisor is not principal")
                        # sanity check -- we are on a trivializing covering after all!
     h_orig = C(V)[1]
-    h_total = pullback(p_refined)(h_orig)
+    h_total = pullback(pr_refined[U]).(h_orig)
     if isunit(h_total)
       ID[U] = one(OO(U))
       continue
@@ -279,11 +295,19 @@ function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
       continue
     end
 
-    ## now it is just division of ring elements
-    h_strict, b = divide_by_max_power(h_total,e,multEInC)
-    if multEinC == -1
-      multEInC = b
+    ## find correct multiplicity for sanity check on result of iterated division
+    ## iterated division only reliable, if multiplicity has expected value
+    ## philosophy: if sanity check holds, iterated division ensures principality
+    ##             if not, we throw an error with a good explanation (for now)
+    if multEInC == -1
+      _,multEInC = saturation_with_index(ideal(OO(U),[h_total]),ideal(OO(U),[e]))
     end
+
+    ## now it is just division of ring elements
+    epower = e^multEInC
+    good, h_strict = divides(h_total,epower)
+    bad,_ = divides(h_total, e*epower)
+    (good && !bad) ||error("setting not suitable for iterated division -- use strict transform on IdealSheaf instead")
 
     ## fill in data of C_strict
     ID[U] = h_strict
@@ -291,41 +315,7 @@ function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
 
   ## we are good to go now
   C_strict = EffectiveCartierDivisor(Y, ID, check=false)
-  return C_strict, multEInC
-end
-
-#@Markdown.doc """
-#  divide_by_max_power(f::T,g::T,k::Int) where T <: RingElem
-#
-#For two ring elements ``f`` and ``g`` of the same ring and an integer return a pair of a ring element ``h`` and and integer ``m`` such that ``f = h g^m`` and ``g`` does not divide ``h ``.
-#If ``k==-1``, ``m`` is determined; if ``k > 0`` throw an error if ``k != m``.
-#"""
-function divide_by_max_power(f::T,g::T,k::Int,check::Bool=true) where T <: RingElem
-  (k > -2 && k < deg(f)+1) || error("invalid value for k")
-
-  if k == -1
-
-    ftemp = f
-    m = 0
-    ## divide step by step
-    while true
-      success, b = divides(ftemp,g)
-      success || break
-      m = m+1
-      ftemp = b
-    end
-
-  else
-    ##
-    if check
-      g_power = g^k
-      good,b = divides(f,g_power)
-      good || error("multiplicities differ in different charts")
-      !divides(f, g*g_power) || error("multiplicities differ in different charts")
-      ftemp=b
-    end
-  end
-  return ftemp, m
+  return C_strict
 end
 
 function strict_transform(p::BlowupMorphism, C::CartierDivisor)
