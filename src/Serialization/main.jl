@@ -55,10 +55,9 @@ end
 # in unexpected ways when import/export statements are adjusted.
 # It also sets the value of serialize_with_id, which determines
 # whether or not the type can be back referenced.
-macro registerSerializationType(
-    ex::Any,
-    uses_id::Bool = false,
-    str::Union{String,Nothing} = nothing)
+function registerSerializationType(ex::Any,
+                                   uses_id::Bool,
+                                   str::Union{String,Nothing} = nothing)
   if str === nothing
     str = string(ex)
   end
@@ -69,6 +68,15 @@ macro registerSerializationType(
             serialize_with_id(::Type{<:$ex}) = $uses_id
         end)
 end
+
+macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
+    return registerSerializationType(ex, false, str)
+end
+
+macro registerSerializationType(ex::Any, uses_id::Bool, str::Union{String,Nothing} = nothing)
+    return registerSerializationType(ex, uses_id, str)
+end
+    
 
 function encodeType(::Type{T}) where T
     error("unsupported type '$T' for encoding")

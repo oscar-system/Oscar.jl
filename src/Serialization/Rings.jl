@@ -412,9 +412,9 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-@registerSerializationType(Generic.LaurentSeriesFieldElem, false, "LaurentSeriesFieldElem")
+@registerSerializationType(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
 
-@registerSerializationType(Generic.LaurentSeriesRingElem, false, "LaurentSeriesRingElem")
+@registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
 
 @registerSerializationType(ZZLaurentSeriesRingElem)
 
