@@ -307,7 +307,7 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   N = norm(H)
 
   # We want to produce the product of the F(H)/F^#(L). For
-  # this, we create the map between the alternative products R/F(L) \to R/F^#(L)
+  # this, we create the map between the alternative products R/F^#(L) \to R/F(L)
   # whose kernel is exactly what we want. Here R is just a big enough group.
   # Note that here the products can be constructed since there are only finitely
   # many primes in both cases for which the local quotients are non-trivial.
@@ -347,7 +347,6 @@ function _local_determinants_morphism(Lf::LatWithIsom)
 
   RmodF, Flog, _ = _get_product_quotient(E, Fdata)
 
-  # Since we can map F^#(L) into F(L), this next map is natural.
   A = [Flog(Fsharpexp(g)) for g in gens(RmodFsharp)]
   f = hom(gens(RmodFsharp), A)
   FmodFsharp, j = kernel(f)
@@ -571,7 +570,7 @@ function _approximate_isometry(H::Hecke.HermLat, g::T, P::Hecke.NfRelOrdIdl, e::
 
   # we do know work on the p-completions, p = P \cap O_K
   Bp = local_basis_matrix(H, minimum(P))
-  Gp = Bp*gram_matrix_of_rational_span(H)*map_entries(involution(E), transpose(Bp))
+  Gp = Bp*gram_matrix(ambient_space(H))*map_entries(involution(E), transpose(Bp))
   Fp = Bp*g*inv(Bp)
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
