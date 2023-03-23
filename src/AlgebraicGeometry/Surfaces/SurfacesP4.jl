@@ -165,7 +165,7 @@ end
 @doc Markdown.doc"""
     cubic_scroll()
 
-Return a smooth rational surface in $\mathbb P^4$ with degree `5` and sectional genus `0`.
+Return a smooth rational surface in $\mathbb P^4$ with degree `3` and sectional genus `0`.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
