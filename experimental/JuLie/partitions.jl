@@ -495,89 +495,113 @@ end
 @Markdown.doc """
     partitions(m::T, n::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
 
-All partitions of a non-negative integer `m` into `n >= 1` parts, where each part is an element in the vector `v` and each `v[i]` occurs a maximum of `mu[i]` times. We assume (without loss of generality) that the entries in `v` are strictly increasing.
+All partitions of a non-negative integer `m` into `n >= 1` parts, where each part is an element in the vector `v` and each `v[i]` occurs a maximum of `mu[i]` times. We assume (without loss of generality) that the entries in `v` are strictly increasing. The partitions are produced in lexicographically *decreasing* order. 
 
-The partitions are produced in lexicographically *decreasing* order. The algorithm used is a
-de-gotoed version (by E. Thiel) of algorithm "partb" by [RJ76](@cite).
-
-# Remark
-The original algorithm lead to BoundsErrors, since `r` could get smaller than 1. Furthermore `x` and `y` are handled as arrays with an infinite length. After finding all valid partitions, the algorithm will continue searching for partitions of length `n+1`. We thus had to add a few additional checks and interruptions. Done by T. Schmit.
+The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL code by E. Thiel and with some fixes (some by T. Schmit).
 """
-function partitions(m::T, n::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
-  @req length(mu)==length(v) "mu and v should have the same length"
+function partitions(m::T, n::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
   @req m >= 0 "m >= 0 required"
   @req n >= 1 "n >= 1 required"
+  @req length(mu)==length(v) "mu and v should have the same length"
 
   if isempty(mu)
     return Partition{T}[]
   end
 
-  # Algorithm partb assumes that v is strictly increasing.
+  # Algorithm partb assumes that v is strictly increasing. 
   # Added (and noticed) on Mar 22, 2023.
   @req all([v[i] < v[i+1] for i in 1:length(v)-1]) "v must be strictly increasing"
 
-  # Addressing https://github.com/oscar-system/Oscar.jl/issues/2043
-  # If n times the maximum of v is less than m there cannot be any partition satisfying
-  # the restrictions.
-  # Added on Mar 22, 2023.
-  if n*last(v) < m
-    return Partition{T}[]
-  end
+  #This will be the list of all partitions found.
+  P = Partition{T}[] 
 
+  # Now, we get to the partb algorithm. This is a hell of an algorithm!
+  # There were some issues with termination and indices for the arrays x,y,ii getting
+  # out of bounds. We had to introduce some additional checks and breaks to take care
+  # of this. Some initial fixing was done by T. Schmit.
+
+  # Initialize variables
   r = length(v)
   j = 1
   k = mu[1]
   ll = v[1]
-  x = zeros(Int8, n+1)
-  y = zeros(Int8, n+1)
-  ii = zeros(Int8, n)
-  i_1 = 0
-  P = Partition{T}[]
+  x = zeros(T, n)
+  y = zeros(T, n)
+  ii = zeros(T, n)
+  P = Partition{T}[] #will be the list of all partitions found
 
-  num = 0
+  # The algorithm has three goto labels b1, b2, b3.
+  # b3 terminates the algorithm.
+  # We introduce bools to indicate the jumps.
   gotob2 = false
   gotob1 = true
 
-  for i = n:-1:1
+  # The first step in the algorithm is to initialize the arrays x and y
+  # for the backtrack search.
+  # Because of the necessary check below (which is not in the paper) we use a while
+  # loop in which we modify i instead of using a for loop over i.
+  # Noticed on Mar 23, 2023.
+  i = n
+  while true
     x[i] = ll
     y[i] = ll
     k = k - 1
     m = m - ll
     if k == 0
       if j == r
-        println("HERE")
-        return P
+        # In the original algorithm there's a goto b3 here which means
+        # the program will terminate, and thus return an empty list.
+        # But this is wrong, an example is partitions(1, 1, [1], [1]).
+        # What we need to do instead here is to break the loop.
+        break
       end
       j = j + 1
       k = mu[j]
       ll = v[j]
+    end
+    if i == 1 
+      break
+    else
+      i = i - 1
     end
   end #for i
   
   lr = v[r]
   ll = v[1]
 
+  # This is a necessary condition for existence of a partition
   if m < 0 || m > n * (lr - ll)
-    return P
+    return P #goto b3
   end
 
-  if m == 0
+  # The following is (seems to be) a condition for when only a single partition exists.
+  # We added the || i==1 condition because without it the example
+  # partitions(17, 7, [1,4], [1,4]) returns [0, 0, 4, 4, 4, 4, 1], which is nonsense.
+  # So, we have to make sure that all entries of x were modified in the initial
+  # backtracking, which means i was counted down to 1.
+  # Noticed on Mar 23, 2023.
+  if m == 0 && i == 1
     push!(P,Partition{T}(x[1:n]))
     return P
   end
 
+  # Now, the actual algorithm starts
   i = 1
   m = m + y[1]
 
+  # label b1
   while gotob1 == true
     if !gotob2
       for j = mu[r]:-1:1
-        if m<=lr
+        if m<=lr 
           gotob2 = true
           break
         end
         x[i] = lr
         ii[i] = r - 1
+        if i==n # Added
+          break
+        end
         i = i + 1
         m = m - lr + y[i]
       end #for j
@@ -589,8 +613,9 @@ function partitions(m::T, n::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUn
       gotob2 = true
     end #if
 
+    # label b2
     if gotob2
-      while r>0 && v[r] > m
+      while r>0 && v[r] > m # Added additional r>0
         r = r - 1
       end
 
@@ -601,14 +626,14 @@ function partitions(m::T, n::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUn
       lr = v[r]
       if m == lr
         x[i] = lr
-        if i<=n
+        if i<=n # Added
           push!(P, Partition{T}(x[1:n]))
         else
           break
         end
 
         r = r - 1
-        if r==0
+        if r==0 # Added
           break
         end
         lr = v[r]
@@ -621,8 +646,7 @@ function partitions(m::T, n::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUn
       else
         x[i] = k
       end #if
-      i_1 = i - 1
-      for i_0 = i_1:-1:1
+      for i_0 = i - 1:-1:1 #this is to replace the for i=i-1 in ALGOL code
         i = i_0
         r = ii[i]
         lr = v[r]
@@ -644,49 +668,41 @@ function partitions(m::T, n::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUn
 end
 
 @Markdown.doc """
-    function partitions(m::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
+    function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
   
-All partitions of a non-negative integer `m` where each part is an element in the vector `v` and each `v[i]` occurs a maximum of `mu[i]` times. 
-"""
-function partitions(m::T, v::Vector{S}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
+All partitions of a non-negative integer `m` where each part is an element in the vector `v`. We assume (without loss of generality) that the entries in `v` are strictly increasing. 
 
-  @req length(mu)==length(v) "mu and v should have the same length"
+# Examples
+```jldoctest
+# We determine the number of ways a dollar can be split into coins of smaller
+# denomination.
+julia> length(partitions(100,[1,5,10,25,50]))
+292
+``` 
+"""
+function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
+
   @req m >= 0 "m >= 0 required"
   @req all([v[i] < v[i+1] for i in 1:length(v)-1]) "v must be strictly increasing"
 
   res = Partition{T}[]
 
-  if isempty(mu)
+  if isempty(v)
     return res
   end
 
-  # Determine the minimum number of parts we need
-  nmin = 0
-  k = 0
-  for i=length(v):-1:1
-    k += v[i]*mu[i]
-    nmin += mu[i]
-    if k >= m
-      break
-    end
-  end
+  # We will loop over the number of parts.
+  # We first determine the minimal and maximal number of parts.
+  r = length(v)
+  nmin = div(m, v[r])
+  nmax = div(m, v[1])
 
-  # Determine the maximum number of parts we need
-  nmax = 0
-  k = 0
-  for i=1:length(v)
-    k += v[i]*mu[i]
-    nmax += mu[i]
-    if k >= m
-      break
-    end
-  end
-
+  # Set the maximum multiplicity (equalt to nmax aboe)
+  mu = [ nmax for i in 1:r ]
+  
   for n=nmin:nmax
     append!(res, partitions(m, n, v, mu))
   end
-
-  println(nmin, " X ", nmax)
 
   return res
 

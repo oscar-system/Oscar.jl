@@ -18,7 +18,8 @@ ascending_partitions
 partitions(::Integer, ::Integer, ::Integer, ::Integer)
 partitions(::Integer, ::Integer)
 num_partitions(::Integer, ::Integer)
-partitions(::Vector{Integer}, ::Integer, ::Vector{Integer}, ::Integer)
+partitions(::Integer, ::Integer, ::Vector{Integer}, ::Vector{Integer})
+partitions(::Integer, ::Vector{Integer})
 ```
 
 ## Operations

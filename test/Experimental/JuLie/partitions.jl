@@ -266,7 +266,7 @@
 		end
 	end
 	@test check==true
-	#check for a few examples if the correct v-mu-restricted Partitions are found
+	#check for a few examples if the correct v-mu-restricted partitions are found
 	check = true
 	N = 1:20
 	K = 1:20
@@ -290,9 +290,17 @@
 			end
 		end
 	end
-	@test_throws ArgumentError partitions([1,2], 5, [1,2,3], 2)
-	@test_throws ArgumentError partitions([1,2,3], -1, [1,2,3], 2)
-	@test_throws ArgumentError partitions([1,2,3], 5, [1,2], 0)
+	@test check==true
+
+	# Check argument errors
+	@test_throws ArgumentError partitions(5,2, [1,2], [1,2,3])
+	@test_throws ArgumentError partitions(-1,2, [1,2,3], [1,2,3])
+	@test_throws ArgumentError partitions(5,0,[1,2,3], [1,2])
+	@test_throws ArgumentError partitions(6,3,[3,2,1],[1,2,3])
+
+	# From https://www.maa.org/frank-morgans-math-chat-293-ways-to-make-change-for-a-dollar
+	@test length(partitions(100, [1,5,10,25,50])) == 292
+	@test length(partitions(200, [1,5,10,25,50,100])) == 2728
 
 	# Dominance order
 	@test dominates(Partition([4,2]), Partition([3,2,1])) == true
