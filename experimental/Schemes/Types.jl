@@ -11,14 +11,9 @@ export VarietyFunctionFieldElem
 
 
 ########################################################################
-# Abstract projective schemes                                          #
-########################################################################
-abstract type AbsProjectiveScheme{BaseRingType, RingType} <: Scheme{BaseRingType} end
-
-########################################################################
 # Concrete type for projective schemes                                 #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 
 Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r``
@@ -57,20 +52,24 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
+  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyElem{T}}
+    # Test disabled because `total_degree` does not work at the moment.
+    #all(x->(total_degree(x) == 1), gens(Q)) || error("ring is not standard graded") 
     S = base_ring(Q)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
     I = modulus(Q)
     r = ngens(S)-1
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    result = new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    set_attribute!(result, :affine_algebra, Q)
+    return result
   end
 end
 
 ########################################################################
 # Morphisms of projective schemes                                      #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ProjectiveSchemeMor
 
 A morphism of projective schemes
@@ -236,7 +235,7 @@ end
 ########################################################################
 # Sheaves                                                              #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
 Abstract type for a sheaf ℱ on a space X.
@@ -261,7 +260,7 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     PreSheafOnScheme
 
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
@@ -330,7 +329,7 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     StructureSheafOfRings <: AbsPreSheaf
 
 On an `AbsCoveredScheme` ``X`` this returns the sheaf ``𝒪`` of rings of
@@ -570,7 +569,7 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     IdealSheaf <: AbsPreSheaf
 
 A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.

@@ -337,12 +337,12 @@ end
     S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
-    @test (@inferred Oscar.arithmetic_genus(C)) == 1
-    @test (@inferred Oscar.geometric_genus(C)) == 1
+    @test (Oscar.PlaneCurveModule.arithmetic_genus(C)) == ZZ(1)
+    @test (Oscar.geometric_genus(C)) == ZZ(1)
     R, (a, b) = polynomial_ring(GF(7), ["a", "b"])
     D = Oscar.AffinePlaneCurve(b^9 - a^2 * (a - 1)^9)
-    @test (@inferred Oscar.arithmetic_genus(D)) == 45
-    @test (@inferred Oscar.geometric_genus(D)) == 0
+    @test (Oscar.PlaneCurveModule.arithmetic_genus(D)) == ZZ(45)
+    @test (Oscar.geometric_genus(D)) == ZZ(0)
 end
 
 @testset "ProjEllipticCurve" begin

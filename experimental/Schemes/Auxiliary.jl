@@ -53,7 +53,7 @@ function (f_lower_star::UniversalPushforwardSymbol)(M::Any)
   return pushforward(f_lower_star.f, M)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     pullback(f::CoveredSchemeMorphism)
 
 Return a function `phi` which takes any reasonable 
@@ -67,7 +67,7 @@ function pullback(f::AbsCoveredSchemeMorphism)
   return UniversalPullbackSymbol{typeof(f)}(f)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     pushforward(f::CoveredSchemeMorphism)
 
 Return a function `phi` which takes any reasonable 
@@ -135,7 +135,7 @@ function pullback(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
   return PullbackSheaf(f, M)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     restrict(f::CoveredSchemeMorphism, DD::Covering)
 
 Given a morphism of `CoveredScheme`s ``f : X → Y``, described via ``φ : C → D`` 
@@ -342,7 +342,7 @@ end
 
 ngens(Q::MPolyQuoLocRing) = ngens(base_ring(Q))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     inherit_glueings!(ref::Covering, orig::Covering)
 
 For a refinement `ref` of a `Covering` `orig` add all missing glueings 

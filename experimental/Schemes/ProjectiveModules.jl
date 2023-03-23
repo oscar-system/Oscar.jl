@@ -18,7 +18,7 @@ end
 
 iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_projective(M::SubquoModule)
 
 Given a subquotient ``M = (A + B)/B`` over a ring ``R`` return a triple 
@@ -70,7 +70,10 @@ end
 # Note: It is highly advised to feed this function only matrices 
 # whose entries do not have denominators. Otherwise, the program will 
 # most likely run very slow.
-function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base_ring(A)))
+function _is_projective_without_denominators(A::MatElem; 
+    unit::RingElem=one(base_ring(A)),
+    task::Symbol=:with_projector
+  )
   R = base_ring(A)
   m = nrows(A)
   n = ncols(A)
@@ -99,7 +102,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
     for k in 1:l
       L, inc = Localization(R, complement_equation(U[k])) # We can not use OO(U[k]) directly, because 
                                                           # we'd be missing the map in that case. 
-      success, p, k = _is_projective_without_denominators(change_base_ring(L, A), unit=L(unit))
+      success, p, k = _is_projective_without_denominators(change_base_ring(L, A), unit=L(unit), task=task)
       !success && return false, zero(matrix_space(R, n, n)), 0
       q = zero(matrix_space(R, nrows(p), ncols(p)))
       for i in 1:nrows(p)
@@ -137,6 +140,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
     return true, L, mpow
   end
 
+
   lambda1 = coordinates(one(R), I) # coefficients for the first powers
   involved_entries = [k for k in 1:length(lambda1) if !iszero(lambda1[k])]
 
@@ -168,7 +172,7 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
     # We expect a pair (Q, k) consisting of a matrix Q defined over Rloc, 
     # but liftable to a matrix over R without effort. The local projector 
     # over Rloc is then 1//uᵏ ⋅ Q. 
-    push!(sub_results, _is_projective_without_denominators(map_entries(Rloc, Asub), unit=u))
+    push!(sub_results, _is_projective_without_denominators(map_entries(Rloc, Asub), unit=u, task=task))
     B = last(sub_results)[2]
     k = last(sub_results)[3]
     if last(sub_results)[1] == false
@@ -178,63 +182,68 @@ function _is_projective_without_denominators(A::MatElem; unit::RingElem=one(base
   powers = [k for (_, _, k) in sub_results]
   # Find the coefficients cᵣ so that ∑ᵣ cᵣ ⋅ uᵣᵏ⁽ʳ⁾ = 1 ∈ R.
   # TODO: This can be optimized
-  c = coordinates(one(R), ideal(R, [u^(k+1) for ((u, _, _), k) in zip(entry_list, powers)]))
+  if task == :with_projector
+    c = coordinates(one(R), ideal(R, [u^(k+1) for ((u, _, _), k) in zip(entry_list, powers)]))
 
-  result = zero(matrix_space(R, n, n))
-  for ((u, i, j), (_, Q, k), (Rloc, inc), lambda) in zip(entry_list, sub_results, sub_localizations, c)
-    # Lift the matrix Q to an n×n-matrix over R
-    Qinc = zero(matrix_space(R, n, n))
-    for r in 1:j-1
-      for s in 1:j-1
-        Qinc[r, s] = preimage(inc, Q[r, s])
+    result = zero(matrix_space(R, n, n))
+    for ((u, i, j), (_, Q, k), (Rloc, inc), lambda) in zip(entry_list, sub_results, sub_localizations, c)
+      # Lift the matrix Q to an n×n-matrix over R
+      Qinc = zero(matrix_space(R, n, n))
+      for r in 1:j-1
+        for s in 1:j-1
+          Qinc[r, s] = preimage(inc, Q[r, s])
+        end
+        for s in j+1:n
+          Qinc[r, s] = preimage(inc, Q[r, s-1])
+        end
       end
-      for s in j+1:n
-        Qinc[r, s] = preimage(inc, Q[r, s-1])
+      for r in j+1:n
+        for s in 1:j-1
+          Qinc[r, s] = preimage(inc, Q[r-1, s])
+        end
+        for s in j+1:n
+          Qinc[r, s] = preimage(inc, Q[r-1, s-1])
+        end
       end
-    end
-    for r in j+1:n
-      for s in 1:j-1
-        Qinc[r, s] = preimage(inc, Q[r-1, s])
+
+      # The matrix Qinc needs to be fed with a vector v whose j-th entry 
+      # has been deleted via the localization at u. This can only be done 
+      # over R for u⋅v, so we multiply by u, keeping in mind that this will 
+      # become a unit in the localization. 
+      P = u*one(matrix_space(R, n, n))
+      P[j, j] = 0
+      for l in 1:n
+        l == j && continue
+        P[j, l] = -A[i, l]
       end
-      for s in j+1:n
-        Qinc[r, s] = preimage(inc, Q[r-1, s-1])
-      end
+      result = result + lambda*P*Qinc
     end
 
-    # The matrix Qinc needs to be fed with a vector v whose j-th entry 
-    # has been deleted via the localization at u. This can only be done 
-    # over R for u⋅v, so we multiply by u, keeping in mind that this will 
-    # become a unit in the localization. 
-    P = u*one(matrix_space(R, n, n))
-    P[j, j] = 0
-    for l in 1:n
-      l == j && continue
-      P[j, l] = -A[i, l]
+    # pull the denominator u from the result and make the matrix liftable. 
+    d = lcm(_lifted_denominator.(result))
+    if isone(d)
+      return true, result, 0
     end
-    result = result + lambda*P*Qinc
+
+    inner, outer = ppio(d, _lifted_numerator(unit))
+    (mpow, upow) = Oscar._minimal_power_such_that(_lifted_numerator(unit), 
+                                                  x->(divides(x, inner)[1]))
+
+    # pull u^mpow from each entry of the matrix:
+    L = zero(matrix_space(R, n, n))
+    for i in 1:n
+      for j in 1:n
+        L[i, j] = R(_lifted_numerator(result[i, j])*
+                    divides(upow, inner)[2]*
+                    divides(d, _lifted_denominator(result[i, j]))[2]
+                   )*inv(R(outer*(_lifted_denominator(unit)^mpow)))
+      end
+    end
+    return true, L, mpow
+  elseif task==:without_projector 
+    return true, zero(matrix_space(R, n, n)), 0
   end
-
-  # pull the denominator u from the result and make the matrix liftable. 
-  d = lcm(_lifted_denominator.(result))
-  if isone(d)
-    return true, result, 0
-  end
-
-  inner, outer = ppio(d, _lifted_numerator(unit))
-  (mpow, upow) = Oscar._minimal_power_such_that(_lifted_numerator(unit), 
-                                                x->(divides(x, inner)[1]))
-
-  # pull u^mpow from each entry of the matrix:
-  L = zero(matrix_space(R, n, n))
-  for i in 1:n
-    for j in 1:n
-      L[i, j] = R(_lifted_numerator(result[i, j])*
-                  divides(upow, inner)[2]*
-                  divides(d, _lifted_denominator(result[i, j]))[2]
-                 )*inv(R(outer*(_lifted_denominator(unit)^mpow)))
-    end
-  end
-  return true, L, mpow
+  error("task could not be identified")
 end
 
 # helper functions to unify the interface

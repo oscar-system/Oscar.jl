@@ -14,7 +14,7 @@ poly_type(U::SpecOpen) = poly_type(typeof(U))
 ########################################################################
 # (2) Getter methods for the internally stored data                    #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     affine_patches(U::SpecOpen)
 
 Return a list of principal affine open subschemes covering ``U``.
@@ -28,7 +28,7 @@ function affine_patches(U::SpecOpen)
   return U.patches
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     intersections(U::SpecOpen)
 
 Return a list of pairwise intersections of the 
@@ -48,7 +48,7 @@ function intersections(U::SpecOpen)
   return U.intersections
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_scheme(U::SpecOpen)
 
 Return the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
@@ -78,14 +78,14 @@ Return the coordinates of the ambient affine space of ``U``.
 """
 ambient_coordinates(U::SpecOpen) = coordinates(ambient_space(U))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     npatches(U::SpecOpen)
 
 Return the number of generators stored for describing the complement of ``U``.
 """
 npatches(U::SpecOpen) = length(U.gens)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     gens(U::SpecOpen)
 
 Return the generators ``[f₁,…,fᵣ]`` stored for the description 
@@ -94,7 +94,7 @@ of the complement of ``U``.
 gens(U::SpecOpen) = U.gens::Vector{elem_type(ambient_coordinate_ring(ambient_scheme(U)))}
 ngens(U::SpecOpen) = length(U.gens)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     affine_patch(U::SpecOpen, i::Int)
 
 Return the hypersurface complement of ``fᵢ`` in the 

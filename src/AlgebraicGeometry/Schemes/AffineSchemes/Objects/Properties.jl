@@ -5,7 +5,7 @@
 # (1) Check if a scheme is empty
 ####################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_empty(X::AbsSpec)
 
 This method returns `true` if the affine scheme ``X`` is empty.
@@ -39,7 +39,7 @@ is_empty(X::EmptyScheme) = true
 # (2.0) For empty schemes and whenever issubset cannot be implemented
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_subset(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
@@ -288,7 +288,7 @@ end
 
 #TODO: Add more cross-type methods as needed.
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_open_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
@@ -353,7 +353,7 @@ end
 # (4) Check if a scheme can be embedded via a closed embeeded in another scheme
 ####################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
@@ -629,7 +629,7 @@ true
   f = gens(saturated_ideal(I))
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A)
+  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
 
@@ -639,7 +639,7 @@ end
   f = gens(I)
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A)
+  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
 

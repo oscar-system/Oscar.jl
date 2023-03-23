@@ -693,6 +693,7 @@ export is_isomorphic_with_map
 export is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group
 export is_isomorphism
 export is_k_separation
+export is_lattice_polytope
 export is_left
 export is_linearly_equivalent
 export is_local

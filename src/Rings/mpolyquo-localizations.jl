@@ -43,7 +43,7 @@ import Base: issubset
 # residue classes rather than residue classes of fractions. 
 #
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyQuoLocRing{
         BaseRingType,
         BaseRingElemType,
@@ -147,7 +147,7 @@ base_ring(L::MPolyQuoLocRing) = L.R
 inverted_set(L::MPolyQuoLocRing) = L.S
 
 ### additional getter functions
-@Markdown.doc """
+@doc Markdown.doc"""
     modulus(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
@@ -163,7 +163,7 @@ end
 modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     underlying_quotient(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
@@ -182,7 +182,7 @@ end
    return quo(P,ideal(P,[zero(P)]))[1]
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     localized_ring(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
@@ -201,7 +201,7 @@ end
    return localization(L, units_of(L))[1]
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     gens(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
@@ -249,7 +249,7 @@ function quo(
   return P, hom(L, P, gens(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     localization(RQ::MPolyQuoRing, U::AbsMPolyMultSet)
 
 Given a quotient `RQ` of a multivariate polynomial ring `R` with projection map
@@ -350,7 +350,7 @@ end
 # Elements of localizations of polynomial algebras                     #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyQuoLocRingElem{
       BaseRingType, 
       BaseRingElemType,
@@ -426,7 +426,7 @@ localized_ring(a::MPolyQuoLocRingElem) = localized_ring(parent(a))
 base_ring(a::MPolyQuoLocRingElem) = base_ring(parent(a))
 is_reduced(a::MPolyQuoLocRingElem) = a.is_reduced
 
-@Markdown.doc """
+@doc Markdown.doc"""
     lifted_numerator(a::MPolyQuoLocRingElem)
 
 For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -434,7 +434,7 @@ For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative
 """
 lifted_numerator(a::MPolyQuoLocRingElem) = a.numerator
 
-@Markdown.doc """
+@doc Markdown.doc"""
     lifted_denominator(a::MPolyQuoLocRingElem)
 
 For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -442,7 +442,7 @@ For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative
 """
 lifted_denominator(a::MPolyQuoLocRingElem) = a.denominator
 
-@Markdown.doc """
+@doc Markdown.doc"""
     fraction(a::MPolyQuoLocRingElem)
 
 For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -510,7 +510,7 @@ function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoRingElem{RET};
 end
 
 ### additional functionality
-@Markdown.doc """
+@doc Markdown.doc"""
     lift(f::MPolyQuoLocRingElem)
 
 For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -519,7 +519,7 @@ For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representati
 lift(f::MPolyQuoLocRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_unit(f::MPolyQuoLocRingElem) 
 
 Return `true`, if `f` is a unit of `parent(f)`, `true` otherwise.
@@ -810,7 +810,7 @@ parent_type(T::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType
 
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocRingElem}
 
 Given a vector of fractions ``[a₁//b₁,…,aₙ//bₙ]`` return a pair 
@@ -836,7 +836,7 @@ function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocRingElem
   return d, a
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocRingElem} 
 
 Write ``f = ∑ᵢ λᵢ⋅gᵢ`` for some ``λᵢ`` and return the vector ``[λ₁,…,λₙ]``.
@@ -907,7 +907,7 @@ write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear
 # The latter point c) will be useful for reducing to a homomorphism 
 # of finitely generated algebras.
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyQuoLocalizedRingHom{
       BaseRingType, 
       BaseRingElemType, 
@@ -982,7 +982,7 @@ morphism_type(R::MPolyRing, S::Ring) = morphism_type(typeof(R), typeof(S))
 domain(f::MPolyQuoLocalizedRingHom) = f.domain
 codomain(f::MPolyQuoLocalizedRingHom) = f.codomain
 
-@Markdown.doc """
+@doc Markdown.doc"""
     restricted_map(f::MPolyQuoLocalizedRingHom)
 
 For a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[U⁻¹] → S``this returns 
@@ -1336,7 +1336,7 @@ function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:M
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
 
 Use `elimpart` from the `Singular` library `Presolve.lib` to simplify the presentation 
@@ -1450,7 +1450,7 @@ function simplify(R::MPolyRing)
   return Rnew, f, finv
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyQuoLocalizedIdeal{
         LocRingType<:MPolyQuoLocRing, 
         LocRingElemType<:MPolyQuoLocRingElem
@@ -1660,7 +1660,7 @@ end
   return is_prime(modulus(W))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_integral_domain(R::Ring)
 
 Return whether or not `R` is an integral domain.

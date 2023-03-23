@@ -23,14 +23,14 @@ end
 
 ### Interface for coherent sheaves
 
-@Markdown.doc """
+@doc Markdown.doc"""
     scheme(F::AbsCoherentSheaf)
 
 Return the scheme on which this sheaf is defined.
 """
 scheme(F::AbsCoherentSheaf) = space(underlying_presheaf(F))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     sheaf_of_rings(F::AbsCoherentSheaf) 
 
 Return the sheaf of rings over which ``ℱ`` is defined.
@@ -125,7 +125,7 @@ end
 ########################################################################
 # Coherent sheaves of modules on covered schemes                       #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     SheafOfModules <: AbsPreSheaf
 
 A sheaf of modules ``ℳ`` on an `AbsCoveredScheme` ``X``.
@@ -661,7 +661,7 @@ sheaf_of_rings(M::SheafOfModules) = M.OOX
 default_covering(M::SheafOfModules) = M.C
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
 
 For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf 
@@ -701,7 +701,7 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
   return M
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     tautological_bundle(IP::ProjectiveScheme{<:Field})
 
 For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentSheaf` on ``ℙ``.
@@ -710,7 +710,7 @@ function tautological_bundle(IP::ProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     cotangent_sheaf(X::AbsCoveredScheme)
 
 For an `AbsCoveredScheme` ``X``, return the sheaf ``Ω¹(X)`` of Kaehler-differentials 
@@ -737,7 +737,7 @@ on ``X`` as a `CoherentSheaf`.
   return M
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     cotangent_module(X::AbsSpec)
 
 Return the ``𝒪(X)``-module ``Ω¹(X)`` of Kaehler-differentials on ``X``.
@@ -930,7 +930,7 @@ function Base.show(io::IO, M::DirectSumSheaf)
   print(io, "direct sum of $(summands(M))")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     free_module(R::StructureSheafOfRings, n::Int)
 
 Return the sheaf of free ``𝒪``-modules ``𝒪ⁿ`` for a structure 
@@ -965,7 +965,7 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   return M
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     dual(M::SheafOfModules)
 
 For a `SheafOfModules` ``ℳ`` on an `AbsCoveredScheme` ``X``, return 
@@ -977,7 +977,7 @@ the ``𝒪_X``-dual ``ℋ om_{𝒪_X}(ℳ , 𝒪_X)`` of ``ℳ``.
   return HomSheaf(M, F)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     tangent_sheaf(X::AbsCoveredScheme)
 
 Return the tangent sheaf ``T_X`` of `X`, constructed as ``ℋ om_{𝒪_X}(Ω¹_X, 𝒪_X)``.
@@ -1568,7 +1568,7 @@ end
 # AbsCoherentSheaf.
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     projectivization(E::AbsCoherentSheaf; 
         var_names::Vector{String}=Vector{String}(),
         check::Bool=true

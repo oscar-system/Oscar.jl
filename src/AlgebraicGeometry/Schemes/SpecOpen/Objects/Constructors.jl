@@ -3,7 +3,7 @@
 ########################################################################
 
 # TODO: Write one dummy constructor for the documentation with an ideal.
-@Markdown.doc """
+@doc Markdown.doc"""
     function SpecOpen(X::AbsSpec, I::MPolyLocalizedIdeal)
 
 Return the complement of the zero locus of ``I`` in ``X``.
