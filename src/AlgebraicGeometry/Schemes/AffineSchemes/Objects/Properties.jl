@@ -629,7 +629,7 @@ true
   f = gens(saturated_ideal(I))
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A)
+  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
 
@@ -639,7 +639,7 @@ end
   f = gens(I)
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A)
+  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
 

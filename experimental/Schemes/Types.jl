@@ -52,13 +52,17 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
+  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyElem{T}}
+    # Test disabled because `total_degree` does not work at the moment.
+    #all(x->(total_degree(x) == 1), gens(Q)) || error("ring is not standard graded") 
     S = base_ring(Q)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
     I = modulus(Q)
     r = ngens(S)-1
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    result = new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    set_attribute!(result, :affine_algebra, Q)
+    return result
   end
 end
 

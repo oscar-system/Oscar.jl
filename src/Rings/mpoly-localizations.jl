@@ -1953,7 +1953,16 @@ end
 
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, W.(gens(I)))
+  result = MPolyLocalizedIdeal(W, W.(gens(I)))
+  # Make sure we keep previously computed groebner and standard bases.
+  result.pre_saturated_ideal = I
+  r = ngens(I)
+  A = zero_matrix(SMat, W, 0, r)
+  for i in 1:r
+    push!(A, sparse_row(W, [(i, one(W))]))
+  end
+  result.pre_saturation_data = A
+  return result
 end
 
 ### required constructors 
