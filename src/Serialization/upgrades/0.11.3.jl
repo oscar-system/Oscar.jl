@@ -8,9 +8,6 @@
 push!(upgrade_scripts, UpgradeScript(
     v"0.11.3", # version this script upgrades to
     function upgrade_0_11_3(s::DeserializerState, dict::Dict)
-        # file comes from polymake
-        haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
-
         # moves down tree to point where type exists in dict
         # since we are only doing updates based on certain types
         # no :type key implies the dict is data
