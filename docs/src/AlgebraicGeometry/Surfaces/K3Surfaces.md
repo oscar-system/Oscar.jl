@@ -9,9 +9,8 @@ using Oscar
 ```@contents
 Pages = ["K3Surfaces.md"]
 ```
-# Algebraic Surfaces
 
-## K3 surfaces
+# Automorphism Groups of  K3 surfaces
 
 A complex K3 surface is a compact complex surface $X$
 with vanishing irregularity $h^1(X, \mathcal{O}_X)=0$
@@ -23,7 +22,7 @@ $NS(X) \subseteq H^2(X, \mathbb{Z})$.
 
 See [Huy16](@cite) for the theory of K3 surfaces.
 
-### Automorphisms
+## Automorphisms
 
 ```@docs
 K3_surface_automorphism_group(S::ZLat)

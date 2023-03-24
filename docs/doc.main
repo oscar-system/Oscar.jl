@@ -194,7 +194,8 @@
          "AlgebraicGeometry/Curves/para_rational_curves.md",
      ],
      "Surfaces" => [
-        "AlgebraicGeometry/Surfaces/K3Surfaces.md"
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
      ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
