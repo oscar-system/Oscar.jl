@@ -1,8 +1,6 @@
 #using Gapjm
 using Oscar
 
-G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 ############################################
@@ -77,9 +75,9 @@ function alpha_to_w(t, n, weight)
 end
 
 function get_CartanMatrix(t, n)
-    L = G.SimpleLieAlgebra(forGap(t), n, G.Rationals)
-    R = G.RootSystem(L)
-    C_list = fromGap(G.CartanMatrix(R))
+    L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
+    R = GAP.Globals.RootSystem(L)
+    C_list = fromGap(GAP.Globals.CartanMatrix(R))
     C = zeros(n,n)
     for i in 1:n
         for j in 1:n

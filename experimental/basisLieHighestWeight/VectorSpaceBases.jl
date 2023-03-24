@@ -31,7 +31,7 @@ function normalize(v::TVec)
 end
 
 
-reduceCol(a, b, i::Int) = a*b[i] - b*a[i] # create zero entry in a
+reduceCol(a, b, i::Int) = b[i]*a - a[i]*b # create zero entry in a
 
 
 function addAndReduce!(sp::VSBasis, v::TVec)
