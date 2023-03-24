@@ -178,3 +178,18 @@ end
   @test Q isa MPolyQuoRing
 end
 
+@testset "#2119/wrong promotion" begin
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, x)
+  Q, _ = quo(R, I)
+  P, (u, v) = Q["u", "v"]
+  J = ideal(P, u)
+  A, _ = quo(P, J)
+  @test iszero(x * u)
+  @test iszero(u * x)
+  @test iszero(Q(x) * u)
+  @test iszero(u * Q(x))
+  @test iszero(Q(x) * A(u))
+  @test iszero(A(u) * A(u))
+  @test iszero(A(x)*u)
+end
