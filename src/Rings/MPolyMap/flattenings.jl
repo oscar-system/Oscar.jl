@@ -122,6 +122,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
+  # Flattenings of quotient rings of the form (𝕜[x][u])/J
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyRingElem}}
@@ -142,14 +143,12 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
+  # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoRingElem}}
     P = base_ring(S)::MPolyRing # the polynomial ring behind S
     A = base_ring(P)::MPolyQuoRing # the coefficient ring of S
-    R = base_ring(A)::MPolyRing # the polynomial ring behind the coefficient ring of S
-    I = modulus(A)::MPolyIdeal # the modulus of the coefficient ring of S
-    kk = coefficient_ring(R)::Field
 
     P_flattening = flatten(P)
     P_flat = codomain(P_flattening)
@@ -167,17 +166,13 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
+  # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoLocRingElem}}
     P = base_ring(S)::MPolyRing
     Q = base_ring(P)::MPolyQuoLocRing
     R = base_ring(Q)::MPolyRing
-    L = localized_ring(Q)::MPolyLocRing
-    A = underlying_quotient(Q)::MPolyQuoRing
-    U = inverted_set(Q)::AbsMultSet
-    I = modulus(Q)::MPolyLocalizedIdeal
-    kk = coefficient_ring(R)::Field
 
     P_flattening = flatten(P)
     P_flat = codomain(P_flattening)
@@ -210,14 +205,12 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
+  # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyLocRingElem}}
     P = base_ring(S)::MPolyRing
     L = base_ring(P)::MPolyLocRing
-    R = base_ring(L)::MPolyRing
-    U = inverted_set(L)::AbsMultSet
-    kk = coefficient_ring(R)::Field
 
     P_flattening = flatten(P)
     P_flat = codomain(P_flattening)
