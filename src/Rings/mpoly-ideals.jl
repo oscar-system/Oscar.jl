@@ -910,7 +910,7 @@ end
     ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
 
 Return `true` if `f` is contained in `I`, `false` otherwise. Uses a cached Gröbner basis for `I` or, if no such cached
-Gröbner basis exists, computes first a Gröbner basis for `I` w.r.t. the monomial ordering `ordering.
+Gröbner basis exists, computes first a Gröbner basis for `I` w.r.t. the monomial ordering `ordering`.
 Alternatively, use `f in I`.
 
 # Examples
