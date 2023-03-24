@@ -572,7 +572,7 @@ julia> minpoly(a)
 x^2 + 1
 ```
 """
-@attr function absolute_primary_decomposition(I::T) where {T <: MPolyIdeal{<:MPolyRingElem{QQFieldElem}}}
+@attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
   singular_assure(I)
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
