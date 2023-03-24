@@ -17,16 +17,16 @@ can compute with the weaker version.
 """
 
 function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
-    dim, m, v = MB.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
-    w = MB.basisLieHighestWeight2(string(dynkin), n, lambda) # algorithm that needs to be tested
+    dim, m, v = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
+    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda) # algorithm that needs to be tested
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
     gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
     @test Set(m) == w # compare if result of basic and sophisticated algorithm match
     @test gapDim == length(w) # check if dimension is correct
 end
 
-function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String, ops::String)
-    w = MB.basisLieHighestWeight2(string(dynkin), n, lambda, monomial_order=monomial_order, ops=ops) # algorithm that needs to be tested
+function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
+    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda, monomial_order=monomial_order, ops=ops) # algorithm that needs to be tested
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
     gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
     @test gapDim == length(w) # check if dimension is correct
@@ -36,11 +36,11 @@ end
 @testset ExtendedTestSet "Test basisLieHighestWeight" begin
     # TODO: add test for basis (not just dimension)
     @testset "Known examples" begin
-        @test MB.basisLieHighestWeight2("A", 2, [1,0]) == Set([[0,0,0], [0,0,1], [1,0,0]])
-        @test MB.basisLieHighestWeight2("A", 2, [1,0], ops=[1,2,1]) == Set([[0,0,0], [0,1,1], [1,0,0]])
+        @test BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0]) == Set([[0,0,0], [0,0,1], [1,0,0]])
+        @test BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0], ops=[1,2,1]) == Set([[0,0,0], [0,1,1], [1,0,0]])
     end
     @testset "Compare with simple algorithm and check dimension" begin
-        @testset "Dynking type $dynkin" for dynkin in ('A', 'B', 'C', 'D')
+        @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D')
             @testset "n = $n" for n in 1:4
                 if (!(dynkin == 'B' && n < 2) && !(dynkin == 'C' && n < 2) && !(dynkin == 'D' && n < 4))
                     for i in 1:n                                # w_i
@@ -64,15 +64,15 @@ end
     end
     @testset "Check dimension" begin
         @testset "Monomial order $monomial_order" for monomial_order in ("Lex", "GLex", "GRevLex", "GRevLex")
-           @testset "Operators $ops" for ops in ("regular", "longest-word")
-                check_dimension('A', 3, [1,1,1], monomial_order, ops)
+           #@testset "Operators $ops" for ops in ("regular", "longest-word")
+            check_dimension('A', 3, [1,1,1], monomial_order)
     #            #check_dimension('B', 3, [2,1,0], monomial_order, ops)
     #            #check_dimension('C', 3, [1,1,1], monomial_order, ops)
     #            #check_dimension('D', 4, [3,0,1,1], monomial_order, ops)
     #            #check_dimension('F', 4, [2,0,1,0], monomial_order, ops)
     #            #check_dimension('G', 2, [1,0], monomial_order, ops)
     #            #check_dimension('G', 2, [2,2], monomial_order, ops)
-            end
+            #end
         end
     end
 end

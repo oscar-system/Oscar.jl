@@ -1,27 +1,5 @@
 # manages methods for different orders of monomials
 
-function highest_calc_sub_monomial(mon::Vector{Int}, calc_monomials)
-    """
-    returns the key in calc_monomials that can be extended by the least amount of left-operations to mon
-    """
-    sub_mon = copy(mon)
-
-    m = length(mon)
-    for i in 1:m
-        while sub_mon[i] > 0
-            #println(sub_mon)
-            #println(calc_monomials)
-            if haskey(calc_monomials, sub_mon)
-                return sub_mon
-            else
-                sub_mon[i] -= 1
-            end
-        end
-    end
-    #println(sub_mon)
-    return sub_mon # [0 for i in 1:m]
-end
-
 function lt_monomial_order(monomial_order)
     """
     Returns the desired monomial_order function

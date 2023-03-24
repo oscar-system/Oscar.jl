@@ -1,4 +1,4 @@
-#--- Bens "Lernkommentare" mit #--- oder """...""" in Methode gekenzeichnet 
+ 
 
 
 module MBOld
@@ -11,16 +11,16 @@ using SparseArrays
 #### vector space bases
 
 ZZ = Int
-TVec = SparseVector{ZZ, Int} #--- Werte sind ZZ, Indizies sind Int (TVec ist Datentyp der Basisvektoren in basisLieHighestWeight)
-Short = UInt8 # for exponents of monomials; max. 255
+TVec = SparseVector{ZZ, Int} 
+Short = UInt8 
 
 struct VSBasis
-    A::Vector{TVec} #--- Vektor von Basisvektoren
-    pivot::Vector{Int} #--- Vektor von Pivotelementen, d.h. pivot[i] ist erster nichtnull Index von A[i]
+    A::Vector{TVec} 
+    pivot::Vector{Int} 
 end
 
 
-nullSpace() = VSBasis([], []) #--- leerer Vektorraum
+nullSpace() = VSBasis([], [])
 
 
 function normalize(v::TVec)
@@ -28,20 +28,18 @@ function normalize(v::TVec)
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
     used: addAndReduce!
     """
-    dropzeros!(v) #--- deletes stored zeros in SparsedArray (in-place, hingegen würde dropzeros(v) Kopie zurückgeben)
-    if isempty(v.nzind) #--- v.nzind sind abgespeicherte Werte
-                        #--- v.nzval sind abgespeicherte Indizies (der Größe nach geordnet, startet bei 1)
+    dropzeros!(v)
+    if isempty(v.nzind)
         return (0, 0)
     end
 
-    pivot = v.nzind[1]  #--- erster != 0 Eintrag im Vektor, d.h. der oberste
+    pivot = v.nzind[1]
 
-    return v .÷ gcd(v.nzval), pivot #--- durch ggT teilen
+    return v .÷ gcd(v.nzval), pivot
 end
 
 
-reduceCol(a, b, i::Int) = a*b[i] - b*a[i] #--- a = reduceCol(a, b, i) erzeugt Nulleintrag in a[i] durch elementare Zeilenumformungen
-                                          #--- Werte bleiben Integers
+reduceCol(a, b, i::Int) = a*b[i] - b*a[i]
 
 
 function addAndReduce!(sp::VSBasis, v::TVec)
@@ -55,7 +53,7 @@ function addAndReduce!(sp::VSBasis, v::TVec)
     A = sp.A
     pivot = sp.pivot
     v, newPivot = normalize(v) 
-    if newPivot == 0 #--- v ist Nullvektor
+    if newPivot == 0
         return 0
     end
  
@@ -237,9 +235,7 @@ end
 nullMon(m) = zeros(Short, m)
 
 
-######### compute_0 ###################
-# serial computing
-function compute_0(v0, mats, wts::Vector{Vector{Int}})
+function compute(v0, mats, wts::Vector{Vector{Int}})
     m = length(mats) #---
     monomials = [nullMon(m)]    #--- hier speichern wir die Monombasis. Ein Eintrag steht für Potenzen unserer Basiselemente
                                 #--- nullMon ist leeres Monom, also nur m-Nullen bzw. die Identität
@@ -331,124 +327,5 @@ function compute_0(v0, mats, wts::Vector{Vector{Int}})
 
     return monomials, vectors
 end
-
-
-############ compute_p ########################
-# parallel computing
-function compute_p(v0, mats, wts::Vector{Vector{Int}})
-    m = length(mats)
-    monomials = [nullMon(m)]
-    lastPos = 0
-
-    id(mon) = sum((1 << (sum(mon[1:i])+i-1) for i in 1:m-1), init = 1) # init = 1 for case m = 1
-    e = [Short.(1:m .== i) for i in 1:m]
-    maxid(deg) = id(deg.*e[1])
-
-    blacklists = [falses(maxid(0))]
-    blacklists[end][id(monomials[1])] = 1
-    newMons(deg) = (push!(blacklists, falses(maxid(deg))))
-    checkMon(mon) = blacklists[end-1][id(mon)]
-    setMon(mon) = (blacklists[end][id(mon)] = true)
-
-    vectors = [v0]
-    weights = [0 * wts[1]]
-    idweight = Dict(weights[1] => 1)
-    nweights = 1
-    space = Dict(1 => nullSpace())
-    addAndReduce!(space[1], v0)
-
-    deg = 0
-    while length(monomials) > lastPos
-        startPos = lastPos+1
-        newPos = length(monomials)
-        deg = deg + 1
-        newMons(deg)
-
-        num = 0
-        jobs = Dict{Int, Vector{Tuple{Int, Vector{Short}, Vector{Int64}, SparseMatrixCSC{Int, Int}, SparseVector{Int, Int}, VSBasis}}}()
-
-        for i in 1:m, di in deg:-1:1
-            for p in startPos:newPos
-                # lex iterator
-                if !all(monomials[p][1:i-1] .== 0) ||
-                        monomials[p][i] + 1 > di
-                        startPos = p + 1
-                    continue
-                elseif monomials[p][i] + 1 < di
-                    break
-                end
-
-                mon = monomials[p] + e[i]
-
-                if any(i != j && mon[j] > 0 && !checkMon(mon - e[j]) for j in 1:m)
-                    continue
-                end
-
-                num += 1
-                wt = weights[p] + wts[i]
-
-                if !haskey(idweight, wt)
-                    nweights += 1
-                    idweight[wt] = nweights
-                end
-                idwt = idweight[wt]
-
-                if !haskey(space, idwt)
-                    space[idwt] = nullSpace()
-                end
-
-                jo = (num, mon, wt, mats[i], vectors[p], space[idwt])
-                if !haskey(jobs, idwt)
-                    jobs[idwt] = [jo]
-                else
-                    push!(jobs[idwt], jo)
-                end
-                #display(typeof(jo))
-            end
-        end
-        #display(typeof(jobs))
-
-        #display(Threads.nthreads())
-
-        res = Vector{Any}(nothing, num)
-        idwts = [k for (k, l) in jobs if !isempty(l)]
-        Threads.@threads for idwt in idwts
-            for (i, mon, wt, A, v, sp) in jobs[idwt]
-                # this is the heavy lifting
-                # (in particular, the matrix product A * v)
-                w = addAndReduce!(sp, A * v)
-                if w != 0
-                    res[i] = (mon, wt, w)
-                end
-            end
-        end
-
-        #display(res)
-
-        for r in res
-            if r == nothing
-                continue
-            end
-            (mon, wt, vec) = r
-            setMon(mon)
-            push!(monomials, mon)
-            push!(vectors, vec)
-            push!(weights, wt)
-        end
-
-        lastPos = newPos
-    end
-
-    #display(idweight)
-    #display(vectors)
-    #display([(i, sp.A) for (i, sp) in space if length(sp.pivot) > 0])
-    return monomials, vectors
-end
-
-
-##################
-# chooses parallel / serial computing
-# parallel true to use parallel computing through function compute_p 
-compute(v0, mats, wts::Vector{Vector{Int}}; parallel::Bool = false) = parallel ? compute_p(v0, mats, wts) : compute_0(v0, mats, wts)  
 
 end # module

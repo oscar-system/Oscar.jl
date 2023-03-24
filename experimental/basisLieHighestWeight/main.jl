@@ -1,1 +1,2 @@
-include("MB.jl")
+include("BasisLieHighestWeight.jl")
+export MB

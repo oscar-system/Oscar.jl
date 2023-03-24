@@ -11,7 +11,6 @@ include("./VectorSpaceBases.jl")
 include("./TensorModels.jl")
 include("./LieAlgebras.jl")
 include("./MonomialOrder.jl")
-include("./LongestWord.jl")
 include("./WeylPolytope.jl")
 
 G = Oscar.GAP.Globals

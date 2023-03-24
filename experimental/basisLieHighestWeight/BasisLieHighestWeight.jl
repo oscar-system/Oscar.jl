@@ -1,4 +1,4 @@
-module MB
+module BasisLieHighestWeight
 export basisLieHighestWeight2
 export is_fundamental
 
@@ -19,8 +19,6 @@ fromGap = Oscar.GAP.gap_to_julia
 function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
     """
     Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
-    
-    Pseudocode:
     """
     # The function precomputes objects that are independent of the highest weight and can be used in all recursion steps. Then it starts the recursion and returns the result.
 
@@ -46,6 +44,16 @@ function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [],
     else
         return res
     end
+end
+
+function sub_simple_refl(word, L, n)
+    """
+    substitute simple reflections (i,i+1), saved in dec by i, with E_{i,i+1}  
+    """
+    R = G.RootSystem(L)
+    CG = fromGap(G.CanonicalGenerators(R)[1], recursive = false)
+    ops = forGap([CG[i] for i in word], recursive = false)
+    return ops
 end
 
 function get_ops(t,n, ops, L, CH)
@@ -75,9 +83,9 @@ function get_ops(t,n, ops, L, CH)
         println("all values of ops need to between 1 and the rank of the lie algebra.")
     end
     # If one of the conditions is met, the algorithms works for sure. Otherwise a warning is printed (and can be ignored).
-    if  !(is_longest_weyl_word(t, n, ops)) && !(Set(ops) == [i for i=1:n])
-        println("WARNING: ops may be incorrect input.")
-    end
+    #if  !(is_longest_weyl_word(t, n, ops)) && !(Set(ops) == [i for i=1:n])
+    #    println("WARNING: ops may be incorrect input.")
+    #end
     ops = sub_simple_refl(ops, L, n)
     return ops
 end
@@ -304,7 +312,7 @@ function add_by_hand(t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set
         end
     else
         for weightspace in weightspaces
-            println("known memory: ", Int(Base.Sys.free_memory()) / 2^20)
+            #println("known memory: ", Int(Base.Sys.free_memory()) / 2^20)
             #println("size space: ", Int(Base.summarysize(space)) / 2^20)
             #println("size calc_monomials: ", Int(Base.summarysize(calc_monomials)) / 2^20)
             add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e, cache_size)
@@ -322,7 +330,7 @@ function add_by_hand(t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set
     else
         for weightspace in weightspaces
             #println("varinfo: ", InteractiveUtils.varinfo(MB3))
-            println("new memory: ", Int(Base.Sys.free_memory()) / 2^20)
+            #println("new memory: ", Int(Base.Sys.free_memory()) / 2^20)
             #println("size space: ", Int(Base.summarysize(space)) / 2^20)
             #println("size calc_monomials: ", Int(Base.summarysize(calc_monomials)) / 2^20)
             add_new_monomials!(t, n, mats, wts, monomial_order, weightspace, wts_eps, set_mon_in_weightspace, calc_monomials, space, e, cache_size, set_mon, m)
