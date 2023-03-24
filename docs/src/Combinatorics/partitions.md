@@ -2,31 +2,33 @@
 
 ```@docs
 Partition
+getindex_safe
 ```
 
-## Unrestricted partitions
+## Generating and counting
+
+### Unrestricted partitions
 
 ```@docs
-partitions(::Integer)
-num_partitions(::Integer)
-ascending_partitions
+partitions(::Oscar.IntegerUnion)
+num_partitions(::Oscar.IntegerUnion)
 ```
 
-## Restricted partitions
+### Restricted partitions
 
 ```@docs
-partitions(::Integer, ::Integer, ::Integer, ::Integer)
-partitions(::Integer, ::Integer)
-num_partitions(::Integer, ::Integer)
-partitions(::Integer, ::Integer, ::Vector{Integer}, ::Vector{Integer})
-partitions(::Integer, ::Vector{Integer})
+partitions(::T, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
+partitions(::T, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
+num_partitions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
+partitions(::T, ::Oscar.IntegerUnion, ::Vector{T}, ::Vector{S}) where {T <: Oscar.IntegerUnion, S<:Oscar.IntegerUnion}
+partitions(::T, ::Vector{T}, ::Vector{S}) where {T <: Oscar.IntegerUnion, S<:Oscar.IntegerUnion}
+partitions(::T, ::Vector{T}) where T <: Oscar.IntegerUnion
 ```
 
 ## Operations
 
 ```@docs
 conjugate
-getindex_safe
 ```
 
 ## Relations
