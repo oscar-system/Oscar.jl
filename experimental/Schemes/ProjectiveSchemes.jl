@@ -149,28 +149,34 @@ function map_on_affine_cones(
                                                           }},
                              <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
                                                            MPolyQuoLocRing, MPolyLocRing
-                                                          }}
+                                                          }},
+                             <:Hecke.Map,
+                             Nothing
                             };
     check::Bool=true
   )
-  @show "trigger 2"
-  @show typeof(phi)<:ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Field}, <:AbsProjectiveScheme{<:Field}}
-  @show typeof(phi)
   if !isdefined(phi, :map_on_affine_cones)
     pb_phi = pullback(phi)
     C_dom, flat_dom = affine_cone(domain(phi))
     C_cod, flat_cod = affine_cone(codomain(phi))
-    @show gens(OO(C_cod))
-    @show inverse(flat_cod).(gens(OO(C_cod)))
-    @show pb_phi
-    @show typeof(pb_phi)
-    @show pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))
-    @show flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod)))))
+    v = inverse(flat_cod).(gens(OO(C_cod)))
     pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))), check=check) # TODO: Set check=false
     phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
   end
   return phi.map_on_affine_cones
+end
 
+function map_on_affine_cones(
+    phi::ProjectiveSchemeMor{
+                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
+                                                           MPolyQuoLocRing, MPolyLocRing
+                                                          }},
+                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
+                                                           MPolyQuoLocRing, MPolyLocRing
+                                                          }}
+                            };
+    check::Bool=true
+  )
   if !isdefined(phi, :map_on_affine_cones)
     # The diagram is 
     #   P  →  Q
@@ -194,17 +200,19 @@ function map_on_affine_cones(
     pb_P = pullback(projection_to_base(P))
     pb_Q = pullback(projection_to_base(Q))
     imgs_base = pb_P.(base_ring_morphism(phi).(gens(A)))
-    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base), check=check)
+    CP, mP = affine_cone(P)
+    CQ, mQ = affine_cone(Q)
+    imgs_fiber = [mP(g) for g in pullback(phi).(gens(S))]
+    phi.map_on_affine_cones = SpecMor(CP, CQ, vcat(imgs_fiber, imgs_base), check=check)
   end
   return phi.map_on_affine_cones::AbsSpecMor
 end
 
 function map_on_affine_cones(
-    phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Field}, <:AbsProjectiveScheme{<:Field}};
+    phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Field}, <:AbsProjectiveScheme{<:Field},
+                            <:Hecke.Map, Nothing};
     check::Bool=true
   )
-  @show "trigger"
   if !isdefined(phi, :map_on_affine_cones)
     pb_phi = pullback(phi)
     C_dom, flat_dom = affine_cone(domain(phi))
@@ -242,10 +250,6 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecO
     Q = ambient_scheme(CY)
     BY = base_scheme(Y)
     BQ = ambient_scheme(BY)
-    @show codomain(map_X) === OO(CX)
-    @show parent(map_X(pullback(phi)(first(gens(ambient_coordinate_ring(Y)))))) === OO(CX)
-    @show parent(map_X(pullback(phi)(first(gens(ambient_coordinate_ring(Y))))))
-    @show OO(CX)
     fiber_coord_imgs = map_X.(pullback(phi).(gens(ambient_coordinate_ring(Y)))) # elements in OO(CX)
     #@show pullback(phi).(pullback(projection_to_base(Y)).(gens(OO(BY))))
     base_coord_imgs = map_X.(pullback(phi).(ambient_coordinate_ring(Y).(gens(OO(BY)))))
