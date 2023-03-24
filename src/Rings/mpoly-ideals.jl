@@ -907,9 +907,11 @@ end
 #######################################################
 
 @doc Markdown.doc"""
-    ideal_membership(f::T, I::MPolyIdeal{T}) where T
+    ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
 
-Return `true` if `f` is contained in `I`, `false` otherwise. Alternatively, use `f in I`.
+Return `true` if `f` is contained in `I`, `false` otherwise. Uses a cached Gröbner basis for `I` or, if no such cached
+Gröbner basis exists, computes first a Gröbner basis for `I` w.r.t. the monomial ordering `ordering.
+Alternatively, use `f in I`.
 
 # Examples
 ```jldoctest
@@ -933,7 +935,11 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
-  GI = standard_basis(I, ordering=ordering, complete_reduction=false)
+  if isempty(I.gb)
+    GI = standard_basis(I, ordering=ordering, complete_reduction=false)
+  else
+    GI = first(I.gb)[2]
+  end
   singular_assure(GI)
   Sx = base_ring(GI.S)
   return Singular.iszero(Singular.reduce(Sx(f), GI.S))
