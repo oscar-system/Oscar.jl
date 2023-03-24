@@ -440,11 +440,11 @@ Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
 
 =====================================
 Affine charts of the blown up scheme:
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0), x, y, z over Rational Field by ideal(-(s1//s0)*z + (s2//s0)*y, (s2//s0)*x - z, (s1//s0)*x - y) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0), x over Rational Field by ideal(0, 0, 0) at the multiplicative set powers of QQMPolyRingElem[1]
 
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1), x, y, z over Rational Field by ideal((s2//s1)*y - z, -(s0//s1)*z + (s2//s1)*x, -(s0//s1)*y + x) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1), y over Rational Field by ideal(0, 0, 0) at the multiplicative set powers of QQMPolyRingElem[1]
 
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2), x, y, z over Rational Field by ideal(-(s1//s2)*z + y, -(s0//s2)*z + x, -(s0//s2)*y + (s1//s2)*x) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2), z over Rational Field by ideal(0, 0, 0) at the multiplicative set powers of QQMPolyRingElem[1]
 
 =====================================
 Data of center:
