@@ -13,7 +13,6 @@ include("./LieAlgebras.jl")
 include("./MonomialOrder.jl")
 include("./WeylPolytope.jl")
 
-G = Oscar.GAP.Globals
 fromGap = Oscar.GAP.gap_to_julia
 
 

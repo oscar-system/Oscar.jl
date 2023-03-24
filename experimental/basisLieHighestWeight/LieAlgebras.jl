@@ -3,7 +3,6 @@
 using Oscar
 using SparseArrays
 
-G = Oscar.GAP.Globals
 fromGap = Oscar.GAP.gap_to_julia
 
 
@@ -11,8 +10,8 @@ function lieAlgebra(t::String, n::Int)
     """
     Creates the Lie-algebra as a GAP object that gets used for a lot other computations with GAP
     """
-    L = G.SimpleLieAlgebra(GAP.Obj(t), n, G.Rationals)
-    return L, G.ChevalleyBasis(L)
+    L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
+    return L, GAP.Globals.ChevalleyBasis(L)
 end
 
 
@@ -23,8 +22,8 @@ function matricesForOperators(L, hw, ops)
     """
     used to create tensorMatricesForOperators
     """
-    M = G.HighestWeightModule(L, GAP.Obj(hw))
-    mats = G.List(ops, o -> G.MatrixOfAction(G.Basis(M), o))
+    M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
+    mats = GAP.Globals.List(ops, o -> GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
     mats = gapReshape.(fromGap(mats))
     d = lcm(denominator.(union(mats...)))
     mats = (A->ZZ.(A*d)).(mats)
@@ -38,7 +37,7 @@ function weightsForOperators(L, cartan, ops)
     """
     cartan = fromGap(cartan, recursive=false)
     ops = fromGap(ops, recursive=false)
-    asVec(v) = fromGap(G.ExtRepOfObj(v))
+    asVec(v) = fromGap(GAP.Globals.ExtRepOfObj(v))
     if any(iszero.(asVec.(ops)))
         error("ops should be non-zero")
     end

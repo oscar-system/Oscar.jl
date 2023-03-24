@@ -3,7 +3,6 @@ using Oscar
 
 include("./RootConversion.jl")
 
-G = Oscar.GAP.Globals
 fromGap = Oscar.GAP.gap_to_julia
 
 #########################
@@ -35,14 +34,14 @@ function orbit_weylgroup(t::String, n::Int, hw)
     # also possible with polymake orbit_polytope(Vector input_point, Group g), root_system(String type) to save the equations, constant summand missing
     # initialization
     L, CH = lieAlgebra(t, n)    
-    W = G.WeylGroup(G.RootSystem(L))
-    orb = G.WeylOrbitIterator(W, GAP.Obj(hw))
+    W = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(L))
+    orb = GAP.Globals.WeylOrbitIterator(W, GAP.Obj(hw))
     vertices = []
     
     # operate with the weylgroup on hw
-    G.IsDoneIterator(orb)
-    while !(G.IsDoneIterator(orb))
-        w = G.NextIterator(orb) 
+    GAP.Globals.IsDoneIterator(orb)
+    while !(GAP.Globals.IsDoneIterator(orb))
+        w = GAP.Globals.NextIterator(orb) 
         push!(vertices, fromGap(w))
     end
 
