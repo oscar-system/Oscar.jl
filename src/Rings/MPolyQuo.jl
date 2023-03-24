@@ -88,6 +88,10 @@ function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
   return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P)
 end
 
+function forget_grading(a::MPolyQuoRingElem) 
+  return a.f
+end
+
 ##############################################################################
 #
 # Quotient ring ideals
