@@ -1189,12 +1189,12 @@ julia> is_one(I)
 true
 ```
 """
-function is_one(I::MPolyIdeal)
+@attr Bool function is_one(I::MPolyIdeal)
   R = base_ring(I)
   if iszero(I)
       return false
   end
-  if any(x -> (is_constant(x) && is_unit(first(AbstractAlgebra.coefficients(x)))), gens(I))
+  if any(x -> (!is_zero(x) && is_constant(x) && is_unit(first(AbstractAlgebra.coefficients(x)))), gens(I))
     return true
   end
   gb = groebner_basis(I, complete_reduction = true)

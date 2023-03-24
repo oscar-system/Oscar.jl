@@ -99,17 +99,6 @@ end
 
 ## THIS SHOULD GO TO mpolyquo-localization.jl
 ## it is the localized and/or quotient wrapper to the MPolyIdeal-method
-function saturation(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
-  R = base_ring(I)
-  R == base_ring(J) || error("Ideals do no live in the same ring.")
-
-  I_sat = saturated_ideal(I)
-  J_sat = saturated_ideal(J)
-
-  I_result = Oscar.saturation(I_sat,J_sat)  ## why is saturation not exported from Rings/mpoly-ideal.jl?
-  return ideal(R,gens(I_result))
-end
-
 function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
   R = base_ring(I)
   R == base_ring(J) || error("Ideals do no live in the same ring.")
@@ -119,6 +108,12 @@ function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPoly
 
   I_result,k = Oscar.saturation_with_index(I_sat,J_sat)  ## why is saturation_with_index not exported from Rings/mpoly-ideal.jl?
   return (ideal(R,gens(I_result)),k)
+end
+
+## THIS SHOULD GO TO mpolyquo-localization.jl
+## it is the localized and/or quotient wrapper to the MPolyIdeal-method
+@attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
+  return is_one(saturated_ideal(I))
 end
 
 ## WHERE SHOULD THIS GO?
@@ -222,15 +217,17 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
     Iorig_chart = I(V)                 # I on this patch
     Itotal_chart = ideal(OO(U), pullback(p_cov[U]).(gens(Iorig_chart)))
                                        # total transform on Chart
-    IE_chart = IE(U)
 
     ## don't try saturating with respect to an empty set
-    if one(OO(U)) in IE_chart
+    ## not expensive for Cartier divisor, GB is cached (?) after first computation
+    if is_one(IE(U))
       ID[U] = Itotal_chart
       continue
     end
 
-  ## do different methods according to integer argument method
+    IE_chart = IE(U)
+
+    ## do different methods according to integer argument method
     if method == -1
       Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                 # strict
       btemp == b || b == -2 || error("different multiplicities in different charts!!")
@@ -244,6 +241,7 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
     end
     ID[U] = Itrans_chart
   end
+
   b > -2 || error("no patches in CY_simp!!!")
   I_trans = IdealSheaf(Y,ID,check=false)
   return I_trans,b
