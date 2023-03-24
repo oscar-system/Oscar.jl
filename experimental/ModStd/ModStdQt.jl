@@ -177,6 +177,8 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
     return true, Val.G
   end
 
+  set_status!(M, :univariate_failed)
+
   if !isdefined(Val, :nd) || length(Val.nd) < length(Val.v)
     nd = []
     val = Val.v
@@ -541,11 +543,12 @@ The return value is an array
 - first entry is a leading coefficient
 - the others are tuples, one for each irreducible factor of the input, either
 
-  - two polynomials over a finite extension of Q(A) given as a residue field,
+  - two polynomials and an integer: the polynomials are 
+      over a finite extension of Q(A) given as a residue field,
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
-      extension, the lst entry is the multiplicity.
+      extension, the lst entry (the integer) is the multiplicity.
       In this case, there are degree(h(t)) many abs. irreducible factors, but they
-      are all conjugate to th e1st tuple entry. The 2nd entry is the product of all the
+      are all conjugate to the 1st tuple entry. The 2nd entry is the product of all the
       other conjugates,
 
   - one polynomial over Q(A) - indicating that this factor is abs. irreducible 
@@ -553,7 +556,7 @@ The return value is an array
 
 # Examples     
 
-```jldoctest
+```julia
 julia> Qa, a = polynomial_ring(QQ, :a=>1:2);
 
 julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
@@ -561,14 +564,14 @@ julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
 julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
- (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
  (X[1] + t*X[2], X[1] - t*X[2], 1)
+ (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
 
 julia> parent(f[3][1])
-Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
+Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
 
 julia> parent(f[2][1])
-Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
+Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
 ```  
 """
 function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
@@ -649,8 +652,8 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
   end
 
   frst = true
-  lst = []
   do_z = true
+  lst = []
   local lst
 
   res = elem_type(F)[]
@@ -694,8 +697,14 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
 
       @vtime :ModStdQt 2 MM = g(v...)
       fg = factor_absolute(MM)
-      if length(fg) > 2
-        return nothing #bad evaluation
+      if length(fg) > 2 #TODO: think how to avoid the complete restart
+        @vprint :ModStdQt 2 "bad evaluation point, restarting...\n"
+        frst = true
+        do_z = true
+        empty!(lst)
+        empty!(res)
+        P = MPolyPt(n)
+        break
       end
       @assert length(fg) == 2
       if isa(base_ring(fg[2][1][1]), QQField)
@@ -725,9 +734,12 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
     end
     
     @vprint :ModStdQt 1 "starting interpolation...\n"
+    if length(lst) == 0 # after a bad point, we restart, thus nothing
+      continue          # to interpolate
+    end
     MI = MPolyInterpolateCtx(F, P)
 
-    local fl = true
+    local fl = length(res) > 0
     @vtime :ModStdQt 2 for Fi = length(res)+1:length(lst)
       local F
       F = lst[Fi]
