@@ -361,7 +361,7 @@ function cones_from_bitlist(cone_list, bit_list_tuple)
 end
 
 
-hash_to_cone(orbit_list, hash) = Polymake.polytope.intersection(
+hash_to_cone(orbit_list, hash) = intersect(
     cones_from_bitlist(orbit_list, hash)...)
 
 
@@ -396,14 +396,14 @@ end
 get_interior_point_weighted(cone) = weighted_sum(cone, get_weights(cone))
 
 """
-    fan_traversal(orbit_list, q_cone, perm_actions)
+    fan_traversal(orbit_list, q_cone::Cone, perm_actions)
 
 Return the pair `(hash_list, edges)` where `hash_list` is an array that
 encodes orbit representatives of the maximal cones of the GIT fan described
 by `orbit_list`, `q_cone`, and `perm_actions`,
 and `edges` encodes the `Set` of edges of the incidence graph of the orbits.
 """
-function fan_traversal(orbit_list, q_cone, perm_actions)
+function fan_traversal(orbit_list, q_cone::Cone, perm_actions)
     # the induced actions on each of the orbits
     generators_new_perm = rewrite_action_to_orbits(perm_actions)
 
@@ -475,13 +475,11 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
     maxcones = vcat(expanded...)
 
     # the defining rays for all maximal cones
-    rays_maxcones = [[convert(Vector{Rational{BigInt}}, rays(cone)[i, :])
-                      for i in 1:size(rays(cone), 1)]
+    rays_maxcones = [[Vector{Rational{BigInt}}(x) for x in rays(cone)]
                       for cone in maxcones]
 
     # the defining rays for the orbit representatives of maximal cones
-    rays_result_cones = [[convert(Vector{Rational{BigInt}}, rays(cone)[i, :])
-                      for i in 1:size(rays(cone), 1)]
+    rays_result_cones = [[Vector{Rational{BigInt}}(x) for x in rays(cone)]
                       for cone in result_cones]
 
     # the set of rays
@@ -525,7 +523,7 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
       error("a zero vector should not appear")
     end
 
-    rewr = [as_permutation(x, allrays, actfun, ==) for x in mats_transp]
+    rewr = [as_permutation(x, allrays, actfun) for x in mats_transp]
 
     pf = polyhedral_fan_from_rays_action(allrays, IncidenceMatrix(index_result_cones), rewr)
 
@@ -565,7 +563,7 @@ function edges_intersection_graph(maxcones, inter_dim::Int)
     edges = Vector{Int}[]
     for j in 1:length(maxcones)
         for i in 1:(j-1)
-            if Polymake.polytope.dim(Polymake.polytope.intersection(
+            if dim(intersect(
                    maxcones[i], maxcones[j])) == inter_dim
                 push!(edges, [i, j])
             end
