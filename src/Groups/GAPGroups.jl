@@ -542,7 +542,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
    return Base.rand(Random.GLOBAL_RNG, C)
 end
 
-function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
+function Base.rand(rng::Random.AbstractRNG, C::GAPGroupConjClass{S,T}) where S where T<:GAPGroupElem
    return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj)
 end
 
@@ -607,7 +607,7 @@ end
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
 function conjugacy_class(G::T, g::T) where T<:GAPGroup
-   return GroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X)::GapObj)
+   return GAPGroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X)::GapObj)
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
@@ -629,7 +629,7 @@ julia> G = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
 
 julia> conjugacy_classes_subgroups(G)
-4-element Vector{GroupConjClass{PermGroup, PermGroup}}:
+4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Group(()) ^ Sym( [ 1 .. 3 ] )
  Group([ (2,3) ]) ^ Sym( [ 1 .. 3 ] )
  Group([ (1,2,3) ]) ^ Sym( [ 1 .. 3 ] )
@@ -684,7 +684,7 @@ Return the vector of all conjugacy classes of maximal subgroups of G.
 julia> G = symmetric_group(3);
 
 julia> conjugacy_classes_maximal_subgroups(G)
-2-element Vector{GroupConjClass{PermGroup, PermGroup}}:
+2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Group([ (1,2,3) ]) ^ Sym( [ 1 .. 3 ] )
  Group([ (2,3) ]) ^ Sym( [ 1 .. 3 ] )
 
@@ -692,7 +692,7 @@ julia> conjugacy_classes_maximal_subgroups(G)
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)::GapObj)
-  return [GroupConjClass(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)), cc) for cc in L]
+  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)), cc) for cc in L]
 end
 
 """
@@ -935,7 +935,7 @@ end
 
 
 # START iterator
-Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{<:GAPGroupConjClass}) = Base.SizeUnknown()
 
 Base.iterate(cc::GAPGroupConjClass) = iterate(cc, GAPWrap.Iterator(cc.CC))
 
