@@ -495,26 +495,27 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
-  R = base_ring(I)
-  singular_assure(I)
-  if elem_type(base_ring(R)) <: FieldElement
-    if alg == :GTZ
-      L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
-    elseif alg == :SY
-      L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+function primary_decomposition(I::T, alg=:GTZ) where {T<:MPolyIdeal}
+  PD = get_attribute!(I, :primary_decomposition) do
+    R = base_ring(I)
+    singular_assure(I)
+    if elem_type(base_ring(R)) <: FieldElement
+      if alg == :GTZ
+        L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
+      elseif alg == :SY
+        L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+      else
+        error("algorithm invalid")
+      end
+    elseif base_ring(I.gens.Sx) isa Singular.Integers
+      L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
     else
-      error("algorithm invalid")
+      error("base ring not implemented")
     end
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
-  else
-    error("base ring not implemented")
+    return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
   end
-  return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
+  return PD::Vector{Tuple{T,T}}
 end
-
-@attr Vector{Tuple{T,T}} primary_decomposition(I::T) where {T <:MPolyIdeal} = primary_decomposition(I; alg=:GTZ)
 
 ########################################################
 @doc Markdown.doc"""
