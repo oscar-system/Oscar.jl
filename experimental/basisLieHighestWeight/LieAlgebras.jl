@@ -3,8 +3,6 @@
 using Oscar
 #using SparseArrays
 
-G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 
@@ -12,8 +10,8 @@ function lieAlgebra(t::String, n::Int)
     """
     Creates the Lie-algebra as a GAP object that gets used for a lot other computations with GAP
     """
-    L = G.SimpleLieAlgebra(forGap(t), n, G.Rationals)
-    return L, G.ChevalleyBasis(L)
+    L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
+    return L, GAP.Globals.ChevalleyBasis(L)
 end
 
 
@@ -33,9 +31,12 @@ function matricesForOperators(L, hw, ops)
     """
     used to create tensorMatricesForOperators
     """
-    M = G.HighestWeightModule(L, forGap(hw))
-    mats = G.List(ops, o -> G.MatrixOfAction(G.Basis(M), o))
-    mats = gapReshape.(fromGap(mats))
+    #M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
+    #mats = GAP.Globals.List(ops, o -> GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
+    M = Oscar.GAP.Globals.HighestWeightModule(L, Oscar.GAP.julia_to_gap(hw))
+    mats = Oscar.GAP.Globals.List(ops, o -> Oscar.GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
+    #mats = gapReshape.(fromGap(mats))
+    mats = gapReshape.( Oscar.GAP.gap_to_julia(mats))
     denominators = map(y->denominator(y[2]), union(union(mats...)...))
     #d = convert(QQ, lcm(denominators))
     d = lcm(denominators)# // 1
@@ -50,7 +51,7 @@ function weightsForOperators(L, cartan, ops)
     """
     cartan = fromGap(cartan, recursive=false)
     ops = fromGap(ops, recursive=false)
-    asVec(v) = fromGap(G.ExtRepOfObj(v))
+    asVec(v) = fromGap(GAP.Globals.ExtRepOfObj(v))
     if any(iszero.(asVec.(ops)))
         error("ops should be non-zero")
     end

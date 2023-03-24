@@ -1,7 +1,7 @@
 using Oscar
 using Test
 using TestSetExtensions
-using SparseArrays
+#using SparseArrays
 
 include("MBOld.jl")
 
@@ -17,7 +17,7 @@ can compute with the weaker version.
 """
 
 function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
-    print("TESTETSETSET", dynkin, n, lambda)
+    #print("TESTETSETSET", dynkin, n, lambda)
     dim, m, v = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
     w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda) # algorithm that needs to be tested
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
@@ -27,7 +27,7 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
 end
 
 function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
-    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda, monomial_order=monomial_order, ops=ops) # algorithm that needs to be tested
+    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda, monomial_order=monomial_order) # algorithm that needs to be tested
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
     gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
     @test gapDim == length(w) # check if dimension is correct

@@ -12,27 +12,27 @@ include("./NewMonomial.jl")
 
 #include("./VectorSpaceBases.jl") #--- bekommt gerade noch ZZ, Short und TVEC aus VectorSpaceBases
 
-G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
-Markdown.@doc doc"""
-basisLieHighestWeight2(t, n, hw; ops, known_monomials, monomial_order, cache_size, parallel:Bool, return_no_minkowski:.Bool, return_ops::Bool) -> Int, Int
+@doc Markdown.doc"""
+    basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
 
-Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
+Compute a monomial basis for the highest weight module with highest weight
+``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type
+``t`` and rank ``n``.
+
+# Parameters
+- `t`: Explain
+- `n`: Explain
+- `hw`: Explain
 
 # Examples
 ```jldoctest
-julia> basisLieHighestWeight2
-output
+julia> 1+1
+2
 ```
 """
-
-
 function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
-    """
-    Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
-    """
     # The function precomputes objects that are independent of the highest weight and can be used in all recursion steps. Then it starts the recursion and returns the result.
 
     # initialization
@@ -63,9 +63,9 @@ function sub_simple_refl(word, L, n)
     """
     substitute simple reflections (i,i+1), saved in dec by i, with E_{i,i+1}  
     """
-    R = G.RootSystem(L)
-    CG = fromGap(G.CanonicalGenerators(R)[1], recursive = false)
-    ops = forGap([CG[i] for i in word], recursive = false)
+    R = GAP.Globals.RootSystem(L)
+    CG = fromGap(GAP.Globals.CanonicalGenerators(R)[1], recursive = false)
+    ops = GAP.Obj([CG[i] for i in word], recursive = false)
     return ops
 end
 
@@ -121,7 +121,7 @@ function compute_monomials(t, n, L, hw, ops, wts, wts_eps, monomial_order, calc_
     end
     
     # calculation required
-    gapDim = G.DimensionOfHighestWeightModule(L, forGap(hw)) # number of monomials that we need to find, i.e. |M_{hw}|.
+    gapDim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(hw)) # number of monomials that we need to find, i.e. |M_{hw}|.
     # fundamental weights
     if is_fundamental(hw) # if hw is a fundamental weight, no partition into smaller summands is possible. This is the basecase of the recursion.
         push!(no_minkowski, hw)
@@ -203,7 +203,7 @@ function add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats,
     for mon in set_mon_in_weightspace[weight]
         #vec, wt = calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
         d = sz(mats[1])
-        v0 = sparse_matrix(ZZ, []) # starting vector v
+        v0 = sparse_row(ZZ, [(1,1)]) # starting vector v
         vec = calc_vec(v0, mon, mats)
         wt = calc_wt(mon, wts)  
         #println("vec:" , vec)
@@ -336,9 +336,6 @@ function add_by_hand(t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set
             #println("size space: ", Int(Base.summarysize(space)) / 2^20)
             #println("size calc_monomials: ", Int(Base.summarysize(calc_monomials)) / 2^20)
             add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e, cache_size)
-            if Int(Base.Sys.free_memory()) / 2^20 < 100
-                println("-----------------KNOWN------------------------") 
-            end
         end 
     end
 
@@ -354,9 +351,6 @@ function add_by_hand(t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set
             #println("size space: ", Int(Base.summarysize(space)) / 2^20)
             #println("size calc_monomials: ", Int(Base.summarysize(calc_monomials)) / 2^20)
             add_new_monomials!(t, n, mats, wts, monomial_order, weightspace, wts_eps, set_mon_in_weightspace, calc_monomials, space, e, cache_size, set_mon, m)
-            if Int(Base.Sys.free_memory()) / 2^20 < 100
-                println("-----------------NEW------------------------")
-            end
         end
     end
     #println("calc_monomials: ", length(calc_monomials))
@@ -370,8 +364,8 @@ function get_dim_weightspace(t, n, L, hw)
     and we can therefore calculate the dimension of each weightspace
     """
     # calculate dimension for dominant weights with GAP
-    R = G.RootSystem(L)
-    W = fromGap(G.DominantCharacter(R, forGap(hw)))
+    R = GAP.Globals.RootSystem(L)
+    W = fromGap(GAP.Globals.DominantCharacter(R, GAP.Obj(hw)))
     dominant_weights = W[1]
     dominant_weights_dim = W[2]
     dim_weightspace = []
