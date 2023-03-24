@@ -120,7 +120,7 @@ end
   G = standard_basis(I, ordering=o)
   @test normal_form(x^5-5, I, ordering=o) == -5
   J = ideal(R, [x^5-5])
-  units, matr, res = reduce_with_quotients_and_unit(J.gens, G)
+  units, matr, res = reduce_with_quotients_and_unit(J.gens, G, ordering=o)
   @test matr * gens(G) + res == units * gens(J)
   u = negdegrevlex([x])*negdegrevlex([y])
   @test ideal_membership(x^4, I, ordering=u)
