@@ -41,7 +41,7 @@
     @test map(length, orbit_list) == [10, 15, 10, 1]
 
     perm_actions = GITFans.action_on_orbit_cone_orbits(orbit_list, matrix_action)
-    q_cone = Polymake.polytope.Cone(INPUT_RAYS = Q)
+    q_cone = positive_hull(Q)
 
     (hash_list, edges) = GITFans.fan_traversal(orbit_list, q_cone, perm_actions)
     @test length(hash_list) == 6
