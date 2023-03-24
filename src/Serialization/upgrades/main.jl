@@ -24,15 +24,19 @@ end
 const upgrade_scripts = Vector{UpgradeScript}()
 
 function upgrade_data(upgrade::Function, s::DeserializerState, dict::Dict)
+    # file comes from polymake
+    haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
+    
     upgraded_dict = Dict{Symbol, Any}()
     for (key, dict_value) in dict
-        if dict_value isa String || dict_value isa Int64
+        if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
             upgraded_dict[key] = dict_value
         elseif dict_value isa Dict{Symbol, Any}
             upgraded_dict[key] = upgrade(s, dict_value)
         else  # not a string or a dictionary, so must be a vector
             new_value = []
             for v in dict_value
+                println(v)
                 if v isa String
                     push!(new_value, v)
                 else
