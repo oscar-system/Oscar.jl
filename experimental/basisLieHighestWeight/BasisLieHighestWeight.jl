@@ -4,6 +4,7 @@ export is_fundamental
 
 using Polymake
 using Distributed
+using Markdown
 #using CUDA
 #using CuArrays
 
@@ -14,6 +15,18 @@ include("./NewMonomial.jl")
 G = Oscar.GAP.Globals
 forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
+
+Markdown.@doc doc"""
+basisLieHighestWeight2(t, n, hw; ops, known_monomials, monomial_order, cache_size, parallel:Bool, return_no_minkowski:.Bool, return_ops::Bool) -> Int, Int
+
+Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
+
+# Examples
+```jldoctest
+julia> basisLieHighestWeight2
+output
+```
+"""
 
 
 function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
@@ -30,7 +43,7 @@ function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [],
     wts_eps = [w_to_eps(t, n, w) for w in wts] # this is another way of representing the weights and equivalent to wts, but some functionality is easier with those.
     calc_hw = Dict{Vector{Int}, Set{Vector{Int}}}([0 for i=1:n] => Set([[0 for i=1:n]]))
     no_minkowski = Set() # we save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
-    
+
     # start recursion over hw
     res = compute_monomials(t, n, L, hw, ops, wts, wts_eps, monomial_order, calc_hw, cache_size, parallel, no_minkowski)
     
@@ -99,6 +112,7 @@ function compute_monomials(t, n, L, hw, ops, wts, wts_eps, monomial_order, calc_
     a part of M_{hw} by going through all partitions of hw and using the Minkowski-property. The base cases of the recursion are the fundamental weights
     hw = [0, ..., 1, ..., 0]. In this case, or if the Minkowski-property did not find enough monomials, we need to perform the computations "by hand".
     """
+    #println("compute_monomials: ", t, n, L, hw, ops, wts, wts_eps, monomial_order, calc_hw)
     # simple cases
     if haskey(calc_hw, hw) # we already computed the result in a prior recursion step
         return calc_hw[hw]
@@ -179,6 +193,8 @@ function compute_sub_weights(hw)
 end
 
 function add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e, cache_size)
+    #println("add_known_monomials: ", weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e)
+    #println("")
     """
     By using the Minkowski-sum, we know that all monomials in set_mon_in_weightspace are in our basis. Since we want to extend the weightspacse with
     missing monomials, we go need to calculate and add the vector of each monomial to our basis.
@@ -187,7 +203,7 @@ function add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats,
     for mon in set_mon_in_weightspace[weight]
         #vec, wt = calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
         d = sz(mats[1])
-        v0 = spzeros(Int, d); v0[1] = 1 # starting vector v
+        v0 = sparse_matrix(ZZ, []) # starting vector v
         vec = calc_vec(v0, mon, mats)
         wt = calc_wt(mon, wts)  
         #println("vec:" , vec)
@@ -207,6 +223,8 @@ function add_new_monomials!(t, n, mats, wts, monomial_order, weightspace, wts_ep
     lie in the weyl-polytope. Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-polytope is bounded
     these are finitely many, we can sort them and then go trough them, until we found enough. 
     """
+    #println("add_new_monomials: ", weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e)
+    #println("")
     #println("memory: ", Int(Base.Sys.free_memory()) / 2^20)
     weight = weightspace[1]
     dim_weightspace = weightspace[2]
@@ -239,14 +257,14 @@ function add_new_monomials!(t, n, mats, wts, monomial_order, weightspace, wts_ep
         # calculate the vector and check if it extends the basis
         #vec, _ = calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
         d = sz(mats[1])
-        v0 = spzeros(Int, d); v0[1] = 1 # starting vector v
+        v0 = sparse_row(ZZ, [(1,1)]) # starting vector v
         vec = calc_vec(v0, mon, mats)
         #println("vec:" , vec)
         if !haskey(space, weight)
             space[weight] = nullSpace()
         end
         vec_red = addAndReduce!(space[weight], vec)
-        if isempty(vec_red.nzind) # v0 == 0
+        if isempty(vec_red) # v0 == 0
             continue
         end
 
@@ -271,6 +289,8 @@ function add_by_hand(t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set
     This function calculates the missing monomials by going through each non full weightspace and adding possible monomials
     manually by computing their corresponding vectors and checking if they enlargen the basis.
     """
+    #println("add_by_hand: ", t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set_mon)
+    #println("")
     #println("")
     #println("add_by_hand: ", hw)
     # initialization
@@ -279,7 +299,7 @@ function add_by_hand(t, n, L, hw, ops, wts, wts_eps, monomial_order, gapDim, set
     e = [(1:m .== i) for i in 1:m] # e_i
     space = Dict(0*wts[1] => nullSpace()) # span of basis vectors to keep track of the basis
     d = sz(mats[1])
-    v0 = spzeros(Int, d); v0[1] = 1 # starting vector v
+    v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
     calc_monomials = Dict{Vector{Int}, Tuple{TVec, Vector{Int}}}([0 for i in 1:m] => (v0, 0 * wts[1])) # saves the calculated vectors to decrease necessary matrix multiplicatons
     push!(set_mon, [0 for i in 1:m])
     weightspaces = get_dim_weightspace(t,n, L, hw) # required monomials of each weightspace

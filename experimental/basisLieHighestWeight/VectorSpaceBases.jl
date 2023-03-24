@@ -1,10 +1,9 @@
 # manages the basisvectors and its linear independence
 
 using Oscar
-using SparseArrays
+# SparseArrays
 
-ZZ = Int
-TVec = SparseVector{ZZ, Int} # values ZZ, indices Int (TVec is datatype of basisvectors basisLieHighestWeight)
+TVec = SRow{ZZRingElem} # values ZZ, indices Int (TVec is datatype of basisvectors basisLieHighestWeight)
 Short = UInt8 # for exponents of monomials; max. 255
 
 struct VSBasis
@@ -22,14 +21,13 @@ function normalize(v::TVec)
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
     used: addAndReduce!
     """
-    dropzeros!(v)
-    if isempty(v.nzind)
+    if is_empty(v)
         return (v, 0)
     end
 
-    pivot = v.nzind[1]  # first nonzero element of vector
+    pivot = first(v)[1]  # first nonzero element of vector
 
-    return v .÷ gcd(v.nzval), pivot
+    return divexact(v, gcd(map(y->y[2], union(v)))), pivot
 end
 
 
@@ -44,21 +42,14 @@ function addAndReduce!(sp::VSBasis, v::TVec)
     invariants: the row of a pivotelement in any column in A is 0 (except the pivotelement)
                 elements of A are integers, gcd of each column is 1
     """
+    #println("sp: ", sp)
+    #println("v: ", v)
     A = sp.A
     pivot = sp.pivot
-    dim = sp.dim
-
-    if dim == [] # update dimension
-        insert!(dim, 1, length(v))
-    end
-
-    if length(A) == sp.dim[1] # space already full => linear dependence guaranteed
-        v = spzeros(ZZ, sp.dim[1])
-        return v
-    end
 
     v, newPivot = normalize(v) 
     if newPivot == 0 # v zero vector
+
         return v
     end
  
@@ -70,6 +61,7 @@ function addAndReduce!(sp::VSBasis, v::TVec)
         v = reduceCol(v, A[j], i)
         v, newPivot = normalize(v)
         if newPivot == 0
+            #return 0
             return v
         end
     end

@@ -33,7 +33,7 @@ function calc_vec(v0, mon, mats)
     vec = v0
     for i in length(mon):-1:1
         for j in 1:mon[i]
-            vec = mats[i]*vec
+            vec = mul(vec, transpose(mats[i]))
         end
     end
     return vec

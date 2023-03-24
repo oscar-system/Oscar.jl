@@ -6,12 +6,14 @@ module MBOld
 export basisLieHighestWeight # use parallel = true for parallel computing
 
 using Oscar
-using SparseArrays
+
+G = Oscar.GAP.Globals
+forGap = Oscar.GAP.julia_to_gap
+fromGap = Oscar.GAP.gap_to_julia
 
 #### vector space bases
 
-ZZ = Int
-TVec = SparseVector{ZZ, Int} 
+TVec = SRow{ZZRingElem} 
 Short = UInt8 
 
 struct VSBasis
@@ -28,18 +30,17 @@ function normalize(v::TVec)
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
     used: addAndReduce!
     """
-    dropzeros!(v)
-    if isempty(v.nzind)
+    if isempty(v)
         return (0, 0)
     end
 
-    pivot = v.nzind[1]
+    pivot = first(v)[1]
 
-    return v .÷ gcd(v.nzval), pivot
+    return divexact(v, gcd(map(y->y[2], union(v)))), pivot
 end
 
 
-reduceCol(a, b, i::Int) = a*b[i] - b*a[i]
+reduceCol(a, b, i::Int) = a*b[i] - a[i]*b
 
 
 function addAndReduce!(sp::VSBasis, v::TVec)
@@ -93,19 +94,34 @@ function lieAlgebra(t::String, n::Int)
     return L, G.ChevalleyBasis(L)
 end
 
+# temporary workaround for issue 2128
+function multiply_scalar(A::SMat{T}, d) where T
+    for i in 1:nrows(A)
+        scale_row!(A, i, T(d))
+    end
+    return A
+    #return identity_matrix(SMat, QQ, size(A)[1])*A
+end
 
-gapReshape(A) = sparse(hcat(A...))
-
+gapReshape(A) = sparse_matrix(QQ, hcat(A...))
 
 function matricesForOperators(L, hw, ops)
+    """
+    used to create tensorMatricesForOperators
+    """
+    println("L: ", L)
+    println("hw: ", hw)
+    println("ops: ", ops)
     M = G.HighestWeightModule(L, forGap(hw))
     mats = G.List(ops, o -> G.MatrixOfAction(G.Basis(M), o))
     mats = gapReshape.(fromGap(mats))
-    d = lcm(denominator.(union(mats...)))
-    mats = (A->ZZ.(A*d)).(mats)
+    println("mats: ", mats)
+    denominators = map(y->denominator(y[2]), union(union(mats...)...))
+    #d = convert(QQ, lcm(denominators))
+    d = lcm(denominators)# // 1
+    mats = (A->change_base_ring(ZZ, multiply_scalar(A, d))).(mats)
     return mats
 end
-
 
 function weightsForOperators(L, cartan, ops)
     cartan = fromGap(cartan, recursive=false)
@@ -168,7 +184,7 @@ julia> dim, monomials, vectors = PolyBases.MB.basisLieHighestWeight("A", 2, [1,0
 ```
 """
 
-function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = [], parallel::Bool = false) #--- :: Tuple{Int64,Vector{Vector{Short}},Vector{TVec}}
+function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = []) #--- :: Tuple{Int64,Vector{Vector{Short}},Vector{TVec}}
     # TODO: flag for root ordering
     L, CH = lieAlgebra(t, n)    #--- L ist Lie Algebra vom Typ t, n (z.B: "A", 2) durch Funktion GAP.SimpleLieAlgebra(t,n)
                                 #--- G ist ChevalleyBasis von L durch GAP.ChevalleyBasis(L)
@@ -200,10 +216,9 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = [], p
     #  wts = (v->round(dot(rnd,v), sigdigits=4)).(wts)
     #  display(wts)
 
-    d = sz(mats[1])
     #display(mats)
     #display(d)
-    hwv = spzeros(ZZ, d); hwv[1] = 1
+    hwv = sparse_row(ZZ, [(1,1)])
     # TODO: (okay for now)
     # here we assume the first vector in G.Basis(M) is a highest weight vector
     #display(hwv)
@@ -227,7 +242,7 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = [], p
     #display(wts)
     #println("")
 
-    res = compute(hwv, mats, wts, parallel = parallel)
+    res = compute(hwv, mats, wts)
 
     return length(res[1]), res...
 end
@@ -244,9 +259,11 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
     #--- jedes Monom erhaelt id
     #--- id(mon) returnt die id des entsprechenden mon.
     id(mon) = sum((1 << (sum(mon[1:i])+i-1) for i in 1:m-1) , init = 1) # init = 1 for case m = 1
-    e = [Short.(1:m .== i) for i in 1:m] #--- Einheitsvektoren z.B.: e = [[1, 0, 0], [0, 1, 0], [0, 0, 1]] für m = 3
-    maxid(deg) = id(deg.*e[1]) #--- returnt maximale id für Monom vom Grad deg (worst case ist [1, 0, 0], da dann erste Potenz in jedem Summanden ist)
-    
+    e = sparse_row(ZZ, [(1,1)]) #--- Einheitsvektoren z.B.: e = [[1, 0, 0], [0, 1, 0], [0, 0, 1]] für m = 3
+    #maxid(deg) = id(deg.*e[1]) #--- returnt maximale id für Monom vom Grad deg (worst case ist [1, 0, 0], da dann erste Potenz in jedem Summanden ist)
+    maxid(deg) = id(deg.*[1])
+    # TODO 
+
     #--- Sperrung von Monome
     blacklists = [falses(maxid(0))] #--- Monome die bereits in der Basis enthalten sind, i-ter Eintrag ist Sperrung für Monome von Grad i
     blacklists[end][id(monomials[1])] = 1 #--- Für Grad 0, d.h. konstant, ist die letzte id gesperrt da 0-Polynom
@@ -308,7 +325,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
                     space[wt] = nullSpace()
                 end
 
-                vec = mats[i] * vectors[p] #--- vec ist neuer potenzieller Kandidat für Basis. 
+                vec = mul(vector[p], transpose(mats[i])) #--- vec ist neuer potenzieller Kandidat für Basis. 
                 vec = addAndReduce!(space[wt], vec) #--- vec ist altes vec ohne Anteil des bereits vorhandenen Erzeugnisses. Wenn 0, dann linear abhängig zu altem Unterraum
                 if vec == 0 #--- wenn vec linear abhängig war, fügen wir vec nicht hinzu
                     continue

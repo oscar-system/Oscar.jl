@@ -1,7 +1,7 @@
 # ?
 
 using Oscar
-using SparseArrays
+#using SparseArrays
 
 # TODO: make the first one a symmetric product, or reduce more generally
 

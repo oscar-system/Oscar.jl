@@ -11,3 +11,7 @@ Pages = ["basisLieHighestWeight.md"]
 ```
 
 # Monomial bases for Lie algebras
+
+@docs```
+
+```

@@ -1,2 +1,2 @@
 include("BasisLieHighestWeight.jl")
-export MB
+export BasisLieHighestWeight

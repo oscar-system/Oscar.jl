@@ -1,7 +1,7 @@
 # ?
 
 using Oscar
-using SparseArrays
+#using SparseArrays
 
 G = Oscar.GAP.Globals
 forGap = Oscar.GAP.julia_to_gap
@@ -17,8 +17,17 @@ function lieAlgebra(t::String, n::Int)
 end
 
 
-gapReshape(A) = sparse(hcat(A...))
+gapReshape(A) = sparse_matrix(QQ, hcat(A...))
+#gapReshape(A) = sparse(hcat(A...))
 
+# temporary workaround for issue 2128
+function multiply_scalar(A::SMat{T}, d) where T
+    for i in 1:nrows(A)
+        scale_row!(A, i, T(d))
+    end
+    return A
+    #return identity_matrix(SMat, QQ, size(A)[1])*A
+end
 
 function matricesForOperators(L, hw, ops)
     """
@@ -27,8 +36,10 @@ function matricesForOperators(L, hw, ops)
     M = G.HighestWeightModule(L, forGap(hw))
     mats = G.List(ops, o -> G.MatrixOfAction(G.Basis(M), o))
     mats = gapReshape.(fromGap(mats))
-    d = lcm(denominator.(union(mats...)))
-    mats = (A->ZZ.(A*d)).(mats)
+    denominators = map(y->denominator(y[2]), union(union(mats...)...))
+    #d = convert(QQ, lcm(denominators))
+    d = lcm(denominators)# // 1
+    mats = (A->change_base_ring(ZZ, multiply_scalar(A, d))).(mats)
     return mats
 end
 
