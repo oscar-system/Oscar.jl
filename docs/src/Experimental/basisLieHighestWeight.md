@@ -1,9 +1,9 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar.BasisLieHighestWeight
 ```
 
 ```@setup oscar
-using Oscar
+using Oscar.BasisLieHighestWeight
 ```
 
 ```@contents
@@ -11,3 +11,6 @@ Pages = ["basisLieHighestWeight.md"]
 ```
 
 # Monomial bases for Lie algebras
+```@docs
+basisLieHighestWeight2
+```

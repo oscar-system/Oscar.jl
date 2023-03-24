@@ -4,6 +4,7 @@ export is_fundamental
 
 using Polymake
 using Distributed
+using Markdown
 #using CUDA
 #using CuArrays
 
@@ -13,11 +14,25 @@ include("./NewMonomial.jl")
 
 fromGap = Oscar.GAP.gap_to_julia
 
+@doc Markdown.doc"""
+    basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
 
+Compute a monomial basis for the highest weight module with highest weight
+``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type
+``t`` and rank ``n``.
+
+# Parameters
+- `t`: Explain
+- `n`: Explain
+- `hw`: Explain
+
+# Examples
+```jldoctest
+julia> 1+1
+2
+```
+"""
 function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
-    """
-    Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
-    """
     # The function precomputes objects that are independent of the highest weight and can be used in all recursion steps. Then it starts the recursion and returns the result.
 
     # initialization
