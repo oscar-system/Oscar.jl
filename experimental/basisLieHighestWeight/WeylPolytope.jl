@@ -4,7 +4,6 @@ using Oscar
 include("./RootConversion.jl")
 
 G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 #########################
@@ -37,7 +36,7 @@ function orbit_weylgroup(t::String, n::Int, hw)
     # initialization
     L, CH = lieAlgebra(t, n)    
     W = G.WeylGroup(G.RootSystem(L))
-    orb = G.WeylOrbitIterator(W, forGap(hw))
+    orb = G.WeylOrbitIterator(W, GAP.Obj(hw))
     vertices = []
     
     # operate with the weylgroup on hw

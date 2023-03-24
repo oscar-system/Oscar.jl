@@ -14,7 +14,6 @@ include("./MonomialOrder.jl")
 include("./WeylPolytope.jl")
 
 G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 

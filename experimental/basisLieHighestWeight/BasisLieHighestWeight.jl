@@ -12,7 +12,6 @@ include("./NewMonomial.jl")
 #include("./VectorSpaceBases.jl") #--- bekommt gerade noch ZZ, Short und TVEC aus VectorSpaceBases
 
 G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 
@@ -52,7 +51,7 @@ function sub_simple_refl(word, L, n)
     """
     R = G.RootSystem(L)
     CG = fromGap(G.CanonicalGenerators(R)[1], recursive = false)
-    ops = forGap([CG[i] for i in word], recursive = false)
+    ops = GAP.Obj([CG[i] for i in word], recursive = false)
     return ops
 end
 
@@ -107,7 +106,7 @@ function compute_monomials(t, n, L, hw, ops, wts, wts_eps, monomial_order, calc_
     end
     
     # calculation required
-    gapDim = G.DimensionOfHighestWeightModule(L, forGap(hw)) # number of monomials that we need to find, i.e. |M_{hw}|.
+    gapDim = G.DimensionOfHighestWeightModule(L, GAP.Obj(hw)) # number of monomials that we need to find, i.e. |M_{hw}|.
     # fundamental weights
     if is_fundamental(hw) # if hw is a fundamental weight, no partition into smaller summands is possible. This is the basecase of the recursion.
         push!(no_minkowski, hw)
@@ -351,7 +350,7 @@ function get_dim_weightspace(t, n, L, hw)
     """
     # calculate dimension for dominant weights with GAP
     R = G.RootSystem(L)
-    W = fromGap(G.DominantCharacter(R, forGap(hw)))
+    W = fromGap(G.DominantCharacter(R, GAP.Obj(hw)))
     dominant_weights = W[1]
     dominant_weights_dim = W[2]
     dim_weightspace = []

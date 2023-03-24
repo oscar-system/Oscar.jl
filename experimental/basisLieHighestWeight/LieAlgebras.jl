@@ -4,7 +4,6 @@ using Oscar
 using SparseArrays
 
 G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 
@@ -12,7 +11,7 @@ function lieAlgebra(t::String, n::Int)
     """
     Creates the Lie-algebra as a GAP object that gets used for a lot other computations with GAP
     """
-    L = G.SimpleLieAlgebra(forGap(t), n, G.Rationals)
+    L = G.SimpleLieAlgebra(GAP.Obj(t), n, G.Rationals)
     return L, G.ChevalleyBasis(L)
 end
 
@@ -24,7 +23,7 @@ function matricesForOperators(L, hw, ops)
     """
     used to create tensorMatricesForOperators
     """
-    M = G.HighestWeightModule(L, forGap(hw))
+    M = G.HighestWeightModule(L, GAP.Obj(hw))
     mats = G.List(ops, o -> G.MatrixOfAction(G.Basis(M), o))
     mats = gapReshape.(fromGap(mats))
     d = lcm(denominator.(union(mats...)))

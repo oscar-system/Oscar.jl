@@ -2,7 +2,6 @@
 using Oscar
 
 G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
 ############################################
@@ -77,7 +76,7 @@ function alpha_to_w(t, n, weight)
 end
 
 function get_CartanMatrix(t, n)
-    L = G.SimpleLieAlgebra(forGap(t), n, G.Rationals)
+    L = G.SimpleLieAlgebra(GAP.Obj(t), n, G.Rationals)
     R = G.RootSystem(L)
     C_list = fromGap(G.CartanMatrix(R))
     C = zeros(n,n)
