@@ -496,7 +496,7 @@ julia> L = primary_decomposition(I)
 ```
 """
 function primary_decomposition(I::T, alg=:GTZ) where {T<:MPolyIdeal}
-  PD = get_attribute!(I, :primary_decomposition) do
+  return get_attribute!(I, :primary_decomposition) do
     R = base_ring(I)
     singular_assure(I)
     if elem_type(base_ring(R)) <: FieldElement
@@ -513,8 +513,7 @@ function primary_decomposition(I::T, alg=:GTZ) where {T<:MPolyIdeal}
       error("base ring not implemented")
     end
     return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
-  end
-  return PD::Vector{Tuple{T,T}}
+  end::Vector{Tuple{T,T}}
 end
 
 ########################################################
