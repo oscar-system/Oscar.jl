@@ -104,7 +104,7 @@ affine_refinements(C::Covering) = C.affine_refinements
   CX = affine_cone(X)
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
@@ -149,7 +149,7 @@ end
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
   S = ambient_coordinate_ring(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()
 
