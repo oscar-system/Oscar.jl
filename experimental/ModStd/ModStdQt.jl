@@ -556,7 +556,7 @@ The return value is an array
 
 # Examples     
 
-```julia
+```jldoctest
 julia> Qa, a = polynomial_ring(QQ, :a=>1:2);
 
 julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
