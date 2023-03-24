@@ -646,6 +646,20 @@ is_bijective(f::GroupIsomorphismFromFunc) = true
 
 kernel(f::GroupIsomorphismFromFunc) = trivial_subgroup(domain(f))
 
+function images(f::GroupIsomorphismFromFunc{R, T}, G::R) where R where T
+  D = domain(f)
+  C = codomain(f)
+  imgs = eltype(typeof(C))[]
+  for x in gens(G)
+    if parent(x) === D
+      push!(imgs, f(x))
+    else
+      push!(imgs, f(D(x)))
+    end
+  end
+  return sub(codomain(f), imgs)
+end
+
 ####
 
 # compute the kernel of a composition of maps, with domain a `GAPGroup`,

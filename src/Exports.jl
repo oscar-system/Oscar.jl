@@ -1081,7 +1081,6 @@ export quo
 export quotient
 export radical
 export radical_membership
-export radical_subgroup, has_radical_subgroup, set_radical_subgroup
 export rand
 export rand_pseudo
 export rand_spherical_polytope
@@ -1200,6 +1199,7 @@ export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
 export socle, has_socle, set_socle
+export solvable_radical, has_solvable_radical, set_solvable_radical
 export solve_ineq
 export solve_lp
 export solve_milp
