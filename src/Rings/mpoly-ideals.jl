@@ -1129,7 +1129,7 @@ julia> dim(I)
 1
 ```
 """
-@attr Bool function dim(I::MPolyIdeal)
+@attr Int function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
