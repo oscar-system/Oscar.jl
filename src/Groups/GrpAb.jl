@@ -108,14 +108,6 @@ end
 
 conjugacy_class(G::T, H::T) where T <: GrpAbFinGen = GrpAbFinGenConjClass(G, H)
 
-# function Base.rand(C::GroupConjClass{S,T}) where S <: GrpAbFinGen where T <: GrpAbFinGen
-#    return C.repr
-# end
-
-# function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S <: GrpAbFinGen where T <: GrpAbFinGen
-#    return C.repr
-# end
-
 function conjugacy_classes_subgroups(G::GrpAbFinGen)
    return [conjugacy_class(G, H) for (H, mp) in subgroups(G)]
 end

@@ -59,6 +59,7 @@ export FreeModuleHom
 export FreeModuleHom_dec
 export FreeResolution
 export GAP
+export GAPGroupConjClass
 export GAPGroupElem
 export GAPGroupHomomorphism
 export GL
