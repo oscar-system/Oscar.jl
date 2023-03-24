@@ -405,15 +405,15 @@ julia> RI = radical(I)
 ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 ```
 """
-@attr function radical(I::MPolyIdeal)
+@attr T function radical(I::T) where {T <: MPolyIdeal}
   singular_assure(I)
   R = base_ring(I)
   if elem_type(base_ring(R)) <: FieldElement
-  J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
+    J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
   elseif base_ring(I.gens.Sx) isa Singular.Integers
-  J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
+    J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
   else
-   error("not implemented for base ring")
+    error("not implemented for base ring")
   end
   return ideal(R, J)
 end
@@ -495,7 +495,7 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-@attr function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -513,6 +513,9 @@ julia> L = primary_decomposition(I)
   end
   return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end
+
+@attr Vector{Tuple{T,T}} primary_decomposition(I::T) where {T <:MPolyIdeal} = primary_decomposition(I; alg=:GTZ)
+
 ########################################################
 @doc Markdown.doc"""
     absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
@@ -569,7 +572,7 @@ julia> minpoly(a)
 x^2 + 1
 ```
 """
-@attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
+@attr function absolute_primary_decomposition(I::T) where {T <: MPolyIdeal{<:MPolyRingElem{QQFieldElem}}}
   R = base_ring(I)
   singular_assure(I)
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
@@ -671,7 +674,7 @@ julia> L = minimal_primes(I)
  ideal(17, a)
 ```
 """
-@attr function minimal_primes(I::MPolyIdeal; alg = :GTZ)
+function minimal_primes(I::MPolyIdeal; alg = :GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -1299,7 +1302,7 @@ julia> minimal_generating_set(I)
  x^3 + y^3
 ```
 """
-@attr function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
 
