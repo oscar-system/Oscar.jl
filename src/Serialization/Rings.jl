@@ -127,8 +127,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyRingElem},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
-    # ensure backrefs in parent are loaded
-    _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(parent_ring)
@@ -175,8 +173,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyRingElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
-    # ensure backrefs in parent are loaded
-    _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
@@ -244,8 +240,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MatElem},
                                    dict::Dict,
                                    parent_ring::T) where T <: MatSpace
-    # ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix], parent=base_ring(parent_ring))
     return matrix(base_ring(parent_ring), mat)
 end
@@ -333,11 +327,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: RelPowerSeriesRingElem},
                                    dict::Dict,
                                    parent_ring::SeriesRing)
-    # cache parent inside serializer state in case the coefficient ring
-    # needs to be checked against the coefficient ring of the passed parent
-    # to ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
     coeff_ring = base_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
@@ -366,11 +355,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: AbsPowerSeriesRingElem},
                                    dict::Dict,
                                    parent_ring::SeriesRing)
-    # cache parent inside serializer state in case parent needs
-    # to be checked against the passed parent
-    # to ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
     coeff_ring = base_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
@@ -472,11 +456,6 @@ function load_internal_with_parent(s::DeserializerState,
                                        Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                                    dict::Dict,
                                    parent_ring)
-    # cache parent inside serializer state in case parent needs
-    # to be checked against the passed parent
-    # to ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
     coeff_ring = base_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)

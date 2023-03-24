@@ -36,7 +36,6 @@ function upgrade_data(upgrade::Function, s::DeserializerState, dict::Dict)
         else  # not a string or a dictionary, so must be a vector
             new_value = []
             for v in dict_value
-                println(v)
                 if v isa String
                     push!(new_value, v)
                 else
