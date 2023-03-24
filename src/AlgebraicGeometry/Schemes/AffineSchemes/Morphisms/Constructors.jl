@@ -81,8 +81,7 @@ identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X)
 @doc Markdown.doc"""
     inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
 
-This method constructs the inclusion map from ``X`` to ``Y``.
-For convenience, also the method `inclusion_morphism` is supported.
+Return the inclusion map from ``X`` to ``Y``.
 
 # Examples
 ```jldoctest
