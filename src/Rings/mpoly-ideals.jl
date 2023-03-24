@@ -405,7 +405,7 @@ julia> RI = radical(I)
 ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 ```
 """
-function radical(I::MPolyIdeal)
+@attr function radical(I::MPolyIdeal)
   singular_assure(I)
   R = base_ring(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -416,6 +416,17 @@ function radical(I::MPolyIdeal)
    error("not implemented for base ring")
   end
   return ideal(R, J)
+end
+
+@doc Markdown.doc"""
+    is_radical(I::MPolyIdeal)
+
+Return whether `I` is a radical ideal.
+
+Computes the radical.
+"""
+@attr Bool function is_radical(I::MPolyIdeal)
+  return I == radical(I)
 end
 #######################################################
 @doc Markdown.doc"""
@@ -484,7 +495,7 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+@attr function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -558,7 +569,7 @@ julia> minpoly(a)
 x^2 + 1
 ```
 """
-function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
+@attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
   singular_assure(I)
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
@@ -660,7 +671,7 @@ julia> L = minimal_primes(I)
  ideal(17, a)
 ```
 """
-function minimal_primes(I::MPolyIdeal; alg = :GTZ)
+@attr function minimal_primes(I::MPolyIdeal; alg = :GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -709,7 +720,7 @@ julia> L = equidimensional_decomposition_weak(I)
  ideal(x^5 - 2*x^4*y - 2*x^4 + x^3*y^2 + 2*x^3*y - x^2*y^2 + 2*x^2*y + 2*x^2 + 2*x*y^3 + x*y^2 - 2*x*y - x - y^4 - 2*y^3 - y^2)
 ```
 """
-function equidimensional_decomposition_weak(I::MPolyIdeal)
+@attr function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
@@ -745,7 +756,7 @@ julia> L = equidimensional_decomposition_radical(I)
  ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 ```
 """
-function equidimensional_decomposition_radical(I::MPolyIdeal)
+@attr function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
@@ -994,7 +1005,7 @@ julia> is_prime(I)
 false
 ```
 """
-function is_prime(I::MPolyIdeal)
+@attr Bool function is_prime(I::MPolyIdeal)
   D = minimal_primes(I)
   return length(D) == 1 && issubset(D[1], I)
 end
@@ -1020,7 +1031,7 @@ julia> is_primary(I)
 true
 ```
 """
-function is_primary(I::MPolyIdeal)
+@attr Bool function is_primary(I::MPolyIdeal)
   D = primary_decomposition(I)
   return length(D) == 1
 end
@@ -1115,7 +1126,7 @@ julia> dim(I)
 1
 ```
 """
-function dim(I::MPolyIdeal)
+@attr Bool function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
@@ -1168,7 +1179,7 @@ julia> is_zero(I)
 false
 ```
 """
-function is_zero(I::MPolyIdeal)
+@attr Bool function is_zero(I::MPolyIdeal)
   lg = gens(I)
   return isempty(lg) || all(iszero, lg)
 end
@@ -1189,7 +1200,7 @@ julia> is_one(I)
 true
 ```
 """
-function is_one(I::MPolyIdeal)
+@attr Bool function is_one(I::MPolyIdeal)
   R = base_ring(I)
   if iszero(I)
       return false
@@ -1249,7 +1260,7 @@ function _ismonomial(V::Vector{<: MPolyRingElem})
   return all(is_monomial, V)
 end
 
-function is_monomial(I::MPolyIdeal)
+@attr Bool function is_monomial(I::MPolyIdeal)
   if _ismonomial(gens(I))
     return true
   end
@@ -1288,7 +1299,7 @@ julia> minimal_generating_set(I)
  x^3 + y^3
 ```
 """
-function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+@attr function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
 
