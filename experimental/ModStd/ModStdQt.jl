@@ -532,6 +532,32 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
   return rk
 end
 
+#to, basically, make the doctest stable
+function _cmp(f::MPolyRingElem, g::MPolyRingElem)
+  mf = leading_term(f)
+  mg = leading_term(g)
+  while exponent_vector(mf, 1) == exponent_vector(mg, 1)
+    f -= mf
+    g -= mg
+    if iszero(f) && iszero(g)
+      return 0
+    end
+    if iszero(f)
+      return -1
+    end
+    if iszero(g)
+      return 1
+    end
+    mf = leading_term(f)
+    mg = leading_term(g)
+  end
+  if isless(mf, mg)
+    return -1
+  else
+    return 1
+  end
+end
+
 @doc Markdown.doc"""
     factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
 
@@ -585,7 +611,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   push!(an, Qtx(cont)*Oscar._restore_numerators(Qtx, lF.unit))
   K = base_ring(f)
   Kt, t = polynomial_ring(K, "t", cached = false)
-  for (k, e) = lF.fac
+  for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) >= 0)
     res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
     if res === nothing
       push!(an, (Oscar._restore_numerators(Qtx, k), e))
