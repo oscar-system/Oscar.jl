@@ -546,7 +546,7 @@ The return value is an array
   - two polynomials and an integer: the polynomials are 
       over a finite extension of Q(A) given as a residue field,
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
-      extension, the lst entry (the integer) is the multiplicity.
+      extension, the last entry (the integer) is the multiplicity.
       In this case, there are degree(h(t)) many abs. irreducible factors, but they
       are all conjugate to the 1st tuple entry. The 2nd entry is the product of all the
       other conjugates,
