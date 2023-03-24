@@ -1,5 +1,3 @@
-export AffineAlgebraicSet
-
 @attributes mutable struct AffineAlgebraicSet{BaseRing<:Field, RingType<:MPolyAnyRing} <: AbsAffineAlgebraicSet{BaseRing, RingType}
   X::Spec
   function AffineAlgebraicSet(X::Spec; check::Bool=true)

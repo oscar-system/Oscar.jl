@@ -1,13 +1,3 @@
-export AbsAffineAlgebraicSet
-export AbsAffineCurve
-export AbsAffineVariety
-export AbsCoveredCurve
-export AbsCoveredVariety
-export AbsProjectiveAlgebraicSet
-export AbsProjectiveCurve
-export AbsProjectiveScheme
-export AbsProjectiveVariety
-
 @doc Markdown.doc"""
     AbsAffineAlgebraicSet <: AbsSpec
 

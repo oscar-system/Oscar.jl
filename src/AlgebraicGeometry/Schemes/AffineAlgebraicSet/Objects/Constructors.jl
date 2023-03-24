@@ -1,7 +1,3 @@
-export affine_algebraic_set
-export vanishing_locus
-export set_theoretic_intersection
-
 ########################################################
 # (1) Generic constructors
 ########################################################
@@ -27,10 +23,15 @@ end
 
 Return the vanishing locus of ``I`` as an algebraic set.
 
-This computes the radical of ``I``.
+This computes the radical of ``I`` if `check=true`
+otherwise take on faith that ``I`` is radical.
 """
 function vanishing_locus(I::MPolyIdeal; check::Bool=true)
-  Irad = radical(I)
+  if check
+    Irad = radical(I)
+  else
+    Irad = I
+  end
   X = Spec(base_ring(Irad), Irad)
   return AffineAlgebraicSet(X, check=check)
 end

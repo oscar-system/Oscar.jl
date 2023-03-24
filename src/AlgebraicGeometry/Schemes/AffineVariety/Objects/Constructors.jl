@@ -1,5 +1,3 @@
-export affine_variety
-
 ########################################################
 # (1) Generic constructors
 ########################################################
@@ -40,12 +38,12 @@ affine_variety(R::MPolyAnyRing; check=true) = AffineVariety(Spec(R), check=check
 
 function affine_variety(f::MPolyRingElem; check=true)
   if check
-    is_irreducible(f) || error("not a variety")
+    is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(f)[2]
-    # deal with wierd type instability in factor_absolute
+    # deal with weird type instability in factor_absolute
     @assert ff[2] == 1
     g = ff[1]
-    (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("not a variety")
+    (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("polynomial is not absolutely irreducible")
   end
   return affine_variety(ideal([f]), check=false)
 end

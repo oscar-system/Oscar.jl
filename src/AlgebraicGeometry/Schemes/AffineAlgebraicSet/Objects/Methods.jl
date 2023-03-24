@@ -1,6 +1,3 @@
-export irreducible_components
-export geometric_irreducible_components
-
 ########################################################
 # (1) Display
 ########################################################

@@ -566,23 +566,16 @@ end
   return true
 end
 
-@attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
-  return true
-end
-
 @attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   return true
 end
 
-function is_perfect(F::Field)
-  characteristic(F) == 0 && return true
-  absolute_degree(F) < inf && return true
-  throw(NotImplementedError())
-end
-
 @attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   F = base_ring(X)
-  is_perfect(F) && return is_reduced(X)
+  # is_perfect(F) && return is_reduced(X)
+  if characteristic(F) == 0 || F isa FinField
+    return true
+  end
   throw(NotImplementedError())
 end
 

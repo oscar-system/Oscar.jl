@@ -1,5 +1,3 @@
-export AffineVariety
-
 @attributes mutable struct AffineVariety{BaseRing<:Field, RingType<:MPolyAnyRing} <: AbsAffineVariety{BaseRing, RingType}
   X::Spec
 
