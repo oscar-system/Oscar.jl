@@ -167,7 +167,7 @@ is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ### Ideal Membership
 
 ```@docs
-ideal_membership(f::T, I::MPolyIdeal{T}) where T
+ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
 ```
 
 ### Radical Membership
