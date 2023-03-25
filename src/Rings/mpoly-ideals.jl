@@ -495,7 +495,7 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::T, alg=:GTZ) where {T<:MPolyIdeal}
+function primary_decomposition(I::T; alg=:GTZ) where {T<:MPolyIdeal}
   return get_attribute!(I, :primary_decomposition) do
     R = base_ring(I)
     singular_assure(I)
