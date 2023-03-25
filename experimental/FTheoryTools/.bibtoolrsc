@@ -1,0 +1,62 @@
+# This is a config file for bibtool, see
+#    http://www.gerd-neugebauer.de/software/TeX/BibTool/en/
+# To use it, invoke bibtool as follows:
+#   bibtool docs/references.bib -o docs/references.bib
+
+sort = on
+
+# sort order for fields
+sort.order{* =
+    bibkey
+    author
+    title
+    editor
+    booktitle
+    mrnumber
+    zbl
+    journal
+    fjournal
+    series
+    volume
+    number
+    note
+    howpublished
+    address
+    organization
+    publisher
+    edition
+    pages
+    year
+    month
+    doi
+    url
+}
+
+print.align.key = 0
+preserve.key.case = on
+sort.cased = off
+print.use.tab = off
+
+delete.field = { hal_id }
+delete.field = { hal_version }
+delete.field = { isbn }
+delete.field = { issn }
+delete.field = { keywords }
+delete.field = { mrclass }
+delete.field = { mrreviewer }
+delete.field = { msc2010 }
+
+fmt.name.name = { }
+fmt.inter.name = { x }
+
+key.format =
+{
+    %s(bibkey)
+ #
+    %.1#n(author)
+    { %1.3n(author) }
+    { %2d(year) }
+ #
+    { %+8.1n(author) }
+    { %2d(year) }
+}
