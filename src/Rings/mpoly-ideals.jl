@@ -497,7 +497,7 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::T, alg=:GTZ, cache=true) where {T<:MPolyIdeal}
+function primary_decomposition(I::T; alg=:GTZ, cache=true) where {T<:MPolyIdeal}
   !cache && return _compute_primary_decomposition(I, alg=alg)
   return get_attribute!(I, :primary_decomposition) do
     return _compute_primary_decomposition(I=I, alg=alg)
