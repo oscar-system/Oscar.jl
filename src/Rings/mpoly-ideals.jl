@@ -500,11 +500,11 @@ julia> L = primary_decomposition(I)
 function primary_decomposition(I::T; alg=:GTZ, cache=true) where {T<:MPolyIdeal}
   !cache && return _compute_primary_decomposition(I, alg=alg)
   return get_attribute!(I, :primary_decomposition) do
-    return _compute_primary_decomposition(I=I, alg=alg)
+    return _compute_primary_decomposition(I, alg=alg)
   end::Vector{Tuple{T,T}}
 end
 
-function _compute_primary_decomposition(I::MPolyIdeal, alg=:GTZ)
+function _compute_primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
