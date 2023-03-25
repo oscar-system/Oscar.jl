@@ -21,14 +21,6 @@ function Base.show(io::IO, X::AffineVariety)
     end
 end
 
-function Base.show(io::IO, X::AffineVariety)
-  d = dim(ambient_space(X))
-  println(io, "Affine variety in $ambient_space(X)")
-  println(io, "defined by")
-  print(io, modulus(OO(X)))
-end
-
-
 # For affine space
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyRing})
     println(io, "Affine $(dim(X))-space")
