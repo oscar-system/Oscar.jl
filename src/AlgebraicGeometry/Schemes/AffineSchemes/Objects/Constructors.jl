@@ -139,7 +139,7 @@ julia> affine_space(QQ,[:y1,:z2,:a])
 Spec of Multivariate Polynomial Ring in y1, z2, a over Rational Field
 ```
 """
-function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
+function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = polynomial_ring(kk, var_symbols)
   return affine_variety(Spec(R), check=false)
 end

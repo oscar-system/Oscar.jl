@@ -572,11 +572,11 @@ end
 
 @attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   F = base_ring(X)
-  # is_perfect(F) && return is_reduced(X)
-  if characteristic(F) == 0 || F isa FinField
-    return true
+  # is_perfect(F) # needs new AbstractAlgebra version
+  if characteristic(F) == 0 || F isa FinField  # F is perfect
+    return is_reduced(X)
   end
-  throw(NotImplementedError())
+  throw(NotImplementedError("currently we can decide this only over a perfect base field"))
 end
 
 ########################################################################
