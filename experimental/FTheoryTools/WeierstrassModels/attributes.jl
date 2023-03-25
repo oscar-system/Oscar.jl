@@ -9,16 +9,13 @@ Return the polynomial ``f`` used for the
 construction of the global Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
 ```
 """
 @attr MPolyElem{fmpq} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
-export weierstrass_section_f
 
 
 @doc Markdown.doc"""
@@ -28,16 +25,13 @@ Return the polynomial ``g`` used for the
 construction of the global Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
 ```
 """
 @attr MPolyElem{fmpq} weierstrass_section_g(w::GlobalWeierstrassModel) = w.poly_g
-export weierstrass_section_g
 
 
 #######################################
@@ -50,16 +44,13 @@ export weierstrass_section_g
 Return the Weierstrass polynomial of the global Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w);
 ```
 """
 @attr MPolyElem{fmpq} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.pw
-export weierstrass_polynomial
 
 
 #######################################
@@ -72,20 +63,17 @@ export weierstrass_polynomial
 Return the toric base space of the global Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_base_space(w))
 true
 ```
 """
-@attr Oscar.AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
+@attr AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
     base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
     return w.toric_base_space
 end
-export toric_base_space
 
 
 @doc Markdown.doc"""
@@ -94,20 +82,17 @@ export toric_base_space
 Return the toric base space of the global Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
 false
 ```
 """
-@attr Oscar.AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
+@attr AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
     base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
     return w.toric_ambient_space
 end
-export toric_base_space
 
 
 #####################################################
@@ -121,20 +106,17 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> cy_hypersurface(w)
-A closed subvariety of a normal toric variety
+Closed subvariety of a normal toric variety
 ```
 """
-@attr Oscar.ClosedSubvarietyOfToricVariety function cy_hypersurface(w::GlobalWeierstrassModel)
+@attr ClosedSubvarietyOfToricVariety function cy_hypersurface(w::GlobalWeierstrassModel)
     base_fully_specified(w) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
     return w.Y4
 end
-export cy_hypersurface
 
 
 #####################################################
@@ -154,16 +136,13 @@ export cy_hypersurface
 Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 
 ```jldoctest
-julia> using Oscar
-
 julia> w = global_weierstrass_model(test_base())
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 
 julia> discriminant(w);
 ```
 """
-@attr MPolyElem{fmpq} Oscar.:discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
-export discriminant
+@attr MPolyElem{fmpq} discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
 
 
 @doc Markdown.doc"""
@@ -204,8 +183,6 @@ Let us verify this by turning this global Tate model into a Weierstrass model an
 computing the singular loci of the discriminant of this Weierstrass model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a11", "a21", "a31", "a41", "a62", "w"];
 
 julia> a1 = a11 * w;
@@ -221,12 +198,12 @@ julia> a6 = a62 * w^2;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
-A global Tate model over a not fully specified base
+Global Tate model over a not fully specified base
 
 julia> weier = global_weierstrass_model(t)
 [ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 [ Info: Base space was not fully specified. Returning AUXILIARY base space.
-A global Weierstrass model over a not fully specified base
+Global Weierstrass model over a not fully specified base
 
 julia> length(singular_loci(weier))
 [ Info: Base space was not fully specified. Returning AUXILIARY base space.
@@ -236,11 +213,11 @@ julia> singular_loci(weier)[2]
 (ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
+@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
     B = irrelevant_ideal(toric_base_space(w))
 
     d_primes = primary_decomposition(ideal([discriminant(w)]))
-    nontrivial_d_primes = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}}[]
+    nontrivial_d_primes = Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}}[]
     for k in 1:length(d_primes)
         if _is_nontrivial(d_primes[k][2], B)
             push!(nontrivial_d_primes, d_primes[k])
@@ -250,7 +227,7 @@ julia> singular_loci(weier)[2]
     f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
     g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
 
-    kodaira_types = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}[]
+    kodaira_types = Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}[]
     for d_prime in nontrivial_d_primes
         f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
         g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)
@@ -265,4 +242,3 @@ julia> singular_loci(weier)[2]
     
     return kodaira_types
 end
-export singular_loci

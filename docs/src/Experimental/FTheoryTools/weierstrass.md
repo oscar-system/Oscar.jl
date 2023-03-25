@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = FTheoryTools
+CurrentModule = Oscar
 ```
 
 ```@contents
@@ -42,9 +42,9 @@ ambient space need not be smooth.
 
 We support the following constructors:
 ```@docs
-global_weierstrass_model(base::Oscar.AbstractNormalToricVariety)
+global_weierstrass_model(base::AbstractNormalToricVariety)
 global_weierstrass_model_over_projective_space()
-global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
+global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::AbstractNormalToricVariety)
 ```
 
 ## ... over not fully specified bases
@@ -81,7 +81,7 @@ weierstrass_section_f(w::GlobalWeierstrassModel)
 weierstrass_section_g(w::GlobalWeierstrassModel)
 weierstrass_polynomial(w::GlobalWeierstrassModel)
 cy_hypersurface(w::GlobalWeierstrassModel)
-Oscar.:discriminant(w::GlobalWeierstrassModel)
+discriminant(w::GlobalWeierstrassModel)
 ```
 In case the Weierstrass model is constructed over a not fully specified base,
 it is nontheless possibly to construct an auxiliary base space as well as an

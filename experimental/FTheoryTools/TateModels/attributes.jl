@@ -8,16 +8,13 @@
 Return the Tate section ``a_1``.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> tate_section_a1(t);
 ```
 """
 @attr MPolyElem{fmpq} tate_section_a1(t::GlobalTateModel) = t.a1
-export tate_section_a1
 
 
 @doc Markdown.doc"""
@@ -26,16 +23,13 @@ export tate_section_a1
 Return the Tate section ``a_2``.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> tate_section_a2(t);
 ```
 """
 @attr MPolyElem{fmpq} tate_section_a2(t::GlobalTateModel) = t.a2
-export tate_section_a2
 
 
 @doc Markdown.doc"""
@@ -44,16 +38,13 @@ export tate_section_a2
 Return the Tate section ``a_3``.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> tate_section_a3(t);
 ```
 """
 @attr MPolyElem{fmpq} tate_section_a3(t::GlobalTateModel) = t.a3
-export tate_section_a3
 
 
 @doc Markdown.doc"""
@@ -62,16 +53,13 @@ export tate_section_a3
 Return the Tate section ``a_4``.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> tate_section_a4(t);
 ```
 """
 @attr MPolyElem{fmpq} tate_section_a4(t::GlobalTateModel) = t.a4
-export tate_section_a4
 
 
 @doc Markdown.doc"""
@@ -80,16 +68,13 @@ export tate_section_a4
 Return the Tate section ``a_6``.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> tate_section_a6(t);
 ```
 """
 @attr MPolyElem{fmpq} tate_section_a6(t::GlobalTateModel) = t.a6
-export tate_section_a6
 
 
 #####################################################
@@ -102,16 +87,13 @@ export tate_section_a6
 Return the Tate polynomial of the global Tate model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> tate_polynomial(t);
 ```
 """
 @attr MPolyElem{fmpq} tate_polynomial(t::GlobalTateModel) = t.pt
-export tate_polynomial
 
 
 #####################################################
@@ -124,20 +106,17 @@ export tate_polynomial
 Return the toric base space of the global Tate model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> toric_base_space(t)
-A normal toric variety without torusfactor
+Normal toric variety without torusfactor
 ```
 """
-@attr Oscar.AbstractNormalToricVariety function toric_base_space(t::GlobalTateModel)
+@attr AbstractNormalToricVariety function toric_base_space(t::GlobalTateModel)
     base_fully_specified(t) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
     return t.toric_base_space
 end
-export toric_base_space
 
 
 @doc Markdown.doc"""
@@ -146,23 +125,20 @@ export toric_base_space
 Return the toric ambient space of the global Tate model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> toric_ambient_space(t)
-A normal, simplicial toric variety
+Normal, simplicial toric variety
 
 julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-@attr Oscar.AbstractNormalToricVariety function toric_ambient_space(t::GlobalTateModel)
+@attr AbstractNormalToricVariety function toric_ambient_space(t::GlobalTateModel)
     base_fully_specified(t) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
     return t.toric_ambient_space
 end
-export toric_ambient_space
 
 
 #####################################################
@@ -176,20 +152,17 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Tate model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> cy_hypersurface(t)
-A closed subvariety of a normal toric variety
+Closed subvariety of a normal toric variety
 ```
 """
-@attr Oscar.ClosedSubvarietyOfToricVariety function cy_hypersurface(t::GlobalTateModel)
+@attr ClosedSubvarietyOfToricVariety function cy_hypersurface(t::GlobalTateModel)
     base_fully_specified(t) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
     return t.Y4
 end
-export cy_hypersurface
 
 
 #####################################################
@@ -202,13 +175,11 @@ export cy_hypersurface
 Return the global Weierstrass model which is equivalent to the given Tate model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> global_weierstrass_model(t)
-A global Weierstrass model over a concrete base
+Global Weierstrass model over a concrete base
 ```
 """
 @attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
@@ -223,12 +194,11 @@ A global Weierstrass model over a concrete base
     z = gens(S)[length(gens(S))]
     ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:length(gens(parent(f)))])
     pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-    Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space(t), [pw])
+    Y4 = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
     model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), Y4)
     set_attribute!(model, :base_fully_specified, base_fully_specified(t))
     return model
 end
-export global_weierstrass_model
 
 
 #####################################################
@@ -241,16 +211,13 @@ export global_weierstrass_model
 Return the discriminant of the global Tate model.
 
 ```jldoctest
-julia> using Oscar
-
 julia> t = global_tate_model(test_base())
-A global Tate model over a concrete base
+Global Tate model over a concrete base
 
 julia> discriminant(t);
 ```
 """
-@attr MPolyElem{fmpq} Oscar.:discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
-export discriminant
+@attr MPolyElem{fmpq} discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
 
 
 @doc Markdown.doc"""
@@ -275,7 +242,7 @@ result straightforwardly to this situation also. This is the reason for construc
 auxiliary base space.
 
 Let us demonstrate the functionality by computing the singular loci of a Type ``III`` Tate model
-[KMSS11](@cite). In this case, we  will consider a global Tate model over a non-fully specified base.
+[KMSS11](@cite). In this case, we  will consider Global Tate model over a non-fully specified base.
 The Tate sections are factored as follows:
 - ``a_1 = a_{11} w^1``,
 - ``a_2 = a_{21} w^1``,
@@ -288,8 +255,6 @@ we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, whi
 sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify this.
 
 ```jldoctest
-julia> using Oscar
-
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
 
 julia> a1 = a11 * w;
@@ -305,7 +270,7 @@ julia> a6 = a62 * w^2;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
-A global Tate model over a not fully specified base
+Global Tate model over a not fully specified base
 
 julia> length(singular_loci(t))
 [ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
@@ -317,8 +282,8 @@ julia> singular_loci(t)[2]
 (ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
-export singular_loci
+@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
+
 
 #####################################################
 # 7: Fiber analysis
@@ -381,4 +346,3 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
 
     return loci_fiber_intersections
 end
-export analyze_fibers

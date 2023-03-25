@@ -1,4 +1,3 @@
-using FTheoryTools
 using Test
 using Oscar
 

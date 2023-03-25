@@ -109,6 +109,7 @@ include("Experimental/JuLie-test.jl")
 include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 include("Experimental/LinearQuotients/runtests.jl")
+#include("Experimental/FTheoryTools/runtests.jl")
 
 include("Rings/ReesAlgebra.jl")
 
