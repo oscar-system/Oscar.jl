@@ -430,7 +430,7 @@ Computes the radical.
 end
 #######################################################
 @doc Markdown.doc"""
-    primary_decomposition(I::MPolyIdeal; alg = :GTZ)
+    primary_decomposition(I::MPolyIdeal; alg = :GTZ, cache=true)
 
 Return a minimal primary decomposition of `I`. If `I` is the unit ideal, return `[ideal(1)]`.
 
@@ -447,6 +447,8 @@ Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cit
 
 !!! warning
     The algorithm of Gianni, Trager, and Zacharias may not terminate over a small finite field. If it terminates, the result is correct.
+
+If `cache=false` is set, the primary decomposition is recomputed and not cached.
 
 # Examples
 ```jldoctest
@@ -465,7 +467,7 @@ julia> L = primary_decomposition(I)
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
  (ideal(y, x^2), ideal(x, y))
 
-julia> L = primary_decomposition(I, alg = :SY)
+julia> L = primary_decomposition(I, alg = :SY, cache=false)
 3-element Vector{Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}}}:
  (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
@@ -495,7 +497,14 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+function primary_decomposition(I::T; alg=:GTZ, cache=true) where {T<:MPolyIdeal}
+  !cache && return _compute_primary_decomposition(I, alg=alg)
+  return get_attribute!(I, :primary_decomposition) do
+    return _compute_primary_decomposition(I, alg=alg)
+  end::Vector{Tuple{T,T}}
+end
+
+function _compute_primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -513,8 +522,6 @@ function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   end
   return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end
-
-@attr Vector{Tuple{T,T}} primary_decomposition(I::T) where {T <:MPolyIdeal} = primary_decomposition(I; alg=:GTZ)
 
 ########################################################
 @doc Markdown.doc"""
