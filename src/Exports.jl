@@ -3,20 +3,33 @@ export @pbw_relations
 export @perm
 export @tropical
 export ANTIC
+export AbsAffineAlgebraicSet
+export AbsAffineCurve
+export AbsAffineVariety
+export AbsCoveredCurve
 export AbsCoveredScheme
 export AbsCoveredSchemeMorphism
+export AbsCoveredVariety
 export AbsGlueing
 export AbsLocalizedIdeal
 export AbsLocalizedRing
 export AbsLocalizedRingElem
 export AbsLocalizedRingHom
 export AbsMultSet
+export AbsProjectiveAlgebraicSet
+export AbsProjectiveCurve
+export AbsProjectiveScheme
+export AbsProjectiveVariety
 export AbsSpec
 export AbsSpecMor
 export AbstractAlgebra
+export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
+export AffineVariety
+export affine_variety
+export affine_algebraic_set
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BorcherdsCtx
@@ -504,6 +517,7 @@ export generic_fraction
 export generic_fractions
 export gens, has_gens
 export gens_of_rational_equivalence_classes
+export geometric_irreducible_components
 export girth
 export gkz_vector
 export glueing_domains
@@ -618,6 +632,7 @@ export invariant_symmetric_forms
 export inverse
 export invert
 export inverted_set
+export irreducible_components
 export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
@@ -672,6 +687,8 @@ export is_full_fp_group
 export is_full_semidirect_product
 export is_full_wreath_product
 export is_fulldimensional
+export is_geometrically_integral
+export is_geometrically_reduced
 export is_global
 export is_gorenstein
 export is_graded
@@ -1136,6 +1153,7 @@ export set_name!
 export set_power!
 export set_relative_order!
 export set_relative_orders!
+export set_theoretic_intersection
 export sets
 export short_right_transversal
 export shortest_path_dijkstra
@@ -1265,6 +1283,7 @@ export valuation_of_roots
 export valued_weighted_degree
 export vamos_matroid
 export vanishing_sets
+export vanishing_locus
 export vdim
 export vector_matrix
 export vertex_and_ray_indices

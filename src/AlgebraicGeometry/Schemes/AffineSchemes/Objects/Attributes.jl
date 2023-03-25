@@ -18,7 +18,13 @@ On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> coordinate_ring(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -53,7 +59,12 @@ its ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Spec of Multivariate Polynomial Ring in x, y over Rational Field
+Affine 2-space
+ over Rational Field
+with coordinates
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
 
 julia> ambient_space(X) == X
 true
@@ -149,8 +160,12 @@ function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+@attr function ambient_space(X::Spec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return Spec(ambient_coordinate_ring(X))
+end
+
+@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+  return ambient_space(underlying_scheme(X))
 end
 
 @doc Markdown.doc"""
@@ -161,7 +176,12 @@ Return the embedding of ``X`` in its ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Spec of Multivariate Polynomial Ring in x, y over Rational Field
+Affine 2-space
+ over Rational Field
+with coordinates
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
 
 julia> (x, y) = coordinates(X);
 
@@ -187,7 +207,12 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Spec of Multivariate Polynomial Ring in x, y over Rational Field
+Affine 2-space
+ over Rational Field
+with coordinates
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
 
 julia> (x,y) = coordinates(X);
 
@@ -212,7 +237,12 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Spec of Multivariate Polynomial Ring in x, y over Rational Field
+Affine 2-space
+ over Rational Field
+with coordinates
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
 
 julia> (x,y) = coordinates(X);
 
@@ -240,7 +270,12 @@ by the ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Spec of Multivariate Polynomial Ring in x, y over Rational Field
+Affine 2-space
+ over Rational Field
+with coordinates
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
 
 julia> (x, y) = coordinates(X)
 2-element Vector{QQMPolyRingElem}:
@@ -269,7 +304,13 @@ On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring ``𝕜``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> base_ring(X)
 Rational Field
@@ -294,7 +335,13 @@ By definition, this is the Krull dimension of ``R``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> dim(X)
 3
@@ -335,7 +382,13 @@ Throws and error if ``X`` does not have an ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> codim(X)
 0
@@ -371,7 +424,13 @@ This name can be specified via `set_name!`.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, 3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> name(X)
 "unnamed affine variety"
@@ -732,7 +791,13 @@ Return the defining ideal of the closure of ``X`` in its ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field

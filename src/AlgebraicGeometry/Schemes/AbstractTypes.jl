@@ -1,7 +1,7 @@
 @doc Markdown.doc"""
     AbsAffineAlgebraicSet <: AbsSpec
 
-An affine, geometrically reduced scheme of finite type over a field.
+An affine, geometrically reduced subscheme of an affine space over a field.
 """
 abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType} end
 
@@ -21,7 +21,7 @@ abstract type AbsProjectiveAlgebraicSet{BaseField<:Field, RingType} <:AbsProject
 @doc Markdown.doc"""
     AbsAffineVariety <: AbsAffineAlgebraicSet
 
-An affine, geometrically integral scheme of finite type over a field.
+An affine, geometrically integral subscheme of an affine space over a field.
 """
 abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicSet{BaseField, RingType} end
 
@@ -30,7 +30,7 @@ abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicS
 
 A projective variety over a field.
 
-That is a projective, geometrically integral scheme over a field.
+That is a geometrically integral subscheme of a projective space over a field.
 """
 abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseField, GradedRingType} end
 
@@ -72,16 +72,3 @@ A curve is a geometrically integral scheme of dimension 1 of finite type over a 
 """
 abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 
-#=
-################################################################################
-# Plane curves
-################################################################################
-@doc Markdown.doc"""
-    PlaneProjectiveCurve
-
-A plane projective curve embedded in an ambient projective space.
-"""
-mutable struct PlaneProjectiveCurve{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveCurve{BaseField, GradedRingType}
-  X::ProjectiveScheme{BaseField, GradedRingType}
-end
-=#
