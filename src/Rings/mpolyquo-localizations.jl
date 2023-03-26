@@ -1682,3 +1682,58 @@ end
   return dim(pre_image_ideal(I))
 end
 
+#############################################################################
+## compatibility functions to allow user to not care about which type of
+## MPolyAnyIdeal they are handling
+############################################################################# 
+@doc Markdown.doc"""
+    saturation_with_index(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+
+Return $I:J^{\infty}$ together with the smallest integer $m$ such that $I:J^m = I:J^{\infty}$.
+"""
+function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do no live in the same ring.")
+
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+
+  I_result,k = saturation_with_index(I_sat,J_sat)
+  return (ideal(R,gens(I_result)),k)
+end
+
+@Markdown.doc """
+  iterated_quotients(I::T, J__T) where T <: MPolyAnyIdeal
+  iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
+
+Return ``I:J^m`` and maximal ``m`` such that ``J(I:J^m)== (I:J^(m-1))``, if not ``b`` has been specified
+Return ``I:J^b`` and ``b``, for the given natural number ``b``.
+
+Internal function for weak and controlled transform.
+"""
+function iterated_quotients(I::T, J::T, b::Int=Int(0)) where T <: MPolyAnyIdeal
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do no live in the same ring.")
+  b > -1 || error("negative multiplicity not allowed")
+
+  Itemp = I
+  k = 0
+
+  ## iterate ideal quotients b times -- 
+  ## or by default (i.e. for b=0) a maximal number of times
+  while (b == 0 || k < b)
+    Itemp2 = quotient(Itemp, J)
+    if !issubset(Itemp, Itemp2 * J)
+       b == 0 || error("cannot extract J from I with multiplicity b")
+       break
+    end
+    Itemp = Itemp2
+    k = k+1
+  end
+
+  return Itemp,k
+end
+
+@attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
+  return is_one(saturated_ideal(I))
+end
