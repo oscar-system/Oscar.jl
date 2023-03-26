@@ -138,7 +138,7 @@ function weak_transform(p::BlowupMorphism, I::IdealSheaf)
   return Iweak
 end
 
-function weak_transform_decorated(p::BlowupMorphism, I::IdealSheaf)
+function weak_transform_with_multiplicity(p::BlowupMorphism, I::IdealSheaf)
   Iweak, multi = _do_transform(p,I,0)
   return Iweak,multi
 end
