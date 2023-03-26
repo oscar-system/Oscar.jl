@@ -2,7 +2,7 @@
 ########################################################################
 # Type for Zariski-open subsets of affine schemes                      #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     SpecOpen{SpecType, BRT} <: Scheme{BRT}
 
 Zariski open subset ``U`` of an affine scheme ``X = Spec(R)``.

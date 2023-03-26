@@ -185,9 +185,7 @@ julia> min_weights(SOP)
  0
 ```
 """
-function min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
-   Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
-end
+min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types = Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
 
 
 @doc Markdown.doc"""
@@ -219,9 +217,8 @@ julia> maximal_cells(IncidenceMatrix, SOP)
 [1, 2, 3, 4, 5, 6]
 ```
 """
-function maximal_cells(::Type{IncidenceMatrix}, SOP::SubdivisionOfPoints)
-    pm_object(SOP).MAXIMAL_CELLS
-end
+maximal_cells(::Type{IncidenceMatrix}, SOP::SubdivisionOfPoints) = pm_object(SOP).MAXIMAL_CELLS
+
 
 ###############################################################################
 ## Boolean properties

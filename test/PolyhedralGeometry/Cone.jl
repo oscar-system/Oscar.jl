@@ -2,7 +2,7 @@ const pm = Polymake
 
 @testset "Cone{$T}" for T in [QQFieldElem, nf_elem]
     
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     Cone1=positive_hull(T, pts)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]

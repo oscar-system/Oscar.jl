@@ -2,7 +2,7 @@
 ########################################################################
 # Abstract type for covered schemes                                    #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsCoveredScheme{BaseRingType}
 
 An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
@@ -13,7 +13,7 @@ abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 ########################################################################
 # A minimal implementation of AbsCoveredScheme                         #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     CoveredScheme{BaseRingType}
 
 A covered scheme ``X`` given by means of at least one `Covering`.

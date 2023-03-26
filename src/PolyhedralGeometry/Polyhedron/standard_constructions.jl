@@ -305,9 +305,12 @@ julia> rays(PO)
  [0, 1]
 ```
 """
-function intersect(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
-   return Polyhedron{T}(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
+function intersect(P::Polyhedron{T}...) where T<:scalar_types
+    pmo = [pm_object(p) for p in P]
+    return Polyhedron{T}(Polymake.polytope.intersection(pmo...))
 end
+intersect(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = intersect(P...)
+
 
 @doc Markdown.doc"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
@@ -405,7 +408,11 @@ julia> f_vector(T)
  4
 ```
 """
-convex_hull(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.conv(pm_object(P),pm_object(Q)))
+function convex_hull(P::Polyhedron{T}...) where T<:scalar_types
+    pmo = [pm_object(p) for p in P]
+    return Polyhedron{T}(Polymake.polytope.conv(pmo...))
+end
+convex_hull(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = convex_hull(P...)
 
 
 
