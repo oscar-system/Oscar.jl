@@ -123,7 +123,7 @@ function find_non_zero_divisor(U::SpecOpen)
   return d
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     generic_fractions(f::SpecOpenMor)
 
 Given a morphism ``f : U → V`` of Zariski open subsets ``U ⊂ X ⊂ 𝔸ᵐ`` and ``V ⊂ Y ⊂ 𝔸ⁿ``, 

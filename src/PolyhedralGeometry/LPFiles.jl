@@ -49,7 +49,7 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> save_lp(stdout, milp)
 MAXIMIZE
@@ -88,7 +88,7 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> save_mps(stdout, milp)
 * Class:	MIP

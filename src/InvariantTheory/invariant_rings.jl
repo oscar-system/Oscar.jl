@@ -45,7 +45,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring of
@@ -163,7 +163,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -195,7 +195,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [2   0   0]
 [0   0   2]
 
-julia> G = MatrixGroup(3, GF(3), [M])
+julia> G = matrix_group(M)
 Matrix group of degree 3 over Galois field with characteristic 3
 
 julia> IR = invariant_ring(G)
@@ -291,7 +291,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
@@ -364,7 +364,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -385,7 +385,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [2   0   0]
 [0   0   2]
 
-julia> G = MatrixGroup(3, GF(3), [M])
+julia> G = matrix_group(M)
 Matrix group of degree 3 over Galois field with characteristic 3
 
 julia> IR = invariant_ring(G)
@@ -429,7 +429,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
@@ -561,7 +561,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 

@@ -156,15 +156,11 @@ Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(t
 # 5: Equality
 ########################
 
-function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
-    return toric_variety(cc1) === toric_variety(cc2) && iszero(polynomial(cc1-cc2))
-end
+Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass) = toric_variety(cc1) === toric_variety(cc2) && iszero(polynomial(cc1-cc2))
 
 
 ######################
 # 6: Display
 ######################s
 
-function Base.show(io::IO, cc::CohomologyClass)
-    join(io, "Cohomology class on a normal toric variety given by $(string(polynomial(cc)))")
-end
+Base.show(io::IO, cc::CohomologyClass) = join(io, "Cohomology class on a normal toric variety given by $(string(polynomial(cc)))")

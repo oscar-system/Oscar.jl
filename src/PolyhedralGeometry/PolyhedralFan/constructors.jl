@@ -130,6 +130,36 @@ end
 
 ###############################################################################
 ###############################################################################
+### From group action on maximal cones
+###############################################################################
+###############################################################################
+@doc Markdown.doc"""
+    polyhedral_fan_from_rays_action(::Type{T}, Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) where T<:scalar_types
+
+Construct a polyhedral fan with a group action.
+
+# Arguments
+- `Rays`: The rays of the fan
+- `MC_reps`: `IncidenceMatrix` whose rows give the indices of the rays forming
+  representatives of the maximal cones under the group action.
+- `perms`: A vector of permutations `PermGroupElem` that form generators of the
+  group acting on the rays of the fan.
+
+"""
+function polyhedral_fan_from_rays_action(::Type{T}, Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) where T<:scalar_types
+    pf = Polymake.fan.PolyhedralFan()
+    Polymake.take(pf, "RAYS", Polymake.Matrix(unhomogenized_matrix(Rays)))
+    d = length(Rays)
+    gp = _group_generators_to_pm_arr_arr(perms, d)
+    Polymake.take(pf, "GROUP.REPRESENTATIVE_MAXIMAL_CONES", MC_reps)
+    Polymake.take(pf, "GROUP.RAYS_ACTION.GENERATORS", gp)
+    return PolyhedralFan{T}(pf)
+end
+polyhedral_fan_from_rays_action(Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) = polyhedral_fan_from_rays_action(QQFieldElem, Rays, MC_reps, perms)
+
+
+###############################################################################
+###############################################################################
 ### Display
 ###############################################################################
 ###############################################################################

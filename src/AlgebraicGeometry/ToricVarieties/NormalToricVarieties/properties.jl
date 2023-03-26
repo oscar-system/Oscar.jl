@@ -13,9 +13,7 @@ julia> is_normal(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-function is_normal(v::AbstractNormalToricVariety)
-    return true
-end
+is_normal(v::AbstractNormalToricVariety) = true
 
 
 @doc Markdown.doc"""

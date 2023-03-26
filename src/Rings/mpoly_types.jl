@@ -6,8 +6,8 @@ mpoly_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = Generic.MPolyRingElem{el
 mpoly_ring_type(a::T) where {T<:AbstractAlgebra.RingElem} = Generic.MPolyRing{T}
 mpoly_ring_type(::Type{T}) where {T<:AbstractAlgebra.RingElem} = Generic.MPolyRing{T}
 
-mpoly_type(a::T) where {T<:AbstractAlgebra.RingElem} = Generic.MPolyRingElem{T}
-mpoly_type(::Type{T}) where {T<:AbstractAlgebra.RingElem} = Generic.MPolyRingElem{T}
+mpoly_type(a::T) where {T<:AbstractAlgebra.RingElem} = Generic.MPoly{T}
+mpoly_type(::Type{T}) where {T<:AbstractAlgebra.RingElem} = Generic.MPoly{T}
 
 mpoly_ring_type(R::QQField) = QQMPolyRing
 mpoly_ring_type(::Type{QQField}) = QQMPolyRing
@@ -18,6 +18,11 @@ mpoly_type(R::QQField) = QQMPolyRingElem
 mpoly_type(::Type{QQField}) = QQMPolyRingElem
 mpoly_type(a::QQFieldElem) = QQMPolyRingElem
 mpoly_type(::Type{QQFieldElem}) = QQMPolyRingElem
+
+mpoly_type(R::ZZRing) = ZZMPolyRingElem
+mpoly_type(::Type{ZZRing}) = ZZMPolyRingElem
+mpoly_type(a::ZZRingElem) = ZZMPolyRingElem
+mpoly_type(::Type{ZZRingElem}) = ZZMPolyRingElem
 
 mpoly_ring_type(R::Nemo.fpField) = fpMPolyRing
 mpoly_ring_type(::Type{Nemo.fpField}) = fpMPolyRing

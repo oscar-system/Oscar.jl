@@ -1,6 +1,8 @@
 using Test
 
 include("AffineSchemes.jl")
+include("AffineVariety.jl")
+include("AffineAlgebraicSet.jl")
 include("SpecOpen.jl")
 include("Glueing.jl")
 include("ProjectiveSchemes.jl")

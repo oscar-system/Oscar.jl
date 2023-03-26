@@ -13,9 +13,7 @@ end
            AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 
-function pm_object(v::AbstractNormalToricVariety)
-    return v.polymakeNTV
-end
+pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
 
 ######################
 # 2: Generic constructors

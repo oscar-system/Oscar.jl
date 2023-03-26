@@ -34,6 +34,7 @@ along with an `IncidenceMatrix` encoding which rays generate which cones.
 
 ```@docs
 PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+polyhedral_fan_from_rays_action
 ```
 
 ```@docs

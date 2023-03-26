@@ -25,9 +25,7 @@ julia> toric_variety(c) == f2
 true
 ```
 """
-@attr AbstractNormalToricVariety function toric_variety(c::ClosedSubvarietyOfToricVariety)
-    return c.toric_variety
-end
+@attr AbstractNormalToricVariety toric_variety(c::ClosedSubvarietyOfToricVariety) = c.toric_variety
 
 
 @doc Markdown.doc"""
@@ -50,9 +48,7 @@ julia> defining_ideal(c) == ideal([t1])
 true
 ```
 """
-@attr MPolyIdeal function defining_ideal(c::ClosedSubvarietyOfToricVariety)
-    return c.defining_ideal
-end
+@attr MPolyIdeal defining_ideal(c::ClosedSubvarietyOfToricVariety) = c.defining_ideal
 
 
 @doc Markdown.doc"""

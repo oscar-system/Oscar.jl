@@ -432,42 +432,6 @@ end
 ##
 ##  action homomorphisms
 
-# Use a GAP attribute for caching the mapping.
-# The following must be executed at runtime,
-# the function gets called in Oscar's `__init__`.
-function __init_JuliaData()
-    if ! hasproperty(GAP.Globals, :JuliaData)
-      GAP.evalstr("""
-DeclareAttribute( "JuliaData", IsObject );
-
-InstallOtherMethod( ImagesRepresentative,
-[ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
-function( hom, elm )
-local data;
-data:= JuliaData( hom );
-return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
-end );
-
-InstallMethod( RestrictedMapping,
-CollFamSourceEqFamElms,
-[ IsActionHomomorphism and HasJuliaData, IsGroup ],
-function( hom, H )
-local data, OscarG, xset, Omega, Hgens, Hacts, OscarH, res;
-data:= JuliaData( hom ); # the Oscar G-set and the acting Oscar group G
-OscarG:= data[2]; # the acting Oscar group G
-xset:= UnderlyingExternalSet( hom );
-Omega:= HomeEnumerator( xset ); # the set of Oscar objects
-Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
-Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
-OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
-res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
-SetJuliaData( res, [ data[1], OscarH ] );
-return res;
-end );
-""")
-    end
-end
-
 """
     action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
 

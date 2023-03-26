@@ -1,6 +1,6 @@
 @testset "Conformance tests" begin
 
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     lin = [0 1 0]
     Cone1=positive_hull(pts)
     Q0 = convex_hull(pts)
@@ -12,7 +12,7 @@
     @testset "(de)homogenize" begin
         dehomogenize, homogenize = Oscar.dehomogenize, Oscar.homogenize
 
-        m = [1 2 3; 4 5 6]'
+        m = [1 2; 3 4; 5 6]
         @test dehomogenize(homogenize(m, 0 // 1)) == m
         @test dehomogenize(homogenize(m)) == m
         @test dehomogenize(homogenize(pm.Matrix(m))) == m
@@ -66,6 +66,15 @@
         @test minkowski_sum(C0,C0) == cube(2,-2,2)
         @test minkowski_sum(C0,C0; algorithm=:fukuda) == cube(2,-2, 2)
         @test intersect(C0,C0) == C0
+        Cs = [C0,C0,C0]
+        @test intersect(Cs) isa Polyhedron{QQFieldElem}
+        @test intersect(Cs...) isa Polyhedron{QQFieldElem}
+        @test intersect(Cs) == C0
+        @test intersect(Cs...) == C0
+        @test convex_hull(Cs) isa Polyhedron{QQFieldElem}
+        @test convex_hull(Cs...) isa Polyhedron{QQFieldElem}
+        @test convex_hull(Cs) == C0
+        @test convex_hull(Cs...) == C0
     end
 
     @testset "newton_polytope" begin
