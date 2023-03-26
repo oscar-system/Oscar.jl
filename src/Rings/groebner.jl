@@ -1247,8 +1247,8 @@ end
     groebner_basis_hilbert_driven(I::MPolyIdeal{P}; destination_ordering::MonomialOrdering,
                     complete_reduction::Bool = false,
                     weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
-                    hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) 
-                    where {P <: MPolyElem}
+                    hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) 
+                    where {P <: MPolyRingElem}
 
 Return a Gröbner basis of `I` with respect to `destination_ordering`.
 
@@ -1337,7 +1337,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        destination_ordering::MonomialOrdering,
                                        complete_reduction::Bool = false,
                                        weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
-                                       hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
+                                       hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
   
   all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
   isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
@@ -1425,7 +1425,7 @@ end
 
 # check homogeneity w.r.t. some weights
 
-function _is_homogeneous(f::MPolyElem, weights::Vector{Int})
+function _is_homogeneous(f::MPolyRingElem, weights::Vector{Int})
   w = sum(weights .* first(exponents(f)))
   all(sum(weights .* e) == w for e in exponents(f))
 end
@@ -1445,7 +1445,7 @@ end
   
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
-function _find_weights(F::Vector{P}) where {P <: MPolyElem}
+function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
 
   if all(_is_homogeneous, F)
     return ones(Int, ngens(parent(F[1])))
@@ -1453,7 +1453,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyElem}
 
   nrows = sum((length).(F)) - length(F)
   ncols = ngens(parent(first(F)))
-  mat_space = MatrixSpace(QQ, nrows, ncols)
+  mat_space = matrix_space(QQ, nrows, ncols)
 
   exp_diffs = permutedims(reduce(hcat, [e[i] - e[1] for e in
                                           (collect).((exponents).(F))
