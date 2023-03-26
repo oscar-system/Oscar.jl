@@ -1693,7 +1693,7 @@ Return $I:J^{\infty}$ together with the smallest integer $m$ such that $I:J^m = 
 """
 function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
   R = base_ring(I)
-  R == base_ring(J) || error("Ideals do no live in the same ring.")
+  R == base_ring(J) || error("Ideals do not live in the same ring.")
 
   I_sat = saturated_ideal(I)
   J_sat = saturated_ideal(J)
@@ -1713,7 +1713,7 @@ Internal function for weak and controlled transform.
 """
 function iterated_quotients(I::T, J::T, b::Int=Int(0)) where T <: MPolyAnyIdeal
   R = base_ring(I)
-  R == base_ring(J) || error("Ideals do no live in the same ring.")
+  R == base_ring(J) || error("Ideals do not live in the same ring.")
   b > -1 || error("negative multiplicity not allowed")
 
   Itemp = I
