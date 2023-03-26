@@ -116,36 +116,6 @@ end
   return is_one(saturated_ideal(I))
 end
 
-## WHERE SHOULD THIS GO?
-@Markdown.doc """
-  iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
-
-Return ``I:J^b`` and ``b``, for a given natural number ``b``.
-Return this for the highest ``b`` such that ``J(I:J^b)== (I:J^(b-1))``, if given ``b`` is zero.
-
-Internal function for weak and controlled transform.
-"""
-function iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
-  R = base_ring(I)
-  R == base_ring(J) || error("Ideals do no live in the same ring.")
-  b > -1 || error("negative multiplicity not allowed")
-
-  Itemp = I
-  k = 0
-
-  while (b == 0 || k < b)
-    Itemp2 = quotient(Itemp, J)
-    if !issubset(Itemp, Itemp2 * J)
-       b == 0 || error("cannot extract J from I with multiplicity b")
-       break
-    end
-    Itemp = Itemp2
-    k = k+1
-  end
-
-  return Itemp,k
-end
-
 @Markdown.doc """
   strict_transform(p::BlowupMorphism, I::IdealSheaf)
 
@@ -233,11 +203,11 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
       btemp == b || b == -2 || error("different multiplicities in different charts!!")
       b = btemp
    elseif method == 0
-      Itrans_chart,btemp = iterated_quotients(Itotal_chart,IE_chart, method)             # weak
+      Itrans_chart,btemp = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)             # weak
       btemp == b || b == -2 || error("different multiplicities in different charts!!")
       b = btemp
     else
-      Itrans_chart,b = iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
+      Itrans_chart,b = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
     end
     ID[U] = Itrans_chart
   end

@@ -1,3 +1,6 @@
+export saturation
+export saturation_with_exponent
+
 # constructors #######################################################
 
 @doc Markdown.doc"""
