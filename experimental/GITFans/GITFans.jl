@@ -115,7 +115,7 @@ for which the `i`-th row of `Q` is not contained in `S`.
 function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
     nr_variables, projected_dimension = size(Q)
 
-    collector_cones = []
+    collector_cones = Vector{Cone{QQFieldElem}}([])
 
     # We need not consider sets of smaller size because of the rank condition.
     for k in projected_dimension:nr_variables
@@ -125,6 +125,14 @@ function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_gro
             if rank(current_mat) == projected_dimension &&
                is_monomial_free(I, setdiff(1:nr_variables, i))
                 cone = positive_hull(current_mat)
+                # When comparing two cones it is fastest to solve a bunch of
+                # LP's to figure out whether the rays of one are contained in
+                # the other and vice versa. It would be even easier to just do
+                # some matrix multiplication if one already has the facets and
+                # rays. However to get the facets and rays is very hard
+                # compared to the LP's. But in this case we are comparing cones
+                # a lot, so the cost of the LP's outweigh the heavy lifting of
+                # computing rays and facets.
                 facets(cone)
                 rays(cone)
                 if ! any(j -> j == cone,
@@ -270,12 +278,19 @@ function matrix_action_on_cones(cone::Cone, mat)
     return positive_hull(rayscone * M)
 end
 
-function orbit_cone_orbits(cones, hom)
+function orbit_cone_orbits(cones::Vector{Cone{T}}, hom) where T
     matgens = [Matrix{BigInt}(image(hom, g).X) for g in gens(domain(hom))]
     act = matrix_action_on_cones
    
-    result = []
+    result = Vector{Vector{Cone{T}}}([])
     for cone in cones
+        # When comparing two cones it is fastest to solve a bunch of LP's to
+        # figure out whether the rays of one are contained in the other and
+        # vice versa. It would be even easier to just do some matrix
+        # multiplication if one already has the facets and rays. However to get
+        # the facets and rays is very hard compared to the LP's. But in this
+        # case we are comparing cones a lot, so the cost of the LP's outweigh
+        # the heavy lifting of computing rays and facets.
         rays(cone)
         facets(cone)
         if all(o -> all(c -> cone != c, o), result)
@@ -350,8 +365,8 @@ Return the array of all cones at `true` positions in the bitsets,
 where `cone_list` is an array of arrays of cones,
 and `bit_list_tuple` is an array of bitsets.
 """
-function cones_from_bitlist(cone_list, bit_list_tuple)
-    return_list = Any[]
+function cones_from_bitlist(cone_list::Vector{Vector{Cone{T}}}, bit_list_tuple) where T
+  return_list = Vector{Cone{T}}([])
     for i in 1:length(cone_list)
         for j in bit_list_tuple[i]
             push!(return_list, cone_list[i][j])
@@ -403,7 +418,7 @@ encodes orbit representatives of the maximal cones of the GIT fan described
 by `orbit_list`, `q_cone`, and `perm_actions`,
 and `edges` encodes the `Set` of edges of the incidence graph of the orbits.
 """
-function fan_traversal(orbit_list, q_cone::Cone, perm_actions)
+function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, perm_actions) where T
     # the induced actions on each of the orbits
     generators_new_perm = rewrite_action_to_orbits(perm_actions)
 
@@ -423,24 +438,14 @@ function fan_traversal(orbit_list, q_cone::Cone, perm_actions)
 
         # note that we run also over elements added inside the loop
         current_cone_list = cones_from_bitlist(orbit_list, current_hash)
-        intersected_cone = current_cone_list[1]
-        for i in current_cone_list
-            intersected_cone = intersect(intersected_cone, i)
-        end
-        # TODO extend intersect to more than two cones
-        facets = intersected_cone.pm_cone.FACETS
-        facets = convert(Matrix{Rational{BigInt}},facets)
-        facet_points = Vector{Rational{BigInt}}[
-                           Polymake.polytope.facet(intersected_cone.pm_cone, i-1).REL_INT_POINT
-                           for i in 1:size(facets, 1)]
+        intersected_cone = intersect(current_cone_list)
+        ic_facets = -linear_inequality_matrix(facets(intersected_cone))
+        facet_points = [Vector{T}([relative_interior_point(f)...]) for f in faces(intersected_cone, dim(intersected_cone)-1)]
 
         neighbor_hashes = []
         for i in 1:length(facet_points)
-            fp = transpose(matrix(QQ, [facet_points[i]]))
-            if any(x->x==0, q_cone_facets_converted*fp)
-                continue
-            end
-            push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], facets[i, :]))
+          !any(f->contains(f, facet_points[i]), faces(q_cone, dim(q_cone)-1)) || continue
+          push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], Vector{T}([ic_facets[i, :]...])))
         end
 
         neighbor_hashes = [find_smallest_orbit_element(i, generators_new_perm, bitlist_oper_tuple, ==, less_or_equal_array_bitlist) for i in neighbor_hashes]
@@ -541,6 +546,7 @@ function git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
     collector_cones = orbit_cones(a, Q, G)
     matrix_action = action_on_target(Q, G)
     orbit_list = orbit_cone_orbits(collector_cones, matrix_action)
+    println("orbit_list: ", typeof(orbit_list))
     perm_actions = action_on_orbit_cone_orbits(orbit_list, matrix_action)
     q_cone = positive_hull(Q)
 
