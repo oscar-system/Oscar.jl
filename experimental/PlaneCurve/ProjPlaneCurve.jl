@@ -1,7 +1,7 @@
 #module ProjPlaneCurveModule
 
 export aretransverse
-export arithmetic_genus
+#export arithmetic_genus
 export common_components
 export curve_intersect
 export curve_singular_locus
@@ -193,7 +193,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
      H = D.eq
   end
   Pts = []
-  r, (X, Y) = polynomial_ring(R.R.base_ring, ["X", "Y"])
+  r, (X, Y) = polynomial_ring(base_ring(R), ["X", "Y"])
   Fa = dehomogenization(F, r, 3)
   Ha = dehomogenization(H, r, 3)
   if !is_constant(Fa) && !is_constant(Ha)
@@ -204,7 +204,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
         push!(Pts, Array_to_ProjSpcElem(PP, p.coord))
      end
   end
-  rr, (x,) = polynomial_ring(R.R.base_ring, ["x"])
+  rr, (x,) = polynomial_ring(base_ring(R), ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
   phiF = phi(F.f)
   phiH = phi(H.f)
@@ -218,10 +218,10 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [AbstractAlgebra.leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [AbstractAlgebra.leading_coefficient(y), base_ring(R)(1), base_ring(R)(0)]))
   end
   if iszero(evaluate(F, [1, 0, 0])) && iszero(evaluate(H, [1, 0, 0]))
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [base_ring(R)(1), base_ring(R)(0), base_ring(R)(0)]))
   end
   return [CC,Pts]
 end
@@ -231,7 +231,7 @@ end
 
 function curve_intersect(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
    R = parent(C.eq)
-   PP = proj_space(R.R.base_ring, 2)
+   PP = proj_space(base_ring(R), 2)
    curve_intersect(PP[1], C, D)
 end
 
@@ -276,7 +276,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
      end
   end
   R = parent(C.eq)
-  rr, (x) = polynomial_ring(R.R.base_ring, ["x"])
+  rr, (x) = polynomial_ring(base_ring(R), ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
   pF = phi(D.eq.f)
   pX = phi(FX.f)
@@ -293,10 +293,10 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [AbstractAlgebra.leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [AbstractAlgebra.leading_coefficient(y), base_ring(R)(1), base_ring(R)(0)]))
   end
   if iszero(evaluate(D.eq, [1,0,0])) && iszero(evaluate(FX, [1,0,0])) && iszero(evaluate(FY, [1,0,0])) && iszero(evaluate(FZ, [1,0,0]))
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [base_ring(R)(1), base_ring(R)(0), base_ring(R)(0)]))
   end
   return [CC, Pts]
 end
@@ -306,7 +306,7 @@ end
 
 function curve_singular_locus(C::ProjectivePlaneCurve)
    R = parent(C.eq)
-   PP = proj_space(R.R.base_ring, 2)
+   PP = proj_space(base_ring(R), 2)
    curve_singular_locus(PP[1], C)
 end
 
@@ -425,7 +425,7 @@ Return the intersection multiplicity of `C` and `D` at `P`.
 function intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
    R = parent(C.eq)
-   r, (X, Y) = polynomial_ring(R.R.base_ring, ["X", "Y"])
+   r, (X, Y) = polynomial_ring(base_ring(R), ["X", "Y"])
    if P.v[3] != 0
       V = _dehom_curves_r(r, C, D, 3)
       Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
@@ -472,7 +472,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
 
-julia> Oscar.arithmetic_genus(C)
+julia> Oscar.PlaneCurveModule.arithmetic_genus(C)
 1
 ```
 """

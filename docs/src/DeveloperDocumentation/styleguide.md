@@ -30,6 +30,11 @@ Here is a summary of the naming convention followed in OSCAR:
   concepts, preferably not special names from your area of speciality.
 - Use Julia conventions where applicable and when they don't contradict our
   own rules above.
+- **Avoid direct access to members of our objects.** This means, do not use
+  something like `A.foo`, instead use a suitable getter `get_foo(A)`, and if
+  there is none, please write one or request that one be written. Internal
+  member names are free to change at any time, but functions can be deprecated
+  properly.
 - In Julia we have multiple dispatch, so we do not need functions like
   `point_from_matrix` as the "from" part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.

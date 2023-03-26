@@ -4,7 +4,7 @@
 ########################################################################
 underlying_morphism(f::ClosedEmbedding) = f.inc
 
-@Markdown.doc """
+@doc Markdown.doc"""
     image_ideal(f::ClosedEmbedding)
 
 For a closed embedding ``f : X → Y`` of affine schemes ``X = Spec(S)`` 

@@ -75,9 +75,7 @@ function describe(io::IO, MILP::MixedIntegerLinearProgram)
     end
 end
 
-function Base.show(io::IO, MILP::MixedIntegerLinearProgram)
-    print(io, "A mixed integer linear program")
-end
+Base.show(io::IO, MILP::MixedIntegerLinearProgram) = print(io, "Mixed integer linear program")
 
 
 ###############################################################################
@@ -85,9 +83,8 @@ end
 ### Access
 ###############################################################################
 ###############################################################################
-function _integer_variables(milp::MixedIntegerLinearProgram)
-    return milp.polymake_milp.INTEGER_VARIABLES
-end
+_integer_variables(milp::MixedIntegerLinearProgram) = milp.polymake_milp.INTEGER_VARIABLES
+
 
 @doc Markdown.doc"""
     objective_function(MILP::MixedIntegerLinearProgram; as = :pair)
@@ -139,7 +136,7 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_solution(milp)
 2-element PointVector{QQFieldElem}:
@@ -147,7 +144,7 @@ julia> optimal_solution(milp)
  3//2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_solution(milp)
 2-element PointVector{QQFieldElem}:
@@ -184,13 +181,13 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_value(milp)
 5/2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_value(milp)
 2
@@ -220,18 +217,16 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> solve_milp(milp)
 (5/2, QQFieldElem[1, 3//2])
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> solve_milp(milp)
 (2, QQFieldElem[1, 1])
 ```
 """
-function solve_milp(milp::MixedIntegerLinearProgram)
-   return optimal_value(milp),optimal_solution(milp)
-end
+solve_milp(milp::MixedIntegerLinearProgram) = optimal_value(milp),optimal_solution(milp)

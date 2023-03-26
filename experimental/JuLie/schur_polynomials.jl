@@ -10,34 +10,30 @@
 export schur_polynomial
 
 @doc Markdown.doc"""
-    schur_polynomial(lambda::Partition{T}, n::Int=sum(lambda); ring::FmpzMPolyRing) where T<:Integer
-    schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lambda)) where T<:Integer
-    schur_polynomial(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where T<:Integer
+    schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
+    schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
 
-Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in n variables, as a
-Multivariate Polynomial.
+Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in `n` variables.
 
-If neither `R` nor `x` are given, the Schur polynomial will be over
-`PolynomialRing(ZZ,["x1","x2",...,"xn"])`.
+If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ,n)`.
 
 # Examples
 ```jldoctest
-julia> R,x = PolynomialRing(ZZ, ["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Integer Ring, ZZMPolyRingElem[a, b, c])
-
-julia> schur_polynomial(Partition([2,1]),[x[1],x[2]])
-a^2*b + a*b^2
+julia> R,x = polynomial_ring(ZZ, ["a","b","c"]);
 
 julia> schur_polynomial(R, Partition([2,1]))
+a^2*b + a*b^2
+
+julia> schur_polynomial(R, Partition([2,1]), 3)
 a^2*b + a^2*c + a*b^2 + 2*a*b*c + a*c^2 + b^2*c + b*c^2
 
 julia> schur_polynomial(Partition([2]))
-x1^2 + x1*x2 + x2^2
+x1^2
 ```
 
 # Algorithm
 We use two different Algorithms, depending on the size of the input.
-The Combinatorial Algorithm is used for Partitions of small Integers, or if
+The Combinatorial Algorithm is used for Partitions of small integers, or if
 ``n ≥ 10``. In the other cases we use Cauchy's bialternant formula.
 
 **Combinatorial Algorithm**
@@ -58,13 +54,7 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 \end{vmatrix}
 ```
 """
-function schur_polynomial(lambda::Partition{T}, n::Int=sum(lambda);
-    ring::AbstractAlgebra.Ring=(n<=0 ? ZZ : begin # the ring for the return value
-                                  x = [string("x",string(i)) for i=1:n]
-                                  PolynomialRing(ZZ, x)[1]
-                                end
-                               )
-  ) where T<:Integer
+function schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
   @req n >= 0 "n >= 0 required"
   if n==0 || n < length(lambda)
     if isempty(lambda)
@@ -72,18 +62,13 @@ function schur_polynomial(lambda::Partition{T}, n::Int=sum(lambda);
     else
       return 0
     end
-  else
-    return schur_polynomial(ring::FmpzMPolyRing, lambda, n)
   end
+  return schur_polynomial(polynomial_ring(ZZ, n)[1], lambda, n)
 end
 
 
-function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lambda)) where T<:Integer
+function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
   @req n >= 0 "n >= 0 required"
-  if n > R.nvars
-    n = R.nvars
-  end
-  x = gens(R)[1:n]
   if n==0 || n < length(lambda)
     if isempty(lambda)
       return 1
@@ -91,6 +76,8 @@ function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lam
       return 0
     end
   end
+
+  @req n <= nvars(R) "n <= nvars(R) required"
 
   if n>=10
     return schur_polynomial_combinat(R, lambda, n)
@@ -100,36 +87,11 @@ function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=sum(lam
   if bo
     return schur_polynomial_combinat(R, lambda, n) #Combinatorial formula
   else
+    x = gens(R)[1:n]
     return schur_polynomial_cbf(lambda, x) #Cauchy's bialternant formula
   end
 end
 
-
-function schur_polynomial(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where T<:Integer
-  n = length(x)
-
-  if n==0 || n < length(lambda)
-    if isempty(lambda)
-      return 1
-    else
-      return 0
-    end
-  end
-
-  R = parent(x[1])
-  @assert all(y->parent(y)===R, x) "input elements do not have the same parent"
-
-  if n>=10
-    return schur_polynomial_combinat(R, lambda, n)
-  end
-  #decide which Algorithm to use if n<10
-  bo = sum(lambda) <= [140,50,17,11,10,10,11,13,14][n]
-  if bo
-    return schur_polynomial_combinat(R, lambda, n) #Combinatorial formula
-  else
-    return schur_polynomial_cbf(lambda, x) #Cauchy's bialternant formula
-  end
-end
 
 #returning the schur polynomial in the first k generators of R using Cauchy's bialternant formula.
 function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where T<:Integer
@@ -146,9 +108,8 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
   # TODO: The next line suggested that the case n<=0 is invalid input. But is this 
   # really the case? I see some comment lines below which have probably been there 
   # at some point to catch such boundary cases. 
-  R = x[1].parent # Multi-polynomialring
+  R = parent(x[1]) # Multi-polynomialring
   @assert all(y->parent(y)===R, x) "input elements must have the same parent"
-  S = base_ring(R) # Integer Ring
 
   #if n < length(lambda)
   #	return 0
@@ -225,7 +186,7 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
       factor = MPolyBuildCtx(R)
       exp = zeros(Int,n)
       exp[columnview] .= exp_incr[i]
-      push_term!(factor, one(S), exp)
+      push_term!(factor, one(ZZ), exp)
       sub_dets[i][columnview] = mul!(d, d, finish(factor))
     end
   end
@@ -243,7 +204,7 @@ end
 
 # returning the schur polynomial in the first k generators of R using the
 # Combinatorial formula.
-function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k::Int=sum(lambda)) where T<:Integer
+function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k::Int=length(lambda)) where T<:Integer
   if isempty(lambda)
     return one(R)
   end
@@ -257,7 +218,7 @@ function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k::In
   m = len
   n = lambda[m]
 
-  count = zeros(Int, R.nvars)
+  count = zeros(Int, nvars(R))
   valid = true
   while true
     count .= 0

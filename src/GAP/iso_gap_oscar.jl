@@ -211,19 +211,6 @@ function _iso_gap_oscar_multivariate_polynomial_ring(RG::GAP.GapObj)
    return MapFromFunc(f, finv, RG, RO)
 end
 
-# Use a GAP attribute for caching the mapping.
-# The following must be executed at runtime,
-# the function gets called in Oscar's `__init__`.
-function __init_IsoGapOscar()
-    if ! hasproperty(GAP.Globals, :IsoGapOscar)
-      GAP.Globals.DeclareAttribute(GAP.Obj("IsoGapOscar"), GAP.Globals.IsDomain);
-      GAP.Globals.InstallMethod(GAP.Globals.IsoGapOscar,
-        GAP.Obj([GAP.Globals.IsDomain]), GAP.GapObj(_iso_gap_oscar));
-    end
-
-    GAP.Globals.BindGlobal(GapObj("_OSCAR_GroupElem"), AbstractAlgebra.GroupElem)
-    GAP.Globals.Read(GapObj(joinpath(oscardir, "gap", "misc.g")))
-end
 
 """
     Oscar.iso_gap_oscar(R) -> Map{GAP.GapObj, T}

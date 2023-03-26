@@ -16,7 +16,7 @@ abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 # Powers of elements                                                   #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyPowersOfElement{
         BaseRingType,
         BaseRingElemType, 
@@ -127,7 +127,7 @@ end
 # Complements of prime ideals                                          #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyComplementOfPrimeIdeal{
         BaseRingType, 
         BaseRingElemType,
@@ -213,7 +213,7 @@ end
 # Complements of maximal ideals corresponding to 𝕜-points              #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyComplementOfKPointIdeal{
         BaseRingType,
         BaseRingElemType, 
@@ -355,7 +355,7 @@ function rand(rng::Random.AbstractRNG, S::MPolyComplementOfKPointIdeal, v1::Unit
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyProductOfMultSets{
         BaseRingType,
         BaseRingElemType, 
@@ -449,7 +449,7 @@ end
 # Localization associated to a monomial ordering                       #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyLeadingMonOne{
         BaseRingType,
         BaseRingElemType,
@@ -681,7 +681,7 @@ end
 
 *(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = product(T, U)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 
 Return the product of the multiplicative subsets `T` and `U`. 
@@ -899,7 +899,7 @@ end
 # Localizations of polynomial rings over admissible fields             #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyLocRing{
         BaseRingType,
         BaseRingElemType,
@@ -951,7 +951,7 @@ gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
 ngens(W::MPolyLocRing) = ngens(base_ring(W))
 
 ### required extension of the localization function
-@Markdown.doc """
+@doc Markdown.doc"""
 
     localization(R::MPolyRing, U::AbsMPolyMultSet)   
 
@@ -1058,7 +1058,7 @@ end
 # Elements of localized polynomial rings                               #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyLocRingElem{
         BaseRingType, 
         BaseRingElemType,
@@ -1295,7 +1295,7 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocRingElem}
   return W(m, n, check=false)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_unit(f::MPolyLocRingElem)
 
 Return `true`, if `f` is a unit of `parent(f)`, `false` otherwise.
@@ -1383,7 +1383,7 @@ end
 # Since computation of the saturated ideal might be expensive, 
 # we usually only cache a 'pre-saturated ideal' I' ⊂ J ⊂ I': U.
 
-@Markdown.doc """
+@doc Markdown.doc"""
     MPolyLocalizedIdeal{
         LocRingType<:MPolyLocRing, 
         LocRingElemType<:MPolyLocRingElem
@@ -1536,7 +1536,7 @@ end
 
 generator_matrix(J::MPolyIdeal) = matrix_space(base_ring(J), ngens(J), 1)(gens(J))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     saturated_ideal(I::MPolyLocalizedIdeal)
 
 Given an ideal `I` of a localization, say, `Rloc` of a multivariate polynomial ring, say, `R`,
@@ -1953,7 +1953,16 @@ end
 
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, W.(gens(I)))
+  result = MPolyLocalizedIdeal(W, W.(gens(I)))
+  # Make sure we keep previously computed groebner and standard bases.
+  result.pre_saturated_ideal = I
+  r = ngens(I)
+  A = zero_matrix(SMat, W, 0, r)
+  for i in 1:r
+    push!(A, sparse_row(W, [(i, one(W))]))
+  end
+  result.pre_saturation_data = A
+  return result
 end
 
 ### required constructors 
@@ -2240,7 +2249,7 @@ function coordinates(
                                     change_base_ring(L, x))))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocRingElem}
 
 Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
@@ -2269,7 +2278,7 @@ end
 write_as_linear_combination(f::MPolyLocRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
 
 # return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
-@Markdown.doc """
+@doc Markdown.doc"""
     as_affine_algebra(
       L::MPolyLocRing{BRT, BRET, RT, RET, 
       MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
@@ -2605,7 +2614,7 @@ end
 ### For introducing in Function to docu
 ########################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
 
     in(f::MPolyRingElem, U::AbsMPolyMultSet)   
 

@@ -80,3 +80,40 @@ end
   @test s-y in kernel(h)
   @test S(x-z) in kernel(h)
 end
+
+@testset "flattenings of quotient rings" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+
+  S, _ = polynomial_ring(R, ["s", "t"])
+  Q, _ = quo(S, ideal(S, S[1]))
+  phi = oscar.flatten(Q)
+  @test vcat(phi.(gens(Q)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
+  @test gens(S) == inverse(phi).(phi.(gens(S)))
+  @test oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(gens(R)))
+
+  U = powers_of_element(x)
+  L, _ = localization(R, U)
+  S, _ = polynomial_ring(L, ["s", "t"])
+  Q, _ = quo(S, ideal(S, S[1]))
+  phi = oscar.flatten(Q);
+  @test vcat(phi.(gens(Q)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
+  @test gens(S) == inverse(phi).(phi.(gens(S)))
+  @test oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
+  
+  A, _ = quo(R, ideal(R, y))
+  S, _ = polynomial_ring(A, ["s", "t"])
+  Q, _ = quo(S, ideal(S, S[1]))
+  phi = oscar.flatten(Q);
+  @test vcat(phi.(gens(Q)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
+  @test gens(S) == inverse(phi).(phi.(gens(S)))
+  @test oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
+
+  LA, _ = localization(A, U)
+  S, _ = polynomial_ring(LA, ["s", "t"])
+  Q, _ = quo(S, ideal(S, S[1]))
+  phi = oscar.flatten(Q);
+  @test vcat(phi.(gens(Q)), oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
+  @test gens(S) == inverse(phi).(phi.(gens(S)))
+  @test oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
+end
+

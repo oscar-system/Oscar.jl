@@ -438,14 +438,14 @@ generators of the underlying group of `RR` (order matters.)
 function _linear_representation(RR::RepRing{S, T}, mr::Vector{V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V <: MatElem{U}}
   @req chi.table === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   G = underlying_group(RR)
-  mg = MatrixGroup(nrows(mr[1]), base_ring(mr[1]), mr)
+  mg = matrix_group(mr)
   f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
   return linear_representation(RR, f, chi)
 end
 
 function _linear_representation(RR::RepRing{S ,T}, mr::Vector{V}) where {S ,T ,U, V <: MatElem{U}}
   G = underlying_group(RR)
-  mg = MatrixGroup(nrows(mr[1]), base_ring(mr[1]), mr)
+  mg = matrix_group(mr)
   f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
   return linear_representation(RR, f)
 end

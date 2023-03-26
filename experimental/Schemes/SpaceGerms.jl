@@ -7,7 +7,7 @@ export representative
 
 import AbstractAlgebra: Ring
 
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsSpaceGerm{BaseRingType<:Ring,RingType<:Ring}
 
 A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`` of type `RingType` over a coefficient field ``k`` of type `BaseRingType`.
@@ -31,7 +31,7 @@ GermAtGeometricPoint = Spec{<:Field,
 ## start of the definition of space germ functionality
 ###################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     SpaceGerm{BaseRingType, RingType, SpecType}
 A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """

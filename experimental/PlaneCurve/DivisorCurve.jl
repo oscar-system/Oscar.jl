@@ -435,7 +435,7 @@ end
 
 function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}) where S <: FieldElem
     R = parent(C.eq)
-    PP = proj_space(R.R.base_ring, 2)
+    PP = proj_space(base_ring(R), 2)
     return divisor(PP[1], C, F)
 end
 
@@ -482,7 +482,7 @@ end
 
 function divisor(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
     R = parent(C.eq)
-    PP = proj_space(R.R.base_ring, 2)
+    PP = proj_space(base_ring(R), 2)
     return divisor(PP[1], C, phi)
 end
 

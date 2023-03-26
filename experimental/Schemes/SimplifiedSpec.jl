@@ -8,7 +8,7 @@ original(X::SimplifiedSpec) = X.Y
 identification_maps(X::SimplifiedSpec) = (X.f, X.g)
 
 ### High-level constructors
-@Markdown.doc """
+@doc Markdown.doc"""
     simplify(X::AbsSpec{<:Field})
 
 Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I`` 
@@ -39,7 +39,7 @@ function has_ancestor(P::Function, X::PrincipalOpenSubset)
   return P(X) || has_ancestor(P, ambient_scheme(X))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     has_ancestor(P::Function, X::AbsSpec)
 
 Check whether property `P` holds for `X` or some ancestor of `X` in 
