@@ -235,6 +235,7 @@
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
     "DeveloperDocumentation/design_decisions.md",
+    "DeveloperDocumentation/printing.md",
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
