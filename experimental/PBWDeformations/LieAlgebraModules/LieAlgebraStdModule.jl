@@ -1,20 +1,21 @@
-@attributes mutable struct LieAlgebraStdModule{C <: RingElement} <: LieAlgebraModule{C}
-    L::LinearLieAlgebra{C}
+@attributes mutable struct LieAlgebraStdModule{C<:RingElement} <: LieAlgebraModule{C}
+  L::LinearLieAlgebra{C}
 
-    function LieAlgebraStdModule{C}(L::LinearLieAlgebra{C}; cached::Bool=true) where {C <: RingElement}
-        return get_cached!(LieAlgebraStdModuleDict, L, cached) do
-            new{C}(L)
-        end::LieAlgebraStdModule{C}
-    end
+  function LieAlgebraStdModule{C}(
+    L::LinearLieAlgebra{C}; cached::Bool=true
+  ) where {C<:RingElement}
+    return get_cached!(LieAlgebraStdModuleDict, L, cached) do
+      new{C}(L)
+    end::LieAlgebraStdModule{C}
+  end
 end
 
-const LieAlgebraStdModuleDict = CacheDictType{LinearLieAlgebra, LieAlgebraStdModule}()
+const LieAlgebraStdModuleDict = CacheDictType{LinearLieAlgebra,LieAlgebraStdModule}()
 
-struct LieAlgebraStdModuleElem{C <: RingElement} <: LieAlgebraModuleElem{C}
-    parent::LieAlgebraStdModule{C}
-    mat::MatElem{C}
+struct LieAlgebraStdModuleElem{C<:RingElement} <: LieAlgebraModuleElem{C}
+  parent::LieAlgebraStdModule{C}
+  mat::MatElem{C}
 end
-
 
 ###############################################################################
 #
@@ -22,18 +23,19 @@ end
 #
 ###############################################################################
 
-parent_type(::Type{LieAlgebraStdModuleElem{C}}) where {C <: RingElement} = LieAlgebraStdModule{C}
+parent_type(::Type{LieAlgebraStdModuleElem{C}}) where {C<:RingElement} =
+  LieAlgebraStdModule{C}
 
-elem_type(::Type{LieAlgebraStdModule{C}}) where {C <: RingElement} = LieAlgebraStdModuleElem{C}
+elem_type(::Type{LieAlgebraStdModule{C}}) where {C<:RingElement} =
+  LieAlgebraStdModuleElem{C}
 
-parent(v::LieAlgebraStdModuleElem{C}) where {C <: RingElement} = v.parent
+parent(v::LieAlgebraStdModuleElem{C}) where {C<:RingElement} = v.parent
 
-base_ring(V::LieAlgebraStdModule{C}) where {C <: RingElement} = base_ring(base_liealgebra(V))
+base_ring(V::LieAlgebraStdModule{C}) where {C<:RingElement} = base_ring(base_liealgebra(V))
 
-base_liealgebra(V::LieAlgebraStdModule{C}) where {C <: RingElement} = V.L
+base_liealgebra(V::LieAlgebraStdModule{C}) where {C<:RingElement} = V.L
 
-@attr dim(V::LieAlgebraStdModule{C}) where {C <: RingElement} = base_liealgebra(V).n
-
+@attr dim(V::LieAlgebraStdModule{C}) where {C<:RingElement} = base_liealgebra(V).n
 
 ###############################################################################
 #
@@ -41,15 +43,14 @@ base_liealgebra(V::LieAlgebraStdModule{C}) where {C <: RingElement} = V.L
 #
 ###############################################################################
 
-function Base.show(io::IO, V::LieAlgebraStdModule{C}) where {C <: RingElement}
-    print(io, "StdModule of ")
-    print(IOContext(io, :compact => true), base_liealgebra(V))
+function Base.show(io::IO, V::LieAlgebraStdModule{C}) where {C<:RingElement}
+  print(io, "StdModule of ")
+  print(IOContext(io, :compact => true), base_liealgebra(V))
 end
 
-function symbols(V::LieAlgebraStdModule{C}) where {C <: RingElement}
-    return [Symbol("v_$(i)") for i in 1:dim(V)]
+function symbols(V::LieAlgebraStdModule{C}) where {C<:RingElement}
+  return [Symbol("v_$(i)") for i in 1:dim(V)]
 end
-
 
 ###############################################################################
 #
@@ -59,17 +60,17 @@ end
 
 # no special ones
 
-
 ###############################################################################
 #
 #   Module action
 #
 ###############################################################################
 
-function transformation_matrix_by_basisindex(V::LieAlgebraStdModule{C}, i::Int) where {C <: RingElement}
-    return matrix_repr_basis(base_liealgebra(V), i)
+function transformation_matrix_by_basisindex(
+  V::LieAlgebraStdModule{C}, i::Int
+) where {C<:RingElement}
+  return matrix_repr_basis(base_liealgebra(V), i)
 end
-
 
 ###############################################################################
 #
@@ -77,6 +78,6 @@ end
 #
 ###############################################################################
 
-function standard_module(L::LinearLieAlgebra{C}; cached::Bool=true) where {C <: RingElement}
-    return LieAlgebraStdModule{elem_type(base_ring(L))}(L; cached)
+function standard_module(L::LinearLieAlgebra{C}; cached::Bool=true) where {C<:RingElement}
+  return LieAlgebraStdModule{elem_type(base_ring(L))}(L; cached)
 end
