@@ -35,7 +35,7 @@ base_ring(V::LieAlgebraStdModule{C}) where {C<:RingElement} = base_ring(base_lie
 
 base_liealgebra(V::LieAlgebraStdModule{C}) where {C<:RingElement} = V.L
 
-@attr dim(V::LieAlgebraStdModule{C}) where {C<:RingElement} = base_liealgebra(V).n
+@attr Int dim(V::LieAlgebraStdModule{C}) where {C<:RingElement} = base_liealgebra(V).n
 
 ###############################################################################
 #

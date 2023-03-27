@@ -39,7 +39,7 @@ elem_type(::Type{LinearLieAlgebra{C}}) where {C<:RingElement} = LinearLieAlgebra
 
 parent(x::LinearLieAlgebraElem{C}) where {C<:RingElement} = x.parent
 
-base_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R
+base_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.dim
 

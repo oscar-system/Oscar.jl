@@ -63,7 +63,7 @@ elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:RingElement} = AbstractLieAlg
 
 parent(x::AbstractLieAlgebraElem{C}) where {C<:RingElement} = x.parent
 
-base_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R
+base_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.dim
 

@@ -51,7 +51,7 @@ base_ring(V::LieAlgebraExteriorPowerModule{C}) where {C<:RingElement} =
 base_liealgebra(V::LieAlgebraExteriorPowerModule{C}) where {C<:RingElement} =
   base_liealgebra(V.inner_mod)
 
-@attr dim(V::LieAlgebraExteriorPowerModule{C}) where {C<:RingElement} =
+@attr Int dim(V::LieAlgebraExteriorPowerModule{C}) where {C<:RingElement} =
   binomial(dim(V.inner_mod), V.power)
 
 ###############################################################################
@@ -67,7 +67,7 @@ end
 
 function symbols(V::LieAlgebraExteriorPowerModule{C}) where {C<:RingElement}
   if V.power == 1
-    return symbols(V.inner_mod)
+    return symbols(V.inner_mod)::Vector{Symbol}
   end
   if isa(V.inner_mod, LieAlgebraStdModule)
     parentheses = identity
@@ -77,7 +77,7 @@ function symbols(V::LieAlgebraExteriorPowerModule{C}) where {C<:RingElement}
 
   return [
     Symbol(join(parentheses.(s), " ∧ ")) for
-    s in Combinatorics.combinations(symbols(V.inner_mod), V.power)
+    s in Combinatorics.combinations(symbols(V.inner_mod)::Vector{Symbol}, V.power)
   ]
 end
 

@@ -53,7 +53,7 @@ base_ring(V::LieAlgebraSymmetricPowerModule{C}) where {C<:RingElement} =
 base_liealgebra(V::LieAlgebraSymmetricPowerModule{C}) where {C<:RingElement} =
   base_liealgebra(V.inner_mod)
 
-@attr dim(V::LieAlgebraSymmetricPowerModule{C}) where {C<:RingElement} =
+@attr Int dim(V::LieAlgebraSymmetricPowerModule{C}) where {C<:RingElement} =
   binomial(dim(V.inner_mod) + V.power - 1, V.power)
 
 ###############################################################################
@@ -69,7 +69,7 @@ end
 
 function symbols(V::LieAlgebraSymmetricPowerModule{C}) where {C<:RingElement}
   if V.power == 1
-    return symbols(V.inner_mod)
+    return symbols(V.inner_mod)::Vector{Symbol}
   end
   if isa(V.inner_mod, LieAlgebraStdModule)
     parentheses = identity
@@ -88,11 +88,12 @@ function symbols(V::LieAlgebraSymmetricPowerModule{C}) where {C<:RingElement}
             else
               "$(s |> parentheses)^$e"
             end
-          end for (i, s) in enumerate(symbols(V.inner_mod)) if in(i, inds)
+          end for (i, s) in enumerate(symbols(V.inner_mod)::Vector{Symbol}) if in(i, inds)
         ),
         "*",
       ),
-    ) for inds in Combinatorics.with_replacement_combinations(1:dim(V.inner_mod), V.power)
+    ) for
+    inds in Combinatorics.with_replacement_combinations(1:(dim(V.inner_mod)::Int), V.power)
   ]
 end
 

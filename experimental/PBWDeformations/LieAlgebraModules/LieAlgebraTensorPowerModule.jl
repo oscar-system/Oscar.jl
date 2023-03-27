@@ -52,7 +52,7 @@ base_ring(V::LieAlgebraTensorPowerModule{C}) where {C<:RingElement} = base_ring(
 base_liealgebra(V::LieAlgebraTensorPowerModule{C}) where {C<:RingElement} =
   base_liealgebra(V.inner_mod)
 
-@attr dim(V::LieAlgebraTensorPowerModule{C}) where {C<:RingElement} =
+@attr Int dim(V::LieAlgebraTensorPowerModule{C}) where {C<:RingElement} =
   dim(V.inner_mod)^V.power
 
 ###############################################################################
@@ -68,7 +68,7 @@ end
 
 function symbols(V::LieAlgebraTensorPowerModule{C}) where {C<:RingElement}
   if V.power == 1
-    return symbols(V.inner_mod)
+    return symbols(V.inner_mod)::Vector{Symbol}
   end
   if isa(V.inner_mod, LieAlgebraStdModule)
     parentheses = identity
@@ -78,7 +78,7 @@ function symbols(V::LieAlgebraTensorPowerModule{C}) where {C<:RingElement}
 
   return [
     Symbol(join(parentheses.(s), " ⊗ ")) for
-    s in reverse.(ProductIterator(symbols(V.inner_mod), V.power))
+    s in reverse.(ProductIterator(symbols(V.inner_mod)::Vector{Symbol}, V.power))
   ]
 end
 
