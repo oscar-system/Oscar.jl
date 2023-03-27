@@ -53,7 +53,7 @@ from the `graded_coordinate_ring` to the `coordinate_ring` of the affine cone.
 end
 
 @attr function affine_cone(
-    P::AbsProjectiveScheme{RT}
+    P::AbsProjectiveScheme{RT, <:MPolyQuoRing}
   ) where {RT<:Field}
   S = graded_coordinate_ring(P)
   PS = base_ring(S)
@@ -63,6 +63,16 @@ end
   SS, _ = quo(PP, II)
   phi = hom(S, SS, gens(SS))
   C = Spec(SS)
+  return C, phi
+end
+
+@attr function affine_cone(
+    P::AbsProjectiveScheme{RT, <:MPolyDecRing}
+  ) where {RT<:Field}
+  S = graded_coordinate_ring(P)
+  PP = forget_grading(S) # the ungraded polynomial ring
+  phi = hom(S, PP, gens(PP))
+  C = Spec(PP)
   return C, phi
 end
 
@@ -124,7 +134,8 @@ On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
 graded_coordinate_ring(P::ProjectiveScheme) = P.S
 
-ambient_coordinate_ring(P::ProjectiveScheme) = base_ring(graded_coordinate_ring(P))
+ambient_coordinate_ring(P::ProjectiveScheme{<:Any, <:Any, <:MPolyQuoRing}) = base_ring(graded_coordinate_ring(P))
+ambient_coordinate_ring(P::ProjectiveScheme{<:Any, <:Any, <:MPolyDecRing}) = graded_coordinate_ring(P)
 
 ### TODO: Replace by the map of generators.
 @doc Markdown.doc"""
@@ -150,7 +161,7 @@ homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)
 On ``X ⊂ ℙʳ(A)`` this returns the homogeneous 
 ideal ``I ⊂ A[s₀,…,sᵣ]`` defining ``X``.
 """
-defining_ideal(X::AbsProjectiveScheme{<:Any, <:MPolyRing}) = ideal(graded_coordinate_ring(X))
+defining_ideal(X::AbsProjectiveScheme{<:Any, <:MPolyDecRing}) = ideal(graded_coordinate_ring(X), Vector{elem_type(graded_coordinate_ring(X))}())
 defining_ideal(X::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}) = modulus(graded_coordinate_ring(X))
 
 ### type getters 

@@ -51,7 +51,11 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 end
 
-function Base.show(io::IO, P::ProjectiveScheme) 
+function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   print(io, "subscheme of ℙ^$(relative_ambient_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
+end
+
+function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}) 
+  print(io, "ℙ^$(relative_ambient_dimension(P))_{$(base_ring(P))}")
 end
 
