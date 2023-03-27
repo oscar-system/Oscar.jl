@@ -131,6 +131,8 @@ function ProjectiveSchemeMor(
   Q = graded_coordinate_ring(X)
   all(x->parent(x)===Q, a) || return ProjectiveSchemeMor(X, Y, Q.(a))
   P = graded_coordinate_ring(Y)
+  @show P
+  @show Q
   return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
 end
 
@@ -142,6 +144,7 @@ function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocRi
   return phi.map_on_base_schemes::SchemeMor
 end
 
+# Map on affine cones over the same base scheme.
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{
                              <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
@@ -151,7 +154,7 @@ function map_on_affine_cones(
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }},
                              <:Hecke.Map,
-                             Nothing
+                             Nothing # This indicates the same base scheme for domain and codomain.
                             };
     check::Bool=true
   )
@@ -166,6 +169,7 @@ function map_on_affine_cones(
   return phi.map_on_affine_cones
 end
 
+# Map on affine cones with a non-trivial map on base schemes.
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{
                              <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
