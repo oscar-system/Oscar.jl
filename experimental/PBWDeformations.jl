@@ -1,4 +1,6 @@
-using Combinatorics
+import AbstractAlgebra: FPModule, FPModuleElem
+
+import Combinatorics
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
