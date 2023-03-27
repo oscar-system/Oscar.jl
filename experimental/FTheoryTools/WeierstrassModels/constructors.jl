@@ -3,15 +3,15 @@
 ################################################
 
 @attributes mutable struct GlobalWeierstrassModel
-    poly_f::MPolyElem{fmpq}
-    poly_g::MPolyElem{fmpq}
-    pw::MPolyElem{fmpq}
+    poly_f::MPolyRingElem{QQFieldElem}
+    poly_g::MPolyRingElem{QQFieldElem}
+    pw::MPolyRingElem{QQFieldElem}
     toric_base_space::AbstractNormalToricVariety
     toric_ambient_space::AbstractNormalToricVariety
     Y4::ClosedSubvarietyOfToricVariety
-    function GlobalWeierstrassModel(poly_f::MPolyElem{fmpq},
-                                    poly_g::MPolyElem{fmpq},
-                                    pw::MPolyElem{fmpq},
+    function GlobalWeierstrassModel(poly_f::MPolyRingElem{QQFieldElem},
+                                    poly_g::MPolyRingElem{QQFieldElem},
+                                    pw::MPolyRingElem{QQFieldElem},
                                     toric_base_space::AbstractNormalToricVariety,
                                     toric_ambient_space::AbstractNormalToricVariety,
                                     Y4::ClosedSubvarietyOfToricVariety)
@@ -66,7 +66,7 @@ global_weierstrass_model_over_projective_space() = global_weierstrass_model(proj
 
 
 @doc Markdown.doc"""
-    global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::AbstractNormalToricVariety)
+    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
 
 This method operates analogously to `global_weierstrass_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -87,7 +87,7 @@ julia> is_smooth(toric_ambient_space(w))
 false
 ```
 """
-function global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::AbstractNormalToricVariety)
+function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
     if (parent(f) != cox_ring(base)) || (parent(g) != cox_ring(base))
         throw(ArgumentError("All Weierstrass sections must reside in the Cox ring of the base toric variety"))
     end
@@ -105,7 +105,7 @@ end
 ################################################
 
 @doc Markdown.doc"""
-    global_weierstrass_model(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
+    global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
 
 This method constructs a global Weierstrass model over a base space that is not
 fully specified. The following example illustrates this approach.
@@ -132,7 +132,7 @@ julia> dim(toric_ambient_space(w))
 5
 ```
 """
-function global_weierstrass_model(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
+function global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
     if (parent(poly_f) != auxiliary_base_ring) || (parent(poly_g) != auxiliary_base_ring)
         throw(ArgumentError("All Weierstrass sections must reside in the provided auxiliary base ring"))
     end

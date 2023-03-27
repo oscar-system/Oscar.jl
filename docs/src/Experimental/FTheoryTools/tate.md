@@ -36,7 +36,7 @@ We support the following constructors:
 ```@docs
 global_tate_model(base::AbstractNormalToricVariety)
 global_tate_model_over_projective_space()
-global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
+global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
 ```
 
 ## ... over not fully specified bases
@@ -68,7 +68,7 @@ ring of an auxiliary toric base space, namely an affine space with those coordin
 
 Such geometries can be constructed with the following constructor:
 ```@docs
-global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
+global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
 ```
 
 

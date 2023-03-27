@@ -14,7 +14,7 @@ Global Tate model over a concrete base
 julia> tate_section_a1(t);
 ```
 """
-@attr MPolyElem{fmpq} tate_section_a1(t::GlobalTateModel) = t.a1
+@attr MPolyRingElem{QQFieldElem} tate_section_a1(t::GlobalTateModel) = t.a1
 
 
 @doc Markdown.doc"""
@@ -29,7 +29,7 @@ Global Tate model over a concrete base
 julia> tate_section_a2(t);
 ```
 """
-@attr MPolyElem{fmpq} tate_section_a2(t::GlobalTateModel) = t.a2
+@attr MPolyRingElem{QQFieldElem} tate_section_a2(t::GlobalTateModel) = t.a2
 
 
 @doc Markdown.doc"""
@@ -44,7 +44,7 @@ Global Tate model over a concrete base
 julia> tate_section_a3(t);
 ```
 """
-@attr MPolyElem{fmpq} tate_section_a3(t::GlobalTateModel) = t.a3
+@attr MPolyRingElem{QQFieldElem} tate_section_a3(t::GlobalTateModel) = t.a3
 
 
 @doc Markdown.doc"""
@@ -59,7 +59,7 @@ Global Tate model over a concrete base
 julia> tate_section_a4(t);
 ```
 """
-@attr MPolyElem{fmpq} tate_section_a4(t::GlobalTateModel) = t.a4
+@attr MPolyRingElem{QQFieldElem} tate_section_a4(t::GlobalTateModel) = t.a4
 
 
 @doc Markdown.doc"""
@@ -74,7 +74,7 @@ Global Tate model over a concrete base
 julia> tate_section_a6(t);
 ```
 """
-@attr MPolyElem{fmpq} tate_section_a6(t::GlobalTateModel) = t.a6
+@attr MPolyRingElem{QQFieldElem} tate_section_a6(t::GlobalTateModel) = t.a6
 
 
 #####################################################
@@ -93,7 +93,7 @@ Global Tate model over a concrete base
 julia> tate_polynomial(t);
 ```
 """
-@attr MPolyElem{fmpq} tate_polynomial(t::GlobalTateModel) = t.pt
+@attr MPolyRingElem{QQFieldElem} tate_polynomial(t::GlobalTateModel) = t.pt
 
 
 #####################################################
@@ -217,7 +217,7 @@ Global Tate model over a concrete base
 julia> discriminant(t);
 ```
 """
-@attr MPolyElem{fmpq} discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
+@attr MPolyRingElem{QQFieldElem} discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
 
 
 @doc Markdown.doc"""
@@ -282,7 +282,7 @@ julia> singular_loci(t)[2]
 (ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
+@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
 
 
 #####################################################
@@ -319,7 +319,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
         @warn "The given sequence of blowups is not crepant"
     end
 
-    loci_fiber_intersections = Tuple{MPolyIdeal{fmpq_mpoly}, Vector{Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{fmpq_mpoly}}}}}[]
+    loci_fiber_intersections = Tuple{MPolyIdeal{QQMPolyRingElem}, Vector{Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}}}[]
     for locus in interesting_singular_loci
         # Currently have to get the ungraded ideal generators by hand using .f
         ungraded_locus = ideal(map(gen -> base_to_ambient_ring_map(gen).f, gens(locus)))
@@ -333,7 +333,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
         components = filter(component -> _is_nontrivial(component, res_irr), potential_components)
 
         # Check the pairwise intersections of the components
-        intersections = Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{fmpq_mpoly}}}[]
+        intersections = Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}[]
         for i in 1:length(components) - 1
             for j in i + 1:length(components)
                 intersection = filter(candidate_locus -> _is_nontrivial(candidate_locus, res_irr), map(pair -> pair[2], primary_decomposition(components[i] + components[j])))

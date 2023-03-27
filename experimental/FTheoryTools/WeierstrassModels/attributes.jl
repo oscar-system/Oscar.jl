@@ -15,7 +15,7 @@ Global Weierstrass model over a concrete base
 julia> weierstrass_section_f(w);
 ```
 """
-@attr MPolyElem{fmpq} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
+@attr MPolyRingElem{QQFieldElem} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
 
 
 @doc Markdown.doc"""
@@ -31,7 +31,7 @@ Global Weierstrass model over a concrete base
 julia> weierstrass_section_g(w);
 ```
 """
-@attr MPolyElem{fmpq} weierstrass_section_g(w::GlobalWeierstrassModel) = w.poly_g
+@attr MPolyRingElem{QQFieldElem} weierstrass_section_g(w::GlobalWeierstrassModel) = w.poly_g
 
 
 #######################################
@@ -50,7 +50,7 @@ Global Weierstrass model over a concrete base
 julia> weierstrass_polynomial(w);
 ```
 """
-@attr MPolyElem{fmpq} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.pw
+@attr MPolyRingElem{QQFieldElem} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.pw
 
 
 #######################################
@@ -142,7 +142,7 @@ Global Weierstrass model over a concrete base
 julia> discriminant(w);
 ```
 """
-@attr MPolyElem{fmpq} discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
+@attr MPolyRingElem{QQFieldElem} discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
 
 
 @doc Markdown.doc"""
@@ -213,11 +213,11 @@ julia> singular_loci(weier)[2]
 (ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
+@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
     B = irrelevant_ideal(toric_base_space(w))
 
     d_primes = primary_decomposition(ideal([discriminant(w)]))
-    nontrivial_d_primes = Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}}[]
+    nontrivial_d_primes = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}[]
     for k in 1:length(d_primes)
         if _is_nontrivial(d_primes[k][2], B)
             push!(nontrivial_d_primes, d_primes[k])
@@ -227,7 +227,7 @@ julia> singular_loci(weier)[2]
     f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
     g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
 
-    kodaira_types = Tuple{MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}, String}[]
+    kodaira_types = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}[]
     for d_prime in nontrivial_d_primes
         f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
         g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)

@@ -3,21 +3,21 @@
 ################################################
 
 @attributes mutable struct GlobalTateModel
-    a1::MPolyElem{fmpq}
-    a2::MPolyElem{fmpq}
-    a3::MPolyElem{fmpq}
-    a4::MPolyElem{fmpq}
-    a6::MPolyElem{fmpq}
-    pt::MPolyElem{fmpq}
+    a1::MPolyRingElem{QQFieldElem}
+    a2::MPolyRingElem{QQFieldElem}
+    a3::MPolyRingElem{QQFieldElem}
+    a4::MPolyRingElem{QQFieldElem}
+    a6::MPolyRingElem{QQFieldElem}
+    pt::MPolyRingElem{QQFieldElem}
     toric_base_space::AbstractNormalToricVariety
     toric_ambient_space::AbstractNormalToricVariety
     Y4::ClosedSubvarietyOfToricVariety
-    function GlobalTateModel(a1::MPolyElem{fmpq},
-                            a2::MPolyElem{fmpq},
-                            a3::MPolyElem{fmpq},
-                            a4::MPolyElem{fmpq},
-                            a6::MPolyElem{fmpq},
-                            pt::MPolyElem{fmpq},
+    function GlobalTateModel(a1::MPolyRingElem{QQFieldElem},
+                            a2::MPolyRingElem{QQFieldElem},
+                            a3::MPolyRingElem{QQFieldElem},
+                            a4::MPolyRingElem{QQFieldElem},
+                            a6::MPolyRingElem{QQFieldElem},
+                            pt::MPolyRingElem{QQFieldElem},
                             toric_base_space::AbstractNormalToricVariety,
                             toric_ambient_space::AbstractNormalToricVariety,
                             Y4::ClosedSubvarietyOfToricVariety)
@@ -71,7 +71,7 @@ global_tate_model_over_projective_space() = global_tate_model(projective_space(N
 
 
 @doc Markdown.doc"""
-    global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
+    global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
 
 This method operates analogously to `global_tate_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -98,7 +98,7 @@ julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
+function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
     if length(ais) != 5
         throw(ArgumentError("We require exactly 5 Tate sections"))
     end
@@ -119,7 +119,7 @@ end
 ################################################
 
 @doc Markdown.doc"""
-    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
+    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -158,7 +158,7 @@ julia> dim(toric_ambient_space(t))
 5
 ```
 """
-function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
+function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
     if length(ais) != 5
         throw(ArgumentError("We expect exactly 5 Tate sections"))
     end

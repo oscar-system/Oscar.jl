@@ -60,12 +60,12 @@ function _weierstrass_sections(base::AbstractNormalToricVariety)
     return [f, g]
 end
 
-function _weierstrass_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{fmpq, FmpqMPolyRing})
+function _weierstrass_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
     (f, g) = _weierstrass_sections(base)
     return _weierstrass_polynomial(S, f, g)
 end
 
-function _weierstrass_polynomial(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, S::MPolyDecRing{fmpq, FmpqMPolyRing})
+function _weierstrass_polynomial(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
     z = gens(S)[length(gens(S))]
@@ -87,12 +87,12 @@ function _tate_sections(base::AbstractNormalToricVariety)
     return [a1, a2, a3, a4, a6]
 end
 
-function _tate_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{fmpq, FmpqMPolyRing})
+function _tate_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
     (a1, a2, a3, a4, a6) = _tate_sections(base)
     return _tate_polynomial(S, [a1, a2, a3, a4, a6])
 end
 
-function _tate_polynomial(ais::Vector{<:MPolyElem{fmpq}}, S::MPolyDecRing{fmpq, FmpqMPolyRing})
+function _tate_polynomial(ais::Vector{<:MPolyRingElem{QQFieldElem}}, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
     z = gens(S)[length(gens(S))]
@@ -141,16 +141,16 @@ end
 # 6: Check if an ideal/subvariety is nontrivial
 ################################################################
 
-_is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyElem{fmpq}} = !is_one(id) && !is_one(saturation(id, irr))
+_is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyRingElem{QQFieldElem}} = !is_one(id) && !is_one(saturation(id, irr))
 
 
 ################################################################
 # 7: Compute singularity Kodaira type and refined Tate type
 ################################################################
 
-_count_factors(poly::fmpq_mpoly) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
+_count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
 
-function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyDecRingElem{fmpq, fmpq_mpoly}}
+function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
     f_ord = ords[1]
     g_ord = ords[2]
     d_ord = ords[3]
@@ -171,7 +171,7 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
         kod_type = "Non-minimal"
     else
         R = parent(f)
-        S, (_psi, ) = PolynomialRing(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
+        S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
         ring_map = hom(R, S, gens(S)[2:end])
         poly_f = ring_map(f)
         poly_g = ring_map(g)
@@ -236,7 +236,7 @@ end
 # 8: Blowups
 ################################################################
 
-function _blowup_global(id::MPolyIdeal{fmpq_mpoly}, center::MPolyIdeal{fmpq_mpoly}, irr::MPolyIdeal{fmpq_mpoly}, sri::MPolyIdeal{fmpq_mpoly}, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1)
+function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{QQMPolyRingElem}; index::Integer = 1)
     # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
 
     R = base_ring(id)
@@ -263,7 +263,7 @@ function _blowup_global(id::MPolyIdeal{fmpq_mpoly}, center::MPolyIdeal{fmpq_mpol
     lin = ideal(map(hom(base_ring(lin), R, collect(1:length(gens(R)))), gens(lin)))
 
     # Create new base ring for the blown up ideal and a map between the rings
-    S, S_gens = PolynomialRing(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)
+    S, S_gens = polynomial_ring(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)
     (_e, new_coords...) = S_gens[1:center_size + 1]
     ring_map = hom(R, S, S_gens[center_size + 2:end])
 
@@ -286,17 +286,17 @@ function _blowup_global(id::MPolyIdeal{fmpq_mpoly}, center::MPolyIdeal{fmpq_mpol
 
     return total_transform, strict_transform, exceptional_ideal, crepant, new_irr, new_sri, new_lin, S, S_gens, ring_map
 end
-_blowup_global(id::T, center::T, irr::T, sri::T, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1) where {T<:MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}} = _blowup_global(ideal(map(g -> g.f, gens(id))), ideal(map(g -> g.f, gens(center))), ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+_blowup_global(id::T, center::T, irr::T, sri::T, lin::MPolyIdeal{QQMPolyRingElem}; index::Integer = 1) where {T<:MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} = _blowup_global(ideal(map(g -> g.f, gens(id))), ideal(map(g -> g.f, gens(center))), ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
 
 
-function _blowup_global_sequence(id::MPolyIdeal{fmpq_mpoly}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{fmpq_mpoly}, sri::MPolyIdeal{fmpq_mpoly}, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1)
+function _blowup_global_sequence(id::MPolyIdeal{QQMPolyRingElem}, centers::Vector{<:Vector{<:Integer}}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{QQMPolyRingElem}; index::Integer = 1)
     # @warn "The function _blowup_global_sequence is experimental; absence of bugs and proper results are not guaranteed"
 
     (cur_strict_transform, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, cur_index) = (id, irr, sri, lin, base_ring(id), gens(base_ring((id))), index)
     crepant = true
     ring_map = hom(cur_S, cur_S, cur_S_gens) # Identity map
 
-    exceptionals = MPolyIdeal{<:MPolyElem{fmpq}}[]
+    exceptionals = MPolyIdeal{<:MPolyRingElem{QQFieldElem}}[]
     for center in centers
         if !all(ind -> 1 <= ind <= length(cur_S_gens), center)
             throw(ArgumentError("The given indices for the center generators are out of bounds"))
@@ -316,4 +316,4 @@ function _blowup_global_sequence(id::MPolyIdeal{fmpq_mpoly}, centers::Vector{<:V
 
     return cur_strict_transform, exceptionals, crepant, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, ring_map
 end
-_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::MPolyIdeal{fmpq_mpoly}; index::Integer = 1) where {T<:MPolyIdeal{MPolyDecRingElem{fmpq, fmpq_mpoly}}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+_blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::MPolyIdeal{QQMPolyRingElem}; index::Integer = 1) where {T<:MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)

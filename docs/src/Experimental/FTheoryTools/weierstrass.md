@@ -44,7 +44,7 @@ We support the following constructors:
 ```@docs
 global_weierstrass_model(base::AbstractNormalToricVariety)
 global_weierstrass_model_over_projective_space()
-global_weierstrass_model(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::AbstractNormalToricVariety)
+global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
 ```
 
 ## ... over not fully specified bases
@@ -70,7 +70,7 @@ toric base space, namely an affine space with those coordinates.
 
 For such geometries, we support the following functionality.
 ```@docs
-global_weierstrass_model(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
+global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
 ```
 
 
