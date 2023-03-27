@@ -215,6 +215,11 @@ end
 function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
   all(x->(parent(x)==OO(U)), g) || error("elements do not belong to the correct ring")
   X = ambient_scheme(U)
-  Z = subscheme(X, vcat([[lifted_numerator(f[i]) for i in 1:ngens(U)] for f in g]...))
+  gen_list = Vector{elem_type(OO(X))}()
+  for f in g
+    gen_list = vcat(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
+  end
+  Z = subscheme(X, gen_list)
   return SpecOpen(Z, gens(U))
 end
+

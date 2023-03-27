@@ -1,3 +1,4 @@
+export graded_coordinate_ring
 
 ########################################################################
 # Interface for abstract projective schemes                            #

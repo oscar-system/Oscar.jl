@@ -1,40 +1,43 @@
 
-function subscheme(P::AbsProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyDecRingElem}
-  S = ambient_coordinate_ring(P)
+function subscheme(P::AbsProjectiveScheme, f::RingElem)
+  S = graded_coordinate_ring(P)
   parent(f) == S || error("ring element does not belong to the correct ring")
-  Q = ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)), [f])))
+  Q, _ = quo(S, ideal(S, [f]))
+  result = ProjectiveScheme(Q)
   if isdefined(P, :Y) 
-    set_base_scheme!(Q, base_scheme(P))
+    set_base_scheme!(result, base_scheme(P))
   end
-  return Q
+  return result
 end
 
 function subscheme(
     P::AbsProjectiveScheme, 
-    f::Vector{RingElemType}
-  ) where {RingElemType<:MPolyDecRingElem}
+    f::Vector{T}
+  ) where {T<:RingElem}
   length(f) == 0 && return P #TODO: Replace P by an honest copy!
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   for i in 1:length(f)
     parent(f[i]) == S || error("ring element does not belong to the correct ring")
   end
-  Q = ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)),f)))
+  Q, _ = quo(S, ideal(S, f))
+  result = ProjectiveScheme(Q)
   if isdefined(P, :Y) 
-    set_base_scheme!(Q, base_scheme(P))
+    set_base_scheme!(result, base_scheme(P))
   end
-  return Q
+  return result
 end
 
 function subscheme(P::AbsProjectiveScheme, 
-    I::MPolyIdeal{T}
+    I::Ideal{T}
   ) where {T<:RingElem}
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   base_ring(I) == S || error("ideal does not belong to the correct ring")
-  Q = ProjectiveScheme(S, ideal(S, vcat(gens(I), gens(defining_ideal(P)))))
+  Q, _ = quo(S, I)
+  result = ProjectiveScheme(Q)
   if isdefined(P, :Y) 
-    set_base_scheme!(Q, base_scheme(P))
+    set_base_scheme!(result, base_scheme(P))
   end
-  return Q
+  return result
 end
 
 function projective_space(

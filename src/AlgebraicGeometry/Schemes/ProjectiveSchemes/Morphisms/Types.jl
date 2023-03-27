@@ -70,8 +70,8 @@ space over the same ring with the identity on the base.
              CodomainType<:ProjectiveScheme, 
              PullbackType<:MPolyAnyMap{<:Any, <:Any, <:Map}
             }
-    T = ambient_coordinate_ring(P)
-    S = ambient_coordinate_ring(Q)
+    T = graded_coordinate_ring(P)
+    S = graded_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     if check
       #TODO: Check map on ideals (not available yet)
@@ -92,8 +92,8 @@ space over the same ring with the identity on the base.
              PullbackType<:Map,
              BaseMorType<:SchemeMor
             }
-    T = ambient_coordinate_ring(P)
-    S = ambient_coordinate_ring(Q)
+    T = graded_coordinate_ring(P)
+    S = graded_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
     OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
