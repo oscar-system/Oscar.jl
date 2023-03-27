@@ -1610,7 +1610,7 @@ function quo(A::MPolyQuoRing, I::MPolyQuoIdeal)
   base_ring(I) == A || error("ideal does not belong to the correct ring")
   R = base_ring(A)
   Q, _ = quo(R, modulus(A) + ideal(R, lift.(gens(I))))
-  return Q, hom(A, Q, Q.(gens(R)))
+  return Q, hom(A, Q, Q.(gens(R)), check=false)
 end
 
 function divides(a::MPolyQuoLocRingElem, b::MPolyQuoLocRingElem)
