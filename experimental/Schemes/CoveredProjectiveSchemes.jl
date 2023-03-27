@@ -295,7 +295,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     return IPY
   else
     # construct the blowup by elimination.
-    CIPW = affine_cone(IPW)
+    CIPW, pullback_to_cone = affine_cone(IPW)
     R = base_ring(I)
     x = gens(R)
     kk = coefficient_ring(R)
@@ -304,7 +304,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     inc = hom(R, A, x_ext[1:end-1])
     phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], )) # the homogeneous variables come first
     J = kernel(phi)
-    pb = poly_to_homog(IPW) 
+    pb = inverse(pullback_to_cone)
     Jh = ideal(S, pb.(lifted_numerator.(gens(J))))
     IPY = subscheme(IPW, Jh)
     # Compute the IdealSheaf for the exceptional divisor

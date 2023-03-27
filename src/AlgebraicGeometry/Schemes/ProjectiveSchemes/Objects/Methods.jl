@@ -7,7 +7,7 @@ function dehomogenize(
   charts = affine_charts(covered_scheme(X))
   any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
   i = findfirst(k->(charts[k] === U), 1:relative_ambient_dimension(X)+1) - 1
-  S = ambient_coordinate_ring(X)
+  S = graded_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
   return hom(S, OO(U), s)
@@ -20,7 +20,7 @@ function dehomogenize(
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
-  S = ambient_coordinate_ring(X)
+  S = graded_coordinate_ring(X)
   C = standard_covering(X)
   U = C[i+1]
   p = covered_projection_to_base(X)
@@ -74,9 +74,9 @@ function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
   
   # Determine those variables which come from the homogeneous 
   # coordinates
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   n = ngens(S)
-  R = ambient_coordinate_ring(U)
+  R = graded_coordinate_ring(U)
   x = gens(R)
   s = x[1:n-1]
   x = x[n:end]
@@ -137,7 +137,7 @@ function dehomogenize(
   # look up U in the coverings of X
   cover_of_U, index_of_U = X[U]
   Xcov = covered_scheme(X)
-  S = ambient_coordinate_ring(X)
+  S = graded_coordinate_ring(X)
 
   s = Vector{elem_type(OO(U))}()
   if cover_of_U === standard_covering(X)
@@ -164,7 +164,7 @@ function dehomogenize(
     CRT<:AbstractAlgebra.Ring
   }
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
-  S = ambient_coordinate_ring(X)
+  S = graded_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   U = C[i+1]
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
