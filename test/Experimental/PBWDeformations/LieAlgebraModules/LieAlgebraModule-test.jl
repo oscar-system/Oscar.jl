@@ -30,7 +30,13 @@ function liealgebra_module_conformance_test(
     @test dim(V) == length(basis(V))
     @test all(i -> basis(V, i) == basis(V)[i], 1:dim(V))
 
-    @test isempty(rels(V))
+    @test iszero(zero(V))
+
+    @test sum(v[i] * basis(V, i) for i in 1:dim(V)) == v
+
+    @test v == v
+    @test deepcopy(v) == v
+    @test hash(deepcopy(v)) == hash(v)
   end
 
   @testset "parent object call overload" begin
@@ -47,6 +53,33 @@ function liealgebra_module_conformance_test(
       @test v1 == v3
       @test v1 == v4
       @test v1 == v5
+    end
+  end
+
+  @testset "vector space axioms" begin
+    for _ in 1:num_random_tests
+      v = V(rand(-10:10, dim(V)))
+      w = V(rand(-10:10, dim(V)))
+      w2 = V(rand(-10:10, dim(V)))
+
+      @test v + w == w + v
+      @test v + (w + w2) == (v + w) + w2
+
+      @test v + zero(V) == v
+      @test zero(V) + v == v
+
+      @test -v + v == zero(V)
+      @test v + (-v) == zero(V)
+
+      @test v - w == v + (-w)
+
+      @test v * 0 == zero(V)
+      @test 0 * v == zero(V)
+
+      @test 2 * v == v + v
+      @test v * 2 == v + v
+      @test base_ring(V)(2) * v == v + v
+      @test v * base_ring(V)(2) == v + v
     end
   end
 

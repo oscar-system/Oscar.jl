@@ -26,7 +26,13 @@ function liealgebra_conformance_test(
     @test dim(L) == length(basis(L))
     @test all(i -> basis(L, i) == basis(L)[i], 1:dim(L))
 
-    @test isempty(rels(L))
+    @test iszero(zero(L))
+
+    @test sum(x[i] * basis(L, i) for i in 1:dim(L)) == x
+
+    @test x == x
+    @test deepcopy(x) == x
+    @test hash(deepcopy(x)) == hash(x)
   end
 
   @testset "parent object call overload" begin
@@ -43,6 +49,33 @@ function liealgebra_conformance_test(
       @test x1 == x3
       @test x1 == x4
       @test x1 == x5
+    end
+  end
+
+  @testset "vector space axioms" begin
+    for _ in 1:num_random_tests
+      x = L(rand(-10:10, dim(L)))
+      y = L(rand(-10:10, dim(L)))
+      z = L(rand(-10:10, dim(L)))
+
+      @test x + y == y + x
+      @test x + (y + z) == (x + y) + z
+
+      @test x + zero(L) == x
+      @test zero(L) + x == x
+
+      @test -x + x == zero(L)
+      @test x + (-x) == zero(L)
+
+      @test x - y == x + (-y)
+
+      @test x * 0 == zero(L)
+      @test 0 * x == zero(L)
+
+      @test 2 * x == x + x
+      @test x * 2 == x + x
+      @test base_ring(L)(2) * x == x + x
+      @test x * base_ring(L)(2) == x + x
     end
   end
 

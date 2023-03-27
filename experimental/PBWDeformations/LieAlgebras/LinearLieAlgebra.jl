@@ -43,10 +43,6 @@ base_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.dim
 
-@inline function Generic._matrix(x::LinearLieAlgebraElem{C}) where {C<:RingElement}
-  return (x.mat)::dense_matrix_type(C)
-end
-
 function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:RingElement}
   return Vector{dense_matrix_type(C)}(L.basis)
 end
@@ -64,10 +60,6 @@ end
 function Base.show(io::IO, V::LinearLieAlgebra{C}) where {C<:RingElement}
   print(io, "LinearLieAlgebra (⊆ gl_$(V.n)) over ")
   print(IOContext(io, :compact => true), base_ring(V))
-end
-
-function Base.show(io::IO, x::LinearLieAlgebraElem{C}) where {C<:RingElement}
-  Base.show(io, matrix_repr(x))
 end
 
 function symbols(L::LinearLieAlgebra{C}) where {C<:RingElement}

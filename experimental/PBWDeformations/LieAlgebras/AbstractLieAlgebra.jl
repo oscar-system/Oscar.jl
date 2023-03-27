@@ -67,10 +67,6 @@ base_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.dim
 
-@inline function Generic._matrix(x::AbstractLieAlgebraElem{C}) where {C<:RingElement}
-  return (x.mat)::dense_matrix_type(C)
-end
-
 ###############################################################################
 #
 #   String I/O
@@ -81,18 +77,6 @@ function Base.show(io::IO, V::AbstractLieAlgebra{C}) where {C<:RingElement}
   print(io, "AbstractLieAlgebra over ")
   print(IOContext(io, :compact => true), base_ring(V))
 end
-
-function expressify(
-  v::AbstractLieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
-) where {C<:RingElement}
-  sum = Expr(:call, :+)
-  for (i, c) in enumerate(Generic._matrix(v))
-    push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
-  end
-  return sum
-end
-
-@enable_all_show_via_expressify AbstractLieAlgebraElem
 
 function symbols(L::AbstractLieAlgebra{C}) where {C<:RingElement}
   return L.s
