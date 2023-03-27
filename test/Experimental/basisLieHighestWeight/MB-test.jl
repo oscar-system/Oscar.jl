@@ -27,7 +27,7 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
 end
 
 function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
-    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda, monomial_order=monomial_order, ops=ops) # algorithm that needs to be tested
+    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda, monomial_order=monomial_order) # algorithm that needs to be tested
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
     gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
     @test gapDim == length(w) # check if dimension is correct
