@@ -49,18 +49,7 @@ end
 #  Polynomial Rings
 
 @registerSerializationType(PolyRing, true)
-
 @registerSerializationType(MPolyRing, true)
-
-@registerSerializationType(QQMPolyRing, true)
-@registerSerializationType(QQPolyRing, true)
-@registerSerializationType(ZZMPolyRing, true)
-@registerSerializationType(ZZPolyRing, true)
-@registerSerializationType(fqPolyRepMPolyRing, true)
-@registerSerializationType(fqPolyRepPolyRing, true)
-@registerSerializationType(fpPolyRing, true)
-@registerSerializationType(zzModMPolyRing, true)
-@registerSerializationType(zzModPolyRing, true)
 
 function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
     return Dict(
@@ -84,10 +73,6 @@ end
 
 ################################################################################
 # Multivariate Polynomials
-@registerSerializationType(QQMPolyRingElem)
-@registerSerializationType(ZZMPolyRingElem)
-@registerSerializationType(fqPolyRepMPolyRingElem)
-@registerSerializationType(zzModMPolyRingElem)
 @registerSerializationType(MPolyRingElem)
 
 function save_internal(s::SerializerState, p::MPolyRingElem)
@@ -143,12 +128,6 @@ end
 # Univariate Polynomials
 
 @registerSerializationType(PolyRingElem)
-
-@registerSerializationType(QQPolyRingElem)
-@registerSerializationType(ZZPolyRingElem)
-@registerSerializationType(fqPolyRepPolyRingElem)
-@registerSerializationType(fpPolyRingElem)
-@registerSerializationType(zzModPolyRingElem)
 
 function save_internal(s::SerializerState, p::PolyRingElem)
     parent_ring = parent(p)
@@ -212,13 +191,7 @@ end
 
 ################################################################################
 # Matrices
-
 @registerSerializationType(MatElem)
-
-@registerSerializationType(ZZMatrix)
-@registerSerializationType(QQMatrix)
-@registerSerializationType(fqPolyRepMatrix)
-@registerSerializationType(zzModMatrix)
 
 function save_internal(s::SerializerState, m::MatrixElem)
     return Dict(
@@ -287,7 +260,6 @@ end
 
 # elements
 @registerSerializationType(RelPowerSeriesRingElem)
-
 @registerSerializationType(AbsPowerSeriesRingElem)
 
 function save_internal(s::SerializerState, r::RelPowerSeriesRingElem)
@@ -372,9 +344,7 @@ end
 ################################################################################
 # Laurent Series
 @registerSerializationType(Generic.LaurentSeriesRing, true, "LaurentSeriesRing")
-
 @registerSerializationType(Generic.LaurentSeriesField, true, "LaurentSeriesField")
-
 @registerSerializationType(ZZLaurentSeriesRing)
 
 function save_internal(s::SerializerState, R::Union{
@@ -403,9 +373,7 @@ end
 
 # elements
 @registerSerializationType(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
-
 @registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
-
 @registerSerializationType(ZZLaurentSeriesRingElem)
 
 function save_internal(s::SerializerState, r:: ZZLaurentSeriesRingElem)
