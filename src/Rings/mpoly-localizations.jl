@@ -1349,14 +1349,6 @@ end
 is_domain_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
-### promotion rules
-AbstractAlgebra.promote_rule(::Type{MPolyLocRingElem{RT, RET, MST}}, ::Type{MPolyLocRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{RT, RET, MST}
-
-function AbstractAlgebra.promote_rule(::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}, ::Type{T}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
-  AbstractAlgebra.promote_rule(RET, T) == RET && return MPolyLocRingElem{BRT, BRET, RT, RET, MST}
-  return AbstractAlgebra.promote_rule(BRET, T) == BRET ? MPolyLocRingElem{BRT, BRET, RT, RET, MST} : Union{}
-end
-
 @attr function base_ring_shifts(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
   a = point_coordinates(inverted_set(L))
   R = base_ring(L)
