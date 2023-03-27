@@ -65,7 +65,9 @@ end
 #
 ################################################################################
 
-# domain, codomain are automatically defined by the general map interface
+domain(f::MPolyAnyMap) = f.domain
+codomain(f::MPolyAnyMap) = f.codomain
+
 
 # Not sure if we want to expose the following function to the user.
 # It might be `nothing`. We could return `identity in the `nothing` case.

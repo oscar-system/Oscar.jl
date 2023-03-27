@@ -507,13 +507,13 @@ function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return true
 end
 
-+(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
++(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
 
 -(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f-b.f, a.P)
 
 -(a::MPolyQuoRingElem) = MPolyQuoRingElem(-a.f, a.P)
 
-*(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
+*(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
 ^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
 
@@ -814,8 +814,11 @@ lift(a::MPolyQuoRingElem) = a.f
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
 function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
-  parent(a) !== Q && error("Parent mismatch")
-  return a
+  if parent(a) === Q
+    return a
+  else
+    return Q(base_ring(Q)(a))
+  end
 end
 
 function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
@@ -1336,6 +1339,10 @@ end
 #  Promote rule
 #
 ################################################################################
+
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{MPolyQuoRingElem{S}}) where {S <: RingElem}
+  return MPolyQuoRingElem{S}
+end
 
 function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{T}) where {S, T <: RingElem}
   if AbstractAlgebra.promote_rule(S, T) === S

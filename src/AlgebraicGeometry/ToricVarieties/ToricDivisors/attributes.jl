@@ -61,9 +61,7 @@ julia> coefficients(D)
  4
 ```
 """
-function coefficients(td::ToricDivisor)
-    return td.coeffs
-end
+coefficients(td::ToricDivisor) = td.coeffs
 
 
 @doc Markdown.doc"""
@@ -81,6 +79,4 @@ julia> toric_variety(D)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function toric_variety(td::ToricDivisor)
-    return td.toric_variety
-end
+toric_variety(td::ToricDivisor) = td.toric_variety

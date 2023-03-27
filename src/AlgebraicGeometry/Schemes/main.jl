@@ -21,6 +21,9 @@ include("Covering/Objects/Types.jl")
 include("Covering/Morphisms/Types.jl")
 include("CoveredSchemes/Objects/Types.jl")
 include("CoveredSchemes/Morphisms/Types.jl")
+include("AbstractTypes.jl")
+include("AffineVariety/Objects/Types.jl")
+include("AffineAlgebraicSet/Objects/Types.jl")
 
 ########################################################################
 # Affine schemes                                                       #
@@ -95,3 +98,19 @@ include("CoveredSchemes/Objects/Methods.jl")
 include("CoveredSchemes/Morphisms/Constructors.jl")
 include("CoveredSchemes/Morphisms/Attributes.jl")
 include("CoveredSchemes/Morphisms/Methods.jl")
+
+########################################################################
+# Affine Algebraic Sets                                                #
+########################################################################
+include("AffineAlgebraicSet/Objects/Constructors.jl")
+include("AffineAlgebraicSet/Objects/Properties.jl")
+include("AffineAlgebraicSet/Objects/Attributes.jl")
+include("AffineAlgebraicSet/Objects/Methods.jl")
+
+########################################################################
+# Affine Varietes
+########################################################################
+include("AffineVariety/Objects/Constructors.jl")
+include("AffineVariety/Objects/Properties.jl")
+include("AffineVariety/Objects/Attributes.jl")
+include("AffineVariety/Objects/Methods.jl")

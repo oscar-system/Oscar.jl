@@ -2,7 +2,7 @@
 ########################################################################
 # Special Type for closed embeddings of affine schemes                 #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ClosedEmbedding{DomainType, CodomainType, PullbackType}
 
 A closed embedding ``f : X → Y`` of affine schemes ``X = Spec(S)``

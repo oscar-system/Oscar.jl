@@ -16,6 +16,7 @@ Pages = ["matgroup.md"]
 # Matrix groups
 
 ```@docs
+matrix_group(m::Int, R::Ring, V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem}
 MatrixGroup{RE<:RingElem, T<:MatElem{RE}}
 MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}
 base_ring(G::MatrixGroup)
@@ -105,5 +106,4 @@ special_orthogonal_group(e::Int, n::Int, F::Ring)
 omega_group(e::Int, n::Int, F::Ring)
 unitary_group(n::Int, q::Int)
 special_unitary_group(n::Int, q::Int)
-matrix_group(V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupElem}
 ```

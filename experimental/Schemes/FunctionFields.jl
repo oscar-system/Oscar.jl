@@ -179,7 +179,7 @@ function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::B
                                   )
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     function move_representative(
         a::MPolyRingElem, b::MPolyRingElem,
         V::AbsSpec, U::AbsSpec,
@@ -312,7 +312,7 @@ end
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_regular(f::VarietyFunctionFieldElem, U::Scheme)
 
 Return whether ``f ∈ K(X)`` restricts to a regular function 

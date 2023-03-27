@@ -114,8 +114,8 @@ reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
 is_irreducible(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 is_reduced(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 union(C::T, D::T) where T <: Oscar.PlaneCurveModule.PlaneCurve
-arithmetic_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
-arithmetic_genus(C::AffinePlaneCurve)
+Oscar.PlaneCurveModule.arithmetic_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
+Oscar.PlaneCurveModule.arithmetic_genus(C::AffinePlaneCurve)
 geometric_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}) where S <: FieldElem
 geometric_genus(C::AffinePlaneCurve)
 ```

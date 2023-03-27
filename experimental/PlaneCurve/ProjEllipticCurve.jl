@@ -66,12 +66,10 @@ function _point_line(L::ProjPlaneCurve, Q::Oscar.Geometry.ProjSpcElem)
    Q in L || error("the point is not on the line")
    F = L.eq
    R = parent(F)
-   x = gen(R, 1)
-   y = gen(R, 2)
-   z = gen(R, 3)
+   x, y, z = gens(R)
    PP = Q.parent
-   K = R.R.base_ring
-   if coeff(F, gen(R, 3)) != 0
+   K = base_ring(R)
+   if coeff(F, z) != 0
       if Q.v[2] != 0
          return Oscar.Geometry.ProjSpcElem(PP, [coeff(F, z), K(0), - coeff(F, x)])
       else
@@ -192,7 +190,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     is_weierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
     T = parent(eq)
-    K = T.R.base_ring
+    K = base_ring(T)
     PP = proj_space(K, 2)
     V = gens(T)
     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], check = v[1]))
@@ -222,7 +220,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     v[1] || error("Not in short Weierstrass form")
     d = _discr(eq)
     T = parent(eq)
-    K = T.R.base_ring
+    K = base_ring(T)
     n = modulus(K)
     gcd(Hecke.data(d), n) == ZZ(1) || error("The discriminant is not invertible")
     PP = proj_space(K, 2)

@@ -198,6 +198,11 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
+    # make Oscar module accessible from GAP (it may not be available as
+    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
@@ -205,10 +210,8 @@ function __init__()
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
     GAP.Packages.load("repsn")
-    __init_IsoGapOscar()
     __init_group_libraries()
-    __init_JuliaData()
-    __init_PcGroups()
+
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 end
@@ -275,7 +278,7 @@ end
 
 
 @doc Markdown.doc"""
-    build_doc(; doctest=false, strict=false)
+    build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -295,6 +298,9 @@ The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
 and if set to `true` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
 
+To prevent the opening of the browser at the end, set the optional parameter
+`open_browser` to `false`.
+
 When working on the manual the `Revise` package can significantly sped
 up running `build_doc`. First, install `Revise` in the following way:
 ```
@@ -307,7 +313,7 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
-function build_doc(; doctest=false, strict=false)
+function build_doc(; doctest=false, strict=false, open_browser=true)
   versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
   versionwarn = 
 "The Julia reference version for the doctests is 1.6, but you are using
@@ -321,7 +327,9 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
-  open_doc()
+  if open_browser
+    open_doc()
+  end
   if doctest != false && !versioncheck
     @warn versionwarn
   end
@@ -499,6 +507,7 @@ include("AlgebraicGeometry/Schemes/main.jl")
 include("AlgebraicGeometry/ToricVarieties/JToric.jl")
 include("AlgebraicGeometry/TropicalGeometry/main.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+include("AlgebraicGeometry/Surfaces/SurfacesP4.jl")
 include("AlgebraicGeometry/Miscellaneous/basics.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
