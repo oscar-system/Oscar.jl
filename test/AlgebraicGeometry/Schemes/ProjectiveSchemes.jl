@@ -56,7 +56,7 @@ end
   U = SpecOpen(X, [x, y])
   P = projective_space(OO(U), 1)
   S = ambient_coordinate_ring(P)
-  Y = subscheme(P, [x*S[1]- y*S[2], z*S[1] - x*S[2]])
+  Y = subscheme(P, [OO(U)(x)*S[1]- OO(U)(y)*S[2], OO(U)(z)*S[1] - OO(U)(x)*S[2]]) # Coercion needs to me carried out manually.
   C = affine_cone(Y)
   phi = homog_to_frac(Y)
   s1 = phi(S[2])
