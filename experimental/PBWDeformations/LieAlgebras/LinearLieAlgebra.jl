@@ -11,10 +11,8 @@
     return get_cached!(
       LinearLieAlgebraDict, (R, n, basis, s), cached
     ) do
-      all(b -> size(b) == (n, n), basis) ||
-        error("Invalid basis element dimensions.")
-      length(s) == length(basis) ||
-        error("Invalid number of basis element names.")
+      @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
+      @req length(s) == length(basis) "Invalid number of basis element names."
       new{C}(R, n, length(basis), basis, s)
     end::LinearLieAlgebra{C}
   end
@@ -86,7 +84,7 @@ function (L::LinearLieAlgebra{C})(m::MatElem{C}) where {C<:RingElement}
   if size(m) == (L.n, L.n)
     m = coefficient_vector(m, matrix_repr_basis(L))
   end
-  size(m) == (1, dim(L)) || error("Invalid matrix dimensions.")
+  @req size(m) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, m)
 end
 

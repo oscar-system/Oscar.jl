@@ -69,14 +69,14 @@ function (V::LieAlgebraModule{C})(v::Vector{Int}) where {C<:RingElement}
 end
 
 function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
-  length(v) == dim(V) || error("Length of vector does not match number of generators.")
+  @req length(v) == dim(V) "Length of vector does not match number of generators."
   mat = matrix(base_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
 end
 
 function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:RingElement}
-  ncols(v) == dim(V) || error("Length of vector does not match number of generators")
-  nrows(v) == 1 || error("Not a vector in module constructor")
+  @req ncols(v) == dim(V) "Length of vector does not match number of generators"
+  @req nrows(v) == 1 "Not a vector in module constructor"
   return elem_type(V)(V, v)
 end
 
@@ -86,7 +86,7 @@ function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
 end
 
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  V == parent(v) || error("Incompatible modules.")
+  @req V == parent(v) "Incompatible modules."
   return v
 end
 
@@ -118,13 +118,15 @@ end
 function action(
   x::LieAlgebraElem{C}, v::ElemT
 ) where {ElemT<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  parent(x) == base_liealgebra(parent(v)) || error("Incompatible Lie algebras.")
+  @req parent(x) == base_liealgebra(parent(v)) "Incompatible Lie algebras."
 
   cx = Generic._matrix(x)
 
   return parent(v)(
     sum(
-      cx[i] * Generic._matrix(v) * transpose(transformation_matrix_by_basisindex(parent(v), i)) for
+      cx[i] *
+      Generic._matrix(v) *
+      transpose(transformation_matrix_by_basisindex(parent(v), i)) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
       init=zero_matrix(base_ring(parent(v)), 1, dim(parent(v)))::dense_matrix_type(C),
     ), # equivalent to (x * v^T)^T, since we work with row vectors

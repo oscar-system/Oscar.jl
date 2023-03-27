@@ -11,9 +11,10 @@
     return get_cached!(
       LieAlgebraTensorPowerModuleDict, (inner_mod, power), cached
     ) do
-      ind_map = reverse.(collect(
-        ProductIterator(1:dim(inner_mod), power)
-      ))
+      ind_map =
+        reverse.(
+          collect(ProductIterator(1:dim(inner_mod), power))
+        )
       transformation_matrix_cache = Vector{Union{Nothing,<:MatElem{C}}}(
         nothing, dim(base_liealgebra(inner_mod))
       )
@@ -90,8 +91,8 @@ end
 function (V::LieAlgebraTensorPowerModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  length(a) == V.power || error("Length of vector does not match tensor power.")
-  all(x -> parent(x) == V.inner_mod, a) || error("Incompatible modules.")
+  @req length(a) == V.power "Length of vector does not match tensor power."
+  @req all(x -> parent(x) == V.inner_mod, a) "Incompatible modules."
   mat = zero_matrix(base_ring(V), 1, dim(V))
   for (i, inds) in enumerate(V.ind_map)
     mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))

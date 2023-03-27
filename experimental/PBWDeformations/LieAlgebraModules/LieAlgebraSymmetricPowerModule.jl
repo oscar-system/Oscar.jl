@@ -105,8 +105,8 @@ end
 function (V::LieAlgebraSymmetricPowerModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  length(a) == V.power || error("Length of vector does not match tensor power.")
-  all(x -> parent(x) == V.inner_mod, a) || error("Incompatible modules.")
+  @req length(a) == V.power "Length of vector does not match tensor power."
+  @req all(x -> parent(x) == V.inner_mod, a) "Incompatible modules."
   mat = zero_matrix(base_ring(V), 1, dim(V))
   for (i, _inds) in enumerate(V.ind_map), inds in unique(Combinatorics.permutations(_inds))
     mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))

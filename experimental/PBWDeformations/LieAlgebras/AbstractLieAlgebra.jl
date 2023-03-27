@@ -15,26 +15,26 @@
       AbstractLieAlgebraDict, (R, struct_consts, s), cached
     ) do
       (n1, n2) = size(struct_consts)
-      n1 == n2 || error("Invalid structure constants dimensions.")
+      @req n1 == n2 "Invalid structure constants dimensions."
       dimL = n1
-      length(s) == dimL ||
-        error("Invalid number of basis element names.")
+      @req length(s) == dimL "Invalid number of basis element names."
       if check
-        all(iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL) ||
-          error("Not anti-symmetric.")
-        all(
+        @req all(
+          iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
+        ) "Not anti-symmetric."
+        @req all(
           iszero,
           struct_consts[i, j][k] + struct_consts[j, i][k] for i in 1:dimL, j in 1:dimL,
           k in 1:dimL
-        ) || error("Not anti-symmetric.")
-        all(
+        ) "Not anti-symmetric."
+        @req all(
           iszero,
           sum(
             struct_consts[i, j][k] * struct_consts[k, l][m] +
             struct_consts[j, l][k] * struct_consts[k, i][m] +
             struct_consts[l, i][k] * struct_consts[k, j][m] for k in 1:dimL
           ) for i in 1:dimL, j in 1:dimL, l in 1:dimL, m in 1:dimL
-        ) || error("Jacobi identity does not hold.")
+        ) "Jacobi identity does not hold."
       end
       new{C}(R, dimL, struct_consts, s)
     end::AbstractLieAlgebra{C}

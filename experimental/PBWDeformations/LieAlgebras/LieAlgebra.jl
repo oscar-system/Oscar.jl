@@ -58,13 +58,13 @@ function (L::LieAlgebra{C})(v::Vector{Int}) where {C<:RingElement}
 end
 
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
-  length(v) == dim(L) || error("Length of vector does not match number of generators.")
+  @req length(v) == dim(L) "Length of vector does not match number of generators."
   mat = matrix(base_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
 end
 
 function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
-  size(mat) == (1, dim(L)) || error("Invalid matrix dimensions.")
+  @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, mat)
 end
 
@@ -74,7 +74,7 @@ function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
 end
 
 function (L::LieAlgebra{C})(v::LieAlgebraElem{C}) where {C<:RingElement}
-  L == parent(v) || error("Incompatible modules.")
+  @req L == parent(v) "Incompatible modules."
   return v
 end
 

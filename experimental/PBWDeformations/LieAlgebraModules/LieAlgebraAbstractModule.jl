@@ -15,18 +15,16 @@
     return get_cached!(
       LieAlgebraAbstractModuleDict, (L, dimV, transformation_matrices, s), cached
     ) do
-      all(m -> size(m) == (dimV, dimV), transformation_matrices) ||
-        error("Invalid transformation matrix dimensions.")
-      dimV == length(s) ||
-        error("Invalid number of basis element names.")
+      @req all(
+        m -> size(m) == (dimV, dimV), transformation_matrices
+      ) "Invalid transformation matrix dimensions."
+      @req dimV == length(s) "Invalid number of basis element names."
 
       V = new{C}(L, dimV, transformation_matrices, s)
       if check
         for xi in gens(L), xj in gens(L), v in gens(V)
-          bracket(xi, xj) * v == xi * (xj * v) - xj * (xi * v) ||
-            error(
-              "Structure constants do not define a module."
-            )
+          @req bracket(xi, xj) * v ==
+            xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
         end
       end
       V
@@ -126,9 +124,9 @@ function abstract_module(
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
-  dim(L) == size(struct_consts, 1) || error("Invalid structure constants dimensions.")
-  dimV == size(struct_consts, 2) || error("Invalid structure constants dimensions.")
-  dimV == length(s) || error("Invalid number of basis element names.")
+  @req dim(L) == size(struct_consts, 1) "Invalid structure constants dimensions."
+  @req dimV == size(struct_consts, 2) "Invalid structure constants dimensions."
+  @req dimV == length(s) "Invalid number of basis element names."
 
   transformation_matrices = [zero_matrix(base_ring(L), dimV, dimV) for _ in 1:dim(L)]
   for i in 1:dim(L), j in 1:dimV

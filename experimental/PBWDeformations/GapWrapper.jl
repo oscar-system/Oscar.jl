@@ -1,6 +1,6 @@
 function liealgebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
-  is_valid_dynkin(dynkin...) || throw("Input not allowed by GAP.")
-  R == QQ || error("Works only for QQ.")
+  @req is_valid_dynkin(dynkin...) "Input not allowed by GAP."
+  @req R == QQ "Works currently only for QQ." # TODO
 
   GAPG = GAP.Globals
 
@@ -22,7 +22,7 @@ function liealgebra_highest_weight_module_struct_consts_gap(
   L::LieAlgebra{C}, weight::Vector{Int}
 ) where {C<:RingElement}
   R = base_ring(L)
-  R == QQ || error("Works only for QQ.")
+  @req R == QQ "Works currently only for QQ." # TODO
   GAPG = GAP.Globals
 
   gap_sc_table = [
@@ -30,7 +30,8 @@ function liealgebra_highest_weight_module_struct_consts_gap(
       [
         begin
           pairs = filter(
-            pair -> !iszero(last(pair)), collect(enumerate(Generic._matrix(bracket(xi, xj))))
+            pair -> !iszero(last(pair)),
+            collect(enumerate(Generic._matrix(bracket(xi, xj)))),
           )
           [map(first, pairs), map(last, pairs)]
         end for xj in gens(L)
