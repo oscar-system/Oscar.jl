@@ -163,6 +163,19 @@ function map_on_affine_cones(
     C_dom, flat_dom = affine_cone(domain(phi))
     C_cod, flat_cod = affine_cone(codomain(phi))
     v = inverse(flat_cod).(gens(OO(C_cod)))
+    @show inverse(flat_cod).(gens(OO(C_cod)))
+    @show parent(first(inverse(flat_cod).(gens(OO(C_cod))))) === domain(pb_phi)
+    @show "blablablablabla"
+    @show pullback(phi)
+    @show domain(pullback(phi))
+    @show graded_coordinate_ring(codomain(phi))
+    @show parent(first(inverse(flat_cod).(gens(OO(C_cod))))) === graded_coordinate_ring(codomain(phi))
+    @show pb_phi
+    @show typeof(pb_phi)
+    @show pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))
+    @show flat_dom
+    @show typeof(flat_dom)
+    @show flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod)))))
     pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))), check=check) # TODO: Set check=false
     phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
   end
@@ -279,8 +292,8 @@ end
 function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  for s in gens(ambient_coordinate_ring(codomain(f)))
-    pullback(f)(s) - pullback(g)(s) in defining_ideal(domain(f)) || return false
+  for s in gens(graded_coordinate_ring(codomain(f)))
+    iszero(pullback(f)(s) - pullback(g)(s)) || return false
   end
   return true
 end
@@ -298,12 +311,12 @@ function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomTy
   R = base_ring(P) 
   R == domain(f) || error("rings not compatible")
   Rnew = codomain(f)
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   Qambient = projective_space(Rnew, symbols(S))
   Snew = ambient_coordinate_ring(Qambient)
   phi = hom(S, Snew, f, gens(Snew))
-  Q = subscheme(Qambient, phi(defining_ideal(P)))
-  return Q, ProjectiveSchemeMor(Q, P, hom(S, ambient_coordinate_ring(Q), f, gens(ambient_coordinate_ring(Q))))
+  Q = subscheme(Qambient, ideal(graded_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
+  return Q, ProjectiveSchemeMor(Q, P, hom(S, graded_coordinate_ring(Q), f, gens(graded_coordinate_ring(Q))))
 end
 
 function fiber_product(
@@ -319,13 +332,15 @@ function fiber_product(
                  pullback(f),
                  gens(ambient_coordinate_ring(Q_ambient))
                 )
-  I = help_map(defining_ideal(P))
+  SQ = graded_coordinate_ring(Q_ambient)
+  I = ideal(SQ, SQ.(help_map.(gens(defining_ideal(P)))))
   Q = subscheme(Q_ambient, I)
   return Q, ProjectiveSchemeMor(Q, P, 
-                                hom(ambient_coordinate_ring(P),
-                                    ambient_coordinate_ring(Q),
+                                hom(graded_coordinate_ring(P),
+                                    graded_coordinate_ring(Q),
                                     pullback(f),
-                                    gens(ambient_coordinate_ring(Q))
+                                    gens(graded_coordinate_ring(Q)), 
+                                    check=false
                                    )
                                )
 end
@@ -350,10 +365,10 @@ function inclusion_morphism(
   Y = base_scheme(Q)
   f = inclusion_morphism(X, Y) # will throw if X and Y are not compatible
   return ProjectiveSchemeMor(P, Q, 
-                             hom(ambient_coordinate_ring(Q),
-                                 ambient_coordinate_ring(P),
+                             hom(graded_coordinate_ring(Q),
+                                 graded_coordinate_ring(P),
                                  pullback(f), 
-                                 gens(ambient_coordinate_ring(P))
+                                 gens(graded_coordinate_ring(P))
                                 )
                             )
 end
@@ -363,17 +378,17 @@ function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:Abstract
   B = base_ring(P)
   A === B || error("can not compare schemes for non-equal base rings") # TODO: Extend by check for canonical maps, once they are available
   return ProjectiveSchemeMor(P, Q, 
-                             hom(ambient_coordinate_ring(Q),
-                                 ambient_coordinate_ring(P),
-                                 gens(ambient_coordinate_ring(P))
+                             hom(graded_coordinate_ring(Q),
+                                 graded_coordinate_ring(P),
+                                 gens(graded_coordinate_ring(P))
                                 )
                             )
 end
 
 identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P, 
-                                                        hom(ambient_coordinate_ring(P),
-                                                            ambient_coordinate_ring(P),
-                                                            gens(ambient_coordinate_ring(P))
+                                                        hom(graded_coordinate_ring(P),
+                                                            graded_coordinate_ring(P),
+                                                            gens(graded_coordinate_ring(P))
                                                            )
                                                        )
 
@@ -383,7 +398,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
 
 Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to 
-obtain the dehomogenization map from the `ambient_coordinate_ring` of `P` 
+obtain the dehomogenization map from the `graded_coordinate_ring` of `P` 
 to the `coordinate_ring` of `U`.
 
 # Examples
