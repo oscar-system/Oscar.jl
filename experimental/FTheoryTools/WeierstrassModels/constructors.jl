@@ -88,9 +88,7 @@ false
 ```
 """
 function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
-    if (parent(f) != cox_ring(base)) || (parent(g) != cox_ring(base))
-        throw(ArgumentError("All Weierstrass sections must reside in the Cox ring of the base toric variety"))
-    end
+    @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
     toric_ambient_space = _ambient_space_from_base(base)
     pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
     Y4 = closed_subvariety_of_toric_variety(toric_ambient_space, [pw])
@@ -133,20 +131,14 @@ julia> dim(toric_ambient_space(w))
 ```
 """
 function global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
-    if (parent(poly_f) != auxiliary_base_ring) || (parent(poly_g) != auxiliary_base_ring)
-        throw(ArgumentError("All Weierstrass sections must reside in the provided auxiliary base ring"))
-    end
-    if d <= 0
-        throw(ArgumentError("The dimension of the base space must be positive"))
-    end
-    if ngens(auxiliary_base_ring) < d
-        throw(ArgumentError("We expect at least as many base variables as the desired base dimension"))
-    end
+    @req ((parent(poly_f) == auxiliary_base_ring) && (parent(poly_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
+    @req d > 0 "The dimension of the base space must be positive"
+    @req (ngens(auxiliary_base_ring) >= d) "We expect at least as many base variables as the desired base dimension"
 
     # convert Weierstrass sections into polynomials of the auxiliary base
     auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
     S = cox_ring(auxiliary_base_space)
-    ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:ngens(S)])
+    ring_map = hom(auxiliary_base_ring, S, gens(S))
     f = ring_map(poly_f)
     g = ring_map(poly_g)
 
@@ -168,8 +160,8 @@ end
 
 function Base.show(io::IO, w::GlobalWeierstrassModel)
     if base_fully_specified(w)
-        join(io, "Global Weierstrass model over a concrete base")
+        print(io, "Global Weierstrass model over a concrete base")
     else
-        join(io, "Global Weierstrass model over a not fully specified base")
+        print(io, "Global Weierstrass model over a not fully specified base")
     end
 end

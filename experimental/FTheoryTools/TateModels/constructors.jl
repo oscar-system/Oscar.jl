@@ -99,12 +99,8 @@ false
 ```
 """
 function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
-    if length(ais) != 5
-        throw(ArgumentError("We require exactly 5 Tate sections"))
-    end
-    if any(k -> parent(k) != cox_ring(base), ais)
-        throw(ArgumentError("All Tate sections must reside in the Cox ring of the base toric variety"))
-    end
+    @req length(ais) == 5 "We require exactly 5 Tate sections"
+    @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
     toric_ambient_space = _ambient_space_from_base(base)
     pt = _tate_polynomial(ais, cox_ring(toric_ambient_space))
     Y4 = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
@@ -159,18 +155,10 @@ julia> dim(toric_ambient_space(t))
 ```
 """
 function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
-    if length(ais) != 5
-        throw(ArgumentError("We expect exactly 5 Tate sections"))
-    end
-    if any(k -> parent(k) != auxiliary_base_ring, ais)
-        throw(ArgumentError("All Tate sections must reside in the provided auxiliary base ring"))
-    end
-    if d <= 0
-        throw(ArgumentError("The dimension of the base space must be positive"))
-    end
-    if ngens(auxiliary_base_ring) < d
-        throw(ArgumentError("We expect at least as many base variables as the desired base dimension"))
-    end
+    @req length(ais) == 5 "We expect exactly 5 Tate sections"
+    @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
+    @req d > 0 "The dimension of the base space must be positive"
+    @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
 
     # convert Tate sections into polynomials of the auxiliary base
     auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
@@ -194,8 +182,8 @@ end
 
 function Base.show(io::IO, t::GlobalTateModel)
     if base_fully_specified(t)
-        join(io, "Global Tate model over a concrete base")
+        print(io, "Global Tate model over a concrete base")
     else
-        join(io, "Global Tate model over a not fully specified base")
+        print(io, "Global Tate model over a not fully specified base")
     end
 end
