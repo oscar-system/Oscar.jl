@@ -28,8 +28,6 @@
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
 
-  @show typeof(phi)
-  @show typeof(phi)<:ProjectiveSchemeMor{<:Any, <:Any, <:Any, <:Nothing}
   g = map_on_affine_cones(phi)
 
   @test is_well_defined(phi)
