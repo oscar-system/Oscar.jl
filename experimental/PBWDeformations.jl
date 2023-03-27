@@ -1,4 +1,5 @@
 import AbstractAlgebra: FPModule, FPModuleElem
+import AbstractAlgebra: ProductIterator
 
 import Combinatorics
 

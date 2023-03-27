@@ -94,7 +94,7 @@ function (V::LieAlgebraExteriorPowerModule{C})(
   all(x -> parent(x) == V.inner_mod, a) || error("Incompatible modules.")
   mat = zero_matrix(base_ring(V), 1, dim(V))
   for (i, _inds) in enumerate(V.ind_map), inds in Combinatorics.permutations(_inds)
-    sgn = levicivita(sortperm(inds))
+    sgn = Combinatorics.levicivita(sortperm(inds))
     mat[1, i] += sgn * prod(a[j].mat[k] for (j, k) in enumerate(inds))
   end
   return LieAlgebraExteriorPowerModuleElem{C}(V, mat)
@@ -117,7 +117,7 @@ function transformation_matrix_by_basisindex(
     basis_change_T2E = zero(xT, dim(V), dim(T))
 
     for (i, _inds) in enumerate(V.ind_map), inds in Combinatorics.permutations(_inds)
-      sgn = levicivita(sortperm(inds))
+      sgn = Combinatorics.levicivita(sortperm(inds))
       j = findfirst(==(inds), T.ind_map)
       basis_change_E2T[j, i] = sgn//factorial(V.power)
       basis_change_T2E[i, j] = sgn

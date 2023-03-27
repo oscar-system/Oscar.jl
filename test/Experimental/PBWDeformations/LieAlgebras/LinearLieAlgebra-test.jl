@@ -46,7 +46,7 @@
       struct_const_L = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimL)
       for (i, xi) in enumerate(gens(L)), (j, xj) in enumerate(gens(L))
         struct_const_L[i, j] = [
-          (c, k) for (k, c) in enumerate(PD._matrix(bracket(xi, xj))) if !iszero(c)
+          (c, k) for (k, c) in enumerate(Generic._matrix(bracket(xi, xj))) if !iszero(c)
         ]
       end
       return struct_const_L
@@ -61,7 +61,7 @@
       struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)
       for (i, xi) in enumerate(gens(L)), (j, vj) in enumerate(gens(V))
         struct_const_V[i, j] = [
-          (c, k) for (k, c) in enumerate(PD._matrix(xi * vj)) if !iszero(c)
+          (c, k) for (k, c) in enumerate(Generic._matrix(xi * vj)) if !iszero(c)
         ]
       end
       return struct_const_V

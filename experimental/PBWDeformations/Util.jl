@@ -43,7 +43,7 @@ i.e. are of one of the forms
   * ``G_2``.
 
 # Examples
-```jldoctest
+```jldoctest; setup = :(is_valid_dynkin = PBWDeformations.is_valid_dynkin)
 julia> is_valid_dynkin('A', 2)
 true
 

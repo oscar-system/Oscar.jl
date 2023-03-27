@@ -45,7 +45,7 @@ function expressify(
   v::LieAlgebraModuleElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(_matrix(v))
+  for (i, c) in enumerate(Generic._matrix(v))
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -120,11 +120,11 @@ function action(
 ) where {ElemT<:LieAlgebraModuleElem{C}} where {C<:RingElement}
   parent(x) == base_liealgebra(parent(v)) || error("Incompatible Lie algebras.")
 
-  cx = _matrix(x)
+  cx = Generic._matrix(x)
 
   return parent(v)(
     sum(
-      cx[i] * _matrix(v) * transpose(transformation_matrix_by_basisindex(parent(v), i)) for
+      cx[i] * Generic._matrix(v) * transpose(transformation_matrix_by_basisindex(parent(v), i)) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
       init=zero_matrix(base_ring(parent(v)), 1, dim(parent(v)))::dense_matrix_type(C),
     ), # equivalent to (x * v^T)^T, since we work with row vectors

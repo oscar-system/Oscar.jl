@@ -86,7 +86,7 @@ function expressify(
   v::AbstractLieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(_matrix(v))
+  for (i, c) in enumerate(Generic._matrix(v))
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -118,8 +118,8 @@ function bracket(
   check_parent(x, y)
   L = parent(x)
   mat = sum(
-    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(_matrix(x)),
-    (j, cyj) in enumerate(_matrix(y))
+    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(Generic._matrix(x)),
+    (j, cyj) in enumerate(Generic._matrix(y))
   )
   return L(mat)
 end
