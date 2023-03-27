@@ -683,6 +683,10 @@ If `f` is an element of the quotient of a multivariate polynomial ring `R` by an
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
 the `default_ordering` on `R`.
 
+!!! note
+Since this method only has a computational backend for quotients of polynomial rings 
+over a field, it is not implemented generically.
+
 # Examples
 ```jldoctest
 julia> R, (x,) = polynomial_ring(QQ, ["x"]);
@@ -699,7 +703,7 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem)
+function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}}
   R  = parent(f)
   OR = oscar_origin_ring(R)
   SR = singular_origin_ring(R)
