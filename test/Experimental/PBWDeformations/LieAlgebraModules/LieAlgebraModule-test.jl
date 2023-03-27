@@ -1,6 +1,10 @@
 
 function liealgebra_module_conformance_test(
-  L::LieAlgebra{C}, V::LieAlgebraModule{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10
+  L::LieAlgebra{C},
+  V::LieAlgebraModule{C},
+  parentT::DataType,
+  elemT::DataType;
+  num_random_tests::Int=10,
 ) where {C<:RingElement}
   @testset "basic manipulation" begin
     v = V(rand(-10:10, dim(V)))
@@ -18,9 +22,13 @@ function liealgebra_module_conformance_test(
     @test base_ring(v) == base_ring(V)
     @test elem_type(base_ring(V)) == C
 
+    # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebra modules
     @test dim(V) == ngens(V)
-    @test length(gens(V)) == ngens(V)
-    @test all(gen(V, i) == gens(V)[i] for i in 1:ngens(V))
+    @test basis(V) == gens(V)
+    @test all(i -> basis(V, i) == gen(V, i), 1:dim(V))
+
+    @test dim(V) == length(basis(V))
+    @test all(i -> basis(V, i) == basis(V)[i], 1:dim(V))
 
     @test isempty(rels(V))
   end

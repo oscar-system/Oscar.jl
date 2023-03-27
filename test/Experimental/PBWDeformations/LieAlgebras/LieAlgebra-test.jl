@@ -18,9 +18,13 @@ function liealgebra_conformance_test(
     @test base_ring(x) == base_ring(L)
     @test elem_type(base_ring(L)) == C
 
+    # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebras
     @test dim(L) == ngens(L)
-    @test length(gens(L)) == ngens(L)
-    @test all(gen(L, i) == gens(L)[i] for i in 1:ngens(L))
+    @test basis(L) == gens(L)
+    @test all(i -> basis(L, i) == gen(L, i), 1:dim(L))
+
+    @test dim(L) == length(basis(L))
+    @test all(i -> basis(L, i) == basis(L)[i], 1:dim(L))
 
     @test isempty(rels(L))
   end

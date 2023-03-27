@@ -44,7 +44,7 @@
       R = base_ring(L)
       dimL = dim(L)
       struct_const_L = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimL)
-      for (i, xi) in enumerate(gens(L)), (j, xj) in enumerate(gens(L))
+      for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))
         struct_const_L[i, j] = [
           (c, k) for (k, c) in enumerate(Generic._matrix(bracket(xi, xj))) if !iszero(c)
         ]
@@ -59,7 +59,7 @@
       dimL = dim(L)
       dimV = dim(V)
       struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)
-      for (i, xi) in enumerate(gens(L)), (j, vj) in enumerate(gens(V))
+      for (i, xi) in enumerate(basis(L)), (j, vj) in enumerate(basis(V))
         struct_const_V[i, j] = [
           (c, k) for (k, c) in enumerate(Generic._matrix(xi * vj)) if !iszero(c)
         ]

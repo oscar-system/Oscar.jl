@@ -34,8 +34,8 @@ function liealgebra_highest_weight_module_struct_consts_gap(
             collect(enumerate(Generic._matrix(bracket(xi, xj)))),
           )
           [map(first, pairs), map(last, pairs)]
-        end for xj in gens(L)
-      ] for xi in gens(L)
+        end for xj in basis(L)
+      ] for xi in basis(L)
     ]
     -1
     zero(base_ring(L))
@@ -45,7 +45,7 @@ function liealgebra_highest_weight_module_struct_consts_gap(
     GAPG.Rationals, GAP.julia_to_gap(gap_sc_table; recursive=true)
   )
   dimL = GAPG.Dimension(gapL)
-  @assert dimL == ngens(L)
+  @assert dimL == dim(L)
   basisL = GAPG.BasisVectors(GAPG.Basis(gapL))
   gapV = GAPG.HighestWeightModule(gapL, GAP.julia_to_gap(weight))
   dimV = GAPG.Dimension(gapV)

@@ -22,7 +22,7 @@
 
       V = new{C}(L, dimV, transformation_matrices, s)
       if check
-        for xi in gens(L), xj in gens(L), v in gens(V)
+        for xi in basis(L), xj in basis(L), v in basis(V)
           @req bracket(xi, xj) * v ==
             xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
         end

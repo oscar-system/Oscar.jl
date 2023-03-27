@@ -30,9 +30,14 @@ base_ring(x::LieAlgebraElem{C}) where {C<:RingElement} = base_ring(parent(x))
 
 ngens(L::LieAlgebra{C}) where {C<:RingElement} = dim(L)
 
-gens(L::LieAlgebra{C}) where {C<:RingElement} = [gen(L, i)::elem_type(L) for i in 1:dim(L)]
+gens(L::LieAlgebra{C}) where {C<:RingElement} = basis(L)
 
-function gen(L::LieAlgebra{C}, i::Int) where {C<:RingElement}
+gen(L::LieAlgebra{C}, i::Int) where {C<:RingElement} = basis(L, i)
+
+basis(L::LieAlgebra{C}) where {C<:RingElement} =
+  [basis(L, i)::elem_type(L) for i in 1:dim(L)]
+
+function basis(L::LieAlgebra{C}, i::Int) where {C<:RingElement}
   R = base_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
@@ -58,7 +63,7 @@ function (L::LieAlgebra{C})(v::Vector{Int}) where {C<:RingElement}
 end
 
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
-  @req length(v) == dim(L) "Length of vector does not match number of generators."
+  @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(base_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
 end

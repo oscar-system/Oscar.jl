@@ -16,14 +16,18 @@ abstract type LieAlgebraModuleElem{C<:RingElement} <: FPModuleElem{C} end
 
 base_ring(v::LieAlgebraModuleElem{C}) where {C<:RingElement} = base_ring(parent(v))
 
-ngens(V::LieAlgebraModule{C}) where {C<:RingElement} = dim(V)
+ngens(L::LieAlgebraModule{C}) where {C<:RingElement} = dim(L)
 
-gens(V::LieAlgebraModule{C}) where {C<:RingElement} =
-  [gen(V, i)::elem_type(V) for i in 1:dim(V)]
+gens(L::LieAlgebraModule{C}) where {C<:RingElement} = basis(L)
 
-function gen(V::LieAlgebraModule{C}, i::Int) where {C<:RingElement}
-  R = base_ring(V)
-  return V([(j == i ? one(R) : zero(R)) for j in 1:dim(V)])
+gen(L::LieAlgebraModule{C}, i::Int) where {C<:RingElement} = basis(L, i)
+
+basis(L::LieAlgebraModule{C}) where {C<:RingElement} =
+  [basis(L, i)::elem_type(L) for i in 1:dim(L)]
+
+function basis(L::LieAlgebraModule{C}, i::Int) where {C<:RingElement}
+  R = base_ring(L)
+  return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
 
 @inline function Generic._matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
@@ -69,13 +73,13 @@ function (V::LieAlgebraModule{C})(v::Vector{Int}) where {C<:RingElement}
 end
 
 function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
-  @req length(v) == dim(V) "Length of vector does not match number of generators."
+  @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(base_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
 end
 
 function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:RingElement}
-  @req ncols(v) == dim(V) "Length of vector does not match number of generators"
+  @req ncols(v) == dim(V) "Length of vector does not match dimension"
   @req nrows(v) == 1 "Not a vector in module constructor"
   return elem_type(V)(V, v)
 end
