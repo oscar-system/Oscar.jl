@@ -12,10 +12,10 @@ Pages = ["intro.md"]
 
 # Introduction
 
-In this chapter, we introduce structures and functionality for dealing with varieties, sheaves, and schemes.
+In this chapter, we introduce structures and functionality for algebraic geometry. Among others, we support:
+* schemes,
+* toric varieties,
+* toric schemes,
+* tropical geometry.
 
-This part of OSCAR is at the very beginning of its development.
-
-We refer to the individual sections for references which provide details on theory and algorithms.
-
-
+We refer to the individual sections for more details.

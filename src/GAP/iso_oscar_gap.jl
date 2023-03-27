@@ -30,19 +30,16 @@ end
 #
 ################################################################################
 
-@attributes Nemo.NmodRing # TODO: port this to Nemo
-@attributes Nemo.FmpzModRing # TODO: port this to Nemo
-
 # Assume that `RO` and `RG` are residue rings of the same size
 # in Oscar and GAP, respectively.
-function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.NmodRing, Nemo.FmpzModRing}, RG::GAP.GapObj)
+function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.zzModRing, Nemo.ZZModRing}, RG::GAP.GapObj)
    e = GAPWrap.One(RG)
    f(x) = GAP.Obj(lift(x))*e
 
    finv = function(x::GAP.Obj)
      @assert GAPWrap.IsFFE(x) || GAPWrap.IsZmodnZObj(x)
      y = GAP.Globals.Int(x)
-     return y isa Int ? RO(y) : RO(fmpz(y))
+     return y isa Int ? RO(y) : RO(ZZRingElem(y))
    end
 
    return (f, finv)
@@ -50,9 +47,9 @@ end
 
 # Compute the isomorphism between the Oscar residue ring `RO`
 # and a corresponding GAP residue ring.
-function _iso_oscar_gap(RO::Union{Nemo.NmodRing, Nemo.FmpzModRing})
-   n = fmpz(modulus(RO))
-   RG = GAP.Globals.mod(GAP.Globals.Integers, GAP.Obj(n))
+function _iso_oscar_gap(RO::Union{Nemo.zzModRing, Nemo.ZZModRing})
+   n = ZZRingElem(modulus(RO))
+   RG = GAPWrap.mod(GAP.Globals.Integers::GapObj, GAP.Obj(n))
    f, finv = _iso_oscar_gap_residue_ring_functions(RO, RG)
 
    return MapFromFunc(f, finv, RO, RG)
@@ -60,64 +57,66 @@ end
 
 # Assume that `FO` and `FG` are finite fields of the same order
 # in Oscar and GAP, respectively.
-function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.GaloisField, Nemo.GaloisFmpzField}, FG::GAP.GapObj)
+function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.fpField, Nemo.FpField}, FG::GAP.GapObj)
    e = GAPWrap.One(FG)
 
    f(x) = GAP.Obj(lift(x))*e
 
    finv = function(x::GAP.Obj)
      y = GAPWrap.IntFFE(x)
-     return y isa Int ? FO(y) : FO(fmpz(y))
+     return y isa Int ? FO(y) : FO(ZZRingElem(y))
    end
 
    return (f, finv)
 end
 
-function _iso_oscar_gap_field_finite_functions(FO::Union{FqFiniteField, FqDefaultFiniteField, FqNmodFiniteField}, FG::GAP.GapObj)
+function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField, fqPolyRepField}, FG::GAP.GapObj)
    p = characteristic(FO)
    d = degree(FO)
 
-   # Compute the canonical basis of `FG`.
-   if ! GAPWrap.IsPrimeField(GAP.Globals.LeftActingDomain(FG))
-     # The GAP field is not an extension of the prime field.
+   if degree(FO) != absolute_degree(FO) ||
+      ! GAPWrap.IsPrimeField(GAPWrap.LeftActingDomain(FG))
+     # The Oscar field or the GAP field is not an extension of the prime field.
      # What is a reasonable way to compute (on the GAP side) a polynomial
      # w.r.t. the prime field, and to decompose field elements w.r.t.
      # the corresponding basis?
      error("extensions of extension fields are not supported")
-   elseif GAPWrap.IsAlgebraicExtension(FG)
-#FIXME:
-# As soon as the problem from https://github.com/gap-system/gap/issues/4694
-# is fixed, go back to `basis_FG = GAP.Globals.Basis(FG)` also in this case.
-# Note that we want a basis in the filter `IsCanonicalBasisAlgebraicExtension`.
-     basis_FG = GAP.Globals.Objectify(GAP.Globals.NewType(
-                GAP.Globals.FamilyObj(FG),
-                GAP.Globals.IsCanonicalBasisAlgebraicExtension),
-                GAP.NewPrecord(0))::GapObj
-     GAP.Globals.SetUnderlyingLeftModule(basis_FG, FG)
-   else
-     basis_FG = GAP.Globals.Basis(FG)::GapObj
    end
+
+   # Compute the canonical basis of `FG`.
+   basis_FG = GAPWrap.Basis(FG)
+   # Test that we do not run into the problem from
+   # https://github.com/gap-system/gap/issues/4694.
+   @assert (!GAPWrap.IsAlgebraicExtension(FG)) ||
+           GAPWrap.IsCanonicalBasisAlgebraicExtension(basis_FG)
 
    # Check whether the two fields have compatible polynomials.
    polFO = modulus(FO)
    coeffsFO = collect(coefficients(polFO))
 
-   polFG = GAP.Globals.DefiningPolynomial(FG)::GapObj
-   coeffsFG = [fmpz(Oscar.GAPWrap.IntFFE(x)) for x in
-               GAP.Globals.CoefficientsOfUnivariatePolynomial(polFG)::GapObj]
+   polFG = GAPWrap.DefiningPolynomial(FG)
+   coeffsFG = [ZZRingElem(GAPWrap.IntFFE(x)) for x in
+               GAPWrap.CoefficientsOfUnivariatePolynomial(polFG)]
 
    if coeffsFO == coeffsFG
      # The two fields are compatible.
      F = FO
 
-     f = function(x)
-       v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
-       return sum([v[i]*basis_FG[i] for i in 1:d])
+     if FO isa FqField
+       f = function(x)
+         v = [GAP.Obj(Nemo._coeff(x, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
+     else
+       f = function(x)
+         v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
      end
 
      finv = function(x::GAP.Obj)
        v = GAPWrap.Coefficients(basis_FG, x)
-       v_int = [fmpz(GAPWrap.IntFFE(v[i])) for i = 1:d]
+       v_int = [ZZRingElem(GAPWrap.IntFFE(v[i])) for i = 1:d]
        return sum([v_int[i]*basis_F[i] for i = 1:d])
      end
    else
@@ -130,14 +129,23 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqFiniteField, FqDefaul
      emb = embed(FO2, FO)
      F = FO2
 
-     f = function(x)
-       v = [GAP.Obj(coeff(preimage(emb, x), i)) for i in 0:(d - 1)]
-       return sum([v[i]*basis_FG[i] for i in 1:d])
+     if FO isa FqField
+       f = function(x)
+         y = preimage(emb, x)
+         v = [GAP.Obj(Nemo._coeff(y, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
+     else
+       f = function(x)
+         y = preimage(emb, x)
+         v = [GAP.Obj(coeff(y, i)) for i in 0:(d - 1)]
+         return sum([v[i]*basis_FG[i] for i in 1:d])
+       end
      end
 
      finv = function(x::GAP.Obj)
        v = GAPWrap.Coefficients(basis_FG, x)
-       v_int = [fmpz(GAPWrap.IntFFE(v[i])) for i = 1:d]
+       v_int = [ZZRingElem(GAPWrap.IntFFE(v[i])) for i = 1:d]
        return emb(sum([v_int[i]*basis_F[i] for i = 1:d]))
      end
    end
@@ -174,10 +182,10 @@ function _iso_oscar_gap(FO::FinField)
      polFO = modulus(FO)
      coeffsFO = collect(coefficients(polFO))
 
-     e = one(GAP.Globals.Z(p)::GAP.Obj)
-     fam = GAP.Globals.FamilyObj(e)::GapObj
+     e = one(GAPWrap.Z(p))
+     fam = GAPWrap.FamilyObj(e)
      coeffsFG = GAP.GapObj([GAP.Obj(lift(x))*e for x in coeffsFO])
-     polFG = GAP.Globals.UnivariatePolynomialByCoefficients(fam, coeffsFG, 1)::GapObj
+     polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, coeffsFG, 1)
      FG = GAPWrap.GF(p, polFG)
    end
    f, finv = _iso_oscar_gap_field_finite_functions(FO, FG)
@@ -186,12 +194,12 @@ function _iso_oscar_gap(FO::FinField)
 end
 
 
-function _iso_oscar_gap_field_rationals_functions(FO::FlintRationalField, FG::GapObj)
-#TODO   return (GAP.Obj, fmpq)
-   return (x -> GAP.Obj(x), x -> fmpq(x))
+function _iso_oscar_gap_field_rationals_functions(FO::QQField, FG::GapObj)
+#TODO   return (GAP.Obj, QQFieldElem)
+   return (x -> GAP.Obj(x), x -> QQFieldElem(x))
 end
 
-function _iso_oscar_gap(FO::FlintRationalField)
+function _iso_oscar_gap(FO::QQField)
    FG = GAP.Globals.Rationals::GapObj
 
    f, finv = _iso_oscar_gap_field_rationals_functions(FO, FG)
@@ -199,12 +207,12 @@ function _iso_oscar_gap(FO::FlintRationalField)
    return MapFromFunc(f, finv, FO, FG)
 end
 
-function _iso_oscar_gap_ring_integers_functions(FO::FlintIntegerRing, FG::GapObj)
-#TODO  return (GAP.Obj, fmpz)
-   return (x -> GAP.Obj(x), x -> fmpz(x))
+function _iso_oscar_gap_ring_integers_functions(FO::ZZRing, FG::GapObj)
+#TODO  return (GAP.Obj, ZZRingElem)
+   return (x -> GAP.Obj(x), x -> ZZRingElem(x))
 end
 
-function _iso_oscar_gap(FO::FlintIntegerRing)
+function _iso_oscar_gap(FO::ZZRing)
    FG = GAP.Globals.Integers::GapObj
 
    f, finv = _iso_oscar_gap_ring_integers_functions(FO, FG)
@@ -212,16 +220,12 @@ function _iso_oscar_gap(FO::FlintIntegerRing)
    return MapFromFunc(f, finv, FO, FG)
 end
 
-# For the moment, support only cyclotomic fields.
-# General number fields will require caching,
-# in order to achieve that Oscar matrix groups over the same number field
-# are mapped to GAP matrix groups over the same `AlgebraicExtension` field.
-
 # Assume that `FO` and `FG` are cyclotomic fields with the same conductor
 # in Oscar and GAP, respectively.
+# (Cyclotomic fields are easier to handle than general number fields.)
 function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP.GapObj)
    N = conductor(FO)
-   cycpol = GAP.Globals.CyclotomicPol(N)::GapObj
+   cycpol = GAPWrap.CyclotomicPol(N)
    dim = length(cycpol)-1
 
    f = function(x::Nemo.nf_elem)
@@ -234,22 +238,72 @@ function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP
       denom = GAPWrap.DenominatorCyc(x)
       n = GAPWrap.Conductor(x)
       mod(N, n) == 0 || error("$x does not lie in the $N-th cyclotomic field")
-      coeffs = GAP.Globals.CoeffsCyc(x * denom, N)::GapObj
-      GAP.Globals.ReduceCoeffs(coeffs, cycpol)
-      coeffs = Vector{fmpz}(coeffs)
+      coeffs = GAPWrap.CoeffsCyc(x * denom, N)
+      GAPWrap.ReduceCoeffs(coeffs, cycpol)
+      coeffs = Vector{ZZRingElem}(coeffs)
       coeffs = coeffs[1:dim]
-      return FO(coeffs) // fmpz(denom)
+      return FO(coeffs) // ZZRingElem(denom)
+   end
+
+   return (f, finv)
+end
+
+# Assume that `FO` and `FG` are quadratic fields with the same square root
+# in Oscar and GAP, respectively.
+# (Quadratic fields are easier to handle than general number fields.)
+function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.GapObj)
+   flag, N = Hecke.is_quadratic_type(FO)
+   @assert flag
+
+   oO = one(FO)
+   zO = gen(FO)
+   oG = 1
+   zG = GAPWrap.Sqrt(GAP.Obj(N))
+   B = GAPWrap.BasisNC(FG, GapObj([oG, zG]))
+
+   f = function(x::Nemo.nf_elem)
+      return GAP.Obj(coeff(x,0)) * oG + GAP.Obj(coeff(x,1)) * zG
+   end
+
+   finv = function(x::GAP.Obj)
+      GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
+      coeffs = GAPWrap.Coefficients(B, x)
+      coeffs === GAP.Globals.fail && throw(ArgumentError("$x is not an element oof $FG"))
+      return QQFieldElem(coeffs[1]) * oO + QQFieldElem(coeffs[2]) * zO
    end
 
    return (f, finv)
 end
 
 function _iso_oscar_gap(FO::AnticNumberField)
-   flag, N = Hecke.is_cyclotomic_type(FO)
-   flag || error("$FO is not a cyclotomic field")
+   flag1, N1 = Hecke.is_cyclotomic_type(FO)
+   flag2, N2 = Hecke.is_quadratic_type(FO)
+   if flag1
+     FG = GAPWrap.CF(GAP.Obj(N1))
+     f, finv = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
+   elseif flag2
+     FG = GAPWrap.Field(GAPWrap.Sqrt(GAP.Obj(N2)))
+     f, finv = _iso_oscar_gap_field_quadratic_functions(FO, FG)
+   else
+     polFO = FO.pol
+     N = degree(polFO)
+     coeffs_polFO = collect(coefficients(polFO))
+     fam = GAP.Globals.CyclotomicsFamily::GapObj
+     cfs = GAP.GapObj(coeffs_polFO, recursive = true)::GapObj
+     polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, 1)
+     FG = GAPWrap.AlgebraicExtension(GAP.Globals.Rationals::GapObj, polFG)
+     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
-   FG = GAPWrap.CF(GAP.Obj(N))
-   f, finv = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
+     f = function(x::Nemo.nf_elem)
+        coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
+        return GAPWrap.AlgExtElm(fam, coeffs)
+     end
+
+     finv = function(x::GapObj)
+        coeffs = Vector{QQFieldElem}(GAPWrap.ExtRepOfObj(x))
+        return FO(coeffs)
+     end
+   end
 
    return MapFromFunc(f, finv, FO, FG)
 end
@@ -260,12 +314,75 @@ function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GAP.GapObj)
 end
 
 function _iso_oscar_gap(FO::QQAbField)
-   FG = GAP.Globals.Cyclotomics
+   FG = GAP.Globals.Cyclotomics::GapObj
    f, finv = _iso_oscar_gap_abelian_closure_functions(FO, FG)
 
    return MapFromFunc(f, finv, FO, FG)
 end
 
+"""
+    Oscar.iso_oscar_gap(R) -> Map{T, GAP.GapObj}
+
+Return an isomorphism `f` with domain `R`
+and `codomain` a GAP object `S`.
+
+Elements `x` of `R` are mapped to `S` via `f(x)`,
+and elements `y` of `S` are mapped to `R` via `preimage(f, y)`.
+
+Matrices `m` over `R` are mapped to matrices over `S` via
+`map_entries(f, m)`,
+and matrices `n` over `S` are mapped to matrices over `R` via
+`Oscar.preimage_matrix(f, n)`.
+
+Admissible values of `R` and the corresponding `S` are currently as follows.
+
+| `R`                                  | `S` (in `GAP.Globals`)             |
+|:------------------------------------ |:---------------------------------- |
+| `ZZ`                                 | `Integers`                         |
+| `QQ`                                 | `Rationals`                        |
+| `residue_ring(ZZ, n)`                | `mod(Integers, n)`                 |
+| `FiniteField(p, d)[1]`               | `GF(p, d)`                         |
+| `cyclotomic_field(n)[1]`             | `CF(n)`                            |
+| `number_field(f::QQPolyRingElem)[1]` | `AlgebraicExtension(Rationals, g)` |
+| `abelian_closure(QQ)[1]`             | `Cyclotomics`                      |
+| `polynomial_ring(F)[1]`              | `PolynomialRing(G)`                |
+| `polynomial_ring(F, n)[1]`           | `PolynomialRing(G, n)`             |
+
+(Here `g` is the polynomial over `GAP.Globals.Rationals` that corresponds
+to `f`,
+and `G` is equal to `Oscar.iso_oscar_gap(F)`.)
+
+# Examples
+```jldoctest
+julia> f = Oscar.iso_oscar_gap(ZZ);
+
+julia> x = ZZ(2)^100;  y = f(x)
+GAP: 1267650600228229401496703205376
+
+julia> preimage(f, y) == x
+true
+
+julia> m = matrix(ZZ, 2, 3, [1, 2, 3, 4, 5, 6]);
+
+julia> n = map_entries(f, m)
+GAP: [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+
+julia> Oscar.preimage_matrix(f, n) == m
+true
+
+julia> R, x = polynomial_ring(QQ);
+
+julia> f = Oscar.iso_oscar_gap(R);
+
+julia> pol = x^2 + x - 1;
+
+julia> y = f(pol)
+GAP: x_1^2+x_1-1
+
+julia> preimage(f, y) == pol
+true
+```
+"""
 @attr Map function iso_oscar_gap(F)
    return _iso_oscar_gap(F)
 end
@@ -276,18 +393,18 @@ end
 # Univariate polynomial rings
 #
 function _iso_oscar_gap_polynomial_ring_functions(RO::PolyRing{T}, RG::GAP.GapObj, coeffs_iso::MapFromFunc) where T
-   fam = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(codomain(coeffs_iso)))::GapObj
-   ind = GAP.Globals.IndeterminateNumberOfUnivariateRationalFunction(
-           GAP.Globals.IndeterminatesOfPolynomialRing(RG)[1])::Int
+   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(codomain(coeffs_iso)))
+   ind = GAPWrap.IndeterminateNumberOfUnivariateRationalFunction(
+           GAPWrap.IndeterminatesOfPolynomialRing(RG)[1])
 
-   f = function(x::PolyElem{T})
+   f = function(x::PolyRingElem{T})
       cfs = GAP.GapObj([coeffs_iso(x) for x in coefficients(x)])
-      return GAP.Globals.UnivariatePolynomialByCoefficients(fam, cfs, ind)::GapObj
+      return GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, ind)
    end
 
    finv = function(x)
       GAPWrap.IsPolynomial(x) || error("$x is not a GAP polynomial")
-      cfs = Vector{GAP.Obj}(GAP.Globals.CoefficientsOfUnivariatePolynomial(x)::GapObj)
+      cfs = Vector{GAP.Obj}(GAPWrap.CoefficientsOfUnivariatePolynomial(x))
       return RO([preimage(coeffs_iso, c) for c in cfs])
    end
 
@@ -296,7 +413,7 @@ end
 
 function _iso_oscar_gap(RO::PolyRing{T}) where T
    coeffs_iso = iso_oscar_gap(base_ring(RO))
-   RG = GAP.Globals.PolynomialRing(codomain(coeffs_iso))::GapObj
+   RG = GAPWrap.PolynomialRing(codomain(coeffs_iso))
 
    f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
 
@@ -311,13 +428,13 @@ end
 @attributes AbstractAlgebra.Generic.MPolyRing # TODO: port this to AA
 
 function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapObj, coeffs_iso::MapFromFunc) where T
-   fam = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(RG))::GapObj
+   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(RG))
    n = nvars(RO)
-   indets = GAP.Globals.IndeterminatesOfPolynomialRing(RG)::GapObj
-   ind = [GAP.Globals.IndeterminateNumberOfUnivariateRationalFunction(x)
+   indets = GAPWrap.IndeterminatesOfPolynomialRing(RG)
+   ind = [GAPWrap.IndeterminateNumberOfUnivariateRationalFunction(x)
           for x in indets]::Vector{Int}
 
-   f = function(x::MPolyElem{T})
+   f = function(x::MPolyRingElem{T})
       extrep = []
       for (c, l) in zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.exponent_vectors(x))
         v = []
@@ -329,12 +446,12 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapO
         push!(extrep, GAP.GapObj(v))
         push!(extrep, coeffs_iso(c))
       end
-      return GAP.Globals.PolynomialByExtRep(fam, GAP.GapObj(extrep))::GapObj
+      return GAPWrap.PolynomialByExtRep(fam, GAP.GapObj(extrep))
    end
 
    finv = function(x)
       GAPWrap.IsPolynomial(x) || error("$x is not a GAP polynomial")
-      extrep = Vector{GAP.Obj}(GAP.Globals.ExtRepPolynomialRatFun(x)::GapObj)
+      extrep = Vector{GAP.Obj}(GAPWrap.ExtRepPolynomialRatFun(x))
       M = Generic.MPolyBuildCtx(RO)
       for i in 1:2:length(extrep)
         v = fill(0, n)
@@ -352,7 +469,7 @@ end
 
 function _iso_oscar_gap(RO::MPolyRing{T}) where T
    coeffs_iso = iso_oscar_gap(base_ring(RO))
-   RG = GAP.Globals.PolynomialRing(codomain(coeffs_iso), nvars(RO))::GapObj
+   RG = GAPWrap.PolynomialRing(codomain(coeffs_iso), nvars(RO))
 
    f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
 
@@ -380,7 +497,7 @@ function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatrixElem{S}) where 
    for i in 1:nrows(a)
       rows[i] = GapObj([f(a[i, j]) for j in 1:ncols(a)])
    end
-   return GAP.Globals.ImmutableMatrix(codomain(f), GapObj(rows), true)::GapObj
+   return GAPWrap.ImmutableMatrix(codomain(f), GapObj(rows), true)
 end
 
 function preimage_matrix(f::Map{T, GapObj}, a::GapObj) where T

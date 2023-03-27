@@ -106,8 +106,11 @@ character_field
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator
+is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
 schur_index
+det(chi::GAPGroupClassFunction)
+order(chi::GAPGroupClassFunction)
 ```
 
 ## Attributes of character tables
@@ -131,7 +134,7 @@ trivial_character(tbl::GAPGroupCharacterTable)
 
 ```@docs
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{fmpq}, MatrixGroup{nf_elem}})
+natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
 trivial_character(G::GAPGroup)
 ```
 
@@ -203,6 +206,10 @@ into questions about the array of those positions in the list of
 conjugacy classes of ``G`` that contain the elements of ``N``.
 
 ```@docs
+center(chi::GAPGroupClassFunction)
+class_positions_of_center
+kernel(chi::GAPGroupClassFunction)
 class_positions_of_kernel
+pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
 ```

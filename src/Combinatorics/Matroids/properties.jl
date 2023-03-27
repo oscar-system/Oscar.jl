@@ -1,19 +1,3 @@
-export
-    isomorphic_matroid, length,
-    bases, nonbases, circuits, hyperplanes, flats, cyclic_flats, closure, 
-    rank, nullity, 
-    fundamental_circuit, fundamental_cocircuit,
-    spanning_sets, independent_sets,
-    cobases, cocircuits, cohyperplanes, corank,
-    is_clutter,
-    is_regular, is_binary, is_ternary,
-    n_connected_components, connected_components, is_connected,
-    loops, coloops, is_loopless, is_coloopless, is_simple, direct_sum_components,
-    connectivity_function, is_vertical_k_separation, is_k_separation,
-    vertical_connectivity, girth, tutte_connectivity,
-    tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
-    revlex_basis_encoding, is_isomorphic, is_minor
-
 ################################################################################
 ##  Properties and basic functions
 ################################################################################
@@ -904,7 +888,7 @@ x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 ```
 """
 function tutte_polynomial(M::Matroid)
-    R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
+    R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
     poly = M.pm_matroid.TUTTE_POLYNOMIAL
     exp = Polymake.monomials_as_matrix(poly)
     return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
@@ -925,10 +909,9 @@ q^3 - 7*q^2 + 14*q - 8
 ```
 """
 function characteristic_polynomial(M::Matroid)
-    R, q = PolynomialRing(ZZ, 'q')
+    R, q = polynomial_ring(ZZ, 'q')
     return (-1)^M.pm_matroid.RANK*tutte_polynomial(M)(1-q,0)
 end
-charpoly(M::Matroid) = characteristic_polynomial(M)
 
 @doc Markdown.doc"""
     reduced_characteristic_polynomial(M::Matroid)
@@ -944,7 +927,7 @@ q^2 - 6*q + 8
 ```
 """
 function reduced_characteristic_polynomial(M::Matroid)
-    R, q = PolynomialRing(ZZ, 'q')
+    R, q = polynomial_ring(ZZ, 'q')
     p = characteristic_polynomial(M)
     c = Vector{Int}(undef,degree(p))
     s = 0

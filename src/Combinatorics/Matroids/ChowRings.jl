@@ -1,5 +1,3 @@
-export chow_ring, augmented_chow_ring, _select
-
 @doc Markdown.doc"""
     chow_ring(M::Matroid; ring::MPolyRing=nothing, extended::Bool=false)
 
@@ -35,7 +33,7 @@ The following computes the Chow ring of the free matroid on three elements in a 
 ```jldoctest
 julia> M = uniform_matroid(3,3);
 
-julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f"]);
+julia> GR, _ = graded_polynomial_ring(QQ,["a","b","c","d","e","f"]);
 
 julia> R = chow_ring(M, ring=GR);
 
@@ -59,7 +57,7 @@ function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended:
             #add the variables for the simplicial generators
             var_names = [var_names; ["h_{" * join(S, ",") * "}" for S in [proper_flats;[Flats[number_flats]]]]]
         end
-        ring, vars = PolynomialRing(QQ, var_names, cached=false)
+        ring, vars = polynomial_ring(QQ, var_names, cached=false)
     else
         if extended
             nvars(ring) == 2*length(proper_flats)+1 || error("the ring has the wrong number of variables")
@@ -162,7 +160,7 @@ function augmented_chow_ring(M::Matroid)
     var_names = vcat(element_var_names, flat_var_names)
     s = length(var_names)
 
-    ring, vars = PolynomialRing(QQ, var_names)
+    ring, vars = polynomial_ring(QQ, var_names)
     element_vars = vars[1:n]
     flat_vars = vars[n+1:s]
 

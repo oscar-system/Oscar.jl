@@ -5,7 +5,7 @@
 
   P = ideal(R, f)
 
-  L, _ = localization(R, complement_of_ideal(P))
+  L, _ = localization(R, complement_of_prime_ideal(P))
 
   F = FreeMod(L, 1)
 
@@ -23,7 +23,7 @@
   @test_throws ErrorException length(F)
 
   A, _ = quo(R, ideal(R, [x^2, y, z]))
-  W, _ = localization(A, complement_of_ideal(ideal(R, [x,y,z])))
+  W, _ = localization(A, complement_of_prime_ideal(ideal(R, [x,y,z])))
   F = FreeMod(W, 2)
   @test length(F) == 4 
 end

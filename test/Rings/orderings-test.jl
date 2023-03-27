@@ -1,5 +1,5 @@
 @testset "Polynomial Orderings construction" begin
-   R, (x, y, z) = PolynomialRing(QQ, 3)
+   R, (x, y, z) = polynomial_ring(QQ, 3)
    f = x*y + 5*z^3
    g = (1 + x + y + z)^2
  
@@ -110,7 +110,7 @@
 end
 
 @testset "Polynomial Orderings is_total" begin
-   R, (x, y, z, t) = PolynomialRing(QQ, 4)
+   R, (x, y, z, t) = polynomial_ring(QQ, 4)
 
    a = lex([x, t])*deglex([y, z])
    @test is_total(a) && is_total(a)
@@ -141,7 +141,7 @@ end
 end
 
 @testset "Polynomial Orderings printing" begin
-   R, (x, y, z) = PolynomialRing(QQ, 3)
+   R, (x, y, z) = polynomial_ring(QQ, 3)
    f = x*y + 5*z^3 + 2
    @test length(string(coefficients(f))) > 2
    @test length(string(coefficients_and_exponents(f))) > 2
@@ -151,7 +151,7 @@ end
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
-   R, (x, y, z) = PolynomialRing(QQ, 3)
+   R, (x, y, z) = polynomial_ring(QQ, 3)
    f = x*y + 5*z^3
  
    @test collect(terms(f; ordering = deglex(R))) == [ 5z^3, x*y ]
@@ -165,7 +165,7 @@ end
                    (leading_coefficient(f), leading_exponent(f))
 
    Fp = GF(7)
-   R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
+   R, (x, y, z) = polynomial_ring(Fp, 3, ordering = :deglex)
    f = x*y + 5*z^3
    @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
    @test leading_monomial(f; ordering = lex(R)) == x*y
@@ -186,7 +186,7 @@ end
 end
  
 @testset "Polynomial Orderings comparison" begin
-   R, (x, y, z) = @inferred PolynomialRing(QQ, ["x", "y", "z"])
+   R, (x, y, z) = @inferred polynomial_ring(QQ, ["x", "y", "z"])
 
    @test lex([x])*lex([y,z]) == lex([x, y, z])
    @test lex([z])*lex([y])*lex([x]) == revlex([x, y, z])
@@ -215,7 +215,7 @@ function test_opposite_ordering(a)
 end
 
 @testset "Polynomial Orderings sorting" begin
-   R, (x1, x2, x3, x4) = PolynomialRing(QQ, "x".*string.(1:4))
+   R, (x1, x2, x3, x4) = polynomial_ring(QQ, "x".*string.(1:4))
    
    M = [x2^3, x1*x2^2, x1^2*x2, x2^2*x4, x2^2*x3, x2^2, x1^3,
         x1*x2*x4, x1*x2*x3, x1*x2, x1^2*x4, x1^2*x3, x1^2, x2*x4^2, x2*x3*x4,
@@ -312,7 +312,7 @@ end
 end
 
 @testset "Polynomial Ordering internal conversion to Singular" begin
-   R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
+   R, (x, y, s, t, u) = polynomial_ring(QQ, ["x", "y", "s", "t", "u"])
 
    for O in (wdegrevlex([x,y,s],[1,2,3])*revlex([t,u]),
              neglex([x,y,s])*negrevlex([t,u]),

@@ -15,11 +15,11 @@
 
     @test isfinite(G)
 
-    @test order(G) isa fmpz
+    @test order(G) isa ZZRingElem
     @test order(G) == factorial(n)
     @test 2 * order(A) == factorial(n)
     @testset "order with type" begin
-      for T in [Int, BigInt, fmpz]
+      for T in [Int, BigInt, ZZRingElem]
         @test order(T, G) == factorial(n)
         @test order(T, G) isa T
       end
@@ -28,8 +28,8 @@
       end
     end
 
-    @test exponent(G) isa fmpz
-    for T in [Int, BigInt, fmpz]
+    @test exponent(G) isa ZZRingElem
+    for T in [Int, BigInt, ZZRingElem]
       @test exponent(T, A) isa T
     end
     @test exponent(G) == lcm(1:n)
@@ -76,14 +76,14 @@ end
   @test_throws ArgumentError cyclic_group(-1)
   @test_throws ArgumentError cyclic_group(PermGroup, -1)
 
-  for p in [next_prime(2^62), next_prime(fmpz(2)^66)]
+  for p in [next_prime(2^62), next_prime(ZZRingElem(2)^66)]
     g = cyclic_group(p)
     @test is_cyclic(g)
     @test !is_dihedral_group(g)
     @test is_finite(g)
     @test order(g) == p
 
-    n = 2*fmpz(p)
+    n = 2*ZZRingElem(p)
     g = dihedral_group(n)
     @test !is_cyclic(g)
     #@test is_dihedral_group(g)

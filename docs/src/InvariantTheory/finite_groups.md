@@ -98,7 +98,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -120,7 +120,7 @@ Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]
  x[2]
  x[3]
@@ -133,9 +133,9 @@ false
 ## The Reynolds Operator
 
 ```@docs
-reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
-reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyElem}
+reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyRingElem}
 ```
 
 ## Invariants of a Given Degree

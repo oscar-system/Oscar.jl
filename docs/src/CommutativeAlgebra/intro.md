@@ -19,7 +19,7 @@ The commutative algebra part of OSCAR provides functionality for dealing with
 - localizations of the above rings and ideals of such localizations, and 
 - modules over all rings above.
 
-We use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
+We use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring modulo an ideal*.
 
 Fundamental to computational commutative algebra is the concept of *standard bases*. Each such basis
 is defined relative to a *monomial ordering*. If this ordering is a well-ordering, a standard basis is also called
@@ -48,3 +48,12 @@ General textbooks offering details on theory and algorithms include:
 - [DL06](@cite)
 - [DP13](@cite)
 
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker).
+
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).

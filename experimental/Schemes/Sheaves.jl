@@ -1,13 +1,14 @@
 export AbsPrePreSheaf
-export space, restriction_map
 export PreSheafOnScheme
 export StructureSheafOfRings
+export restriction_map
+export space
 export underlying_presheaf
 
 ########################################################################
 # The AbsPreSheaf interface                                               #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     space(F::AbsPreSheaf) 
 
 For a sheaf ``ℱ`` on a space ``X`` return ``X``.
@@ -16,7 +17,7 @@ function space(F::AbsPreSheaf)
   return space(underlying_presheaf(F))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     (F::AbsPreSheaf)(U; cached=true) 
 
 For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set 
@@ -26,7 +27,7 @@ function (F::AbsPreSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) 
   return (underlying_presheaf(F))(U, cached=cached)::OutputType
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     restriction_map(F::AbsPreSheaf, U, V)
 
 For a sheaf ``ℱ`` on a space ``X`` and an (admissible) pair of 
@@ -46,7 +47,7 @@ function (F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType})(
   return restriction_map(F, U, V)::RestrictionType
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_open_func(F::AbsPreSheaf)
 
 For a sheaf ``ℱ`` on a space ``X`` return a function `f` on two 
@@ -77,7 +78,7 @@ production_func(F::PreSheafOnScheme) = F.production_func
 restriction_func(F::PreSheafOnScheme) = F.restriction_func
 
 ### Production and caching of the values of F on admissible open sets
-function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=true) where {OpenType, OutputType, T<:OpenType}
+function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=false) where {OpenType, OutputType, T<:OpenType}
   #First look whether or not the asked for result has been computed before
   haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType 
 
@@ -89,7 +90,7 @@ function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=t
 end
 
 ### Production and caching of the restriction maps
-@Markdown.doc """
+@doc Markdown.doc"""
     restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
         U::Type1, V::Type2
       ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
@@ -98,11 +99,11 @@ For a `F` produce (and cache) the restriction map `F(U) → F(V)`.
 """
 function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
     U::Type1, V::Type2;
-    check::Bool=true
+    check::Bool=false
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   # First, look up whether this restriction had already been asked for previously.
   inc = incoming_restrictions(F, F(V)) 
-  !(inc == nothing) && haskey(inc, U) && return (inc[U])::RestrictionType
+  inc !== nothing && haskey(inc, U) && return (inc[U])::RestrictionType
 
   # Check whether the given pair is even admissible.
   check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
@@ -120,7 +121,7 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   return rho::RestrictionType
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
   add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
     U::OpenType,
     rho::RestrictionType
@@ -140,7 +141,7 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   # First, look up the incoming restriction maps for F(V).
   # This will create the dictionary, if necessary.
   incoming_res = incoming_restrictions(F, M)
-  incoming_res == nothing && return F # This indicates that no 
+  incoming_res === nothing && return F # This indicates that no 
   incoming_res::IdDict{<:OpenType, <:RestrictionType}
   # sanity checks
   domain(rho) === F(U) || error("domain is not correct")
@@ -149,7 +150,7 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   return F
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     incoming_restrictions(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType, M::OutputType) 
 
 Supposing `M` is the value `M = F(U)` of some `AbsPreSheaf` `F` on an admissible open 
@@ -216,10 +217,10 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       Y::AbsCoveredScheme
     )
-    return Y === X && some_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
+    return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-    return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
+    return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
   # The following is implemented for the sake of completeness for boundary cases. 
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
@@ -379,10 +380,10 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       Y::AbsCoveredScheme
     )
-    return Y === X && some_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
+    return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-    return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
+    return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
   # The following is implemented for the sake of completeness for boundary cases. 
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
@@ -421,16 +422,16 @@ function Base.show(io::IO, R::StructureSheafOfRings)
 end
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(
-    a::Union{MPolyElem, MPolyQuoElem, 
-             MPolyLocalizedRingElem, MPolyQuoLocalizedRingElem}, 
+    a::Union{MPolyRingElem, MPolyQuoRingElem, 
+             MPolyLocRingElem, MPolyQuoLocRingElem}, 
     U::PrincipalOpenSubset)
   parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
   return OO(U)(a, check=false)
 end
 
 function restrict(
-    a::Union{MPolyElem, MPolyQuoElem, 
-             MPolyLocalizedRingElem, MPolyQuoLocalizedRingElem}, 
+    a::Union{MPolyRingElem, MPolyQuoRingElem, 
+             MPolyLocRingElem, MPolyQuoLocRingElem}, 
     U::SpecOpen)
   parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
   return OO(U)(a)
@@ -449,7 +450,7 @@ abstract type AbsPreSheafSection{SpaceType,
 ### The interface for sections in presheaves
 
 # Calling for a representative of the section on some open subset
-@Markdown.doc """
+@doc Markdown.doc"""
     (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
 
 For a section ``v`` in a presheaf ``ℱ`` on ``X`` and an admissible 

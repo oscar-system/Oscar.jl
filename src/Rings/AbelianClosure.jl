@@ -98,7 +98,7 @@ julia> z(36)
 
 ```
 """
-function abelian_closure(::FlintRationalField; sparse::Bool = false) 
+function abelian_closure(::QQField; sparse::Bool = false) 
   if sparse 
     return _QQAb_sparse, _QQAbGen_sparse
   else
@@ -257,7 +257,7 @@ zero(K::QQAbField) = K(0)
 
 zero(a::QQAbElem) = zero(parent(a))
 
-function (K::QQAbField)(a::Union{fmpz, fmpq, Integer, Rational})
+function (K::QQAbField)(a::Union{ZZRingElem, QQFieldElem, Integer, Rational})
   return a*root_of_unity(K, 1)
 end
 
@@ -266,6 +266,41 @@ function (K::QQAbField)(a::QQAbElem)
 end
 
 (K::QQAbField)() = zero(K)
+
+function (K::QQAbField)(a::nf_elem)
+  # Cyclotomic fields are naturally embedded into `K`.
+  fl, f = Hecke.is_cyclotomic_type(parent(a))
+  fl && return QQAbElem(a, f)
+
+  # Quadratic fields are naturally embedded into `K`.
+  fl, f = Hecke.is_quadratic_type(parent(a))
+  if fl
+    x = coeff(a, 0)
+    y = coeff(a, 1)
+    iszero(y) && return QQAbElem(parent(a)(x), 1)
+    d = sign(f)
+    c = 1
+    for (p, e) in factor(f)
+      if mod(e, 2) == 1
+        d = d*p
+        c = c*p^div(e-1, 2)
+      else
+        c = c*p^div(e, 2)
+      end
+    end
+    # `d` is the signed squarefree part of `f`, and `f == d*c^2`
+    if mod(d, 4) == 1
+      N = abs(d)
+    else
+      N = 4*abs(d)
+    end
+    r = square_root_in_cyclotomic_field(K, Int(d), Int(N))
+    return x + y*c*r
+  end
+
+  # We have no natural embeddings for other (abelian) number fields.
+  throw(ArgumentError("no natural embedding of $(parent(a)) into QQAbField"))
+end
 
 ################################################################################
 #
@@ -423,12 +458,12 @@ conductor(a::QQAbElem) = conductor(data(a))
 
 ################################################################################
 #
-#  Conversions to `fmpz` and `fmpq` (like for `nf_elem`)
+#  Conversions to `ZZRingElem` and `QQFieldElem` (like for `nf_elem`)
 #
 ################################################################################
 
-(R::FlintRationalField)(a::QQAbElem) = R(a.data)
-(R::FlintIntegerRing)(a::QQAbElem) = R(a.data)
+(R::QQField)(a::QQAbElem) = R(a.data)
+(R::ZZRing)(a::QQAbElem) = R(a.data)
 
 
 ################################################################################
@@ -465,7 +500,7 @@ function ^(a::QQAbElem, n::Integer)
   return QQAbElem(data(a)^n, a.c)
 end
 
-function ^(a::QQAbElem, n::fmpz)
+function ^(a::QQAbElem, n::ZZRingElem)
   return a^Int(n)
 end
 
@@ -524,57 +559,57 @@ end
 #
 ################################################################################
 
-*(a::fmpz, b::QQAbElem) = QQAbElem(b.data*a, b.c)
+*(a::ZZRingElem, b::QQAbElem) = QQAbElem(b.data*a, b.c)
 
-*(a::fmpq, b::QQAbElem) = QQAbElem(b.data*a, b.c)
+*(a::QQFieldElem, b::QQAbElem) = QQAbElem(b.data*a, b.c)
 
 *(a::Integer, b::QQAbElem) = QQAbElem(data(b) * a, b.c)
 
 *(a::Rational, b::QQAbElem) = QQAbElem(data(b) * a, b.c)
 
-*(a::QQAbElem, b::fmpz) = b*a
+*(a::QQAbElem, b::ZZRingElem) = b*a
 
-*(a::QQAbElem, b::fmpq) = b*a
+*(a::QQAbElem, b::QQFieldElem) = b*a
 
 *(a::QQAbElem, b::Integer) = b*a
 
 *(a::QQAbElem, b::Rational) = b*a
 
-+(a::fmpz, b::QQAbElem) = QQAbElem(b.data + a, b.c)
++(a::ZZRingElem, b::QQAbElem) = QQAbElem(b.data + a, b.c)
 
-+(a::fmpq, b::QQAbElem) = QQAbElem(b.data + a, b.c)
++(a::QQFieldElem, b::QQAbElem) = QQAbElem(b.data + a, b.c)
 
 +(a::Integer, b::QQAbElem) = QQAbElem(data(b) + a, b.c)
 
 +(a::Rational, b::QQAbElem) = QQAbElem(data(b) + a, b.c)
 
-+(a::QQAbElem, b::fmpz) = b + a
++(a::QQAbElem, b::ZZRingElem) = b + a
 
-+(a::QQAbElem, b::fmpq) = b + a
++(a::QQAbElem, b::QQFieldElem) = b + a
 
 +(a::QQAbElem, b::Integer) = b + a
 
 +(a::QQAbElem, b::Rational) = b + a
 
--(a::fmpz, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
+-(a::ZZRingElem, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
--(a::fmpq, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
+-(a::QQFieldElem, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
 -(a::Integer, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
 -(a::Rational, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
--(a::QQAbElem, b::fmpz) = QQAbElem(-(data(a), b), a.c)
+-(a::QQAbElem, b::ZZRingElem) = QQAbElem(-(data(a), b), a.c)
 
--(a::QQAbElem, b::fmpq) = QQAbElem(-(data(a), b), a.c)
+-(a::QQAbElem, b::QQFieldElem) = QQAbElem(-(data(a), b), a.c)
 
 -(a::QQAbElem, b::Integer) = QQAbElem(-(data(a), b), a.c)
 
 -(a::QQAbElem, b::Rational) = QQAbElem(-(data(a), b), a.c)
 
-//(a::QQAbElem, b::fmpz) = QQAbElem(data(a)//b, a.c)
+//(a::QQAbElem, b::ZZRingElem) = QQAbElem(data(a)//b, a.c)
 
-//(a::QQAbElem, b::fmpq) = QQAbElem(data(a)//b, a.c)
+//(a::QQAbElem, b::QQFieldElem) = QQAbElem(data(a)//b, a.c)
 
 //(a::QQAbElem, b::Integer) = QQAbElem(data(a)//b, a.c)
 
@@ -591,11 +626,11 @@ function ==(a::QQAbElem, b::QQAbElem)
   return a.data == b.data
 end
 
-function ==(a::QQAbElem, b::Union{fmpz, fmpq, Integer, Rational})
+function ==(a::QQAbElem, b::Union{ZZRingElem, QQFieldElem, Integer, Rational})
   return data(a) == b
 end
 
-function ==(a::Union{fmpz, fmpq, Integer, Rational}, b::QQAbElem)
+function ==(a::Union{ZZRingElem, QQFieldElem, Integer, Rational}, b::QQAbElem)
   return b == a
 end
 
@@ -623,9 +658,9 @@ end
 
 AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{Int}) = QQAbElem
 
-AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{fmpz}) = QQAbElem
+AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{ZZRingElem}) = QQAbElem
 
-AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{fmpq}) = QQAbElem
+AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{QQFieldElem}) = QQAbElem
 
 ###############################################################################
 #
@@ -641,7 +676,7 @@ function Oscar.root(a::QQAbElem, n::Int)
   return mu
 end
 
-function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
+function Oscar.roots(f::PolyRingElem{QQAbElem{T}}) where T
   QQAb = base_ring(f)
   c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(f)), init = Int(1))
   k, z = cyclotomic_field(QQAb, c)
@@ -664,7 +699,7 @@ function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
 
     R, mR = ray_class_group(lcm(d, c)*maximal_order(QQ), infinite_places(QQ), 
                                         n_quo = degree(g)*degree(k))
-    q, mq = quo(R, [R[0]])
+    q, mq = quo(R, [R[0]], false)
     for p = PrimesSet(100, -1, c, 1) #totally split primes.
       if d % p == 0
         continue
@@ -681,7 +716,7 @@ function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
       lp = Hecke.modular_proj(g, me)
       for pg = lp
         l = factor(pg)
-        q, mqq = quo(q, [degree(x)*mq(P) for x = keys(l.fac)])
+        q, mqq = quo(q, [degree(x)*mq(P) for x = keys(l.fac)], false)
         mq = mq*mqq
         if order(q) <= degree(g)*degree(k)
           break
@@ -713,7 +748,7 @@ function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
   if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
-    _, x = PolynomialRing(parent(a), cached = false)
+    _, x = polynomial_ring(parent(a), cached = false)
     fl || return roots(x^n-a)::Vector{QQAbElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
@@ -749,7 +784,7 @@ function is_root_of_unity(a::QQAbElem)
 end
 
 function Oscar.order(a::QQAbElem)
-  f = Nemo.factor(fmpz(2*a.c))
+  f = Nemo.factor(ZZRingElem(2*a.c))
   o = 1
   for (p, e) = f.fac
     b = a^div(2*a.c, Int(p)^e)
@@ -852,7 +887,12 @@ is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
 function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
+  N > 0 || throw(ArgumentError("conductor ($N) must be positive"))
   z = root_of_unity(F, N)
+  if n == 0
+    return zero(z)
+  end
+
   cf = 1
   sqf = 1
   for (p,e) in collect(factor(n))
@@ -862,7 +902,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
     end
   end
   nn = Int(sqf)  # nn is positive and squarefree
-  @assert N % nn == 0
+  N % nn == 0 || return
 
   n4 = nn % 4
   if n4 == 1
@@ -881,8 +921,9 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
     N8 = div(N, 8)
     z8 = z^N8
     cf = cf * (z8 - z8^3)
-    if n < 0
-      cf = cf * z8^2
+    nn = div(nn, 2)
+    if mod(sign(n)*nn, 4) == 3
+      cf = cf * (-z8^2)
     end
   elseif n4 == 3
     if n > 0
@@ -898,7 +939,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
   # Compute the coefficients of the Atlas irrationality 2*b_nn+1,
   # w.r.t. the N-th cyclotomic field.
   # (The underlying formula is due to a theorem of Gauss.)
-  cfs = zeros(fmpz, N)
+  cfs = zeros(ZZRingElem, N)
   cfs[1] = 1
   q = div(N, nn)
   for k in 1:div(nn,2)
@@ -918,7 +959,7 @@ end
 """
     quadratic_irrationality_info(a::QQAbModule.QQAbElem)
 
-Return `(x, y, n)`, where `x`, `y` are of type `fmpq` and `n` is
+Return `(x, y, n)`, where `x`, `y` are of type `QQFieldElem` and `n` is
 a squarefree integer, such that `a == x + y sqrt(n)` holds.
 
 (We assume that the underlying primitive `N`-th root of unity that
@@ -946,7 +987,7 @@ function quadratic_irrationality_info(a::QQAbElem)
       end
     end
 
-    if cand == nothing
+    if cand === nothing
       # The value is rational.
       return (coeff(a.data, 0), 0, 1)
     end
@@ -962,7 +1003,7 @@ function quadratic_irrationality_info(a::QQAbElem)
     # We have a = x + y \sqrt{m} and cand = x - y \sqrt{m}.
     x = coeff(a.data + cand.data, 0) // 2
     root_multiple = a.data - x
-    ysquarem = coeff(root_multiple^2, 0)  # fmpq
+    ysquarem = coeff(root_multiple^2, 0)  # QQFieldElem
     num = numerator(ysquarem)
     den = denominator(ysquarem)
     den_y = sqrt(den)
@@ -996,9 +1037,9 @@ import .AbelianClosure:
        set_variable!,
        get_variable
 
-export abelian_closure,
-       QQAbAutomorphism,
-       QQAbField,
-       QQAbElem,
-       set_variable!,
-       get_variable
+export abelian_closure
+export get_variable
+export QQAbAutomorphism
+export QQAbElem
+export QQAbField
+export set_variable!

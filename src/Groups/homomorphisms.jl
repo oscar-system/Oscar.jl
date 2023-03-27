@@ -1,31 +1,3 @@
-export
-    automorphism_group,
-    codomain,
-    cokernel,
-    domain,
-    haspreimage,
-    hom,
-    id_hom,
-    image,
-    induced_automorphism,
-    inner_automorphism,
-    inner_automorphism_group,
-    is_bijective,
-    is_injective,
-    is_inner_automorphism,
-    is_invariant,
-    is_invertible,
-    is_isomorphic,
-    is_isomorphic_with_map,
-    isomorphism,
-    is_surjective,
-    kernel,
-    order,
-    restrict_automorphism,
-    restrict_homomorphism,
-    simplified_fp_group,
-    trivial_morphism
-
 function Base.show(io::IO, x::GAPGroupHomomorphism)
   print(io, "Group homomorphism from \n")
   show(IOContext(io, :compact => true), domain(x))
@@ -276,7 +248,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
-  @assert is_subgroup(domain(f), H)[1] "Not a subgroup!"
+  @assert is_subset(H, domain(f)) "Not a subgroup!"
   return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X)::GapObj)
 end
 
@@ -552,16 +524,16 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
-     is_abelian(G) || throw(ArgumentError("the group is not abelian"))
-     isfinite(G) || throw(ArgumentError("the group is not finite"))
+     @req is_abelian(G) "the group is not abelian"
+     @req isfinite(G) "the group is not finite"
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     orders = fmpz[GAPWrap.Order(x) for x in indep]
+     orders = ZZRingElem[GAPWrap.Order(x) for x in indep]
      n = length(indep)
      A = abelian_group(GrpAbFinGen, orders)
 
-     f(g) = A(Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
+     f(g) = A(Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
 
      finv = function(g::elem_type(GrpAbFinGen))
        res = GAPWrap.One(G.X)
@@ -609,9 +581,9 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      # `GAP.Globals.IndependentGenerators(G.X)`.
      Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(G.X)::GapObj)
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     Aindep = abelian_group(fmpz[GAPWrap.Order(g) for g in gensindep])
+     Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
 
-     imgs = [Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
+     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
      Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
      n = length(exponents)
@@ -626,7 +598,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      end
 
      finv = function(g)
-       exp = Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
+       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
        return Aindep_to_A(Aindep(exp))
      end
 
@@ -683,7 +655,11 @@ function kernel(comp::AbstractAlgebra.Generic.CompositeMap{T, GrpAbFinGen}) wher
   map1 = comp.map1
   map2 = comp.map2
 
-  ker2 = kernel( map2 )
+  if map2 isa GrpAbFinGenMap
+    ker2 = kernel(map2, false)::Tuple{GrpAbFinGen, GrpAbFinGenMap}
+  else
+    ker2 = kernel(map2)
+  end
   ker2gens = [ker2[2](x) for x in gens(ker2[1])]
   preimages = [preimage(map1, x) for x in ker2gens]
   ker1 = kernel(map1)
@@ -716,8 +692,8 @@ function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
       s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
            elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
       F, mF = quo(G, s)
-      @hassert is_finite(A) == is_finite(F)
-      is_finite(A) && @hassert order(A) == order(F)
+      @assert is_finite(A) == is_finite(F)
+      is_finite(A) && @assert order(A) == order(F)
       return MapFromFunc(
         y->F([i => y[i] for i=1:ngens(A)]),
         x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)),

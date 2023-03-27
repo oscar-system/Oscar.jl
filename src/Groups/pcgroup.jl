@@ -1,27 +1,3 @@
-export collector,
-       pc_group,
-       set_commutator!,
-       set_conjugate!,
-       set_power!,
-       set_relative_order!,
-       set_relative_orders!
-
-############################################################################
-
-# Create GAP filters that describe
-# - the union of `IsMultiplicativeElementWithInverseByPolycyclicCollector`
-#   and `IsPcpElement` and
-# - the union of `IsPcGroup` and `IsPcpGroup`.
-# This must be done at runtime.
-function __init_PcGroups()
-  GAP.evalstr("""
-      DeclareFilter("IsPcElementOrPcpElement");
-      InstallTrueMethod(IsPcElementOrPcpElement, IsMultiplicativeElementWithInverseByPolycyclicCollector);
-      InstallTrueMethod(IsPcElementOrPcpElement, IsPcpElement);
-      BindGlobal("IsPcGroupOrPcpGroup", IsGroup and CategoryCollections(IsPcElementOrPcpElement));
-      """)
-end
-
 ############################################################################
 
 # Create an Oscar collector object, its type parameter `T` describes
@@ -57,7 +33,7 @@ mutable struct GAP_Collector{T} <: Collector{T}
 end
 
 """
-    collector(n::Int, ::Type{T} = fmpz) where T <: IntegerUnion
+    collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion
 
 Return an empty collector object for a pc group with `n` generators
 and exponents of type `T`.
@@ -72,7 +48,7 @@ julia> is_abelian(G)
 true
 ```
 """
-collector(n::Int, ::Type{T} = fmpz) where T <: IntegerUnion = GAP_Collector{T}(n)
+collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion = GAP_Collector{T}(n)
 
 
 # Provide functions for entering data into the collector.
@@ -102,7 +78,7 @@ julia> set_relative_order!(c, 1, 2)
 ```
 """
 function set_relative_order!(c::Collector{T}, i::Int, relord::T) where T <: IntegerUnion
-  (0 < i && i <= c.ngens) || throw(ArgumentError("the collector has only $(c.ngens) generators not $i"))
+  @req (0 < i && i <= c.ngens) "the collector has only $(c.ngens) generators not $i"
   c.relorders[i] = relord
 
   if relord == 0
@@ -134,11 +110,11 @@ which must be either `0` (meaning infinite order) or a positive integer..
 ```jldoctest
 julia> c = collector(2);
 
-julia> set_relative_orders!(c, fmpz[2, 0])
+julia> set_relative_orders!(c, ZZRingElem[2, 0])
 ```
 """
 function set_relative_orders!(c::Collector{T}, relords::Vector{T}) where T <: IntegerUnion
-  length(relords) == c.ngens || throw(ArgumentError("the collector has $(c.ngens) generators not $(length(relords))"))
+  @req length(relords) == c.ngens "the collector has $(c.ngens) generators not $(length(relords))"
   c.relorders = copy(relords)
 
   # If the GAP collector has already been created then update it.
@@ -173,7 +149,7 @@ julia> set_power!(c, 1, [2 => 1])
 ```
 """
 function set_power!(c::Collector{T}, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
-  (0 < i && i <= c.ngens) || throw(ArgumentError("the collector has only $(c.ngens) generators not $i"))
+  @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
   c.powers[i] = copy(rhs)
 
   # If the GAP collector has already been created then update it.
@@ -206,8 +182,8 @@ julia> set_conjugate!(c, 2, 1, [2 => 2])
 ```
 """
 function set_conjugate!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
-  (0 < i && i <= c.ngens) || throw(ArgumentError("the collector has only $(c.ngens) generators not $i"))
-  i < j || throw(ArgumentError("only for i < j, but i = $i, j = $j"))
+  @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
+  @req i < j "only for i < j, but i = $i, j = $j"
   c.conjugates[i,j] = copy(rhs)
 
   # If the GAP collector has already been created then update it.
@@ -239,8 +215,8 @@ julia> set_commutator!(c, 2, 1, [2 => 1])
 ```
 """
 function set_commutator!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
-  (0 < i && i <= c.ngens) || throw(ArgumentError("the collector has only $(c.ngens) generators not $i"))
-  i < j || throw(ArgumentError("only for i < j, but i = $i, j = $j"))
+  @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
+  @req i < j "only for i < j, but i = $i, j = $j"
   if length(rhs) > 0 && rhs[1].first == j
     # freely reduce
     e = rhs[1].second + 1

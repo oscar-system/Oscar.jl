@@ -48,6 +48,7 @@ import Base:
     zero
 
 import AbstractAlgebra:
+    @alias,
     @attr,
     @attributes,
     @show_name,
@@ -83,7 +84,7 @@ import AbstractAlgebra:
     MatElem,
     matrix,
     MatSpace,
-    MPolyElem,
+    MPolyRingElem,
     MPolyRing,
     NCRing,
     NCRingElem,
@@ -91,8 +92,8 @@ import AbstractAlgebra:
     nvars,
     ordering,
     parent_type,
-    PolyElem,
-    PolynomialRing,
+    PolyRingElem,
+    polynomial_ring,
     PolyRing,
     Ring,
     RingElem,
@@ -102,6 +103,13 @@ import AbstractAlgebra:
     symbols,
     total_degree
 
+# FIXME/TODO: clean up the following once AbstractAlgebra provides the new name
+if isdefined(AbstractAlgebra, :MPolyRingElem)
+  import AbstractAlgebra: MPolyRingElem
+else
+  @alias MPolyRingElem MPolyRingElem
+end
+
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:
     hasgens,
@@ -110,7 +118,6 @@ import AbstractAlgebra.GroupsCore:
 
 import GAP:
     @gapattribute,
-    @gapwrap,
     GapInt,
     GapObj
 
@@ -125,14 +132,14 @@ import Nemo:
     factorial,
     fibonacci,
     fits,
-    FlintIntegerRing,
-    FlintRationalField,
-    fmpq,
-    fmpq_mat,
-    fmpz,
-    fmpz_mat,
-    fq_nmod,
-    FractionField,
+    ZZRing,
+    QQField,
+    QQFieldElem,
+    QQMatrix,
+    ZZRingElem,
+    ZZMatrix,
+    fqPolyRepFieldElem,
+    fraction_field,
     height,
     is_prime,
     is_probable_prime,
@@ -140,7 +147,7 @@ import Nemo:
     is_unit,
     isqrtrem,
     jacobi_symbol,
-    MatrixSpace,
+    matrix_space,
     moebius_mu,
     number_of_partitions,
     numerator,
@@ -154,10 +161,10 @@ import Nemo:
 exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer,
     :genus_symbol, :data, :narrow_class_group, :perm, :SymmetricGroup,
     :coefficients, :leading_coefficient, :coefficients_and_exponents,
-    :exponents, :monomials, :leading_monomial, :terms, :leading_term, :tail]
+    :exponents, :monomials, :leading_monomial, :terms, :leading_term, :tail, :Partition]
 
 for i in names(Hecke)
-  i in exclude && continue
+  (i in exclude || !isdefined(Hecke, i)) && continue
   eval(Meta.parse("import Hecke." * string(i)))
   eval(Expr(:export, i))
 end
@@ -186,7 +193,7 @@ import Hecke:
     field_extension,
     FinField,
     FinFieldElem,
-    FqNmodFiniteField,
+    fqPolyRepField,
     free_abelian_group,
     gens,
     gram_matrix,
@@ -233,9 +240,9 @@ import Hecke:
     sub,
     subsets,
     subgroups,
-    TorQuadMod,
-    TorQuadModElem,
-    TorQuadModMor,
+    TorQuadModule,
+    TorQuadModuleElem,
+    TorQuadModuleMor,
     tr,
     trace
 

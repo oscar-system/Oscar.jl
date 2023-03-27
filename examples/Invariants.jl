@@ -17,11 +17,11 @@ import Base: ^, +, -, *
 
 """
 
-action of a permutation on an MPolyElement by permuting the ring variables
+action of a permutation on an MPolyRingElement by permuting the ring variables
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> f = x^2 + 2y + 3
 x^2 + 2*y + 3
@@ -33,7 +33,7 @@ julia> f^g
 2*x + y^2 + 3
 ```
 """
-function ^(f::MPolyElem, s::Oscar.PermGroupElem)
+function ^(f::MPolyRingElem, s::Oscar.PermGroupElem)
   G = parent(s)
   @assert ngens(parent(f)) == degree(G)
 
@@ -55,8 +55,8 @@ end
 action of a permutation on an spoly by permuting the ring variables
 
 ```jldoctest
-julia> R, (x, y) = Singular.PolynomialRing(QQ, ["x", "y"])
-(Singular Polynomial Ring (Coeffs(19)),(x,y),(dp(2),C), Singular.spoly{Singular.n_unknown{fmpq}}[x, y])
+julia> R, (x, y) = Singular.polynomial_ring(QQ, ["x", "y"])
+(Singular Polynomial Ring (Coeffs(19)),(x,y),(dp(2),C), Singular.spoly{Singular.n_unknown{QQFieldElem}}[x, y])
 
 julia> f = x^2 + 2y + 3
 x^2+2*y+3
@@ -78,7 +78,7 @@ end
 
 # Reynolds operator ([S, Section 2.1])
 # Naive implementation straight from the definition
-reynolds(G::Oscar.GAPGroup, f::MPolyElem) = sum(g -> f^g, G) / order(G)
+reynolds(G::Oscar.GAPGroup, f::MPolyRingElem) = sum(g -> f^g, G) / order(G)
 
 
 function minpoly(g::GAP.GapObj)

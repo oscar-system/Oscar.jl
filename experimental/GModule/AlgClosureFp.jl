@@ -67,7 +67,7 @@ function ext_of_degree(A::AlgClosure, d::Int)
     return A.fld[d]
   end
   k = base_ring(A)
-  if isa(k, Nemo.GaloisField) || isa(k, FqNmodFiniteField)
+  if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
     K = GF(Int(characteristic(k)), d, cached = false)
   else
     K = GF(characteristic(k), d, cached = false)
@@ -91,7 +91,7 @@ function op(f::Function, a::AlgClosureElem, b::AlgClosureElem)
   return f(k(ad), k(bd))
 end
 
-function Oscar.embed(k::Nemo.GaloisField, K::FqNmodFiniteField)
+function Oscar.embed(k::Nemo.fpField, K::fqPolyRepField)
   @assert characteristic(K) == characteristic(k)
 end
 
@@ -107,7 +107,7 @@ Oscar.isone(a::AlgClosureElem) = isone(data(a))
 
 function Oscar.roots(a::AlgClosureElem, b::Int)
   ad = data(a)
-  kx, x = PolynomialRing(parent(ad), cached = false)
+  kx, x = polynomial_ring(parent(ad), cached = false)
   f = x^b-ad
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -120,7 +120,7 @@ end
 function Oscar.roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   A = base_ring(a)
   b = minimize(FinField, collect(coefficients(a)))
-  kx, x = PolynomialRing(parent(b[1]), cached = false)
+  kx, x = polynomial_ring(parent(b[1]), cached = false)
   f = kx(b)
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -135,8 +135,8 @@ function Oscar.minpoly(a::AlgClosureElem)
   return minpoly(data(a))
 end
 
-function Oscar.minpoly(a::gfp_elem)
-  kx, x = PolynomialRing(parent(a), cached = false)
+function Oscar.minpoly(a::fpFieldElem)
+  kx, x = polynomial_ring(parent(a), cached = false)
   return x-a
 end
 

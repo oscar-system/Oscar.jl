@@ -44,7 +44,7 @@
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
-  R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
+  R, x = polynomial_ring(QQ, ["x1", "x2", "x3"]);
   f = x[1]*x[2] + x[2]*x[3]
   G = symmetric_group(3)
   Omega = gset(G, on_indeterminates, [f])
@@ -304,4 +304,14 @@ end
     end
   end
 
+end
+
+@testset "G-sets of matrix groups in characteristic zero" begin
+
+  # natural constructions (determined by the types of the seeds)
+  G = matrix_group(permutation_matrix(QQ,[3,1,2]))
+  R, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+  f = x^2 + y
+  orb = orbit(G, f)
+  @test length(orb) == 3
 end

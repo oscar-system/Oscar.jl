@@ -6,21 +6,6 @@
 
 import Hecke.orbit
 
-export
-    all_blocks,
-    blocks,
-    is_primitive,
-    is_regular,
-    is_semiregular,
-    is_transitive,
-    maximal_blocks,
-    minimal_block_reps,
-    rank_action,
-    transitivity
-
-export GSet, gset, orbits, as_gset, unwrap, permutation, action_homomorphism,
-    orbit_representatives_and_stabilizers,
-    representative_action
 
 # G-sets are "sets" (in a very general sense, these do not need to be objects of type `Set`)
 # with an action by a group G::T.
@@ -162,6 +147,11 @@ end
 ## action of matrices on subspaces via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: AbstractAlgebra.Generic.Submodule{E} where E where M
   return GSetByElements(G, ^, Omega; closed = closed)
+end
+
+## action of matrices on polynomials via `on_indeterminates`
+function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
+  return GSetByElements(G, on_indeterminates, Omega; closed = closed)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -442,42 +432,6 @@ end
 ##
 ##  action homomorphisms
 
-# Use a GAP attribute for caching the mapping.
-# The following must be executed at runtime,
-# the function gets called in Oscar's `__init__`.
-function __init_JuliaData()
-    if ! hasproperty(GAP.Globals, :JuliaData)
-      GAP.evalstr("""
-DeclareAttribute( "JuliaData", IsObject );
-
-InstallOtherMethod( ImagesRepresentative,
-[ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
-function( hom, elm )
-local data;
-data:= JuliaData( hom );
-return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
-end );
-
-InstallMethod( RestrictedMapping,
-CollFamSourceEqFamElms,
-[ IsActionHomomorphism and HasJuliaData, IsGroup ],
-function( hom, H )
-local data, OscarG, xset, Omega, Hgens, Hacts, OscarH, res;
-data:= JuliaData( hom ); # the Oscar G-set and the acting Oscar group G
-OscarG:= data[2]; # the acting Oscar group G
-xset:= UnderlyingExternalSet( hom );
-Omega:= HomeEnumerator( xset ); # the set of Oscar objects
-Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
-Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
-OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
-res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
-SetJuliaData( res, [ data[1], OscarH ] );
-return res;
-end );
-""")
-    end
-end
-
 """
     action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
 
@@ -618,9 +572,9 @@ function representative_action(Omega::GSet, omega1, omega2)
     acthom = action_homomorphism(Omega)
     elms = collect(Omega)
     pos1 = findfirst(isequal(omega1), elms)
-    pos1 == nothing && return false, one(G)
+    pos1 === nothing && return false, one(G)
     pos2 = findfirst(isequal(omega2), elms)
-    pos2 == nothing && return false, one(G)
+    pos2 === nothing && return false, one(G)
     img = GAP.Globals.RepresentativeAction(image(acthom)[1].X, pos1, pos2)
     img == GAP.Globals.fail && return false, one(G)
     pre = haspreimage(acthom, group_element(image(acthom)[1], img))
@@ -818,7 +772,7 @@ ERROR: ArgumentError: the group is not transitive
 ```
 """
 function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-   is_transitive(G, L) || throw(ArgumentError("the group is not transitive"))
+   @req is_transitive(G, L) "the group is not transitive"
    length(L) == 0 && throw(ArgumentError("the action domain is empty"))
    H = stabilizer(G, L[1])[1]
    return length(orbits(gset(H, L, closed = true)))
@@ -909,7 +863,7 @@ julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
  PSL(2,5)
 
 julia> [(order(H), is_primitive(H)) for H in mx]
-3-element Vector{Tuple{fmpz, Bool}}:
+3-element Vector{Tuple{ZZRingElem, Bool}}:
  (24, 0)
  (36, 0)
  (60, 1)
@@ -984,7 +938,7 @@ julia> length(res)
 3
 
 julia> print(sort([index(G, stab) for (U, stab) in res]))
-fmpz[12, 12, 16]
+ZZRingElem[12, 12, 16]
 ```
 """
 function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem

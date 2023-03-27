@@ -16,7 +16,7 @@ Pages = ["free_modules.md"]
 # Free Modules
 
 In this section, the expression *free module*  refers to a free module of finite rank
-over a ring of type `MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`, or `MPolyQuoLocalizedRing`.
+over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.
 More concretely, given a ring $R$ of one of these types, the free $R$-modules considered are of
 type $R^p$, where we think of $R^p$ as a free module with a given basis, namely the basis of
 standard unit vectors. Accordingly, elements of free modules are represented by coordinate vectors,
@@ -56,12 +56,12 @@ If `F` is a free `R`-module, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = free_module(R, 3);
 
 julia> basis(F)
-3-element Vector{FreeModElem{fmpq_mpoly}}:
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
  e[1]
  e[2]
  e[3]
@@ -93,7 +93,7 @@ Alternatively, directly write the element as a linear combination of basis vecto
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = free_module(R, 3);
 
@@ -118,7 +118,7 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = free_module(R, 3);
 
@@ -129,7 +129,7 @@ julia> parent(f)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> coordinates(f)
-Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
+Sparse row with positions [1, 3] and values QQMPolyRingElem[x, y]
 
 ```
 
@@ -142,7 +142,7 @@ zero(F::AbstractFreeMod)
 Whether a given element of a free module is zero can be tested as follows:
 
 ```@docs
-iszero(f::AbstractFreeModElem)
+is_zero(f::AbstractFreeModElem)
 ```
 
 ## Tests on Free Modules
@@ -152,7 +152,7 @@ iszero(f::AbstractFreeModElem)
 ```
 
 ```@docs
-iszero(F::AbstractFreeMod)
+is_zero(F::AbstractFreeMod)
 ```
 
 ## Homomorphisms from Free Modules

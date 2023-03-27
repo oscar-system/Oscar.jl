@@ -1,44 +1,9 @@
-export function_field, FunctionField
-export representative_patch, variety, representative_field
-
+export FunctionField
+export function_field
 export representative
-
-
-### Check for irreducibility
-@attr Bool function is_irreducible(X::AbsCoveredScheme)
-  for U in basic_patches(default_covering(X))
-    is_irreducible(U) || return false
-  end
-  C = default_covering(X)
-  # Check that X is connected
-  for U in patches(C)
-    for V in patches(C)
-      A, _ = glueing_domains(C[U, V])
-      is_empty(A) && !is_empty(U) && !is_empty(V) && return false
-    end
-  end
-  return true
-end
-
-
-########################################################################
-# lower checks for irreducibility                                      #
-########################################################################
-@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyRing}) 
-  return true
-end
-
-@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuo}) 
-  return is_prime(modulus(OO(X)))
-end
-
-@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) 
-  return true
-end
-
-@attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}) 
-  return is_prime(modulus(OO(X)))
-end
+export representative_field
+export representative_patch
+export variety
 
 
 ########################################################################
@@ -125,7 +90,7 @@ function Base.:(//)(a::Integer, b::T) where {T<:VarietyFunctionFieldElem}
   return (parent(b))(a//representative(b))
 end
 
-function Base.:(//)(a::fmpz, b::T) where {T<:VarietyFunctionFieldElem}
+function Base.:(//)(a::ZZRingElem, b::T) where {T<:VarietyFunctionFieldElem}
   return (parent(b))(a//representative(b))
 end
 
@@ -148,7 +113,7 @@ end
 function ^(a::VarietyFunctionFieldElem, i::Integer)
   return parent(a)(representative(a)^i, check=false)
 end
-function ^(a::VarietyFunctionFieldElem, i::fmpz)
+function ^(a::VarietyFunctionFieldElem, i::ZZRingElem)
   return parent(a)(representative(a)^i, check=false)
 end
 
@@ -172,23 +137,23 @@ isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 # Conversion of rational functions on arbitrary patches                #
 ########################################################################
 
-function (KK::VarietyFunctionField)(a::MPolyQuoElem, b::MPolyQuoElem; check::Bool=true)
+function (KK::VarietyFunctionField)(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
   return KK(lift(a), lift(b), check=check)
 end
 
-function (KK::VarietyFunctionField)(a::MPolyQuoLocalizedRingElem, 
-                                    b::MPolyQuoLocalizedRingElem; 
+function (KK::VarietyFunctionField)(a::MPolyQuoLocRingElem, 
+                                    b::MPolyQuoLocRingElem; 
                                     check::Bool=true)
   return KK(lifted_numerator(a)*lifted_denominator(b), lifted_denominator(a)*lifted_numerator(b), check=check)
 end
 
-function (KK::VarietyFunctionField)(a::MPolyLocalizedRingElem, 
-                                    b::MPolyLocalizedRingElem; 
+function (KK::VarietyFunctionField)(a::MPolyLocRingElem, 
+                                    b::MPolyLocRingElem; 
                                     check::Bool=true)
   return KK(numerator(a)*denominator(b), denominator(a)*numerator(b), check=check)
 end
 
-function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true)
+function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::Bool=true)
   R = parent(a)
   R === parent(b) || error("rings are not compatible")
   R === ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
@@ -214,9 +179,9 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
                                   )
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     function move_representative(
-        a::MPolyElem, b::MPolyElem,
+        a::MPolyRingElem, b::MPolyRingElem,
         V::AbsSpec, U::AbsSpec,
         C::Covering
       )
@@ -228,7 +193,7 @@ one in ``Quot(P')`` where ``P'`` is the ambient coordinate ring of another patch
 **Note:** This is only guaranteed to work for irreducible schemes! 
 """
 function move_representative(
-    a::MPolyElem, b::MPolyElem,
+    a::MPolyRingElem, b::MPolyRingElem,
     V::AbsSpec, U::AbsSpec,
     C::Covering
   )
@@ -314,7 +279,7 @@ end
 (KK::VarietyFunctionField)() = zero(KK)
 (KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
-(KK::VarietyFunctionField)(a::MPolyElem) = KK(a, one(parent(a)), check=false)
+(KK::VarietyFunctionField)(a::MPolyRingElem) = KK(a, one(parent(a)), check=false)
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)
@@ -347,7 +312,7 @@ end
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     is_regular(f::VarietyFunctionFieldElem, U::Scheme)
 
 Return whether ``f ∈ K(X)`` restricts to a regular function 

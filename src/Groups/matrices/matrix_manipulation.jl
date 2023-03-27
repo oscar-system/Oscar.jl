@@ -6,14 +6,6 @@
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
-export
-    complement,
-    conjugate_transpose,
-    is_hermitian_matrix,
-    is_skewsymmetric_matrix,
-    lower_triangular_matrix,
-    permutation_matrix,
-    upper_triangular_matrix
 
 
 
@@ -53,7 +45,7 @@ function upper_triangular_matrix(L)
    T = eltype(L)
    @assert T <: RingElem "L must be a collection of ring elements"
    d = Int(floor((sqrt(1+8*length(L))-1)/2))
-   length(L)==div(d*(d+1),2) || throw(ArgumentError("Input vector of invalid length"))
+   @req length(L)==div(d*(d+1),2) "Input vector of invalid length"
    R = parent(L[1])
    x = zero_matrix(R,d,d)
    pos=1
@@ -76,7 +68,7 @@ function lower_triangular_matrix(L)
    T = eltype(L)
    @assert T <: RingElem "L must be a collection of ring elements"
    d = Int(floor((sqrt(1+8*length(L))-1)/2))
-   length(L)==div(d*(d+1),2) || throw(ArgumentError("Input vector of invalid length"))
+   @req length(L)==div(d*(d+1),2) "Input vector of invalid length"
    R = parent(L[1])
    x = zero_matrix(R,d,d)
    pos=1
@@ -94,7 +86,7 @@ If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y
  An exception is thrown if the base ring does not have even degree.
 """
 function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
-   iseven(degree(base_ring(x))) || throw(ArgumentError("The base ring must have even degree"))
+   @req iseven(degree(base_ring(x))) "The base ring must have even degree"
    e = div(degree(base_ring(x)),2)
    return transpose(map(y -> frobenius(y,e),x))
 end
@@ -160,7 +152,7 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
-^(a::MatElem, b::fmpz) = Hecke._generic_power(a, b)
+^(a::MatElem, b::ZZRingElem) = Hecke._generic_power(a, b)
 
 ########################################################################
 #

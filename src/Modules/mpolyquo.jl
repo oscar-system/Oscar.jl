@@ -7,8 +7,8 @@
 @attr function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
-           DomainType<:FreeMod{<:MPolyQuoElem},
-           CodomainType<:FreeMod{<:MPolyQuoElem}
+           DomainType<:FreeMod{<:MPolyQuoRingElem},
+           CodomainType<:FreeMod{<:MPolyQuoRingElem}
           }
   R = base_ring(codomain(f))
   P = base_ring(R)
@@ -24,14 +24,14 @@
   return KK, inc2
 end
 
-function Base.in(a::FreeModElem{T}, M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoElem}
+function Base.in(a::FreeModElem{T}, M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
   return _lifting_map(parent(a))(a) in _poly_module(M)
 end
 
 function coordinates(
     v::FreeModElem{T}, 
     M::SubModuleOfFreeModule{T}
-  ) where {T<:MPolyQuoElem}
+  ) where {T<:MPolyQuoRingElem}
   w = _lifting_map(parent(v))(v)
   MP = _poly_module(M)
   c = coordinates(w, MP)
@@ -47,8 +47,8 @@ end
 @attr function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
-           DomainType<:FreeMod{<:MPolyQuoElem},
-           CodomainType<:SubQuo{<:MPolyQuoElem}
+           DomainType<:FreeMod{<:MPolyQuoRingElem},
+           CodomainType<:SubquoModule{<:MPolyQuoRingElem}
           }
   R = base_ring(codomain(f))
   P = base_ring(R)
@@ -68,11 +68,11 @@ function coordinates(
     v::FreeModElem{T}, 
     M::SubModuleOfFreeModule{T}, 
     task::Symbol
-  ) where {T<:MPolyQuoElem}
+  ) where {T<:MPolyQuoRingElem}
   return coordinates(v, M)
 end
 
-#function free_resolution(M::SubQuo{T}) where {T<:MPolyQuoElem}
+#function free_resolution(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
 #  R = base_ring(M)
 #  p = presentation(M)
 #  K, inc = kernel(map(p, 1))
@@ -97,9 +97,9 @@ end
 ### For a free module F = R^r over R = P/I, this returns a lifting map 
 # to the module P^r/I*P^r. Note that this is an unnatural map since 
 # the latter is an R-module only by accident.
-@attr function _lifting_iso(F::FreeMod{T}) where {T<:MPolyQuoElem}
+@attr function _lifting_iso(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
-  function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoElem}
+  function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoRingElem}
     parent(v) === F || error("element does not have the right parent")
     w = elem_type(M)[lift(a)*M[i] for (i, a) in coordinates(v)]
     iszero(length(w)) && return zero(M)
@@ -110,9 +110,9 @@ end
 
 ### For a free module F = R^r over R = P/I, this returns a lifting map 
 # to the module P^r. Note that this is not a homomorphism of modules. 
-@attr function _lifting_map(F::FreeMod{T}) where {T<:MPolyQuoElem}
+@attr function _lifting_map(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   FP = _poly_module(F)
-  function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoElem}
+  function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoRingElem}
     parent(v) === F || error("element does not have the right parent")
     w = [lift(a)*FP[i] for (i, a) in coordinates(v)]
     iszero(length(w)) && return zero(FP)
@@ -123,7 +123,7 @@ end
 
 ### To a free module over R = P/I, return the free module over R 
 # in the same number of generators
-@attr function _poly_module(F::FreeMod{T}) where {T<:MPolyQuoElem}
+@attr function _poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   R = base_ring(F)
   P = base_ring(R) # the polynomial ring
   r = rank(F)
@@ -133,15 +133,15 @@ end
 
 ### Return the canonical projection FP -> F from the P-module FP to the 
 # R-module F.
-@attr function _poly_module_restriction(F::FreeMod{T}) where {T<:MPolyQuoElem}
+@attr function _poly_module_restriction(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   R = base_ring(F)
   P = base_ring(R)
   FP = _poly_module(F)
   return hom(FP, F, gens(F), x->R(x))
 end
 
-### Return the same module, but as a SubQuo over the polynomial ring
-@attr function _as_poly_module(F::FreeMod{T}) where {T<:MPolyQuoElem}
+### Return the same module, but as a SubquoModule over the polynomial ring
+@attr function _as_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   R = base_ring(F)
   P = base_ring(R)
   I = modulus(R)
@@ -152,14 +152,14 @@ end
 end
 
 ### Return an isomorphism with _as_poly_module(F)
-@attr function _iso_with_poly_module(F::FreeMod{T}) where {T<:MPolyQuoElem}
+@attr function _iso_with_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
   return hom(M, F, gens(F), x->(base_ring(F)(x)))
 end
 
 ### Return the preimage of M under the canonical projection P^r -> R^r 
 # for R^r the ambient_free_module of M.
-@attr function _poly_module(M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoElem}
+@attr function _poly_module(M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
   v = [_lifting_map(F)(g) for g in gens(M)] 
@@ -168,24 +168,24 @@ end
   return MP
 end
 
-@attr function _as_poly_module(M::SubQuo{T}) where {T<:MPolyQuoElem}
+@attr function _as_poly_module(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
   v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
   w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
   w_ext = vcat(w, elem_type(FP)[_lifting_map(F)(g) for g in relations(M)])
-  MP = SubQuo(FP, v, w_ext)
+  MP = SubquoModule(FP, v, w_ext)
   return MP
 end
 
-@attr function _iso_with_poly_module(F::SubQuo{T}) where {T<:MPolyQuoElem}
+@attr function _iso_with_poly_module(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
   return hom(M, F, gens(F), x->(base_ring(F)(x)))
 end
 
-@attr function _lifting_iso(F::SubQuo{T}) where {T<:MPolyQuoElem}
+@attr function _lifting_iso(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
-  function my_lift(v::SubQuoElem{T}) where {T<:MPolyQuoElem}
+  function my_lift(v::SubquoModuleElem{T}) where {T<:MPolyQuoRingElem}
     parent(v) === F || error("element does not have the right parent")
     w = elem_type(M)[lift(a)*M[i] for (i, a) in coordinates(v)]
     iszero(length(w)) && return zero(M)

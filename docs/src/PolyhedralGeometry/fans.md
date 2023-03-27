@@ -34,6 +34,7 @@ along with an `IncidenceMatrix` encoding which rays generate which cones.
 
 ```@docs
 PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+polyhedral_fan_from_rays_action
 ```
 
 ```@docs
@@ -51,7 +52,7 @@ is_complete(PF::PolyhedralFan)
 is_pointed(PF::PolyhedralFan)
 is_regular(PF::PolyhedralFan)
 is_simplicial(PF::PolyhedralFan)
-is_smooth(PF::PolyhedralFan{fmpq})
+is_smooth(PF::PolyhedralFan{QQFieldElem})
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
 maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types
@@ -63,9 +64,4 @@ rays_modulo_lineality(PF::PolyhedralFan{T}) where T<:scalar_types
 primitive_collections(PF::PolyhedralFan)
 starsubdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
 *(PF1::PolyhedralFan, PF2::PolyhedralFan)
-```
-
-### Visualization
-```@docs
-visualize(PF::PolyhedralFan)
 ```

@@ -1,5 +1,5 @@
 @testset "Definition forms" begin
-   T,t = PolynomialRing(GF(3),"t")
+   T,t = polynomial_ring(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
@@ -39,7 +39,7 @@
    @test !is_hermitian_form(f)
    @test_throws AssertionError f = alternating_form(B)
    Qf = corresponding_quadratic_form(f)
-   R = PolynomialRing(F,4)[1]
+   R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+(z+2)*R[3]*R[4]
    Q = quadratic_form(p)
    @test Q==Qf
@@ -49,16 +49,16 @@
    Q1 = quadratic_form(B1)
    @test Q1==Q
    @test gram_matrix(Q1)!=B1
-   @test defining_polynomial(Q1) isa AbstractAlgebra.Generic.MPolyElem
+   @test defining_polynomial(Q1) isa MPolyRingElem
    pf = defining_polynomial(Q1)
    @test defining_polynomial(Q1)==parent(pf)[1]*parent(pf)[2]+(z+2)*parent(pf)[3]*parent(pf)[4]
 # I can't test simply pf==p, because it returns FALSE. The line
- #      PolynomialRing(F,4)[1]==PolynomialRing(F,4)[1]
+ #      polynomial_ring(F,4)[1]==polynomial_ring(F,4)[1]
 # returns FALSE.
    @test_throws ArgumentError corresponding_quadratic_form(Q)
    @test_throws ArgumentError corresponding_bilinear_form(f)
 
-   R,x = PolynomialRing(F,"x")
+   R,x = polynomial_ring(F,"x")
    p = x^2*z
    Q = quadratic_form(p)
    @test is_quadratic_form(Q)
@@ -66,9 +66,9 @@
    @test is_symmetric_form(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
-   T,t = PolynomialRing(GF(2),"t")
+   T,t = polynomial_ring(GF(2),"t")
    F,z = FiniteField(t^2+t+1,"z")
-   R = PolynomialRing(F,4)[1]
+   R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
    @test is_quadratic_form(Q)
@@ -176,7 +176,7 @@ end
    @test !is_true
    @test z==nothing
 
-   T,t = PolynomialRing(GF(3),"t")
+   T,t = polynomial_ring(GF(3),"t")
    F,a = FiniteField(t^2+1,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
@@ -272,7 +272,7 @@ end
 
    #quadratic
    F = GF(5,1)
-   R = PolynomialRing(F,6)[1]
+   R = polynomial_ring(F,6)[1]
    p1 = R[1]*R[2]
    p2 = R[4]*R[5]+3*R[4]^2
    Q1 = quadratic_form(p1)
@@ -298,7 +298,7 @@ end
    @test !is_true
 
    F,a = FiniteField(2,2,"a")
-   R = PolynomialRing(F,6)[1]
+   R = polynomial_ring(F,6)[1]
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+R[6]^2
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
    Q1 = quadratic_form(p1)
@@ -356,21 +356,21 @@ end
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test is_conjugate(G,H,Op)[1]
+   @test is_conjugate(G, H, Op)
    B[2,2]=1; B[3,3]=1;
    f = quadratic_form(B)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test is_conjugate(G,H,Om)[1]
+   @test is_conjugate( G, H, Om)
    Q = f
    f = corresponding_bilinear_form(Q)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test is_conjugate(G,H,Sp(4,2))[1]
+   @test is_conjugate(G, H, Sp(4,2))
 
    G = GL(5,9)
    F = base_ring(G)
@@ -609,25 +609,24 @@ end
       @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
       # Odd dimensional orthogonal groups in char. 2 are not irreducible.
       @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
-      @test orthogonal_sign(general_linear_group(4, 2)) == nothing
+      @test orthogonal_sign(general_linear_group(4, 2)) === nothing
       # If the abs. irred. module preserves an antisymmetric invariant
       # bilinear form then there is no nondegenerate quadratic form.
       F = GF(7)
-      G = MatrixGroup(6, F)
       mats = [matrix(F, [0 1 0 0 0 0; 1 0 0 0 0 0; 0 0 0 1 0 0;
                          0 0 1 0 0 0; 5 5 2 2 6 0; 3 3 4 4 0 6]),
               matrix(F, [4 0 0 0 0 0; 0 0 1 0 0 0; 0 6 1 0 0 0;
                          0 0 0 0 1 0; 0 0 0 0 0 1; 6 0 0 2 4 3])]
-      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      G = matrix_group(mats)
       @test describe(G) == "PSU(3,3)"
-      @test orthogonal_sign(G) == nothing
+      @test orthogonal_sign(G) === nothing
    end
 end
 
 @testset "Orthogonal groups of ZZ-lattices" begin
   N1 = root_lattice(:A, 2)
   N2 = rescale(N1, 4)
-  N,_,_ = Hecke.orthogonal_sum(N1,N2)
+  N,_ = direct_sum(N1,N2)
   @test order(orthogonal_group(N))==144
 
   L = Zlattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])

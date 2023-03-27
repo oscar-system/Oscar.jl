@@ -6,7 +6,7 @@ not terminate, due to lack of memory or time. We will not go into the details
 of the respective complexity, as there is sufficient literature.
 
 Often there are several algorithms in OSCAR solving a particular problem, and
-trying different alternatives may be worthwile, as some algorithms may not
+trying different alternatives may be worthwhile, as some algorithms may not
 terminate, while others finish in an instant.
 
 ## Groebner and Standard Bases

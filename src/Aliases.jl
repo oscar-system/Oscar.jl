@@ -75,5 +75,19 @@
 @alias iswelldefined is_welldefined
 
 # Allow backwards compatibility after removal of Oscar.Graphs module.
-Graphs = Oscar
-export Graphs
+const Graphs = Oscar
+
+# Compatibility with pre-0.12.x
+@alias MPolyElem_dec MPolyDecRingElem
+@alias MPolyRing_dec MPolyDecRing
+@alias MPolyLocalizedRingElem MPolyLocRingElem
+@alias MPolyLocalizedRing MPolyLocRing
+@alias MPolyQuoElem MPolyQuoRingElem
+@alias MPolyQuo MPolyQuoRing
+@alias MPolyQuoLocalizedRingElem MPolyQuoLocRingElem
+@alias MPolyQuoLocalizedRing MPolyQuoLocRing
+@alias SubQuoElem SubquoModuleElem
+@alias SubQuo SubquoModule
+#@alias SubQuoElem_dec SubquoDecModuleElem
+#@alias SubQuo_dec SubquoDecModule
+@alias GradedPolynomialRing graded_polynomial_ring

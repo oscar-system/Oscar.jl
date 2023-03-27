@@ -1,18 +1,3 @@
-export
-    general_linear_group,
-    mat_elem_type,
-    matrix_group,
-    MatrixGroup,
-    MatrixGroupElem,
-    omega_group,
-    orthogonal_group,
-    ring_elem_type,
-    special_linear_group,
-    special_orthogonal_group,
-    special_unitary_group,
-    symplectic_group,
-    unitary_group,
-    GL, GO, GU, SL, SO, Sp, SU
 
 
 
@@ -24,7 +9,7 @@ abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 
-At the moment, only rings of type `FqNmodFiniteField` are supported.
+At the moment, only rings of type `fqPolyRepField` are supported.
 """
 @attributes mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    deg::Int
@@ -41,14 +26,18 @@ end
 MatrixGroup(m::Int, F::Ring) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
-# WARNING: if the elements of V have type MatElem, it does not check whether the determinant is nonzero
-function MatrixGroup{RE,S}(m::Int, F::Ring, V::AbstractVector{T}) where {RE,S} where T<:Union{MatElem,AbstractMatrixGroupElem}
-   G = MatrixGroup(m,F)
+function MatrixGroup{RE,S}(m::Int, F::Ring, V::AbstractVector{T}; check::Bool=true) where {RE,S} where T<:Union{MatElem,AbstractMatrixGroupElem}
+   @req all(v -> size(v) == (m,m), V) "Matrix group generators must all square and of equal degree"
+   @req all(v -> base_ring(v) == F, V) "Matrix group generators must have the same base ring"
 
+   # if T <: MatrixGroupElem, we can already assume that det(V[i]) != 0
+   if T<:MatElem && check
+     @req all(v -> is_unit(det(v)), V) "Matrix group generators must be invertible over their base ring"
+   end
+
+   G = MatrixGroup(m,F)
    L = Vector{elem_type(G)}(undef, length(V))
    for i in 1:length(V)
-      @assert base_ring(V[i])==F "The elements must have the same base ring"
-      @assert nrows(V[i])==m "The elements must have the same dimension"
       if T<:MatElem
          L[i] = MatrixGroupElem(G,V[i])
       else
@@ -354,7 +343,7 @@ end
 function (G::MatrixGroup)(x::MatElem; check::Bool=true)
    if check
       _is_true, x_gap = lies_in(x,G,nothing)
-      _is_true || throw(ArgumentError("Element not in the group"))
+      @req _is_true "Element not in the group"
       x_gap != nothing && return MatrixGroupElem(G,x,x_gap)
    end
    return MatrixGroupElem(G,x)
@@ -371,15 +360,15 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    if isdefined(x,:X)
       if isdefined(x,:elm)
          _is_true = lies_in(x.elm,G,x.X)[1]
-         _is_true || throw(ArgumentError("Element not in the group"))
+         @req _is_true "Element not in the group"
          return MatrixGroupElem(G,x.elm,x.X)
       else
-         x.X in G.X || throw(ArgumentError("Element not in the group"))
+         @req x.X in G.X "Element not in the group"
          return MatrixGroupElem(G,x.X)
       end
    else
       _is_true, x_gap = lies_in(x.elm,G,nothing)
-      _is_true || throw(ArgumentError("Element not in the group"))
+      @req _is_true "Element not in the group"
       if x_gap==nothing return MatrixGroupElem(G,x.elm)
       else return MatrixGroupElem(G,x.elm,x_gap)
       end
@@ -452,7 +441,7 @@ comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
 
 """
     det(x::MatrixGroupElem)
-    
+
 Return the determinant of the underlying matrix of `x`.
 """
 det(x::MatrixGroupElem) = det(matrix(x))
@@ -488,6 +477,9 @@ nrows(x::MatrixGroupElem) = nrows(matrix(x))
 Return the number of columns of the underlying matrix of `x`.
 """
 ncols(x::MatrixGroupElem) = ncols(matrix(x))
+
+#
+size(x::MatrixGroupElem) = size(matrix(x))
 
 
 """
@@ -545,9 +537,9 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAPWrap.Size(G.X))
+compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
 
-function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
+function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, QQFieldElem}}
   #=
     - For a matrix group G over the Rationals or over a number field,
     the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
@@ -561,7 +553,7 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return fmpz(GAPWrap.Size(G.X))
+    return ZZRingElem(GAPWrap.Size(G.X))
   else
     n = order(isomorphic_group_over_finite_field(G)[1])
     GAP.Globals.SetSize(G.X, GAP.Obj(n))
@@ -572,7 +564,7 @@ end
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    res = get_attribute!(G, :order) do
      return compute_order(G)
-   end::fmpz
+   end::ZZRingElem
    return T(res)::T
 end
 
@@ -584,7 +576,7 @@ end
 
 function _field_from_q(q::Int)
    (n,p) = is_power(q)
-   is_prime(p) || throw(ArgumentError("The field size must be a prime power"))
+   @req is_prime(p) "The field size must be a prime power"
    return GF(p, n)
 end
 
@@ -595,7 +587,7 @@ end
 
 Return the general linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `fqPolyRepField`.
 
 # Examples
 ```jldoctest
@@ -606,7 +598,7 @@ julia> H = general_linear_group(2,F)
 GL(2,7)
 
 julia> gens(H)
-2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [3 0; 0 1]
  [6 1; 6 0]
 
@@ -629,7 +621,7 @@ end
 
 Return the special linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `fqPolyRepField`.
 
 # Examples
 ```jldoctest
@@ -640,7 +632,7 @@ julia> H = special_linear_group(2,F)
 SL(2,7)
 
 julia> gens(H)
-2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [3 0; 0 5]
  [6 1; 6 0]
 
@@ -664,7 +656,7 @@ end
 Return the symplectic group of dimension `n` over the ring `R` respectively the
 field `GF(q)`. The dimension `n` must be even.
 
-Currently, this function only supports rings of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `fqPolyRepField`.
 
 # Examples
 ```jldoctest
@@ -675,14 +667,14 @@ julia> H = symplectic_group(2,F)
 Sp(2,7)
 
 julia> gens(H)
-2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [3 0; 0 5]
  [6 1; 6 0]
 
 ```
 """
 function symplectic_group(n::Int, R::Ring)
-   iseven(n) || throw(ArgumentError("The dimension must be even"))
+   @req iseven(n) "The dimension must be even"
    G = MatrixGroup(n,R)
    G.descr = :Sp
    return G
@@ -701,7 +693,7 @@ Return the orthogonal group of dimension `n` over the ring `R` respectively the
 field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `fqPolyRepField`.
 
 # Examples
 ```jldoctest
@@ -712,7 +704,7 @@ julia> H = symplectic_group(2,F)
 Sp(2,7)
 
 julia> gens(H)
-2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [3 0; 0 5]
  [6 1; 6 0]
 
@@ -720,15 +712,15 @@ julia> gens(H)
 """
 function orthogonal_group(e::Int, n::Int, R::Ring)
    if e==1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("GO+")
    elseif e==-1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("GO-")
    elseif e==0
-      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      @req isodd(n) "The dimension must be odd"
       G = MatrixGroup(n,R)
       G.descr = :GO
    else
@@ -753,7 +745,7 @@ Return the special orthogonal group of dimension `n` over the ring `R` respectiv
 the field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `fqPolyRepField`.
 
 # Examples
 ```jldoctest
@@ -764,7 +756,7 @@ julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
 
 julia> gens(H)
-3-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+3-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [3 0; 0 5]
  [5 0; 0 3]
  [1 0; 0 1]
@@ -774,15 +766,15 @@ julia> gens(H)
 function special_orthogonal_group(e::Int, n::Int, R::Ring)
    characteristic(R) == 2 && return GO(e,n,R)
    if e==1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("SO+")
    elseif e==-1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("SO-")
    elseif e==0
-      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      @req isodd(n) "The dimension must be odd"
       G = MatrixGroup(n,R)
       G.descr = :SO
    else
@@ -806,7 +798,7 @@ Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
 
-Currently, this function only supports rings of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `fqPolyRepField`.
 
 # Examples
 ```jldoctest
@@ -817,7 +809,7 @@ julia> H = omega_group(1,2,F)
 Omega+(2,7)
 
 julia> gens(H)
-1-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+1-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [2 0; 0 4]
 
 ```
@@ -825,15 +817,15 @@ julia> gens(H)
 function omega_group(e::Int, n::Int, R::Ring)
    n==1 && return SO(e,n,R)
    if e==1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("Omega+")
    elseif e==-1
-      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      @req iseven(n) "The dimension must be even"
       G = MatrixGroup(n,R)
       G.descr = Symbol("Omega-")
    elseif e==0
-      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      @req isodd(n) "The dimension must be odd"
       G = MatrixGroup(n,R)
       G.descr = :Omega
    else
@@ -861,7 +853,7 @@ julia> H = unitary_group(2,3)
 GU(2,3)
 
 julia> gens(H)
-2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [o 0; 0 2*o]
  [2 2*o+2; 2*o+2 0]
 
@@ -869,7 +861,7 @@ julia> gens(H)
 """
 function unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
+   @req is_prime(b) "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -887,7 +879,7 @@ julia> H = special_unitary_group(2,3)
 SU(2,3)
 
 julia> gens(H)
-2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [1 2*o+2; 0 1]
  [0 2*o+2; 2*o+2 0]
 
@@ -896,7 +888,7 @@ julia> gens(H)
 """
 function special_unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
+   @req is_prime(b) "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G
@@ -912,20 +904,23 @@ const SU = special_unitary_group
 
 
 """
-    matrix_group(V::T...) where T<:MatrixGroup
-    matrix_group(V::AbstractVector{T}) where T<:MatrixGroup
+    matrix_group(m::Int, R::Ring, V::T...) where T<:Union{MatElem,MatrixGroupElem}
+    matrix_group(m::Int, R::Ring, V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupElem}
+    matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem}
+    matrix_group(V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupElem}
 
-Return the matrix group generated by elements in the vector `V`.
+Return the matrix group generated by matrices in `V`. If the degree `m` and
+coefficient ring `R` are not given, then `V` must be non-empty
 """
-function matrix_group(V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupElem}
-   if T<:MatElem      # if T <: MatrixGroupElem, we can already assume that det(V[i]) != 0 
-      for v in V @assert det(v) !=0 "The matrix is not invertible" end
-   end
-   return MatrixGroup(nrows(V[1]),base_ring(V[1]),V)
+function matrix_group(m::Int, R::Ring, V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem}
+   return MatrixGroup(m, R, V)
 end
 
-matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V))
+matrix_group(m::Int, R::Ring, V::T...; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(m, R, collect(V); check)
 
+matrix_group(V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(nrows(V[1]), base_ring(V[1]), V; check)
+
+matrix_group(V::T...; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V); check)
 
 ########################################################################
 #

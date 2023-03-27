@@ -2,7 +2,7 @@
     mktempdir() do path
         @testset "Field Embeddings" begin
             Qx, x = QQ["x"]
-            K, _ = NumberField(x^2 + 5)
+            K, _ = number_field(x^2 + 5)
             E = complex_embeddings(K)[1]
 
             test_save_load_roundtrip(path, E) do loaded
@@ -15,7 +15,7 @@
 
         @testset "Non Simple Field Embeddings" begin
             Qx, x = QQ["x"]
-            K, _ = NumberField([x^2 + 5, x^2 + 7])
+            K, _ = number_field([x^2 + 5, x^2 + 7])
             E = complex_embeddings(K)[1]
 
             test_save_load_roundtrip(path, E) do loaded

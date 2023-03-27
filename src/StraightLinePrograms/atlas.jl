@@ -142,8 +142,7 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
 end
 
 check_line_length(codeline, n) =
-    length(codeline) == n+1 || throw(ArgumentError(
-        "wrong number of arguments in $(codeline[1]) line"))
+    length(codeline) == n+1 || throw(ArgumentError("wrong number of arguments in $(codeline[1]) line"))
 
 error_invalid_line(codeline) =
     throw(ArgumentError("""invalid line: $(join(codeline, " "))"""))

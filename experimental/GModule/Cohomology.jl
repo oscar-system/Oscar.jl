@@ -58,7 +58,7 @@ Oscar.elem_type(a::MultGrp{T}) where T = MultGrpElem{T}
 import Base: ==, +, -, *
 
 *(a::Integer, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
-*(a::fmpz, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
+*(a::ZZRingElem, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
 +(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = MultGrpElem{T}(a.data*b.data, parent(a))
 -(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = MultGrpElem{T}(a.data//b.data, parent(a))
 -(a::MultGrpElem{T}) where T = MultGrpElem{T}(inv(a.data), parent(a))
@@ -165,14 +165,14 @@ end
 
 function Oscar.relations(G::Oscar.GAPGroup)
    f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
 function Oscar.relations(G::PcGroup)
    f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.Obj("g"))
-   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
@@ -351,6 +351,33 @@ function H_zero(C::GModule)
   return k, z
 end
 
+function H_zero_tate(C::GModule)
+  z = get_attribute(C, :H_zero_tate)
+  if z !== nothing
+    return domain(z), z
+  end
+  G = Group(C)
+  M = Module(C)
+  #fix under action modulo norm (trace) = sum over all elem in group
+
+  id = hom(M, M, gens(M))
+  ac = action(C)
+  k = kernel(id - ac[1])[1]
+  for i=2:length(ac)
+    k = intersect(k, kernel(id - ac[i])[1])
+  end
+  N = sum(action(C, g) for g = group(C))
+
+  i = image(N)[1]
+  fl, inj = is_subgroup(i, k)
+  q, mq = quo(k, image(inj)[1])
+
+  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), q, AllCoChains{0,elem_type(G),elem_type(M)}())
+  set_attribute!(C, :H_zero_tate => z)
+  return q, z
+end
+
+
 #= TODO
  - break out coboundaries and cochains
  - depending on the module type:
@@ -358,8 +385,7 @@ end
    - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
-   - is_subgroup has the "wrong" order of arguments (and cannot apply
-     to modules)
+   - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
    - mat or matrix is used to get "the matrix" from a hom
    - zero_hom/ zero_obj/ identity_hom is missing
@@ -1025,10 +1051,17 @@ For a gmodule `C` compute the `i`-th cohomology group
 Together with the abstract module, a map is provided that will 
   produce explicit cochains.
 """
-function cohomology_group(C::GModule{PermGroup,GrpAbFinGen}, i::Int)
+function cohomology_group(C::GModule{PermGroup,GrpAbFinGen}, i::Int; Tate::Bool = false)
   #should also allow modules...
+  if Tate
+    @assert isfinite(group(C))
+  end
   if i==0
-    return H_zero(C)
+    if Tate
+      return H_zero_tate(C)
+    else
+      return H_zero(C)
+    end
   elseif i==1
     return H_one(C)
   elseif i==2
@@ -1126,7 +1159,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
-          push!(r, sparse_row(ZZ, [ng, ng+1], [p, fmpz(-1)]))
+          push!(r, sparse_row(ZZ, [ng, ng+1], [p, ZZRingElem(-1)]))
           push!(hm, v)
           v *= p
           ng += 1
@@ -1161,7 +1194,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
 
   for i=1:ngens(M)-1
-    r = fmpz[]
+    r = ZZRingElem[]
     for j=i+1:ngens(M)
       push!(r, j)
       push!(r, -h[i, j])
@@ -1175,7 +1208,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
   Julia_to_gap = function(a::GrpAbFinGenElem)
-    r = fmpz[]
+    r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
@@ -1187,7 +1220,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
 
   gap_to_julia = function(a::GAP.GapObj)
     e = GAPWrap.ExtRepOfObj(a)
-    z = zeros(fmpz, ngens(M))
+    z = zeros(ZZRingElem, ngens(M))
     for i=1:2:length(e)
       if !iszero(e[i+1])
         z[e[i]] = e[i+1]
@@ -1208,12 +1241,12 @@ function fp_group(::Type{PcGroup}, M::GrpAbFinGen; refine::Bool = true)
   return pc_group(M)
 end
 
-function (k::Nemo.GaloisField)(a::Vector)
+function (k::Nemo.fpField)(a::Vector)
   @assert length(a) == 1
   return k(a[1])
 end
 
-function (k::FqNmodFiniteField)(a::Vector)
+function (k::fqPolyRepField)(a::Vector)
   return k(polynomial(GF(Int(characteristic(k))), a))
 end
 
@@ -1234,8 +1267,8 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
   B = PcGroup(GAP.Globals.GroupByRws(C))
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
-  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{gfp_elem, gfp_fmpz_elem}})
-    r = fmpz[]
+  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+    r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
@@ -1246,8 +1279,8 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
     return g
   end
 
-  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{fq, fq_nmod}})
-    r = fmpz[]
+  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem}})
+    r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         for j=0:degree(k)-1
@@ -1265,7 +1298,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
 
   gap_to_julia = function(a::GAP.GapObj)
     e = GAPWrap.ExtRepOfObj(a)
-    z = zeros(fmpz, ngens(M)*degree(k))
+    z = zeros(ZZRingElem, ngens(M)*degree(k))
     for i=1:2:length(e)
       if !iszero(e[i+1])
         z[e[i]] = e[i+1]
@@ -1279,7 +1312,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
   end
 
   for i=1:ngens(M)-1
-    r = fmpz[]
+    r = ZZRingElem[]
     for j=i+1:ngens(M)
       GAP.Globals.SetConjugate(C, j, i, gen(G, j).X)
     end
@@ -1875,6 +1908,7 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   f = divexact(absolute_degree(K), e)
   @vprint :GaloisCohomology 1 "the local mult. group as a Z[G] module for e=$e and f = $f\n"
   @vprint :GaloisCohomology 2 " .. the automorphism group ..\n"
+  global last_bla = (K, k)
   G, mG = automorphism_group(PermGroup, K, k)
 
   if e == 1 && !full
@@ -1890,10 +1924,17 @@ function gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField
   if e % prime(K) != 0 && !full #tame!
     @vprint :GaloisCohomology 2 " .. tame, no 1-units ..\n"
 #    @show :tame
-    k, mk = ResidueField(K)
+    k, mk = residue_field(K)
     u, mu = unit_group(k)
     pi = uniformizer(K)
-    gk = preimage(mk, mu(u[1]))^(order(k)^10)  #proper bound, loop until done?
+    # move to a Teichmueller lift?
+    gk = preimage(mk, mu(u[1]))
+    pr = precision(gk)
+    gkk = setprecision(gk^order(k), pr)
+    while !iszero(gkk - gk)
+      gk = gkk
+      gkk = setprecision(gk^order(k), pr)
+    end
     A = abelian_group([0, order(u)])
     h = Map[]
     for g = gens(G)
@@ -2014,8 +2055,17 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   end
 end
 
-export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
-       action, cohomology_group, extension, is_coboundary, pc_group
+export GModule
+export action
+export cohomology_group
+export confluent_fp_group
+export extension
+export fp_group
+export gmodule
+export induce
+export is_coboundary
+export pc_group
+export word
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -2065,7 +2115,7 @@ Sort:
 =#    
 
 #TODO: what do we need to return?
-# - mG (if we cache this in the field, not neccessary)
+# - mG (if we cache this in the field, not necessary)
 # - the local stuff?
 # - the S-Units?
 # - ???
@@ -2076,7 +2126,7 @@ Sort:
 # - a magic(?) function to get idel-aproximations in and out?
 
 function restrict(C::GModule, U::Oscar.GAPGroup)
-  fl, m = is_subgroup(C.G, U)
+  fl, m = is_subgroup(U, C.G)
   @assert fl
   return gmodule(U, [action(C, m(g)) for g = gens(U)])
 end
@@ -2256,7 +2306,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   cf = Tuple{GrpAbFinGen, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
-  s = push!(Set{fmpz}(s), Set{fmpz}(keys(factor(discriminant(zk)).fac))...)
+  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(keys(factor(discriminant(zk)).fac))...)
   for i=1:length(sf)
     l = factor(prod(s)*zf[i])
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
@@ -2293,7 +2343,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   U, mU = sunit_group_fac_elem(S)
   z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
   E = gmodule(G, mU, mG)
-  @hassert :GaloisCohomology 1 is_consistent(E)
+  @hassert :GaloisCohomology -1 is_consistent(E)
 
   if is_totally_real(k)
     @vprint :GaloisCohomology 2 " .. real field, easy case ..\n"
@@ -2309,6 +2359,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     sigma = action(E, mG_inf(G_inf[1]))
     @assert order(G_inf[1]) == 2 == order(G_inf)
 
+    @assert order(U[1]) >0
     q, mq = quo(U, [U[1]]) 
     q, _mq = snf(q)
     mq = mq*pseudo_inv(_mq)
@@ -2331,14 +2382,32 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     x = [preimage(mq, i) for i = x]
     y = [preimage(mq, i) for i = y]
 
+    z, mz = sub(U, [sigma(U[1]) - U[1]])
     theta_i = [sigma(t)-t for t = x]
-    inv = findall(iszero, theta_i) #those that are invariant
-    not_inv = findall(x->!iszero(x), theta_i)
-    x = vcat(x[not_inv], x[inv])
+    inv = Int[]
+    not_inv = Int[]
+    for i=1:length(x)
+      w = theta_i[i]
+      fl, pe = haspreimage(mz, w)
+      if fl
+        push!(inv, i)
+        zz = mq(x[i])
+        x[i] -= pe[1]*U[1]
+        @assert zz == mq(x[i])
+        theta_i[i] = sigma(x[i]) - x[i]
+        @assert iszero(theta_i[i])
+      else
+        push!(not_inv, i)
+      end
+    end
+    
+    @assert length(not_inv) > 0
+    @assert length(not_inv) + length(inv) == length(x)
+    x = vcat(x[not_inv], x[inv]) #reordering
     theta_i = vcat(theta_i[not_inv], theta_i[inv])
     
     U_t, mU_t = sub(U, [U[1]])
-    sm1 = hom(U_t, U, [sigma(U[1]) - U[1]])
+    sm1 = hom(U_t, U, [sigma(mU_t(g)) - mU_t(g) for g = gens(U_t)])
     eta_i = [preimage(sm1, theta - theta_i[i]) for i=1:length(not_inv)]
 
     eta_i = map(mU_t, eta_i)
@@ -2361,7 +2430,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     F = abelian_group([0 for i=2:length(x)])
     W, pro, inj = direct_product(V, F, task = :both)
 
-    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, [inj[1](preimage(psi, U[i])) - inj[2](F[i-1]) for i=2:length(x)]))
+    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, [inj[1](preimage(psi, x[i])) - inj[2](F[i-1]) for i=2:length(x)]))
     Et = gmodule(G_inf, [ac])
     @assert is_consistent(Et)
     mq = pseudo_inv(psi)*inj[1]

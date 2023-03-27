@@ -42,4 +42,17 @@
         P = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
         @test_throws ArgumentError combinatorial_symmetries(P)
     end
+
+    @testset "trivial automorphism_group" begin
+        M = matroid_from_nonbases([[1,2,3,4],[1,2,5,6],[1,3,5,7],[3,4,6,8]],8)
+        GM = automorphism_group(M)
+        @test is_trivial(GM)
+        IM = IncidenceMatrix(bases(M))
+        GIM = automorphism_group(IM)
+        @test length(GIM) == 2
+        @test haskey(GIM, :on_cols)
+        @test haskey(GIM, :on_rows)
+        @test is_trivial(GIM[:on_cols])
+        @test is_trivial(GIM[:on_rows])
+    end
 end

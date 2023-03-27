@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -29,9 +32,9 @@ input formats for the same kind of re-occuring quantitative input information.
 This example shows three different ways to write the points whose convex hull
 is to be computed, all resulting in identical `Polyhedron` objects:
 
-```
+```jldoctest
 julia> P = convex_hull([1 0 0; 0 0 1])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> P == convex_hull([[1, 0, 0], [0, 0, 1]])
 true
@@ -113,6 +116,15 @@ Type                                   | An `AffineHyperplane` corresponds to...
 `SubObjectIterator{<:Hyperplane}`      | an element of the iterator.
 
 
+## Visualization
+
+Lower dimensional polyhedral objects can be visualized through polymake's backend.
+
+```@docs
+visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
+```
+
+
 ## Serialization
 
 Most objects from the polyhedral geometry section can be saved through the
@@ -124,3 +136,16 @@ can find details of the specification
 More details on the serialization, albeit concerning the older XML format, can be
 found in [GHJ16](@cite). Even though the underlying format changed to JSON, the
 abstract mathematical structure of the data files is still the same.
+
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Taylor Brysiewicz](https://sites.google.com/view/taylorbrysiewicz/home),
+* [Michael Joswig](https://page.math.tu-berlin.de/~joswig/),
+* [Lars Kastner](https://lkastner.github.io/),
+* Benjamin Lorenz.
+
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).

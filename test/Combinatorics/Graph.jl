@@ -112,4 +112,9 @@
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
     end
+
+    @testset "errors" begin
+        g = Graph{Undirected}(1)
+        @test_throws ArgumentError add_edge!(g,1,2)
+    end
 end

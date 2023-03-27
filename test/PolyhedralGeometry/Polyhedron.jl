@@ -1,15 +1,15 @@
 #TODO: include more examples with nontrivial lineality space
 
-@testset "Polyhedron{$T}" for T in [fmpq, nf_elem]
+@testset "Polyhedron{$T}" for T in [QQFieldElem, nf_elem]
 
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     @test convex_hull(T, pts) isa Polyhedron{T}
     Q0 = convex_hull(T, pts)
     @test convex_hull(T, pts; non_redundant = true) == Q0
     Q1 = convex_hull(T, pts, [1 1])
     Q2 = convex_hull(T, pts, [1 1], [1 1])
     square = cube(T, 2)
-    C1 = cube(T, 2, 0, 1)
+    CR = cube(T, 2, 0, 3//2)
     Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
     L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
@@ -18,27 +18,37 @@
         affine_hull(point)
     end
     s = simplex(T, 2)
+    R,x = polynomial_ring(QQ, "x")
 
     @testset "core functionality" begin
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
-        if T == fmpq
-            @test lattice_points(Q0) isa SubObjectIterator{PointVector{fmpz}}
+        if T == QQFieldElem
+            @test lattice_points(Q0) isa SubObjectIterator{PointVector{ZZRingElem}}
             @test point_matrix(lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
             @test matrix(ZZ, lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
             @test length(lattice_points(Q0)) == 3
             @test lattice_points(Q0) == [[0, 0], [0, 1], [1, 0]]
-            @test interior_lattice_points(square) isa SubObjectIterator{PointVector{fmpz}}
+            @test interior_lattice_points(square) isa SubObjectIterator{PointVector{ZZRingElem}}
             @test point_matrix(interior_lattice_points(square)) == matrix(ZZ, [0 0])
             @test matrix(ZZ, interior_lattice_points(square)) == matrix(ZZ,[0 0])
             @test length(interior_lattice_points(square)) == 1
             @test interior_lattice_points(square) == [[0, 0]]
-            @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{fmpz}}
+            @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{ZZRingElem}}
             @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
             @test length(boundary_lattice_points(square)) == 8
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
             @test is_smooth(Q0)
             @test is_normal(Q0)
+            @test is_lattice_polytope(Q0)
+            @test is_very_ample(square)
+            @test is_smooth(square)
+            @test ehrhart_polynomial(R, square) == 4*x^2 + 4*x + 1
+            @test h_star_polynomial(R, CR) == x^4 + 3*x^3 + 10*x^2 + 3*x + 1
+            @test is_normal(square)
+            @test_throws ArgumentError ehrhart_polynomial(CR)
+            @test_throws ArgumentError is_normal(CR)
+            @test_throws ArgumentError is_smooth(Q1)
         end
         @test is_feasible(Q0)
         @test is_bounded(Q0)
@@ -46,6 +56,11 @@
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
+        Ps = [Q0,Q0,Q0]
+        @test intersect(Ps) isa Polyhedron{T}
+        @test intersect(Ps...) isa Polyhedron{T}
+        @test intersect(Ps) == Q0
+        @test intersect(Ps...) == Q0
         @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
@@ -58,7 +73,7 @@
         @test vertices(PointVector{T}, point) isa SubObjectIterator{PointVector{T}}
         @test vertices(PointVector, point) isa SubObjectIterator{PointVector{T}}
         @test vertices(point) isa SubObjectIterator{PointVector{T}}
-        if T == fmpq
+        if T == QQFieldElem
             @test point_matrix(vertices(2*point)) == matrix(QQ, [0 2 0])
             @test point_matrix(vertices([0,1,0] + point)) == matrix(QQ, [0 2 0])
         else
@@ -69,7 +84,7 @@
         @test rays(RayVector, Pos) isa SubObjectIterator{RayVector{T}}
         @test rays(Pos) isa SubObjectIterator{RayVector{T}}
         @test length(rays(Pos)) == 3
-        if T == fmpq
+        if T == QQFieldElem
             @test vector_matrix(rays(Pos)) == matrix(QQ, [1 0 0; 0 1 0; 0 0 1])
             @test rays(Pos) == [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         else
@@ -77,7 +92,7 @@
             @test rays(Pos) == [[0, 1, 0], [1, 0, 0], [0, 0, 1]]
         end
         @test lineality_space(L) isa SubObjectIterator{RayVector{T}}
-        if T == fmpq
+        if T == QQFieldElem
             @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
             @test matrix(ZZ, lineality_space(L)) == matrix(ZZ, [0 0 1])
         else
@@ -92,7 +107,7 @@
         @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
         @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(Pos, 1)) == 3
-        if T == fmpq
+        if T == QQFieldElem
             @test faces(Pos, 1) == convex_hull.(T, [[0 0 0]], [[1 0 0], [0 1 0] , [0 0 1]])
         else
             @test faces(Pos, 1) == convex_hull.(T, [[0 0 0]], [[0 1 0], [1 0 0], [0 0 1]])
@@ -103,7 +118,7 @@
         v = vertices(minkowski_sum(Q0, square))
         @test length(v) == 5
         @test v == [[2, -1], [2, 1], [-1, -1], [-1, 2], [1, 2]]
-        if T == fmpq
+        if T == QQFieldElem
             @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
         else
             @test point_matrix(v) == [2 -1; 2 1; -1 -1; -1 2; 1 2]
@@ -117,7 +132,7 @@
                 @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
             end
             @test length(facets(S, Pos)) == 3
-            if T == fmpq
+            if T == QQFieldElem
                 @test affine_inequality_matrix(facets(S, Pos)) == matrix(QQ, [0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
                 @test halfspace_matrix_pair(facets(S, Pos)).A == matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]) && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                 @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3], [1, 3], [1, 2]])
@@ -136,7 +151,7 @@
         @test facets(Pos) isa SubObjectIterator{AffineHalfspace{T}}
         @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace{T}}
         @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{T}}
-        if T == fmpq
+        if T == QQFieldElem
             @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, [0 1 0 0; -1 0 1 0; 0 0 0 1])
         else
             @test affine_equation_matrix(affine_hull(point)) == [0 1 0 0; -1 0 1 0; 0 0 0 1]
@@ -187,7 +202,7 @@
             @test Polyhedron(H) isa Polyhedron{T}
             @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
         end
-        if T == fmpq
+        if T == QQFieldElem
             @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
             @test upper_bound_g_vector(4,8) == [1, 3, 6]
             @test upper_bound_h_vector(4,8) == [1, 4, 10, 4 ,1]
@@ -210,6 +225,24 @@
             @test p isa Polyhedron{T}
             @test volume(P) == 0
             @test volume(p) == 1
+
+            rsph = rand_spherical_polytope(3, 15)
+            @test rsph isa Polyhedron{T}
+            @test is_simplicial(rsph)
+            @test nvertices(rsph) == 15
+
+            rsph_r = rand_spherical_polytope(3, 10; distribution=:exact)
+            @test map(x->dot(x,x), vertices(rsph_r)) == ones(QQFieldElem,10)
+            @test is_simplicial(rsph_r)
+            @test nvertices(rsph_r) == 10
+
+            prec = 20
+            rsph_prec = rand_spherical_polytope(3, 20; precision=prec)
+            @test rsph_prec isa Polyhedron{T}
+            @test is_simplicial(rsph_prec)
+            @test nvertices(rsph_prec) == 20
+            @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec-1))
+
         end
         
     end

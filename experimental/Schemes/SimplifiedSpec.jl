@@ -8,7 +8,7 @@ original(X::SimplifiedSpec) = X.Y
 identification_maps(X::SimplifiedSpec) = (X.f, X.g)
 
 ### High-level constructors
-@Markdown.doc """
+@doc Markdown.doc"""
     simplify(X::AbsSpec{<:Field})
 
 Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I`` 
@@ -31,21 +31,21 @@ function simplify(X::AbsSpec{<:Field})
 end
 
 ### Methods to roam in the ancestry tree
-function some_ancestor(P::Function, X::SimplifiedSpec)
-  return P(X) || some_ancestor(P, original(X))
+function has_ancestor(P::Function, X::SimplifiedSpec)
+  return P(X) || has_ancestor(P, original(X))
 end
 
-function some_ancestor(P::Function, X::PrincipalOpenSubset)
-  return P(X) || some_ancestor(P, ambient_scheme(X))
+function has_ancestor(P::Function, X::PrincipalOpenSubset)
+  return P(X) || has_ancestor(P, ambient_scheme(X))
 end
 
-@Markdown.doc """
-    some_ancestor(P::Function, X::AbsSpec)
+@doc Markdown.doc"""
+    has_ancestor(P::Function, X::AbsSpec)
 
 Check whether property `P` holds for `X` or some ancestor of `X` in 
 case it is a `PrincipalOpenSubset`, or a `SimplifiedSpec`.
 """
-function some_ancestor(P::Function, X::AbsSpec)
+function has_ancestor(P::Function, X::AbsSpec)
   return P(X) # This case will only be called when we reached the root.
 end
 
@@ -82,7 +82,7 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
   V = original(U)
   f, g = identification_maps(U)
-  ceq = pullback(g).(complement_equations)
+  ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))
   h, d = _find_chart(V, C, complement_equations=ceq)
   return compose(f, h), d
 end
@@ -119,7 +119,8 @@ function _flatten_open_subscheme(
       f
     end
   )
-  some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
+  any(W->(W===U), patches(C)) && return iso # If U is already in C do nothing.
+  has_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
@@ -149,7 +150,8 @@ function _flatten_open_subscheme(
       f
     end
   )
-  some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
+  any(W->(W===U), patches(C)) && return iso # If U is already in C do nothing.
+  has_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
@@ -162,8 +164,13 @@ function _flatten_open_subscheme(
                       OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
                       check=false), 
                   check=false)
+  inv_ident = SpecMor(WV, UV,
+                      hom(OO(UV), OO(WV),
+                          OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))),
+                          check=false),
+                      check=false)
   new_iso =  compose(iso, ident)
-  new_iso_inv = compose(inverse(ident), inverse(iso))
+  new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
   set_attribute!(new_iso_inv, :inverse, new_iso)
   if any(WW->(WW===W), patches(C)) 
@@ -199,7 +206,7 @@ function _flatten_open_subscheme(
   )
   U === P && return iso
 
-  some_ancestor(W->W===P, U) || error("ancestor not found")
+  has_ancestor(W->W===P, U) || error("ancestor not found")
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
@@ -230,7 +237,7 @@ function _flatten_open_subscheme(
   )
   U === P && return iso
 
-  some_ancestor(W->W===P, U) || error("ancestor not found")
+  has_ancestor(W->W===P, U) || error("ancestor not found")
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
@@ -313,7 +320,7 @@ function _have_common_ancestor(
 end
 
 function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedSpec)
-  U === V && return true
+  U === V && return true, V
   if ambient_scheme(U) === V
     return true, V
   elseif original(V) === U
@@ -332,7 +339,7 @@ function _have_common_ancestor(
 end
 
 function _have_common_ancestor(U::SimplifiedSpec, V::SimplifiedSpec)
-  U === V && return true
+  U === V && return true, V
   if original(U) === V
     return true, V
   elseif original(V) === U

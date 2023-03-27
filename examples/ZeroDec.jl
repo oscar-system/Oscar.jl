@@ -234,7 +234,7 @@ function changeOrderOfBasering(I::Singular.sideal, ordering::Symbol = lex)
     R = I.base_ring;
     G = Singular.gens(I.base_ring);
     Gstrich = string.(G);
-    S, G = Singular.PolynomialRing(R.base_ring, Gstrich, ordering = ordering)
+    S, G = Singular.polynomial_ring(R.base_ring, Gstrich, ordering = ordering)
     res = Singular.AlgebraHomomorphism(R, S, G);
     return res(I)
 end

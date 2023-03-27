@@ -30,7 +30,7 @@
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
-   T,t = PolynomialRing(GF(3) ,"t")
+   T,t = polynomial_ring(GF(3) ,"t")
    F,z = FiniteField(t^2+1,"z")
    G = GL(3,F)
    @test G.X isa GAP.GapObj
@@ -74,10 +74,7 @@ end
    @testset for (F, z) in fields
       f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
-      G = MatrixGroup(3, F)
-      mats = [matrix(F, [0 z 0; 0 0 1; 1 0 0]),
-              matrix(F, [0 1 0; 1 0 0; 0 0 1])]
-      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      G = matrix_group(matrix(F, [0 z 0; 0 0 1; 1 0 0]), matrix(F, [0 1 0; 1 0 0; 0 0 1]))
       for a in map(matrix, gens(G)), b in map(matrix, gens(G))
          @test g(a * b) == g(a) * g(b)
          @test g(a - b) == g(a) - g(b)
@@ -142,7 +139,7 @@ end
      @test order(G) == GAP.Globals.Order(H)
    end
 
-   G = MatrixGroup(2, QQ, dense_matrix_type(QQ)[])
+   G = matrix_group(2, QQ, dense_matrix_type(QQ)[])
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
 end
 
@@ -157,7 +154,7 @@ end
 
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -169,7 +166,7 @@ end
    @test !isdefined(G,:ring_iso)
 
    @test order(G)==5760
-   @test order(G) isa fmpz
+   @test order(G) isa ZZRingElem
    @test order(Int64, G) isa Int64
    @test order(Int64, SL(2,F))==720
    @test isdefined(G,:X)
@@ -222,9 +219,7 @@ end
    @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
    @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
-   G = MatrixGroup(nrows(x), F)
-   G.gens = typeof(x)[]   # empty list of generators
-   G.X
+   G = matrix_group(nrows(x), F)
    @test one(G) == one(x)
 
    G = GL(3,F)
@@ -327,8 +322,8 @@ end
    x2 = G([2,0,0,0,3,0,0,0,1])
    @test x1==G([4,0,1,4,0,0,0,4,0])
    @test x1==G([4 0 1; 4 0 0; 0 4 0])
-   @test matrix_group(x1,x2)==MatrixGroup(3,base_ring(x1),[x1,x2])
-   @test matrix_group(x1,x2)==matrix_group([x1,x2])
+   @test matrix_group(x1,x2) == matrix_group(3,base_ring(x1),[x1,x2])
+   @test matrix_group(x1,x2) == matrix_group([x1,x2])
    H = matrix_group([x1,x2])
    @test isdefined(H,:gens)
    @test H[1]==x1
@@ -352,16 +347,16 @@ end
    @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
    x3 = matrix(base_ring(G),3,3,[0,0,0,0,1,0,0,0,1])
-   @test_throws AssertionError matrix_group(matrix(x1),x3)
+   @test_throws ArgumentError matrix_group(matrix(x1),x3)
    @test parent(x1)==G
 
    G4 = GL(4,5)
    x3 = G4([1,0,2,0,0,1,0,2,0,0,1,0,0,0,0,1])
-   @test_throws AssertionError matrix_group([x1,x3])
+   @test_throws ArgumentError matrix_group([x1,x3])
 
    G4 = GL(3,7)
    x3 = G4([2,0,0,0,3,0,0,0,1])
-   @test_throws AssertionError matrix_group([x1,x3])
+   @test_throws ArgumentError matrix_group([x1,x3])
 end
 
 @testset "Iterator" begin
@@ -376,7 +371,7 @@ end
 end
 
 @testset "Membership" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -427,7 +422,7 @@ end
 end
 
 @testset "Methods on elements" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -449,7 +444,7 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
-   @test x*matrix(y) isa fq_nmod_mat
+   @test x*matrix(y) isa fqPolyRepMatrix
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
@@ -470,7 +465,7 @@ end
 end
 
 @testset "Subgroups" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -487,7 +482,7 @@ end
    O = GO(1,2,F)
    H = intersect(S,O)[1]
    @test H==SO(1,2,F)
-   @test is_normal(O,H)
+   @test is_normal_subgroup(H, O)
    @test index(O,H)==2
 #   @test index(GO(0,3,3), omega_group(0,3,3))==4
    @test index(GO(1,2,8), omega_group(1,2,8))==2
@@ -495,7 +490,7 @@ end
 end
 
 @testset "Cosets and conjugacy classes" begin
-   T,t=PolynomialRing(GF(3),"t")
+   T,t=polynomial_ring(GF(3),"t")
    F,z=FiniteField(t^2+1,"z")
 
    G = GL(2,F)
@@ -538,7 +533,7 @@ end
 
 @testset "Jordan structure" begin
    F = GF(3, 1)
-   R,t = PolynomialRing(F,"t")
+   R,t = polynomial_ring(F,"t")
    G = GL(9,F)
 
    L_big = [
@@ -575,7 +570,7 @@ end
 
    F,z = FiniteField(5,3,"z")
    G = GL(6,F)
-   R,t = PolynomialRing(F,"t")
+   R,t = polynomial_ring(F,"t")
    f = t^3+t*z+1
    x = generalized_jordan_block(f,2)
    @test generalized_jordan_block(f,2)==hvcat((2,2),companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f))
@@ -587,8 +582,8 @@ end
    @test_throws ErrorException Oscar._elem_given_det(G(x),z)
 
    @testset "Low-level methods in linear_centralizer.jl" begin
-      @test Oscar._SL_order(3,fmpz(8))== fmpz(div(prod([8^3-8^i for i in 0:2]),7))
-      @test Oscar._SL_order(4, GF(3, 1))== fmpz(div(prod([3^4-3^i for i in 0:3]),2))
+      @test Oscar._SL_order(3,ZZRingElem(8))== ZZRingElem(div(prod([8^3-8^i for i in 0:2]),7))
+      @test Oscar._SL_order(4, GF(3, 1))== ZZRingElem(div(prod([3^4-3^i for i in 0:3]),2))
       L = Oscar._gens_for_GL(1,GF(7, 1))
       @test length(L)==1
       @test L[1]^2 !=1 && L[1]^3 !=1
@@ -600,7 +595,7 @@ end
       L = Oscar._gens_for_GL(5,GF(2, 1))
       @test length(L)==2
       @test matrix_group(L...)==GL(5,GF(2, 1))
-      _,t = PolynomialRing(GF(3, 1),"t")
+      _,t = polynomial_ring(GF(3, 1),"t")
       f = t^2+t-1
       L = Oscar._gens_for_GL_matrix(f,2,GF(3, 1); D=2)
       @test length(L)==2
@@ -632,7 +627,7 @@ end
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 
-   Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
+   Qx, x = polynomial_ring(FlintQQ, "x", cached = false)
    f = x^2-2;
    K, a = number_field(f)
    D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);

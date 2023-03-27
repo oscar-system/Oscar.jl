@@ -1,20 +1,19 @@
-export EmptyScheme
-export AbsProjectiveScheme, ProjectiveScheme
-export ProjectiveSchemeMor
-export VarietyFunctionField, VarietyFunctionFieldElem
 export AbsPreSheaf
+export AbsProjectiveScheme
+export EmptyScheme
 export IdealSheaf
+export ProjectiveScheme
+export ProjectiveSchemeMor
+export ToricCoveredScheme
+export ToricSpec
+export VarietyFunctionField
+export VarietyFunctionFieldElem
 
-
-########################################################################
-# Abstract projective schemes                                          #
-########################################################################
-abstract type AbsProjectiveScheme{BaseRingType, RingType} <: Scheme{BaseRingType} end
 
 ########################################################################
 # Concrete type for projective schemes                                 #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 
 Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r``
@@ -35,7 +34,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   projection_to_base::SchemeMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
 
-  function ProjectiveScheme(S::MPolyRing_dec)
+  function ProjectiveScheme(S::MPolyDecRing)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     n = ngens(S)-1
     A = coefficient_ring(S)
@@ -43,7 +42,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(S::MPolyRing_dec, I::MPolyIdeal{T}) where {T<:RingElem}
+  function ProjectiveScheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:RingElem}
     for f in gens(I)
       parent(f) == S || error("elements do not belong to the correct ring")
     end
@@ -53,20 +52,24 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
+  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}}
+    # Test disabled because `total_degree` does not work at the moment.
+    #all(x->(total_degree(x) == 1), gens(Q)) || error("ring is not standard graded") 
     S = base_ring(Q)
+    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
-    I = gens(modulus(Q))
+    I = modulus(Q)
     r = ngens(S)-1
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    result = new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
+    set_attribute!(result, :affine_algebra, Q)
+    return result
   end
 end
 
 ########################################################################
 # Morphisms of projective schemes                                      #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     ProjectiveSchemeMor
 
 A morphism of projective schemes
@@ -192,7 +195,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
     )
     check && (is_irreducible(X) || error("variety is not irreducible"))
     representative_patch in default_covering(X) || error("representative patch not found")
-    KK = FractionField(ambient_coordinate_ring(representative_patch))
+    KK = fraction_field(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
     return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
   end
@@ -232,7 +235,7 @@ end
 ########################################################################
 # Sheaves                                                              #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
 Abstract type for a sheaf ℱ on a space X.
@@ -257,7 +260,7 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     PreSheafOnScheme
 
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
@@ -326,7 +329,7 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     StructureSheafOfRings <: AbsPreSheaf
 
 On an `AbsCoveredScheme` ``X`` this returns the sheaf ``𝒪`` of rings of
@@ -442,7 +445,7 @@ identifications given by the glueings in the `default_covering`.
         G = default_covering(X)[W, U]
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
-        g_res = restrict(g, U, V_direct)
+        g_res = restrict(g, U, V_direct, check=false)
         return pullback(compose(g_res, inverse(incV)))
         ### deprecated code below; see comment above
         function rho_func2(a::RingElem)
@@ -474,7 +477,7 @@ identifications given by the glueings in the `default_covering`.
         f, g = glueing_morphisms(G)
         VV_flat = intersect(V_flat, codomain(f))
         VU = preimage(f, VV_flat)
-        fres = restrict(f, VU, VV_flat)
+        fres = restrict(f, VU, VV_flat, check=false)
         inc_V_flat_inv = inverse(inc_V_flat)
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
@@ -566,7 +569,7 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     IdealSheaf <: AbsPreSheaf
 
 A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.
@@ -595,29 +598,23 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = StructureSheafOfRings(X)
 
-    ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
-      # The ideal sheaf has to be provided on at least one dense
-      # open subset of every connected component.
-      for G in values(glueings(default_covering(space(F))))
-        A, B = patches(G)
-        Asub, Bsub = glueing_domains(G)
-        if A === U && haskey(ID, B) && is_dense(Asub)
-          Z = intersect(subscheme(B, ID[B]), Bsub)
-          f, _ = glueing_morphisms(G)
-          pZ = preimage(f, Z)
-          ZU = closure(pZ, U)
-          ID[U] = ideal(OO(U), gens(saturated_ideal(modulus(OO(ZU)))))
-          return ID[U]
-        end
-      end
-      # Transfering from another chart did not work. That means 
+      # Transferring from another chart did not work. That means 
       # I(U) is already prescribed on some refinement of U. We 
       # need to gather that information from all the patches involved
       # and assemble the ideal from there.
-      V = [W for W in keys(ID) if some_ancestor(x->(x===U), W)] # gather all patches under U
+      V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
+
+      # Check for some SimplifiedSpec lurking around
+      if any(x->(x isa SimplifiedSpec), V)
+        i = findfirst(x->(x isa SimplifiedSpec), V)
+        W = V[i]
+        _, g = identification_maps(W)
+        return ideal(OO(U), pullback(g).(gens(ID[W])))
+      end
+
       length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
                                                         # Just return the unit ideal so that the 
                                                         # associated subscheme is empty.
@@ -630,6 +627,29 @@ identifications given by the glueings in the `default_covering`.
     function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
       haskey(ID, U) && return ID[U]
       V = ambient_scheme(U)
+      # In case the ambient_scheme is leading out of the admissible domain, 
+      # this is a top-chart and we have to reconstruct from below.
+      if !is_open_func(F)(V, space(F)) 
+        V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
+
+        # Check for some SimplifiedSpec lurking around
+        if any(x->(x isa SimplifiedSpec), V)
+          i = findfirst(x->(x isa SimplifiedSpec), V)
+          W = V[i]
+          _, g = identification_maps(W)
+          return ideal(OO(U), pullback(g).(gens(ID[W])))
+        end
+
+        length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+        # Just return the unit ideal so that the 
+        # associated subscheme is empty.
+        result = ideal(OO(U), zero(OO(U)))
+        for VV in V
+          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+        end
+        return result
+      end
+
       IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
@@ -638,6 +658,28 @@ identifications given by the glueings in the `default_covering`.
     function production_func(F::AbsPreSheaf, U::SimplifiedSpec)
       haskey(ID, U) && return ID[U]
       V = original(U)
+      # In case the original is leading out of the admissible domain, 
+      # this is a top-chart and we have to reconstruct from below.
+      if !is_open_func(F)(V, space(F)) 
+        V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
+
+        # Check for some SimplifiedSpec lurking around
+        if any(x->(x isa SimplifiedSpec), V)
+          i = findfirst(x->(x isa SimplifiedSpec), V)
+          W = V[i]
+          _, g = identification_maps(W)
+          return ideal(OO(U), pullback(g).(gens(ID[W])))
+        end
+
+        length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+        # Just return the unit ideal so that the 
+        # associated subscheme is empty.
+        result = ideal(OO(U), zero(OO(U)))
+        for VV in V
+          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+        end
+        return result
+      end
       IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))

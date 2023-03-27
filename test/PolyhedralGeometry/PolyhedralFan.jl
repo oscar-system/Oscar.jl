@@ -1,4 +1,4 @@
-@testset "PolyhedralFan{$T}" for T in [fmpq, nf_elem]
+@testset "PolyhedralFan{$T}" for T in [QQFieldElem, nf_elem]
     C0 = cube(T, 2)
     @test normal_fan(C0) isa PolyhedralFan{T}
     NFsquare = normal_fan(C0)
@@ -20,7 +20,7 @@
     F2NR = PolyhedralFan{T}(R, L, incidence2; non_redundant = true)
 
     @testset "core functionality" begin
-        if T == fmpq
+        if T == QQFieldElem
             @test is_smooth(NFsquare)
             @test vector_matrix(rays(NFsquare)) == matrix(QQ, [1 0; -1 0; 0 1; 0 -1])
         else
@@ -45,7 +45,7 @@
         @test ray_indices(maximal_cones(F1)) == incidence1
         @test n_maximal_cones(F1) == 2
         @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
-        if T == fmpq
+        if T == QQFieldElem
             @test generator_matrix(lineality_space(F2)) == matrix(QQ, L)
             @test matrix(QQ, lineality_space(F2)) == matrix(QQ, L)
         else
@@ -65,7 +65,7 @@
         @test nrays(NF0) == 4
         FF0 = face_fan(C0)
         @test nrays(FF0) == 4
-        if T == fmpq
+        if T == QQFieldElem
             @test !is_smooth(FF0)
         end
         @test f_vector(NFsquare) == [4, 4]

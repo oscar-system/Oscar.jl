@@ -1,19 +1,3 @@
-export
-    AutomorphismGroup,
-    AutomorphismGroupElem,
-    DirectProductGroup,
-    DirectProductOfElem,
-    FPGroup,
-    FPGroupElem,
-    GAPGroupElem,
-    GAPGroupHomomorphism,
-    PcGroup,
-    PcGroupElem,
-    PermGroup,
-    PermGroupElem,
-    SemidirectProductGroup,
-    WreathProductGroup
-
 @doc Markdown.doc"""
     GAPGroup <: AbstractAlgebra.Group
 

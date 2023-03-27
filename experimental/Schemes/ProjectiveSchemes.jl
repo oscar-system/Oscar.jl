@@ -1,13 +1,39 @@
-export ProjectiveScheme, base_ring, fiber_dimension, ambient_coordinate_ring, gens, getindex, affine_patch_type
-export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
-export projective_space, subscheme
-export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, covered_scheme, covered_projection_to_base, dehomogenize
-export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
-export fiber_product, inclusion_morphism, identity_map
-
 export ==
-
+export ProjectiveScheme
+export ProjectiveSchemeMor
+export affine_cone
+export affine_patch_type
+export affine_patch_type
+export ambient_coordinate_ring
+export base_ring
+export base_ring_type
+export base_scheme
+export base_scheme_type
+export codomain
+export covered_projection_to_base
+export covered_scheme
 export covered_scheme_morphism
+export dehomogenize
+export domain
+export fiber_dimension
+export fiber_product
+export frac_to_homog_pair
+export gens
+export getindex
+export homog_to_frac
+export homogeneous_coordinates
+export identity_map
+export images_of_variables
+export inclusion_morphism
+export is_well_defined
+export map_on_affine_cones
+export morphism_type
+export poly_to_homog
+export projection_to_base
+export projective_scheme_type
+export projective_space
+export set_base_scheme!
+export subscheme
 
 ########################################################################
 # Interface for abstract projective schemes                            #
@@ -17,7 +43,7 @@ function base_ring(P::AbsProjectiveScheme)
   return base_ring(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
@@ -36,7 +62,7 @@ end
   return base_scheme(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     affine_cone(X::ProjectiveScheme) 
 
 On ``X ⊂ ℙʳ(𝕜)`` this returns the affine cone ``C(X)⊂ 𝕜ʳ⁺¹`` and similar 
@@ -46,7 +72,7 @@ function affine_cone(P::AbsProjectiveScheme)
   return affine_cone(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     homog_to_frac(X::ProjectiveScheme) 
 
 Returns a map that converts a polynomial in the 
@@ -57,7 +83,7 @@ function homog_to_frac(P::AbsProjectiveScheme)
   return homog_to_frac(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     poly_to_homog(X::ProjectiveScheme)
 
 Return a map that converts an element of the `ambient_coordinate_ring` 
@@ -68,7 +94,7 @@ function poly_to_homog(P::AbsProjectiveScheme)
   return poly_to_homog(underlying_scheme(P))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     frac_to_homog_pair(X::ProjectiveScheme)
 
 Return a map that converts an element ``f = p/q`` of the ring of 
@@ -102,15 +128,15 @@ projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     base_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A``.
 """
 base_ring(P::ProjectiveScheme) = P.A
 
-@Markdown.doc """
-    base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+@doc Markdown.doc"""
+    base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocRing, CRET, RT, RET}
 
 Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined over a field ``𝕜``.
 """
@@ -134,28 +160,28 @@ function set_base_scheme!(
   return P
 end
 
-function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing, <:SpecOpenRing}, CRET, RT, RET}
+function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing, <:SpecOpenRing}, CRET, RT, RET}
   if !isdefined(X, :projection_to_base)
     affine_cone(X)
   end
   return X.projection_to_base
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     fiber_dimension(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``r``.
 """
 fiber_dimension(P::ProjectiveScheme) = P.r
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_coordinate_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
 ambient_coordinate_ring(P::ProjectiveScheme) = P.S
 
-@Markdown.doc """
+@doc Markdown.doc"""
     homogeneous_coordinates(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns a vector with the homogeneous 
@@ -171,7 +197,7 @@ end
 
 homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
 
-@Markdown.doc """
+@doc Markdown.doc"""
     defining_ideal(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns the homogeneous 
@@ -183,7 +209,7 @@ function Base.show(io::IO, P::ProjectiveScheme)
   print(io, "subscheme of ℙ^$(fiber_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
 end
 
-function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
+function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyDecRingElem}
   S = ambient_coordinate_ring(P)
   parent(f) == S || error("ring element does not belong to the correct ring")
   Q = ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)), [f])))
@@ -193,7 +219,7 @@ function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MP
   return Q
 end
 
-function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
+function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyDecRingElem}
   length(f) == 0 && return P #TODO: Replace P by an honest copy!
   S = ambient_coordinate_ring(P)
   for i in 1:length(f)
@@ -218,7 +244,7 @@ end
 
 function projective_space(A::CoeffRingType, var_symb::Vector{Symbol}) where {CoeffRingType<:Ring}
   n = length(var_symb)
-  R, _ = PolynomialRing(A, var_symb)
+  R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
   I = ideal(S, [zero(S)])
   return ProjectiveScheme(S, I)
@@ -228,7 +254,7 @@ projective_space(A::CoeffRingType, var_names::Vector{String}) where {CoeffRingTy
 
 
 function projective_space(A::CoeffRingType, r::Int; var_name::String="s") where {CoeffRingType<:Ring}
-  R, _ = PolynomialRing(A, [var_name*"$i" for i in 0:r])
+  R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
   I = ideal(S, [zero(S)])
   return ProjectiveScheme(S, I)
@@ -275,9 +301,9 @@ end
 
     
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105
-Generic.ordering(S::MPolyRing_dec) = :degrevlex
+Generic.ordering(S::MPolyDecRing) = :degrevlex
 
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{MPolyRing, MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}, CRET, RT, RET}
   if !isdefined(X, :C)
     Y = base_scheme(X)
     A = OO(Y)
@@ -315,7 +341,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{
   return X.C
 end
 
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuo, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoRing, CRET, RT, RET}
   if !isdefined(X, :C)
     A = base_ring(X)
     R = base_ring(A)
@@ -358,7 +384,7 @@ function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
   return ideal(codomain(f), [f(g) for g in gens(I)])
 end
 
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyLocalizedRing, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyLocRing, CRET, RT, RET}
   if !isdefined(X, :C)
     A = base_ring(X)
     Y = base_scheme(X)
@@ -395,7 +421,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyL
   return X.C
 end
     
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocRing, CRET, RT, RET}
   if !isdefined(X, :C)
     A = base_ring(X)
     Y = base_scheme(X)
@@ -433,7 +459,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
 end
     
 # assure compatibility with generic code for MPolyQuos:
-lift(f::MPolyElem) = f
+lift(f::MPolyRingElem) = f
 
 function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Ring, CRET, RT, RET}
   if !isdefined(X, :C)
@@ -498,7 +524,7 @@ end
 function ProjectiveSchemeMor(
     X::AbsProjectiveScheme, 
     Y::AbsProjectiveScheme, 
-    a::Vector{<:MPolyElem_dec}
+    a::Vector{<:MPolyDecRingElem}
   )
   base_ring(X) === base_ring(Y) || error("projective schemes must be defined over the same base ring")
   Q = ambient_coordinate_ring(X)
@@ -507,7 +533,7 @@ function ProjectiveSchemeMor(
 end
 
 # in case we have honest base schemes, also make the map of schemes available
-function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocalizedRing}})
+function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocRing}})
   if !isdefined(phi, :map_on_base_schemes)
     phi.map_on_base_schemes = SpecMor(base_scheme(domain(phi)), base_scheme(codomain(phi)), coefficient_map(pullback(phi)))
   end
@@ -515,7 +541,7 @@ function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocal
 end
 
 function map_on_affine_cones(
-    phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}};
+    phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}};
     check::Bool=true
   )
   if !isdefined(phi, :map_on_affine_cones)
@@ -603,8 +629,8 @@ function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
   return true
 end
 
-function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}}, 
-            g::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}}) 
+function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}}, 
+            g::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}}) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   return map_on_affine_cones(f) == map_on_affine_cones(g)
@@ -626,7 +652,7 @@ end
 
 function fiber_product(
     f::AbsSpecMor, 
-    P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}
+    P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   )
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
   X = domain(f)
@@ -649,20 +675,20 @@ function fiber_product(
 end
 
 fiber_product(X::AbsSpec, 
-              P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}
+              P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
              ) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
 
 ### canonical map constructors
 
-@Markdown.doc """
+@doc Markdown.doc"""
     inclusion_morphism(P::T, Q::T)
 
 Assuming that ``P ⊂ Q`` is a subscheme, both proper over an inclusion of 
 their base schemes, this returns the associated `ProjectiveSchemeMor`.
 """
 function inclusion_morphism(
-    P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}},
-    Q::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}
+    P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}},
+    Q::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   )
   X = base_scheme(P)
   Y = base_scheme(Q)
@@ -695,7 +721,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                            )
                                                        )
 
-@Markdown.doc """
+@doc Markdown.doc"""
     covered_scheme(P::ProjectiveScheme)
     
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
@@ -704,7 +730,7 @@ Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to
 obtain the dehomogenization map from the `ambient_coordinate_ring` of `P` 
 to the `coordinate_ring` of `U`.
 
-# Example
+# Examples
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 
@@ -712,13 +738,13 @@ julia> Pcov = covered_scheme(P)
 covered scheme with 3 affine patches in its default covering
 ```
 """
-@attr function covered_scheme(P::ProjectiveScheme)
+@attr AbsCoveredScheme function covered_scheme(P::ProjectiveScheme)
     C = standard_covering(P) 
     X = CoveredScheme(C)
     return X
 end
 
-@attr function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyQuo, <:MPolyRing}})
+@attr function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyQuoRing, <:MPolyRing}})
   if !has_attribute(X, :covering_projection_to_base) 
     C = standard_covering(X)
   end
@@ -745,7 +771,7 @@ function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     i::Int
   ) where {
-    CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
+    CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = ambient_coordinate_ring(X)
@@ -760,7 +786,7 @@ function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     U::AbsSpec
   ) where {
-    CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
+    CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
   return dehomogenize(X, X[U][2]-1)
 end
@@ -784,7 +810,7 @@ one of the homogeneous coordinates of ``P``.
 is not a mathematical morphism and, hence, in particular 
 not an instance of `Hecke.Map`.
 
-**Note:** Since `FractionField` relies on some implementation 
+**Note:** Since `fraction_field` relies on some implementation 
 of division for the elements, we can not return the fraction 
 directly. 
 """
@@ -798,7 +824,7 @@ function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
   # Find the chart where a belongs to
   X = covered_scheme(P)
   i = findfirst(V->(U===V), affine_charts(X))
-  i == nothing && error("the given affine scheme is not one of the standard affine charts")
+  i === nothing && error("the given affine scheme is not one of the standard affine charts")
   
   # Determine those variables which come from the homogeneous 
   # coordinates
@@ -845,12 +871,12 @@ function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
 end
 
 @doc Markdown.doc"""
-    total_degree(f::MPolyElem, w::Vector{Int})
+    total_degree(f::MPolyRingElem, w::Vector{Int})
 
 Given a multivariate polynomial `f` and a weight vector `w` 
 return the total degree of `f` with respect to the weights `w`.
 """
-function total_degree(f::MPolyElem, w::Vector{Int})
+function total_degree(f::MPolyRingElem, w::Vector{Int})
   x = gens(parent(f))
   n = length(x)
   n == length(w) || error("weight vector does not have the correct length")
@@ -874,7 +900,7 @@ function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     U::AbsSpec
   ) where {
-    CRT<:MPolyQuoLocalizedRing
+    CRT<:MPolyQuoLocRing
   }
   # look up U in the coverings of X
   cover_of_U, index_of_U = X[U]
@@ -917,7 +943,7 @@ end
 # This is terribly slow in all kinds of quotient rings 
 # because of massive checks for `iszero` due to memory 
 # management.
-function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:Nothing})(a::MPolyElem)
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:Nothing})(a::MPolyRingElem)
   if !has_attribute(f, :lifted_map)
     S = domain(f)
     W = codomain(f)
@@ -929,7 +955,7 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:Nothing})
   return codomain(f)(g(a), check=false)
 end
 
-function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:MPolyQuoLocalizedRingHom})(a::MPolyElem)
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocalizedRingHom})(a::MPolyRingElem)
   if !has_attribute(f, :lifted_map)
     S = domain(f)
     W = codomain(f)
@@ -941,9 +967,9 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:MPolyQuoL
   return codomain(f)(g(a), check=false)
 end
 
-gens(A::MPolyRing_dec, i::Int) = A[i]
+gens(A::MPolyDecRing, i::Int) = A[i]
 
-@Markdown.doc """
+@doc Markdown.doc"""
     covered_scheme_morphism(f::ProjectiveSchemeMor)
 
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
@@ -988,3 +1014,30 @@ of ``X`` and ``Y``, respectively.
   ff = CoveredSchemeMorphism(X, Y, phi)
   return ff
 end
+
+# Basic functionality required for Warham
+@attr Int function dim(P::AbsProjectiveScheme{<:Field})
+  return dim(defining_ideal(P))-1
+end
+
+@attr MPolyQuoRing function affine_algebra(P::AbsProjectiveScheme)
+  return quo(ambient_coordinate_ring(P), defining_ideal(P))[1]
+end
+
+@attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
+  return hilbert_polynomial(affine_algebra(P))
+end
+
+@attr ZZRingElem function degree(P::AbsProjectiveScheme{<:Field})
+  return degree(affine_algebra(P))
+end
+
+@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+  h = hilbert_polynomial(P)
+  return (-1)^dim(P) * (first(coefficients(h)) - 1)
+end
+
+@attr Bool function is_smooth(P::AbsProjectiveScheme)
+  return is_smooth(covered_scheme(P))
+end
+

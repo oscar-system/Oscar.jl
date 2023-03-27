@@ -46,12 +46,12 @@ function magic_square_generators(n::Int)
   #next step requires quotient rings (and possibly subquotient rings)
 end
 
-function Oscar.matrix(::FlintIntegerRing, M::Polymake.MatrixAllocated{Polymake.Integer})
+function Oscar.matrix(::ZZRing, M::Polymake.MatrixAllocated{Polymake.Integer})
   s = size(M)
   N = zero_matrix(ZZ, s[1], s[2]-1)
   for i=1:s[1]
     for j=2:s[2]
-      N[i, j-1] = fmpz(M[i,j])
+      N[i, j-1] = ZZRingElem(M[i,j])
     end
   end
   return N

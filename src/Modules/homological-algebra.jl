@@ -1,4 +1,3 @@
-export depth, fitting_ideal, is_flat, is_regular_sequence, koszul_homology, non_flat_locus 
 
 ###############################################################################
 # functionality supporting computations in homological algebra.
@@ -12,13 +11,13 @@ export depth, fitting_ideal, is_flat, is_regular_sequence, koszul_homology, non_
 ##############################################################################
 
 @doc Markdown.doc"""
-     fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem 
+     fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem 
 
 Return the `i`-th Fitting ideal of `M`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = free_module(R, 2);
 
@@ -54,24 +53,20 @@ julia> fitting_ideal(M, 2)
 ideal(1)
 ```
 """
-function fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyElem
+function fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function fitting_ideal(F::FreeMod{T}, i::Int) where T <: MPolyElem
+function fitting_ideal(F::FreeMod{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  if i < rank(F) return ideal(R, [zero(R)]) end
  return R
 end
 
-function fitting_ideal(M::SubQuo{T}, i::Int) where T <: MPolyElem
+function fitting_ideal(M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
@@ -86,13 +81,13 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-     is_flat(M::ModuleFP{T}) where T <: MPolyElem 
+     is_flat(M::ModuleFP{T}) where T <: MPolyRingElem 
 
 Return `true` if `M` is flat, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = free_module(R, 2);
 
@@ -119,23 +114,19 @@ julia> is_flat(M)
 false
 ```
 """
-function is_flat(M::ModuleFP{T}) where T <: MPolyElem
+function is_flat(M::ModuleFP{T}) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function is_flat(F::FreeMod{T}) where T <: MPolyElem
+function is_flat(F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  return true
 end
 
-function is_flat(M::SubQuo{T}) where T <: MPolyElem
+function is_flat(M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
@@ -145,7 +136,7 @@ function is_flat(M::SubQuo{T}) where T <: MPolyElem
 end
 
 @doc Markdown.doc"""
-     non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem 
+     non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem 
 
 Return an ideal of `base_ring(M)` which defines the non-flat-locus of `M`
 in the sense that the localization of `M` at a prime ideal of `base_ring(M)`
@@ -153,7 +144,7 @@ is non-flat iff the prime ideal contains the returned ideal.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = free_module(R, 2);
 
@@ -180,23 +171,19 @@ julia> non_flat_locus(M)
 ideal(x^3 - y^2)
 ```
 """
-function non_flat_locus(M::ModuleFP{T}) where T <: MPolyElem
+function non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function non_flat_locus(F::FreeMod{T}) where T <: MPolyElem
+function non_flat_locus(F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  return ideal(R, [one(R)])
 end
 
-function non_flat_locus(M::SubQuo{T}) where T <: MPolyElem
+function non_flat_locus(M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
  U = C.quo
  SG = singular_generators(U.gens)
@@ -210,19 +197,19 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-     is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
+     is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 
 Return `true` if the elements of `V` form, in the given order, a regular sequence on `M`.
 Return `false`, otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
 julia> V =  [x*z-z, x*y-y, x]
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x*z - z
  x*y - y
  x
@@ -231,7 +218,7 @@ julia> is_regular_sequence(V, F)
 false
 
 julia> W = [x*z-z, x, x*y-y]
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x*z - z
  x
  x*y - y
@@ -240,15 +227,13 @@ julia> is_regular_sequence(W, F)
 true
 ```
 """
-function is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyElem
+function is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function is_regular_sequence(V::Vector{T}, F::FreeMod{T}) where T <: MPolyElem
+function is_regular_sequence(V::Vector{T}, F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -260,11 +245,9 @@ function is_regular_sequence(V::Vector{T}, F::FreeMod{T}) where T <: MPolyElem
  return false
 end
 
-function is_regular_sequence(V::Vector{T}, M::SubQuo{T}) where T <: MPolyElem
+function is_regular_sequence(V::Vector{T}, M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -284,7 +267,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-     koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyElem
+     koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the `p`-th homology 
 module of the complex $K(f_1, \dots, f_r)\otimes_R M$, where $K(f_1, \dots, f_r)$ is the
@@ -295,12 +278,12 @@ module of the complex $K(f_1, \dots, f_r)\otimes_R M$, where $K(f_1, \dots, f_r)
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 1);
 
 julia> V =  [x*y, x*z, y*z]
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  x*y
  x*z
  y*z
@@ -326,7 +309,7 @@ represented as subquotient with no relations.
 ```
 
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> TC = ideal(R, [x*z-y^2, w*z-x*y, w*y-x^2]);
 
@@ -352,15 +335,13 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 ```
 """
-function koszul_homology(V::Vector{T}, M::ModuleFP{T}, i::Int) where T <: MPolyElem
+function koszul_homology(V::Vector{T}, M::ModuleFP{T}, i::Int) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyElem
+function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(F)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -371,14 +352,12 @@ function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyEle
  FFF = free_module(R, rank(SU))
  MG = ModuleGens(FFF, SU)
  UO = SubModuleOfFreeModule(FFF, MG)
- return SubQuo(UO)
+ return SubquoModule(UO)
 end
 
-function koszul_homology(V::Vector{T}, M::SubQuo{T}, i::Int) where T <: MPolyElem
+function koszul_homology(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
- if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
  @assert all(x->parent(x) == R, V)
  I = ideal(R, V)
@@ -390,7 +369,7 @@ function koszul_homology(V::Vector{T}, M::SubQuo{T}, i::Int) where T <: MPolyEle
  FFF = free_module(R, rank(SU))
  MG = ModuleGens(FFF, SU)
  UO = SubModuleOfFreeModule(FFF, MG)
- return SubQuo(UO)
+ return SubquoModule(UO)
 end
 
 ##############################################################################
@@ -400,13 +379,13 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-     depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
+     depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 
 Return the depth of `I` on `M`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> TC = ideal(R, [x*z-y^2, w*z-x*y, w*y-x^2]);
 
@@ -427,16 +406,16 @@ julia> depth(I, M)
 ```
 
 ```jldoctest
-julia> S, x, y = PolynomialRing(QQ, "x" => 1:3, "y" => 1:5);
+julia> S, x, y = polynomial_ring(QQ, "x" => 1:3, "y" => 1:5);
 
 julia> W = [y[1]-x[1]^2,  y[2]-x[2]^2,   y[3]-x[3]^2, y[4]-x[2]*(x[1]-x[3]),  y[5]-(x[1]-x[2])*x[3]];
 
 julia> J = eliminate(ideal(S, W), x);
 
-julia> R, y = PolynomialRing(QQ, "y" => 1:5);
+julia> R, y = polynomial_ring(QQ, "y" => 1:5);
 
 julia> W = append!(repeat([zero(R)], 3), gens(R))
-8-element Vector{fmpq_mpoly}:
+8-element Vector{QQMPolyRingElem}:
  0
  0
  0
@@ -466,14 +445,13 @@ julia> depth(I, M)
 1
 ```
 """
-function depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyElem
+function depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyElem
- if !(coefficient_ring(base_ring(I)) isa AbstractAlgebra.Field)
-    throw(ArgumentError("The coefficient ring must be a field."))
- end
+function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
+ R = base_ring(I)
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(F)
  if is_zero(F) || is_equal((I*F)[1], F) return -1 end
  MX = singular_module(F)
@@ -482,10 +460,9 @@ function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyElem
  return Singular.LibHomolog.depth(SG, I.gens.S)
 end
 
-function depth(I::MPolyIdeal{T}, M::SubQuo{T}) where T <: MPolyElem
- if !(coefficient_ring(base_ring(I)) isa AbstractAlgebra.Field)
-   throw(ArgumentError("The coefficient ring must be a field."))
- end
+function depth(I::MPolyIdeal{T}, M::SubquoModule{T}) where T <: MPolyRingElem
+ R = base_ring(I)
+ @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(M)
  if is_zero(M) || is_equal((I*M)[1], M) return -1 end
  singular_assure(I)
@@ -495,4 +472,103 @@ function depth(I::MPolyIdeal{T}, M::SubQuo{T}) where T <: MPolyElem
  return Singular.LibHomolog.depth(SG, I.gens.S)
 end
 
+##############################################################################
+#
+# Koszul Complex
+#
+##############################################################################
+
+@doc Markdown.doc"""
+     koszul_matrix(V::Vector{T}, p::Int) where T <: MPolyRingElem
+
+If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the matrix representing
+the `p`-th map of the Koszul complex $K(f_1, \dots, f_r)$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> V = gens(R)
+3-element Vector{QQMPolyRingElem}:
+ x
+ y
+ z
+
+julia> koszul_matrix(V, 3)
+[z   -y   x]
+
+julia> koszul_matrix(V, 2)
+[-y    x   0]
+[-z    0   x]
+[ 0   -z   y]
+
+julia> koszul_matrix(V, 1)
+[x]
+[y]
+[z]
+```
+"""
+function koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyRingElem
+  @assert 1 <= i <= length(V)
+  R = parent(V[1])
+  @assert all(x->parent(x) == R, V)
+  I = ideal(R, V)
+  singular_assure(I)
+  return transpose(map_entries(R, Singular.LibHomolog.KoszulMap(I.gens.S, i)))
+end
+
+@doc Markdown.doc"""
+     koszul_complex(V::Vector{T}) where T <: MPolyRingElem
+
+If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the Koszul complex $K(f_1, \dots, f_r)$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> V = gens(R)
+3-element Vector{QQMPolyRingElem}:
+ x
+ y
+ z
+
+julia> K = koszul_complex(V);
+
+julia> matrix(map(K, 2))
+[-y    x   0]
+[-z    0   x]
+[ 0   -z   y]
+
+julia> Kd = hom(K, free_module(R, 1));
+
+julia> matrix(map(Kd, 1))
+[-y   -z    0]
+[ x    0   -z]
+[ 0    x    y]
+```
+"""
+function koszul_complex(V::Vector{T}) where T <: MPolyRingElem
+  R  = parent(V[1])
+  @assert all(x->parent(x) == R, V)
+  n = length(V)
+  KM = [koszul_matrix(V, i) for i=n:-1:1]
+  
+  F = free_module(R, 0)
+  G = free_module(R, 1)
+  delta = hom(F, G, zero_matrix(R, rank(F), rank(G)))
+  KK = [delta]
+  
+  for i=1:n
+       F = codomain(delta)
+       G = free_module(R, ncols(KM[i]))
+       delta = hom(F, G, KM[i])
+       push!(KK, delta)
+  end
+
+  F = G
+  G = free_module(R, 0)
+  push!(KK, hom(F, G, zero_matrix(R, rank(F), rank(G))))
+    
+  return chain_complex(KK, seed = -1)
+end
 

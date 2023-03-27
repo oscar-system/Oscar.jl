@@ -1,12 +1,20 @@
-export WeilDivisor, weil_divisor
-export scheme_type, ideal_sheaf_type, coefficient_ring_type, coefficient_type
-export scheme, components, coefficient_dict, coefficient_ring
+export LinearSystem
+export WeilDivisor
+export coefficient_dict
+export coefficient_ring
+export coefficient_ring_type
+export coefficient_type
+export components
+export divisor
+export ideal_sheaf_type
 export in_linear_system
+export linear_system
+export scheme
+export scheme_type
+export subsystem
+export weil_divisor
 
-export LinearSystem, linear_system
-export divisor, subsystem
-
-@Markdown.doc """
+@doc Markdown.doc"""
     WeilDivisor
 
 A Weil divisor on an integral separated `AbsCoveredScheme` ``X``; 
@@ -17,10 +25,8 @@ stored as a formal linear combination over some ring ``R`` of
     CoveredSchemeType<:AbsCoveredScheme, 
     CoefficientRingType<:AbstractAlgebra.Ring, 
     CoefficientRingElemType<:AbstractAlgebra.RingElem
-   }
-  X::CoveredSchemeType # the parent
-  R::CoefficientRingType # the ring of coefficients
-  coefficients::IdDict{IdealSheaf, CoefficientRingElemType} # the formal linear combination
+   } <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType}
+  C::AlgebraicCycle{CoveredSchemeType, CoefficientRingType, CoefficientRingElemType}
 
   function WeilDivisor(
       X::AbsCoveredScheme,
@@ -28,23 +34,29 @@ stored as a formal linear combination over some ring ``R`` of
       coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
-    # TODO: Do we want to require that the different effective divisors 
-    # have the same underlying covering? Probably not.
-    for D in keys(coefficients)
-      space(D) === X || error("component of divisor does not lie in the given scheme")
-      parent(coefficients[D]) === R || error("coefficients do not lie in the given ring")
-    end
     if check
-      is_integral(X) || error("scheme must be integral") # activate once the test is implemented!
-      #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
-    return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
+    return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(AlgebraicCycle(X, R, coefficients, check=check))
+  end
+
+  function WeilDivisor(C::AlgebraicCycle; check::Bool=true)
+    X = scheme(C)
+    if check
+      for D in keys(coefficient_dict(C))
+        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
+      end
+    end
+    return new{typeof(X), coefficient_ring_type(C), coefficient_ring_elem_type(C)}(C)
   end
 end
+
+### forwarding of all essential functionality
+underlying_cycle(D::WeilDivisor) = D.C
 
 @attr function dim(I::IdealSheaf)
   dims = [dim(I(U)) for U in affine_charts(scheme(I))]
@@ -59,36 +71,8 @@ coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
 coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
-### getter methods
-@Markdown.doc """
-    scheme(D::WeilDivisor)
 
-Return the `CoveredScheme` ``X`` on which `D` is defined.
-"""
-scheme(D::WeilDivisor) = D.X
-
-getindex(D::WeilDivisor, I::IdealSheaf) = (D.coefficients)[I]
-
-@Markdown.doc """
-    components(D::WeilDivisor)
-
-Return the irreducible components ``Eⱼ`` of the divisor 
-``D = Σⱼ aⱼ ⋅ Eⱼ``.
-"""
-components(D::WeilDivisor) = [ Z for Z in keys(D.coefficients)]
-coefficient_dict(D::WeilDivisor) = D.coefficients
-coefficient_ring(D::WeilDivisor) = D.R
-
-set_name!(X::WeilDivisor, name::String) = set_attribute!(X, :name, name)
-name(X::WeilDivisor) = get_attribute(X, :name)::String
-has_name(X::WeilDivisor) = has_attribute(X, :name)
-
-function setindex!(D::WeilDivisor, c::RingElem, I::IdealSheaf)
-  parent(c) === coefficient_ring(D) || error("coefficient does not belong to the correct ring")
-  coefficient_dict(D)[I] = c
-end
-
-@Markdown.doc """
+@doc Markdown.doc"""
     WeilDivisor(X::CoveredScheme, R::Ring)
 
 Return the zero `WeilDivisor` over `X` with coefficients 
@@ -99,15 +83,19 @@ function WeilDivisor(X::AbsCoveredScheme, R::Ring)
   return WeilDivisor(X, R, D)
 end
 
+function zero(W::WeilDivisor)
+  return WeilDivisor(scheme(W), coefficient_ring(W))
+end
+
 # provide non-camelcase methods
-@Markdown.doc """
+@doc Markdown.doc"""
     weil_divisor(X::AbsCoveredScheme, R::Ring)
 
 See the documentation for `WeilDivisor`.
 """
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     WeilDivisor(I::IdealSheaf, R::Ring)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
@@ -121,7 +109,7 @@ end
 
 weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     WeilDivisor(I::IdealSheaf)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
@@ -163,50 +151,17 @@ function Base.show(io::IO, D::WeilDivisor)
 end
 
 function +(D::T, E::T) where {T<:WeilDivisor}
-  X = scheme(D)
-  X === scheme(E) || error("divisors do not live on the same scheme")
-  R = coefficient_ring(D)
-  R === coefficient_ring(E) || error("coefficient rings do not coincide")
-  dict = IdDict{IdealSheaf, elem_type(R)}()
-  for I in keys(coefficient_dict(D))
-    dict[I] = D[I]
-  end
-  for I in keys(coefficient_dict(E))
-    if haskey(dict, I)
-      c = D[I] + E[I]
-      if iszero(c) 
-        delete!(dict, I)
-      else 
-        dict[I] = c
-      end
-    else
-      dict[I] = E[I]
-    end
-  end
-  return WeilDivisor(X, R, dict, check=false)
+  return WeilDivisor(underlying_cycle(D) + underlying_cycle(E), check=false)
 end
 
 function -(D::T) where {T<:WeilDivisor}
-  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
-  for I in keys(coefficient_dict(D))
-    dict[I] = -D[I]
-  end
-  return WeilDivisor(scheme(D), coefficient_ring(D), dict, check=false)
+  return WeilDivisor(-underlying_cycle(D), check=false)
 end
 
 -(D::T, E::T) where {T<:WeilDivisor} = D + (-E)
 
 function *(a::RingElem, E::WeilDivisor)
-  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(E))}()
-  for I in keys(coefficient_dict(E))
-    c = a*E[I]
-    if iszero(c)
-      delete!(dict, I)
-    else
-      dict[I] = c
-    end
-  end
-  return WeilDivisor(scheme(E), coefficient_ring(E), dict, check=false)
+  return WeilDivisor(a*underlying_cycle(E), check=false)
 end
 
 *(a::Int, E::WeilDivisor) = coefficient_ring(E)(a)*E
@@ -215,18 +170,7 @@ end
 +(D::WeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
 
 function ==(D::WeilDivisor, E::WeilDivisor) 
-  keys(coefficient_dict(D)) == keys(coefficient_dict(E)) || return false
-  for I in keys(coefficient_dict(D))
-    if haskey(coefficient_dict(E), I)
-      D[I] == E[I] || return false
-    else
-      iszero(D[I]) || return false
-    end
-  end
-  for I in keys(coefficient_dict(E))
-    !(I in keys(coefficient_dict(D))) && !(iszero(E[I])) && return false
-  end
-  return true
+  return underlying_cycle(D) == underlying_cycle(E)
 end
 
 #function intersection(D::T, E::T) where {T<:WeilDivisor}
@@ -251,7 +195,7 @@ end
 #  # TODO: Work out the intersection
 #end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
 
 Returns `true` if the rational function `f` is in the linear system ``|D|``
@@ -276,7 +220,7 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bo
   return true
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     LinearSystem
 
 A linear system of a Weil divisor `D` on a variety `X`, 
@@ -304,7 +248,7 @@ end
 linear_system(f::Vector, D::WeilDivisor; check::Bool=true) = LinearSystem(f, D, check=check)
 
 ### essential getters 
-@Markdown.doc """
+@doc Markdown.doc"""
     weil_divisor(L::LinearSystem)
 
 Return the divisor `D` of the linear system `L = |D|`.
@@ -314,7 +258,7 @@ function weil_divisor(L::LinearSystem)
 end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
-@Markdown.doc """
+@doc Markdown.doc"""
     variety(L::LinearSystem)
 
 Return the variety on which `L` is defined.
@@ -323,7 +267,7 @@ variety(L::LinearSystem) = scheme(weil_divisor(L))
 # an alias for the user's convenience 
 scheme(L::LinearSystem) = variety(L)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     subsystem(L::LinearSystem, P::IdealSheaf, n::Int) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
@@ -353,7 +297,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   loc_rep = [g[U] for g in gens(L)]
   common_denominator = gcd([denominator(g) for g in loc_rep])
   numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
-  RP, _ = Localization(R, complement_of_ideal(saturated_ideal(P(U))))
+  RP, _ = Localization(R, complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
@@ -370,7 +314,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   kk = base_ring(X)
-  A = zero(MatrixSpace(kk, ngens(L), length(all_mons)))
+  A = zero(matrix_space(kk, ngens(L), length(all_mons)))
   for i in 1:ngens(L)
     for (c, m) in zip(coefficients(images[i]), monomials(images[i]))
       k = findfirst(x->(x==m), all_mons)

@@ -21,7 +21,7 @@ function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 end
 
 @testset "Basic degree and homogeneity tests for free modules" begin
-    Qx, x = PolynomialRing(QQ, 3)
+    Qx, x = polynomial_ring(QQ, 3)
     R, x = grade(Qx)
     F = FreeMod_dec(R, 3) #standard grading
 
@@ -36,7 +36,7 @@ end
     @test D[2*decoration(R)[1]] == x[2]^2*F[2]
 
     g = abelian_group(2,0)
-    Qx, x = PolynomialRing(QQ, 2)
+    Qx, x = polynomial_ring(QQ, 2)
     R, x = grade(Qx, [g[1], g[2]])
     F = FreeMod_dec(R, [g[2], g[1], g[1]-2*g[2]])
 
@@ -53,7 +53,7 @@ end
 
     # Filtered case
     Z = abelian_group(0)
-    Qx, x = PolynomialRing(QQ, 2)
+    Qx, x = polynomial_ring(QQ, 2)
     R, x = filtrate(Qx, [Z[1], Z[1]], (x,y) -> x[1] > y[1])
     F = FreeMod_dec(R, 2)
     @test !is_homogeneous(x[1]*F[1] + x[2]^3*F[2])
@@ -62,7 +62,7 @@ end
 
 @testset "Tensor product of decorated free modules" begin
     Z = abelian_group(0)
-    Qx, x = PolynomialRing(QQ, 3)
+    Qx, x = polynomial_ring(QQ, 3)
     R, x = grade(Qx, [Z[1], 5*Z[1], -Z[1]])
     F2 = FreeMod_dec(R, [Z[0], Z[1]])
     F3 = FreeMod_dec(R, [Z[1], -2*Z[1], Z[0]])
@@ -81,7 +81,7 @@ end
 
 @testset "Hom module for decorated free modules" begin
     Z = abelian_group(0)
-    Qx, x = PolynomialRing(QQ, 3)
+    Qx, x = polynomial_ring(QQ, 3)
     R, x = grade(Qx, [Z[1] for _ in 1:3])
     F = FreeMod_dec(R, [Z[1], 2*Z[1]])
     G = FreeMod_dec(R, [Z[1], 2*Z[1], 3*Z[1]])

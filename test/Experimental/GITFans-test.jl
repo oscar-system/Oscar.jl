@@ -16,7 +16,7 @@
      0  0   0   0   1 ];
 
     n = size(Q, 1)
-    Qt, T = Oscar.PolynomialRing(Oscar.QQ, :T => 1:n)
+    Qt, T = Oscar.polynomial_ring(Oscar.QQ, :T => 1:n)
     D = free_abelian_group(size(Q,2))
     w = [D(Q[i, :]) for i = 1:n]
     R = grade(Qt, w)
@@ -33,7 +33,7 @@
     G, emb = sub([sym10(x) for x in perms_list]...);
 
     fanobj = GITFans.git_fan(a, Q, G)
-    @test fanobj.F_VECTOR == [20, 110, 240, 225, 76]
+    @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
     collector_cones = GITFans.orbit_cones(a, Q, G)
     matrix_action = GITFans.action_on_target(Q, G)
@@ -64,7 +64,7 @@
     full_intergraph = Polymake.graph.graph_from_edges(collect(full_edges));
 
     fanobj = GITFans.hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
-    @test fanobj.F_VECTOR == [20, 110, 240, 225, 76]
+    @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
 #   # Now try the construction with trivial symmetry group.
 #   G2 = trivial_subgroup(G)[1]
@@ -83,7 +83,7 @@ end
 
     nr_variables = 4
     vars_strings = map( i -> "x"*string(i), 1:nr_variables )
-    R, T = PolynomialRing(QQ,vars_strings)
+    R, T = polynomial_ring(QQ,vars_strings)
     ideal_gens = [
         T[1]^2*T[2]*T[3]^2*T[4]^2+T[1]^2*T[2]^2*T[3],
         2*T[1]*T[2]^2*T[3]^2*T[4]+T[1]*T[3]^2*T[4]^2-T[1]^2,

@@ -15,43 +15,52 @@ function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
     return false
   end
 
-  throw(ErrorException("Error parsing boolean string: $str"))
+  error("Error parsing boolean string: $str")
 end
 
 ################################################################################
-# fmpz
-@registerSerializationType(fmpz)
+# ZZRingElem
+@registerSerializationType(ZZRingElem)
 
-function save_internal(s::SerializerState, z::fmpz)
+function save_internal(s::SerializerState, z::ZZRingElem)
     return string(z)
 end
 
-function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
-    return fmpz(str)
+function load_internal(s::DeserializerState, ::Type{ZZRingElem}, str::String)
+    return ZZRingElem(str)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{fmpz},
+                                   ::Type{ZZRingElem},
                                    str::String,
-                                   parent::FlintIntegerRing)
-    return parent(fmpz(str))
+                                   parent::ZZRing)
+    return parent(ZZRingElem(str))
 end
 
 ################################################################################
-# fmpq
-@registerSerializationType(fmpq)
+# QQFieldElem
+@registerSerializationType(QQFieldElem)
 
-function save_internal(s::SerializerState, q::fmpq)
-    return Dict(
-        :num => save_type_dispatch(s, numerator(q)),
-        :den => save_type_dispatch(s, denominator(q))
-    )
+function save_internal(s::SerializerState, q::QQFieldElem)
+    return string(q)
 end
 
-function load_internal(s::DeserializerState, ::Type{fmpq}, q::Dict)
-    return fmpq(load_type_dispatch(s, fmpz, q[:num]),
-                load_type_dispatch(s, fmpz, q[:den]))
+function load_internal(s::DeserializerState, ::Type{QQFieldElem}, q::String)
+    # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
+    # is merged and in a Nemo release
+    fraction_parts = collect(map(String, split(q, "//")))
+    fraction_parts = [ZZRingElem(s) for s in fraction_parts]
+
+    return QQFieldElem(fraction_parts...)
 end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{QQFieldElem},
+                                   str::String,
+                                   parent::QQField)
+    return parent(load_internal(s, QQFieldElem, str))
+end
+
 
 ################################################################################
 # Number

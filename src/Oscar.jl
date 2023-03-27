@@ -13,7 +13,7 @@ into a comprehensive tool for computational algebra.
 
   For more information please visit
 
-  `https://oscar.computeralgebra.de`
+  `https://www.oscar-system.org`
 
 OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
@@ -22,11 +22,6 @@ module Oscar
 using Preferences
 
 include("imports.jl")
-
-# to allow access to the cornerstones! Otherwise, not even import or using from the
-# user level will work as none of them will have been "added" by the user.
-# possibly all should add a doc string to the module?
-export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
@@ -126,17 +121,56 @@ windows_error() = error("""
 
     This package unfortunately does not run natively under Windows.
     Please install Julia using Windows subsystem for Linux and try again.
-    See also https://oscar.computeralgebra.de/install/.
+    See also https://www.oscar-system.org/install/.
     """)
 
 if Sys.iswindows()
   windows_error()
 end
 
+# global seed value for oscar to allow creating deterministic random number
+# generators
+# we initialize this here with a random value as well to allow use during
+# precompilation
+const rng_seed = Ref{UInt32}(rand(UInt32))
+
+@doc Markdown.doc"""
+    get_seed()
+
+Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
+"""
+get_seed() = return rng_seed[]
+
+@doc Markdown.doc"""
+    set_seed!(s::Integer)
+
+Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
+"""
+function set_seed!(s::Integer)
+  rng_seed[] = convert(UInt32, s)
+end
+
+@doc Markdown.doc"""
+    get_seeded_rng()
+
+Return a new random number generator object of type MersenneTwister which is
+seeded with the global seed value `Oscar.rng_seed`. This can be used for
+the testsuite to get more stable output and running times. Using a separate RNG
+object for each testset (or file) makes sure previous uses don't affect later
+testcases. It could also be useful for some randomized algorithms.
+The seed will be initialized with a random value during OSCAR startup but can
+be set to a fixed value with `Oscar.set_seed!` as it is done in `runtests.jl`.
+"""
+get_seeded_rng() = return MersenneTwister([get_seed()])
+
+
 function __init__()
   if Sys.iswindows()
     windows_error()
   end
+
+  # initialize random seed
+  set_seed!(rand(UInt32))
 
   if isinteractive() && Base.JLOptions().banner != 0
     println(" -----    -----    -----      -      -----   ")
@@ -164,16 +198,20 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
+    # make Oscar module accessible from GAP (it may not be available as
+    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     GAP.Packages.load("wedderga") # provides a function to compute Schur indices
-    __init_IsoGapOscar()
+    GAP.Packages.load("repsn")
     __init_group_libraries()
-    __init_JuliaData()
-    __init_PcGroups()
+
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 end
@@ -198,7 +236,6 @@ const oscardir = Base.pkgdir(Oscar)
 const aadir = Base.pkgdir(AbstractAlgebra)
 const nemodir = Base.pkgdir(Nemo)
 const heckedir = Base.pkgdir(Hecke)
-
 
 function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
@@ -241,7 +278,7 @@ end
 
 
 @doc Markdown.doc"""
-    build_doc(; doctest=false, strict=false)
+    build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -261,6 +298,9 @@ The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
 and if set to `true` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
 
+To prevent the opening of the browser at the end, set the optional parameter
+`open_browser` to `false`.
+
 When working on the manual the `Revise` package can significantly sped
 up running `build_doc`. First, install `Revise` in the following way:
 ```
@@ -273,7 +313,7 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
-function build_doc(; doctest=false, strict=false)
+function build_doc(; doctest=false, strict=false, open_browser=true)
   versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
   versionwarn = 
 "The Julia reference version for the doctests is 1.6, but you are using
@@ -287,13 +327,14 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
-  open_doc()
+  if open_browser
+    open_doc()
+  end
   if doctest != false && !versioncheck
     @warn versionwarn
   end
 end
 
-export build_doc
 # This can be used in
 #
 # module A
@@ -361,6 +402,12 @@ function test_module(x::AbstractString, new::Bool = true)
    end
 end
 
+include("Exports.jl")
+
+# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
+@alias characteristic_polynomial charpoly  # FIXME
+@alias minimal_polynomial minpoly  # FIXME
+
 include("printing.jl")
 include("fallbacks.jl")
 
@@ -385,7 +432,6 @@ include("Groups/spinor_norms.jl")
 include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
-include("Rings/rational.jl")
 include("Rings/orderings.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly_types.jl")
@@ -420,6 +466,7 @@ include("Rings/PBWAlgebra.jl")
 include("Rings/PBWAlgebraQuo.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
+
 include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
@@ -440,28 +487,28 @@ include("Modules/local_rings.jl")
 include("Modules/mpolyquo.jl")
 include("Rings/ReesAlgebra.jl")
 
-include("Geometry/basics.jl")
-include("Geometry/K3Auto.jl")
-
 include("NumberTheory/NmbThy.jl")
 
 include("PolyhedralGeometry/main.jl")
 
 include("Polymake/polymake_to_oscar.jl")
+
 include("Combinatorics/Graphs.jl")
 include("Combinatorics/SimplicialComplexes.jl")
-
 include("Combinatorics/Matroids/JMatroids.jl")
+include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
+include("NumberTheory/GalThy.jl")
 
-include("ToricVarieties/JToric.jl")
-
-include("Schemes/main.jl")
-
-include("TropicalGeometry/main.jl")
+include("AlgebraicGeometry/Schemes/main.jl")
+include("AlgebraicGeometry/ToricVarieties/JToric.jl")
+include("AlgebraicGeometry/TropicalGeometry/main.jl")
+include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+include("AlgebraicGeometry/Surfaces/SurfacesP4.jl")
+include("AlgebraicGeometry/Miscellaneous/basics.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
@@ -497,8 +544,5 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
 module ANTIC
 using Markdown
 end
-export ANTIC
-
-export OSCAR, oscar
 
 end # module

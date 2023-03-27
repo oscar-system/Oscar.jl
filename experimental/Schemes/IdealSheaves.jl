@@ -1,10 +1,15 @@
-export IdealSheaf, ideal_sheaf
-
-export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
-
+export IdealSheaf
+export covered_patches
+export covering
+export extend!
+export ideal_dict
+export ideal_sheaf
 export ideal_sheaf_type
-
 export order_on_divisor
+export scheme
+export subscheme
+
+export show_details
 
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
@@ -12,7 +17,7 @@ underlying_presheaf(I::IdealSheaf) = I.I
 # an alias for the user's convenience
 scheme(I::IdealSheaf) = space(I)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     IdealSheaf(X::ProjectiveScheme, g::Vector{<:RingElem})
 
 Create the ideal sheaf on the covered scheme of ``X`` which is 
@@ -42,17 +47,17 @@ ideal_sheaf(X::ProjectiveScheme, I::MPolyIdeal) = IdealSheaf(X, I)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
-    g::MPolyElem_dec
+    g::MPolyDecRingElem
   )
   return IdealSheaf(X, [g])
 end
 
-ideal_sheaf(X::ProjectiveScheme, g::MPolyElem_dec) = IdealSheaf(X, g)
+ideal_sheaf(X::ProjectiveScheme, g::MPolyDecRingElem) = IdealSheaf(X, g)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
     g::Vector{RingElemType}
-  ) where {RingElemType<:MPolyElem_dec}
+  ) where {RingElemType<:MPolyDecRingElem}
   X_covered = covered_scheme(X)
   r = fiber_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
@@ -63,7 +68,7 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
-ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec} = IdealSheaf(X, g)
+ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyDecRingElem} = IdealSheaf(X, g)
 
 
 # this constructs the zero ideal sheaf
@@ -76,7 +81,7 @@ function IdealSheaf(X::CoveredScheme)
   return IdealSheaf(X, I, check=false)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ideal_sheaf(X::AbsCoveredScheme)
 
 See the documentation for `IdealSheaf`.
@@ -85,7 +90,7 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
-@Markdown.doc """
+@doc Markdown.doc"""
     IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
 
 Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
@@ -111,7 +116,7 @@ end
 
 ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
-@Markdown.doc """
+@doc Markdown.doc"""
     IdealSheaf(Y::AbsCoveredScheme, 
         phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
     )
@@ -198,7 +203,7 @@ function *(I::IdealSheaf, J::IdealSheaf)
   return IdealSheaf(X, new_dict, check=false)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     simplify!(I::IdealSheaf)
 
 Replaces the set of generators of the ideal sheaf by a minimal 
@@ -225,7 +230,7 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     subscheme(I::IdealSheaf) 
 
 For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
@@ -254,7 +259,7 @@ function subscheme(I::IdealSheaf)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     extend!(C::Covering, D::Dict{SpecType, IdealType}) where {SpecType<:Spec, IdealType<:Ideal}
 
 For ``C`` a covering and ``D`` a dictionary holding vectors of 
@@ -300,9 +305,9 @@ function extend!(
   return D
 end
 
-function Base.show(io::IO, I::IdealSheaf)
-  print(io, "sheaf of ideals on $(space(I))")
-end
+#function Base.show(io::IO, I::IdealSheaf)
+#  print(io, "sheaf of ideals on $(space(I))")
+#end
 
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
@@ -356,7 +361,7 @@ end
 #    verbose::Bool=false,
 #    check::Bool=true,
 #    codimension::Int=dim(U)-dim(subscheme(U, g)) # this assumes both U and its subscheme to be equidimensional
-#  ) where {T<:MPolyElem}
+#  ) where {T<:MPolyRingElem}
 #  verbose && println("preparing $g as a local complete intersection on $U")
 #  f = numerator.(gens(localized_modulus(OO(U))))
 #  f = [a for a in f if !iszero(a)]
@@ -416,7 +421,7 @@ function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType
   return upper
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true) -> Int
 
 Return the order of the rational function `f` on the prime divisor given by the ideal sheaf `I`.
@@ -468,9 +473,9 @@ function order_on_divisor(
 #    L, map = Localization(OO(U), 
 #                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
 #                         )
-#    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#    typeof(L)<:Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                        <:MPolyComplementOfPrimeIdeal},
-#                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#                     MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                           <:MPolyComplementOfPrimeIdeal}
 #                    } || error("localization was not successful")
 # 
@@ -487,3 +492,245 @@ function order_on_divisor(
 #    order_dict[U] = upper-lower
 end
 
+@doc Markdown.doc"""
+    smooth_lci_covering(I::IdealSheaf)
+
+For an ideal sheaf ``ℐ`` on a *smooth* scheme ``X`` with a *smooth* 
+associated subscheme ``Y = V(ℐ)`` this produces a covering ``𝔘 = {Uₐ}, a ∈ A``
+such that ``ℐ(Uₐ) = ⟨f₁,…,fₖ⟩`` is generated by a regular sequence on every 
+patch ``Uₐ`` of that covering.
+"""
+function smooth_lci_covering(I::IdealSheaf)
+  error("not implemented")
+end
+
+function pushforward(inc::CoveredClosedEmbedding, I::IdealSheaf)
+  Y = domain(inc)
+  scheme(I) === Y || error("ideal sheaf is not defined on the domain of the embedding")
+  X = codomain(inc)
+  phi = covering_morphism(inc)
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in patches(domain(phi))
+    V = codomain(phi[U])
+    ID[V] = pushforward(phi[U], I(U))
+  end
+  return IdealSheaf(X, ID, check=false)
+end
+
+function pushforward(inc::ClosedEmbedding, I::Ideal)
+  Y = domain(inc)
+  base_ring(I) === OO(Y) || error("ideal is not defined in the coordinate ring of the domain")
+  X = codomain(inc)
+  return ideal(OO(X), vcat(gens(image_ideal(inc)), 
+                           OO(X).(lifted_numerator.(gens(I))))
+              )
+end
+
+########################################################################
+# primary decomposition
+########################################################################
+
+function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+  Q = base_ring(I)
+  R = base_ring(Q)
+  decomp = primary_decomposition(saturated_ideal(I))
+  result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
+  return result
+end
+
+function primary_decomposition(I::IdealSheaf)
+  X = scheme(I)
+  OOX = OO(X)
+
+  # Compute the primary decompositions in the charts.
+  decomp_dict = IdDict{AbsSpec, Vector{Tuple{Ideal, Ideal}}}()
+  for U in affine_charts(X)
+    decomp_dict[U] = primary_decomposition(I(U))
+  end
+
+  clean_charts = Vector{AbsSpec}()
+  dirty_charts = copy(affine_charts(X))
+
+  prime_parts = Vector{IdDict{AbsSpec, Ideal}}()
+  primary_parts = Vector{IdDict{AbsSpec, Ideal}}()
+
+  #@show "starting iteration"
+  while !iszero(length(dirty_charts))
+    #@show "new chart: ##############################################################"
+    U = pop!(dirty_charts)
+    new_prime_parts = Vector{IdDict{AbsSpec, Ideal}}()
+    new_primary_parts = Vector{IdDict{AbsSpec, Ideal}}()
+    #@show U
+    new_components = decomp_dict[U]
+    for (Q, P) in new_components
+      isone(P) && continue
+      #@show "looking at component"
+      #@show gens(Q)
+      #@show gens(P)
+      possible_matches = Int[]
+      for i in 1:length(prime_parts)
+        #@show i
+        is_possible_match = true
+        all_intersections_trivial = true
+        for V in clean_charts
+          #@show V
+          if !haskey(glueings(default_covering(X)), (V, U))
+            #@show "patches are not glued"
+            continue
+          end
+          G = default_covering(X)[V, U]
+          VU, UV = glueing_domains(G)
+          QU_res = OOX(U, UV)(Q)
+          QV_res = OOX(V, UV)(primary_parts[i][V])
+          #@show gens(QU_res)
+          #@show gens(QV_res)
+          if QU_res == QV_res
+            #@show "possible match"
+            if !isone(QV_res)
+              all_intersections_trivial = false
+            end
+          else 
+            #@show "ideals do not coincide on overlap"
+            is_possible_match = false
+            break
+          end
+        end
+        if is_possible_match
+          #@show "found a possible match in $i"
+          if !all_intersections_trivial
+            push!(possible_matches, i)
+          end
+        end
+      end
+      #@show possible_matches
+      if iszero(length(possible_matches))
+        #@show "adding new component"
+        new_prime_part = IdDict{AbsSpec, Ideal}()
+        new_primary_part = IdDict{AbsSpec, Ideal}()
+        for V in clean_charts
+          J = ideal(OOX(V), one(OOX(V)))
+          new_prime_part[V] = J
+          new_primary_part[V] = J
+        end
+        new_prime_part[U] = P
+        new_primary_part[U] = Q
+        push!(new_prime_parts, new_prime_part)
+        push!(new_primary_parts, new_primary_part)
+      elseif isone(length(possible_matches))
+        #@show "unique match found; extending component"
+        k = first(possible_matches)
+        prime_parts[k][U] = P
+        primary_parts[k][U] = Q
+      else
+        error("no unique match found; case not implemented")
+      end
+    end
+    push!(clean_charts, U)
+    prime_parts = vcat(prime_parts, new_prime_parts)
+    primary_parts = vcat(primary_parts, new_primary_parts)
+    for P in prime_parts
+      if !haskey(P, U) 
+        P[U] = ideal(OOX(U), one(OOX(U)))
+      end
+    end
+    for Q in primary_parts
+      if !haskey(Q, U) 
+        Q[U] = ideal(OOX(U), one(OOX(U)))
+      end
+    end
+    #@show length(prime_parts)
+  end
+
+  prime_components = [IdealSheaf(X, P, check=true) for P in prime_parts] # TODO: Set to false!
+  primary_components = [IdealSheaf(X, Q, check=true) for Q in primary_parts]
+
+  return collect(zip(primary_components, prime_components))
+end
+
+# further required functionality
+function isone(I::Ideal)
+  return one(base_ring(I)) in I
+end
+
+function (phi::Hecke.Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
+  base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
+  R = domain(phi)
+  S = codomain(phi)
+  return ideal(S, phi.(gens(I)))
+end
+
+# Necessary for removing ambiguities
+function (phi::AbstractAlgebra.Generic.CompositeMap{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
+  base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
+  R = domain(phi)
+  S = codomain(phi)
+  return ideal(S, phi.(gens(I)))
+end
+
+function (phi::MPolyAnyMap{D, C})(I::MPolyIdeal) where {D<:MPolyRing, C<:Ring}
+  base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
+  R = domain(phi)
+  S = codomain(phi)
+  return ideal(S, phi.(gens(I)))
+end
+
+function (phi::MPolyAnyMap{D, C})(I::MPolyQuoIdeal) where {D<:MPolyQuoRing, C<:Ring}
+  base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
+  R = domain(phi)
+  S = codomain(phi)
+  return ideal(S, phi.(gens(I)))
+end
+
+function complement_of_prime_ideal(P::MPolyQuoIdeal)
+  return complement_of_prime_ideal(saturated_ideal(P))
+end
+
+function complement_of_prime_ideal(P::MPolyQuoLocalizedIdeal)
+  return complement_of_prime_ideal(saturated_ideal(P))
+end
+
+function complement_of_prime_ideal(P::MPolyLocalizedIdeal)
+  return complement_of_prime_ideal(saturated_ideal(P))
+end
+
+@attr IdealSheaf function radical(II::IdealSheaf)
+  X = scheme(II)
+  # If there is a simplified covering, do the calculations there.
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in patches(covering)
+    ID[U] = radical(II(U))
+  end
+  return IdealSheaf(X, ID, check=false)
+end
+
+###########################################################################
+## show functions for Ideal sheaves
+########################################################################### 
+function Base.show(io::IO, I::IdealSheaf)
+    X = scheme(I)
+
+  # If there is a simplified covering, use it!
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  n = npatches(covering)
+  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+end
+
+function show_details(I::IdealSheaf)
+   show_details(stdout,I)
+end
+
+function show_details(io::IO, I::IdealSheaf)
+  X = scheme(I)
+
+  # If there is a simplified covering, use it!
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  n = npatches(covering)
+  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
+
+  for (i,U) in enumerate(patches(covering))
+    println(io,"Chart $i:")
+    println(io,"   $(I(U))")
+    println(io," ")
+  end
+end

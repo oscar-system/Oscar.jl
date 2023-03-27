@@ -22,11 +22,13 @@ on these things online.
      problems you might encounter and whether we can mitigate these by making
      changes to OSCAR.
    - Feel free to contact us on
-     [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
-   - Have a look at [our community page](https://oscar.computeralgebra.de/community/).
+     [Slack](https://oscar-system.org/slack).
+   - Have a look at [our community page](https://www.oscar-system.org/community/).
 4. Please also read our page on [Documenting OSCAR code](@ref).
 5. Look at existing code that does similar things to your project to get an
    idea of what OSCAR code should look like. Try to look at multiple examples.
+6. If you are planning to implement a new feature from scratch, please also read
+   [Implementing features from scratch](@ref).
 
 ## Overview
 In general you have to do
@@ -91,8 +93,17 @@ There are two ways to add tests:
     folder. The main file there is `test/runtests.jl` which then includes other
     testfiles. 
 
+Tests that rely on random values should use `Oscar.get_seeded_rng`, which will
+return a seeded random number source, and pass this to any functions that need
+random values.  The code may also directly create and use such a random source.
+The current seed will be printed at the beginning of the testsuite, it is fixed
+to 42 in the CI. It can be changed by setting `ENV["OSCAR_RANDOM_SEED"]` (for
+the testsuite running in a separate process) or by using `Oscar.set_seed!` (for
+the current session, e.g. `Oscar.test_module("something.jl", false)`).
+
 ```@docs
 Oscar.test_module
+Oscar.get_seeded_rng
 ```
 
 ### Adding documentation
@@ -128,7 +139,7 @@ using Revise, Oscar
 ```
 whenever you are using OSCAR in Julia.
 
-### Ask OSCAR Related Questions in the [OSCAR Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
+### Ask OSCAR Related Questions in the [OSCAR Slack](https://oscar-system.org/slack).
 
 ### Use `]up`
 Working with the development version also entails that the packages `Oscar`

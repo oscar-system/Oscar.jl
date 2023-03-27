@@ -45,7 +45,7 @@ If `I` is an ideal of a PBW-algebra  `A`, then
 
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy, PBWAlgElem{fmpq, Singular.n_Q}[x, y, dx, dy])
+(PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> I = left_ideal(D, [x, dx])
 left_ideal(x, dx)
@@ -54,7 +54,7 @@ julia> base_ring(I)
 PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy
 
 julia> gens(I)
-2-element Vector{PBWAlgElem{fmpq, Singular.n_Q}}:
+2-element Vector{PBWAlgElem{QQFieldElem, Singular.n_Q}}:
  x
  dx
 
@@ -127,15 +127,15 @@ eliminate(I::PBWAlgIdeal, V::Vector{<:PBWAlgElem}; ordering = nothing)
 ## Tests on Ideals
 
 ```@docs
-iszero(I:: PBWAlgIdeal)
+is_zero(I:: PBWAlgIdeal)
 ```
 
 ```@docs
-isone(I:: PBWAlgIdeal)
+is_one(I:: PBWAlgIdeal)
 ```
 
 ```@docs
-issubset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
+is_subset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
 ```
 
 ```@docs

@@ -1,17 +1,3 @@
-export AbsMultSet
-export AbsLocalizedRing
-export ambient_ring, inverted_set
-export reduce_fraction
-export Localization
-
-export AbsLocalizedRingElem
-export numerator, denominator, parent
-
-export AbsLocalizedIdeal
-export ideal
-
-export AbsLocalizedRingHom, domain, codomain, restricted_map
-
 import AbstractAlgebra.Ring
 import AbstractAlgebra: expressify, show_via_expressify
 
@@ -23,7 +9,7 @@ import AbstractAlgebra: expressify, show_via_expressify
 # Multiplicatively closed sets of (commutative) rings                           #
 #################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsMultSet{RingType, RingElemType}
 
 The abstract type for a multiplicatively closed subset of a commutative ring 
@@ -32,7 +18,7 @@ of type `RingType` with elements of type `RingElemType`.
 abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
 ### required getter functions
-@Markdown.doc """
+@doc Markdown.doc"""
     ambient_ring(S::AbsMultSet)
 
 Return the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
@@ -42,15 +28,15 @@ function ambient_ring(S::AbsMultSet)
 end
 
 ### required functionality
-@Markdown.doc """
+@doc Markdown.doc"""
     in(f::RingElemType, U::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
 
 Return `true` if `f` belongs to `U`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -79,7 +65,7 @@ Base.iterate(U::T, i::Int) where {T<:AbsMultSet} = nothing
 #################################################################################
 # Localizations of (commutative) rings at multiplicatively closed sets          #
 #################################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsLocalizedRing{RingType, RingElemType, MultSetType}
 
 The abstract type for modelling the localization R[U⁻¹] of a commutative ring R 
@@ -97,15 +83,15 @@ various Gröbner basis driven backends.
 abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 
 ### required getter functions
-@Markdown.doc """
+@doc Markdown.doc"""
     base_ring(Rloc::AbsLocalizedRing)
 
 If, say, Rloc = R[U⁻¹], return R.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -123,15 +109,15 @@ function base_ring(W::AbsLocalizedRing)
   error("`base_ring` is not implemented for localized rings of type $(typeof(W))")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     inverted_set(Rloc::AbsLocalizedRing)
 
 If, say, Rloc = R[U⁻¹], return U.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -150,7 +136,7 @@ function inverted_set(W::AbsLocalizedRing)
 end
 
 ### required functionality
-@Markdown.doc """
+@doc Markdown.doc"""
     Localization(U::AbsMultSet)
 
 Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
@@ -162,8 +148,8 @@ Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -195,7 +181,7 @@ function Localization(R::Ring, U::AbsMultSet)
   return Localization(U)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {RingType, RingElemType, MultSetType} 
 
 Converts a fraction f = a//b to an element of the localized ring W.
@@ -205,7 +191,7 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractA
 end
 
 ### required conversions
-@Markdown.doc """
+@doc Markdown.doc"""
     (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType} 
 
 Converts an element `a` to an element of `W`.
@@ -214,7 +200,7 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
   error("conversion of elements of type $(RingElemType) to elements of $(typeof(W)) is not implemented")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     (W::AbsLocalizedRing)(a::RingElem, b::RingElem; check::Bool=true)
 
 Converts a pair `(a, b)` to an element `a//b` in `W`.
@@ -230,13 +216,13 @@ end
 ### Other conversions for the sake of convenience
 (W::AbsLocalizedRing)(a::Int) = W(base_ring(W)(a))
 (W::AbsLocalizedRing)(a::Integer) = W(base_ring(W)(a))
-(W::AbsLocalizedRing)(a::fmpz) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::ZZRingElem) = W(base_ring(W)(a))
 
 
 #################################################################################
 # Elements of localized rings                                                   #
 #################################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsLocalizedRingElem{RingType, RingElemType, MultSetType}
 
 The abstract type of an element of the localization R[S⁻¹] of a commutative ring 
@@ -250,7 +236,7 @@ abstract type AbsLocalizedRingElem{
   } <: AbstractAlgebra.RingElem end
 
 ### required getter functions 
-@Markdown.doc """
+@doc Markdown.doc"""
     numerator(f::AbsLocalizedRingElem)
 
 Return the numerator of the internal representative of `f`.
@@ -259,7 +245,7 @@ function numerator(f::AbsLocalizedRingElem)
   error("`numerator` is not implemented for elements of type $(typeof(f))")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     denominator(f::AbsLocalizedRingElem)
 
 Return the denominator of the internal representative of `f`.
@@ -268,7 +254,7 @@ function denominator(f::AbsLocalizedRingElem)
   error("`denominator` is not implemented for elements of type $(typeof(f))")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     parent(f::AbsLocalizedRingElem)
 
 Return the parent ring R[S⁻¹] of `f`.
@@ -278,8 +264,8 @@ function parent(f::AbsLocalizedRingElem)
 end
 
 function expressify(f::AbsLocalizedRingElem; context=nothing) 
-  isone(denominator(f)) && expressify(numerator(f), context=context)
-  return Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+  isone(denominator(f)) && return expressify(numerator(f), context=context)
+  return Expr(:call, :/, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
 end
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
@@ -296,7 +282,7 @@ base_ring_type(L::AbsLocalizedRing) = base_ring_type(typeof(L))
 # Arithmetic; a dumb catchall implementation, NOT performant!          #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     reduce_fraction(a::AbsLocalizedRingElem)
 
 Reduce the fraction a = p/q. **Warning**: The catchall-implementation does nothing!
@@ -338,18 +324,12 @@ function *(a::AbsLocalizedRingElem{RT, RET, MST}, b::RET) where {RT, RET <: Ring
   return b*a
 end
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
+  return divexact(parent(b)(a), b)
 end
 
-### Why are divisions not implemented as generic functions?
-# Say both a = p⋅c/q and b = f⋅c/g are elements of a localized 
-# ring R[S⁻¹] such that f⋅c ∉ S, but f ∈ S. Then by cancellation 
-# a/b is an admissible element of the localization. But this 
-# cancellation can not be implemented on a generic level, but 
-# only for the specific ring R.
-function Base.:(//)(a::T, b::T) where {T<:AbsLocalizedRingElem}
-  error("function `//` not implemented for elements of type $(typeof(b))")
+function Base.:(/)(a::T, b::T) where {T<:AbsLocalizedRingElem}
+  return divexact(a, b)
 end
 
 function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
@@ -357,7 +337,7 @@ function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return numerator(a)*denominator(b) == numerator(b)*denominator(a)
 end
 
-function ^(a::AbsLocalizedRingElem, i::fmpz)
+function ^(a::AbsLocalizedRingElem, i::ZZRingElem)
   return parent(a)(numerator(a)^i, denominator(a)^i)
 end
 
@@ -450,7 +430,7 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 # Finitely generated ideals in localized rings                             #
 ############################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsLocalizedIdeal{LocRingElemType}
 
 Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
@@ -536,7 +516,7 @@ end
 # Homomorphisms of localized rings                                     #
 ########################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     AbsLocalizedRingHom{
         DomainType<:AbsLocalizedRing,
         CodomainType<:Ring,
@@ -568,7 +548,7 @@ end
 
 
 ### required getter functions
-@Markdown.doc """
+@doc Markdown.doc"""
     domain(f::AbsLocalizedRingHom) 
 
 Return the domain of definition of `f`.
@@ -577,7 +557,7 @@ function domain(f::AbsLocalizedRingHom)
   error("`domain(f)` not implemented for `f` of type $(typeof(f))")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     codomain(f::AbsLocalizedRingHom) 
 
 Return the codomain of `f`.
@@ -586,7 +566,7 @@ function codomain(f::AbsLocalizedRingHom)
   error("`codomain(f)` not implemented for `f` of type $(typeof(f))")
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     restricted_map(f::AbsLocalizedRingHom) 
 
 For a ring homomorphism ``ϕ : R[U⁻¹] → S`` return the underlying 
@@ -597,7 +577,7 @@ function restricted_map(f::AbsLocalizedRingHom)
 end
 
 ### required functionality
-@Markdown.doc """
+@doc Markdown.doc"""
     (f::AbsLocalizedRingHom)(a::T) where {T<:RingElement}
 
 Applies the map `f` to the element `a` in the domain of `f`.
@@ -610,9 +590,9 @@ end
 ### generic functions
 (f::AbsLocalizedRingHom)(a::RingElem) = f(domain(f)(a))
 (f::AbsLocalizedRingHom)(a::Integer) = f(domain(f)(a))
-(f::AbsLocalizedRingHom)(a::fmpz) = f(domain(f)(a))
+(f::AbsLocalizedRingHom)(a::ZZRingElem) = f(domain(f)(a))
 
-@Markdown.doc """
+@doc Markdown.doc"""
     (f::AbsLocalizedRingHom)(I::Ideal)
 
 Return the ideal generated by the images `f(hᵢ)` of the generators `hᵢ` of `I`.

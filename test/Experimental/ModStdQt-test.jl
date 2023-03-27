@@ -1,6 +1,6 @@
 @testset "Examples.ModStdQt" begin
-  Qt, t = PolynomialRing(QQ, :t=>1:2)
-  Qtx, x = PolynomialRing(FractionField(Qt), :x => 1:3)
+  Qt, t = polynomial_ring(QQ, :t=>1:2)
+  Qtx, x = polynomial_ring(fraction_field(Qt), :x => 1:3)
 
   f1 = x[1]^2*x[2]^3*x[3] + 2*t[1]*x[1]*x[2]*x[3]^2 + 7*x[2]^3
   f2 = x[1]^2*x[2]^4*x[3] + (t[1]-7*t[2])*x[1]^2*x[2]*x[3]^2 - x[1]*x[2]^2*x[3]^2+2*x[1]^2*x[2]*x[3] - 12*x[1] + t[2]*x[2]
@@ -15,9 +15,9 @@ end
 
 
 @testset "Examples.factor_absolute" begin
-  S, (a, b) = PolynomialRing(QQ, ["a", "b"]);
+  S, (a, b) = polynomial_ring(QQ, ["a", "b"]);
   S = parent(a//b)
-  St, (u, v) = PolynomialRing(S, ["u", "v"])
+  St, (u, v) = polynomial_ring(S, ["u", "v"])
   f = factor_absolute(u^2+v^2*a)
   @test length(f) == 2
 end

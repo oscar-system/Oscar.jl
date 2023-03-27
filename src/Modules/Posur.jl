@@ -1,5 +1,3 @@
-export kernel, cokernel, image, coordinates, represents_element
-export syz, has_nonempty_intersection, base_ring_module
 
 ########################################################################
 # 
@@ -20,8 +18,8 @@ function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, Matri
   S = base_ring(A)
   R = base_ring(S)
   D = zero_matrix(SMat, R, 0, m)
-  #D = zero(MatrixSpace(R, m, m))
-  B = zero(MatrixSpace(R, m, n))
+  #D = zero(matrix_space(R, m, m))
+  B = zero(matrix_space(R, m, n))
   for i in 1:m
     d = lcm(vec(denominator.(A[i,:])))
     push!(D, sparse_row(R, [(i, d)]))
@@ -177,7 +175,7 @@ function has_solution(
   B, D = clear_denominators(A)
   c, u = clear_denominators(b)
   (success, y, v) = has_solution(B, c, inverted_set(S), check=check)
-  success || return (false, zero(MatrixSpace(S, 1, ncols(b))))
+  success || return (false, zero(matrix_space(S, 1, ncols(b))))
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D to be the solution x of x ⋅ A = b.
@@ -203,7 +201,7 @@ function has_solution(
   L = syz(Aext)
   I = ideal(R, vec(L[:, 1]))
   (success, u, a) = has_nonempty_intersection(U, I, check=check)
-  success || return (false, zero(MatrixSpace(R, 1, ngens(I))), zero(R))
+  success || return (false, zero(matrix_space(R, 1, ngens(I))), zero(R))
   l = a*L 
   return (success, l[1, 2:end], l[1,1])
 end
@@ -251,11 +249,11 @@ function base_ring_module_map(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
   return get_attribute(F, :base_ring_module_map)::morphism_type(base_ring_module_type(F), typeof(F))
 end
 
-# For a SubQuo M over a localized ring S = R[U⁻¹] this returns the SubQuo N over R
+# For a SubquoModule M over a localized ring S = R[U⁻¹] this returns the SubquoModule N over R
 # which contains all generators and relations for the saturation that have already 
 # been cached. 
-function pre_saturated_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
-  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubQuo{base_ring_elem_type(T)}
+function pre_saturated_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
+  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{base_ring_elem_type(T)}
   if !has_attribute(M, :pre_saturated_module)
     (A, D) = clear_denominators(generator_matrix(M))
     (B, E) = clear_denominators(relations_matrix(M))
@@ -263,34 +261,34 @@ function pre_saturated_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
     R = base_ring(S)
     F = ambient_free_module(M)
     Fb = base_ring_module(F)
-    Mb = SubQuo(Fb, A, B)
+    Mb = SubquoModule(Fb, A, B)
     set_attribute!(M, :pre_saturation_data_gens, change_base_ring(S, D))
     set_attribute!(M, :pre_saturation_data_rels, change_base_ring(S, E))
     set_attribute!(M, :pre_saturated_module, Mb)
   end
-  return get_attribute(M, :pre_saturated_module)::SubQuo{base_ring_elem_type(T)}
+  return get_attribute(M, :pre_saturated_module)::SubquoModule{base_ring_elem_type(T)}
 end
 
-# For a SubQuo M over a localized ring S = R[U⁻¹] and its current 
+# For a SubquoModule M over a localized ring S = R[U⁻¹] and its current 
 # `pre_saturated_module` N this returns a matrix T 
 # over R such that 
 #
 #   T ⋅ generator_matrix(M) ≡ generator_matrix(N) mod relations(N)
 #
-function pre_saturation_data_gens(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+function pre_saturation_data_gens(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(M, :pre_saturation_data_gens)
     pre_saturated_module(M)
   end
   return get_attribute(M, :pre_saturation_data_gens)::SMat{elem_type(base_ring(M))}
 end
 
-# For a SubQuo M over a localized ring S = R[U⁻¹] and its current 
+# For a SubquoModule M over a localized ring S = R[U⁻¹] and its current 
 # `pre_saturated_module` N this returns a matrix T 
 # over R such that 
 #
 #   T ⋅ relations_matrix(M) ≡ relations_matrix(N)
 #
-function pre_saturation_data_rels(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+function pre_saturation_data_rels(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(M, :pre_saturation_data_rels)
     pre_saturated_module(M)
   end
@@ -306,17 +304,17 @@ function representing_matrix(f::FreeModuleHom{ModType, ModType, Nothing}) where 
   return matrix(f)
 end
 
-# When the codomain is a SubQuo, return a matrix A whose rows represent the 
+# When the codomain is a SubquoModule, return a matrix A whose rows represent the 
 # images of the base vectors in the ambient free module of the codomain.
 function ambient_representing_matrix(
     f::FreeModuleHom{DomType, CodType, Nothing}
-  ) where {DomType<:FreeMod, CodType<:SubQuo}
+  ) where {DomType<:FreeMod, CodType<:SubquoModule}
   return matrix(f)*generator_matrix(codomain(f))
 end
 
 function representing_matrix(
     f::FreeModuleHom{DomType, CodType, Nothing}
-  ) where {DomType<:FreeMod, CodType<:SubQuo}
+  ) where {DomType<:FreeMod, CodType<:SubquoModule}
   return matrix(f)
 end
 
@@ -325,30 +323,30 @@ end
 # free module of the codomain.
 function ambient_representing_matrix(
     f::SubQuoHom{DomType, CodType}
-  ) where {DomType<:SubQuo, CodType<:SubQuo}
+  ) where {DomType<:SubquoModule, CodType<:SubquoModule}
   return matrix(f)*generator_matrix(codomain(f))
 end
 
 function representing_matrix(
     f::SubQuoHom{DomType, CodType}
-  ) where {DomType<:SubQuo, CodType<:SubQuo}
+  ) where {DomType<:SubquoModule, CodType<:SubquoModule}
   return matrix(f)
 end
 
 function representing_matrix(
     f::SubQuoHom{DomType, CodType}
-  ) where {DomType<:SubQuo, CodType<:FreeMod}
+  ) where {DomType<:SubquoModule, CodType<:FreeMod}
   return matrix(f)
 end
 
-# For a SubQuo M = (im A + im B)/(im B) for matrices A and B this returns A.
-function generator_matrix(M::SubQuo) 
+# For a SubquoModule M = (im A + im B)/(im B) for matrices A and B this returns A.
+function generator_matrix(M::SubquoModule) 
   R = base_ring(M)
   g = ambient_representatives_generators(M) # This passes through way too many conversions!
                                             # Try to implement this with more low-level getters.
   r = length(g)
   n = rank(ambient_free_module(M))
-  A = zero(MatrixSpace(R, r, n))
+  A = zero(matrix_space(R, r, n))
   for i in 1:r
     for j in 1:n
       A[i, j] = g[i][j]
@@ -357,14 +355,14 @@ function generator_matrix(M::SubQuo)
   return A
 end
 
-# For a SubQuo M = (im A + im B)/(im B) for matrices A and B this returns B.
-function relations_matrix(M::SubQuo)
+# For a SubquoModule M = (im A + im B)/(im B) for matrices A and B this returns B.
+function relations_matrix(M::SubquoModule)
   R = base_ring(M)
   g = relations(M) # This passes through way too many conversions!
                    # Try to implement this with more low-level getters.
   r = length(g)
   n = rank(ambient_free_module(M))
-  A = zero(MatrixSpace(R, r, n))
+  A = zero(matrix_space(R, r, n))
   for i in 1:r
     for j in 1:n
       A[i, j] = g[i][j]
@@ -376,7 +374,7 @@ end
 function as_matrix(v::FreeModElem)
   R = base_ring(parent(v))
   n = rank(parent(v))
-  A = zero(MatrixSpace(R, 1, n))
+  A = zero(matrix_space(R, 1, n))
   for i in 1:n
     A[1, i] = v[i]
   end
@@ -388,8 +386,8 @@ function as_matrix(F::FreeMod, v::Vector{T}) where {T<:FreeModElem}
   R = base_ring(F)
   n = rank(F)
   m = length(v)
-  m == 0 && return zero(MatrixSpace(R, m, n))
-  A = zero(MatrixSpace(R, m, n))
+  m == 0 && return zero(matrix_space(R, m, n))
+  A = zero(matrix_space(R, m, n))
   for i in 1:m
     for j in 1:n
       A[i, j] = v[i][j]
@@ -398,10 +396,10 @@ function as_matrix(F::FreeMod, v::Vector{T}) where {T<:FreeModElem}
   return A
 end
 
-as_matrix(F::FreeMod, v::Vector{T}) where {T<:SubQuoElem} = as_matrix(F, repres.(v))
+as_matrix(F::FreeMod, v::Vector{T}) where {T<:SubquoModuleElem} = as_matrix(F, repres.(v))
 
 function as_matrix(v::SRow{T}, n::Int) where {T<:RingElem} 
-  w = zero(MatrixSpace(base_ring(v), 1, n))
+  w = zero(matrix_space(base_ring(v), 1, n))
   for (i, a) in v
     w[1, i] = a
   end
@@ -451,7 +449,7 @@ function image(
   return sub(codomain(f), representing_matrix(f))
 end
 
-function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   S = base_ring(parent(u))
   R = base_ring(S)
   F = ambient_free_module(M)
@@ -478,7 +476,7 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   B = relations_matrix(M)
   s = nrows(B)
   (success, x) = has_solution(vcat(A, B), as_matrix(u))
-  success || error("element of FreeMod does not represent an element of the SubQuo")
+  success || error("element of FreeMod does not represent an element of the SubquoModule")
 
   # In the affirmative case we have u = u'//d_u with u' not a representative of an 
   # element in the `pre_saturated_module(M)`. But the computations yield 
@@ -495,7 +493,7 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   (w_clear, d_w) = clear_denominators(w)
 
   Mb = pre_saturated_module(M)
-  Mbext = SubQuo(ambient_free_module(Mb), 
+  Mbext = SubquoModule(ambient_free_module(Mb), 
                  vcat(generator_matrix(Mb), v_clear), 
                  vcat(relations_matrix(Mb), w_clear))
   Tr = pre_saturation_data_gens(M) 
@@ -526,7 +524,7 @@ function kernel(
   ) where {
     T<:AbsLocalizedRingElem,
     DomType<:FreeMod{T},
-    CodType<:SubQuo{T}
+    CodType<:SubquoModule{T}
   }
   F = domain(f)
   S = base_ring(domain(f))
@@ -543,20 +541,20 @@ function kernel(
     f::SubQuoHom{DomType, CodType}
   ) where {
     T<:AbsLocalizedRingElem,
-    DomType<:SubQuo{T},
+    DomType<:SubquoModule{T},
     CodType<:ModuleFP{T}
   }
   F = ambient_free_module(domain(f))
   S = base_ring(F)
   A = generator_matrix(domain(f))
   H = FreeMod(S, nrows(A))
-  h = hom(H, domain(f), one(MatrixSpace(S, rank(H), rank(H))))
+  h = hom(H, domain(f), one(matrix_space(S, rank(H), rank(H))))
   K, iK = kernel(hom(H, codomain(f), representing_matrix(f)))
-  result = SubQuo(F, representing_matrix(iK)*generator_matrix(domain(f)), relations_matrix(domain(f)))
+  result = SubquoModule(F, representing_matrix(iK)*generator_matrix(domain(f)), relations_matrix(domain(f)))
   return result, hom(result, domain(f), representing_matrix(iK))
 end
 
-function represents_element(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+function represents_element(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   u_clear, d_u = clear_denominators(u)
   represents_element(u_clear, pre_saturated_module(M)) && return true
   
@@ -583,7 +581,7 @@ function represents_element(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocali
   (w_clear, d_w) = clear_denominators(w)
 
   Mb = pre_saturated_module(M)
-  Mbext = SubQuo(ambient_free_module(Mb), 
+  Mbext = SubquoModule(ambient_free_module(Mb), 
                  vcat(generator_matrix(Mb), v_clear), 
                  vcat(relations_matrix(Mb), w_clear))
   Tr = pre_saturation_data_gens(M) 
@@ -617,7 +615,7 @@ function (F::FreeMod{T})(a::FreeModElem) where {T<:AbsLocalizedRingElem}
   return sum([a*e for (a, e) in zip(c, gens(F))])
 end
 
-function (M::SubQuo{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocalizedRingElem}
+function (M::SubquoModule{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocalizedRingElem}
   F = ambient_free_module(M)
   base_ring(parent(f)) == base_ring(base_ring(M)) && return M(F(f))
   parent(f) == F || error("ambient free modules are not compatible")
@@ -625,12 +623,12 @@ function (M::SubQuo{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocaliz
   v = coordinates(f, M) # This is not the cheapest way, but the only one for which 
                         # the constructors in the module code are sufficiently generic.
                         # Clean this up!
-  return sum([a*M[i] for (i, a) in v])
+  return sum([a*M[i] for (i, a) in v]; init=zero(M))
 end
 
-function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+function base_ring_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
   has_attribute(M, :base_ring_module) || error("there is no associated module over the base ring")
-  get_attribute(M, :base_ring_module)::SubQuo{base_ring_elem_type(T)}
+  get_attribute(M, :base_ring_module)::SubquoModule{base_ring_elem_type(T)}
 end
 
 function set_base_ring_module(F::FreeMod{LRET}, N::FreeMod{BRET}) where {LRET<:AbsLocalizedRingElem, BRET<:RingElem}
@@ -643,7 +641,7 @@ function set_base_ring_module(F::FreeMod{LRET}, N::FreeMod{BRET}) where {LRET<:A
 end
 
 function set_base_ring_module(
-    M::SubQuo{LRET}, N::SubQuo{BRET};
+    M::SubquoModule{LRET}, N::SubquoModule{BRET};
     check::Bool=true
   ) where {LRET<:AbsLocalizedRingElem, BRET<:RingElem}
   S = base_ring(M)
@@ -670,7 +668,7 @@ end
 #
 ########################################################################
 
-function iszero(v::SubQuoElem{<:AbsLocalizedRingElem}) 
+function iszero(v::SubquoModuleElem{<:AbsLocalizedRingElem}) 
   M = parent(v)
   Mb = pre_saturated_module(M)
   w = repres(v)
@@ -686,7 +684,7 @@ function iszero(v::SubQuoElem{<:AbsLocalizedRingElem})
 
   # Cache the new relation in the pre_saturated_module
   bb = as_matrix(u)
-  Mbext = SubQuo(ambient_free_module(Mb), 
+  Mbext = SubquoModule(ambient_free_module(Mb), 
                  generator_matrix(Mb), 
                  vcat(relations_matrix(Mb), bb))
   # The matrix Tr ∈ Sᵖˣᵐ is the transition matrix from the 

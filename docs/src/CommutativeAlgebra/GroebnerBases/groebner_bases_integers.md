@@ -32,7 +32,7 @@ $f \in \mathbb Z[x]_>$, the notions *leading term*, *leading monomial*, *leading
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(ZZ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
 
 julia> reduce(3*x, [2*x])
 x
@@ -60,8 +60,8 @@ We refer to the  textbook [AL94](@cite) for more on this.
 ##### Examples
 
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(ZZ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Integer Ring, fmpz_mpoly[x, y])
+julia> R, (x,y) = polynomial_ring(ZZ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Integer Ring, ZZMPolyRingElem[x, y])
 
 julia> I = ideal(R, [3*x^2*y+7*y, 4*x*y^2-5*x])
 ideal(3*x^2*y + 7*y, 4*x*y^2 - 5*x)

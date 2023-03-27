@@ -17,7 +17,7 @@ end
 
 
 ##############################################################################
-@registerSerializationType(LinearProgram{fmpq})
+@registerSerializationType(LinearProgram{QQFieldElem})
 
 function save_internal(s::SerializerState, lp::LinearProgram)
     lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
@@ -47,7 +47,7 @@ function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dic
 end
 
 ##############################################################################
-@registerSerializationType(MixedIntegerLinearProgram{fmpq})
+@registerSerializationType(MixedIntegerLinearProgram{QQFieldElem})
 
 function save_internal(s::SerializerState, milp::MixedIntegerLinearProgram)
     milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
@@ -93,22 +93,22 @@ function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}
 end
 
 # use generic serialization for the other types:
-@registerSerializationType(Cone{fmpq})
+@registerSerializationType(Cone{QQFieldElem})
 save_internal(s::SerializerState, obj::Cone) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Cone = load_internal_generic(s, T, dict)
 
-@registerSerializationType(PolyhedralComplex{fmpq})
+@registerSerializationType(PolyhedralComplex{QQFieldElem})
 save_internal(s::SerializerState, obj::PolyhedralComplex) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralComplex = load_internal_generic(s, T, dict)
 
-@registerSerializationType(Polyhedron{fmpq})
+@registerSerializationType(Polyhedron{QQFieldElem})
 save_internal(s::SerializerState, obj::Polyhedron) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Polyhedron = load_internal_generic(s, T, dict)
 
-@registerSerializationType(PolyhedralFan{fmpq})
+@registerSerializationType(PolyhedralFan{QQFieldElem})
 save_internal(s::SerializerState, obj::PolyhedralFan) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralFan = load_internal_generic(s, T, dict)
 
-@registerSerializationType(SubdivisionOfPoints{fmpq})
+@registerSerializationType(SubdivisionOfPoints{QQFieldElem})
 save_internal(s::SerializerState, obj::SubdivisionOfPoints) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: SubdivisionOfPoints = load_internal_generic(s, T, dict)

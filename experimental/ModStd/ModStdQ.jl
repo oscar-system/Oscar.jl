@@ -9,7 +9,7 @@ function __init__()
   Hecke.add_verbose_scope(:ModStdQ)
 end
 
-function (R::GFPMPolyRing)(f::fmpq_mpoly)
+function (R::fpMPolyRing)(f::QQMPolyRingElem)
   g  = MPolyBuildCtx(R)
   S = base_ring(R)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
@@ -18,7 +18,7 @@ function (R::GFPMPolyRing)(f::fmpq_mpoly)
   return finish(g)
 end
 
-function (S::Union{Nemo.NmodRing, Nemo.GaloisField})(a::fmpq)
+function (S::Union{Nemo.zzModRing, Nemo.fpField})(a::QQFieldElem)
   return S(numerator(a))//S(denominator(a))
 end
 
@@ -30,7 +30,7 @@ end
 
 #= TODO: Currently we had to "disable" modular GB stuff due to introducing dictionaries of GBs for ideals.
  =     Next step is to re-enable modular Singular.std and modular f4 again. =#
-function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
+function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return collect(I.gb)
   end
@@ -44,15 +44,15 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
   p = iterate(ps)[1]
   Qt = base_ring(I)
   Q = base_ring(Qt)
-  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
   max_stable = 2
   stable = max_stable
 
-  local gc::Vector{fmpz_mpoly}
-  local gd::Vector{fmpq_mpoly}
+  local gc::Vector{ZZMPolyRingElem}
+  local gd::Vector{QQMPolyRingElem}
 
   fl = true
-  d = fmpz(1)
+  d = ZZRingElem(1)
   very_first = true
   gI = gens(I)
 
@@ -60,13 +60,13 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
     p = iterate(ps, p)[1]
     @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
-    R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
-    Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
+    R = residue_ring(ZZ, Int(p)) #fpMPolyRingElem missing...
+    Rt, t = polynomial_ring(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp = Oscar.exp_groebner_basis(Ip, ord = ord, complete_reduction = true)
     Jp = map(x->lift(Zt, x), Gp)
     if d == 1
-      d = fmpz(p)
+      d = ZZRingElem(p)
       gc = Jp
       fl = true
       gd = []
@@ -86,10 +86,10 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
       if !fl
         @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
-            gc[i], _ = induce_crt(gc[i], d, Jp[i], fmpz(p), true)
+            gc[i], _ = induce_crt(gc[i], d, Jp[i], ZZRingElem(p), true)
           end
         end
-        d *= fmpz(p)
+        d *= ZZRingElem(p)
         fl = true
         @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
@@ -100,7 +100,7 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
         stable = max_stable
 #        @show gd
       else
-        d *= fmpz(p)
+        d *= ZZRingElem(p)
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
@@ -114,11 +114,11 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
   end
 end
 
-function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
+function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
-    I.gb[ord] = IdealGens(base_ring(I), fmpq_mpoly[], ord, isGB = true, keep_ordering = false)
+    I.gb[ord] = IdealGens(base_ring(I), QQMPolyRingElem[], ord, isGB = true, keep_ordering = false)
     singular_assure(I.gb[ord])
-    return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
+    return QQMPolyRingElem[], matrix(base_ring(I), ngens(I), 0, QQMPolyRingElem[])
   end
     
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
@@ -127,16 +127,16 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
   p = iterate(ps)[1]
   Qt = base_ring(I)
   Q = base_ring(Qt)
-  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
   max_stable = 2
   stable = max_stable
 
-  local gc::Vector{fmpz_mpoly}
-  local gd::Vector{fmpq_mpoly}
+  local gc::Vector{ZZMPolyRingElem}
+  local gd::Vector{QQMPolyRingElem}
   local length_gc::Int
 
   fl = true
-  d = fmpz(1)
+  d = ZZRingElem(1)
   very_first = true
 
   gI = gens(I)
@@ -146,14 +146,14 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
     @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
     R = GF(p)
-    Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
+    Rt, t = polynomial_ring(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp, Tp = Oscar._compute_standard_basis_with_transform(Ip, ord, complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
     if d == 1
-      d = fmpz(p)
+      d = ZZRingElem(p)
       gc = Jp
       fl = true
       gd = []
@@ -173,10 +173,10 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
       if !fl
         @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
-            gc[i], _ = induce_crt(gc[i], d, Jp[i], fmpz(p), true)
+            gc[i], _ = induce_crt(gc[i], d, Jp[i], ZZRingElem(p), true)
           end
         end
-        d *= fmpz(p)
+        d *= ZZRingElem(p)
         fl = true
         @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
@@ -187,7 +187,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
         stable = max_stable
 #        @show gd
       else
-        d *= fmpz(p)
+        d *= ZZRingElem(p)
         stable -= 1
         if stable <= 0
           G = gd[1:length_gc]
@@ -212,16 +212,16 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
   end
 end
 
-#= function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
+#= function Oscar.groebner_basis_with_transform(I::MPolyIdeal{QQMPolyRingElem}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
  =    ord = Oscar.Orderings.MonomialOrdering(base_ring(I), Oscar.Orderings.ordering(gens(base_ring(I)), ordering))
  =    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
  = end
  =  =#
- function Oscar._compute_standard_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
+ function Oscar._compute_standard_basis_with_transform(I::MPolyIdeal{QQMPolyRingElem}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 
-function Oscar.lift(R::Nemo.Ring, f::Union{gfp_mpoly, nmod_mpoly})
+function Oscar.lift(R::Nemo.Ring, f::Union{fpMPolyRingElem, zzModMPolyRingElem})
   g = MPolyBuildCtx(R)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, lift(c), v)
@@ -229,7 +229,7 @@ function Oscar.lift(R::Nemo.Ring, f::Union{gfp_mpoly, nmod_mpoly})
   return finish(g)
 end
 
-function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=1)
+function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem, b::Bool; parent=1)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
@@ -241,7 +241,7 @@ function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=
   return true, finish(g)
 end
 
-function induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
+function induce_crt(f::ZZMPolyRingElem, d::ZZRingElem, g::ZZMPolyRingElem, p::ZZRingElem, b::Bool)
   mu = MPolyBuildCtx(parent(f))
   for i=1:length(f)
     e = exponent_vector(f, i)
@@ -251,7 +251,7 @@ function induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
   return finish(mu), d*p
 end
 
-function exp_groebner_basis(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+function exp_groebner_basis(I::MPolyIdeal{QQMPolyRingElem}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   H = exp_groebner_assure(I, ord)
   return H
 end

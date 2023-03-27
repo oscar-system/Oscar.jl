@@ -1,6 +1,3 @@
-export secondary_invariants, irreducible_secondary_invariants,
-semi_invariants, relative_invariants
-
 function add_invariant!(C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}) where T
   push!(C.invars, f)
   push!(C.is_irreducible, isirred)
@@ -25,10 +22,10 @@ function secondary_invariants_modular(RG::InvRing)
   # We have to compute a lot with these polynomials and the grading only
   # gets in the way (one cannot ask for total_degree and even if one could
   # the answer would be a GrpAbFinGenElem where it could be an Int)
-  R = Rgraded.R
+  R = forget_grading(Rgraded)
   K = coefficient_ring(R)
 
-  p_invars = elem_type(R)[ f.f for f in primary_invariants(RG) ]
+  p_invars = elem_type(R)[ forget_grading(f) for f in primary_invariants(RG) ]
 
   s_invars = elem_type(R)[ one(R) ]
   s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
@@ -60,7 +57,7 @@ function secondary_invariants_modular(RG::InvRing)
     # We need to reverse the columns of this matrix, see below.
     Bd = iterate_basis_linear_algebra(RG, d)
     ncB1 = length(Bd.monomials_collected) + 1
-    mons_to_cols = Dict{Vector{Int}, Int}(first(AbstractAlgebra.exponent_vectors(Bd.monomials_collected[i].f)) => ncB1 - i for i = 1:length(Bd.monomials_collected))
+    mons_to_cols = Dict{Vector{Int}, Int}(first(AbstractAlgebra.exponent_vectors(forget_grading(Bd.monomials_collected[i]))) => ncB1 - i for i = 1:length(Bd.monomials_collected))
     B = BasisOfPolynomials(R, Md, mons_to_cols)
 
     # Do a slight detour and first try to build invariants as products of ones
@@ -73,11 +70,11 @@ function secondary_invariants_modular(RG::InvRing)
     # invariant of degree d - deg(i).
     products = Set{elem_type(R)}()
     for i = 1:length(is_invars)
-      f = s_invars_cache.invars[is_invars[i]].f
+      f = forget_grading(s_invars_cache.invars[is_invars[i]])
       @assert total_degree(f) < d
       dd = d - total_degree(f)
       for j in s_invars_sorted[dd]
-        g = s_invars_cache.invars[j].f
+        g = forget_grading(s_invars_cache.invars[j])
         lp = length(products)
         fg = f*g
         push!(products, fg)
@@ -135,7 +132,7 @@ function secondary_invariants_modular(RG::InvRing)
         if iszero(N[j, c])
           continue
         end
-        f += N[j, c]*Bd.monomials_collected[j].f
+        f += N[j, c]*forget_grading(Bd.monomials_collected[j])
       end
       f = inv(AbstractAlgebra.leading_coefficient(f))*f
       push!(s_invars, f)
@@ -164,7 +161,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   h = reduce_hilbert_series_by_primary_degrees(RG)
 
   Rgraded = polynomial_ring(RG)
-  R = Rgraded.R
+  R = forget_grading(Rgraded)
   # R needs to have the correct ordering for application of divrem
   @assert ordering(R) == :degrevlex
 
@@ -184,7 +181,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   is_invars = Vector{Int}()
 
   # The Groebner basis should already be cached
-  gbI = [ f.f for f in groebner_basis(I, ordering = degrevlex(gens(base_ring(I)))) ]
+  gbI = [ forget_grading(f) for f in groebner_basis(I, ordering = degrevlex(gens(base_ring(I)))) ]
 
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
@@ -203,11 +200,11 @@ function secondary_invariants_nonmodular(RG::InvRing)
     # invariant of degree d - deg(i).
     products = Set{elem_type(R)}()
     for i = 1:length(is_invars)
-      f = s_invars_cache.invars[is_invars[i]].f
+      f = forget_grading(s_invars_cache.invars[is_invars[i]])
       @assert total_degree(f) < d
       dd = d - total_degree(f)
       for j in s_invars_sorted[dd]
-        g = s_invars_cache.invars[j].f
+        g = forget_grading(s_invars_cache.invars[j])
         lp = length(products)
         fg = f*g
         push!(products, fg)
@@ -243,14 +240,14 @@ function secondary_invariants_nonmodular(RG::InvRing)
       # Can exclude some monomials, see DK15, Remark 3.7.3 (b)
       skip = false
       for g in gens(LI)
-        if mod(m.f, g.f) == 0
+        if mod(forget_grading(m), forget_grading(g)) == 0
           skip = true
           break
         end
       end
       skip && continue
 
-      f = reynolds_operator(RG, m).f
+      f = forget_grading(reynolds_operator(RG, m))
       if iszero(f)
         continue
       end
@@ -312,12 +309,12 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-2-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+2-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  1
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
@@ -346,12 +343,12 @@ computed and cached first).
 ```jldoctest
 julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
-julia> G = MatrixGroup(5, QQ, [M]);
+julia> G = matrix_group(M);
 
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+12-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  1
  x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
  x[3]^2 + x[4]^2 + x[5]^2
@@ -366,7 +363,7 @@ julia> secondary_invariants(IR)
  x[1]*x[3]^5 - x[2]*x[3]^5 + x[2]*x[3]^4*x[4] + 2*x[1]*x[3]^3*x[4]^2 - 2*x[2]*x[3]^3*x[4]^2 + 2*x[2]*x[3]^2*x[4]^3 + x[1]*x[3]*x[4]^4 - x[2]*x[3]*x[4]^4 + x[2]*x[4]^5 - x[1]*x[3]^4*x[5] - 2*x[1]*x[3]^2*x[4]^2*x[5] - x[1]*x[4]^4*x[5] + 2*x[1]*x[3]^3*x[5]^2 - 2*x[2]*x[3]^3*x[5]^2 + 2*x[2]*x[3]^2*x[4]*x[5]^2 + 2*x[1]*x[3]*x[4]^2*x[5]^2 - 2*x[2]*x[3]*x[4]^2*x[5]^2 + 2*x[2]*x[4]^3*x[5]^2 - 2*x[1]*x[3]^2*x[5]^3 - 2*x[1]*x[4]^2*x[5]^3 + x[1]*x[3]*x[5]^4 - x[2]*x[3]*x[5]^4 + x[2]*x[4]*x[5]^4 - x[1]*x[5]^5
 
 julia> irreducible_secondary_invariants(IR)
-8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+8-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
  x[3]^2 + x[4]^2 + x[5]^2
  x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
@@ -392,7 +389,7 @@ end
 #
 ################################################################################
 
-# Gat96, Algorithim 3.16 and DK15, Algorithm 3.7.2
+# Gat96, Algorithm 3.16 and DK15, Algorithm 3.7.2
 @doc Markdown.doc"""
     semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
     relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)
@@ -421,7 +418,7 @@ julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c i
 group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
 
 julia> semi_invariants(RS2, chi)
-1-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1] - x[2]
 
 ```
@@ -437,7 +434,7 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
   h = reduce_hilbert_series_by_primary_degrees(RG, chi)
 
   Rgraded = polynomial_ring(RG)
-  R = Rgraded.R
+  R = forget_grading(Rgraded)
 
   B = BasisOfPolynomials(R, elem_type(R)[])
 
@@ -458,18 +455,18 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
       # Can exclude some monomials, see DK15, Remark 3.7.3 (b)
       skip = false
       for g in gens(LI)
-        if mod(m.f, g.f) == 0
+        if mod(forget_grading(m), forget_grading(g)) == 0
           skip = true
           break
         end
       end
       skip && continue
 
-      f = rey_op(m).f
+      f = forget_grading(rey_op(m))
       if iszero(f)
         continue
       end
-      nf = normal_form(f, I).f
+      nf = forget_grading(normal_form(f, I))
       if add_to_basis!(B, nf)
         f = inv(AbstractAlgebra.leading_coefficient(f))*f
         push!(semi_invars, Rgraded(f))

@@ -46,10 +46,10 @@ Print the object in LP format to stdout:
 
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> save_lp(stdout, milp)
 MAXIMIZE
@@ -67,7 +67,7 @@ GENERAL
 END
 ```
 """
-function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
   _internal_save_lp(target,
                     pm_object(feasible_region(lp)),
                     pm_object(lp),
@@ -85,10 +85,10 @@ Print the object in MPS format to stdout:
 
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-A polyhedron in ambient dimension 2
+Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> save_mps(stdout, milp)
 * Class:	MIP
@@ -119,7 +119,7 @@ BOUNDS
 ENDATA
 ```
 """
-function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{fmpq},LinearProgram{fmpq}})
+function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
   _internal_save_mps(target,
                      pm_object(feasible_region(lp)),
                      pm_object(lp))
@@ -141,7 +141,7 @@ function load_mps(file::String)
     Polymake.attach(milp, "convention", "max")
     return MixedIntegerLinearProgram(Polyhedron(poly), milp, :max)
   else
-    throw(ErrorException("load_mps: cannot find LP or MILP subobject in polymake object"))
+    error("load_mps: cannot find LP or MILP subobject in polymake object")
   end
 end
 
@@ -164,7 +164,7 @@ function load_lp(file::String)
     Polymake.attach(milp, "convention", String(convention))
     return MixedIntegerLinearProgram(Polyhedron(poly), milp, convention)
   else
-    throw(ErrorException("load_lp: cannot find LP or MILP subobject in polymake object"))
+    error("load_lp: cannot find LP or MILP subobject in polymake object")
   end
 end
 

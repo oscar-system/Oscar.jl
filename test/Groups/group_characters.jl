@@ -649,11 +649,11 @@ end
 
 @testset "create character tables" begin
   @testset "library of character tables" begin
-    @test character_table("J5") == nothing
+    @test character_table("J5") === nothing
     @test_throws ErrorException character_table("A5mod2", 3)
   end
 
-  @test character_table(alternating_group(5), 2) == nothing
+  @test character_table(alternating_group(5), 2) === nothing
 end
 
 @testset "characters" begin
@@ -687,15 +687,15 @@ end
 
   scp = scalar_product(t[1], t[1])
   @test scp == 1
-  @test scp isa fmpq
-  for T in [fmpz, fmpq, Int64, QQAbElem]
+  @test scp isa QQFieldElem
+  for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
     scpT = scalar_product(T, t[1],t[1])
     @test scpT == scp
     @test scpT isa T
   end
   scp = scalar_product(t[1], t[2])
   @test scp == 0
-  @test scp isa fmpq
+  @test scp isa QQFieldElem
 
   # conjugate characters
   h = pcore(g, 2)[1]
@@ -725,7 +725,7 @@ end
 
   g = symmetric_group(5)
   t = character_table(g)
-  @test mod(t, 2) == nothing
+  @test mod(t, 2) === nothing
 
   g = general_linear_group(2, 3)
   h = derived_subgroup(g)[1]

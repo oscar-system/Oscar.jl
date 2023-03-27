@@ -3,43 +3,6 @@ using JSON
 import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
-export
-    Directed,
-    Edge,
-    Graph,
-    Undirected,
-    add_edge!,
-    add_vertex!,
-    add_vertices!,
-    all_neighbors,
-    complete_graph,
-    complete_bipartite_graph,
-    connected_components,
-    diameter,
-    dst,
-    dualgraph,
-    edgegraph,
-    edges,
-    has_edge,
-    has_vertex,
-    incidence_matrix,
-    inneighbors,
-    is_connected,
-    is_strongly_connected,
-    is_weakly_connected,
-    ne,
-    neighbors,
-    nv,
-    outneighbors,
-    rem_edge!,
-    rem_vertex!,
-    reverse,
-    shortest_path_dijkstra,
-    signed_incidence_matrix,
-    src,
-    strongly_connected_components,
-    weakly_connected_components
-
 ################################################################################
 ################################################################################
 ##  Constructing and modifying
@@ -77,6 +40,7 @@ function Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
     return Graph{T}(pmg)
 end
 
+_has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
 @doc Markdown.doc"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -94,6 +58,7 @@ julia> ne(g)
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+    (_has_node(g, source) && _has_node(g, target)) || throw(ArgumentError("Nodes must be between 1 and $(nv(g)), but edge given is $source -- $target"))
     Polymake._add_edge(pm_object(g), source-1, target-1)
 end
 
@@ -605,7 +570,7 @@ julia> automorphism_group_generators(g)
 function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
-    return _pm_arr_arr_to_group_generators(result)
+    return _pm_arr_arr_to_group_generators(result, nv(g))
 end
 
 
@@ -961,7 +926,7 @@ Construct the fractional cut polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_cut_polytope(G)
-A polyhedron in ambient dimension 6
+Polyhedron in ambient dimension 6
 ```
 """
 fractional_cut_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
@@ -978,7 +943,7 @@ Construct the fractional matching polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_matching_polytope(G)
-A polyhedron in ambient dimension 6
+Polyhedron in ambient dimension 6
 ```
 """
 fractional_matching_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))

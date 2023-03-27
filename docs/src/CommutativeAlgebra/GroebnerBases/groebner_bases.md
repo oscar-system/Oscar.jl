@@ -66,8 +66,8 @@ Here are some illustrating OSCAR examples:
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> default_ordering(R)
 degrevlex([x, y, z])
@@ -82,7 +82,7 @@ julia> S, _ = grade(R, [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
-  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
@@ -94,8 +94,8 @@ Here are examples which indicate how to recover monomials, terms, and
 more from a given polynomial.
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*z^3+2*x*y+1
 2*x*y + 3*z^3 + 1
@@ -104,7 +104,7 @@ julia> terms(f)
 terms iterator of 3*z^3 + 2*x*y + 1
 
 julia> collect(ans)
-3-element Vector{fmpq_mpoly}:
+3-element Vector{QQMPolyRingElem}:
  3*z^3
  2*x*y
  1
@@ -122,7 +122,7 @@ julia> coefficients_and_exponents(f)
 coefficients and exponents iterator of 3*z^3 + 2*x*y + 1
 
 julia> collect(ans)
-3-element Vector{Tuple{fmpq, Vector{Int64}}}:
+3-element Vector{Tuple{QQFieldElem, Vector{Int64}}}:
  (3, [0, 0, 3])
  (2, [1, 1, 0])
  (1, [0, 0, 0])
@@ -147,8 +147,8 @@ julia> tail(f)
 ```
 
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
@@ -160,7 +160,7 @@ julia> default_ordering(F)
 degrevlex([x, y])*lex([gen(1), gen(2), gen(3)])
 
 julia> collect(terms(f))
-6-element Vector{FreeModElem{fmpq_mpoly}}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  -y^10*e[1]
  4*x^3*e[2]
  5*x*y^2*e[1]
@@ -169,7 +169,7 @@ julia> collect(terms(f))
  3*e[1]
 
 julia> collect(terms(f, ordering = lex(F)*lex(R)))
-6-element Vector{FreeModElem{fmpq_mpoly}}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  5*x*y^2*e[1]
  -y^10*e[1]
  3*e[1]
@@ -239,17 +239,17 @@ In the global case, they always return fully reduced remainders.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ```@docs
 reduce_with_quotients(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 		  
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ## Computing Gröbner/Standard Bases
@@ -339,6 +339,46 @@ fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_rin
 
 ### The Hilbert driven Buchberger Algorithm
 
+Calling the functions `standard_basis` and `groebner_basis` with `algorithm = :hilbert` in OSCAR
+triggers a version of the Hilbert driven Gröbner basis algorithm which proceeds along the following lines.
+
+1. Given an ideal $I$ of a multivariate polynomial ring $R$ over a field $K$ and a slow `destination_ordering`, check whether $I$ is homogeneous with respect to the standard $\mathbb Z$-grading on $R$. If so, set `start_ordering` to `degrevlex` and go to step 3.
+
+2. Check whether there exists a $\mathbb Z$-grading on $R$ with positive weights such that $I$ is homogeneous with respect to this grading. If so, let `start_ordering` be the corresponding weight ordering. If not, go to step 5.
+
+3. Compute a Gröbner basis of $I$ with respect to `start_ordering` and use this Gröbner basis to compute the Hilbert function of $R/I$.
+
+4. Compute a Gröbner basis with respect to `destination_ordering`,  proceeding by increasing (weighted) degree, and skipping all further Buchberger tests in a given (weighted) degree as soon as the leading terms found so far account for the Hilbert function in that (weighted) degree. Return the computed Gröbner basis.
+
+5. Extend $R$ to a polynomial ring $S$ by appending an extra variable,
+   equip $S$ with the standard $\mathbb Z$-grading, and let
+   $I^{h}\subset S$ be the homogenization of $I$ with respect to the
+   extra variable. Compute a Gröbner basis of $I$ with respect to
+   `degrevlex` on `R`, and homogenize its elements to obtain a Gröbner
+   basis of $I^{h}$ with respect to `degrevlex` on $S$. Use the latter
+   basis to compute the Hilbert function of $S/I^{h}$. Extend
+   `destination_ordering` to a block ordering on `S`. Following the
+   recipe in step 4, compute a Gröbner basis of $S/I^{h}$ with respect
+   to the extended ordering. Return the dehomogenization of this basis
+   with respect to the extra variable.
+
+If the characteristic of $K$ is zero,  by semi-continuity of the Hilbert function,
+it is sufficient to perform step 3 for the reduction of $I$ modulo a conveniently
+chosen prime number rather than for $I$ itself.
+
+!!! note
+    If appropriate weights and/or the Hilbert function with respect to appropriate weights
+    are already known to the user, this information can be entered when calling the Hilbert
+	driven Gröbner basis algorithm as follows:
+    
+```@docs
+groebner_basis_hilbert_driven(I::MPolyIdeal{P};
+    destination_ordering::MonomialOrdering,
+    complete_reduction::Bool = false,
+    weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+    hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
+```
+	
 ### Faugère's F4 Algorithm
 
 !!! warning "Expert function for computing Gröbner bases"
@@ -347,14 +387,14 @@ fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_rin
     only if you know what you are doing.
 
 ```@docs
-f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
+groebner_basis_f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
 ```
 
 ## Leading Ideals
 
 
 ```@docs
-leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyElem
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyRingElem
 leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 ```
 
@@ -367,7 +407,7 @@ $g$, $I$, and $>$ (and does not depend on the choice of Gröbner basis). We refe
 a remainder as the *normal form*  of $g$ mod $I$, with respect to $>$.
 
 ```@docs
-normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyElem
+normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyRingElem
 ```
 
 ## Syzygies
@@ -375,6 +415,6 @@ normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(b
 We refer to the section on modules for more on syzygies.
 
 ```@docs
-syzygy_generators(G::Vector{<:MPolyElem})
+syzygy_generators(G::Vector{<:MPolyRingElem})
 ```
 

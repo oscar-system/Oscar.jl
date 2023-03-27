@@ -30,6 +30,11 @@ Here is a summary of the naming convention followed in OSCAR:
   concepts, preferably not special names from your area of speciality.
 - Use Julia conventions where applicable and when they don't contradict our
   own rules above.
+- **Avoid direct access to members of our objects.** This means, do not use
+  something like `A.foo`, instead use a suitable getter `get_foo(A)`, and if
+  there is none, please write one or request that one be written. Internal
+  member names are free to change at any time, but functions can be deprecated
+  properly.
 - In Julia we have multiple dispatch, so we do not need functions like
   `point_from_matrix` as the "from" part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.
@@ -186,6 +191,13 @@ end
 - Functions should not be too long; very long functions are in general harder
   to understand; it is also more difficult to see all the code at once. Consider
   splitting the function into multiple ones, if it is sensibly possible.
+
+- Every export statement must be confined to a single line; the intention is to
+  make it easy to use tools like `git grep` to find exports. In general it is
+  recommended export exactly one identifier per export statement. Exceptions may
+  be made for certain tightly related identifiers, e.g. `is_finite`, `set_is_finite`
+  and `has_is_finite` could be put on a single line. In general if multiple
+  export statements appear in sequence, they must be sorted alphabetically.
 
 However, as always, rules sometimes should be broken.
 

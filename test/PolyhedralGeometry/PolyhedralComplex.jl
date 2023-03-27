@@ -1,4 +1,4 @@
-@testset "PolyhedralComplex{$T}" for T in [fmpq, nf_elem]
+@testset "PolyhedralComplex{$T}" for T in [QQFieldElem, nf_elem]
     
     I = IncidenceMatrix([[1, 2, 3], [2, 4]])
     P = [0 0; 1 0; 0 1; 1 1]
@@ -33,7 +33,7 @@
          @test ambient_dim(PC) == 2
          @test vertices(PC) isa SubObjectIterator{PointVector{T}}
          @test length(vertices(PC)) == 4
-         if T == fmpq
+         if T == QQFieldElem
              @test point_matrix(vertices(PC)) == matrix(QQ, P)
          else
              @test point_matrix(vertices(PC)) == P
@@ -42,7 +42,7 @@
          @test rays(PCF) isa SubObjectIterator{RayVector{T}}
          @test length(rays(PCF)) == 1
          @test rays(PCF) == [[-1, -1]]
-         if T == fmpq
+         if T == QQFieldElem
              @test vector_matrix(rays(PCF)) == matrix(QQ, [-1 -1])
          else
              @test vector_matrix(rays(PCF)) == [-1 -1]
@@ -55,7 +55,7 @@
          else
              @test typeof.(vertices_and_rays(PCFL)) == [PointVector{T}, PointVector{T}, PointVector{T}, RayVector{T}]
          end
-         if T == fmpq
+         if T == QQFieldElem
              @test vector_matrix(vertices_and_rays(PCFL)) == matrix(QQ, P2)
          else
              @test vector_matrix(vertices_and_rays(PCFL)) == P2
@@ -69,7 +69,7 @@
          @test dim(PCL) == 3
          @test polyhedra_of_dim(PC, 1) isa SubObjectIterator{Polyhedron{T}}
          @test length(polyhedra_of_dim(PC, 1)) == 4
-         if T == fmpq
+         if T == QQFieldElem
              @test polyhedra_of_dim(PC, 1) == convex_hull.(T, [P[[2, 4], :], P[[1, 3], :], P[[1, 2], :], P[[2, 3], :]])
          else
              @test polyhedra_of_dim(PC, 1) == convex_hull.(T, [P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]])
@@ -77,7 +77,7 @@
          @test lineality_space(PCL) isa SubObjectIterator{RayVector{T}}
          @test length(lineality_space(PCL)) == 1
          @test lineality_space(PCL) == [L[:]]
-         if T == fmpq
+         if T == QQFieldElem
              @test generator_matrix(lineality_space(PCL)) == matrix(QQ, L)
          else
              @test generator_matrix(lineality_space(PCL)) == L

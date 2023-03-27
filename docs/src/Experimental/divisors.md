@@ -55,8 +55,8 @@ dimension_global_sections(D::ProjCurveDivisor)
 In addition, the multiplicity of a polynomial or a fraction at a given point can be computed:
 
 ```@docs
-multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
-multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
+multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyRingElem{S}}
+multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}, P::Point{S}) where S <: FieldElem
 ```
 
 
@@ -64,8 +64,8 @@ The divisor of a polynomial or a fraction along a plane curve can be computed, b
 
 
 ```@docs
-divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: FieldElem
-divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
-divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
-divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}) where S <: FieldElem
+divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyRingElem{S}}
+divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}) where S <: FieldElem
+divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
 ```

@@ -113,8 +113,8 @@
 
     for i in 1:10
       b = rand(K, -1:1)
-      for R in Any[Bk, Int32, Int, BigInt, fmpz,
-                   Base.Rational{Int}, Base.Rational{BigInt}, fmpq]
+      for R in Any[Bk, Int32, Int, BigInt, ZZRingElem,
+                   Base.Rational{Int}, Base.Rational{BigInt}, QQFieldElem]
         @test b == @inferred (b + R(0))
         @test b == @inferred (R(0) + b)
         @test b == @inferred (b * R(1))
@@ -154,8 +154,8 @@
       b = rand(K, -2:2)
       @test (@inferred b == b)
       @test (@inferred b != (b + 1))
-      for R in Any[Bk, Int32, Int, BigInt, fmpz,
-                   Base.Rational{Int}, Base.Rational{BigInt}, fmpq]
+      for R in Any[Bk, Int32, Int, BigInt, ZZRingElem,
+                   Base.Rational{Int}, Base.Rational{BigInt}, QQFieldElem]
         o = one(K)
         @test (@inferred o == R(1))
         @test (@inferred o != R(0))
@@ -174,8 +174,8 @@
     PP, _x = Bk["x1", "x2", "x3"]
     @test_throws ErrorException K(_x[1])
 
-    for R in Any[Bk, Int, BigInt, fmpz,
-                Base.Rational{Int}, Base.Rational{BigInt}, fmpq]
+    for R in Any[Bk, Int, BigInt, ZZRingElem,
+                Base.Rational{Int}, Base.Rational{BigInt}, QQFieldElem]
       b = @inferred K(R(1))
     end
 
@@ -183,7 +183,7 @@
     if Bk === FlintQQ
       b = rand(K, -2:2)
       d = @inferred denominator(b)
-      @test d isa fmpz
+      @test d isa ZZRingElem
     end
 
     # basis
@@ -230,7 +230,7 @@
         M, d = @inferred representation_matrix_q(b)
         @test nrows(M) == degree(K)
         @test ncols(M) == degree(K)
-        @test (M isa fmpz_mat)
+        @test (M isa ZZMatrix)
         for n in 1:length(B)
           @test b * B[n] == sum(M[n, m]//d * B[m] for m in 1:length(B))
           c = @inferred Oscar.Hecke.elem_from_mat_row(K, M, n, d)
@@ -244,7 +244,7 @@
         end
         b = b//c
         MM = zero_matrix(FlintZZ, nrows(M), ncols(M))
-        dd = fmpz()
+        dd = ZZRingElem()
         j = rand(1:nrows(MM))
         Oscar.Hecke.elem_to_mat_row!(MM, j, dd, b)
         @test b == sum(MM[j, m]//dd * B[m] for m in 1:length(B))

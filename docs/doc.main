@@ -109,7 +109,6 @@
        "PolyhedralGeometry/Polyhedra/constructions.md",
        "PolyhedralGeometry/Polyhedra/polymake.md",
        "PolyhedralGeometry/Polyhedra/auxiliary.md",
-       "PolyhedralGeometry/Polyhedra/visualization.md",
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
@@ -165,21 +164,26 @@
         "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
      ],
      "Toric Varieties" => [
-        "ToricVarieties/intro.md",
-        "ToricVarieties/NormalToricVarieties.md",
-        "ToricVarieties/CyclicQuotientSingularities.md",
-        "ToricVarieties/ToricDivisors.md",
-        "ToricVarieties/ToricDivisorClasses.md",
-        "ToricVarieties/ToricLineBundles.md",
-        "ToricVarieties/cohomCalg.md",
-        "ToricVarieties/CohomologyClasses.md",
-        "ToricVarieties/Subvarieties.md",
-        "ToricVarieties/AlgebraicCycles.md",
-        "ToricVarieties/ToricMorphisms.md",
+        "AlgebraicGeometry/ToricVarieties/intro.md",
+        "AlgebraicGeometry/ToricVarieties/NormalToricVarieties.md",
+        "AlgebraicGeometry/ToricVarieties/CyclicQuotientSingularities.md",
+        "AlgebraicGeometry/ToricVarieties/ToricDivisors.md",
+        "AlgebraicGeometry/ToricVarieties/ToricDivisorClasses.md",
+        "AlgebraicGeometry/ToricVarieties/ToricLineBundles.md",
+        "AlgebraicGeometry/ToricVarieties/cohomCalg.md",
+        "AlgebraicGeometry/ToricVarieties/CohomologyClasses.md",
+        "AlgebraicGeometry/ToricVarieties/Subvarieties.md",
+        "AlgebraicGeometry/ToricVarieties/AlgebraicCycles.md",
+        "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
+     ],
+     "Toric Schemes" => [
+         "Experimental/ToricSchemes/intro.md",
+         "Experimental/ToricSchemes/AffineToricSchemes.md",
+         "Experimental/ToricSchemes/NormalToricSchemes.md",
      ],
      "Tropical Geometry" => [
-        "TropicalGeometry/intro.md",
-        "TropicalGeometry/curve.md",
+        "AlgebraicGeometry/TropicalGeometry/intro.md",
+        "AlgebraicGeometry/TropicalGeometry/curve.md",
      ],
      "Curves" => [
 #        "Experimental/introduction.md",
@@ -189,15 +193,16 @@
 #        "Experimental/non_plane_curves.md",
          "AlgebraicGeometry/Curves/para_rational_curves.md",
      ],
-     "Standard Constructions" => [
-       "AlgebraicGeometry/StandardConstructions/standard_constructions.md",
-     ],
      "Surfaces" => [
-        "AlgebraicGeometry/Surfaces/K3Surfaces.md"
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
+     ],
+     "Miscellaneous" => [
+       "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
      ]
   ],
 
- "Finitely Presented Algebras" => [
+ "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
@@ -212,6 +217,9 @@
       "Combinatorics/graphs.md",
       "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
+      "Combinatorics/partitions.md",
+      "Combinatorics/tableaux.md",
+      "Combinatorics/schur_polynomials.md",
   ],
 
   "Straight Line Programs" => [
@@ -230,6 +238,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
+    "DeveloperDocumentation/experimental.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

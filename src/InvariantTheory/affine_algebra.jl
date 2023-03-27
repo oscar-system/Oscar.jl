@@ -56,7 +56,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -146,7 +146,7 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
   # TODO: In the modular case we need module syzygies w.r.t. the secondary invariants
 
   Rgraded = polynomial_ring(RG)
-  R = Rgraded.R
+  R = forget_grading(Rgraded)
   K = coefficient_ring(R)
 
   p_invars = [ f.f for f in primary_invariants(RG) ]
@@ -156,7 +156,7 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
 
   np = length(p_invars)
 
-  S, t = grade(PolynomialRing(K, "t" => 1:(np + length(is_invars)))[1], append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ]))
+  S, t = grade(polynomial_ring(K, "t" => 1:(np + length(is_invars)))[1], append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ]))
 
   if isempty(is_invars)
     I = ideal(S, elem_type(S)[])
