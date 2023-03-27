@@ -27,8 +27,8 @@
       "T^3 V of sl_4(QQ)",
       special_linear_liealgebra(QQ, 4),
       tensor_power(standard_module(special_linear_liealgebra(QQ, 4)), 3),
-      LieAlgebraTensorPowerModule{fmpq},
-      LieAlgebraTensorPowerModuleElem{fmpq},
+      LieAlgebraTensorPowerModule{QQFieldElem},
+      LieAlgebraTensorPowerModuleElem{QQFieldElem},
     ),
     (
       "T^2 ⋀^2 V of so_4(QQ)",
@@ -36,8 +36,8 @@
       tensor_power(
         exterior_power(standard_module(special_orthogonal_liealgebra(QQ, 4)), 2), 2
       ),
-      LieAlgebraTensorPowerModule{fmpq},
-      LieAlgebraTensorPowerModuleElem{fmpq},
+      LieAlgebraTensorPowerModule{QQFieldElem},
+      LieAlgebraTensorPowerModuleElem{QQFieldElem},
     ),
     (
       "T^2 V of so_4(CL(4))",

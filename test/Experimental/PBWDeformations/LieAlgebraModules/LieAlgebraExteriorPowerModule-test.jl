@@ -27,8 +27,8 @@
       "⋀^3 V of sl_4(QQ)",
       special_linear_liealgebra(QQ, 4),
       exterior_power(standard_module(special_linear_liealgebra(QQ, 4)), 3),
-      LieAlgebraExteriorPowerModule{fmpq},
-      LieAlgebraExteriorPowerModuleElem{fmpq},
+      LieAlgebraExteriorPowerModule{QQFieldElem},
+      LieAlgebraExteriorPowerModuleElem{QQFieldElem},
     ),
     (
       "⋀^2 S^2 V of so_4(QQ)",
@@ -36,8 +36,8 @@
       exterior_power(
         symmetric_power(standard_module(special_orthogonal_liealgebra(QQ, 4)), 2), 2
       ),
-      LieAlgebraExteriorPowerModule{fmpq},
-      LieAlgebraExteriorPowerModuleElem{fmpq},
+      LieAlgebraExteriorPowerModule{QQFieldElem},
+      LieAlgebraExteriorPowerModuleElem{QQFieldElem},
     ),
     (
       "⋀^2 V of so_4(CL(4))",

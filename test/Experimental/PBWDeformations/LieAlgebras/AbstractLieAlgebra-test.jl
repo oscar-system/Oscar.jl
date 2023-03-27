@@ -9,18 +9,18 @@
   sl2 = liealgebra(QQ, sc, ["e", "f", "h"])
 
   @testset "conformance tests for $desc" for (desc, L, parentT, elemT) in [
-    ("sl_2(QQ)", sl2, AbstractLieAlgebra{fmpq}, AbstractLieAlgebraElem{fmpq}),
+    ("sl_2(QQ)", sl2, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}),
     (
       "A_4(QQ)",
       liealgebra(QQ, ('A', 4)),
-      AbstractLieAlgebra{fmpq},
-      AbstractLieAlgebraElem{fmpq},
+      AbstractLieAlgebra{QQFieldElem},
+      AbstractLieAlgebraElem{QQFieldElem},
     ),
     (
       "B_3(QQ)",
       liealgebra(QQ, ('B', 3)),
-      AbstractLieAlgebra{fmpq},
-      AbstractLieAlgebraElem{fmpq},
+      AbstractLieAlgebra{QQFieldElem},
+      AbstractLieAlgebraElem{QQFieldElem},
     ),
     # ("A_4(CF(4))", liealgebra(cyclotomic_field(4)[1], ('A', 4)), AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}),
     # ("B_3(CF(4))", liealgebra(cyclotomic_field(4)[1], ('B', 3)), AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}),
