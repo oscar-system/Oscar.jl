@@ -197,17 +197,13 @@ end
   IP2_Xh = subscheme(IP2_X, gens(ambient_coordinate_ring(IP2_X))[1])
   ProjectiveSchemeMor(IP2_Xh, IP2_X, gens(ambient_coordinate_ring(IP2_Xh)))
   IP2_Yh = subscheme(IP2_Y, gens(ambient_coordinate_ring(IP2_Y))[1])
-  # Disabled for as long as #2119 is unaddressed
-  #ProjectiveSchemeMor(IP2_Yh, IP2_Y, gens(ambient_coordinate_ring(IP2_Yh)))
+  ProjectiveSchemeMor(IP2_Yh, IP2_Y, gens(ambient_coordinate_ring(IP2_Yh)))
   IP2_Uh = subscheme(IP2_U, gens(ambient_coordinate_ring(IP2_U))[1])
-  # Disabled for as long as #2119 is unaddressed
-  #ProjectiveSchemeMor(IP2_Uh, IP2_U, gens(ambient_coordinate_ring(IP2_Uh)))
+  ProjectiveSchemeMor(IP2_Uh, IP2_U, gens(ambient_coordinate_ring(IP2_Uh)))
   IP2_UYh = subscheme(IP2_UY, gens(ambient_coordinate_ring(IP2_UY))[1])
-  # Disabled for as long as #2119 is unaddressed
-  #ProjectiveSchemeMor(IP2_UYh, IP2_UY, gens(ambient_coordinate_ring(IP2_UYh)))
+  ProjectiveSchemeMor(IP2_UYh, IP2_UY, gens(ambient_coordinate_ring(IP2_UYh)))
   IP2_Wh = subscheme(IP2_W, gens(ambient_coordinate_ring(IP2_W))[1])
-  # Disabled for as long as #2119 is unaddressed
-  #ProjectiveSchemeMor(IP2_Wh, IP2_W, gens(ambient_coordinate_ring(IP2_Wh)))
+  ProjectiveSchemeMor(IP2_Wh, IP2_W, gens(ambient_coordinate_ring(IP2_Wh)))
 
   incYtoX = inclusion_morphism(Y, X)
   h = hom(ambient_coordinate_ring(IP2_X), ambient_coordinate_ring(IP2_Y), pullback(incYtoX), gens(ambient_coordinate_ring(IP2_Y)))
@@ -218,9 +214,8 @@ end
   @test YtoX == inclusion_morphism(IP2_Y, IP2_X)
   IP2_Y2, map = fiber_product(incYtoX, IP2_X)
   h2 = hom(ambient_coordinate_ring(IP2_Y2), ambient_coordinate_ring(IP2_Y), gens(ambient_coordinate_ring(IP2_Y)))
-  # Disabled for as long as #2119 is unaddressed
-  #YtoY2 = ProjectiveSchemeMor(IP2_Y, IP2_Y2, h2)
-  #@test compose(YtoY2, map) == YtoX
+  YtoY2 = ProjectiveSchemeMor(IP2_Y, IP2_Y2, h2)
+  @test compose(YtoY2, map) == YtoX
 
   incUtoX = inclusion_morphism(U, X)
   h = hom(ambient_coordinate_ring(IP2_X), ambient_coordinate_ring(IP2_U), pullback(incUtoX), gens(ambient_coordinate_ring(IP2_U)))

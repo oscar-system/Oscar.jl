@@ -165,6 +165,16 @@ AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem,
 # specific geometric configuration. Hence, we rely on the user to perform 
 # every coercion manually. 
 
+# Additional promotions to make (graded) polynomial rings and their quotients work over SpecOpenRings.
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyRingElem{S}} = parent(b)(a)*b
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyDecRingElem{S}} = parent(b)(a)*b
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyDecRingElem{S}}} = parent(b)(a)*b
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyRingElem{S}}} = parent(b)(a)*b
+
+*(b::T, a::S) where {S<:SpecOpenRingElem, T<:MPolyDecRingElem{S}} = parent(b)(a)*b
+*(b::T, a::S) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyDecRingElem{S}}} = parent(b)(a)*b
+*(b::T, a::S) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyRingElem{S}}} = parent(b)(a)*b
+
 ########################################################################
 # Additional methods for compatibility and coherence                   #
 ########################################################################
