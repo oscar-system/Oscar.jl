@@ -249,11 +249,7 @@ projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ri
   CX = subscheme(C, g)
   X.C = CX
 
-  @show "###########################################"
-  @show parent(restriction_map(C, CX)(first(gens(OO(C))))) === OO(CX)
   psi = compose(phi, restriction_map(C, CX))
-  @show parent(psi(first(gens(OO(C))))) === OO(CX)
-  @show "###########################################"
   set_attribute!(X, :base_scheme, U)
   X.projection_to_base = restrict(pr_base, CX, U, check=false)
   return X.C, psi 
@@ -285,13 +281,8 @@ end
 
   #psi = hom(S, OO(CX), pullback(pr_base), OO(CX).(X.homog_coord), check=false)
 
-  @show "###########################################"
-  @show parent(restriction_map(C, CX)(first(gens(OO(C))))) === OO(CX)
   psi = compose(phi, restriction_map(C, CX))
-  @show parent(psi(first(gens(P)))) === OO(CX)
-  @show "###########################################"
   psi_res = hom(S, OO(CX), pullback(pr_base_res), X.homog_coord, check=false)
-  #psi = compose(phi, restriction_map(C, CX))
   set_attribute!(X, :base_scheme, U)
   X.projection_to_base = restrict(pr_base, CX, U, check=false)
   return X.C, psi_res 

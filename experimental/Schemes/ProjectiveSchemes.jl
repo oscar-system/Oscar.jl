@@ -131,8 +131,6 @@ function ProjectiveSchemeMor(
   Q = graded_coordinate_ring(X)
   all(x->parent(x)===Q, a) || return ProjectiveSchemeMor(X, Y, Q.(a))
   P = graded_coordinate_ring(Y)
-  @show P
-  @show Q
   return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
 end
 
@@ -163,19 +161,6 @@ function map_on_affine_cones(
     C_dom, flat_dom = affine_cone(domain(phi))
     C_cod, flat_cod = affine_cone(codomain(phi))
     v = inverse(flat_cod).(gens(OO(C_cod)))
-    @show inverse(flat_cod).(gens(OO(C_cod)))
-    @show parent(first(inverse(flat_cod).(gens(OO(C_cod))))) === domain(pb_phi)
-    @show "blablablablabla"
-    @show pullback(phi)
-    @show domain(pullback(phi))
-    @show graded_coordinate_ring(codomain(phi))
-    @show parent(first(inverse(flat_cod).(gens(OO(C_cod))))) === graded_coordinate_ring(codomain(phi))
-    @show pb_phi
-    @show typeof(pb_phi)
-    @show pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))
-    @show flat_dom
-    @show typeof(flat_dom)
-    @show flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod)))))
     pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))), check=check) # TODO: Set check=false
     phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
   end
@@ -268,7 +253,6 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecO
     BY = base_scheme(Y)
     BQ = ambient_scheme(BY)
     fiber_coord_imgs = map_X.(pullback(phi).(gens(ambient_coordinate_ring(Y)))) # elements in OO(CX)
-    #@show pullback(phi).(pullback(projection_to_base(Y)).(gens(OO(BY))))
     base_coord_imgs = map_X.(pullback(phi).(ambient_coordinate_ring(Y).(gens(OO(BY)))))
     coord_imgs = vcat(base_coord_imgs, fiber_coord_imgs)
 
