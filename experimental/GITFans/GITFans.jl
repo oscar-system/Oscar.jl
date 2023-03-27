@@ -38,7 +38,7 @@ function bitlist_oper_tuple(bitset_tuple, perm_tuple)
 end
 
 function find_smallest_orbit_element(elem, ggens, action, comparator, leq)
-    current_orbit = orbit(elem, ggens, action)
+    current_orbit = orbit(elem, ggens, action, comparator)
     sorted_orbit = sort(current_orbit; lt=leq)
     return sorted_orbit[1]
 end
@@ -233,7 +233,7 @@ and returns `true` if the two objects are considered as equal,
 and `false` otherwise.
 The elements of the returned array are in general not sorted.
 """
-function orbit(point, generators, action)
+function orbit(point, generators, action, compare_func)
     orb = [point]
     # Note that in Julia (like in GAP),
     # the 'for' loop runs also over entries that get added
@@ -241,7 +241,7 @@ function orbit(point, generators, action)
     for b in orb
         for g in generators
             c = action(b, g)
-            if ! any(i-> i == c, orb)
+            if ! any(i->compare_func(i, c), orb)
                 push!(orb, c)
             end
         end
@@ -258,12 +258,12 @@ induced by the action of the group element `element` on the array `set`
 via the function `action`: (pt,element) -> pt^element.
 The equality of points is decided via the binary function `compare`.
 """
-function as_permutation(element, set, action)
+function as_permutation(element, set, action, compare)
     n = length(set)
     perm = Vector{Int64}(undef, n)
     for i in 1:length(set)
         image = action(set[i], element)
-        pos = findfirst(j -> j == image, set)
+        pos = findfirst(j -> compare(j, image), set)
         if pos === nothing
           error("the set is not invariant under the given action")
         end
@@ -294,14 +294,14 @@ function orbit_cone_orbits(cones::Vector{Cone{T}}, hom) where T
         rays(cone)
         facets(cone)
         if all(o -> all(c -> cone != c, o), result)
-            push!(result, orbit(cone, matgens, act))
+            push!(result, orbit(cone, matgens, act, Base.:(==)))
         end
     end
 
     return result
 end
 
-function action_on_orbit_cone_orbits(orbits, hom::GAPGroupHomomorphism)
+function action_on_orbit_cone_orbits(orbits::Vector{Vector{Cone{T}}}, hom::GAPGroupHomomorphism) where T
 #T Currently this is the only place in this file where the term `GAP` occurs
 #T outside a comment.
 #T Prescribing `GAPGroupHomomorphism` is quite technical;
@@ -319,20 +319,13 @@ function action_on_orbit_cone_orbits(orbits, hom::GAPGroupHomomorphism)
     
     res = []
     for orb in orbits
-        list = [as_permutation(gen, orb, act) for gen in matgens]
+        list = [as_permutation(gen, orb, act, Base.:(==)) for gen in matgens]
         push!(res, Oscar.hom(G, sub(list...)[1], Ggens, list))
     end
 
     return res
 end
 
-
-"""
-    get_interior_point(cone)
-
-Return the sum of the rows of the matrix given by the rays of the cone.
-"""
-get_interior_point(cone) = sum(rays(cone), dims = 1)[1]
 
 
 """
@@ -344,7 +337,7 @@ containing at position i the bitset for the i-th entry of `orbits`,
 that is, `true` at the positions of those cones in `orbits[i]`
 that contain the point `point`.
 """
-function compute_bit_list(orbits, point)
+function compute_bit_list(orbits::Vector{Vector{Cone{T}}}, point::AbstractVector{T}) where T
     bitset_list = [BitSet() for orb in orbits]
     for current_orbit_nr in 1:length(orbits)
         current_orbit = orbits[current_orbit_nr]
@@ -376,8 +369,7 @@ function cones_from_bitlist(cone_list::Vector{Vector{Cone{T}}}, bit_list_tuple) 
 end
 
 
-hash_to_cone(orbit_list, hash) = intersect(
-    cones_from_bitlist(orbit_list, hash)...)
+hash_to_cone(orbit_list::Vector{Vector{Cone{T}}}, hash) where T = intersect(cones_from_bitlist(orbit_list, hash)...)
 
 
 """
@@ -386,7 +378,7 @@ hash_to_cone(orbit_list, hash) = intersect(
 Return the list of bitsets describing the cones adjacent to the point
 `facet_point` in the direction of `inner_normal_vector`.
 """
-function get_neighbor_hash(orbits, facet_point, inner_normal_vector)
+function get_neighbor_hash(orbits::Vector{Vector{Cone{T}}}, facet_point, inner_normal_vector) where T
     lambda = 1024
     facet_point_bl = compute_bit_list(orbits, facet_point)
     while true
@@ -400,15 +392,12 @@ function get_neighbor_hash(orbits, facet_point, inner_normal_vector)
     end
 end
 
-function weighted_sum(cone, weights)
+
+function get_interior_point_weighted(cone::Cone)
+    weights = rand(-100:100, nrays(cone))
     return sum(rays(cone) .* weights)
 end
 
-function get_weights(cone)
-    return rand(-100:100, nrays(cone))
-end
-
-get_interior_point_weighted(cone) = weighted_sum(cone, get_weights(cone))
 
 """
     fan_traversal(orbit_list, q_cone::Cone, perm_actions)
@@ -423,7 +412,7 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
     generators_new_perm = rewrite_action_to_orbits(perm_actions)
 
     q_cone_facets_converted = matrix(QQ, q_cone.pm_cone.FACETS)
-    q_cone_int_point = get_interior_point(q_cone)
+    q_cone_int_point = relative_interior_point(q_cone)
  
     start_hash = compute_bit_list(orbit_list, q_cone_int_point)
     orbit_start_hash_smallest = find_smallest_orbit_element(
@@ -466,11 +455,11 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
 end
 
 
-orbits_of_maximal_GIT_cones(orbit_list, hash_list, matrix_action) =
+orbits_of_maximal_GIT_cones(orbit_list::Vector{Vector{Cone{T}}}, hash_list, matrix_action) where T =
     orbit_cone_orbits([hash_to_cone(orbit_list, x) for x in hash_list], matrix_action)
 
 
-function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
+function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list, hom) where T
     # translate the descriptions of the orbit repres. of maximal cones
     # to cone objects
     result_cones = [hash_to_cone(orbit_list, x) for x in hash_list]
@@ -528,7 +517,7 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
       error("a zero vector should not appear")
     end
 
-    rewr = [as_permutation(x, allrays, actfun) for x in mats_transp]
+    rewr = [as_permutation(x, allrays, actfun, Base.:(==)) for x in mats_transp]
 
     pf = polyhedral_fan_from_rays_action(allrays, IncidenceMatrix(index_result_cones), rewr)
 
@@ -546,7 +535,6 @@ function git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
     collector_cones = orbit_cones(a, Q, G)
     matrix_action = action_on_target(Q, G)
     orbit_list = orbit_cone_orbits(collector_cones, matrix_action)
-    println("orbit_list: ", typeof(orbit_list))
     perm_actions = action_on_orbit_cone_orbits(orbit_list, matrix_action)
     q_cone = positive_hull(Q)
 
