@@ -310,3 +310,34 @@ end
   return is_smooth(covered_scheme(P))
 end
 
+@doc Markdown.doc"""
+    covered_scheme(P::ProjectiveScheme)
+    
+Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
+
+Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to 
+obtain the dehomogenization map from the `graded_coordinate_ring` of `P` 
+to the `coordinate_ring` of `U`.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ, 2);
+
+julia> Pcov = covered_scheme(P)
+covered scheme with 3 affine patches in its default covering
+```
+"""
+@attr AbsCoveredScheme function covered_scheme(P::ProjectiveScheme)
+    C = standard_covering(P) 
+    X = CoveredScheme(C)
+    return X
+end
+
+@attr function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyQuoRing, <:MPolyRing}})
+  if !has_attribute(X, :covering_projection_to_base) 
+    C = standard_covering(X)
+  end
+  covering_projection = get_attribute(X, :covering_projection_to_base)::CoveringMorphism
+  projection = CoveredSchemeMorphism(covered_scheme(X), CoveredScheme(codomain(covering_projection)), covering_projection)
+end
+

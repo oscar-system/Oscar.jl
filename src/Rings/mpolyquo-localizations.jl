@@ -1682,3 +1682,31 @@ end
   return dim(pre_image_ideal(I))
 end
 
+### Hack for a detour to speed up mapping of elements 
+# This is terribly slow in all kinds of quotient rings 
+# because of massive checks for `iszero` due to memory 
+# management.
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:Nothing})(a::MPolyRingElem)
+  if !has_attribute(f, :lifted_map)
+    S = domain(f)
+    W = codomain(f)
+    L = localized_ring(W)
+    g = hom(S, L, lift.(f.img_gens))
+    set_attribute!(f, :lifted_map, g)
+  end
+  g = get_attribute(f, :lifted_map)
+  return codomain(f)(g(a), check=false)
+end
+
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocalizedRingHom})(a::MPolyRingElem)
+  if !has_attribute(f, :lifted_map)
+    S = domain(f)
+    W = codomain(f)
+    L = localized_ring(W)
+    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens))
+    set_attribute!(f, :lifted_map, g)
+  end
+  g = get_attribute(f, :lifted_map)
+  return codomain(f)(g(a), check=false)
+end
+

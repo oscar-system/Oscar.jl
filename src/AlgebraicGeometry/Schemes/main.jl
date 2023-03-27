@@ -46,7 +46,11 @@ include("AffineSchemes/Morphisms/Methods.jl")
 include("ProjectiveSchemes/Objects/Constructors.jl")
 #include("ProjectiveSchemes/Objects/Properties.jl")
 include("ProjectiveSchemes/Objects/Attributes.jl")
-#include("ProjectiveSchemes/Objects/Methods.jl")
+include("ProjectiveSchemes/Objects/Methods.jl")
+
+include("ProjectiveSchemes/Morphisms/Constructors.jl")
+include("ProjectiveSchemes/Morphisms/Attributes.jl")
+include("ProjectiveSchemes/Morphisms/Methods.jl")
 
 ########################################################################
 # Principal open subsets of affine schemes                             #

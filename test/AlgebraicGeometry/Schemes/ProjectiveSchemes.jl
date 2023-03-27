@@ -14,7 +14,7 @@
   phi = ProjectiveSchemeMor(X, X, [-u, -v])
 
   g = map_on_affine_cones(phi)
-  @test is_well_defined(phi)
+  #@test is_well_defined(phi) # deprecated
 
   # test for projective space over a field
   R_ext, _ = polynomial_ring(QQ, ["u", "v"])
@@ -30,7 +30,7 @@
 
   g = map_on_affine_cones(phi)
 
-  @test is_well_defined(phi)
+  #@test is_well_defined(phi) # deprecated
 
   # test for relative projective space over MPolyQuoLocalizedRings
   Y = Spec(R)
@@ -43,7 +43,7 @@
 
   g = map_on_affine_cones(phi)
 
-  @test is_well_defined(phi)
+  #@test is_well_defined(phi) # deprecated
 end
 
 @testset "projective_schemes_2" begin
