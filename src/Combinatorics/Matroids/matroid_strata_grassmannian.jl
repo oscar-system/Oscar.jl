@@ -147,8 +147,7 @@ function make_coordinate_matrix_no_identity(d::Int, n::Int,
                                             R::MPolyRing, x::Vector{T},
                                             xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
-    S = matrix_space(R, d, n-d)
-    X = S()
+    X = zero_matrix(R, d, n-d)
     for j in 1:n-d, i in 1:d
         if [i,j] in MC
             X[i,j] = xdict[[i,j]]
@@ -168,10 +167,9 @@ function interlace_columns(M::MatrixElem{T}, N::MatrixElem{T}, B::Vector{Int},
     N_nrows, N_ncols = size(N)
     n = M_ncols + N_ncols
 
-    S = matrix_space(R, M_nrows, n)
     Bc = [i for i in 1:n if !(i in B)]
     
-    X = S()
+    X = zero_matrix(R, M_nrows, n)
     X[:, B] = M
     X[:, Bc] = N
     
@@ -334,8 +332,7 @@ function matrix_realization_small(d::Int, n::Int, MC::Vector{Vector{Int}},
 
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
-    S = matrix_space(R, d, n-d-1)
-    X = S()
+    X = zero_matrix(R, d, n-d-1)
     for j in 1:n-d-1, i in 1:d
         if [i,j] in MR
             X[i,j] = xdict[[i,j]]

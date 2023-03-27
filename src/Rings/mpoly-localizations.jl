@@ -1592,7 +1592,7 @@ function pre_saturated_ideal(I::MPolyLocalizedIdeal)
     I.pre_saturated_ideal = ideal(base_ring(W), numerator.(gens(I)))
     r = length(gens(I))
     A = zero_matrix(SMat, W, 0, r)
-    #A = zero(matrix_space(W, r, r))
+    #A = zero_matrix(W, r, r)
     for i in 1:r
       push!(A, sparse_row(W, [(i, W(denominator(gens(I)[i])))]))
       #A[i, i] = denominator(gens(I)[i])
@@ -1785,7 +1785,7 @@ function saturated_ideal(
             end
           end
           if length(cache) > 0
-            #A = zero(matrix_space(L, ngens(Jsat), ngens(I)))
+            #A = zero_matrix(L, ngens(Jsat), ngens(I))
 
             #for i in 1:length(cache)
             #  (g, a, dttk) = cache[i]
@@ -1831,7 +1831,7 @@ function saturated_ideal(
         if length(cache) > 0
           # We completely overwrite the pre_saturated_ideal with the generators 
           # of the saturated ideal
-          #A = zero(matrix_space(L, ngens(Jsat), ngens(I)))
+          #A = zero_matrix(L, ngens(Jsat), ngens(I))
           #for i in 1:length(cache)
           #  (g, a, dttk) = cache[i]
           #  A[i, :] = L(one(dttk), dttk, check=false)*change_base_ring(L, a)*pre_saturation_data(I)
@@ -2538,7 +2538,7 @@ function divides(a::MPolyLocRingElem, b::MPolyLocRingElem)
   W = parent(a)
   W == parent(b) || error("elements do not belong to the same ring")
   F = FreeMod(W, 1)
-  A = matrix_space(W, 1, 1)([b])
+  A = matrix(W, 1, 1, [b])
   M, _ = sub(F, A)
   represents_element(a*F[1], M) || return (false, zero(W))
   x = coordinates(a*F[1], M)
