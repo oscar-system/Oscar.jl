@@ -1,7 +1,7 @@
 
 ###############################################################################
 #
-#  Computations of the finite quotients E_0/E^i: subsection 6.8. of BH22
+#  Computations of the finite quotients E_0/E^i: subsection 6.8. of BH23
 #
 ###############################################################################
 
@@ -175,7 +175,7 @@ function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
   if i == 0
     A = abelian_group()
     function dlog_0(x::Hecke.NfRelElem); return id(A); end;
-    function exp_0(x::GrpAbFinGenElem); return one(E); end;
+    function dexp_0(x::GrpAbFinGenElem); return one(E); end;
     return A, dexp_0, dlog_0, P
   end
   if length(F) == 2
@@ -217,7 +217,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac)
 
   G, proj, inj = biproduct(groups...)
 
-  function dlog(x::Vector{Hecke.NfRelElem})
+  function dlog(x::Vector)
     if length(x) == 1
       return sum([inj[i](dlogs[i](x[1])) for i in 1:length(Fac)]) 
     else
@@ -237,7 +237,7 @@ end
 
 ###############################################################################
 #
-#  Local determinants morphism, alias \delta in BH22
+#  Local determinants morphism, alias \delta in BH23
 #
 ###############################################################################
 
@@ -272,7 +272,6 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH22.
   G, _ = centralizer(OqL, fqL)
-
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
   # (aka D_L) correspond to the quotient D^{-1}H^#/H by the trace construction,
   # where D is the absolute different of the base algebra of H (a cyclotomic
@@ -364,13 +363,13 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   gene_norm_one = Hecke.NfRelElem[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]
 
   # Now according to Theorem 6.15 of BH22, it remains to quotient out
-  FOEmodFsharp, m = sub(RmodFsharp, elem_type(RmodFsharp)[Fsharplog([x]) for x in gene_norm_one])
+  FOEmodFsharp, m = sub(RmodFsharp, elem_type(RmodFsharp)[Fsharplog([x for i in 1:length(S)]) for x in gene_norm_one])
 
   I = intersect(FOEmodFsharp, FmodFsharp)
   # Q is where the determinant of our lifts to good precision will live. So
   # we just need to create the map from G to Q.
   Q, mQ = quo(FmodFsharp, I)
-  
+
   function dlog(x::Vector{Hecke.NfRelElem})
     @assert length(x) == length(Fsharpdata)
     return mQ(FmodFsharp(Fsharplog(x)))
@@ -391,8 +390,8 @@ function _local_determinants_morphism(Lf::LatWithIsom)
       k = valuation(N, p)
       a = valuation(DEQ, P)
       e = valuation(DEK, P)
-      g_approx = _approximate_isometry(DinvHdash, gtemp, P, e, a, k)
-      push!(ds, det(gtemp))
+      g_approx = _approximate_isometry(H2, g, P, e, a, k)
+      push!(ds, det(g_approx))
     end
     push!(imgs, dlog(ds))
   end
@@ -433,7 +432,7 @@ end
 
 ###############################################################################
 #
-#  Local hermitian lifting
+#  Local hermitian lifting - path to algorithm 8 of BH23
 #
 ###############################################################################
 
@@ -444,17 +443,10 @@ function _get_ambient_isometry(g::AutomorphismGroupElem{TorQuadModule})
   q = domain(g)
   L = cover(q)
   @assert rank(L) == degree(L)
-  B = basis_matrix(L)
-  iB = inv(B)
-  M = zero_matrix(QQ, 0, rank(L))
-  for i in 1:nrows(B)
-    v = vec(collect(B[i, :]))
-    vq = q(v)
-    gvq = g(vq)
-    gv = transpose(matrix(lift(gvq)))*iB
-    M = vcat(M, gv)
-  end
-  return iB*M*B
+  d = degree(L)
+  M1 = reduce(vcat, [matrix(QQ, 1, d, lift(t)) for t in gens(q)])
+  M2 = reduce(vcat, [matrix(QQ, 1, d, lift(g(t))) for t in gens(q)])
+  return solve(M1, M2)
 end
 
 # Using the function used for the transfer construction, between the ambient
@@ -464,7 +456,6 @@ end
 # automorphism is not an isometry.
 function _transfer_discriminant_isometries(res::Hecke.SpaceRes, g::AutomorphismGroupElem{TorQuadModule}, l::QQMatrix)
   E = base_ring(codomain(res))
-  OE = maximal_order(E)
   m = _get_ambient_isometry(g)
   q = domain(g)
   il = inv(l)
@@ -474,9 +465,9 @@ function _transfer_discriminant_isometries(res::Hecke.SpaceRes, g::AutomorphismG
   for i in 1:rank(codomain(res))
     vE[i] = one(E)
     vQ = res\vE
-    vQ = matrix(QQ, 1, length(vQ), vQ)*il
+    vQ = matrix(QQ, 1, length(vQ), vQ)*l
     gvq = vQ*m
-    gvQ = vec(collect(gvq*l))
+    gvQ = vec(collect(gvq*il))
     gvE = res(gvQ)
     gE = vcat(gE, matrix(E, 1, length(gvE), gvE))
     vE[i] = zero(E)
@@ -493,7 +484,8 @@ end
 # the minimum P-valuation among all the non-zero diagonal entries of M
 function _norm_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   @assert nf(order(P)) === base_ring(M)
-  return minimum([valuation(v, P) for v in diagonal(M) if !iszero(v)])
+  r =  minimum([valuation(v, P) for v in diagonal(M) if !iszero(v)])
+  return r
 end
 
 # This is algorithm 8 of BH22: under the good assumptions, then we can do a
@@ -507,7 +499,6 @@ end
 # our purpose.
 function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::Hecke.NfRelOrdIdl, e::Int, a::Int; check = true) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   @assert trace(rho) == 1
-  @assert valuation(rho, P) == 1-e
   E = base_ring(G)
   # G here is a local gram matrix
   @assert G == map_entries(involution(E), transpose(G))
@@ -515,13 +506,12 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
 
   # R represents the defect, how far F is to be an isometry of G
   R = G - F*G*map_entries(involution(E), transpose(F))
-
   # These are the necessary conditions for the input of algorithm 8 in BH22
   if check
     @assert _scale_valuation(inv(G), P) >= 1+a
-    @assert _norm_valuation(inv(G), P) >= e+a
+    @assert _norm_valuation(inv(G), P) + valuation(rho, P) >= 1+a
     @assert _scale_valuation(R, P) >= l-a
-    @assert _norm_valuation(R, P) >= l+e-1-a
+    @assert _norm_valuation(R, P) + valuation(rho,P) >= l-a
   end
 
   # R is s-symmetric, where s is the canonical involution of E/K. We split R
@@ -541,12 +531,12 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
   # P-adic, we are close to have a proper isometry)
   newF = F + (U + rho*diag)*map_entries(involution(E), inv(transpose(F)))*inv(G)
 
+  l2 = 2*l+1
   if check
-    l2 = 2*l+1
     @assert _scale_valuation(F-newF, P) >= l+1
     R2 = G-newF*G*map_entries(involution(E), transpose(newF))
     @assert _scale_valuation(R2, P) >= l2-a
-    @assert _norm_valuation(R2, P) >= l2+e-1-a
+    @assert _norm_valuation(R2, P) + valuation(rho, P) >= l2-a
   end
 
   return newF, l2
@@ -560,7 +550,7 @@ function _approximate_isometry(H::Hecke.HermLat, g::T, P::Hecke.NfRelOrdIdl, e::
   @assert base_field(H) === E
   @assert nf(order(P)) === E
 
-  ok, m = is_modular(H, minimum(p))
+  ok, m = is_modular(H, minimum(P))
 
   # This should never happend since we collect the prime ideals in such a way it
   # is not possible. Though, we keep it in case something was forgotten before
@@ -577,9 +567,7 @@ function _approximate_isometry(H::Hecke.HermLat, g::T, P::Hecke.NfRelOrdIdl, e::
   Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
 
   rho = _find_rho(P, e)
-  k1 = _scale_valuation(Rp, P) + a
-  k2 = _norm_valuation(Rp, P) + a + 1 - e
-  l = min(k1, k2)
+  l = 0
 
   while _scale_valuation(Rp, P) < 2*k+a
     Fp, l = _local_hermitian_lifting(Gp, Fp, rho, l, P, e, a)
@@ -589,13 +577,18 @@ function _approximate_isometry(H::Hecke.HermLat, g::T, P::Hecke.NfRelOrdIdl, e::
   return Fp
 end
 
-# We need a special rho for Algorithm 8 of BH22: we construct such an element
+# We need a special rho for Algorithm 8 of BH23: we construct such an element
 # here, which will be used to lift fake isometries up to a better precision.
 function _find_rho(P::Hecke.NfRelOrdIdl, e)
   OE = order(P)
   E = nf(OE)
+  lp = prime_decomposition(OE, minimum(P))
   dya = is_dyadic(P)
   !dya && return E(1//2)
+  lp = prime_decomposition(OE, minimum(P))
+  if lp[1][2] == 1
+    return Hecke._special_unit(P, minimum(P))
+  end
   K = base_field(E)
   Eabs, EabstoE = Hecke.absolute_simple_field(E)
   Pabs = EabstoE\P

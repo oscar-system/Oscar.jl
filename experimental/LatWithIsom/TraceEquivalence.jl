@@ -235,7 +235,7 @@ function _hermitian_structure(_L::ZLat, f::QQMatrix; E = nothing,
       vi[1,1+(i-1)*euler_phi(n)] = one(QQ)
       vj = deepcopy(v)
       vj[1,1+(j-1)*euler_phi(n)] = one(QQ)
-      alpha = sum([(vi*G*transpose(vj*mb^k))[1]*b^k for k in 0:n-1])
+      alpha = sum([((vi*mb^k)*G*transpose(vj))[1]*b^k for k in 0:n-1])
       gram[i,j] = alpha
     end
   end
