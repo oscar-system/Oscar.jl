@@ -1,4 +1,4 @@
-@testset ExtendedTestSet "All LieAlgebraTensorPowerModule.jl tests" begin
+@testset "PBWDeformations.LieAlgebraTensorPowerModule" begin
   @testset "constructors for R=$R, n=$n" for R in [QQ, cyclotomic_field(4)[1]],
     n in 1:5,
     L in [

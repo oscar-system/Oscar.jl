@@ -1,6 +1,6 @@
 
 function liealgebra_conformance_test(
-  L::LieAlgebra{C}, parentT::DataType, elemT::DataType
+  L::LieAlgebra{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10
 ) where {C<:RingElement}
   @testset "basic manipulation" begin
     x = L(rand(-10:10, dim(L)))
@@ -64,6 +64,6 @@ end
 include("AbstractLieAlgebra-test.jl")
 include("LinearLieAlgebra-test.jl")
 
-@testset ExtendedTestSet "All LieAlgebra.jl tests" begin
+@testset "PBWDeformations.LieAlgebra" begin
   # nothing here yet
 end

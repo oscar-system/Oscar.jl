@@ -1,4 +1,4 @@
-@testset ExtendedTestSet "All LieAlgebraAbstractModule.jl tests" begin
+@testset "PBWDeformations.LieAlgebraAbstractModule" begin
   R = QQ
   sc = Matrix{SRow{elem_type(R)}}(undef, 3, 2)
   sc[1, 1] = sparse_row(R, [1, 2], [0, 0])

@@ -1,4 +1,4 @@
-@testset ExtendedTestSet "All LieAlgebraSymmetricPowerModule.jl tests" begin
+@testset "PBWDeformations.LieAlgebraSymmetricPowerModule" begin
   @testset "constructors for R=$R, n=$n" for R in [QQ, cyclotomic_field(4)[1]],
     n in 1:5,
     L in [

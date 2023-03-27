@@ -1,4 +1,4 @@
-@testset ExtendedTestSet "All AbstractLieAlgebra.jl tests" begin
+@testset "PBWDeformations.AbstractLieAlgebra" begin
   sc = zeros(QQ, 3, 3, 3)
   sc[1, 2, 3] = 1
   sc[2, 1, 3] = -1

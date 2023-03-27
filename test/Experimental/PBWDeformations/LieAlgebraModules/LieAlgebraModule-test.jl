@@ -1,6 +1,6 @@
 
 function liealgebra_module_conformance_test(
-  L::LieAlgebra{C}, V::LieAlgebraModule{C}, parentT::DataType, elemT::DataType
+  L::LieAlgebra{C}, V::LieAlgebraModule{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10
 ) where {C<:RingElement}
   @testset "basic manipulation" begin
     v = V(rand(-10:10, dim(V)))
@@ -66,6 +66,6 @@ include("LieAlgebraExteriorPowerModule-test.jl")
 include("LieAlgebraSymmetricPowerModule-test.jl")
 include("LieAlgebraTensorPowerModule-test.jl")
 
-@testset ExtendedTestSet "All LieAlgebraModule.jl tests" begin
+@testset "PBWDeformations.LieAlgebraModule" begin
   # nothing here yet
 end
