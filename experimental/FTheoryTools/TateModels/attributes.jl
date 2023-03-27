@@ -189,10 +189,10 @@ Global Weierstrass model over a concrete base
     f = - 1//48 * (b2^2 - 24 * b4)
     g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
     S = cox_ring(toric_ambient_space(t))
-    x = gens(S)[length(gens(S))-2]
-    y = gens(S)[length(gens(S))-1]
-    z = gens(S)[length(gens(S))]
-    ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:length(gens(parent(f)))])
+    x = gens(S)[ngens(S)-2]
+    y = gens(S)[ngens(S)-1]
+    z = gens(S)[ngens(S)]
+    ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:ngens(parent(f))])
     pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
     Y4 = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
     model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), Y4)

@@ -66,10 +66,10 @@ function _weierstrass_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRi
 end
 
 function _weierstrass_polynomial(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
-    x = gens(S)[length(gens(S))-2]
-    y = gens(S)[length(gens(S))-1]
-    z = gens(S)[length(gens(S))]
-    ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:length(gens(S))-3])
+    x = gens(S)[ngens(S)-2]
+    y = gens(S)[ngens(S)-1]
+    z = gens(S)[ngens(S)]
+    ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:ngens(S)-3])
     return x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
 end
 
@@ -93,10 +93,10 @@ function _tate_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{QQFi
 end
 
 function _tate_polynomial(ais::Vector{<:MPolyRingElem{QQFieldElem}}, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
-    x = gens(S)[length(gens(S))-2]
-    y = gens(S)[length(gens(S))-1]
-    z = gens(S)[length(gens(S))]
-    ring_map = hom(parent(ais[1]), S, [gens(S)[i] for i in 1:length(gens(S))-3])
+    x = gens(S)[ngens(S)-2]
+    y = gens(S)[ngens(S)-1]
+    z = gens(S)[ngens(S)]
+    ring_map = hom(parent(ais[1]), S, [gens(S)[i] for i in 1:ngens(S)-3])
     (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
     return x^3 - y^2 - x*y*z*a1 + x^2*z^2*a2 - y*z^3*a3 + x*z^4*a4 + z^6*a6
 end
@@ -240,7 +240,7 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
     # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
 
     R = base_ring(id)
-    center_size = length(gens(center))
+    center_size = ngens(center)
 
     # Various sanity checks
     if is_zero(center)
@@ -255,12 +255,12 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
     if base_ring(sri) != R
         throw(ArgumentError("The given Stanley–Reisner ideal must share the base ring of the ideal to be blown up"))
     end
-    if length(gens(base_ring(lin))) != length(gens(R))
+    if ngens(base_ring(lin)) != ngens(R)
         throw(ArgumentError("The base ring of ideal of linear relations must have the same number of generators as the base ring of the ideal to be blown up"))
     end
 
     # Make sure the ideal of linear relations has the same base ring as the others
-    lin = ideal(map(hom(base_ring(lin), R, collect(1:length(gens(R)))), gens(lin)))
+    lin = ideal(map(hom(base_ring(lin), R, collect(1:ngens(R))), gens(lin)))
 
     # Create new base ring for the blown up ideal and a map between the rings
     S, S_gens = polynomial_ring(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)

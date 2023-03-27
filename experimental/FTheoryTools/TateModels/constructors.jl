@@ -168,14 +168,14 @@ function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::In
     if d <= 0
         throw(ArgumentError("The dimension of the base space must be positive"))
     end
-    if length([string(k) for k in gens(auxiliary_base_ring)]) < d
+    if ngens(auxiliary_base_ring) < d
         throw(ArgumentError("We expect at least as many base variables as the desired base dimension"))
     end
 
     # convert Tate sections into polynomials of the auxiliary base
     auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
     S = cox_ring(auxiliary_base_space)
-    ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:length(gens(S))])
+    ring_map = hom(auxiliary_base_ring, S, gens(S))
     (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
 
     # construct model
