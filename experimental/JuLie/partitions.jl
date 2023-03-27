@@ -5,6 +5,8 @@
 #
 # Originally taken from the JuLie [repository](https://github.com/ulthiel/JuLie)
 # by Ulrich Thiel and OSCAR-ified by Claudia He Yun and Matthias Zach.
+#
+# Mar 2023: Improvements and bug fixes by UT.
 ################################################################################
 
 export Partition
@@ -14,41 +16,61 @@ export conjugate
 export dominates
 export getindex_safe
 export num_partitions
-export partitions
+export partitions 
 
+
+################################################################################
+# Partition type
+################################################################################
 @doc Markdown.doc"""
     Partition{T<:IntegerUnion} <: AbstractVector{T}
 
-A **partition** of a non-negative integer ``n`` is a decreasing sequence
-``λ=(λ₁,…,λᵣ)`` of positive integers ``λᵢ`` whose sum is equal to ``n``. The
-``λᵢ`` are called the **parts** of the partition. 
+A **partition** of a non-negative integer ``n`` is a decreasing sequence ``λ₁ ≥ λ₂ ≥ … ≥ λᵣ`` of positive integers ``λᵢ`` such that ``n = λ₁ + … + λᵣ``. The ``λᵢ`` are called the **parts** of the partition and ``r`` is called the **length**. 
 
-A partition can be encoded as an array with elements ``λᵢ``. We provide the parametric type `Partition{T}` which is a subtype of `AbstractVector{T}` where `T` can be any subtype of `IntegerUnion`. This allows to increase performance by using smaller integer types.  For efficiency, the `Partition` constructor does not check whether the given array is in fact a partition, i.e. a decreasing sequence.
+A partition can be encoded as an array with elements ``λᵢ``. We provide the parametric type `Partition{T}` which is a subtype of `AbstractVector{T}` where `T` can be any subtype of `IntegerUnion`. All functions that can be used for vectors (1-dimensional arrays) can thus be used for partitions as well. There is no performance impact by using an own type for partitions rather than simply using arrays. The parametric type allows to increase performance by using smaller integer types. For efficiency, the `Partition` constructor does not check whether the given array is indeed a decreasing sequence.
 
 # Examples
+A partition can be created by either calling `Partition` on an array of integers or by calling `Partition` with arguments being the sequence of parts.
 ```jldoctest
-julia> P=Partition([3,2,1]) #The partition 3+2+1 of 6
-[3, 2, 1]
+julia> P = Partition([6,4,4,2]) #The partition 6+4+4+2 of 16.
+[6, 4, 4, 2]
 
-julia> sum(P) #The sum of the parts.
+julia> P = Partition(6,4,4,2) #Same as above but shorter
+
+julia> length(P)
+4
+
+julia> P[1]
 6
-
-julia> P[1] #First component
-3
-
-julia> P=Partition(Int8[3,2,1]) #Same partition but using 8 bit integers
-Int8[3, 2, 1]
 ```
+Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function `size` for arrays already exists and returns the *dimension* of an array. Instead, you can use the Julia function `sum` to get the sum of the parts.
+```jldoctest
+julia> P = Partition(6,4,4,2)
+[6, 4, 4, 2]
 
-# Remarks
-
-* Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function `size` for arrays already exists and returns the *dimension* of an array. Instead, you can use the Julia function `sum` to get the sum of the parts.
-
-* There is no performance impact by using an own type for partitions rather than simply using arrays.
+julia> sum(P) 
+16
+```
+You can create partitions with smaller integer types as follows.
+```jldoctest
+julia> P = Partition{Int8}(6,4,4,2) #Or Partition(Int8[6,4,4,2])
+Int8[6, 4, 4, 2]
+```
+There is a unique partition of 0, namely the **empty partition** (of length 0). It can be created as follows.
+```jldoctest
+julia> P = Partition() #Or Partition([])
+Int64[]
+julia> sum(P)
+0
+julia> length(P)
+0
+julia> P = Partition{Int8}() #Or Partition(Int8[])
+Int8[]
+```
 
 # References
 1. [Ful97](@cite)
-2. [Knu11](@cite), Section 7.2.1.4
+2. [Knu11](@cite), Section 7.2.1.4 (starting on page 390).
 """
 struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
@@ -83,10 +105,8 @@ function Partition{T}(parts::IntegerUnion...) where T<:IntegerUnion
   return Partition(collect(T, parts))
 end
 
-# The empty array is of "Any" type, and this is stupid. We want it here
-# to get it into the default type Int64. This constructor is also called by
-# MultiPartition, and this casts the whole array into "Any" whenever there's
-# the empty partition inside.
+# The empty array is of "Any" type, and this is not what we want. 
+# We want it to be an array of integers of the default type Int64. 
 function Partition(p::Vector{Any})
   return Partition(Vector{Int64}(p))
 end
@@ -121,17 +141,28 @@ function getindex_safe(P::Partition, i::IntegerUnion)
 end
 
 
+################################################################################
+# Generating and counting unrestricted partitions
+################################################################################
+
 @Markdown.doc """
     num_partitions(n::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n`. 
 
-# Algorithm
-We use the function `arith_number_of_partitions` from [FLINT](@ref) which is very fast.
+# Examples
+```jldoctest
+julia> num_partitions(1000)
+24061467864032622473692149727991
+```
 
-# References
-1. [OEIS](@ref), [A000041](https://oeis.org/A000041)
-2. [FLINT](@ref), [Number of partitions](http://flintlib.org/doc/arith.html?highlight=partitions#number-of-partitions)
+# Algorithm
+
+We use the function [`arith_number_of_partitions`](http://flintlib.org/doc/arith.html?highlight=partitions#c.arith_number_of_partitions) from [FLINT](@ref) which is very fast. It is based on the Hardy-Ramanujan-Rademacher formula, see [Joh12](@ref) for details. 
+
+# Further references
+1. [Knu11](@cite), Section 7.2.1.4 (starting on page 395).
+2. [OEIS](@ref), [A000041](https://oeis.org/A000041)
 """
 function num_partitions(n::IntegerUnion)
   @req n >= 0 "n >= 0 required"
@@ -142,63 +173,6 @@ function num_partitions(n::IntegerUnion)
 end
 
 
-@Markdown.doc """
-    num_partitions(n::IntegerUnion, k::IntegerUnion)
-
-The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
-
-# Algorithm
-We use a recurrence relation.
-
-# References
-1. [OEIS](@ref), [A008284](https://oeis.org/A008284)
-"""
-function num_partitions(n::IntegerUnion, k::IntegerUnion)
-  
-  @req n >= 0 "n >= 0 required"
-  @req k >= 0 "k >= 0 required"
-  
-  n = ZZ(n)
-  k = ZZ(k)
-
-  # Special cases
-  if n == k
-    return ZZ(1)
-  elseif n < k || k == 0
-    return ZZ(0)
-  elseif k == 1
-    return ZZ(1)
-
-    # See https://oeis.org/A008284
-  elseif n < 2*k
-    return num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
-
-    # See https://oeis.org/A008284
-  elseif n <= 2+3*k
-    p = num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
-    for i=0:Int(n)-2*Int(k)-1
-      p = p - num_partitions(ZZ(i))
-    end
-    return p
-
-    # Otherwise, use recurrence
-    # The following is taken from the GAP code in lib/combinat.gi
-    # It uses the standard recurrence relation but in a more intelligent
-    # way without recursion.
-  else
-    n = Int(n)
-    k = Int(k)
-    p = fill( ZZ(1), n )
-    for l = 2:k
-      for m = l+1:n-l+1
-        p[m] = p[m] + p[m-l]
-      end
-    end
-    return p[n-k+1]
-  end
-
-end
-
 
 @Markdown.doc """
     partitions(n::IntegerUnion)
@@ -206,7 +180,7 @@ end
 A list of all partitions of a non-negative integer `n`, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function `reverse` to reverse the order. As usual, you may increase performance by using smaller integer types.
 
 # Algorithm
-The algorithm used is "Algorithm ZS1" by [ZS98](@cite).
+The algorithm used is "Algorithm ZS1" by [ZS98](@cite). This algorithm is also discussed in [Knu11](@cite), Algorithm P (page 392).
 
 # Examples
 ```jldoctest
@@ -408,7 +382,66 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
 
 end
 
+################################################################################
+# Generating and counting restricted partitions
+################################################################################
 
+@Markdown.doc """
+    num_partitions(n::IntegerUnion, k::IntegerUnion)
+
+The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
+
+# Algorithm
+We use the recurrence relation `p_k(n) = p_{k-1}(n-1) + p_l(n-k)`; see [Knu11](@ref), Section 7.2.1.4, Equation (39) on page 399.
+
+# Further references
+1. [OEIS](@ref), [A008284](https://oeis.org/A008284)
+"""
+function num_partitions(n::IntegerUnion, k::IntegerUnion)
+  
+  @req n >= 0 "n >= 0 required"
+  @req k >= 0 "k >= 0 required"
+  
+  n = ZZ(n)
+  k = ZZ(k)
+
+  # Special cases
+  if n == k
+    return ZZ(1)
+  elseif n < k || k == 0
+    return ZZ(0)
+  elseif k == 1
+    return ZZ(1)
+
+  # See https://oeis.org/A008284
+  elseif n < 2*k
+    return num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+
+  # See https://oeis.org/A008284
+  elseif n <= 2+3*k
+    p = num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+    for i=0:Int(n)-2*Int(k)-1
+      p = p - num_partitions(ZZ(i))
+    end
+    return p
+
+  # Otherwise, use recurrence.
+  # The following is taken from the GAP code in lib/combinat.gi
+  # It uses the standard recurrence relation but in a more intelligent
+  # way without recursion.
+  else
+    n = Int(n)
+    k = Int(k)
+    p = fill( ZZ(1), n )
+    for l = 2:k
+      for m = l+1:n-l+1
+        p[m] = p[m] + p[m-l]
+      end
+    end
+    return p[n-k+1]
+  end
+
+end
 
 @Markdown.doc """
     partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
@@ -581,7 +614,7 @@ julia> partitions(7, 3, [1,3], [1,2])
 ```
 
 # Algorithm
-The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL code by E. Thiel and with some fixes (some by T. Schmit).
+The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL code by E. Thiel. The algorithm as published in the paper has several issues and we hope to have fixed them all, see the code for details. Some initial fixing was done by T. Schmit.
 """
 function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
   @req m >= 0 "m >= 0 required"
@@ -615,9 +648,9 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   P = Partition{T}[] 
 
   # Now, we get to the partb algorithm. This is a hell of an algorithm!
-  # There were some issues with termination and indices for the arrays x,y,ii getting
-  # out of bounds. We had to introduce some additional checks and breaks to take care
-  # of this. Some initial fixing was done by T. Schmit.
+  # There were some issues with termination and indices for the arrays x,y,ii
+  # getting out of bounds. We had to introduce some additional checks and 
+  # breaks to take care of this. Some initial fixing was done by T. Schmit.
 
   # Initialize variables
   r = length(v)
@@ -637,11 +670,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 
   # The first step in the algorithm is to initialize the arrays x and y
   # for the backtrack search.
-  # Because of the necessary check below (which is not in the paper) we use a while
-  # loop in which we modify i instead of using a for loop over i.
-  # Noticed on Mar 23, 2023.
-  i = n
-  while true
+  for i=n:-1:1
     x[i] = ll
     y[i] = ll
     k = k - 1
@@ -673,14 +702,14 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
     return P #goto b3
   end
 
-  # The following is (seems to be) a condition for when only a single partition exists.
-  # We added the || i==1 condition because without it the example
-  # partitions(17, 7, [1,4], [1,4]) returns [0, 0, 4, 4, 4, 4, 1], which is nonsense.
-  # So, we have to make sure that all entries of x were modified in the initial
-  # backtracking, which means i was counted down to 1.
+  # The following is (seems to be) a condition for when only a single partition
+  # exists. We added the || i==1 condition because without it the example
+  # partitions(17, 7, [1,4], [1,4]) returns [0, 0, 4, 4, 4, 4, 1], which is 
+  # nonsense. So, we have to make sure that all entries of x were modified in
+  # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
-  if m == 0 && i == 1
-    push!(P,Partition{T}(x[1:n]))
+  if m == 0 && x[1] != 0
+    push!(P,Partition{T}(x))
     return P
   end
 
@@ -739,7 +768,12 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       end #if
 
       k = y[i]
-      if lr > k && m - lr <= (n-i)*(lr - ll)
+      # Here comes the most intricate mistake.
+      # On Knuth's problem 100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2] the published
+      # algorithm does not find the valid partition 50+20+20+5+2+2+1.
+      # But when we replace lr > k by lr >= k, everything works.
+      # Finding this was a wild guess!
+      if lr >= k && m - lr <= (n-i)*(lr - ll)
         gotob2 = false
         continue
       else
@@ -763,6 +797,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       end
     end #if gotob2
   end #while
+  
   return P
 end
 
@@ -772,7 +807,7 @@ end
 All partitions of a non-negative integer `m` where each part is an element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume (without loss of generality) that the entries in `v` are strictly increasing. The partitions are produced in lexicographically *decreasing* order.  
 
 # Algorithm
-We use the function `partitions(m,v,mu)`, looping over the number of possible parts of partitions.
+We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of partitions.
 
 # Examples
 """
@@ -803,9 +838,27 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<
   # We will loop over the number of parts.
   # We first determine the minimal and maximal number of parts.
   r = length(v)
-  nmin = div(m, v[r])
-  nmax = div(m, v[1])
-  
+
+  nmax = 0
+  cursum = 0
+  for i in 1:r, j in 1:mu[i]
+    nmax += 1
+    cursum += v[i]
+    if cursum >= m
+      break
+    end
+  end
+
+  nmin = 0
+  cursum = 0
+  for i in r:-1:1, j in 1:mu[i]
+    nmin += 1
+    cursum += v[i]
+    if cursum >= m
+      break
+    end
+  end
+
   for n=nmin:nmax
     append!(res, partitions(m, n, v, mu))
   end
@@ -852,7 +905,7 @@ function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
   nmin = div(m, v[r])
   nmax = div(m, v[1])
 
-  # Set the maximum multiplicity (equalt to nmax aboe)
+  # Set the maximum multiplicity (equal to nmax above)
   mu = [ nmax for i in 1:r ]
   
   for n=nmin:nmax

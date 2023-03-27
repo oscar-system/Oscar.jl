@@ -1,8 +1,8 @@
 @testset "Experimental/JuLie/partitions.jl" begin
 
-	################################################################################
+	############################################################################
 	# Partition constructor
-	################################################################################
+	############################################################################
 	@test Partition{Int8}(2,2,1) == Partition(Int8[2,2,1])
 	@test typeof(Partition{Int8}(2,2,1)) == typeof(Partition(Int8[2,2,1]))
 	@test Partition{Int8}(1) == Partition(Int8[1])
@@ -13,6 +13,7 @@
 	@test Partition(2,2,1) == Partition([2,2,1])
 	@test Partition(1) == Partition([1])
 	@test Partition() == Partition([])
+	@test Partition{Int8}() == Partition(Int8[])
 
 	################################################################################
 	# num_partitions(n)
