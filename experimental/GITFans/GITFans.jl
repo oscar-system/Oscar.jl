@@ -115,7 +115,7 @@ for which the `i`-th row of `Q` is not contained in `S`.
 function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
     nr_variables, projected_dimension = size(Q)
 
-    collector_cones = Vector{Cone{QQFieldElem}}([])
+    collector_cones = Cone{QQFieldElem}[]
 
     # We need not consider sets of smaller size because of the rank condition.
     for k in projected_dimension:nr_variables
@@ -359,7 +359,7 @@ where `cone_list` is an array of arrays of cones,
 and `bit_list_tuple` is an array of bitsets.
 """
 function cones_from_bitlist(cone_list::Vector{Vector{Cone{T}}}, bit_list_tuple) where T
-  return_list = Vector{Cone{T}}([])
+  return_list = Cone{T}[]
     for i in 1:length(cone_list)
         for j in bit_list_tuple[i]
             push!(return_list, cone_list[i][j])
@@ -429,7 +429,7 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
         current_cone_list = cones_from_bitlist(orbit_list, current_hash)
         intersected_cone = intersect(current_cone_list)
         ic_facets = -linear_inequality_matrix(facets(intersected_cone))
-        facet_points = [Vector{T}([relative_interior_point(f)...]) for f in faces(intersected_cone, dim(intersected_cone)-1)]
+        facet_points = [T[relative_interior_point(f)...] for f in faces(intersected_cone, dim(intersected_cone)-1)]
 
         neighbor_hashes = []
         for i in 1:length(facet_points)
