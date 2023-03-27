@@ -8,7 +8,7 @@
 # To the outside, this is primarily the map identifying S with its 
 # flattened version.
 ########################################################################
-mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
+@attributes mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
                               FlatRingType<:Ring, CoeffRingType<:Ring
                              } <: Hecke.Map{TowerRingType, FlatRingType, 
                                             SetMap, RingFlattening
