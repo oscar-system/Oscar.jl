@@ -102,7 +102,6 @@ end
 # guidelines.
 include("../experimental/runtests.jl")
 
-include("Experimental/PlaneCurve-test.jl")
 include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
