@@ -5,11 +5,7 @@ import Combinatorics
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraAbstractModule, LieAlgebraAbstractModuleElem
-export LieAlgebraExteriorPowerModule, LieAlgebraExteriorPowerModuleElem
 export LieAlgebraModule, LieAlgebraModuleElem
-export LieAlgebraStdModule, LieAlgebraStdModuleElem
-export LieAlgebraSymmetricPowerModule, LieAlgebraSymmetricPowerModuleElem
-export LieAlgebraTensorPowerModule, LieAlgebraTensorPowerModuleElem
 export LinearLieAlgebra, LinearLieAlgebraElem
 
 export abstract_module
@@ -19,6 +15,10 @@ export coefficient_vector
 export exterior_power
 export general_linear_liealgebra
 export highest_weight_module
+export is_exterior_power
+export is_standard_module
+export is_symmetric_power
+export is_tensor_power
 export liealgebra
 export matrix_repr_basis
 export special_linear_liealgebra
@@ -33,8 +33,4 @@ include("PBWDeformations/LieAlgebras/AbstractLieAlgebra.jl")
 include("PBWDeformations/LieAlgebras/LinearLieAlgebra.jl")
 include("PBWDeformations/LieAlgebraModules/LieAlgebraModule.jl")
 include("PBWDeformations/LieAlgebraModules/LieAlgebraAbstractModule.jl")
-include("PBWDeformations/LieAlgebraModules/LieAlgebraExteriorPowerModule.jl")
-include("PBWDeformations/LieAlgebraModules/LieAlgebraStdModule.jl")
-include("PBWDeformations/LieAlgebraModules/LieAlgebraSymmetricPowerModule.jl")
-include("PBWDeformations/LieAlgebraModules/LieAlgebraTensorPowerModule.jl")
 include("PBWDeformations/GapWrapper.jl")

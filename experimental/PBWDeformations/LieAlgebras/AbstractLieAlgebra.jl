@@ -150,6 +150,6 @@ end
 function liealgebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
   struct_consts = liealgebra_struct_consts_gap(R, dynkin)
   L = liealgebra(R, struct_consts; cached, check=false)
-  set_attribute!(L, :dynkin, dynkin)
+  set_attribute!(L, :dynkin => dynkin)
   return L
 end

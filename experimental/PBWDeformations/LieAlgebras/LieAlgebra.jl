@@ -195,7 +195,7 @@ function general_linear_liealgebra(R::Ring, n::Int)
   basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
   s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
   L = liealgebra(R, n, basis, s)
-  set_attribute!(L, :type, :general_linear)
+  set_attribute!(L, :type => :general_linear)
   return L
 end
 
@@ -209,7 +209,7 @@ function special_linear_liealgebra(R::Ring, n::Int)
   s_f = ["f_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_h = ["h_$(i)" for i in 1:(n - 1)]
   L = liealgebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h])
-  set_attribute!(L, :type, :special_linear)
+  set_attribute!(L, :type => :special_linear)
   return L
 end
 
@@ -219,6 +219,6 @@ function special_orthogonal_liealgebra(R::Ring, n::Int)
   ]
   s = ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   L = liealgebra(R, n, basis, s)
-  set_attribute!(L, :type, :special_orthogonal)
+  set_attribute!(L, :type => :special_orthogonal)
   return L
 end

@@ -102,10 +102,6 @@ function liealgebra_module_conformance_test(
 end
 
 include("LieAlgebraAbstractModule-test.jl")
-include("LieAlgebraStdModule-test.jl")
-include("LieAlgebraExteriorPowerModule-test.jl")
-include("LieAlgebraSymmetricPowerModule-test.jl")
-include("LieAlgebraTensorPowerModule-test.jl")
 
 @testset "PBWDeformations.LieAlgebraModule" begin
   # nothing here yet
