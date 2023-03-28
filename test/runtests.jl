@@ -98,6 +98,10 @@ if Oscar.is_dev
   include("Experimental/GITFans-test.jl")
 end
 
+# Will automatically include all experimental packages following our
+# guidelines.
+include("../experimental/runtests.jl")
+
 include("Experimental/PlaneCurve-test.jl")
 include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
