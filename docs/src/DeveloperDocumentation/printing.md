@@ -1,21 +1,24 @@
 # Printing in Oscar
 
 ## The 2+1 new print modes
-We propose two user print modes `:details` and `:oneline` and one internal print mode `:supercompact`. The latter is for use during recursion, e.g. to print the `base_ring(X)` when in `:oneline` mode. It exists to make sure that `:oneline` stays compact and human readable.
+We propose two user print modes `:details` and `:oneline` and one internal
+print mode `:supercompact`. The latter is for use during recursion,
+e.g. to print the `base_ring(X)` when in `:oneline` mode.
+It exists to make sure that `:oneline` stays compact and human readable.
 
 Top-level REPL printing of an object will use `:details` mode by default
- ```julia
- julia> X
- :details
- ```
- Inside nested structures, e.g. inside a `Vector`, the `:oneline` mode is used.
- ```julia
- julia> [X,X]
- 3-element Vector{TypeofX{T}}
- :oneline
- :oneline
- :oneline
- ```
+```julia
+julia> X
+:details
+```
+Inside nested structures, e.g. inside a `Vector`, the `:oneline` mode is used.
+```julia
+julia> [X,X]
+3-element Vector{TypeofX{T}}
+:oneline
+:oneline
+:oneline
+```
 
 - `:details`; no restrictions except:
   - the output must make sense as a standalone without context to non-specialists
