@@ -242,4 +242,229 @@ end
     @test !iszero(pow_V([a, b]) - pow_V([b, a]))
     @test !iszero(pow_V([a, a]))
   end
+
+  @testset "so_n correctness regression" begin
+    function lie_algebra_module_struct_const(
+      L::LieAlgebra{C}, V::LieAlgebraModule{C}
+    ) where {C<:RingElement}
+      R = base_ring(L)
+      dimL = dim(L)
+      dimV = dim(V)
+      struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)
+      for (i, xi) in enumerate(basis(L)), (j, vj) in enumerate(basis(V))
+        struct_const_V[i, j] = [
+          (c, k) for (k, c) in enumerate(Generic._matrix(xi * vj)) if !iszero(c)
+        ]
+      end
+      return struct_const_V
+    end
+
+    L = special_orthogonal_lie_algebra(QQ, 3)
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 3)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 2)], [(QQ(1), 1)], []]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 3)], [], [(QQ(1), 1)]]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[[], [(QQ(-1), 3)], [(QQ(1), 2)]]
+    @test lie_algebra_module_struct_const(L, standard_module(L)) == struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 3)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 2)], [(QQ(1), 1)], []]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 3)], [], [(QQ(1), 1)]]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[[], [(QQ(-1), 3)], [(QQ(1), 2)]]
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 1)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 6)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-2), 2)],
+      [(QQ(1), 1), (QQ(-1), 4)],
+      [(QQ(-1), 5)],
+      [(QQ(2), 2)],
+      [(QQ(1), 3)],
+      [],
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-2), 3)],
+      [(QQ(-1), 5)],
+      [(QQ(1), 1), (QQ(-1), 6)],
+      [],
+      [(QQ(1), 2)],
+      [(QQ(2), 3)],
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [],
+      [(QQ(-1), 3)],
+      [(QQ(1), 2)],
+      [(QQ(-2), 5)],
+      [(QQ(1), 4), (QQ(-1), 6)],
+      [(QQ(2), 5)],
+    ]
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 2)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 10)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-3), 2)],
+      [(QQ(1), 1), (QQ(-2), 4)],
+      [(QQ(-2), 5)],
+      [(QQ(2), 2), (QQ(-1), 7)],
+      [(QQ(1), 3), (QQ(-1), 8)],
+      [(QQ(-1), 9)],
+      [(QQ(3), 4)],
+      [(QQ(2), 5)],
+      [(QQ(1), 6)],
+      [],
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-3), 3)],
+      [(QQ(-2), 5)],
+      [(QQ(1), 1), (QQ(-2), 6)],
+      [(QQ(-1), 8)],
+      [(QQ(1), 2), (QQ(-1), 9)],
+      [(QQ(2), 3), (QQ(-1), 10)],
+      [],
+      [(QQ(1), 4)],
+      [(QQ(2), 5)],
+      [(QQ(3), 6)],
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [],
+      [(QQ(-1), 3)],
+      [(QQ(1), 2)],
+      [(QQ(-2), 5)],
+      [(QQ(1), 4), (QQ(-1), 6)],
+      [(QQ(2), 5)],
+      [(QQ(-3), 8)],
+      [(QQ(1), 7), (QQ(-2), 9)],
+      [(QQ(2), 8), (QQ(-1), 10)],
+      [(QQ(3), 9)],
+    ]
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 4)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 3)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 2)], [(QQ(1), 1)], []]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 3)], [], [(QQ(1), 1)]]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[[], [(QQ(-1), 3)], [(QQ(1), 2)]]
+    @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 2)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 3)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[[], [(QQ(-1), 3)], [(QQ(1), 2)]]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(1), 3)], [], [(QQ(-1), 1)]]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 2)], [(QQ(1), 1)], []]
+    @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 3)) ==
+      struct_const_V
+
+    L = special_orthogonal_lie_algebra(QQ, 4)
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 4)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 2)], [(QQ(1), 1)], [], []
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 3)], [], [(QQ(1), 1)], []
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 4)], [], [], [(QQ(1), 1)]
+    ]
+    struct_const_V[4, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 3)], [(QQ(1), 2)], []
+    ]
+    struct_const_V[5, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 4)], [], [(QQ(1), 2)]
+    ]
+    struct_const_V[6, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [], [(QQ(-1), 4)], [(QQ(1), 3)]
+    ]
+    @test lie_algebra_module_struct_const(L, standard_module(L)) == struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 4)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 2)], [(QQ(1), 1)], [], []
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 3)], [], [(QQ(1), 1)], []
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 4)], [], [], [(QQ(1), 1)]
+    ]
+    struct_const_V[4, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 3)], [(QQ(1), 2)], []
+    ]
+    struct_const_V[5, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 4)], [], [(QQ(1), 2)]
+    ]
+    struct_const_V[6, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [], [(QQ(-1), 4)], [(QQ(1), 3)]
+    ]
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 1)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 4)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 2)], [(QQ(1), 1)], [], []
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 3)], [], [(QQ(1), 1)], []
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 4)], [], [], [(QQ(1), 1)]
+    ]
+    struct_const_V[4, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 3)], [(QQ(1), 2)], []
+    ]
+    struct_const_V[5, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 4)], [], [(QQ(1), 2)]
+    ]
+    struct_const_V[6, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [], [(QQ(-1), 4)], [(QQ(1), 3)]
+    ]
+    @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 1)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 6)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 4)], [(QQ(-1), 5)], [(QQ(1), 2)], [(QQ(1), 3)], []
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(1), 4)], [], [(QQ(-1), 6)], [(QQ(-1), 1)], [], [(QQ(1), 3)]
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(1), 5)], [(QQ(1), 6)], [], [], [(QQ(-1), 1)], [(QQ(-1), 2)]
+    ]
+    struct_const_V[4, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 2)], [(QQ(1), 1)], [], [], [(QQ(-1), 6)], [(QQ(1), 5)]
+    ]
+    struct_const_V[5, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 3)], [], [(QQ(1), 1)], [(QQ(1), 6)], [], [(QQ(-1), 4)]
+    ]
+    struct_const_V[6, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 3)], [(QQ(1), 2)], [(QQ(-1), 5)], [(QQ(1), 4)], []
+    ]
+    @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 2)) ==
+      struct_const_V
+
+    struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 4)
+    struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [], [(QQ(-1), 4)], [(QQ(1), 3)]
+    ]
+    struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(1), 4)], [], [(QQ(-1), 2)]
+    ]
+    struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 4)], [], [], [(QQ(1), 1)]
+    ]
+    struct_const_V[4, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [], [(QQ(-1), 3)], [(QQ(1), 2)], []
+    ]
+    struct_const_V[5, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(1), 3)], [], [(QQ(-1), 1)], []
+    ]
+    struct_const_V[6, :] = Vector{Tuple{QQFieldElem,Int64}}[
+      [(QQ(-1), 2)], [(QQ(1), 1)], [], []
+    ]
+    @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 3)) ==
+      struct_const_V
+  end
 end
