@@ -114,7 +114,7 @@ end
 #
 ###############################################################################
 
-function liealgebra(
+function lie_algebra(
   R::Ring,
   struct_consts::Matrix{SRow{C}},
   s::Vector{<:Union{AbstractString,Char,Symbol}}=[
@@ -126,7 +126,7 @@ function liealgebra(
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
 end
 
-function liealgebra(
+function lie_algebra(
   R::Ring,
   struct_consts::Array{C,3},
   s::Vector{<:Union{AbstractString,Char,Symbol}}=[
@@ -147,9 +147,9 @@ function liealgebra(
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
 end
 
-function liealgebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
-  struct_consts = liealgebra_struct_consts_gap(R, dynkin)
-  L = liealgebra(R, struct_consts; cached, check=false)
+function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
+  struct_consts = lie_algebra_struct_consts_gap(R, dynkin)
+  L = lie_algebra(R, struct_consts; cached, check=false)
   set_attribute!(L, :dynkin => dynkin)
   return L
 end

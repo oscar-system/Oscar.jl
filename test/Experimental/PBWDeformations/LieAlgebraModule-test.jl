@@ -1,5 +1,5 @@
 
-function liealgebra_module_conformance_test(
+function lie_algebra_module_conformance_test(
   L::LieAlgebra{C},
   V::LieAlgebraModule{C},
   parentT::DataType=LieAlgebraModule{C},
@@ -112,87 +112,87 @@ end
 
   @testset "conformance tests" begin
     @testset "V of sl_2(QQ) using structure constants" begin
-      L = special_linear_liealgebra(QQ, 2)
+      L = special_linear_lie_algebra(QQ, 2)
       V = abstract_module(L, 2, sc)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "λ = [1,1,0] of sl_4(QQ)" begin
-      L = special_linear_liealgebra(QQ, 4)
+      L = special_linear_lie_algebra(QQ, 4)
       V = highest_weight_module(L, [1, 1, 0])
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     # does not work (some GAP thing)
     # @testset "λ = [1,1,0,0] of so_4(QQ)" begin
-    #   L = special_orthogonal_liealgebra(QQ, 4)
+    #   L = special_orthogonal_lie_algebra(QQ, 4)
     #   V = highest_weight_module(L, [1, 1, 0, 0])
-    #   liealgebra_module_conformance_test(L, V)
+    #   lie_algebra_module_conformance_test(L, V)
     # end
 
     @testset "λ = [0,1] of A_2(QQ)" begin
-      L = liealgebra(QQ, ('A', 2))
+      L = lie_algebra(QQ, ('A', 2))
       V = highest_weight_module(L, [0, 1])
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "λ = [0,1,1] of B_3(QQ)" begin
-      L = liealgebra(QQ, ('B', 3))
+      L = lie_algebra(QQ, ('B', 3))
       V = highest_weight_module(L, [0, 1, 1])
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "V of sl_4(QQ)" begin
-      L = special_linear_liealgebra(QQ, 4)
+      L = special_linear_lie_algebra(QQ, 4)
       V = standard_module(L)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "V of so_4(CL(4))" begin
-      L = special_orthogonal_liealgebra(cyclotomic_field(4)[1], 4)
+      L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = standard_module(L)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "⋀^2 S^2 V of so_4(QQ)" begin
-      L = special_orthogonal_liealgebra(QQ, 4)
+      L = special_orthogonal_lie_algebra(QQ, 4)
       V = exterior_power(symmetric_power(standard_module(L), 2), 2)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "⋀^2 V of so_4(CL(4))" begin
-      L = special_orthogonal_liealgebra(cyclotomic_field(4)[1], 4)
+      L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = exterior_power(standard_module(L), 3)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "S^2 ⋀^2 V of so_4(QQ)" begin
-      L = special_orthogonal_liealgebra(QQ, 4)
+      L = special_orthogonal_lie_algebra(QQ, 4)
       V = tensor_power(symmetric_power(standard_module(L), 2), 2)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "S^2 V of so_4(CL(4))" begin
-      L = special_orthogonal_liealgebra(cyclotomic_field(4)[1], 4)
+      L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = symmetric_power(standard_module(L), 2)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "T^2 ⋀^2 V of sl_4(QQ)" begin
-      L = special_linear_liealgebra(QQ, 4)
+      L = special_linear_lie_algebra(QQ, 4)
       V = tensor_power(exterior_power(standard_module(L), 2), 2)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "T^2 V of sl_4(CL(4))" begin
-      L = special_linear_liealgebra(cyclotomic_field(4)[1], 4)
+      L = special_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       V = tensor_power(standard_module(L), 2)
-      liealgebra_module_conformance_test(L, V)
+      lie_algebra_module_conformance_test(L, V)
     end
   end
 
   @testset "standard_module" begin
-    L = special_orthogonal_liealgebra(QQ, 4)
+    L = special_orthogonal_lie_algebra(QQ, 4)
     V = standard_module(L)
     @test dim(V) == 4
 
@@ -202,7 +202,7 @@ end
   end
 
   @testset "exterior_power" begin
-    L = special_orthogonal_liealgebra(QQ, 4)
+    L = special_orthogonal_lie_algebra(QQ, 4)
     V = symmetric_power(standard_module(L), 2)
     pow_V = exterior_power(V, 2)
 
@@ -216,7 +216,7 @@ end
   end
 
   @testset "symmetric_power" begin
-    L = special_orthogonal_liealgebra(QQ, 4)
+    L = special_orthogonal_lie_algebra(QQ, 4)
     V = exterior_power(standard_module(L), 2)
     pow_V = symmetric_power(V, 2)
 
@@ -230,7 +230,7 @@ end
   end
 
   @testset "tensor_power" begin
-    L = special_orthogonal_liealgebra(QQ, 4)
+    L = special_orthogonal_lie_algebra(QQ, 4)
     V = standard_module(L)
     pow_V = tensor_power(V, 2)
 

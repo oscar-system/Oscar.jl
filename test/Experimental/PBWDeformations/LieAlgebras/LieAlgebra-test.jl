@@ -1,5 +1,5 @@
 
-function liealgebra_conformance_test(
+function lie_algebra_conformance_test(
   L::LieAlgebra{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10
 ) where {C<:RingElement}
   @testset "basic manipulation" begin

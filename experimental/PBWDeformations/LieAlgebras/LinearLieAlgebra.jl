@@ -106,7 +106,7 @@ end
 #
 ###############################################################################
 
-function liealgebra(
+function lie_algebra(
   R::Ring,
   n::Int,
   basis::Vector{<:MatElem{C}},

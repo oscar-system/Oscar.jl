@@ -51,11 +51,11 @@ elem_type(::Type{LieAlgebraModule{C}}) where {C<:RingElement} = LieAlgebraModule
 
 parent(v::LieAlgebraModuleElem{C}) where {C<:RingElement} = v.parent
 
-base_ring(V::LieAlgebraModule{C}) where {C<:RingElement} = base_ring(base_liealgebra(V))
+base_ring(V::LieAlgebraModule{C}) where {C<:RingElement} = base_ring(base_lie_algebra(V))
 
 base_ring(v::LieAlgebraModuleElem{C}) where {C<:RingElement} = base_ring(parent(v))
 
-base_liealgebra(V::LieAlgebraModule{C}) where {C<:RingElement} = V.L
+base_lie_algebra(V::LieAlgebraModule{C}) where {C<:RingElement} = V.L
 
 ngens(L::LieAlgebraModule{C}) where {C<:RingElement} = dim(L)
 
@@ -118,13 +118,13 @@ function Base.show(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
     get_attribute(V, :show)(io, V)
   else
     print(io, "AbstractModule of ")
-    print(IOContext(io, :compact => true), base_liealgebra(V))
+    print(IOContext(io, :compact => true), base_lie_algebra(V))
   end
 end
 
 function show_standard_module(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "StdModule of ")
-  print(IOContext(io, :compact => true), base_liealgebra(V))
+  print(IOContext(io, :compact => true), base_lie_algebra(V))
 end
 
 function show_exterior_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
@@ -303,7 +303,7 @@ end
 function action(
   x::LieAlgebraElem{C}, v::ElemT
 ) where {ElemT<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  @req parent(x) == base_liealgebra(parent(v)) "Incompatible Lie algebras."
+  @req parent(x) == base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
   cx = Generic._matrix(x)
 
@@ -386,7 +386,7 @@ end
 function highest_weight_module(
   L::LieAlgebra{C}, weight::Vector{Int}; cached::Bool=true
 ) where {C<:RingElement}
-  struct_consts = liealgebra_highest_weight_module_struct_consts_gap(L, weight)
+  struct_consts = lie_algebra_highest_weight_module_struct_consts_gap(L, weight)
   dimV = size(struct_consts, 2)
   V = abstract_module(L, dimV, struct_consts; cached, check=false)
   set_attribute!(V, :highest_weight => weight)
@@ -407,7 +407,7 @@ end
 function exterior_power(
   V::LieAlgebraModule{C}, k::Int; cached::Bool=true
 ) where {C<:RingElement}
-  L = base_liealgebra(V)
+  L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V), k)
   ind_map = collect(Combinatorics.combinations(1:dim(V), k))
 
@@ -454,7 +454,7 @@ end
 function symmetric_power(
   V::LieAlgebraModule{C}, k::Int; cached::Bool=true
 ) where {C<:RingElement}
-  L = base_liealgebra(V)
+  L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V) + k - 1, k)
   ind_map = collect(Combinatorics.with_replacement_combinations(1:dim(V), k))
 
@@ -514,7 +514,7 @@ end
 function tensor_power(
   V::LieAlgebraModule{C}, k::Int; cached::Bool=true
 ) where {C<:RingElement}
-  L = base_liealgebra(V)
+  L = base_lie_algebra(V)
   dim_pow_V = dim(V)^k
   ind_map = reverse.(collect(ProductIterator(1:dim(V), k)))
 

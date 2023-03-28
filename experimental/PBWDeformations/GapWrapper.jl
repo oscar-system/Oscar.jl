@@ -1,4 +1,4 @@
-function liealgebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
+function lie_algebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
   @req is_valid_dynkin(dynkin...) "Input not allowed by GAP."
   @req R == QQ "Works currently only for QQ." # TODO
 
@@ -20,7 +20,7 @@ function liealgebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
   return struct_consts
 end
 
-function liealgebra_highest_weight_module_struct_consts_gap(
+function lie_algebra_highest_weight_module_struct_consts_gap(
   L::LieAlgebra{C}, weight::Vector{Int}
 ) where {C<:RingElement}
   R = base_ring(L)
