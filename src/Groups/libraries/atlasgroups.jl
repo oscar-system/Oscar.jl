@@ -27,7 +27,7 @@ ERROR: the group atlas does not provide a representation for M
 """
 function atlas_group(name::String)
   G = GAP.Globals.AtlasGroup(GapObj(name))
-  G === GAP.Globals.fail && error("the group atlas does not provide a representation for $name")
+  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $name"
   T = _get_type(G)
   return T(G)
 end
@@ -38,7 +38,7 @@ function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, Matrix
   else
     G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
   end
-  G === GAP.Globals.fail && error("the group atlas does not provide a representation of type $T for $name")
+  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation of type $T for $name"
   TT = _get_type(G)
   return TT(G)
 end
@@ -66,9 +66,9 @@ function atlas_group(info::Dict)
   gapname = info[:name]
   l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GapObj(gapname))::GapObj
   pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GAP.GapObj}(l))
-  pos === nothing && error("no Atlas group for $info")
+  @req (pos !== nothing) "no Atlas group for $info"
   G = GAP.Globals.AtlasGroup(l[pos])
-  G === GAP.Globals.fail && error("the group atlas does not provide a representation for $info")
+  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $info"
 
   if haskey(info, :base_ring_iso)
     # make sure that the given ring is used
@@ -128,9 +128,9 @@ Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
-  GAP.Globals.HasAtlasRepInfoRecord(G.X) || error("$G was not constructed with atlas_group")
+  @req GAP.Globals.HasAtlasRepInfoRecord(G.X) "$G was not constructed with atlas_group"
   info = GAP.Globals.AtlasRepInfoRecord(G.X)
-  info.groupname == info.identifier[1] || error("$G was not constructed with atlas_group")
+  @req (info.groupname == info.identifier[1]) "$G was not constructed with atlas_group"
   H = GAP.Globals.AtlasSubgroup(G.X, nr)
   if H === GAP.Globals.fail
     name = string(info.groupname)

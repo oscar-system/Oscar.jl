@@ -13,7 +13,7 @@
     @test nmp == n
     @test nmp isa Int
 
-    @test isfinite(G)
+    @test is_finite(G)
 
     @test order(G) isa ZZRingElem
     @test order(G) == factorial(n)
@@ -111,7 +111,7 @@ end
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
 #=
   H = free_abelian_group(2)
-  @test !isfinite(H)
+  @test !is_finite(H)
   @test is_abelian(H)
 =#
   
@@ -127,17 +127,17 @@ end
   F = free_group("x","y")
   @test F isa FPGroup
   @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
-  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
-  @test !isfinite(F)
+  @test !is_finite(F)
   @test !is_abelian(F)
 
   F = free_group(:x,:y)
   @test F isa FPGroup
   @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
-  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
-  @test !isfinite(F)
+  @test !is_finite(F)
   @test !is_abelian(F)
 
   F = free_group("x",:y)

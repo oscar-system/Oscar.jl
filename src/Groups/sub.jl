@@ -123,9 +123,7 @@ index(G::T, H::T) where T <: GAPGroup = index(ZZRingElem, G, H)
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
    i = GAP.Globals.Index(G.X, H.X)::GapInt
-   if i === GAP.Globals.infinity
-      error("index() not supported for subgroup of infinite index, use isfinite()")
-   end
+   @req (i !== GAP.Globals.infinity) "index() not supported for subgroup of infinite index, use is_finite()"
    return I(i)
 end
 
@@ -282,10 +280,6 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
   return any(M -> is_conjugate(G, M, H), maximal_subgroup_reps(G))
 end
 
-# `is_maximal` had the wrong order of arguments,
-# see https://github.com/oscar-system/Oscar.jl/issues/1793
-@deprecate is_maximal(G::T, H::T) where T <: GAPGroup is_maximal_subgroup(H, G)
-
 """
     is_normalized_by(H::T, G::T) where T <: GAPGroup
 
@@ -311,10 +305,6 @@ true
 ```
 """
 is_normalized_by(H::T, G::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
-
-# `is_normal` had the wrong order of arguments,
-# see https://github.com/oscar-system/Oscar.jl/issues/1793
-@deprecate is_normal(G::T, H::T) where T <: GAPGroup is_normalized_by(H, G)
 
 """
     is_normal_subgroup(H::T, G::T) where T <: GAPGroup
@@ -373,10 +363,6 @@ function is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: G
   end
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
 end
-
-# `is_characteristic` had the wrong order of arguments,
-# see https://github.com/oscar-system/Oscar.jl/issues/1793
-@deprecate is_characteristic(G::T, H::T) where T <: GAPGroup is_characteristic_subgroup(H, G)
 
 """
     is_solvable(G::GAPGroup)

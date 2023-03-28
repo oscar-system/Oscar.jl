@@ -61,6 +61,9 @@ end
     if is_pgroup(G1) && order(G1) != 1
       @test prime_of_pgroup(G1) == prime_of_pgroup(G2)
     end
+    sg1 = small_generating_set(G1)
+    @test order(sub(G1, sg1)[1]) == order(G1)
+    @test length(sg1) <= length(para)
 
     # conjugacy classes of elements
     cc = conjugacy_classes(G1)
@@ -99,6 +102,22 @@ end
     for H in C
       @test H == representative(C)
     end
+    S1 = subgroup_reps(G1)
+    S2 = subgroup_reps(G2)
+    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    for n in 2:4
+      S1 = subgroup_reps(G1, order = ZZ(n))
+      S2 = subgroup_reps(G2, order = ZZ(n))
+      @test length(S1) == length(S2)
+    end
+    for n in 1:4
+      S1 = low_index_subgroup_reps(G1, n)
+      S2 = low_index_subgroup_reps(G2, n)
+      @test length(S1) == length(S2)
+    end
+    S1 = conjugacy_classes_maximal_subgroups(G1)
+    S2 = conjugacy_classes_maximal_subgroups(G2)
+    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
 
     # operations
     x = representative(rand(cc))

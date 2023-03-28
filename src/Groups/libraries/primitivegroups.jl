@@ -144,9 +144,9 @@ ERROR: group is not primitive on its moved points
 """
 function primitive_group_identification(G::PermGroup)
   moved = moved_points(G)
-  is_primitive(G, moved) || error("group is not primitive on its moved points")
+  @req is_primitive(G, moved) "group is not primitive on its moved points"
   deg = length(moved)
-  has_primitive_groups(deg) || error("identification of primitive permutation groups of degree $(deg) is not available")
+  @req has_primitive_groups(deg) "identification of primitive permutation groups of degree $(deg) is not available"
   res = GAP.Globals.PrimitiveIdentification(G.X)::Int
   return deg, res
 end
