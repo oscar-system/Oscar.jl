@@ -90,9 +90,9 @@ Base.rand(C::GrpAbFinGenConjClass) = representative(C)
 
 Base.rand(rng::Random.AbstractRNG, C::GrpAbFinGenConjClass) = representative(C)
 
-number_conjugacy_classes(G::GrpAbFinGen) = ZZRingElem(order(G))
+number_conjugacy_classes(G::GrpAbFinGen) = order(ZZRingElem, G)
 
-number_conjugacy_classes(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion = T(order(G))
+number_conjugacy_classes(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion = order(T, G)
 
 conjugacy_classes(G::GrpAbFinGen) = [GrpAbFinGenConjClass(G, x) for x in G]
 
@@ -155,11 +155,8 @@ conjugate_group(G::GrpAbFinGen, x::GrpAbFinGenElem) = G
 Base.:^(G::GrpAbFinGen, x::GrpAbFinGenElem) = G
 
 function is_conjugate(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
-   if is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
-     return true
-   else
-     return false
-   end
+   return is_subgroup(H, G)[1] && is_subgroup(K, G)[1] &&
+          is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
 end
 
 function representative_action(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
