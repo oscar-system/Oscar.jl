@@ -277,7 +277,7 @@ end
   J = ideal(W, [(z-1//2)^4*y])
   @test (z-1//2)^5 in J
   @test !((z-1//2)^5 in LI)
-  @test coordinates((z-1//2)^5, J) == matrix_space(W, 1, 1)([W(z-1//2, y)])
+  @test coordinates((z-1//2)^5, J) == matrix(W, 1, 1, [W(z-1//2, y)])
 end
 
 @testset "successive localizations" begin

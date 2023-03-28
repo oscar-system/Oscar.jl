@@ -347,7 +347,7 @@ end
 
 function projective_identity(d::Int)
     if d == 1
-        return [1]
+        return ones(Int, 1, 1)
     end
 
     X = zeros(Int, d, d+1)
@@ -362,14 +362,7 @@ function realization_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
                                        A::Vector{Int}, R::MPolyRing, x::Vector{T},
                                        xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
     
-    
-    if d == 1
-        S = matrix_space(R,1,1)
-        Id = S([1])
-    else
-        S = matrix_space(R,d,d+1)
-        Id = S(projective_identity(d))
-    end
+    Id = matrix(R, projective_identity(d))
     Xpre = matrix_realization_small(d, n, MC, R, x, xdict)
     return interlace_columns(Id, Xpre, A, R, x)
 

@@ -232,7 +232,9 @@
 
 @testset "projective_identity" begin
     @test Oscar.projective_identity(3) == [1 0 0 1; 0 1 0 1; 0 0 1 1]
-    @test Oscar.projective_identity(1) == [1]
+    M = Oscar.projective_identity(1)
+    @test size(M) == (1,1)
+    @test M[1,1] == 1
 end
 
 S1 = matrix_space(R1,2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
