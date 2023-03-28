@@ -12,6 +12,13 @@ The code in `experimental` is supposed to be mathematically correct,
 be stabilized. Also code is allowed to reside in `experimental` while it is
 brought up to Oscar standard.
 
+!!! danger "Dependencies"
+    - Code from `src` must never use code from `experimental`
+    - Say there are two packages `A` and `B` in `experimental`, and `B` depends
+      on `A`. That means that `B` cannot be moved to `src` before `A`. Worse:
+      If `A` gets abandoned, `B` might share that fate. So please consider
+      carefully in such situations.
+
 ## Structure
 To look at a sample for the structure for a new project in `experimental` have
 a look at `experimental/PlaneCurve`. The general structure is
