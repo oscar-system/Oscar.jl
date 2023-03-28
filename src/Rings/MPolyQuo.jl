@@ -509,7 +509,8 @@ parent(a::MPolyQuoRingElem) = a.P
 
 zero(R::MPolyQuoRing) = MPolyQuoRingElem(zero(base_ring(R)), R, true)
 
-iszero(a::MPolyQuoRingElem) = iszero(simplify(a).f)
+iszero(a::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}} = iszero(simplify(a).f)
+iszero(a::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}) = iszero(simplify(a).f)
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.P == b.P || error("wrong parents")
