@@ -498,7 +498,6 @@ The hyperplane of ℝ² described by x₂ = 0
 ## How julia prints things
 
 There are lots of open issues regarding with the printing in julia.
-Tommy is too lazy to find those.
 
 The important "features" for us are the following:
 - `:oneline` is never set when elements of arrays or vectors are printed.
