@@ -130,12 +130,12 @@ julia> order(transitive_group(m...)) == order(S)
 true
 
 julia> transitive_group_identification(symmetric_group(64))
-ERROR: identification of transitive groups of degree 64 are not available
+ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
-ERROR: group is not transitive on its moved points
+ERROR: ArgumentError: group is not transitive on its moved points
 ```
 """
 function transitive_group_identification(G::PermGroup)

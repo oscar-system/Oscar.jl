@@ -1408,10 +1408,10 @@ julia> prime_of_pgroup(UInt16, quaternion_group(8))
 0x0002
 
 julia> prime_of_pgroup(symmetric_group(1))
-ERROR: only supported for non-trivial p-groups
+ERROR: ArgumentError: only supported for non-trivial p-groups
 
 julia> prime_of_pgroup(symmetric_group(3))
-ERROR: only supported for non-trivial p-groups
+ERROR: ArgumentError: only supported for non-trivial p-groups
 
 ```
 """

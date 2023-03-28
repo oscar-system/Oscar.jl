@@ -134,12 +134,12 @@ julia> order(primitive_group(m...)) == order(S)
 true
 
 julia> primitive_group_identification(symmetric_group(4096))
-ERROR: identification of primitive permutation groups of degree 4096 is not available
+ERROR: ArgumentError: identification of primitive permutation groups of degree 4096 is not available
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> primitive_group_identification(S)
-ERROR: group is not primitive on its moved points
+ERROR: ArgumentError: group is not primitive on its moved points
 ```
 """
 function primitive_group_identification(G::PermGroup)
