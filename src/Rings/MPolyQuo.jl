@@ -89,10 +89,6 @@ function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
   return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P, a.simplified)
 end
 
-function is_zero(a::MPolyQuoRingElem)
-  return a.f in modulus(parent(a))
-end
-
 ##############################################################################
 #
 # Quotient ring ideals
@@ -512,6 +508,11 @@ zero(R::MPolyQuoRing) = MPolyQuoRingElem(zero(base_ring(R)), R, true)
 iszero(a::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}} = iszero(simplify(a).f)
 iszero(a::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}) = iszero(simplify(a).f)
 
+function is_zero(a::MPolyQuoRingElem)
+  return iszero(simplify(a).f)
+end
+
+
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.P == b.P || error("wrong parents")
   return true
@@ -741,7 +742,12 @@ end
 # By default this does nothing. Simply because there's no general rule what to 
 # do when groebner bases can not be assumed to make sense.
 function simplify(f::MPolyQuoRingElem)
-  return f
+  f.simplified && return f
+  if f.f in modulus(parent(f))
+    f.f = zero(f.f)
+  end
+  f.simplified = true
+  return f::elem_type(parent(f))
 end
 
 
