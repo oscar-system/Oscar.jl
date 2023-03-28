@@ -1,7 +1,7 @@
 # Printing in Oscar
 
 ## The 2+1 new print modes
-We propose two user print modes `:details` and `:oneline` and one internal
+Oscar has two user print modes `:details` and `:oneline` and one internal
 print mode `:supercompact`. The latter is for use during recursion,
 e.g. to print the `base_ring(X)` when in `:oneline` mode.
 It exists to make sure that `:oneline` stays compact and human readable.
