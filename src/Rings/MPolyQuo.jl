@@ -718,20 +718,22 @@ function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}
   g  = f.f
   f.f = OR(reduce(SR(g), G))
   f.simplified = true
-  return f::typeof(f)
+  return f::elem_type(R)
 end
 
 # Extra method for quotients of graded rings. 
 # TODO: Could this be simplified if the type-parameter signature of decorated rings 
 # was consistent with the one for polynomial rings? I.e. if the first type parameter 
 # was the one for the coefficient rings and not the one for the underlying polynomial ring?
-function simplify(f::MPolyQuoRingElem{MPolyDecRingElem{T}}) where {T<:MPolyElem{<:FieldElem}}
+function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
+  f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
   SR = singular_origin_ring(R)
   G  = singular_origin_groebner_basis(R)
   g  = f.f
   f.f = OR(reduce(SR(g), G))
+  f.simplified = true
   return f::elem_type(R)
 end
 
