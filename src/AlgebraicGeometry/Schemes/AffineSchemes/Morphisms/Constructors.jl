@@ -18,10 +18,22 @@ Note that expensive checks can be turned off by setting `check=false`.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> Y = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> SpecMor(X, Y, gens(OO(X)));
 ```
@@ -67,7 +79,13 @@ This method constructs the identity morphism from an affine scheme to itself.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> identity_map(X);
 ```
@@ -81,13 +99,18 @@ identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X)
 @doc Markdown.doc"""
     inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
 
-This method constructs the inclusion map from ``X`` to ``Y``.
-For convenience, also the method `inclusion_morphism` is supported.
+Return the inclusion map from ``X`` to ``Y``.
 
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -121,7 +144,13 @@ This method computes the composition of two morphisms.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -158,7 +187,13 @@ to ``U`` and its codomain to ``V``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field

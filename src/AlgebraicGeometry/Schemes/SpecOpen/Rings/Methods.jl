@@ -159,10 +159,11 @@ inv(a::SpecOpenRingElem) = SpecOpenRingElem(parent(a), [inv(f) for f in restrict
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 
-### TODO: Rethink this. For instance, restrictions can happen both from and to Specs.
-function AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:RingElem} 
-  return T
-end
+### Promote rules from and to other rings can not be made in a coherent 
+# way depending only on the types. One problem is that both, restricting 
+# from and to an affine scheme are valid operations, depending on the 
+# specific geometric configuration. Hence, we rely on the user to perform 
+# every coercion manually. 
 
 ########################################################################
 # Additional methods for compatibility and coherence                   #

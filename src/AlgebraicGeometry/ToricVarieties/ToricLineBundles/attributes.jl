@@ -21,9 +21,7 @@ GrpAb: Z
 with components [2]
 ```
 """
-function divisor_class(l::ToricLineBundle)
-    return l.divisor_class
-end
+divisor_class(l::ToricLineBundle) = l.divisor_class
 
 
 @doc Markdown.doc"""
@@ -43,9 +41,7 @@ julia> toric_variety(l)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function toric_variety(l::ToricLineBundle)
-    return l.toric_variety
-end
+toric_variety(l::ToricLineBundle) = l.toric_variety
 
 
 @doc Markdown.doc"""
@@ -97,9 +93,7 @@ julia> degree(l)
 2
 ```
 """
-@attr ZZRingElem function degree(l::ToricLineBundle)
-    return sum(coefficients(toric_divisor(l)))
-end
+@attr ZZRingElem degree(l::ToricLineBundle) = sum(coefficients(toric_divisor(l)))
 
 
 #####################

@@ -34,9 +34,7 @@ julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
 Toric line bundle on a normal toric variety
 ```
 """
-function toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
-    return ToricLineBundle(v, class)
-end
+toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricLineBundle(v, class)
 
 
 @doc Markdown.doc"""

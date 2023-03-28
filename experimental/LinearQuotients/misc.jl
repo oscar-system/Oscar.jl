@@ -56,7 +56,7 @@ end
 # Assumes that the generators start_pos:start_pos + ngens(S.D) - 1 of S have
 # degree [1, 0, ..., 0 ], [ 0, 1, 0, ..., 0 ], ..., [ 0, ..., 0, 1 ] if
 # positive == true and with -1 if positive == false.
-function homogenize(f::MPolyElem, S::MPolyDecRing, start_pos::Int, positive::Bool)
+function homogenize(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int, positive::Bool)
   @assert nvars(parent(f)) + ngens(S.D) == nvars(S)
   @assert is_free(S.D)
 

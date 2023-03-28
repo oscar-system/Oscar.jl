@@ -1,6 +1,6 @@
 @testset "(MixedInteger)LinearProgram{$T}" for T in [QQFieldElem, nf_elem]
 
-  pts = [1 0 0; 0 0 1]'
+  pts = [1 0; 0 0; 0 1]
   Q0 = convex_hull(T, pts)
   Q1 = convex_hull(T, pts, [1 1])
   Q2 = convex_hull(T, pts, [1 1], [1 1])
