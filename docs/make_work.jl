@@ -24,11 +24,55 @@ using Documenter, DocumenterCitations
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
+# We monkey-patch Base.walkdir to use true as default value for follow_symlinks
+# (normally false is the default), in order to "trick" the Documenter code into
+# following those symlinks.
+# See also:
+# https://github.com/JuliaDocs/Documenter.jl/pull/552
+# https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
+Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
+
+# When we read a `doc.main` from an experimental package, we need to equip all
+# its entries with a prefix to fix with out docs.
+setup_experimental_prefix(docs::String, prefix::String) = prefix * docs
+setup_experimental_prefix(docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], setup_experimental_prefix(docs[2], prefix))
+setup_experimental_prefix(docs::Vector{T}, prefix::String) where T = T[setup_experimental_prefix(entry, prefix) for entry in docs]
+
+function setup_experimental_package(Oscar::Module, package_name::String)
+  doc_main_path = joinpath(Oscar.oscardir, "experimental", package_name, "docs/doc.main")
+  if !isfile(doc_main_path)
+    return[]
+  end
+
+  # Set symlink inside docs/src/experimental
+  symlink_src = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
+  if !ispath(symlink_src)
+    symlink("../../../experimental/" * package_name * "/docs/src", symlink_src)
+  end
+  
+  # Read doc.main of package
+  exp_s = read(doc_main_path, String)
+  exp_doc = eval(Meta.parse(exp_s))
+  
+  # Prepend path
+  prefix = "Experimental/" * package_name * "/"
+  result = setup_experimental_prefix(exp_doc, prefix)
+  return result
+end
+
 function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
+  collected = Any["Experimental/intro.md"]
+  for pkg in Oscar.exppkgs
+    pkgdocs = setup_experimental_package(Oscar, pkg)
+    if length(pkgdocs) > 0
+      append!(collected, pkgdocs)
+    end
+  end
+  push!(doc, ("Experimental" => collected))
 
   # Load the bibliography
   bib = CitationBibliography(joinpath(Oscar.oscardir, "docs", "oscar_references.bib"), sorting = :nyt)
