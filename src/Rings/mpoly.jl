@@ -1154,7 +1154,7 @@ end
 Given a multivariate polynomial `f` and a weight vector `w` 
 return the total degree of `f` with respect to the weights `w`.
 """
-function total_degree(f::MPolyRingElem, w::Vector{Int})
+function weighted_degree(f::MPolyRingElem, w::Vector{Int})
   x = gens(parent(f))
   n = length(x)
   n == length(w) || error("weight vector does not have the correct length")

@@ -106,8 +106,8 @@ function homogenize(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
     parent(a) === OO(U) || error("element does not belong to the correct ring")
     p = lifted_numerator(a)
     q = lifted_denominator(a)
-    deg_p = total_degree(p, w)
-    deg_q = total_degree(q, w)
+    deg_p = weighted_degree(p, w)
+    deg_q = weighted_degree(q, w)
     deg_a = deg_p - deg_q
     ss = S[i] # the homogenization variable
     
@@ -162,8 +162,8 @@ function homogenize(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
     parent(a) === OO(U) || error("element does not belong to the correct ring")
     p = lifted_numerator(a)
     q = lifted_denominator(a)
-    deg_p = total_degree(p, w)
-    deg_q = total_degree(q, w)
+    deg_p = weighted_degree(p, w)
+    deg_q = weighted_degree(q, w)
     deg_a = deg_p - deg_q
     ss = S[i] # the homogenization variable
     
