@@ -31,7 +31,7 @@ convert ``ℐ`` into a `CoherentSheaf` on ``Y``, first.
 """
 function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
-  S === graded_coordinate_ring(X) || error("ideal does not live in the ambient coordinate ring of the scheme")
+  S === graded_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
@@ -45,7 +45,7 @@ end
 
 function IdealSheaf(X::ProjectiveScheme, I::MPolyQuoIdeal) 
   S = base_ring(I)
-  S === graded_coordinate_ring(X) || error("ideal does not live in the ambient coordinate ring of the scheme")
+  S === graded_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
