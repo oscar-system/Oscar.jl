@@ -713,7 +713,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
   if m == 0 && x[1] != 0
-    push!(P,Partition{T}(x))
+    push!(P,Partition{T}(copy(x)))
     return P
   end
 
@@ -759,7 +759,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       if m == lr
         x[i] = lr
         if i<=n # Added, otherwise get out of bounds
-          push!(P, Partition{T}(x))
+          push!(P, Partition{T}(copy(x))) #need copy here!
         else
           break
         end
