@@ -4,7 +4,6 @@ import Combinatorics
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
-export LieAlgebraAbstractModule, LieAlgebraAbstractModuleElem
 export LieAlgebraModule, LieAlgebraModuleElem
 export LinearLieAlgebra, LinearLieAlgebraElem
 
@@ -31,6 +30,5 @@ include("PBWDeformations/Util.jl")
 include("PBWDeformations/LieAlgebras/LieAlgebra.jl")
 include("PBWDeformations/LieAlgebras/AbstractLieAlgebra.jl")
 include("PBWDeformations/LieAlgebras/LinearLieAlgebra.jl")
-include("PBWDeformations/LieAlgebraModules/LieAlgebraModule.jl")
-include("PBWDeformations/LieAlgebraModules/LieAlgebraAbstractModule.jl")
+include("PBWDeformations/LieAlgebraModule.jl")
 include("PBWDeformations/GapWrapper.jl")
