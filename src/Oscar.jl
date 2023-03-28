@@ -28,6 +28,16 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
                         "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
 
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+expdir = joinpath(@__DIR__, "../experimental")
+const exppkgs = filter(x->isfile(joinpath(expdir, x, "src", "$x.jl")), readdir(expdir))
+
+# force trigger recompile when folder changes
+include_dependency("../experimental")
+
+
 # When a specific branch is loaded via `]add Package#branch` julia will only
 # create a checkout and keep a bare git repo in a separate directory.
 # In a bare repo HEAD will not point to the correct commit so we use the git
