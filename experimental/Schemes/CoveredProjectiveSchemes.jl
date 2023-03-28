@@ -459,8 +459,7 @@ end
 #    @show "processing done."
 #    return projective_version, covered_version, projection_map, exc_div
 #  else
-#    M = matrix_space(S, 2, ngens(S))
-#    A = zero(M)
+#    A = zero_matrix(S, 2, ngens(S))
 #    for i in 1:ngens(S)
 #      A[1, i] = S[i]
 #      A[2, i] = I[i]

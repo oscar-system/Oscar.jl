@@ -74,7 +74,7 @@ export ToricCoveredScheme
         end
         Idext = identity_matrix(ZZ, ncols(AX))
         Idext[l,l] = 0
-        img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
+        img_gens = [solve_mixed(AX, AY[:, k], Idext, zero_matrix(ZZ, ncols(Idext), 1)) for k in 1:ncols(AY)]
         fres = hom(OO(V), OO(U), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for w in img_gens])
         
         l = 0
@@ -86,7 +86,7 @@ export ToricCoveredScheme
         end
         Idext = identity_matrix(ZZ, ncols(AY))
         Idext[l,l] = 0
-        img_gens = [solve_mixed(AY, AX[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AX)]
+        img_gens = [solve_mixed(AY, AX[:, k], Idext, zero_matrix(ZZ, ncols(Idext), 1)) for k in 1:ncols(AX)]
         gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
         
         set_attribute!(gres, :inverse, fres)

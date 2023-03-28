@@ -2733,7 +2733,7 @@ If `task = :only_morphism`, return only the inclusion map.
 """
 function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
   M = SubquoModule(SubModuleOfFreeModule(F, A)) 
-  #M = SubquoModule(F, A, zero(matrix_space(base_ring(F), 1, rank(F))))
+  #M = SubquoModule(F, A, zero_matrix(base_ring(F), 1, rank(F)))
   emb = hom(M, F, ambient_representatives_generators(M))
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
@@ -2906,7 +2906,7 @@ Additionally, if `N` denotes this object,
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
-  E = one(matrix_space(base_ring(F), rank(F), rank(F)))
+  E = identity_matrix(base_ring(F), rank(F))
   Q = SubquoModule(F, E, A)
 
   return return_quo_wrt_task(F, Q, task)
