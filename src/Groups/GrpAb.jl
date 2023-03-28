@@ -37,14 +37,17 @@ end
 # x^n for GrpAbFinGenElem -> n*x
 
 function comm(x::GrpAbFinGenElem, y::GrpAbFinGenElem)
-  x.parent == y.parent || error("Elements must belong to the same group")
-  zero(parent(x))
+  @req (x.parent == y.parent) "elements must belong to the same group"
+  return zero(parent(x))
 end
 
 has_gens(G::GrpAbFinGen) = true
 
-#TODO: improve?
-small_generating_set(G::GrpAbFinGen) = gens(G)
+function small_generating_set(G::GrpAbFinGen)
+   is_snf(G) && return gens(G)
+   S, mp = snf(G)
+   return [mp(x) for x in gens(S)]
+end
 
 
 ################################################################################
@@ -109,14 +112,43 @@ end
 conjugacy_class(G::T, H::T) where T <: GrpAbFinGen = GrpAbFinGenConjClass(G, H)
 
 function conjugacy_classes_subgroups(G::GrpAbFinGen)
+   @req is_finite(G) "G is not finite"
    return [conjugacy_class(G, H) for (H, mp) in subgroups(G)]
 end
 
-#TODO: Does Hecke provide the following?
-# subgroup_reps(G::GrpAbFinGen; order::ZZRingElem = ZZRingElem(-1))
-# conjugacy_classes_maximal_subgroups(G::GrpAbFinGen)
-# maximal_subgroup_reps(G::GrpAbFinGen)
-# low_index_subgroup_reps(G::GrpAbFinGen, n::Int)
+function subgroup_reps(G::GrpAbFinGen; order::ZZRingElem = ZZRingElem(-1))
+   if order > 0 && mod(Hecke.order(G), order) != 0
+     # `subgroups` would throw an error
+     return GrpAbFinGen[]
+   end
+   return [H for (H, mp) in subgroups(G, order = order)]
+end
+
+function low_index_subgroup_reps(G::GrpAbFinGen, n::Int)
+   @req (n > 0) "index must be positive"
+   res = [G]
+   ord = order(G)
+   for i in 2:n
+     if mod(ord, i) == 0
+       append!(res, [H for (H, mp) in subgroups(G, index = i)])
+     end
+   end
+   return res
+end
+
+function maximal_subgroup_reps(G::GrpAbFinGen)
+   @req is_finite(G) "G is not finite"
+   primes = [p for (p, e) in factor(order(G))]
+   res = typeof(G)[]
+   for p in primes
+     append!(res, [H for (H, mp) in subgroups(G, index = p)])
+   end
+   return res
+end
+
+function conjugacy_classes_maximal_subgroups(G::GrpAbFinGen)
+   return [conjugacy_class(G, H) for H in maximal_subgroup_reps(G)]
+end
 
 conjugate_group(G::GrpAbFinGen, x::GrpAbFinGenElem) = G
 
@@ -162,23 +194,23 @@ end
 
 function core(G::GrpAbFinGen, H::GrpAbFinGen)
   flag, emb = is_subgroup(H, G)
-  flag || error("H  must be a subgroup of G")
+  @req flag "H  must be a subgroup of G"
   return (H, emb)
 end
 
 function normalizer(G::GrpAbFinGen, H::GrpAbFinGen)
-  is_subgroup(H, G)[1] || error("H  must be a subgroup of G")
+  @req is_subgroup(H, G)[1] "H  must be a subgroup of G"
   return (G, identity_map(G))
 end
 
 function normalizer(G::GrpAbFinGen, x::GrpAbFinGenElem)
-  is_element(x, G) || throw(ArgumentError("x does not lie in G"))
+  @req is_element(x, G) "x does not lie in G"
   return (G, identity_map(G))
 end
 
 function normal_closure(G::GrpAbFinGen, H::GrpAbFinGen)
   flag, emb = is_subgroup(H, G)
-  flag || error("H  must be a subgroup of G")
+  @req flag "H  must be a subgroup of G"
   return (H, emb)
 end
 
@@ -194,7 +226,7 @@ pcore(G::GrpAbFinGen, p::IntegerUnion) = sylow_subgroup(G, p)
 fitting_subgroup(G::GrpAbFinGen) = (G, identity_map(G))
 
 function frattini_subgroup(G::GrpAbFinGen)
-   is_finite(G) || throw(ArgumentError("G is not finite"))
+   @req is_finite(G) "G is not finite"
    subgens = GrpAbFinGenElem[]
    for x in gens(G)
      for (p, e) in collect(factor(order(x)))
@@ -208,7 +240,7 @@ function frattini_subgroup(G::GrpAbFinGen)
 end
 
 function socle(G::GrpAbFinGen)
-   is_finite(G) || throw(ArgumentError("G is not finite"))
+   @req is_finite(G) "G is not finite"
    subgens = GrpAbFinGenElem[]
    for x in gens(G)
      n = 1
@@ -238,8 +270,8 @@ solvable_radical(G::GrpAbFinGen) = (G, identity_map(G))
 # complement_system(G::GrpAbFinGen)
 
 function sylow_subgroup(G::GrpAbFinGen, p::IntegerUnion)
-   is_finite(G) || throw(ArgumentError("G is not finite"))
-   is_prime(p) || throw(ArgumentError("p is not a prime"))
+   @req is_finite(G) "G is not finite"
+   @req is_prime(p) "p is not a prime"
    subgens = GrpAbFinGenElem[]
    for x in gens(G)
      ord = order(x)
@@ -255,7 +287,7 @@ function sylow_subgroup(G::GrpAbFinGen, p::IntegerUnion)
 end
 
 function sylow_system(G::GrpAbFinGen)
-   is_finite(G) || throw(ArgumentError("G is not finite"))
+   @req is_finite(G) "G is not finite"
    result = GrpAbFinGen[]
    for (p, e) in collect(factor(order(G)))
      push!(result, sylow_subgroup(G, p)[1])
@@ -267,9 +299,9 @@ end
 hall_subgroup(G::GrpAbFinGen, P::AbstractVector{<:IntegerUnion}) = hall_subgroup_reps(G, P)[1]
 
 function hall_subgroup_reps(G::GrpAbFinGen, P::AbstractVector{<:IntegerUnion})
-   is_finite(G) || throw(ArgumentError("G is not finite"))
+   @req is_finite(G) "G is not finite"
    P = unique(P)
-   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
+   @req all(is_prime, P) "The integers must be prime"
    subgens = GrpAbFinGenElem[]
    for x in gens(G)
      ord = order(x)
@@ -288,7 +320,7 @@ function hall_subgroup_reps(G::GrpAbFinGen, P::AbstractVector{<:IntegerUnion})
 end
 
 function hall_system(G::GrpAbFinGen)
-   is_solvable(G) || error("G must be solvable")
+   @req is_solvable(G) "G must be solvable"
    primes = [p for (p, e) in factor(order(G))]
    result = GrpAbFinGen[]
    for P in subsets(Set(primes))
@@ -339,14 +371,12 @@ nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
 # TODO: enhance @gapattribute so this is not necessary
 function _prime_of_pgroup(G::GrpAbFinGen)
   flag, p, e = is_prime_power_with_data(order(G))
-  if !flag
-    error("only supported for non-trivial p-groups")
-  end
+  @req flag "only supported for non-trivial p-groups"
   return p
 end
 
 function prime_of_pgroup(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
-  return ZZRingElem(_prime_of_pgroup(G))
+  return T(_prime_of_pgroup(G))
 end
 
 prime_of_pgroup(G::GrpAbFinGen) = prime_of_pgroup(ZZRingElem, G)

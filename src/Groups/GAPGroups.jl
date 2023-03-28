@@ -1,5 +1,3 @@
-@alias is_finiteorder isfiniteorder
-
 # TODO: as soon as GAP packages like `polycyclic` or `rcwa` are loaded,
 # the custom group types and isos they define should be added to the arrays
 # _gap_group_types resp. _iso_function
@@ -58,21 +56,23 @@ function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
 end
 
 """
-    isfinite(G::GAPGroup) -> Bool
+    is_finite(G::GAPGroup) -> Bool
 
 Return `true` if `G` is finite, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> isfinite(symmetric_group(5))
+julia> is_finite(symmetric_group(5))
 true
 
-julia> isfinite(free_group(2))
+julia> is_finite(free_group(2))
 false
 
 ```
 """
-@gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
+@gapattribute is_finite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
+
+# Base.is_finite(G::PcGroup) = true
 
 """
     is_finiteorder(g::GAPGroupElem) -> Bool
@@ -102,7 +102,7 @@ positive integer `n` such that `x^n` is the identity of `G`.
 For a group `x`, the order of `x` is the number of elements in `x`.
 
 An exception is thrown if the order of `x` is infinite,
-use [`isfinite`](@ref) for checking the finiteness of a group,
+use [`is_finite`](@ref) for checking the finiteness of a group,
 and [`is_finiteorder`](@ref) for checking whether a group element
 has finite order.
 
@@ -118,7 +118,7 @@ julia> order(gen(g, 1))
 
 julia> g = free_group(1);
 
-julia> isfinite(g)
+julia> is_finite(g)
 false
 
 julia> is_finiteorder(gen(g, 1))
@@ -733,7 +733,7 @@ julia> low_index_subgroup_reps(G, 5)
 
 ```
 """
-function low_index_subgroup_reps(G::PermGroup, n::Int)
+function low_index_subgroup_reps(G::GAPGroup, n::Int)
   ll = GAP.Globals.LowIndexSubgroups(G.X, n)
   return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
@@ -756,7 +756,7 @@ Group([ (2,3,4) ])
 ```
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
-  check_parent(G, x) || error("G and x are not compatible")
+  @req check_parent(G, x) "G and x are not compatible"
   return _oscar_group(GAP.Globals.ConjugateSubgroup(G.X, x.X), G)
 end
 
@@ -1053,11 +1053,6 @@ the largest solvable normal subgroup of `G`.
 """
 @gapattribute solvable_radical(G::GAPGroup) = _as_subgroup(G, GAP.Globals.SolvableRadical(G.X))
 
-@deprecate radical_subgroup solvable_radical
-@deprecate has_radical_subgroup has_solvable_radical
-@deprecate set_radical_subgroup set_solvable_radical
-
-
 """
     socle(G::GAPGroup)
 
@@ -1154,8 +1149,6 @@ function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    end
 end
 
-@alias hall_subgroups_representatives hall_subgroup_reps
-
 @doc Markdown.doc"""
     sylow_system(G::Group)
 
@@ -1218,7 +1211,7 @@ end
 @doc Markdown.doc"""
     hall_system(G::Group)
 
-Return a vector of $P$-Hall subgroups of the finite group `G`,
+Return a vector of Hall $P$-subgroups of the finite group `G`,
 where $P$ runs over the subsets of prime factors of the order of `G`.
 
 Hall systems exist only for solvable groups,
@@ -1393,9 +1386,7 @@ is_pgroup_with_prime(G::GAPGroup) = is_pgroup_with_prime(ZZRingElem, G)
 # prime_of_pgroup.
 # TODO: enhance @gapattribute so this is not necessary
 @gapattribute function _prime_of_pgroup(G::GAPGroup)
-  if is_trivial(G) || !is_pgroup(G)
-    error("only supported for non-trivial p-groups")
-  end
+  @req (!is_trivial(G) && is_pgroup(G)) "only supported for non-trivial p-groups"
   return GAP.Globals.PrimePGroup(G.X)
 end
 
@@ -1914,7 +1905,7 @@ function describe(G::GAPGroup)
    # handle groups whose finiteness is known
    if has_is_finite(G)
       # finite groups: pass them to GAP
-      if isfinite(G)
+      if is_finite(G)
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
 
@@ -1970,7 +1961,7 @@ function describe(G::FPGroup)
       # try to obtain an isomorphic permutation group, but don't try too hard
       iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAPWrap.Range(iso)))
-   elseif isfinite(G)
+   elseif is_finite(G)
       return describe(PermGroup(G))
    else
       extra *= " infinite"
