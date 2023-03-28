@@ -573,7 +573,7 @@ function Base.show(io::IO, R::NewRing)
     if get(io, :supercompact, false)
       print(io, "supercompact printing of newring")
     else
-      println(io, "I am a new ring and always print in one line: )
+      println(io, "I am a new ring and always print in one line" )
       print(IOContext(io, :supercompact => true), base_ring(R))
     end
 end
