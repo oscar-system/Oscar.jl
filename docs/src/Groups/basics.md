@@ -74,7 +74,7 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 ## Properties of groups
 
 ```@docs
-Base.isfinite(G::GAPGroup)
+is_finite(G::GAPGroup)
 is_trivial(G::GAPGroup)
 is_abelian(G::GAPGroup)
 is_elementary_abelian
