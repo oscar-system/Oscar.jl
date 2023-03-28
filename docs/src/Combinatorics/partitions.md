@@ -13,9 +13,32 @@ num_partitions(::Oscar.IntegerUnion)
 ```
 
 ### Partitions with restrictions
+> How many ways are there to pay one euro, using coins worth 1, 2, 5, 10, 20, 50, and/or 100 cents? What if you are allowed to use at most two of each coin? 
 
-Often, one is interested not in all partitions but in partitions satisfying some restrictions, for example on the number of parts or on the parts themselves. A typical application is to find all ways to pay 1 Euro (=100 Cents) using coins of smaller denomination, i.e. coins worth 1, 2, 5, 10, 20, and 50 cents. A refinement is to allow only at most two of each coin. See [Knu11](@cite), Exercise 11 in Section 7.2.1.4 (page 408) for this particular problem. Instead of filtering the list of partitions of 100 (which contains about 190 million entries) by the restrictions, there are dedicated algorithms performing such tasks efficiently without generating all partitions first. 
- 
+This is Exercise 11 in [Knu11](@ref), Section 7.2.1.4 (page 408). It goes back to the famous "Ways to change one dollar" problem, see [Pol56](@ref). Generally, the problem is to generate and/or count partitions satisfying some restrictions. Of course, one could generate the list of all partitions of 100 (there are about 190 million) and then filter the result by the restrictions. But for certain types of restrictions there are much more efficient algorithms. The functions in this section implement some of these. Multiple use of these functions in combination with Julia's [filter](https://docs.julialang.org/en/v1/base/collections/#Base.filter) function allow to handle more general types of restrictions.
+
+For example, there are precisely 6 ways for the second question in the exercise quoted above:
+```jldoctest
+julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
+6-element Vector{Partition{Int64}}:
+ [50, 50]
+ [50, 20, 20, 10]
+ [50, 20, 20, 5, 5]
+ [50, 20, 10, 10, 5, 5]
+ [50, 20, 20, 5, 2, 2, 1]
+ [50, 20, 10, 10, 5, 2, 2, 1]
+```
+and there are 4562 ways for the first question in the exercise:
+```jldoctest
+julia> length(partitions(100, [1,2,5,10,20,50]))
+4562
+```
+The original "Ways to change one dollar" problem has 292 solutions:
+```jldoctest
+julia> length(partitions(100,[1,5,10,25,50]))
+292
+```
+
 ```@docs
 partitions(::T, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
 partitions(::T, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
