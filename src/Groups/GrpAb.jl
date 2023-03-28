@@ -30,6 +30,10 @@ end
 
 # order(x::GrpAbFinGenElem) = order(ZZRingElem, x) # see Hecke.jl/src/GrpAb/Elem.jl
 
+function order(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+   return T(order(G))
+end
+
 #TODO: do we need `one`? (Hecke defines `is_one(x::GrpAbFinGen)`.)
 # one(x::GrpAbFinGen) == zero(x)
 # one(x::GrpAbFinGenElem) == zero(x)
