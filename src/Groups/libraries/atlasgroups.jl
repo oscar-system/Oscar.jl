@@ -22,7 +22,7 @@ julia> atlas_group("M11")  # Mathieu group M11
 Group([ (2,10)(4,11)(5,7)(8,9), (1,4,3,8)(2,5,6,9) ])
 
 julia> atlas_group("M")  # Monster group M
-ERROR: the group atlas does not provide a representation for M
+ERROR: ArgumentError: the group atlas does not provide a representation for M
 ```
 """
 function atlas_group(name::String)

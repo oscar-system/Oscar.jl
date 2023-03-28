@@ -111,7 +111,7 @@ julia> small_group_identification(alternating_group(5))
 (60, 5)
 
 julia> small_group_identification(symmetric_group(20))
-ERROR: identification is not available for groups of order 2432902008176640000
+ERROR: ArgumentError: identification is not available for groups of order 2432902008176640000
 ```
 """
 function small_group_identification(G::GAPGroup)
@@ -133,7 +133,7 @@ julia> number_small_groups(8)
 5
 
 julia> number_small_groups(4096)
-ERROR: the number of groups of order 4096 is not available
+ERROR: ArgumentError: the number of groups of order 4096 is not available
 
 julia> number_small_groups(next_prime(ZZRingElem(2)^64))
 1
