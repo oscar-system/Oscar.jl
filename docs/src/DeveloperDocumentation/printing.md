@@ -133,7 +133,7 @@ with defining polynomial x^10 - 3x^9 + 7x^8 - 11x^7 + 13x^6 - 12x^5 + 9x^4 - 5x^
       QQ
 ```
 ```
-Number field of degree 2 over Number field
+Number field of degree 10 over Number field
 ```
 ```
 Number field
