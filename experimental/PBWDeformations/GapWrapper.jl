@@ -4,14 +4,16 @@ function liealgebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
 
   GAPG = GAP.Globals
 
-  L = GAPG.SimpleLieAlgebra(GAP.julia_to_gap(string(dynkin[1])), dynkin[2], GAPG.Rationals)
+  L = GAPG.SimpleLieAlgebra(GAP.Obj(string(dynkin[1])), dynkin[2], GAPG.Rationals)
   dimL = GAPG.Dimension(L)
-  comm_table_L = GAP.gap_to_julia(GAPG.StructureConstantsTable(GAPG.Basis(L)))[1:dimL]
+  comm_table_L = Matrix{NTuple{2,Vector{Int}}}(
+    (GAPG.StructureConstantsTable(GAPG.Basis(L)))[1:dimL]
+  )
 
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, dimL, dimL)
   for i in 1:dimL, j in 1:dimL
     struct_consts[i, j] = sparse_row(
-      R, Tuple{Int,elem_type(R)}[(k, R(c)) for (k, c) in zip(comm_table_L[i][j]...)]
+      R, Tuple{Int,elem_type(R)}[(k, R(c)) for (k, c) in zip(comm_table_L[i, j]...)]
     )
   end
 
@@ -42,12 +44,12 @@ function liealgebra_highest_weight_module_struct_consts_gap(
   ]
 
   gapL = GAPG.LieAlgebraByStructureConstants(
-    GAPG.Rationals, GAP.julia_to_gap(gap_sc_table; recursive=true)
+    GAPG.Rationals, GAP.Obj(gap_sc_table; recursive=true)
   )
   dimL = GAPG.Dimension(gapL)
   @assert dimL == dim(L)
   basisL = GAPG.BasisVectors(GAPG.Basis(gapL))
-  gapV = GAPG.HighestWeightModule(gapL, GAP.julia_to_gap(weight))
+  gapV = GAPG.HighestWeightModule(gapL, GAP.Obj(weight))
   dimV = GAPG.Dimension(gapV)
   basisV = GAPG.BasisVectors(GAPG.Basis(gapV))
 
@@ -56,9 +58,8 @@ function liealgebra_highest_weight_module_struct_consts_gap(
     struct_consts[i, j] = sparse_row(
       R,
       Tuple{Int,elem_type(R)}[
-        (k, R(c)) for (k, c) in enumerate(
-          GAP.gap_to_julia(GAPG.Coefficients(GAPG.Basis(gapV), basisL[i]^basisV[j]))
-        )
+        (k, R(c)) for (k, c) in
+        enumerate(Vector{Int}(GAPG.Coefficients(GAPG.Basis(gapV), basisL[i]^basisV[j])))
       ],
     )
   end
