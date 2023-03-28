@@ -292,6 +292,21 @@ end
                 end
             end
 
+            @testset "Universal Polynomial over $(case[4])" begin
+                R = UniversalPolynomialRing(case[1])
+                z, w = gens(R, ["z", "w"])
+                p = z^2 + case[2] * z * w + case[3] * w^3
+                test_save_load_roundtrip(path, p) do loaded
+                  @test test_equality(p.p, loaded.p)
+                end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
+                    end
+                end
+            end
+
             # Tropical Semirings currently can't have formal power series
             filter!(case-> case[4] != "Tropical Semiring", cases)
 
