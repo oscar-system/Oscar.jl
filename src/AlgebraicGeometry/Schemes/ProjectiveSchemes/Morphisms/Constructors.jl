@@ -21,12 +21,14 @@ function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomTy
   R = base_ring(P) 
   R == domain(f) || error("rings not compatible")
   Rnew = codomain(f)
-  S = graded_coordinate_ring(P)
+  S = ambient_coordinate_ring(P)
   Qambient = projective_space(Rnew, symbols(S))
   Snew = ambient_coordinate_ring(Qambient)
   phi = hom(S, Snew, f, gens(Snew))
   Q = subscheme(Qambient, ideal(graded_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
-  return Q, ProjectiveSchemeMor(Q, P, hom(S, graded_coordinate_ring(Q), f, gens(graded_coordinate_ring(Q))))
+  return Q, ProjectiveSchemeMor(Q, P, hom(graded_coordinate_ring(P), 
+                                          graded_coordinate_ring(Q), 
+                                          f, gens(graded_coordinate_ring(Q))))
 end
 
 function fiber_product(

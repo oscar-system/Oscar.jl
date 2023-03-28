@@ -172,7 +172,7 @@ end
     ambient_space, pF, pY = product(F, Y)
     fiber_vars = pullback(pF).(gens(R_fiber))
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
-    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
+    patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
     pU[patch] = restrict(pY, patch, Y, check=false)
   end
