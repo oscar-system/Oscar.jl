@@ -17,7 +17,7 @@ num_partitions(::Oscar.IntegerUnion)
 
 This is Exercise 11 in [Knu11](@ref), Section 7.2.1.4 (page 408). It goes back to the famous "Ways to change one dollar" problem, see [Pol56](@ref). Generally, the problem is to generate and/or count partitions satisfying some restrictions. Of course, one could generate the list of all partitions of 100 (there are about 190 million) and then filter the result by the restrictions. But for certain types of restrictions there are much more efficient algorithms. The functions in this section implement some of these. Multiple use of these functions in combination with Julia's [filter](https://docs.julialang.org/en/v1/base/collections/#Base.filter) function allow to handle more general types of restrictions.
 
-For example, there are precisely 6 ways for the second question in the exercise quoted above:
+For example, there are precisely six ways for the second question in the exercise quoted above:
 ```jldoctest
 julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
 6-element Vector{Partition{Int64}}:
