@@ -1,0 +1,8 @@
+include("auxiliary.jl")
+include("WeierstrassModels/constructors.jl")
+include("WeierstrassModels/attributes.jl")
+include("WeierstrassModels/properties.jl")
+include("TateModels/constructors.jl")
+include("TateModels/attributes.jl")
+include("TateModels/properties.jl")
+include("exports.jl")
