@@ -78,30 +78,6 @@ to a minimum. Here is a general principle:
 > Do not use Unicode characters inside functions. See below for the exception
 > concerning printing.
 
-Per default output should be ANSI only (no Unicode). Implementors of
-`Base.show` and related functions can branch on the output of
-`Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
-This will then be used for users which enabled Unicode using
-`allow_unicode(true)`. Note that
-
-- there must be a default ANSI only output, since this is the default setting
-  for new users, and
-- OSCAR library code is not allowed to call `Oscar.allow_unicode`.
-
-Here is an example with and without output using Unicode:
-
-```julia
-  struct AtoB
-  end
-
-  function Base.show(io::IO, ::AtoB)
-    if Oscar.is_unicode_allowed()
-      print(io, "A→B")
-    else
-      print(io, "A->B")
-    end
-  end
-```
 
 ### Whitespace
 
@@ -241,3 +217,189 @@ existing block.
 
  - Via the MathJax integration it is possible to use LaTeX code, and this is the
    preferred way to denote the mathematical symbols in the docstrings.
+
+
+## Printing in Oscar
+
+### The 2 + 1 print modes of Oscar
+Oscar has two user print modes `:details` and `:oneline` and one internal
+print mode `:supercompact`. The latter is for use during recursion,
+e.g. to print the `base_ring(X)` when in `:oneline` mode.
+It exists to make sure that `:oneline` stays compact and human readable.
+
+Top-level REPL printing of an object will use `:details` mode by default
+```julia
+julia> X
+:details
+```
+Inside nested structures, e.g. inside a `Vector`, the `:oneline` mode is used.
+```julia
+julia> [X,X]
+3-element Vector{TypeofX{T}}
+:oneline
+:oneline
+:oneline
+```
+
+##### An Example for the 2 + 1 print modes
+```
+# detailed
+General linear group of degree 24
+  over Finite field of degree 7 over GF(29)
+
+# oneline
+General linear group of degree 24 over GF(29^7)
+
+# supercompact
+General linear group
+```
+
+The print modes are specified as follows
+#### Detailed printing
+- the output must make sense as a standalone without context to non-specialists
+- the number of output lines should fit in the terminal
+- if the object is simple enough use only one line
+- use indentation and (usually) `:oneline` to print substructures
+#### One line printing
+- the output must print in one line
+- should make sense as a standalone without context
+- variable names/generators/relations should not be printed only their number.
+- Only the first word is capitalized e.g. `Polynomial ring`
+- one should use `:supercompact` for nested printing in compact
+- nested calls to `:oneline` (if you think them really necessary) should be at the end,
+  so that one can read sequentially. Calls to `:supercompact` can be anywhere.
+#### Super compact printing
+- no nested printing
+- a single term or a symbol/letter mimicking mathematical notation
+- should usually only depend on the type and not of the type parameters or of
+  the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
+- no nested printing. In particular variable names and `base_ring` must not be displayed.
+  This ensures that `:oneline` and `:supercompact` stay compact even for complicated things.
+  If you want nested printing use `:oneline` or `details`.
+- a user readable version of the main (mathematical) type.
+
+### Implementing show functions
+
+Here is the translation between `:detail`, `:oneline` and `:supercompact`.
+
+```
+print(io, "text/plain", x)                 # detailed printing
+print(io, x)                               # oneline printing
+print(IOContext(:supercompact => true), x) # supercompact printing
+```
+
+For reference, string interpolation `"$(x)"` will also use `print(io, x)`.
+
+#### Mockup
+
+```julia
+struct NewRing
+  base_ring
+end
+```
+
+```julia
+function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
+    println(io, "I am a new ring")
+    println(io, "I print with newlines")
+    print(io, R.base_ring)
+end
+```
+
+```julia
+function Base.show(io::IO, R::NewRing)
+    if get(io, :supercompact, false)
+        print(io, "supercompact printing of newring ")
+        print(io, R.base_ring) # this prints the :oneline version of newring
+    else
+        print(io, "oneline printing of newring with ")
+        print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
+    end
+end
+```
+
+
+#### Alternative
+
+Here is an alternative version, which needs to be used in case the detailed
+printing does not contain newlines.
+
+```julia
+function Base.show(io::IO, R::NewRing)
+    if get(io, :supercompact, false)
+      print(io, "supercompact printing of newring")
+    else
+      println(io, "I am a new ring and always print in one line" )
+      print(IOContext(io, :supercompact => true), base_ring(R))
+    end
+end
+```
+
+#### Not working as expected
+
+```julia
+function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
+    print(io, "I am a new ring with a detailed printing of one line")
+end
+```
+
+Then the following will *not* be used for array/tuple printing.
+It will be used for `print(io, R::NewRing)` though.
+
+```julia
+function Base.show(io::IO, R::NewRing)
+    if get(io, :supercompact, false)
+        print(io, "supercompact printing of newring")
+    else # this is what we call :oneline, but wrong terminology for julia
+        print(io, "compact printing of newring with ")
+        print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
+    end
+end
+```
+
+## Latex and unicode printing
+
+### Latex output
+Some types support latex output.
+```
+julia> Qx, x = QQ["x"];
+
+julia> show(stdout, "text/latex", x^2 + 2x + x^10)
+x^{10} + x^{2} + 2 x
+
+julia> show(stdout, "text/latex", Qx[x x^2; 1 1])
+\begin{array}{cc}
+x & x^{2} \\
+1 & 1
+\end{array}
+```
+To support latex output for your type implement
+```
+Base.show(io::IOContext, "text/latex")
+```
+
+### Unicode printing
+Per default output should be ANSI only (no Unicode). Implementors of
+`Base.show` and related functions can branch on the output of
+`Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
+This will then be used for users which enabled Unicode using
+`allow_unicode(true)`. Note that
+
+- there must be a default ANSI only output, since this is the default setting
+  for new users, and
+- OSCAR library code is not allowed to call `Oscar.allow_unicode`.
+
+Here is an example with and without output using Unicode:
+
+```julia
+  struct AtoB
+  end
+
+  function Base.show(io::IO, ::AtoB)
+    if Oscar.is_unicode_allowed()
+      print(io, "A→B")
+    else
+      print(io, "A->B")
+    end
+  end
+```
