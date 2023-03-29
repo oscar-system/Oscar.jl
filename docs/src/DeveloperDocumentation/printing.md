@@ -143,7 +143,7 @@ General linear group of degree 24 over Number field
 ```
 General linear group
 ```
-#### Matrix groups
+#### Matrix group over QQ
 ```
 Marix group of degree 24 over Rational field
 ```
