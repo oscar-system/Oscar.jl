@@ -25,12 +25,21 @@ export partitions
 @doc Markdown.doc"""
     Partition{T<:IntegerUnion} <: AbstractVector{T}
 
-A **partition** of a non-negative integer ``n`` is a decreasing sequence ``λ₁ ≥ λ₂ ≥ … ≥ λᵣ`` of positive integers ``λᵢ`` such that ``n = λ₁ + … + λᵣ``. The ``λᵢ`` are called the **parts** of the partition and ``r`` is called the **length**. 
+A **partition** of a non-negative integer ``n`` is a decreasing sequence ``λ₁ ≥ λ₂ ≥ … ≥
+λᵣ`` of positive integers ``λᵢ`` such that ``n = λ₁ + … + λᵣ``. The ``λᵢ`` are called the
+**parts** of the partition and ``r`` is called the **length**. 
 
-A partition can be encoded as an array with elements ``λᵢ``. We provide the parametric type `Partition{T}` which is a subtype of `AbstractVector{T}` where `T` can be any subtype of `IntegerUnion`. All functions that can be used for vectors (1-dimensional arrays) can thus be used for partitions as well. There is no performance impact by using an own type for partitions rather than simply using arrays. The parametric type allows to increase performance by using smaller integer types. For efficiency, the `Partition` constructor does not check whether the given array is indeed a decreasing sequence.
+A partition can be encoded as an array with elements ``λᵢ``. We provide the parametric type
+`Partition{T}` which is a subtype of `AbstractVector{T}` where `T` can be any subtype of
+`IntegerUnion`. All functions that can be used for vectors (1-dimensional arrays) can thus
+be used for partitions as well. There is no performance impact by using an own type for
+partitions rather than simply using arrays. The parametric type allows to increase
+performance by using smaller integer types. For efficiency, the `Partition` constructor does
+not check whether the given array is indeed a decreasing sequence.
 
 # Examples
-A partition can be created by either calling `Partition` on an array of integers or by calling `Partition` with arguments being the sequence of parts.
+A partition can be created by either calling `Partition` on an array of integers or by
+calling `Partition` with arguments being the sequence of parts.
 ```jldoctest
 julia> P = Partition([6,4,4,2]) #The partition 6+4+4+2 of 16.
 [6, 4, 4, 2]
@@ -43,7 +52,9 @@ julia> length(P)
 julia> P[1]
 6
 ```
-Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function `size` for arrays already exists and returns the *dimension* of an array. Instead, you can use the Julia function `sum` to get the sum of the parts.
+Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function `size` for
+arrays already exists and returns the *dimension* of an array. Instead, you can use the
+Julia function `sum` to get the sum of the parts.
 ```jldoctest
 julia> P = Partition(6,4,4,2)
 [6, 4, 4, 2]
@@ -56,7 +67,8 @@ You can create partitions with smaller integer types as follows.
 julia> P = Partition{Int8}(6,4,4,2) #Or Partition(Int8[6,4,4,2])
 Int8[6, 4, 4, 2]
 ```
-There is a unique partition of 0, namely the **empty partition** (of length 0). It can be created as follows.
+There is a unique partition of 0, namely the **empty partition** (of length 0). It can be
+created as follows.
 ```jldoctest
 julia> P = Partition() #Or Partition([])
 Int64[]
@@ -118,7 +130,9 @@ end
 @doc Markdown.doc"""
     getindex_safe(P::Partition, i::IntegerUnion)
 
-In algorithms involving partitions it is sometimes convenient to be able to access parts beyond the length of the partition and then one wants to get the value zero instead of an error. This function is a shortcut for
+In algorithms involving partitions it is sometimes convenient to be able to access parts
+beyond the length of the partition and then one wants to get the value zero instead of an
+error. This function is a shortcut for
 ```
 return (i>length(P.p) ? 0 : getindex(P.p,i))
 ```
@@ -158,7 +172,10 @@ julia> num_partitions(1000)
 
 # Algorithm
 
-We use the function [`arith_number_of_partitions`](http://flintlib.org/doc/arith.html?highlight=partitions#c.arith_number_of_partitions) from [FLINT](@cite) which is very fast. It is based on the Hardy-Ramanujan-Rademacher formula, see [Joh12](@cite) for details. 
+We use the function
+[`arith_number_of_partitions`](http://flintlib.org/doc/arith.html?highlight=partitions#c.arith_number_of_partitions)
+from [FLINT](@cite) which is very fast. It is based on the Hardy-Ramanujan-Rademacher
+formula, see [Joh12](@cite) for details. 
 
 # Further references
 1. [Knu11](@cite), Section 7.2.1.4 (starting on page 395).
@@ -176,10 +193,14 @@ end
 @doc Markdown.doc"""
     partitions(n::IntegerUnion)
 
-A list of all partitions of a non-negative integer `n`, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function `reverse` to reverse the order. As usual, you may increase performance by using smaller integer types.
+A list of all partitions of a non-negative integer `n`, produced in lexicographically
+*descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the
+function `reverse` to reverse the order. As usual, you may increase performance by using
+smaller integer types.
 
 # Algorithm
-The algorithm used is "Algorithm ZS1" by [ZS98](@cite). This algorithm is also discussed in [Knu11](@cite), Algorithm P (page 392).
+The algorithm used is "Algorithm ZS1" by [ZS98](@cite). This algorithm is also discussed in
+[Knu11](@cite), Algorithm P (page 392).
 
 # Examples
 ```jldoctest
@@ -391,7 +412,9 @@ end
 The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
 
 # Algorithm
-We use the recurrence relation ``p_k(n) = p_{k-1}(n-1) + p_k(n-k)``, where ``p_k(n)`` denotes the number of partitions of ``n`` into ``k`` parts; see [Knu11](@cite), Section 7.2.1.4, Equation (39) on page 399.
+We use the recurrence relation ``p_k(n) = p_{k-1}(n-1) + p_k(n-k)``, where ``p_k(n)``
+denotes the number of partitions of ``n`` into ``k`` parts; see [Knu11](@cite), Section
+7.2.1.4, Equation (39) on page 399.
 
 # References
 1. [OEIS](@cite), [A008284](https://oeis.org/A008284)
@@ -445,11 +468,11 @@ end
 @doc Markdown.doc"""
     partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 
-A list of all partitions of a non-negative integer `m` into `n >= 0` parts with
-lower bound `l1 >= 0` and upper bound `l2` for the parts. There are two choices for the parameter `only_distinct_parts`:
+A list of all partitions of a non-negative integer `m` into `n >= 0` parts with lower bound
+`l1 >= 0` and upper bound `l2` for the parts. There are two choices for the parameter
+`only_distinct_parts`:
 * `false`: no further restriction (*default*);
-* `true`: only distinct parts.
-The partitions are produced in *decreasing* order.
+* `true`: only distinct parts. The partitions are produced in *decreasing* order.
 
 # Examples
 ```jldoctest
@@ -466,7 +489,8 @@ julia> partitions(7, 3, 1, 4 ; only_distinct_parts=true)
  [4, 2, 1]
 ```
 # Algorithm
-The algorithm used is "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
+The algorithm used is "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E.
+Thiel.
 """
 function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 
@@ -599,10 +623,14 @@ end
 @doc Markdown.doc"""
     partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
 
-All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume (without loss of generality) that the entries in `v` are strictly increasing. The partitions are produced in lexicographically *decreasing* order. 
+All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an
+element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] >
+0` times. We assume (without loss of generality) that the entries in `v` are strictly
+increasing. The partitions are produced in lexicographically *decreasing* order. 
 
 # Examples
-We compute the partitions of 100 into seven parts, where the parts are required to be elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
+We compute the partitions of 100 into seven parts, where the parts are required to be
+elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
 ```jldoctest
 julia> partitions(100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2])
 1-element Vector{Partition{Int64}}:
@@ -610,7 +638,9 @@ julia> partitions(100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2])
 ```
 
 # Algorithm
-The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel. The algorithm as published in the paper has several issues and we hope to have fixed them all, see the code for details. Some initial fixing was done by T. Schmit.
+The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E.
+Thiel. The algorithm as published in the paper has several issues and we hope to have fixed
+them all, see the code for details. Some initial fixing was done by T. Schmit.
 """
 function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
   @req m >= 0 "m >= 0 required"
@@ -809,10 +839,13 @@ end
 @Markdown.doc """
     partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
   
-All partitions of a non-negative integer `m` where each part is an element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume (without loss of generality) that the entries in `v` are strictly increasing.
+All partitions of a non-negative integer `m` where each part is an element in the vector `v`
+of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume
+(without loss of generality) that the entries in `v` are strictly increasing.
 
 # Example
-We compute all partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each part is allowed to occurr at most twice:
+We compute all partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
+part is allowed to occurr at most twice:
 ```jldoctest
 julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
 6-element Vector{Partition{Int64}}:
@@ -825,7 +858,8 @@ julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
 ```
 
 # Algorithm
-We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of partitions.
+We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of
+partitions.
 """
 function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
 
@@ -886,7 +920,8 @@ end
 @Markdown.doc """
     function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
   
-All partitions of a non-negative integer `m` where each part is an element in the vector `v`. We assume (without loss of generality) that the entries in `v` are strictly increasing. 
+All partitions of a non-negative integer `m` where each part is an element in the vector
+`v`. We assume (without loss of generality) that the entries in `v` are strictly increasing. 
 
 # Example
 We compute the number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
@@ -895,7 +930,8 @@ julia> length(partitions(100, [1,2,5,10,20,50]))
 4562
 ```
 # Algorithm
-We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of partitions.
+We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of
+partitions.
 """
 function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
 
@@ -937,10 +973,12 @@ end
 @doc Markdown.doc"""
     dominates(lambda::Partition, mu::Partition)
 
-The **dominance order** on partitions is the partial order ``⊵`` defined by
-``λ ⊵ μ`` if and only if ``λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ`` for all i. If ``λ ⊵ μ`` one says that ``λ`` **dominates** ``μ``. This function returns true if and only if `lambda` dominates `mu`.
+The **dominance order** on partitions is the partial order ``⊵`` defined by ``λ ⊵ μ`` if and
+only if ``λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ`` for all i. If ``λ ⊵ μ`` one says that ``λ``
+**dominates** ``μ``. This function returns true if and only if `lambda` dominates `mu`.
 
-Note that whereas the lexicographic ordering is a total ordering, the dominance ordering is not.
+Note that whereas the lexicographic ordering is a total ordering, the dominance ordering is
+not.
 
 # Examples
 ```jldoctest
@@ -952,7 +990,8 @@ false
 ```
 
 # Remarks
-[Knu11](@cite) says **majorizes** instead of **dominates** and uses the symbol ``⪰`` instead of ``⊵``.
+[Knu11](@cite) says **majorizes** instead of **dominates** and uses the symbol ``⪰`` instead
+of ``⊵``.
 
 # References
 1. [Ful97](@cite), page 26
