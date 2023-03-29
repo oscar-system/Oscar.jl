@@ -77,7 +77,7 @@ Return the affine charts in the `default_covering` of ``X``.
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 
-julia> S = ambient_coordinate_ring(P);
+julia> S = graded_coordinate_ring(P);
 
 julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 
