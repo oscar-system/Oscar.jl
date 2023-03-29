@@ -563,7 +563,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
       end
     end
   end
-  istwo_cocycle(sigma, mA)
+#  istwo_cocycle(sigma, mA)
 
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
