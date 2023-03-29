@@ -777,7 +777,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   while gotob1 == true
     if !gotob2
       for j = mu[r]:-1:1
-        if m<=lr 
+        if m<=lr
           gotob2 = true
           break
         end
