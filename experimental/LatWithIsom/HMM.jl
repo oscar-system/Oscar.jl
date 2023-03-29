@@ -277,7 +277,6 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   # where D is the absolute different of the base algebra of H (a cyclotomic
   # field).
   H = hermitian_structure(Lf)
-  l = get_attribute(Lf, :transfert_data) #TODO: remove once things have changed on Hecke
 
   E = base_field(H)
   OE = maximal_order(E)
@@ -288,14 +287,14 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   H2 = inv(DEQ)*dual(H)
   @assert is_sublattice(H2, H) # This should be true since the lattice in Lf is integral
 
-  res = Hecke.SpaceRes{typeof(ambient_space(Lf)), typeof(ambient_space(H))}(ambient_space(Lf), ambient_space(H)) #TODO: remove once things have changed on Hecke
+  res = get_attribute(Lf, :transfer_data)
 
   # These are invertible matrices representing lifts to the ambient space of the
   # lattice in Lf of the generators of G. These are not isometries. We will
   # transfer them using `res` to the ambient space of H. They are though isometry
   # of H2/H. Our goal lift them to isometry of H2 up to a good enough precision
   # and compute their determinant.
-  gene_herm = [_transfer_discriminant_isometries(res, g, l) for g in gens(G)]
+  gene_herm = [_transfer_discriminant_isometries(res, g) for g in gens(G)]
 
   # We want only the prime ideal in O_K which divides the quotient H2/H. For
   # this, we collect all the primes dividing DEQ or for which H is not locally
@@ -385,6 +384,7 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   for g in gene_herm
     ds = elem_type(E)[]
     for p in S
+      println(p)
       lp = prime_decomposition(OE, p)
       P = lp[1][1]
       k = valuation(N, p)
@@ -454,20 +454,19 @@ end
 # corresponding hermitian structure, we transfer the fake lift computed with the
 # previous function. This will be an invertible matrix, but the corresponding
 # automorphism is not an isometry.
-function _transfer_discriminant_isometries(res::Hecke.SpaceRes, g::AutomorphismGroupElem{TorQuadModule}, l::QQMatrix)
+function _transfer_discriminant_isometries(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule})
   E = base_ring(codomain(res))
   m = _get_ambient_isometry(g)
   q = domain(g)
-  il = inv(l)
   @assert ambient_space(cover(q)) === domain(res)
   gE = zero_matrix(E, 0, rank(codomain(res)))
   vE = vec(collect(zeros(E, 1, rank(codomain(res)))))
   for i in 1:rank(codomain(res))
     vE[i] = one(E)
     vQ = res\vE
-    vQ = matrix(QQ, 1, length(vQ), vQ)*l
+    vQ = matrix(QQ, 1, length(vQ), vQ)
     gvq = vQ*m
-    gvQ = vec(collect(gvq*il))
+    gvQ = vec(collect(gvq))
     gvE = res(gvQ)
     gE = vcat(gE, matrix(E, 1, length(gvE), gvE))
     vE[i] = zero(E)
@@ -568,7 +567,6 @@ function _approximate_isometry(H::Hecke.HermLat, g::T, P::Hecke.NfRelOrdIdl, e::
 
   rho = _find_rho(P, e)
   l = 0
-
   while _scale_valuation(Rp, P) < 2*k+a
     Fp, l = _local_hermitian_lifting(Gp, Fp, rho, l, P, e, a)
     Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))

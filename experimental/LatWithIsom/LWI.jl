@@ -13,7 +13,6 @@ end
 
 include("Types.jl")
 include("HMM.jl")
-include("TraceEquivalence.jl")
 include("LatWithIsom.jl")
 include("Enumeration.jl")
 include("Embeddings.jl")

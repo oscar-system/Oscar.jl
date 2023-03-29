@@ -1,6 +1,4 @@
 export ambient_isometry
-export coinvariant_lattice
-export hermitian_structure
 export image_centralizer_in_Oq
 export isometry
 export is_of_hermitian_type
@@ -14,7 +12,9 @@ export type
 import Hecke: kernel_lattice, invariant_lattice, rank, genus, basis_matrix,
               gram_matrix, ambient_space, rational_span, scale, signature_tuple,
               is_integral, det, norm, degree, discriminant, charpoly, minpoly,
-              rescale, dual, lll, discriminant_group, divides, lattice
+              rescale, dual, lll, discriminant_group, divides, lattice,
+              hermitian_structure, coinvariant_lattice
+
 ###############################################################################
 #
 #  String I/O
@@ -374,11 +374,10 @@ If it exists, the hermitian structure is stored.
 @attr HermLat function hermitian_structure(Lf::LatWithIsom)
   @req is_of_hermitian_type(Lf) "Lf is not of hermitian type"
   f = isometry(Lf)
-  n = order_of_isometry(Lf)
 
-  H, l = LWI._hermitian_structure(lattice(Lf), f, n = n, check = false,
-                                                         ambient_representation = false)
-  set_attribute!(Lf, :transfert_data, l)
+  H, res = Hecke.hermitian_structure_with_transfer_data(lattice(Lf), f, ambient_representation = false)
+
+  set_attribute!(Lf, :transfer_data, res)
   return H
 end
 
@@ -610,7 +609,7 @@ $\mathbb{Z}$-lattice $\Ker(f^k-1)$.
   for l in divs
     Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = LWI._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)[1]
+      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl), check=false, ambient_representation=false)[1]
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
@@ -631,7 +630,7 @@ function is_of_type(L::LatWithIsom, t::Dict)
     Hl = kernel_lattice(L, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1, 1, 2])
       t[l][1] isa Hecke.HermGenus || return false
-      Hl = LWI._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false, E = base_field(t[l][1]))
+      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl), check=false, ambient_representation=false, E = base_field(t[l][1]))
     end
     genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)
