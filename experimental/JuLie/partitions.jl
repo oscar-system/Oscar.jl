@@ -174,60 +174,6 @@ end
 
 
 @doc Markdown.doc"""
-    num_partitions(n::IntegerUnion, k::IntegerUnion)
-
-The number of integer partitions of the integer ``n ≥ 0`` into ``k ≥ 0``
-parts. The implementation uses a recurrence relation.
-
-# References
-1. [OEIS](@ref), [A008284](https://oeis.org/A008284)
-"""
-function num_partitions(n::IntegerUnion, k::IntegerUnion)
-  @req n >= 0 "n >= 0 required"
-  @req k >= 0 "k >= 0 required"
-  n = ZZ(n)
-  k = ZZ(k)
-
-  # Special cases
-  if n == k
-    return ZZ(1)
-  elseif n < k || k == 0
-    return ZZ(0)
-  elseif k == 1
-    return ZZ(1)
-
-    # See https://oeis.org/A008284
-  elseif n < 2*k
-    return num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
-
-    # See https://oeis.org/A008284
-  elseif n <= 2+3*k
-    p = num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
-    for i=0:Int(n)-2*Int(k)-1
-      p = p - num_partitions(ZZ(i))
-    end
-    return p
-
-    # Otherwise, use recurrence
-    # The following is taken from the GAP code in lib/combinat.gi
-    # It uses the standard recurrence relation but in a more intelligent
-    # way without recursion.
-  else
-    n = Int(n)
-    k = Int(k)
-    p = fill( ZZ(1), n )
-    for l = 2:k
-      for m = l+1:n-l+1
-        p[m] = p[m] + p[m-l]
-      end
-    end
-    return p[n-k+1]
-  end
-
-end
-
-
-@doc Markdown.doc"""
     partitions(n::IntegerUnion)
 
 A list of all partitions of a non-negative integer `n`, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function `reverse` to reverse the order. As usual, you may increase performance by using smaller integer types.
