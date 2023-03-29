@@ -437,3 +437,9 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   return Hecke.MapFromFunc(mymap, myinvmap, S, T)
 end
 
+# Special override for a case where even ideal membership and ring flattenings 
+# are not implemented. 
+function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:SpecOpenRingElem}})
+  return f
+end
+
