@@ -505,9 +505,6 @@ parent(a::MPolyQuoRingElem) = a.P
 
 zero(R::MPolyQuoRing) = MPolyQuoRingElem(zero(base_ring(R)), R, true)
 
-iszero(a::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}} = iszero(simplify(a).f)
-iszero(a::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}) = iszero(simplify(a).f)
-
 function is_zero(a::MPolyQuoRingElem)
   return iszero(simplify(a).f)
 end
