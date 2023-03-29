@@ -274,7 +274,7 @@ end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
   if !has_attribute(I, :flat_counterpart)
-    I_flat = ideal(codomain(phi), phi.(gens(I)))
+    I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
     set_attribute!(I, :flat_counterpart, I_flat)
     return I_flat
   end
