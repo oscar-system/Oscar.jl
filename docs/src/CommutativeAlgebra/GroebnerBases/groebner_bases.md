@@ -376,7 +376,7 @@ groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     destination_ordering::MonomialOrdering,
     complete_reduction::Bool = false,
     weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
-    hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
+    hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
 ```
 	
 ### Faugère's F4 Algorithm

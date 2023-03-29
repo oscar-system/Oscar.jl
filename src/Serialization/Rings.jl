@@ -50,6 +50,8 @@ end
 
 @registerSerializationType(MPolyRing)
 
+@registerSerializationType(UniversalPolyRing)
+
 @registerSerializationType(QQMPolyRing)
 @registerSerializationType(QQPolyRing)
 @registerSerializationType(ZZMPolyRing)
@@ -60,7 +62,7 @@ end
 @registerSerializationType(zzModMPolyRing)
 @registerSerializationType(zzModPolyRing)
 
-function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
+function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing})
     return Dict(
         :symbols => save_type_dispatch(s, symbols(R)),
         :base_ring => save_type_dispatch(s, base_ring(R)),
@@ -68,27 +70,32 @@ function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
 end
 
 function load_internal(s::DeserializerState,
-                       T::Type{<: Union{MPolyRing, PolyRing}},
+                       T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing}},
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
 
     if T <: PolyRing
         return polynomial_ring(base_ring, symbols..., cached=false)[1]
+    elseif T <: UniversalPolyRing
+        poly_ring = UniversalPolynomialRing(base_ring, cached=false)
+        gens(poly_ring, symbols)
+        return poly_ring
     end
 
     return polynomial_ring(base_ring, symbols, cached=false)[1]
 end
 
 ################################################################################
-# Multivariate Polynomials
+# Multivariate and Universal Polynomials
 @registerSerializationType(QQMPolyRingElem)
 @registerSerializationType(ZZMPolyRingElem)
 @registerSerializationType(fqPolyRepMPolyRingElem)
 @registerSerializationType(zzModMPolyRingElem)
 @registerSerializationType(MPolyRingElem)
+@registerSerializationType(UniversalPolyRingElem)
 
-function save_internal(s::SerializerState, p::MPolyRingElem)
+function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)
     terms = []
@@ -107,7 +114,9 @@ function save_internal(s::SerializerState, p::MPolyRingElem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: MPolyRingElem}, dict::Dict)
+function load_internal(s::DeserializerState,
+                        ::Type{<: Union{UniversalPolyRingElem, MPolyRingElem}},
+                        dict::Dict)
     R = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
@@ -122,9 +131,9 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyRingElem}, dict::Dic
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: MPolyRingElem},
+                                   ::Type{<: Union{UniversalPolyRingElem, MPolyRingElem}},
                                    dict::Dict,
-                                   parent_ring::MPolyRing)
+                                   parent_ring::Union{UniversalPolyRing, MPolyRing})
     # ensure backrefs in parent are loaded
     _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)

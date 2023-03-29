@@ -102,6 +102,21 @@ function (F::FreeMod)()
   return FreeModElem(sparse_row(base_ring(F)), F)
 end
 
+#by the magic of @show_name, this function will ensure that a 
+# un-named free module over a named ring X will aquire the name 
+# X^r
+function AbstractAlgebra.extra_name(F::FreeMod)
+  AbstractAlgebra.set_name!(F)
+  s = get_attribute(F, :name)
+  s !== nothing && return
+  AbstractAlgebra.set_name!(base_ring(F))
+  s = get_attribute(base_ring(F), :name)
+  if s !== nothing
+    AbstractAlgebra.set_name!(F, "$s^$(rank(F))")
+  end
+  return get_attribute(F, :name)
+end
+
 function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
@@ -2718,7 +2733,7 @@ If `task = :only_morphism`, return only the inclusion map.
 """
 function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
   M = SubquoModule(SubModuleOfFreeModule(F, A)) 
-  #M = SubquoModule(F, A, zero(matrix_space(base_ring(F), 1, rank(F))))
+  #M = SubquoModule(F, A, zero_matrix(base_ring(F), 1, rank(F)))
   emb = hom(M, F, ambient_representatives_generators(M))
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
@@ -2891,7 +2906,7 @@ Additionally, if `N` denotes this object,
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
-  E = one(matrix_space(base_ring(F), rank(F), rank(F)))
+  E = identity_matrix(base_ring(F), rank(F))
   Q = SubquoModule(F, E, A)
 
   return return_quo_wrt_task(F, Q, task)
@@ -6970,7 +6985,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubquoModule) where
 end
 
 ### Duals of modules
-@Markdown.doc """
+@doc Markdown.doc"""
     dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
@@ -6985,7 +7000,7 @@ function dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
   return hom(M, cod)
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     double_dual(M::ModuleFP)
 
 For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
@@ -7007,7 +7022,7 @@ function double_dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
   return M_double_dual, psi
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     dual(f::ModuleFPHom; cod::FreeMod)
 
 For a morphism of modules ``f : M → N`` this returns the morphism 

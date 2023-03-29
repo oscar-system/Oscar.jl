@@ -56,7 +56,7 @@ end
   U = SpecOpen(X, [x, y])
   P = projective_space(OO(U), 1)
   S = ambient_coordinate_ring(P)
-  Y = subscheme(P, [x*S[1]- y*S[2], z*S[1] - x*S[2]])
+  Y = subscheme(P, [OO(U)(x)*S[1]- OO(U)(y)*S[2], OO(U)(z)*S[1] - OO(U)(x)*S[2]]) # Coercion needs to me carried out manually.
   C = affine_cone(Y)
   phi = homog_to_frac(Y)
   s1 = phi(S[2])
@@ -266,4 +266,29 @@ end
   IP2_QQ = projective_space(QQ, 2)
   id = identity_map(IP2_QQ)
   @test id == identity_map(IP2_QQ)
+end
+
+@testset "warham_preparations" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  S, _ = grade(R)
+  X = ProjectiveScheme(S)
+  I = ideal(S, x^2 - y*z)
+  Q, _ = quo(S, I)
+  C = ProjectiveScheme(Q)
+  @test affine_algebra(C) === Q
+  @test dim(C) == 1
+  @test degree(C) == 2
+  @test is_smooth(C)
+  @test arithmetic_genus(C) == 0
+
+  R, (x,y,z,w) = QQ["x", "y", "z", "w"]
+  S, _ = grade(R)
+  I = ideal(S, [x^4 + y^4 + z^4 + w^4])
+  Q, _ = quo(S, I)
+  Y = ProjectiveScheme(Q)
+  @test affine_algebra(Y) === Q
+  @test dim(Y) == 2
+  @test degree(Y) == 4
+  @test is_smooth(Y)
+  @test arithmetic_genus(Y) == 1
 end

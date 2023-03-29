@@ -103,7 +103,7 @@ end
 # Maximal extensions of rational maps given by rational coordinate     #
 # functions on the affine patches.                                     #
 ########################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     maximal_extension(X::AbsSpec, Y::AbsSpec, f::AbstractAlgebra.Generic.Frac)
 
 Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 

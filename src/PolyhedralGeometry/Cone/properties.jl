@@ -373,7 +373,7 @@ Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
 * `Halfspace`,
-* `Cone.
+* `Cone`.
 
 # Examples
 ```jldoctest

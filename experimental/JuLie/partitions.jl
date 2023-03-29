@@ -115,7 +115,7 @@ function Base.copy(P::Partition{T}) where T<:IntegerUnion
   return Partition{T}(copy(P.p))
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     getindex_safe(P::Partition, i::IntegerUnion)
 
 In algorithms involving partitions it is sometimes convenient to be able to access parts beyond the length of the partition and then one wants to get the value zero instead of an error. This function is a shortcut for
@@ -145,7 +145,7 @@ end
 # Generating and counting unrestricted partitions
 ################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     num_partitions(n::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n`. 
@@ -168,13 +168,66 @@ function num_partitions(n::IntegerUnion)
   @req n >= 0 "n >= 0 required"
   n = ZZ(n)
   z = ZZ()
-  ccall((:arith_number_of_partitions, Nemo.libflint), Cvoid, (Ref{fmpz}, Culong), z, UInt(n))
+  ccall((:arith_number_of_partitions, Nemo.libflint), Cvoid, (Ref{ZZRingElem}, Culong), z, UInt(n))
   return z
 end
 
 
+@doc Markdown.doc"""
+    num_partitions(n::IntegerUnion, k::IntegerUnion)
 
-@Markdown.doc """
+The number of integer partitions of the integer ``n ≥ 0`` into ``k ≥ 0``
+parts. The implementation uses a recurrence relation.
+
+# References
+1. The On-Line Encyclopedia of Integer Sequences, [A008284](https://oeis.org/A008284)
+"""
+function num_partitions(n::IntegerUnion, k::IntegerUnion)
+  @req n >= 0 "n >= 0 required"
+  @req k >= 0 "k >= 0 required"
+  n = ZZ(n)
+  k = ZZ(k)
+
+  # Special cases
+  if n == k
+    return ZZ(1)
+  elseif n < k || k == 0
+    return ZZ(0)
+  elseif k == 1
+    return ZZ(1)
+
+    # See https://oeis.org/A008284
+  elseif n < 2*k
+    return num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+
+    # See https://oeis.org/A008284
+  elseif n <= 2+3*k
+    p = num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+    for i=0:Int(n)-2*Int(k)-1
+      p = p - num_partitions(ZZ(i))
+    end
+    return p
+
+    # Otherwise, use recurrence
+    # The following is taken from the GAP code in lib/combinat.gi
+    # It uses the standard recurrence relation but in a more intelligent
+    # way without recursion.
+  else
+    n = Int(n)
+    k = Int(k)
+    p = fill( ZZ(1), n )
+    for l = 2:k
+      for m = l+1:n-l+1
+        p[m] = p[m] + p[m-l]
+      end
+    end
+    return p[n-k+1]
+  end
+
+end
+
+
+@doc Markdown.doc"""
     partitions(n::IntegerUnion)
 
 A list of all partitions of a non-negative integer `n`, produced in lexicographically *descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the function `reverse` to reverse the order. As usual, you may increase performance by using smaller integer types.
@@ -246,7 +299,7 @@ function partitions(n::IntegerUnion)
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     ascending_partitions(n::IntegerUnion;alg="ks")
 
 Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending*
@@ -386,7 +439,7 @@ end
 # Generating and counting restricted partitions
 ################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
@@ -443,7 +496,7 @@ function num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 end
 
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 
 A list of all partitions of a non-negative integer `m` into `n >= 0` parts with
@@ -561,8 +614,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 end
 
 
-
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 
 All partitions of a non-negative integer `m` into `n` parts (no further restrictions).
@@ -598,7 +650,7 @@ function partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 end
 
 
-@Markdown.doc """
+@doc Markdown.doc"""
     partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
 
 All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume (without loss of generality) that the entries in `v` are strictly increasing. The partitions are produced in lexicographically *decreasing* order. 
@@ -936,7 +988,7 @@ end
 # Relations
 ################################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ``⊵`` defined by
@@ -985,7 +1037,7 @@ end
 ################################################################################
 # Operations
 ################################################################################
-@Markdown.doc """
+@doc Markdown.doc"""
     conjugate(lambda::Partition{T}) where T<:IntegerUnion
 
 The **conjugate** of a partition is obtained by considering its Young diagram

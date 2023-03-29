@@ -6,7 +6,7 @@
 
 # Computes for any matrix M in mats a matrix N such that
 # (e_i*N)*polys == polys[i]^M
-function matrices_in_basis(mats::Vector{<: MatElem{T}}, polys::Vector{<: MPolyElem{T}}) where {T <: FieldElem}
+function matrices_in_basis(mats::Vector{<: MatElem{T}}, polys::Vector{<: MPolyRingElem{T}}) where {T <: FieldElem}
   @assert !isempty(mats) && !isempty(polys)
 
   R = parent(polys[1])
@@ -41,7 +41,7 @@ end
 # unity and its order (this is in the context of fixed_root_of_unity(::LinearQuotient)).
 # Return the degree of the polynomial f as an element of codomain(GtoAbG),
 # assuming that f is homogeneous.
-function ab_g_degree(GtoAbG::Map, f::MPolyElem, zeta::Tuple{<:FieldElem, Int})
+function ab_g_degree(GtoAbG::Map, f::MPolyRingElem, zeta::Tuple{<:FieldElem, Int})
   AbG = codomain(GtoAbG)
   K = coefficient_ring(parent(f))
   @assert K === parent(zeta[1])
@@ -535,7 +535,7 @@ end
 
 # Update the data structures.
 # TODO: Should there be a struct for all this stuff one moves around?
-function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector{<:MPolyElem}, SAbGold::MPolyDecRing, L::LinearQuotient)
+function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector{<:MPolyRingElem}, SAbGold::MPolyDecRing, L::LinearQuotient)
   R = codomain(StoRold)
   K = coefficient_ring(R)
   Sold = domain(StoRold)

@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -29,9 +32,9 @@ input formats for the same kind of re-occuring quantitative input information.
 This example shows three different ways to write the points whose convex hull
 is to be computed, all resulting in identical `Polyhedron` objects:
 
-```
+```jldoctest
 julia> P = convex_hull([1 0 0; 0 0 1])
-A polyhedron in ambient dimension 3
+Polyhedron in ambient dimension 3
 
 julia> P == convex_hull([[1, 0, 0], [0, 0, 1]])
 true

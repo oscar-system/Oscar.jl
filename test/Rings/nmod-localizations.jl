@@ -18,7 +18,7 @@ export generator, ambient_ring, Localization, parent, numerator, denominator
 # Types of multiplicatively closed sets in ℤ/nℤ                       #
 #######################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     NmodComplementOfPrimeIdeal <: AbsMultSet{zzModRing, zzModRingElem}
 
 Complement of a prime ideal in a quotient ring `ℤ/nℤ`.
@@ -56,7 +56,7 @@ Base.in(b::Oscar.IntegerUnion, S::NmodComplementOfPrimeIdeal) = (ambient_ring(S)
 # Localizations of ℤ/nℤ                                               #
 #######################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
 NmodLocalizedRing{MultSetType <: AbsMultSet{zzModRing, zzModRingElem}} <: AbsLocalizedRing{zzModRing, zzModRingElem, MultSetType}
 
 Localization of a ring `ℤ/nℤ` at a multiplicatively closed set of type `MultSetType`.
@@ -85,7 +85,7 @@ end
 # Elements in localizations of ℤ/nℤ                                   #
 #######################################################################
 
-@Markdown.doc """
+@doc Markdown.doc"""
     NmodLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{zzModRing, zzModRingElem, MultSetType}
 
 Elements of localizations of quotient rings `ℤ/nℤ` at a 

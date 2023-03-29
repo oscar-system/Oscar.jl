@@ -27,7 +27,6 @@ end
    is_smooth(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is smooth.
-
 """
 @attr function is_smooth(X::AbsCoveredScheme)
   if !isdefined(X, :coverings) 
