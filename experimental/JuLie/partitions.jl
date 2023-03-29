@@ -201,9 +201,9 @@ function partitions(n::IntegerUnion)
   T = typeof(n)
 
   # Some trivial cases
-  if n==0
+  if n == 0
     return Partition{T}[ Partition{T}([]) ]
-  elseif n==1
+  elseif n == 1
     return Partition{T}[ Partition{T}([1]) ]
   end
 
@@ -528,7 +528,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
       x[i] = y[i] + m
       push!(P, Partition{T}(x[1:n]))
 
-      if i<n && m>1
+      if i < n && m > 1
         m = 1
         x[i] = x[i] - 1
         i += 1
@@ -615,7 +615,7 @@ The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code
 function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
   @req m >= 0 "m >= 0 required"
   @req n >= 0 "n >= 0 required"
-  @req length(mu)==length(v) "mu and v should have the same length"
+  @req length(mu) == length(v) "mu and v should have the same length"
 
   # Algorithm partb assumes that v is strictly increasing. 
   # Added (and noticed) on Mar 22, 2023.
@@ -723,13 +723,13 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   while gotob1 == true
     if !gotob2
       for j = mu[r]:-1:1
-        if m<=lr
+        if m <= lr
           gotob2 = true
           break
         end
         x[i] = lr
         ii[i] = r - 1
-        if i==n # Added, otherwise get out of bounds
+        if i == n # Added, otherwise get out of bounds
           break
         end
         i = i + 1
@@ -745,7 +745,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 
     # label b2
     if gotob2
-      while r>0 && v[r] > m # Added additional r>0, otherwise get out of bounds
+      while r > 0 && v[r] > m # Added additional r>0, otherwise get out of bounds
         r = r - 1
       end
 
@@ -756,14 +756,14 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       lr = v[r]
       if m == lr
         x[i] = lr
-        if i<=n # Added, otherwise get out of bounds
+        if i <= n # Added, otherwise get out of bounds
           push!(P, Partition{T}(copy(x))) #need copy here!
         else
           break
         end
 
         r = r - 1
-        if r==0 # Added, otherwise get out of bounds
+        if r == 0 # Added, otherwise get out of bounds
           break
         end
         lr = v[r]
@@ -830,7 +830,7 @@ We use the function `partitions(m,n,v,mu)`, looping over the number of possible 
 function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
 
   @req m >= 0 "m >= 0 required"
-  @req length(mu)==length(v) "mu and v should have the same length"
+  @req length(mu) == length(v) "mu and v should have the same length"
 
   # Algorithm partb assumes that v is strictly increasing. 
   # Added (and noticed) on Mar 22, 2023.
