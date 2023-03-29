@@ -31,8 +31,24 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
 # We read experimental and filter out all packages that follow our desired
 # scheme. Remember those packages to avoid doing this all over again for docs
 # and test.
+# We don't want to interfere with existing stuff in experimental though.
 expdir = joinpath(@__DIR__, "../experimental")
-const exppkgs = filter(x->isfile(joinpath(expdir, x, "src", "$x.jl")), readdir(expdir))
+const oldexppkgs = [
+  "ExteriorAlgebra", "GaloisGrp", "GITFans", "GModule", "JuLie",
+  "LinearQuotients", "Matrix", "ModStd", "MPolyRingSparse",
+  "Rings", "Schemes", "SymmetricIntersections", "FTheoryTools"
+]
+const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
 
 # force trigger recompile when folder changes
 include_dependency("../experimental")
