@@ -2252,26 +2252,6 @@ end
  - map a local chain into a ray class group
 =#
 
-function Oscar.direct_product(C::GModule...; task::Symbol = :none)
-  @assert task in [:sum, :prod, :both, :none]
-  G = C[1].G
-  @assert all(x->x.G == G, C)
-  mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
-
-  mC = gmodule(G, [direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
-  mC.iac = [direct_sum(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
-
-  if task == :none
-    return mC
-  elseif task == :sum
-    return mC, inj
-  elseif task == :prod
-    return mC, pro
-  else
-    return mC, pro, inj
-  end
-end
-
 export GModule
 export action
 export cohomology_group
@@ -2283,10 +2263,6 @@ export induce
 export is_coboundary
 export pc_group
 export word
-
-Oscar.dim(C::GModule) = rank(C.M)
-Oscar.base_ring(C::GModule) = base_ring(C.M)
-Oscar.group(C::GModule) = C.G
 
 #= TODO
   for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
@@ -2796,7 +2772,7 @@ function serre(C::GModule, A::IdelParent, P::NfAbsOrdIdl)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
   qr = restrict(C, mp)
   s = Hecke.Hecke.local_fundamental_class_serre(Kp, prime_field(Kp))
-  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
+#  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
 
   z = gmodule(domain(mGp), [hom(domain(mUp), domain(mUp), [preimage(mUp, mGp(g)(mUp(u))) for u = gens(domain(mUp))]) for g = gens(domain(mGp))])
 
@@ -2804,22 +2780,7 @@ function serre(C::GModule, A::IdelParent, P::NfAbsOrdIdl)
 
   @assert Oscar.GrpCoh.istwo_cocycle(c)
 
-  t = CoChain{2, PermGroupElem, GrpAbFinGenElem}(restrict(A.data, mp), Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((mp(g), mp(h)) => (inj(c.d[(g, h)])) for g = domain(mGp) for h = domain(mGp)))
-
-
-  zz = t.C
-  @assert domain(mGp) == domain(mp)
-
-#  @show [(g, mp(g), preimage(im[2], mp(g))) for g = gens(domain(mp))]
-  @show [all(u->inj(action(z, g, u)) == action(A.data, mp(g), inj(u)),  gens(z.M)) for g = (domain(mp))]
-  @show [all(u->inj(action(z, g, u)) == action(zz, zz.G(mp(g)), inj(u)),  gens(z.M)) for g = (domain(mp))]
-
-  @assert Oscar.GrpCoh.istwo_cocycle(t)
-  return t
-
-  tt = CoChain{2, PermGroupElem, GrpAbFinGenElem}(qr, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((mp(g), mp(h)) => A.mq(inj(c.d[(g, h)])) for g = domain(mGp) for h = domain(mGp)))
-
-  return s, c, t, tt
+  return c
 end
 
 function serre(C::GModule, A::IdelParent, P::Union{Integer, ZZRingElem})
@@ -2831,56 +2792,38 @@ function serre(C::GModule, A::IdelParent, P::Union{Integer, ZZRingElem})
   pro = Hecke.canonical_projection(domain(Inj), 1)
 
   Kp, mKp, mGp, mUp, _, _ = completion(A, A.S[t])
-  @assert domain(inj) == domain(mUp)
-
+  @assert domain(inj) == domain(mUp) 
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
-  qr = restrict(C, mp)
-
-  s = Hecke.Hecke.local_fundamental_class_serre(Kp, prime_field(Kp))
-  ds = Dict(mp(g, h) => preimage(mUp, s(g, h)) for g = domain(mp) for h = domain(mp))
+ 
+  tt = serre(C, A, A.S[t])
+  @assert tt.C.G == domain(mGp)
 
   I = domain(Inj)    
-  zz = gmodule(C.G, [Inj * action(C, g) * Pro for g = gens(G)])
+  zz = gmodule(C.G, [Inj * action(A.data, g) * Pro for g = gens(C.G)])
   mu = cohomology_group(zz, 2)
   q, mq = snf(mu[1])
   g = mu[2](mq(q[1]))
-  gg = map_entries(pro, g, parent = z)
+  hg = map_entries(Inj*A.mq, g, parent = C)
+  gg = map_entries(pro, g, parent = tt.C)
+  gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, GrpAbFinGenElem}(tt.C, Dict( (g, h) => gg.d[mp(g), mp(h)] for g = tt.C.G for h = tt.C.G))
 
-  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
-
-  z = gmodule(domain(mGp), [hom(domain(mUp), domain(mUp), [preimage(mUp, mGp(g)(mUp(u))) for u = gens(domain(mUp))]) for g = gens(domain(mGp))])
-
-  c = CoChain{2, PermGroupElem, GrpAbFinGenElem}(z, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((g, h) => preimage(mUp, s(mGp(g), mGp(h))) for g = domain(mGp) for h = domain(mGp)))
-
-  @assert Oscar.GrpCoh.istwo_cocycle(c)
-
-  t = CoChain{2, PermGroupElem, GrpAbFinGenElem}(restrict(A.data, mp), Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((mp(g), mp(h)) => (inj(c.d[(g, h)])) for g = domain(mGp) for h = domain(mGp)))
-
-
-  zz = t.C
-  @assert domain(mGp) == domain(mp)
-
-#  @show [(g, mp(g), preimage(im[2], mp(g))) for g = gens(domain(mp))]
-  @show [all(u->inj(action(z, g, u)) == action(A.data, mp(g), inj(u)),  gens(z.M)) for g = (domain(mp))]
-  @show [all(u->inj(action(z, g, u)) == action(zz, zz.G(mp(g)), inj(u)),  gens(z.M)) for g = (domain(mp))]
-
-  @assert Oscar.GrpCoh.istwo_cocycle(t)
-  return t
-
-  tt = CoChain{2, PermGroupElem, GrpAbFinGenElem}(qr, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((mp(g), mp(h)) => A.mq(inj(c.d[(g, h)])) for g = domain(mGp) for h = domain(mGp)))
-
-  return s, c, t, tt
+  nu = cohomology_group(tt.C, 2)
+  ga = preimage(nu[2], gg)
+  ta = preimage(nu[2], tt)
+  return findfirst(x->x*ga == ta, 1:order(tt.C.G)), hg
+  #so i*hg should restrict to the local fund class...
 end
 
 
 function global_fundamental_class(C::GModule, A::IdelParent)
-d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
+  d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
   G = C.G
   if d != order(G)
     error("sorry - no can do(yet)")
   end
 
   z = cohomology_group(C, 2)
+
   q, mq = snf(z[1])
   @assert ngens(q) == 1
   g = z[2](mq(gen(q, 1))) # to get a 2-CoCycle
@@ -2889,26 +2832,11 @@ d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
   scale = []
 
   for P = A.S
-    @show P
-    s = serre(C, A, P)
-    @assert Oscar.GrpCoh.istwo_cocycle(s)
-    zp = cohomology_group(s.C, 2)
-    q, mq = snf(zp[1])
-    global last_data = (zp, g, s)
-    gp = preimage(zp[2], g)
-    sp = preimage(zp[2], s)
-    @show order(gp), order(sp), order(s.C.G)
-    @assert order(gp) == order(sp) == order(s.C.G)
-    i = 1
-    while i*sp != gp
-      i += 1
-      if i > order(G)
-        error("s.th. is badly off")
-      end
-    end
-    push!(scale, i)
+    s = serre(C, A, minimum(P))
+    push!(scale, s)
   end
-  return scale
+  #put to gether..
+  return scale, z, mq 
 end
 
 function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
