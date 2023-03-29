@@ -32,7 +32,7 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
 # scheme. Remember those packages to avoid doing this all over again for docs
 # and test.
 # We don't want to interfere with existing stuff in experimental though.
-expdir = joinpath(@__DIR__, "../experimental")
+const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "ExteriorAlgebra", "GaloisGrp", "GITFans", "GModule", "JuLie",
   "LinearQuotients", "Matrix", "ModStd", "MPolyRingSparse",
