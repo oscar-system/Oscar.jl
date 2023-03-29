@@ -18,7 +18,7 @@ julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> underlying_scheme(affine_toric_scheme)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2 over Rational Field by ideal()
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2 over Rational Field by ideal(0)
 ```
 """
 function underlying_scheme(X::ToricSpec)
