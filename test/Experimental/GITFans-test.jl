@@ -29,8 +29,8 @@
     ])
 
     perms_list = [ [1,3,2,4,6,5,7,8,10,9], [5,7,1,6,9,2,8,4,10,3] ];
-    sym10 = symmetric_group(n);
-    G, emb = sub([sym10(x) for x in perms_list]...);
+    sym = symmetric_group(n);
+    G, emb = sub([sym(x) for x in perms_list]...);
 
     fanobj = GITFans.git_fan(a, Q, G)
     @test f_vector(fanobj) == [20, 110, 240, 225, 76]
@@ -66,11 +66,10 @@
     fanobj = GITFans.hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
     @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
-#   # Now try the construction with trivial symmetry group.
+#   # Now try the construction with trivial symmetry group (takes longer).
 #   G2 = trivial_subgroup(G)[1]
 #   fanobj2 = GITFans.git_fan(a, Q, G2)
-#   @test fanobj2.F_VECTOR == [20, 110, 240, 225, 76]
-#T This call would fail with `Segmentation fault`.
+#   @test f_vector(fanobj2) == [20, 110, 240, 225, 76]
 
 end
 
