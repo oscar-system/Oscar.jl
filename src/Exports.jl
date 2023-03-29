@@ -28,6 +28,7 @@ export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
 export AffineVariety
+export affine_normal_toric_variety
 export affine_variety
 export affine_algebraic_set
 export AutomorphismGroup
@@ -160,11 +161,13 @@ export SubQuoHom
 export SubdivisionOfPoints
 export SubquoModule
 export SubquoModuleElem
+export ToricCoveredScheme
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export ToricSpec
 export TropicalCurve
 export TropicalHypersurface
 export TropicalLinearSpace
@@ -431,6 +434,7 @@ export domain_type
 export double_coset
 export double_cosets
 export dst
+export dual_cone
 export dual_continued_fraction_hirzebruch_jung
 export dual_matroid
 export dual_subdivision

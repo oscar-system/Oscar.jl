@@ -124,7 +124,6 @@ function underlying_scheme(Z::ToricCoveredScheme)
   end
   return Z.X
 end
-export underlying_scheme
 
 
 @doc Markdown.doc"""
@@ -146,7 +145,6 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 ```
 """
 normal_toric_variety(X::ToricCoveredScheme) = X.ntv
-export normal_toric_variety
 
 
 @doc Markdown.doc"""
@@ -168,4 +166,4 @@ Polyhedral fan in ambient dimension 2
 ```
 """
 fan(X::ToricCoveredScheme) = fan(normal_toric_variety(X))
-export fan
+

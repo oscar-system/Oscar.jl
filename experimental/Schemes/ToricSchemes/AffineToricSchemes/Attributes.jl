@@ -34,7 +34,6 @@ function underlying_scheme(X::ToricSpec)
   end
   return X.X
 end
-export underlying_scheme
 
 
 @doc Markdown.doc"""
@@ -59,7 +58,6 @@ Normal, affine toric variety
 ```
 """
 affine_normal_toric_variety(X::ToricSpec) = X.antv
-export affine_normal_toric_variety
 
 
 @doc Markdown.doc"""
@@ -84,7 +82,6 @@ Polyhedral cone in ambient dimension 2
 ```
 """
 cone(X::ToricSpec) = cone(affine_normal_toric_variety(X))
-export cone
 
 
 @doc Markdown.doc"""
@@ -117,7 +114,6 @@ function dual_cone(X::ToricSpec)
   end
   return X.dual_cone
 end
-export dual_cone
 
 
 @doc Markdown.doc"""
@@ -158,5 +154,4 @@ function hilbert_basis(X::ToricSpec)
   end
   return X.hb
 end
-export hilbert_basis
 
