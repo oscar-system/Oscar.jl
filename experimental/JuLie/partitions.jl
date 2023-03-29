@@ -180,7 +180,7 @@ The number of integer partitions of the integer ``n ≥ 0`` into ``k ≥ 0``
 parts. The implementation uses a recurrence relation.
 
 # References
-1. The On-Line Encyclopedia of Integer Sequences, [A008284](https://oeis.org/A008284)
+1. [OEIS](@ref), [A008284](https://oeis.org/A008284)
 """
 function num_partitions(n::IntegerUnion, k::IntegerUnion)
   @req n >= 0 "n >= 0 required"
@@ -447,7 +447,7 @@ The number of integer partitions of the non-negative integer `n` into `k >= 0` p
 # Algorithm
 We use the recurrence relation ``p_k(n) = p_{k-1}(n-1) + p_k(n-k)``, where ``p_k(n)`` denotes the number of partitions of ``n`` into ``k`` parts; see [Knu11](@cite), Section 7.2.1.4, Equation (39) on page 399.
 
-# Further references
+# References
 1. [OEIS](@cite), [A008284](https://oeis.org/A008284)
 """
 function num_partitions(n::IntegerUnion, k::IntegerUnion)
