@@ -4,20 +4,21 @@
     using Oscar.GITFans
 
     Q = [
-     1  1   0   0   0 ;
-     1  0   1   1   0 ;
-     1  0   1   0   1 ;
-     1  0   0   1   1 ;
-     0  1   0   0  -1 ;
-     0  1   0  -1   0 ;
-     0  1  -1   0   0 ;
-     0  0   1   0   0 ;
-     0  0   0   1   0 ;
-     0  0   0   0   1 ];
+     1  1   0   0   0
+     1  0   1   1   0
+     1  0   1   0   1
+     1  0   0   1   1
+     0  1   0   0  -1
+     0  1   0  -1   0
+     0  1  -1   0   0
+     0  0   1   0   0
+     0  0   0   1   0
+     0  0   0   0   1
+     ]
 
-    n = size(Q, 1)
-    Qt, T = Oscar.polynomial_ring(Oscar.QQ, :T => 1:n)
-    D = free_abelian_group(size(Q,2))
+    n = nrows(Q)
+    Qt, T = polynomial_ring(QQ, :T => 1:n)
+    D = free_abelian_group(ncols(Q))
     w = [D(Q[i, :]) for i = 1:n]
     R = grade(Qt, w)
     a = ideal([
@@ -80,9 +81,7 @@ end
     using Oscar
     using Oscar.GITFans
 
-    nr_variables = 4
-    vars_strings = map( i -> "x"*string(i), 1:nr_variables )
-    R, T = polynomial_ring(QQ,vars_strings)
+    R, T = polynomial_ring(QQ, 4)
     ideal_gens = [
         T[1]^2*T[2]*T[3]^2*T[4]^2+T[1]^2*T[2]^2*T[3],
         2*T[1]*T[2]^2*T[3]^2*T[4]+T[1]*T[3]^2*T[4]^2-T[1]^2,

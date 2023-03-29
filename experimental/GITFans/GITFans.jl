@@ -45,12 +45,12 @@ end
 
 function rewrite_action_to_orbits(homs::Vector{GAPGroupHomomorphism})
     G = domain(homs[1])
-    Ggens = gens(G)
-    generators_new_perm = [Vector{Int}[] for x in Ggens]
+    n = ngens(G)
+    generators_new_perm = [Vector{Int}[] for x in 1:n]
 
     for hom in homs
-      for j in 1:length(generators_new_perm)
-        img = Vector{Int}(image(hom, Ggens[j]))
+      for j in 1:n
+        img = Vector{Int}(image(hom, gen(G, j)))
         if length(img) == 0
           img = Int[1]
         end
@@ -67,15 +67,15 @@ end
 # user functions
 
 """
-    is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
+    is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
 
 See Prop. 3.1 in [BKR20](@cite).
 """
-function is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
+function is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
     Oscar.singular_assure(I)
     SingI = I.gens.S
-    R = Oscar.base_ring(SingI)
-    Rgens = Oscar.gens(R)
+    R = base_ring(SingI)
+    Rgens = gens(R)
     nr_variables = length(Rgens)
     poly_list = [evaluate(f, vars_to_zero, fill(R(0), length(vars_to_zero))) for f in gens(SingI)]
 
@@ -104,7 +104,7 @@ function is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero::Vector{Int} = Int[]
 end
 
 """
-    orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
+    orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
 
 Return orbit representatives of `G` on the set of those cones
 whose defining rays are given by subsets `S` of the rows of `Q`,
@@ -160,18 +160,18 @@ to its induced matrix action on the $m$-dimensional space over the Rationals.
 
 ```jldoctest
 julia> Q = [
-        1  1   0   0   0 ;
-        1  0   1   1   0 ;
-        1  0   1   0   1 ;
-        1  0   0   1   1 ;
-        0  1   0   0  -1 ;
-        0  1   0  -1   0 ;
-        0  1  -1   0   0 ;
-        0  0   1   0   0 ;
-        0  0   0   1   0 ;
+        1  1   0   0   0
+        1  0   1   1   0
+        1  0   1   0   1
+        1  0   0   1   1
+        0  1   0   0  -1
+        0  1   0  -1   0
+        0  1  -1   0   0
+        0  0   1   0   0
+        0  0   0   1   0
         0  0   0   0   1 ];
 
-julia> n = size(Q, 1)
+julia> n = nrows(Q)
 10
 
 julia> perms_list = [[1,3,2,4,6,5,7,8,10,9], [5,7,1,6,9,2,8,4,10,3]];
@@ -180,7 +180,7 @@ julia> sym10 = symmetric_group(n);
 
 julia> permgens = [sym10(x) for x in perms_list];
 
-julia> G, emb = sub(sym10, permgens);
+julia> G, _ = sub(sym10, permgens);
 
 julia> Oscar.GITFans.action_on_target(Q, G)
 Group homomorphism from
@@ -260,16 +260,16 @@ The equality of points is decided via the binary function `compare`.
 """
 function as_permutation(element, set, action::Function, compare::Function)
     n = length(set)
-    perm = Vector{Int64}(undef, n)
+    permlist = Vector{Int64}(undef, n)
     for i in 1:length(set)
         img = action(set[i], element)
         pos = findfirst(j -> compare(j, img), set)
         if pos === nothing
           error("the set is not invariant under the given action")
         end
-        perm[i] = pos
+        permlist[i] = pos
     end
-    return symmetric_group(n)(perm)
+    return perm(permlist)
 end
 
 function matrix_action_on_cones(C::Cone, M::QQMatrix)
@@ -304,13 +304,13 @@ function action_on_orbit_cone_orbits(orbs::Vector{Vector{Cone{T}}}, ghom::GAPGro
 #T Prescribing `GAPGroupHomomorphism` is quite technical;
 #T do we have a better way to request a "map that is a group homomorphism"?
     G = domain(ghom)
-    Ggens = gens(G)
 
-    if isempty(Ggens)
-        map = id_hom(G)
-        return GAPGroupHomomorphism[map for x in orbs]
+    if ngens(G) == 0
+        m = id_hom(G)
+        return GAPGroupHomomorphism[m for x in orbs]
     end
 
+    Ggens = gens(G)
     matgens = [image(ghom, g).elm for g in Ggens]
     act = matrix_action_on_cones
     
@@ -335,12 +335,10 @@ that contain the point `point`.
 """
 function compute_bit_list(orbs::Vector{Vector{Cone{T}}}, point::AbstractVector{T}) where T
     bitset_list = [BitSet() for orb in orbs]
-    for current_orbit_nr in 1:length(orbs)
-        current_orbit = orbs[current_orbit_nr]
-        for current_cone_nr in 1:length(current_orbit)
-            current_cone = current_orbit[current_cone_nr]
-            if contains(current_cone, point)
-                push!(bitset_list[current_orbit_nr], current_cone_nr)
+    for (i, orb) in enumerate(orbs)
+        for (j, cone) in enumerate(orb)
+            if contains(cone, point)
+                push!(bitset_list[i], j)
             end
         end
     end
@@ -406,7 +404,6 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
     # the induced actions on each of the orbits
     generators_new_perm = rewrite_action_to_orbits(perm_actions)
 
-    q_cone_facets_converted = matrix(QQ, q_cone.pm_cone.FACETS)
     q_cone_int_point = relative_interior_point(q_cone)
  
     start_hash = compute_bit_list(orbit_list, q_cone_int_point)
@@ -414,11 +411,9 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
         start_hash, generators_new_perm, bitlist_oper_tuple, ==,
         less_or_equal_array_bitlist)
     hash_list = [orbit_start_hash_smallest]
-    current_pos = 0
     edges = Set(Vector{Int}[])
 
-    for current_hash in hash_list
-        current_pos = current_pos + 1
+    for (current_pos, current_hash) in enumerate(hash_list)
 
         # note that we run also over elements added inside the loop
         current_cone_list = cones_from_bitlist(orbit_list, current_hash)
@@ -521,12 +516,12 @@ end
 
 
 """
-    git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
+    git_fan(a::MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
 
 Return the object that represents the polyhedral fan given by
 the ideal `a`, the grading matrix `Q`, and the symmetry group `G`.
 """
-function git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
+function git_fan(a::MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
     collector_cones = orbit_cones(a, Q, G)
     matrix_action = action_on_target(Q, G)
     orbit_list = orbit_cone_orbits(collector_cones, matrix_action)
