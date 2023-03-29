@@ -656,7 +656,7 @@ end
 All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume (without loss of generality) that the entries in `v` are strictly increasing. The partitions are produced in lexicographically *decreasing* order. 
 
 # Examples
-We compute the partitions of 100 into 7 parts, where the parts are required to be elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occurr at most twice.
+We compute the partitions of 100 into seven parts, where the parts are required to be elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
 ```jldoctest
 julia> partitions(100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2])
 1-element Vector{Partition{Int64}}:
