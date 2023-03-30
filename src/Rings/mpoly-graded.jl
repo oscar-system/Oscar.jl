@@ -373,7 +373,7 @@ end
     graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
     graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:Union{Symbol, AbstractString, Char}
 
-Create a [multivariate polynomial ring](@ref `polynomial_ring(C, [:x])`) with
+Create a multivariate [`polynomial_ring`](@ref polynomial_ring(R, [:x])) with
 coefficient ring `C` and variables which print according to the variable names
 in `V` (respectively as "\$(s)1" up to "\$s\$n"), and [`grade`](@ref) this ring
 according to the data provided by `W`. Return the graded ring as an object of
