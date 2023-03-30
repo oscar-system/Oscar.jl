@@ -1,3 +1,11 @@
+```@meta
+CurrentModule = Oscar
+```
+
+```@setup oscar
+using Oscar
+```
+
 # Partitions
 
 ```@docs
