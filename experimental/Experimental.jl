@@ -12,10 +12,6 @@ include("JuLie.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
-<<<<<<< HEAD
-include("Schemes/ProjectiveSchemes.jl")
-=======
->>>>>>> 6355b2b13d (Restore file.)
 include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Schemes/ProjectiveModules.jl")
@@ -37,8 +33,6 @@ include("Schemes/BlowupMorphism.jl")
 include("Schemes/ToricSchemes/include.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
-<<<<<<< HEAD
 
 include("FTheoryTools/FTheoryTools.jl")
-=======
->>>>>>> 6355b2b13d (Restore file.)
+
