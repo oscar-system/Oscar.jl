@@ -8,8 +8,8 @@
 Return the Tate section ``a_1``.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> tate_section_a1(t);
 ```
@@ -23,8 +23,8 @@ julia> tate_section_a1(t);
 Return the Tate section ``a_2``.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> tate_section_a2(t);
 ```
@@ -38,8 +38,8 @@ julia> tate_section_a2(t);
 Return the Tate section ``a_3``.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> tate_section_a3(t);
 ```
@@ -53,8 +53,8 @@ julia> tate_section_a3(t);
 Return the Tate section ``a_4``.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> tate_section_a4(t);
 ```
@@ -68,8 +68,8 @@ julia> tate_section_a4(t);
 Return the Tate section ``a_6``.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> tate_section_a6(t);
 ```
@@ -87,8 +87,8 @@ julia> tate_section_a6(t);
 Return the Tate polynomial of the global Tate model.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> tate_polynomial(t);
 ```
@@ -152,10 +152,11 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Tate model.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> cy_hypersurface(t)
+[ Info: Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.
 Closed subvariety of a normal toric variety
 ```
 """
@@ -175,11 +176,13 @@ end
 Return the global Weierstrass model which is equivalent to the given Tate model.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> global_weierstrass_model(t)
-Global Weierstrass model over a concrete base
+[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
+[ Info: Base space was not fully specified. Returning AUXILIARY base space.
+Global Weierstrass model over a not fully specified base
 ```
 """
 @attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
@@ -209,10 +212,12 @@ end
 Return the discriminant of the global Tate model.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
 julia> discriminant(t);
+[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
+[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 ```
 """
 @attr MPolyRingElem{QQFieldElem} discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
