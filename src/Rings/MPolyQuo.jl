@@ -682,7 +682,7 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 end
 
 @doc Markdown.doc"""
-    simplify(f::MPolyQuoRingElem)
+    simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}}
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
