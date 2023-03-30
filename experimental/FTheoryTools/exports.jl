@@ -12,6 +12,7 @@ export global_tate_model_over_projective_space
 export global_weierstrass_model
 export global_weierstrass_model_over_projective_space
 export singular_loci
+export su5_tate_model_over_arbitrary_3d_base
 export tate_polynomial
 export tate_section_a1
 export tate_section_a2
