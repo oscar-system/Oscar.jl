@@ -133,6 +133,8 @@ export PolyhedralFan
 export Polyhedron
 export Polymake
 export PrincipalOpenSubset
+export ProjectiveScheme
+export ProjectiveSchemeMor
 export QQ
 export RationalEquivalenceClass
 export RayVector
@@ -191,6 +193,7 @@ export add_vertices!
 export adjacent_chamber
 export affine_algebra
 export affine_charts
+export affine_cone
 export affine_equation_matrix
 export affine_geometry
 export affine_hull
@@ -198,6 +201,7 @@ export affine_inequality_matrix
 export affine_normal_toric_variety
 export affine_open_covering
 export affine_patch
+export affine_patch_type
 export affine_patches
 export affine_space
 export alexander_dual
@@ -249,6 +253,8 @@ export base_ring
 export base_ring_elem_type
 export base_ring_module
 export base_ring_type
+export base_scheme
+export base_scheme_type
 export bases
 export basic_patches
 export basis_of_global_sections
@@ -372,6 +378,9 @@ export core
 export corresponding_bilinear_form
 export corresponding_quadratic_form
 export coset_decomposition
+export covered_projection_to_base
+export covered_scheme
+export covered_scheme_morphism
 export covering_morphism
 export coverings
 export cox_ring
@@ -396,6 +405,7 @@ export deglex
 export degree
 export degrevlex
 export dehomogenization
+export dehomogenize
 export del_pezzo_polytope
 export del_pezzo_surface
 export deletion
@@ -578,6 +588,7 @@ export hom_without_reversing_direction
 export homogeneity_space
 export homogeneous_component
 export homogeneous_components
+export homogeneous_coordinates
 export homogenization
 export homogenize
 export homology
@@ -851,6 +862,7 @@ export map_from_torusinvariant_cartier_divisor_group_to_picard_group
 export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group
 export map_from_torusinvariant_weil_divisor_group_to_class_group
 export map_gens_of_chow_ring_to_cox_ring
+export map_on_affine_cones
 export map_word
 export maps_on_patches
 export mat_elem_type
@@ -1056,6 +1068,7 @@ export product
 export proj_space
 export project_full
 export projection
+export projection_to_base
 export projective_geometry
 export projective_plane
 export projective_space
@@ -1098,6 +1111,7 @@ export regular_600_cell
 export regular_triangulation
 export regular_triangulations
 export relations
+export relative_ambient_dimension
 export relative_interior_point
 export relative_invariants
 export relators
@@ -1149,6 +1163,7 @@ export semi_invariants
 export semidirect_product
 export separating_hyperplanes
 export series_extension
+export set_base_scheme!
 export set_commutator!
 export set_conjugate!
 export set_coordinate_names

@@ -12,7 +12,6 @@ include("JuLie.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
-include("Schemes/ProjectiveSchemes.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Schemes/ProjectiveModules.jl")
@@ -36,3 +35,4 @@ include("Schemes/ToricSchemes/include.jl")
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
 
 include("FTheoryTools/FTheoryTools.jl")
+

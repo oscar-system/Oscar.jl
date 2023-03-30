@@ -505,7 +505,10 @@ parent(a::MPolyQuoRingElem) = a.P
 
 zero(R::MPolyQuoRing) = MPolyQuoRingElem(zero(base_ring(R)), R, true)
 
-iszero(a::MPolyQuoRingElem) = iszero(simplify(a).f)
+function is_zero(a::MPolyQuoRingElem)
+  return iszero(simplify(a).f)
+end
+
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.P == b.P || error("wrong parents")
@@ -679,11 +682,15 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 end
 
 @doc Markdown.doc"""
-    simplify(f::MPolyQuoRingElem)
+    simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}}
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
 the `default_ordering` on `R`.
+
+!!! note
+Since this method only has a computational backend for quotients of polynomial rings 
+over a field, it is not implemented generically.
 
 # Examples
 ```jldoctest
@@ -701,7 +708,7 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem)
+function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyElem{S}}
   f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
@@ -710,7 +717,45 @@ function simplify(f::MPolyQuoRingElem)
   g  = f.f
   f.f = OR(reduce(SR(g), G))
   f.simplified = true
-  return f::typeof(f)
+  return f::elem_type(R)
+end
+
+# Extra method for quotients of graded rings. 
+# TODO: Could this be simplified if the type-parameter signature of decorated rings 
+# was consistent with the one for polynomial rings? I.e. if the first type parameter 
+# was the one for the coefficient rings and not the one for the underlying polynomial ring?
+function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
+  f.simplified && return f
+  R  = parent(f)
+  OR = oscar_origin_ring(R)
+  SR = singular_origin_ring(R)
+  G  = singular_origin_groebner_basis(R)
+  g  = f.f
+  f.f = OR(reduce(SR(g), G))
+  f.simplified = true
+  return f::elem_type(R)
+end
+
+# The above methods for `simplify` assume that there is a singular backend which 
+# can be used. However, we are using (graded) quotient rings also with coefficient 
+# rings R which can not be translated to Singular; for instance when R is again 
+# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+# Still in many of those cases, we can use `RingFlattening` to bind a computational 
+# backend. In particular, this allows us to do ideal_membership tests; see 
+# the file `flattenings.jl` for details. 
+#
+# The generic method below is a compromise in the sense that `simplify` does not reduce 
+# a given element to a unique representative as would be the case in a groebner basis reduction, 
+# but it nevertheless reduces the element to zero in case its representative is 
+# contained in the modulus. This allows for both, the use of `RingFlattening`s and 
+# the potential speedup of `iszero` tests. 
+function simplify(f::MPolyQuoRingElem)
+  f.simplified && return f
+  if f.f in modulus(parent(f))
+    f.f = zero(f.f)
+  end
+  f.simplified = true
+  return f::elem_type(parent(f))
 end
 
 
@@ -1363,3 +1408,5 @@ end
   return is_prime(modulus(A))
 end
 
+# extension of common functionality
+symbols(A::MPolyQuoRing) = symbols(base_ring(A))

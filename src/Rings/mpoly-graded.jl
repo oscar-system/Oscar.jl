@@ -2424,6 +2424,12 @@ function AbstractAlgebra.promote_rule(::Type{MPolyDecRingElem{S, T}}, ::Type{U})
   end
 end
 
+# For some reason the following is necessary to remove ambiguities
+function AbstractAlgebra.promote_rule(::Type{MPolyDecRingElem{S, T}}, ::Type{MPolyDecRingElem{S, T}}) where {S, T}
+  return MPolyDecRingElem{S, T}
+end
+
+
 ################################################################################
 #
 #  Random homogeneous polynomials
@@ -2507,3 +2513,9 @@ end
 Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
+
+gens(A::MPolyDecRing, i::Int) = A[i]
+
+### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
+# TODO: This still seems to be not resolved!!!
+Generic.ordering(S::MPolyDecRing) = :degrevlex
