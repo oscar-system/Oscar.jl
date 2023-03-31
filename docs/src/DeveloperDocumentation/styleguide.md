@@ -381,7 +381,7 @@ julia> print(Base.stdout, R)
 one line printing of newring with supercompact QQ
 ```
 
-## Latex and unicode printing
+## LaTeX and Unicode printing
 
 ### Latex output
 Some types support latex output.
