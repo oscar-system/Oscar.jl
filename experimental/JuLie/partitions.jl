@@ -476,15 +476,17 @@ A list of all partitions of a non-negative integer `m` into `n >= 0` parts with 
 * `true`: only distinct parts. The partitions are produced in *decreasing* order.
 
 # Examples
+We compute all partitions of 7 into 3 parts where all parts are between 1 and 4:
 ```jldoctest
-# All partitions of 7 into 3 parts where all parts are between 1 and 4.
 julia> partitions(7, 3, 1, 4)
 3-element Vector{Partition{Int64}}:
  [4, 2, 1]
  [3, 3, 1]
  [3, 2, 2]
 
-# Same as above but requiring all parts to be distinct.
+```
+Same as above but requiring all parts to be distinct:
+```jldoctest
 julia> partitions(7, 3, 1, 4 ; only_distinct_parts=true)
 1-element Vector{Partition{Int64}}:
  [4, 2, 1]
