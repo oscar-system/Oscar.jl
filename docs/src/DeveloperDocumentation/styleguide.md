@@ -222,23 +222,23 @@ existing block.
 ## Printing in Oscar
 
 ### The 2 + 1 print modes of Oscar
-Oscar has two user print modes `:details` and `:oneline` and one internal
+Oscar has two user print modes `detailed` and `one line` and one internal
 print mode `:supercompact`. The latter is for use during recursion,
-e.g. to print the `base_ring(X)` when in `:oneline` mode.
-It exists to make sure that `:oneline` stays compact and human readable.
+e.g. to print the `base_ring(X)` when in `one line` mode.
+It exists to make sure that `one line` stays compact and human readable.
 
-Top-level REPL printing of an object will use `:details` mode by default
+Top-level REPL printing of an object will use `detailed` mode by default
 ```julia
 julia> X
-:details
+detailed
 ```
-Inside nested structures, e.g. inside a `Vector`, the `:oneline` mode is used.
+Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
 ```julia
 julia> [X,X]
 3-element Vector{TypeofX{T}}
-:oneline
-:oneline
-:oneline
+one line
+one line
+one line
 ```
 
 ##### An Example for the 2 + 1 print modes
@@ -247,7 +247,7 @@ julia> [X,X]
 General linear group of degree 24
   over Finite field of degree 7 over GF(29)
 
-# oneline
+# one line
 General linear group of degree 24 over GF(29^7)
 
 # supercompact
@@ -259,32 +259,32 @@ The print modes are specified as follows
 - the output must make sense as a standalone without context to non-specialists
 - the number of output lines should fit in the terminal
 - if the object is simple enough use only one line
-- use indentation and (usually) `:oneline` to print substructures
+- use indentation and (usually) `one line` to print substructures
 #### One line printing
 - the output must print in one line
 - should make sense as a standalone without context
 - variable names/generators/relations should not be printed only their number.
 - Only the first word is capitalized e.g. `Polynomial ring`
 - one should use `:supercompact` for nested printing in compact
-- nested calls to `:oneline` (if you think them really necessary) should be at the end,
+- nested calls to `one line` (if you think them really necessary) should be at the end,
   so that one can read sequentially. Calls to `:supercompact` can be anywhere.
+- commas must be enclosed in brackets so that printing tuples stays unambiguous
 #### Super compact printing
-- no nested printing
+- a user readable version of the main (mathematical) type.
 - a single term or a symbol/letter mimicking mathematical notation
 - should usually only depend on the type and not of the type parameters or of
   the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
 - no nested printing. In particular variable names and `base_ring` must not be displayed.
-  This ensures that `:oneline` and `:supercompact` stay compact even for complicated things.
-  If you want nested printing use `:oneline` or `details`.
-- a user readable version of the main (mathematical) type.
+  This ensures that `one line` and `:supercompact` stay compact even for complicated things.
+  If you want nested printing use `one line` or `detailed`.
 
 ### Implementing show functions
 
-Here is the translation between `:detail`, `:oneline` and `:supercompact`.
+Here is the translation between `:detail`, `one line` and `:supercompact`.
 
 ```
 print(io, "text/plain", x)                 # detailed printing
-print(io, x)                               # oneline printing
+print(io, x)                               # one line printing
 print(IOContext(:supercompact => true), x) # supercompact printing
 ```
 
@@ -292,54 +292,63 @@ For reference, string interpolation `"$(x)"` will also use `print(io, x)`.
 
 #### Mockup
 
+##### Detailed printing with a new line.
+
 ```julia
 struct NewRing
   base_ring
 end
 ```
+This implements the detailed printing. Note that the new line is needed for
+this to work. The last print statement must not add a new line.
 
 ```julia
 function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
-    println(io, "I am a new ring")
-    println(io, "I print with newlines")
-    print(io, R.base_ring)
+  println(io, "I am a new ring")
+  println(io, "I print with newlines")
+  print(io, R.base_ring)
 end
 ```
 
+This takes care of one line and `:supercompact` printing
 ```julia
 function Base.show(io::IO, R::NewRing)
-    if get(io, :supercompact, false)
-        print(io, "supercompact printing of newring ")
-        print(io, R.base_ring) # this prints the :oneline version of newring
-    else
-        print(io, "oneline printing of newring with ")
-        print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
-    end
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "supercompact printing of newring ")
+  else
+    # nested printing allowed, preferably supercompact
+    print(io, "one line printing of newring with ")
+    print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
+  end
 end
 ```
 
 
-#### Alternative
+##### Detailed printing in a single line.
 
-Here is an alternative version, which needs to be used in case the detailed
+This version needs to be used in case the detailed
 printing does not contain newlines.
-
+Then detailed and one line printing agree.
+The if clause takes care of supercompact printing as well.
 ```julia
 function Base.show(io::IO, R::NewRing)
-    if get(io, :supercompact, false)
-      print(io, "supercompact printing of newring")
-    else
-      println(io, "I am a new ring and always print in one line" )
-      print(IOContext(io, :supercompact => true), base_ring(R))
-    end
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "supercompact printing of newring")
+  else
+    # nested printing allowed, preferably supercompact
+    println(io, "I am a new ring and always print in one line" )
+    print(IOContext(io, :supercompact => true), base_ring(R))
+  end
 end
 ```
 
-#### Not working as expected
+##### The following is not working as expected and should not be used
 
 ```julia
-function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
-    print(io, "I am a new ring with a detailed printing of one line")
+function Base.show(io::IO, ::MIME"text/plain", R::NewRing)  # do not implement me like this
+  print(io, "I am a new ring with a detailed printing of one line")
 end
 ```
 
@@ -348,13 +357,28 @@ It will be used for `print(io, R::NewRing)` though.
 
 ```julia
 function Base.show(io::IO, R::NewRing)
-    if get(io, :supercompact, false)
-        print(io, "supercompact printing of newring")
-    else # this is what we call :oneline, but wrong terminology for julia
-        print(io, "compact printing of newring with ")
-        print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
-    end
+  if get(io, :supercompact, false)
+    print(io, "supercompact printing of newring")
+  else # this is what we call one line
+    print(io, "one line printing of newring with ")
+    print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
+  end
 end
+```
+This example illustrates the unexpected behavior.
+```julia
+julia> R = NewRing(1)
+
+julia> R
+I am a new ring with a detailed printing of one line
+
+julia> [R,R]  # one line printing is ignored
+2-element Vector{NewRing}:
+ I am a new ring with a detailed printing of one line
+ I am a new ring with a detailed printing of one line
+
+julia> print(Base.stdout, R)
+one line printing of newring with supercompact QQ
 ```
 
 ## Latex and unicode printing
