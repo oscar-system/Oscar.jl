@@ -37,5 +37,3 @@ include("Schemes/ToricSchemes/include.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
 
-include("FTheoryTools/FTheoryTools.jl")
-
