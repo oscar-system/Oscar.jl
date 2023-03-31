@@ -397,7 +397,7 @@ x & x^{2} \\
 1 & 1
 \end{array}
 ```
-To support latex output for your type implement
+To support LaTeX output for your type implement
 ```
 Base.show(io::IOContext, "text/latex")
 ```
