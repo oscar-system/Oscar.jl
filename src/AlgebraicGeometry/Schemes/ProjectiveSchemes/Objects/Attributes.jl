@@ -289,7 +289,7 @@ end
     
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
 
-Use [`dehomogenization_map(::ProjectiveScheme, ::AbsSpec)`](@ref) with `U` one of the `affine_charts` of ``X`` to
+Use `dehomogenization_map` with `U` one of the `affine_charts` of ``X`` to
 obtain the dehomogenization map from the `homogeneous_coordinate_ring` of `P`
 to the `coordinate_ring` of `U`.
 
