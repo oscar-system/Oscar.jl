@@ -35,7 +35,6 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "ExteriorAlgebra",
-  "FTheoryTools",
   "GaloisGrp",
   "GITFans",
   "GModule",
