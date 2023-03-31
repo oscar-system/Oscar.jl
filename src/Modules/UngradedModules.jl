@@ -4788,6 +4788,14 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
+
+  if ngens(kernel_entry) == 0
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+    cc.fill     = _extend_free_resolution
+    cc.complete = true
+    return FreeResolution(cc)
+  end
+
   singular_free_module  = singular_module(ambient_free_module(kernel_entry))
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
