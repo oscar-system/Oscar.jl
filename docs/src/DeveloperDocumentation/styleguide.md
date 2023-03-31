@@ -382,6 +382,10 @@ supercompact printing of newring
 
 ##### The following is not working as expected and should not be used
 
+This example does not work correctly because the `detailed` printing does not
+include a newline, which is expected by the Julia printing system. To correctly
+support single line `detailed` printing, read the preceding section.
+
 ```julia
 function Base.show(io::IO, ::MIME"text/plain", R::NewRing)  # do not implement me like this
   print(io, "I am a new ring with a detailed printing of one line")
