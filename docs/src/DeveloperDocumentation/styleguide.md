@@ -445,7 +445,7 @@ Per default output should be ANSI only (no Unicode). Implementors of
 This will then be used for users which enabled Unicode using
 `allow_unicode(true)`. Note that
 
-- there must be a default ANSI only output, since this is the default setting
+- there must be a default ASCII only output, since this is the default setting
   for new users, and
 - OSCAR library code is not allowed to call `Oscar.allow_unicode`.
 
