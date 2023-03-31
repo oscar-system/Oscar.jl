@@ -1458,7 +1458,7 @@ function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   is_saturated(I) && return false
   R = base_ring(L)
   J = pre_saturated_ideal(I)
-  (success, x, u) = has_solution(generator_matrix(J), matrix_space(R, 1, 1)([b]), inverted_set(L))
+  (success, x, u) = has_solution(generator_matrix(J), matrix(R, 1, 1, [b]), inverted_set(L))
   !success && return false
   # cache the intermediate result
   extend_pre_saturated_ideal!(I, b, x, u, check=false)
@@ -1498,7 +1498,7 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
     # multiplications sparse*dense have to be carried out this way round.
     return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
   else
-    (success, x, u) = has_solution(generator_matrix(J), matrix_space(R, 1, 1)([p]), inverted_set(L), check=false)
+    (success, x, u) = has_solution(generator_matrix(J), matrix(R, 1, 1, [p]), inverted_set(L), check=false)
     !success && error("check for membership was disabled, but element is not in the ideal")
     # cache the intermediate result
     #result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
@@ -1526,7 +1526,7 @@ function coordinates(
   return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
 end
 
-generator_matrix(J::MPolyIdeal) = matrix_space(base_ring(J), ngens(J), 1)(gens(J))
+generator_matrix(J::MPolyIdeal) = matrix(base_ring(J), ngens(J), 1, gens(J))
 
 @doc Markdown.doc"""
     saturated_ideal(I::MPolyLocalizedIdeal)
