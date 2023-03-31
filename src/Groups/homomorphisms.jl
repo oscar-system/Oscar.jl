@@ -674,15 +674,15 @@ function kernel(comp::AbstractAlgebra.Generic.CompositeMap{T, GrpAbFinGen}) wher
   else
     ker2 = kernel(map2)
   end
-  ker2gens = [ker2[2](x) for x in gens(ker2[1])]
-  preimages = [preimage(map1, x) for x in ker2gens]
+  ker2gens = elem_type(domain(map2))[ker2[2](x) for x in gens(ker2[1])]
+  preimages = elem_type(domain(map1))[preimage(map1, x) for x in ker2gens]
   ker1 = kernel(map1)
 
   # Compute generators of the kernel of `map2`,
   # take their preimages under `map1`,
   # form the closure with the kernel of `map1`
   G = domain(comp)
-  K = sub(G, vcat([ker1[2](x) for x in gens(ker1[1])], preimages))
+  K = sub(G, vcat(elem_type(domain(map1))[ker1[2](x) for x in gens(ker1[1])], preimages))
 end
 
 ####
