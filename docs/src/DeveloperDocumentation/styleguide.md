@@ -330,7 +330,7 @@ end
 This version needs to be used in case the detailed
 printing does not contain newlines.
 Then detailed and one line printing agree.
-The if clause takes care of supercompact printing as well.
+The `if` clause takes care of supercompact printing as well.
 ```julia
 function Base.show(io::IO, R::NewRing)
   if get(io, :supercompact, false)
