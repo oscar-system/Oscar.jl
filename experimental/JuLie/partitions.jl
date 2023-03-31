@@ -45,6 +45,7 @@ julia> P = Partition([6,4,4,2]) #The partition 6+4+4+2 of 16.
 [6, 4, 4, 2]
 
 julia> P = Partition(6,4,4,2) #Same as above but less to type
+[6, 4, 4, 2]
 
 julia> length(P)
 4
@@ -849,12 +850,12 @@ part is allowed to occurr at most twice:
 ```jldoctest
 julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
 6-element Vector{Partition{Int64}}:
- [1, 1]
- [2, 2, 1, 1]
- [5, 2, 2, 1, 1]
- [5, 5, 2, 2, 1, 1]
- [10, 5, 5, 2, 2, 1, 1]
- [10, 10, 5, 5, 2, 2, 1, 1]
+ [50, 50]
+ [50, 20, 20, 10]
+ [50, 20, 20, 5, 5]
+ [50, 20, 10, 10, 5, 5]
+ [50, 20, 20, 5, 2, 2, 1]
+ [50, 20, 10, 10, 5, 2, 2, 1]
 ```
 
 # Algorithm
