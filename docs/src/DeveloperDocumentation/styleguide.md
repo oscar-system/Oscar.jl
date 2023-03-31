@@ -383,8 +383,8 @@ one line printing of newring with supercompact QQ
 
 ## LaTeX and Unicode printing
 
-### Latex output
-Some types support latex output.
+### LaTeX output
+Some types support LaTeX output.
 ```
 julia> Qx, x = QQ["x"];
 
