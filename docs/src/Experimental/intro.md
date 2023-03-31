@@ -23,17 +23,15 @@ brought up to Oscar standard.
 To look at a sample for the structure for a new project in `experimental` have
 a look at `experimental/PlaneCurve`. The general structure is
 ```
-experimental/
-   PACKAGE_NAME/
-      README.md
-      src/
-         PACKAGE_NAME.jl
-      test/
-         runtests.jl
-      docs/
-         doc.main
-         src/
-            DOCUMENTATION.md
+experimental/PACKAGE_NAME/
+├── docs
+│   ├── doc.main
+│   └── src
+│       └── DOCUMENTATION.md
+├── src
+│   └── PACKAGE_NAME.jl
+└── test
+    └── runtests.jl
 ```
 The files `src/PACKAGE_NAME.jl`, `test/runtests.jl`, and `docs/doc.main` are
 mandatory, as they are used by Oscar.jl to find your code, tests, and
