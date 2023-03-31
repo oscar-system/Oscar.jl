@@ -20,10 +20,13 @@ brought up to Oscar standard.
       carefully in such situations.
 
 ## Structure
-To look at a sample for the structure for a new project in `experimental` have
-a look at `experimental/PlaneCurve`. The general structure is
+For an example of the structure for a new project in `experimental` have a look
+at project folders, i.e. `experimental/PACKAGE_NAME`, that have subfolders
+`docs`, `src`, and `test` (The first two examples are
+`experimental/{FTheoryTools, PlaneCurve}`). The general structure is
 ```
 experimental/PACKAGE_NAME/
+├── README.md
 ├── docs
 │   ├── doc.main
 │   └── src
@@ -36,6 +39,11 @@ experimental/PACKAGE_NAME/
 The files `src/PACKAGE_NAME.jl`, `test/runtests.jl`, and `docs/doc.main` are
 mandatory, as they are used by Oscar.jl to find your code, tests, and
 documentation.
+
+!!! note
+    There are still older projects in `experimental` from before the
+    introduction of this structure. Thus we mentioned `FTheoryTools` and
+    `PlaneCurve` as projects having adopted to the new standard.
 
 ## Procedure for adding a new feature
 Ideally we envision the procedure to follow along the following lines.
