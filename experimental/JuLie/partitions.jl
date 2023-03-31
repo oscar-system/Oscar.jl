@@ -483,8 +483,8 @@ julia> partitions(7, 3, 1, 4)
  [4, 2, 1]
  [3, 3, 1]
  [3, 2, 2]
-
 ```
+
 Same as above but requiring all parts to be distinct:
 ```jldoctest
 julia> partitions(7, 3, 1, 4 ; only_distinct_parts=true)
