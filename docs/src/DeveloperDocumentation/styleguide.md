@@ -399,7 +399,7 @@ x & x^{2} \\
 ```
 To support LaTeX output for your type implement
 ```
-Base.show(io::IOContext, "text/latex")
+Base.show(io::IOContext, ::MIME"text/latex")
 ```
 
 ### Unicode printing
