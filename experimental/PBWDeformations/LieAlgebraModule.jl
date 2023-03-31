@@ -203,14 +203,13 @@ function (V::LieAlgebraModule{C})(
   mat = zero_matrix(base_ring(V), 1, dim(V))
   if is_exterior_power(V)
     for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
-      inds in Combinatorics.permutations(_inds)
+      (inds, sgn) in permutations_with_sign(_inds)
 
-      sgn = Combinatorics.levicivita(sortperm(inds))
       mat[1, i] += sgn * prod(a[j].mat[k] for (j, k) in enumerate(inds))
     end
   elseif is_symmetric_power(V)
     for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
-      inds in unique(Combinatorics.permutations(_inds))
+      inds in unique(permutations(_inds))
 
       mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
     end
@@ -409,14 +408,13 @@ function exterior_power(
 ) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V), k)
-  ind_map = collect(Combinatorics.combinations(1:dim(V), k))
+  ind_map = collect(combinations(1:dim(V), k))
 
   T = tensor_power(V, k)
   basis_change_E2T = zero_matrix(base_ring(V), dim(T), dim_pow_V)
   basis_change_T2E = zero_matrix(base_ring(V), dim_pow_V, dim(T))
   T_ind_map = get_attribute(T, :ind_map)
-  for (i, _inds) in enumerate(ind_map), inds in Combinatorics.permutations(_inds)
-    sgn = Combinatorics.levicivita(sortperm(inds))
+  for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
     j = findfirst(==(inds), T_ind_map)
     basis_change_E2T[j, i] = sgn//factorial(k)
     basis_change_T2E[i, j] = sgn
@@ -433,10 +431,7 @@ function exterior_power(
     else
       parentheses = x -> "($x)"
     end
-    s = [
-      Symbol(join(parentheses.(s), " ∧ ")) for
-      s in Combinatorics.combinations(symbols(V), k)
-    ]
+    s = [Symbol(join(parentheses.(s), " ∧ ")) for s in combinations(symbols(V), k)]
   end
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; cached, check=false)
@@ -456,14 +451,13 @@ function symmetric_power(
 ) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V) + k - 1, k)
-  ind_map = collect(Combinatorics.with_replacement_combinations(1:dim(V), k))
+  ind_map = collect(multicombinations(1:dim(V), k))
 
   T = tensor_power(V, k)
   basis_change_S2T = zero_matrix(base_ring(V), dim(T), dim_pow_V)
   basis_change_T2S = zero_matrix(base_ring(V), dim_pow_V, dim(T))
   T_ind_map = get_attribute(T, :ind_map)
-  for (i, _inds) in enumerate(ind_map), inds in Combinatorics.permutations(_inds)
-    sgn = Combinatorics.levicivita(sortperm(inds))
+  for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
     j = findfirst(==(inds), T_ind_map)
     basis_change_S2T[j, i] += 1//factorial(k)
     basis_change_T2S[i, j] = 1
