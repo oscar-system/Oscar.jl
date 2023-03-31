@@ -301,20 +301,19 @@ end
 
 base_ring(R::NewRing) = R.base_ring
 ```
-This implements the detailed printing.
-Note that the new line is needed for this to work
-because of how the julia printing system works.
-The last print statement must not add a new line.
+The following is a template for `detailed` printing.
+Note that at least one new line is needed for technical reasons.
+see below why.
 
 ```julia
 function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
-  println(io, "I am a new ring")
+  println(io, "I am a new ring")  # at least one new line is needed
   println(io, "I print with newlines")
-  print(io, base_ring(R))
+  print(io, base_ring(R)) # the last print statement must not add a new line
 end
 ```
 
-This takes care of one line and `:supercompact` printing
+The following is a template for `one line` and `:supercompact` printing.
 ```julia
 function Base.show(io::IO, R::NewRing)
   if get(io, :supercompact, false)
@@ -327,7 +326,7 @@ function Base.show(io::IO, R::NewRing)
   end
 end
 ```
-
+And this is how it looks like:
 ```julia
 julia> R = NewRing(QQ)
 I am a new ring
@@ -366,7 +365,7 @@ function Base.show(io::IO, R::NewRing2)
   end
 end
 ```
-
+And this is how it looks like:
 ```julia
 julia> R = NewRing2(QQ)
 I am a new ring and always print in one line QQ
