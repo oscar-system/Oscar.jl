@@ -443,7 +443,7 @@ Base.show(io::IOContext, ::MIME"text/latex")
 ```
 
 ### Unicode printing
-Per default output should be ANSI only (no Unicode). Implementors of
+Per default output should be ASCII only (no Unicode). Implementors of
 `Base.show` and related functions can branch on the output of
 `Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
 This will then be used for users which enabled Unicode using
