@@ -33,7 +33,7 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
 
 # When we read a `doc.main` from an experimental package, we need to equip all
-# its entries with a prefix to fix with out docs.
+# its entries with a prefix to fit with our docs.
 setup_experimental_prefix(docs::String, prefix::String) = prefix * docs
 setup_experimental_prefix(docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], setup_experimental_prefix(docs[2], prefix))
 setup_experimental_prefix(docs::Vector{T}, prefix::String) where T = T[setup_experimental_prefix(entry, prefix) for entry in docs]

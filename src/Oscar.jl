@@ -34,9 +34,19 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
-  "ExteriorAlgebra", "GaloisGrp", "GITFans", "GModule", "JuLie",
-  "LinearQuotients", "Matrix", "ModStd", "MPolyRingSparse",
-  "Rings", "Schemes", "SymmetricIntersections", "FTheoryTools"
+  "ExteriorAlgebra",
+  "FTheoryTools",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "LinearQuotients",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
 
