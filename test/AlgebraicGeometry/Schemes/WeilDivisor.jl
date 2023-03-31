@@ -107,7 +107,7 @@ end
 
 @testset "linear systems" begin
   P2 = projective_space(QQ, 2)
-  S = graded_coordinate_ring(P2)
+  S = homogeneous_coordinate_ring(P2)
   X = covered_scheme(P2)
   I = IdealSheaf(P2, [S[1]])
   D = WeilDivisor(I)
@@ -131,11 +131,11 @@ end
 
 @testset "WeilDivisor" begin
   P2 = projective_space(QQ, 2)
-  S = graded_coordinate_ring(P2)
+  S = homogeneous_coordinate_ring(P2)
   (x, y, z) = gens(S)
   I = ideal(S, x^3 + y^3 + z^3)
   C = subscheme(P2, I)
-  SC = graded_coordinate_ring(C)
+  SC = homogeneous_coordinate_ring(C)
   (x, y, z) = gens(SC)
   X = covered_scheme(C)
   H = ideal(SC, SC.([x, y+z]))

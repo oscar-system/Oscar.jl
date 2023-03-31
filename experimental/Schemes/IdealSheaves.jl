@@ -31,28 +31,28 @@ convert ``ℐ`` into a `CoherentSheaf` on ``Y``, first.
 """
 function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
-  S === graded_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
+  S === homogeneous_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
   for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenize(X, i).(g))
+    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
 
 function IdealSheaf(X::ProjectiveScheme, I::MPolyQuoIdeal) 
   S = base_ring(I)
-  S === graded_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
+  S === homogeneous_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
   for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenize(X, i).(g))
+    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
@@ -86,7 +86,7 @@ function IdealSheaf(
   I = IdDict{AbsSpec, Ideal}()
   U = basic_patches(default_covering(X_covered))
   for i in 1:length(U)
-    I[U[i]] = ideal(OO(U[i]), dehomogenize(X, i-1).(g))
+    I[U[i]] = ideal(OO(U[i]), dehomogenization_map(X, i-1).(g))
   end
   return IdealSheaf(X_covered, I, check=false)
 end
@@ -100,7 +100,7 @@ function IdealSheaf(
   I = IdDict{AbsSpec, Ideal}()
   U = basic_patches(default_covering(X_covered))
   for i in 1:length(U)
-    I[U[i]] = ideal(OO(U[i]), dehomogenize(X, i-1).(g))
+    I[U[i]] = ideal(OO(U[i]), dehomogenization_map(X, i-1).(g))
   end
   return IdealSheaf(X_covered, I, check=false)
 end

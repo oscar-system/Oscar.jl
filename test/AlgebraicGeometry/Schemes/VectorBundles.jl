@@ -1,6 +1,6 @@
 @testset "trivializations of coherent sheaves" begin
   IP2 = projective_space(QQ, 2)
-  S = graded_coordinate_ring(IP2)
+  S = homogeneous_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   f = x^2 + y*z
   IPC = subscheme(IP2, f)
@@ -20,7 +20,7 @@
   @test oscar.trivializing_covering(TC) isa Covering
 
   IP4 = projective_space(QQ, 4)
-  S = graded_coordinate_ring(IP4)
+  S = homogeneous_coordinate_ring(IP4)
   (x,y,z,u,v) = gens(S)
   A = S[x y z; u v x]
   I = ideal(S, minors(A, 2))

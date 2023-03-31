@@ -2,7 +2,7 @@
 function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  for s in gens(graded_coordinate_ring(codomain(f)))
+  for s in gens(homogeneous_coordinate_ring(codomain(f)))
     iszero(pullback(f)(s) - pullback(g)(s)) || return false
   end
   return true
@@ -36,7 +36,7 @@ of ``X`` and ``Y``, respectively.
   U = affine_charts(X)
   for i in 1:ngens(SX)
     U_i = U[i]
-    dehom = dehomogenize(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
+    dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
     for j in 1:ngens(SY)
       y = gens(SY, j)
       denom = dehom(pbf(y))

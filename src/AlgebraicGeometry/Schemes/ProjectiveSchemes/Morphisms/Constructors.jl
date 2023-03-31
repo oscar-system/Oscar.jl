@@ -5,9 +5,9 @@ function ProjectiveSchemeMor(
     a::Vector{<:RingElem}
   )
   base_ring(X) === base_ring(Y) || error("projective schemes must be defined over the same base ring")
-  Q = graded_coordinate_ring(X)
+  Q = homogeneous_coordinate_ring(X)
   all(x->parent(x)===Q, a) || return ProjectiveSchemeMor(X, Y, Q.(a))
-  P = graded_coordinate_ring(Y)
+  P = homogeneous_coordinate_ring(Y)
   return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
 end
 
@@ -25,10 +25,10 @@ function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomTy
   Qambient = projective_space(Rnew, symbols(S))
   Snew = ambient_coordinate_ring(Qambient)
   phi = hom(S, Snew, f, gens(Snew))
-  Q = subscheme(Qambient, ideal(graded_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
-  return Q, ProjectiveSchemeMor(Q, P, hom(graded_coordinate_ring(P), 
-                                          graded_coordinate_ring(Q), 
-                                          f, gens(graded_coordinate_ring(Q))))
+  Q = subscheme(Qambient, ideal(homogeneous_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
+  return Q, ProjectiveSchemeMor(Q, P, hom(homogeneous_coordinate_ring(P), 
+                                          homogeneous_coordinate_ring(Q), 
+                                          f, gens(homogeneous_coordinate_ring(Q))))
 end
 
 function fiber_product(
@@ -44,14 +44,14 @@ function fiber_product(
                  pullback(f),
                  gens(ambient_coordinate_ring(Q_ambient))
                 )
-  SQ = graded_coordinate_ring(Q_ambient)
+  SQ = homogeneous_coordinate_ring(Q_ambient)
   I = ideal(SQ, SQ.(help_map.(gens(defining_ideal(P)))))
   Q = subscheme(Q_ambient, I)
   return Q, ProjectiveSchemeMor(Q, P, 
-                                hom(graded_coordinate_ring(P),
-                                    graded_coordinate_ring(Q),
+                                hom(homogeneous_coordinate_ring(P),
+                                    homogeneous_coordinate_ring(Q),
                                     pullback(f),
-                                    gens(graded_coordinate_ring(Q)), 
+                                    gens(homogeneous_coordinate_ring(Q)), 
                                     check=false
                                    )
                                )
@@ -77,10 +77,10 @@ function inclusion_morphism(
   Y = base_scheme(Q)
   f = inclusion_morphism(X, Y) # will throw if X and Y are not compatible
   return ProjectiveSchemeMor(P, Q, 
-                             hom(graded_coordinate_ring(Q),
-                                 graded_coordinate_ring(P),
+                             hom(homogeneous_coordinate_ring(Q),
+                                 homogeneous_coordinate_ring(P),
                                  pullback(f), 
-                                 gens(graded_coordinate_ring(P))
+                                 gens(homogeneous_coordinate_ring(P))
                                 )
                             )
 end
@@ -90,17 +90,17 @@ function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:Abstract
   B = base_ring(P)
   A === B || error("can not compare schemes for non-equal base rings") # TODO: Extend by check for canonical maps, once they are available
   return ProjectiveSchemeMor(P, Q, 
-                             hom(graded_coordinate_ring(Q),
-                                 graded_coordinate_ring(P),
-                                 gens(graded_coordinate_ring(P))
+                             hom(homogeneous_coordinate_ring(Q),
+                                 homogeneous_coordinate_ring(P),
+                                 gens(homogeneous_coordinate_ring(P))
                                 )
                             )
 end
 
 identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P, 
-                                                        hom(graded_coordinate_ring(P),
-                                                            graded_coordinate_ring(P),
-                                                            gens(graded_coordinate_ring(P))
+                                                        hom(homogeneous_coordinate_ring(P),
+                                                            homogeneous_coordinate_ring(P),
+                                                            gens(homogeneous_coordinate_ring(P))
                                                            )
                                                        )
 

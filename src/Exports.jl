@@ -406,6 +406,7 @@ export degree
 export degrevlex
 export dehomogenization
 export dehomogenize
+export dehomogenization_map
 export del_pezzo_polytope
 export del_pezzo_surface
 export deletion
