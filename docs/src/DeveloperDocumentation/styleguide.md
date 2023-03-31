@@ -298,15 +298,19 @@ For reference, string interpolation `"$(x)"` will also use `print(io, x)`.
 struct NewRing
   base_ring
 end
+
+base_ring(R::NewRing) = R.base_ring
 ```
-This implements the detailed printing. Note that the new line is needed for
-this to work. The last print statement must not add a new line.
+This implements the detailed printing.
+Note that the new line is needed for this to work
+because of how the julia printing system works.
+The last print statement must not add a new line.
 
 ```julia
 function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
   println(io, "I am a new ring")
   println(io, "I print with newlines")
-  print(io, R.base_ring)
+  print(io, base_ring(R))
 end
 ```
 
@@ -319,11 +323,23 @@ function Base.show(io::IO, R::NewRing)
   else
     # nested printing allowed, preferably supercompact
     print(io, "one line printing of newring with ")
-    print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
+    print(IOContext(io, :supercompact => true), "supercompact ", base_ring(R))
   end
 end
 ```
 
+```julia
+julia> R = NewRing(QQ)
+I am a new ring
+I print with newlines
+QQ
+
+julia> [R,R]
+2-element Vector{NewRing}:
+ one line printing of newring with supercompact QQ
+ one line printing of newring with supercompact QQ
+
+```
 
 ##### Detailed printing in a single line.
 
@@ -332,16 +348,35 @@ printing does not contain newlines.
 Then detailed and one line printing agree.
 The `if` clause takes care of supercompact printing as well.
 ```julia
-function Base.show(io::IO, R::NewRing)
+struct NewRing2
+  base_ring
+end
+
+base_ring(R::NewRing2) = R.base_ring
+
+function Base.show(io::IO, R::NewRing2)
   if get(io, :supercompact, false)
     # no nested printing
     print(io, "supercompact printing of newring")
   else
     # nested printing allowed, preferably supercompact
-    println(io, "I am a new ring and always print in one line" )
+    print(io, "I am a new ring and always print in one line " )
     print(IOContext(io, :supercompact => true), base_ring(R))
   end
 end
+```
+
+```julia
+julia> R = NewRing2(QQ)
+I am a new ring and always print in one line QQ
+
+julia> [R,R]
+2-element Vector{NewRing2}:
+ I am a new ring and always print in one line Rational Field
+ I am a new ring and always print in one line Rational Field
+
+julia> print(IOContext(Base.stdout, :supercompact => true) ,R)
+supercompact printing of newring
 ```
 
 ##### The following is not working as expected and should not be used
