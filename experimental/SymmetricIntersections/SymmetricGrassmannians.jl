@@ -602,7 +602,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothi
   
   ideal_PV = ideal(S, vec(collect(transpose(matrix(gens(S)))*K)))
   PV = subscheme(X, ideal_PV)
-  J = modulus(OO(intersect(affine_cone(Grtn), affine_cone(PV))))
+  J = modulus(OO(intersect(affine_cone(Grtn)[1], affine_cone(PV)[1])))
   J = ideal(S, [map_coefficients(x -> F(x), p, parent = S) for p in gens(J)])
   J = saturation(J, ideal(S, gens(S)))
   return J

@@ -1252,7 +1252,7 @@ Note: the field is NOT extended - but it throws an error if it was too small.
 Implements: Brueckner, Chap 1.2.3
 """
 function reps(K, G::Oscar.GAPGroup)
-  isfinite(G) || error("the group is not finite")
+  @req is_finite(G) "the group is not finite"
   if order(G) == 1
     F = free_module(K, 1)
     h = hom(F, F, [F[1]])

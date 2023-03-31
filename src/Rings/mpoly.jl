@@ -1147,3 +1147,20 @@ end
 function _is_integral_domain(R::MPolyRing) 
   return true
 end
+
+@doc Markdown.doc"""
+    total_degree(f::MPolyRingElem, w::Vector{Int})
+
+Given a multivariate polynomial `f` and a weight vector `w` 
+return the total degree of `f` with respect to the weights `w`.
+"""
+function weighted_degree(f::MPolyRingElem, w::Vector{Int})
+  x = gens(parent(f))
+  n = length(x)
+  n == length(w) || error("weight vector does not have the correct length")
+  vals = [sum([degree(m, j)*w[j] for j in 1:n]) for m in monomials(f)]
+  return maximum(vals)
+end
+
+# assure compatibility with generic code for MPolyQuos:
+lift(f::MPolyRingElem) = f

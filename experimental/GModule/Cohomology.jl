@@ -837,7 +837,7 @@ function H_two(C::GModule)
   i, mi = image(CC)
 #  @show intersect(i, E)
   H2, mH2 = quo(E, i)
-  if isfinite(G) && isa(H2, GrpAbFinGen)
+  if is_finite(G) && isa(H2, GrpAbFinGen)
     H2.exponent = order(G)
   end
   #we know |G| is an exponent - this might help
@@ -1054,7 +1054,7 @@ Together with the abstract module, a map is provided that will
 function cohomology_group(C::GModule{PermGroup,GrpAbFinGen}, i::Int; Tate::Bool = false)
   #should also allow modules...
   if Tate
-    @assert isfinite(group(C))
+    @assert is_finite(group(C))
   end
   if i==0
     if Tate
@@ -1142,7 +1142,7 @@ If `refine` is false, then the relative orders are just used from the hnf
 of the relation matrix.
 """
 function pc_group(M::GrpAbFinGen; refine::Bool = true)
-  @assert isfinite(M)
+  @assert is_finite(M)
   R = rels(M)
   h = hnf(R)
   if nrows(h) > ncols(h)

@@ -1,6 +1,6 @@
 @testset "pullbacks of Cartier divisors" begin 
   P = projective_space(QQ, 2)
-  SP = ambient_coordinate_ring(P)
+  SP = graded_coordinate_ring(P)
   (x, y, z) = gens(SP)
 
   A = [1 2 4; 1 3 9; 1 5 25]
@@ -43,9 +43,11 @@ end
 
 @testset "Arithmetic of CartierDivisors" begin
   IP = projective_space(QQ, 3)
-  (x,y,z,w) = gens(ambient_coordinate_ring(IP))
+  (x,y,z,w) = gens(graded_coordinate_ring(IP))
   f = x^4 + y^4 + z^4 + w^4
   IPX = subscheme(IP, f)
+  S = graded_coordinate_ring(IPX)
+  (x, y, z, w) = gens(S)
   X = covered_scheme(IPX)
   h = (x+y+z+w)^3
   u = (x-y+4*w)
@@ -58,7 +60,7 @@ end
 
 @testset "conversion of Cartier to Weil divisors" begin
   IP2 = projective_space(QQ, ["x", "y", "z"])
-  S = ambient_coordinate_ring(IP2)
+  S = graded_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, x^2*y^3*(x+y+z))
   C = oscar.effective_cartier_divisor(IP2, gens(I)[1])

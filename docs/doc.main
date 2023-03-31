@@ -197,6 +197,11 @@
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",
      ],
+     "F-Theory Tools" => [
+         "Experimental/FTheoryTools/introduction.md",
+         "Experimental/FTheoryTools/weierstrass.md",
+         "Experimental/FTheoryTools/tate.md"
+     ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
      ]

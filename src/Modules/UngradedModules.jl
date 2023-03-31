@@ -6836,8 +6836,7 @@ function copy_and_reshape(M::MatElem, n, m)
   julia_matrix = to_julia_matrix(M)
   julia_matrix = reshape(julia_matrix, n, m)
   R = base_ring(M)
-  mat_space = matrix_space(R, n, m)
-  return mat_space(julia_matrix)
+  return matrix(R, n, m, julia_matrix)
 end
 
 function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
