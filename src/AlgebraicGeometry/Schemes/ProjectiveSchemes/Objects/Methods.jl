@@ -69,9 +69,9 @@ Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme`
 ``P``, return a method ``h`` for the homogenization of elements 
 ``a ∈ 𝒪(U)``.
 
-This means ``h(a)`` returns a fraction ``p/q`` of the
-`homogeneous_coordinate_ring` ``S`` of ``P`` such that ``a`` is the dehomogenization
-of ``p/q``.
+This means that ``h(a)`` returns a pair ``(p, q)`` representing a fraction
+``p/q ∈ S`` of the `ambient_coordinate_ring` of ``P`` such
+that ``a`` is the dehomogenization of ``p/q``.
 
 **Note:** For the time being, this only works for affine 
 charts which are of the standard form ``sᵢ ≠ 0`` for ``sᵢ∈ S``
@@ -130,7 +130,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
     if deg_a > 0
       return (pp, qq*ss^deg_a)
     elseif deg_a <0
-      return F(pp * ss^(-deg_a), qq)
+      return (pp * ss^(-deg_a), qq)
     end
     return (pp, qq)
   end
