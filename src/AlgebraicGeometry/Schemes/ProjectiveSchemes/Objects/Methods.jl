@@ -7,13 +7,22 @@ function dehomogenization_map(
     X::AbsProjectiveScheme{<:Ring}, 
     U::AbsSpec
   )
+  if !isdefined(X, :dehomogenization_cache)
+    X.dehomogenization_cache = WeakKeyDict()
+  end
+  cache = X.dehomogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   charts = affine_charts(covered_scheme(X))
   any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
   i = findfirst(k->(charts[k] === U), 1:relative_ambient_dimension(X)+1) - 1
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  return hom(S, OO(U), s)
+  phi = hom(S, OO(U), s)
+  cache[U] = phi
+  return phi
 end
 
 @doc Markdown.doc"""
@@ -28,13 +37,22 @@ function dehomogenization_map(
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
+  if !isdefined(X, :dehomogenization_cache)
+    X.dehomogenization_cache = WeakKeyDict()
+  end
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
   C = standard_covering(X)
   U = C[i+1]
+  cache = X.dehomogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  return hom(S, OO(U), pullback(p[U]), s)
+  phi = hom(S, OO(U), pullback(p[U]), s)
+  cache[U] = phi
+  return phi
 end
 
 
@@ -57,8 +75,17 @@ function dehomogenization_map(
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   U = C[i+1]
+  if !isdefined(X, :dehomogenization_cache)
+    X.dehomogenization_cache = WeakKeyDict()
+  end
+  cache = X.dehomogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  return hom(S, OO(U), s)
+  phi = hom(S, OO(U), s)
+  cache[U] = phi
+  return phi
 end
 
 
@@ -87,6 +114,13 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
   # some internal way for caching. The @attr macro is not 
   # suitable for this, because it is not sensitive for 
   # which U is put in. 
+  if !isdefined(P, :homogenization_cache)
+    P.homogenization_cache = WeakKeyDict()
+  end
+  cache = P.homogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
 
   # Find the chart where a belongs to
   X = covered_scheme(P)
@@ -134,6 +168,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
     end
     return (pp, qq)
   end
+  cache[U] = my_dehom
   return my_dehom
 end
 
@@ -143,7 +178,13 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::Ab
   # some internal way for caching. The @attr macro is not 
   # suitable for this, because it is not sensitive for 
   # which U is put in. 
-
+  if !isdefined(P, :homogenization_cache)
+    P.homogenization_cache = WeakKeyDict()
+  end
+  cache = P.homogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   # Find the chart where a belongs to
   X = covered_scheme(P)
   i = findfirst(V->(U===V), affine_charts(X))
@@ -190,6 +231,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::Ab
     end
     return (pp, qq)
   end
+  cache[U] = my_dehom
   return my_dehom
 end
 
