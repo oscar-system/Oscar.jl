@@ -2314,7 +2314,8 @@ Sort:
 #    YES - need to have maps to and from local stuff
 #    use Klueners/ Acciaro to map arbitrary local into idel
 #    use ...               to project to ray class
-# - a magic(?) function to get idel-aproximations in and out?
+# - a magic(?) function to get idel-approximations in and out?
+
 """
 M has to be a torsion free Z module with a C_2 action by sigma.
 Returns data for the decomposition into indecomposables.
