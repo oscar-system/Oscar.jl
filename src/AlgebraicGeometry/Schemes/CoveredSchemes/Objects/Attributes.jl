@@ -138,7 +138,7 @@ function dim(X::AbsCoveredScheme)
       # because in each chart the output of `dim` is only the 
       # supremum of all components. Thus we can only infer 
       # non-equidimensionality in case this is already visible
-      # from comparing the diffent charts
+      # from comparing the different charts
       set_attribute!(X, :is_equidimensional, false)
     end
   end

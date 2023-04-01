@@ -115,7 +115,7 @@ The keyword `algorithm` can be set to
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
-    and `f4` in the OSCAR documention for some more details and for restrictions    
+    and `f4` in the OSCAR documentation for some more details and for restrictions    
     on the input data when using these versions of the standard basis algorithm.
 
 !!! note
@@ -199,7 +199,7 @@ The keyword `algorithm` can be set to
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
-    and `f4` in the OSCAR documention for some more details and for restrictions    
+    and `f4` in the OSCAR documentation for some more details and for restrictions    
     on the input data when using these versions of the standard basis algorithm.
 
 !!! note
@@ -1254,7 +1254,7 @@ Return a Gröbner basis of `I` with respect to `destination_ordering`.
 
 !!! note
     The function implements a version of the Hilbert driven Gröbner basis algorithm.
-    See the correspending section of the OSCAR documentation for some details.
+    See the corresponding section of the OSCAR documentation for some details.
 
 !!! note
     All weights must be positive. If no weight vector is entered by the user, all weights 

@@ -98,7 +98,7 @@ build_doc(doctest = :fix)
 
 !!! tip
     If this command fails with an error message indicating lacking permissions
-    to change `AbtractAlgebra.jl` related docs, it may help to run the
+    to change `AbstractAlgebra.jl` related docs, it may help to run the
     following command:
     ```
     ]dev AbstractAlgebra

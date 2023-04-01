@@ -130,7 +130,7 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) 
 
   # initializing a few helpful Variables
   exponents = Int[getindex_safe(lambda,i)+n-i for i=1:n] #the exponents from the Matrix read from top to bottom
-  exp_incr = zeros(Int,n) #the increment with wich exponents increase
+  exp_incr = zeros(Int,n) #the increment with which exponents increase
   for i = 1:n-1
     exp_incr[i] = exponents[i] - exponents[i+1]
   end

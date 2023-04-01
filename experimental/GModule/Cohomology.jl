@@ -2123,7 +2123,7 @@ Sort:
 #    YES - need to have maps to and from local stuff
 #    use Klueners/ Acciaro to map arbitrary local into idel
 #    use ...               to project to ray class
-# - a magic(?) function to get idel-aproximations in and out?
+# - a magic(?) function to get idel-approximations in and out?
 
 function restrict(C::GModule, U::Oscar.GAPGroup)
   fl, m = is_subgroup(U, C.G)
