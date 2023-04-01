@@ -9,7 +9,7 @@ Pages = ["CohomCalg.md"]
 
 # Line bundle cohomology with cohomCalg
 
-We employ the cohomCalg algorithm [cohomCalg:Implementation](@cite)
+We employ the cohomCalg algorithm [BJRR10*1](@cite)
 to compute the dimension of line bundle cohomologies as well as vanishing sets.
 
 
@@ -23,7 +23,7 @@ cohomology(l::ToricLineBundle, i::Int)
 ## Toric vanishing sets
 
 Vanishing sets describe subsets of the Picard group of toric varieties.
-Their computations is based on [cohomCalg:Implementation](@cite), i.e.
+Their computations is based on [BJRR10*1](@cite), i.e.
 this functionality is only available if the toric variety in question is
 either smooth and complete or alternatively, simplicial and projective.
 This approach to identify vanishing sets on toric varieties was originally

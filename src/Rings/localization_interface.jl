@@ -232,7 +232,7 @@ closed set S of type `MultSetType`.
 abstract type AbsLocalizedRingElem{
     RingType <: AbstractAlgebra.Ring, 
     RingElemType <: AbstractAlgebra.RingElem, 
-    MultSetType
+    MultSetType <: AbsMultSet
   } <: AbstractAlgebra.RingElem end
 
 ### required getter functions 
@@ -413,7 +413,7 @@ end
 ### promotion rules
 AbstractAlgebra.promote_rule(::Type{S}, ::Type{S}) where {S<:AbsLocalizedRingElem} = S
 
-function AbstractAlgebra.promote_rule(::Type{S}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, S<:AbsLocalizedRingElem{RT, RET, MST}, T<:RingElement} 
+function AbstractAlgebra.promote_rule(::Type{S}, ::Type{T}) where {RT, RET, MST, S<:AbsLocalizedRingElem{RT, RET, MST}, T<:RingElement} 
   AbstractAlgebra.promote_rule(RET, T) == RET ? S : Union{}
 end
 

@@ -36,8 +36,8 @@ coefficients.
 julia> w = global_weierstrass_model(test_base())
 Global Weierstrass model over a concrete base
 
-julia> is_smooth(toric_ambient_space(w))
-false
+julia> dim(toric_ambient_space(w))
+5
 ```
 """
 function global_weierstrass_model(base::AbstractNormalToricVariety)
@@ -114,20 +114,6 @@ julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 
 julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
-
-julia> weierstrass_polynomial(w)
-f*x*z^4 + g*z^6 + x^3 - y^2
-
-julia> toric_base_space(w)
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
-Normal toric variety
-
-julia> toric_ambient_space(w)
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
-Normal, simplicial toric variety
-
-julia> dim(toric_ambient_space(w))
-5
 ```
 """
 function global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)

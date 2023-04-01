@@ -9,8 +9,10 @@ Return the polynomial ``f`` used for the
 construction of the global Weierstrass model.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
+
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_f(w);
 ```
@@ -25,8 +27,10 @@ Return the polynomial ``g`` used for the
 construction of the global Weierstrass model.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
+
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_g(w);
 ```
@@ -44,8 +48,10 @@ julia> weierstrass_section_g(w);
 Return the Weierstrass polynomial of the global Weierstrass model.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
+
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w);
 ```
@@ -63,11 +69,14 @@ julia> weierstrass_polynomial(w);
 Return the toric base space of the global Weierstrass model.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 
-julia> is_smooth(toric_base_space(w))
-true
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
+
+julia> dim(toric_base_space(w))
+[ Info: Base space was not fully specified. Returning AUXILIARY base space.
+3
 ```
 """
 @attr AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
@@ -82,11 +91,14 @@ end
 Return the toric base space of the global Weierstrass model.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 
-julia> is_smooth(toric_ambient_space(w))
-false
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
+
+julia> dim(toric_ambient_space(w))
+[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
+5
 ```
 """
 @attr AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
@@ -106,10 +118,13 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Weierstrass model.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
+
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
 
 julia> cy_hypersurface(w)
+[ Info: Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.
 Closed subvariety of a normal toric variety
 ```
 """
@@ -136,8 +151,10 @@ end
 Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 
 ```jldoctest
-julia> w = global_weierstrass_model(test_base())
-Global Weierstrass model over a concrete base
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
+
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+Global Weierstrass model over a not fully specified base
 
 julia> discriminant(w);
 ```
@@ -166,51 +183,17 @@ By treating a not-fully specified base space implicitly as toric space, we can e
 result straightforwardly to this situation also. This is the reason for constructing this
 auxiliary base space.
 
-Let us demonstrate the functionality by computing the singular loci of a Type ``III`` Tate model
-[KMSS11](@cite). In this case, we  will consider a global Tate model over a non-fully specified base.
-The Tate sections are factored as follows:
-- ``a_1 = a_{11} w^1``,
-- ``a_2 = a_{21} w^1``,
-- ``a_3 = a_{31} w^1``,
-- ``a_4 = a_{41} w^1``,
-- ``a_6 = a_{62} w^2``.
-For this factorization, we expect a singularity of Kodaira type ``III`` over the divisor
-``W = {w = 0}``, as desired. So this should be one irreducible component of the discriminant. Moreover,
-we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, while the Weierstrass
-sections ``f`` and ``g`` vanish to orders 1 and 2, respectively.
-
-Let us verify this by turning this global Tate model into a Weierstrass model and then
-computing the singular loci of the discriminant of this Weierstrass model.
-
 ```jldoctest
-julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a11", "a21", "a31", "a41", "a62", "w"];
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 
-julia> a1 = a11 * w;
-
-julia> a2 = a21 * w;
-
-julia> a3 = a31 * w;
-
-julia> a4 = a41 * w;
-
-julia> a6 = a62 * w^2;
-
-julia> ais = [a1, a2, a3, a4, a6];
-
-julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
-Global Tate model over a not fully specified base
-
-julia> weier = global_weierstrass_model(t)
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
+julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
-julia> length(singular_loci(weier))
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
-2
+julia> discriminant(w);
 
-julia> singular_loci(weier)[2]
-(ideal(w), (1, 2, 3), "III")
+julia> length(singular_loci(w))
+[ Info: Base space was not fully specified. Returning AUXILIARY base space.
+1
 ```
 """
 @attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)

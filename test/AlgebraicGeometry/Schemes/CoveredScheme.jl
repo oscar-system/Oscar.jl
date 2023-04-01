@@ -2,7 +2,7 @@
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
   X = subscheme(Spec(R), [x^2+y^2])
   P = projective_space(X, 3)
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   (u, v) = gens(S)[1], gens(S)[2]
   h = u^3 
   h = u^3 + u^2
@@ -17,7 +17,7 @@ end
 @testset "Covered schemes 2" begin
   P = projective_space(QQ, ["x", "y", "z", "w"])
   Pc = covered_scheme(P)
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   (x,y,z,w) = gens(S)
   X = subscheme(P, [x*w - y*z])
   @test dim(Pc)==3
@@ -41,7 +41,7 @@ end
 
 @testset "covered schemes 3" begin
   IP2 = projective_space(QQ, 2, var_name="u")
-  S = ambient_coordinate_ring(IP2)
+  S = graded_coordinate_ring(IP2)
   u0, u1, u2 = gens(S)
   C = subscheme(IP2, u0^2 - u1*u2)
 
@@ -118,7 +118,7 @@ end
 
 @testset "closed embeddings and singular loci" begin
   IP2 = projective_space(QQ, ["x", "y", "z"])
-  S = ambient_coordinate_ring(IP2)
+  S = graded_coordinate_ring(IP2)
   (x, y, z) = gens(S)
   f = x^2*z + y^3 - y^2*z
   C = subscheme(IP2, ideal(S, f))
@@ -134,7 +134,7 @@ end
 @testset "is_integral" begin
   P = projective_space(QQ, 2)
 
-  S = ambient_coordinate_ring(P)
+  S = graded_coordinate_ring(P)
   u, v, w = gens(S)
   I = ideal(S, [u*(v^2 + w^2 + u^2)])
 
@@ -154,7 +154,7 @@ end
   @test is_irreducible(Ycov)
   @test is_integral(Ycov)
 
-  R = S.R 
+  R = forget_grading(base_ring(S))
   A = Spec(R)
   @test is_integral(A)
   @test is_integral(hypersurface_complement(A, R[1]))
@@ -187,13 +187,13 @@ end
 
 @testset "conversion of morphisms" begin
   P = projective_space(QQ, 2)
-  SP = ambient_coordinate_ring(P)
+  SP = graded_coordinate_ring(P)
   (x, y, z) = gens(SP)
   m = ideal(SP, gens(SP))
   m3 = m^3
   n = ngens(m3)
   Q = projective_space(QQ, n-1)
-  SQ = ambient_coordinate_ring(Q)
+  SQ = graded_coordinate_ring(Q)
   phi = hom(SQ, SP, gens(m3))
   f = ProjectiveSchemeMor(P, Q, phi)
   f_cov = covered_scheme_morphism(f)

@@ -28,6 +28,42 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
                         "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
 
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+# We don't want to interfere with existing stuff in experimental though.
+const expdir = joinpath(@__DIR__, "../experimental")
+const oldexppkgs = [
+  "ExteriorAlgebra",
+  "FTheoryTools",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "LinearQuotients",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
+]
+const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
+
+# force trigger recompile when folder changes
+include_dependency("../experimental")
+
+
 # When a specific branch is loaded via `]add Package#branch` julia will only
 # create a checkout and keep a bare git repo in a separate directory.
 # In a bare repo HEAD will not point to the correct commit so we use the git

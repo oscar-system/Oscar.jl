@@ -365,7 +365,7 @@ end
    @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
-   @test radical_subgroup(S)[1]==S
+   @test solvable_radical(S)[1]==S
    S = symmetric_group(5)
-   @test radical_subgroup(S)==sub(S,[one(S)])
+   @test solvable_radical(S)==sub(S,[one(S)])
 end

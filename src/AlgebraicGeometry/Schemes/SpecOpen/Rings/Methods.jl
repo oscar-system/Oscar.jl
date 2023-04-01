@@ -165,6 +165,16 @@ AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem,
 # specific geometric configuration. Hence, we rely on the user to perform 
 # every coercion manually. 
 
+# Additional promotions to make (graded) polynomial rings and their quotients work over SpecOpenRings.
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyRingElem{S}} = parent(b)(a)*b
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyDecRingElem{S}} = parent(b)(a)*b
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyDecRingElem{S}}} = parent(b)(a)*b
+*(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyRingElem{S}}} = parent(b)(a)*b
+
+*(b::T, a::S) where {S<:SpecOpenRingElem, T<:MPolyDecRingElem{S}} = parent(b)(a)*b
+*(b::T, a::S) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyDecRingElem{S}}} = parent(b)(a)*b
+*(b::T, a::S) where {S<:SpecOpenRingElem, T<:MPolyQuoRingElem{MPolyRingElem{S}}} = parent(b)(a)*b
+
 ########################################################################
 # Additional methods for compatibility and coherence                   #
 ########################################################################
@@ -425,5 +435,11 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
     return SpecOpenRingElem(S, [g(b) for g in pb_to_Us], check=false)
   end
   return Hecke.MapFromFunc(mymap, myinvmap, S, T)
+end
+
+# Special override for a case where even ideal membership and ring flattenings 
+# are not implemented. 
+function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:SpecOpenRingElem}})
+  return f
 end
 

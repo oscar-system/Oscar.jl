@@ -151,9 +151,9 @@ julia> perfect_group_identification(SL(2,7))
 ```
 """
 function perfect_group_identification(G::GAPGroup)
-   is_perfect(G) || error("group is not perfect")
+   @req is_perfect(G) "group is not perfect"
    res = GAP.Globals.PerfectIdentification(G.X)
-   res !== GAP.Globals.fail || error("identification is not available for groups of order $(order(G))")
+   @req (res !== GAP.Globals.fail) "identification is not available for groups of order $(order(G))"
    return Tuple{Int,Int}(res)
 end
 
@@ -174,7 +174,7 @@ julia> number_perfect_groups(1966080)
 function number_perfect_groups(n::IntegerUnion)
    @req n >= 1 "group order must be positive, not $n"
    res = GAP.Globals.NumberPerfectGroups(GAP.Obj(n))
-   res !== GAP.Globals.fail || error("the number of perfect groups of order $n is not available")
+   @req (res !== GAP.Globals.fail) "the number of perfect groups of order $n is not available"
    return res::Int
 end
 
