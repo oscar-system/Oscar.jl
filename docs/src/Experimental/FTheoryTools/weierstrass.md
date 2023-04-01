@@ -84,7 +84,7 @@ cy_hypersurface(w::GlobalWeierstrassModel)
 discriminant(w::GlobalWeierstrassModel)
 ```
 In case the Weierstrass model is constructed over a not fully specified base,
-it is nontheless possibly to construct an auxiliary base space as well as an
+it is nonetheless possibly to construct an auxiliary base space as well as an
 auxiliary ambient space. The (auxiliary) base and ambient space can
 be accessed with the following functions:
 ```@docs

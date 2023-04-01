@@ -79,7 +79,7 @@ end
 @doc Markdown.doc"""
     abelian_d15_pi21_quintic_1()
 
-Return a smooth abelian surface in $\mathbb P^4$ with degree `15` and sectional genus `21` which is ontained in precisely one quintic.
+Return a smooth abelian surface in $\mathbb P^4$ with degree `15` and sectional genus `21` which is contained in precisely one quintic.
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
