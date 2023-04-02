@@ -5,7 +5,7 @@ Returns the vector of coefficients of the matrix `M` in the basis `basis`.
 Requires that `basis` is linearly independent and that `M` lies in the span of `basis`.
 
 # Examples
-```jldoctest; setup = :(coefficient_vector = Oscar.coefficient_vector)
+```jldoctest; setup = :(using Oscar.LieAlgebras)
 julia> coefficient_vector(matrix(QQ, [1 2;3 4]), [matrix(QQ, [1 0;0 0]), matrix(QQ, [0 1;0 2]), matrix(QQ, [0 0;-1 0])])
 [1   2   -3]
 ```
@@ -41,18 +41,6 @@ i.e. are of one of the forms
   * ``E_5``, ``E_6``, ``E_7``,
   * ``F_4``,
   * ``G_2``.
-
-# Examples
-```jldoctest; setup = :(is_valid_dynkin = Oscar.is_valid_dynkin)
-julia> is_valid_dynkin('A', 2)
-true
-
-julia> is_valid_dynkin('F', 4)
-true
-
-julia> is_valid_dynkin('D', 3)
-false
-```
 """
 function is_valid_dynkin(dynkin::Char, n::Int)
   if dynkin == 'A'

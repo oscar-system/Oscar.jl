@@ -12,7 +12,7 @@ include("SymmetricIntersections.jl")
 include("LinearQuotients.jl")
 
 include("JuLie.jl")
-include("PBWDeformations.jl")
+include("LieAlgebras.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")

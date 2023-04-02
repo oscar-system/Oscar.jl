@@ -1,4 +1,4 @@
-@testset "PBWDeformations.LinearLieAlgebra" begin
+@testset "LieAlgebras.LinearLieAlgebra" begin
   @testset "constructors for R=$R, n=$n" for R in [QQ, cyclotomic_field(4)[1]], n in 1:5
     L = general_linear_lie_algebra(R, n)
     @test dim(L) == n^2

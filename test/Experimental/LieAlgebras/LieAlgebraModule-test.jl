@@ -101,7 +101,7 @@ function lie_algebra_module_conformance_test(
   end
 end
 
-@testset "PBWDeformations.LieAlgebraModule" begin
+@testset "LieAlgebras.LieAlgebraModule" begin
   sc = Matrix{SRow{elem_type(QQ)}}(undef, 3, 2)
   sc[1, 1] = sparse_row(QQ, [1, 2], [0, 0])
   sc[1, 2] = sparse_row(QQ, [1, 2], [1, 0])

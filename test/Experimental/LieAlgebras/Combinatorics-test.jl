@@ -1,4 +1,4 @@
-@testset "PBWDeformations.Combinatorics" begin
+@testset "LieAlgebras.Combinatorics" begin
   @testset "combinations" begin
     for n in 1:8, k in 1:n
       @test collect(combinations(n, k)) == collect(combinations(1:n, k))

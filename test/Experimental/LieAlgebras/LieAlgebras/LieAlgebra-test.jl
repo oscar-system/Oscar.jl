@@ -101,6 +101,6 @@ end
 include("AbstractLieAlgebra-test.jl")
 include("LinearLieAlgebra-test.jl")
 
-@testset "PBWDeformations.LieAlgebra" begin
+@testset "LieAlgebras.LieAlgebra" begin
   # nothing here yet
 end
