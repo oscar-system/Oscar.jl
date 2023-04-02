@@ -3,7 +3,28 @@ module LieAlgebras
 using ..Oscar
 using Markdown
 
-import AbstractAlgebra: ProductIterator
+# not importet in Oscar
+using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
+
+using Base: deepcopy_internal
+
+# functions with new methods
+import ..Oscar:
+  action,
+  base_ring,
+  basis,
+  dim,
+  elem_type,
+  expressify,
+  exterior_power,
+  gen,
+  gens,
+  ngens,
+  parent_type,
+  symbols,
+  symmetric_power
+
+import Base: getindex, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
