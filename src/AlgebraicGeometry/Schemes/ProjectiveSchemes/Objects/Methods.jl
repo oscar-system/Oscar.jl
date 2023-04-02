@@ -7,6 +7,9 @@ function dehomogenization_map(
     X::AbsProjectiveScheme{<:Ring}, 
     U::AbsSpec
   )
+  charts = affine_charts(covered_scheme(X))
+  any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
+  # TODO move the previous check after the cache look up as soon as we have WeakKeyIdDict
   if !isdefined(X, :dehomogenization_cache)
     X.dehomogenization_cache = WeakKeyDict()
   end
@@ -14,8 +17,6 @@ function dehomogenization_map(
   if haskey(cache, U)
     return cache[U]
   end
-  charts = affine_charts(covered_scheme(X))
-  any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
   i = findfirst(k->(charts[k] === U), 1:relative_ambient_dimension(X)+1) - 1
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
@@ -114,6 +115,11 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
   # some internal way for caching. The @attr macro is not 
   # suitable for this, because it is not sensitive for 
   # which U is put in. 
+  # Find the chart where a belongs to
+  X = covered_scheme(P)
+  i = findfirst(V->(U===V), affine_charts(X))
+  i === nothing && error("the given affine scheme is not one of the standard affine charts")
+  # TODO move the previous check after the cache look up as soon as we have WeakKeyIdDict
   if !isdefined(P, :homogenization_cache)
     P.homogenization_cache = WeakKeyDict()
   end
@@ -122,10 +128,6 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
     return cache[U]
   end
 
-  # Find the chart where a belongs to
-  X = covered_scheme(P)
-  i = findfirst(V->(U===V), affine_charts(X))
-  i === nothing && error("the given affine scheme is not one of the standard affine charts")
   
   # Determine those variables which come from the homogeneous 
   # coordinates
@@ -178,6 +180,11 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::Ab
   # some internal way for caching. The @attr macro is not 
   # suitable for this, because it is not sensitive for 
   # which U is put in. 
+  # Find the chart where a belongs to
+  X = covered_scheme(P)
+  i = findfirst(V->(U===V), affine_charts(X))
+  i === nothing && error("the given affine scheme is not one of the standard affine charts")
+  # TODO move the previous check after the cache look up as soon as we have WeakKeyIdDict
   if !isdefined(P, :homogenization_cache)
     P.homogenization_cache = WeakKeyDict()
   end
@@ -185,10 +192,6 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::Ab
   if haskey(cache, U)
     return cache[U]
   end
-  # Find the chart where a belongs to
-  X = covered_scheme(P)
-  i = findfirst(V->(U===V), affine_charts(X))
-  i === nothing && error("the given affine scheme is not one of the standard affine charts")
   
   # Determine those variables which come from the homogeneous 
   # coordinates
