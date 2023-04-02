@@ -33,13 +33,13 @@ export standard_module
 export symmetric_power
 export tensor_power
 
-include("LieAlgebras/Combinatorics.jl")
-include("LieAlgebras/Util.jl")
-include("LieAlgebras/LieAlgebras/LieAlgebra.jl")
-include("LieAlgebras/LieAlgebras/AbstractLieAlgebra.jl")
-include("LieAlgebras/LieAlgebras/LinearLieAlgebra.jl")
-include("LieAlgebras/LieAlgebraModule.jl")
-include("LieAlgebras/GapWrapper.jl")
+include("Combinatorics.jl")
+include("Util.jl")
+include("LieAlgebra.jl")
+include("AbstractLieAlgebra.jl")
+include("LinearLieAlgebra.jl")
+include("LieAlgebraModule.jl")
+include("GapWrapper.jl")
 
 end
 
