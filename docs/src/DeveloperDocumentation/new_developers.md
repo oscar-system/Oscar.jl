@@ -28,7 +28,7 @@ on these things online.
 5. Look at existing code that does similar things to your project to get an
    idea of what OSCAR code should look like. Try to look at multiple examples.
 6. If you are planning to implement a new feature from scratch, please also read
-   [Implementing features from scratch](@ref).
+   [Adding new projects to experimental](@ref).
 
 ## Overview
 In general you have to do
