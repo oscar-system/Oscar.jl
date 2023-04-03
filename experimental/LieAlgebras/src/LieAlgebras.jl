@@ -3,6 +3,8 @@ module LieAlgebras
 using ..Oscar
 using Markdown
 
+import Oscar: GAPWrap
+
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
 
