@@ -80,7 +80,7 @@ function _is_projective_without_denominators(A::MatElem;
 
   # The condition for end of recursion:
   if iszero(A) 
-    return true, one(matrix_space(R, n, n)), 0
+    return true, identity_matrix(R, n), 0
   end
 
   entry_list = [(A[i,j], i, j) for i in 1:m for j in 1:n if !iszero(A[i,j])]
@@ -96,15 +96,15 @@ function _is_projective_without_denominators(A::MatElem;
     X = Spec(R)
     U = components(X)
     l = length(U)
-    l == 1 && return false, zero(matrix_space(R, n, n)), 0
+    l == 1 && return false, zero_matrix(R, n, n), 0
     projectors = MatElem[] # The local projectors on each component
     expon = Int[]
     for k in 1:l
       L, inc = Localization(R, complement_equation(U[k])) # We can not use OO(U[k]) directly, because 
                                                           # we'd be missing the map in that case. 
       success, p, k = _is_projective_without_denominators(change_base_ring(L, A), unit=L(unit), task=task)
-      !success && return false, zero(matrix_space(R, n, n)), 0
-      q = zero(matrix_space(R, nrows(p), ncols(p)))
+      !success && return false, zero_matrix(R, n, n), 0
+      q = zero_matrix(R, nrows(p), ncols(p))
       for i in 1:nrows(p)
         for j in 1:ncols(p)
           q[i, j] = preimage(inc, p[i, j])
@@ -128,7 +128,7 @@ function _is_projective_without_denominators(A::MatElem;
                                                   x->(divides(x, inner)[1]))
 
     # pull u^mpow from each entry of the matrix:
-    L = zero(matrix_space(R, n, n))
+    L = zero_matrix(R, n, n)
     for i in 1:n
       for j in 1:n
         L[i, j] = R(_lifted_numerator(result[i, j])*
@@ -176,7 +176,7 @@ function _is_projective_without_denominators(A::MatElem;
     B = last(sub_results)[2]
     k = last(sub_results)[3]
     if last(sub_results)[1] == false
-      return false, zero(matrix_space(R, n, n)), 0
+      return false, zero_matrix(R, n, n), 0
     end
   end
   powers = [k for (_, _, k) in sub_results]
@@ -185,10 +185,10 @@ function _is_projective_without_denominators(A::MatElem;
   if task == :with_projector
     c = coordinates(one(R), ideal(R, [u^(k+1) for ((u, _, _), k) in zip(entry_list, powers)]))
 
-    result = zero(matrix_space(R, n, n))
+    result = zero_matrix(R, n, n)
     for ((u, i, j), (_, Q, k), (Rloc, inc), lambda) in zip(entry_list, sub_results, sub_localizations, c)
       # Lift the matrix Q to an n×n-matrix over R
-      Qinc = zero(matrix_space(R, n, n))
+      Qinc = zero_matrix(R, n, n)
       for r in 1:j-1
         for s in 1:j-1
           Qinc[r, s] = preimage(inc, Q[r, s])
@@ -210,7 +210,7 @@ function _is_projective_without_denominators(A::MatElem;
       # has been deleted via the localization at u. This can only be done 
       # over R for u⋅v, so we multiply by u, keeping in mind that this will 
       # become a unit in the localization. 
-      P = u*one(matrix_space(R, n, n))
+      P = u*identity_matrix(R, n)
       P[j, j] = 0
       for l in 1:n
         l == j && continue
@@ -230,7 +230,7 @@ function _is_projective_without_denominators(A::MatElem;
                                                   x->(divides(x, inner)[1]))
 
     # pull u^mpow from each entry of the matrix:
-    L = zero(matrix_space(R, n, n))
+    L = zero_matrix(R, n, n)
     for i in 1:n
       for j in 1:n
         L[i, j] = R(_lifted_numerator(result[i, j])*
@@ -241,7 +241,7 @@ function _is_projective_without_denominators(A::MatElem;
     end
     return true, L, mpow
   elseif task==:without_projector 
-    return true, zero(matrix_space(R, n, n)), 0
+    return true, zero_matrix(R, n, n), 0
   end
   error("task could not be identified")
 end

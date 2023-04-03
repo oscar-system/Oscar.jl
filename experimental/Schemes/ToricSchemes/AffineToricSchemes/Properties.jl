@@ -33,7 +33,6 @@ false
 ```
 """
 is_smooth(X::ToricSpec) = is_smooth(affine_normal_toric_variety(X))
-export is_smooth
 
 
 @doc Markdown.doc"""
@@ -65,4 +64,4 @@ true
 ```
 """
 is_simplicial(X::ToricSpec) = is_simplicial(affine_normal_toric_variety(X))
-export is_simplicial
+

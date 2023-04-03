@@ -36,7 +36,7 @@ julia> (f1,f2)=gens(F);
 
 julia> G,_=quo(F,[f1^2,f2^3,(f1*f2)^2]);
 
-julia> isfinite(G)
+julia> is_finite(G)
 true
 
 julia> is_isomorphic(G,symmetric_group(3))

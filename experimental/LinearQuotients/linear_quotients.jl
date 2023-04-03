@@ -180,7 +180,7 @@ function monomial_valuation(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{
   # If the weights are not coprime, the valuation is not surjective...
   @assert is_one(gcd([ degree(gen(S, i))[1] for i = 1:ngens(S) ])) "Construction of well-defined valuation impossible with given choice of root of unity"
 
-  function val(f::MPolyElem{T})
+  function val(f::MPolyRingElem{T})
     @assert !is_zero(f) "Valuation is infinite"
 
     h = RtoS(f)

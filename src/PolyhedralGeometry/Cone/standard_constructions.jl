@@ -26,9 +26,11 @@ julia> dim(C01)
 0
 ```
 """
-function intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
-   return Cone{T}(Polymake.polytope.intersection(pm_object(C0), pm_object(C1)))
+function intersect(C::Cone{T}...) where T<:scalar_types
+    pmo = [pm_object(c) for c in C]
+    return Cone{T}(Polymake.polytope.intersection(pmo...))
 end
+intersect(C::AbstractVector{Cone{T}}) where T<:scalar_types = intersect(C...)
 
 
 @doc Markdown.doc"""

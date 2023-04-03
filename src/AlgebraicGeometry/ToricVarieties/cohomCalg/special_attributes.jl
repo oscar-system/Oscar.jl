@@ -27,11 +27,8 @@ end
 
 Computes the dimension of all sheaf cohomologies of the 
 toric line bundle `l` by use of the cohomCalg algorithm 
-[BJRR10](@cite),
-[cohomCalg:Implementation(@cite),
-[RR10](@cite),
-[Jow11](@cite),
-[BJRR12](@cite).
+[BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
+[Jow11](@cite) and [BJRR12](@cite)).
 
 # Examples
 ```jldoctest
@@ -160,11 +157,8 @@ end
 
 Computes the dimension of the i-th sheaf cohomology of the
 toric line bundle `l` by use of the cohomCalg algorithm
-[BJRR10](@cite),
-[cohomCalg:Implementation(@cite),
-[RR10](@cite),
-[Jow11](@cite),
-[BJRR12](@cite).
+[BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
+[Jow11](@cite) and [BJRR12](@cite)).
 
 # Examples
 ```jldoctest

@@ -71,10 +71,11 @@ default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 mutable struct MPolyQuoRingElem{S} <: RingElem
   f::S
   P::MPolyQuoRing{S}
+  simplified::Bool
 
-  function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}) where {S}
+  function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}, simplified = false) where {S}
     @assert parent(f) === base_ring(P)
-    return new{S}(f, P)
+    return new{S}(f, P, simplified)
   end
 end
 
@@ -85,7 +86,7 @@ function AbstractAlgebra.expressify(a::MPolyQuoRingElem; context = nothing)
 end
 
 function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
-  return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P)
+  return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P, a.simplified)
 end
 
 ##############################################################################
@@ -502,18 +503,25 @@ canonical_unit(a::MPolyQuoRingElem) = one(parent(a))
 
 parent(a::MPolyQuoRingElem) = a.P
 
+zero(R::MPolyQuoRing) = MPolyQuoRingElem(zero(base_ring(R)), R, true)
+
+function is_zero(a::MPolyQuoRingElem)
+  return iszero(simplify(a).f)
+end
+
+
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.P == b.P || error("wrong parents")
   return true
 end
 
-+(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
++(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
 
 -(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f-b.f, a.P)
 
 -(a::MPolyQuoRingElem) = MPolyQuoRingElem(-a.f, a.P)
 
-*(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
+*(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
 ^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
 
@@ -531,11 +539,13 @@ end
 
 function Oscar.mul!(a::MPolyQuoRingElem, b::MPolyQuoRingElem, c::MPolyQuoRingElem)
   a.f = b.f*c.f
+  a.simplified = false
   return a
 end
 
 function Oscar.addeq!(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.f += b.f
+  a.simplified = false
   return a
 end
 
@@ -578,7 +588,6 @@ function simplify(a::MPolyQuoIdeal)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
   a.gens.S = si
   a.gens.O = [R(g) for g = gens(a.gens.S)]
-
   return a
 end
 
@@ -673,11 +682,15 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 end
 
 @doc Markdown.doc"""
-    simplify(f::MPolyQuoRingElem)
+    simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
 the `default_ordering` on `R`.
+
+!!! note
+Since this method only has a computational backend for quotients of polynomial rings 
+over a field, it is not implemented generically.
 
 # Examples
 ```jldoctest
@@ -695,14 +708,54 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem)
+function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+  f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
   SR = singular_origin_ring(R)
   G  = singular_origin_groebner_basis(R)
   g  = f.f
   f.f = OR(reduce(SR(g), G))
+  f.simplified = true
   return f::elem_type(R)
+end
+
+# Extra method for quotients of graded rings. 
+# TODO: Could this be simplified if the type-parameter signature of decorated rings 
+# was consistent with the one for polynomial rings? I.e. if the first type parameter 
+# was the one for the coefficient rings and not the one for the underlying polynomial ring?
+function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
+  f.simplified && return f
+  R  = parent(f)
+  OR = oscar_origin_ring(R)
+  SR = singular_origin_ring(R)
+  G  = singular_origin_groebner_basis(R)
+  g  = f.f
+  f.f = OR(reduce(SR(g), G))
+  f.simplified = true
+  return f::elem_type(R)
+end
+
+# The above methods for `simplify` assume that there is a singular backend which 
+# can be used. However, we are using (graded) quotient rings also with coefficient 
+# rings R which can not be translated to Singular; for instance when R is again 
+# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+# Still in many of those cases, we can use `RingFlattening` to bind a computational 
+# backend. In particular, this allows us to do ideal_membership tests; see 
+# the file `flattenings.jl` for details. 
+#
+# The generic method below is a compromise in the sense that `simplify` does not reduce 
+# a given element to a unique representative as would be the case in a groebner basis reduction, 
+# but it nevertheless reduces the element to zero in case its representative is 
+# contained in the modulus. This allows for both, the use of `RingFlattening`s and 
+# the potential speedup of `iszero` tests. 
+function simplify(f::MPolyQuoRingElem)
+  f.simplified && return f
+  if f.f in modulus(parent(f))
+    f.f = zero(f.f)
+  end
+  f.simplified = true
+  return f::elem_type(parent(f))
 end
 
 
@@ -814,8 +867,11 @@ lift(a::MPolyQuoRingElem) = a.f
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
 function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
-  parent(a) !== Q && error("Parent mismatch")
-  return a
+  if parent(a) === Q
+    return a
+  else
+    return Q(base_ring(Q)(a))
+  end
 end
 
 function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
@@ -840,7 +896,6 @@ end
 
 (Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
-zero(Q::MPolyQuoRing) = Q(0)
 one(Q::MPolyQuoRing) = Q(1)
 
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
@@ -1337,6 +1392,10 @@ end
 #
 ################################################################################
 
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{MPolyQuoRingElem{S}}) where {S <: RingElem}
+  return MPolyQuoRingElem{S}
+end
+
 function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{T}) where {S, T <: RingElem}
   if AbstractAlgebra.promote_rule(S, T) === S
     return MPolyQuoRingElem{S}
@@ -1349,3 +1408,5 @@ end
   return is_prime(modulus(A))
 end
 
+# extension of common functionality
+symbols(A::MPolyQuoRing) = symbols(base_ring(A))

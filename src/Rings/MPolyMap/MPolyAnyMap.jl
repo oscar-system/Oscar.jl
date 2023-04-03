@@ -65,7 +65,9 @@ end
 #
 ################################################################################
 
-# domain, codomain are automatically defined by the general map interface
+domain(f::MPolyAnyMap) = f.domain
+codomain(f::MPolyAnyMap) = f.codomain
+
 
 # Not sure if we want to expose the following function to the user.
 # It might be `nothing`. We could return `identity in the `nothing` case.
@@ -254,3 +256,8 @@ function morphism_type(::Type{D}, ::Type{C}, f::Type{F}) where {D <: Union{MPoly
 end
 
 morphism_type(::D, ::C, ::F) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F} = morphism_type(D, C, F)
+
+function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
+  return ideal(codomain(f), [f(g) for g in gens(I)])
+end
+

@@ -43,7 +43,7 @@ Return the default covering for ``X``.
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 
-julia> S = ambient_coordinate_ring(P);
+julia> S = graded_coordinate_ring(P);
 
 julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 
@@ -77,7 +77,7 @@ Return the affine charts in the `default_covering` of ``X``.
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 
-julia> S = ambient_coordinate_ring(P);
+julia> S = graded_coordinate_ring(P);
 
 julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 
@@ -88,9 +88,9 @@ covered scheme with 3 affine patches in its default covering
 
 julia> affine_charts(Xcov)
 3-element Vector{AbsSpec}:
- Spec of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0) over Rational Field by ideal((s1//s0) - (s2//s0)^2, 0)
- Spec of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1) over Rational Field by ideal((s0//s1) - (s2//s1)^2, 0)
- Spec of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2) over Rational Field by ideal((s0//s2)*(s1//s2) - 1, 0)
+ Spec of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0) over Rational Field by ideal((s1//s0) - (s2//s0)^2)
+ Spec of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1) over Rational Field by ideal((s0//s1) - (s2//s1)^2)
+ Spec of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2) over Rational Field by ideal((s0//s2)*(s1//s2) - 1)
 
 ```
 """
@@ -138,7 +138,7 @@ function dim(X::AbsCoveredScheme)
       # because in each chart the output of `dim` is only the 
       # supremum of all components. Thus we can only infer 
       # non-equidimensionality in case this is already visible
-      # from comparing the diffent charts
+      # from comparing the different charts
       set_attribute!(X, :is_equidimensional, false)
     end
   end

@@ -22,9 +22,9 @@ function modulus_matrix(L::MPolyQuoLocRing, n::Int)
   I = modulus(underlying_quotient(L))
   m = length(gens(I))
   R = base_ring(L)
-  B = zero(matrix_space(R, 0, n))
+  B = zero_matrix(R, 0, n)
   for j in 1:n
-    A = zero(matrix_space(R, m, n))
+    A = zero_matrix(R, m, n)
     for i in 1:m
       A[i, j] = gens(I)[i]
     end
@@ -60,14 +60,14 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingEle
   B, D = clear_denominators(Aext)
   c, u = clear_denominators(b)
   (success, y, v) = has_solution(B, c, inverted_set(S))
-  success || return (false, zero(matrix_space(S, 1, ncols(b))))
+  success || return (false, zero_matrix(S, 1, ncols(b)))
   # We have B = D⋅Aext and c = u ⋅ b as matrices. 
   # Now [y z]⋅B = v⋅c ⇔ [y z]⋅D ⋅Aext = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D ⋅ Aext = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D to be the solution x of x ⋅ Aext = b. 
   # Then for the first m components x' of x we have x' ⋅ A ≡ b mod I
   x = S(one(R), v*u[1,1])*map_entries(S, transpose(mul(transpose(D), transpose(y))))
   #x = S(one(R), v*u[1,1])*map_entries(S, y*D)
-  xpart = zero(matrix_space(S, 1, nrows(A)))
+  xpart = zero_matrix(S, 1, nrows(A))
   for i in 1:nrows(A)
     xpart[1, i] = x[1, i]
   end
@@ -84,7 +84,7 @@ function pre_saturated_module(M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem}
     (B, E) = clear_denominators(relM)
     mod_mat = modulus_matrix(S, ncols(B))
     B = vcat(B, mod_mat)
-    #E = vcat(E, zero(matrix_space(R, nrows(mod_mat), ncols(E))))
+    #E = vcat(E, zero_matrix(R, nrows(mod_mat), ncols(E)))
     for i in 1:nrows(mod_mat)
       push!(E, sparse_row(base_ring(E)))
     end

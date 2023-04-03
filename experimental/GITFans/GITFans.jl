@@ -33,24 +33,24 @@ end
 ##  permutation `perm`.
 bitlist_oper(bitset::BitSet, perm::Vector{Int}) = BitSet(perm[i] for i in bitset)
 
-function bitlist_oper_tuple(bitset_tuple, perm_tuple)
+function bitlist_oper_tuple(bitset_tuple::Vector{BitSet}, perm_tuple::Vector{Vector{Int}})
     return [bitlist_oper(bitset_tuple[i], perm_tuple[i]) for i in 1:length(bitset_tuple)]
 end
 
-function find_smallest_orbit_element(elem, ggens, action, comparator, leq)
+function find_smallest_orbit_element(elem, ggens, action::Function, comparator::Function, leq::Function)
     current_orbit = orbit(elem, ggens, action, comparator)
     sorted_orbit = sort(current_orbit; lt=leq)
     return sorted_orbit[1]
 end
 
-function rewrite_action_to_orbits(homs)
+function rewrite_action_to_orbits(homs::Vector{GAPGroupHomomorphism})
     G = domain(homs[1])
-    Ggens = gens(G)
-    generators_new_perm = [Vector{Int}[] for x in Ggens]
+    n = ngens(G)
+    generators_new_perm = [Vector{Int}[] for x in 1:n]
 
     for hom in homs
-      for j in 1:length(generators_new_perm)
-        img = Vector{Int}(image(hom, Ggens[j]))
+      for j in 1:n
+        img = Vector{Int}(image(hom, gen(G, j)))
         if length(img) == 0
           img = Int[1]
         end
@@ -67,15 +67,15 @@ end
 # user functions
 
 """
-    is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero = [])
+    is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
 
 See Prop. 3.1 in [BKR20](@cite).
 """
-function is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
+function is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
     Oscar.singular_assure(I)
     SingI = I.gens.S
-    R = Oscar.base_ring(SingI)
-    Rgens = Oscar.gens(R)
+    R = base_ring(SingI)
+    Rgens = gens(R)
     nr_variables = length(Rgens)
     poly_list = [evaluate(f, vars_to_zero, fill(R(0), length(vars_to_zero))) for f in gens(SingI)]
 
@@ -104,7 +104,7 @@ function is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero::Vector{Int} = Int[]
 end
 
 """
-    orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
+    orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
 
 Return orbit representatives of `G` on the set of those cones
 whose defining rays are given by subsets `S` of the rows of `Q`,
@@ -112,22 +112,30 @@ such that the matrix `S` has full rank and such that `I` is
 monomial-free (see [`is_monomial_free`](@ref)) w.r.t. the variables `x_i`
 for which the `i`-th row of `Q` is not contained in `S`.
 """
-function orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
+function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
     nr_variables, projected_dimension = size(Q)
 
-    collector_cones = []
+    collector_cones = Cone{QQFieldElem}[]
 
     # We need not consider sets of smaller size because of the rank condition.
     for k in projected_dimension:nr_variables
-        for orb in orbits(gset(G, on_sets, Hecke.subsets(nr_variables, k)))
+        for orb in orbits(gset(G, on_sets, subsets(nr_variables, k)))
             i = representative(orb)
             current_mat = Q[i,:]
             if rank(current_mat) == projected_dimension &&
                is_monomial_free(I, setdiff(1:nr_variables, i))
-                cone = Polymake.polytope.Cone(INPUT_RAYS = current_mat)
-                cone.FACETS
-                cone.RAYS
-                if ! any(j -> Polymake.polytope.equal_polyhedra(j, cone),
+                cone = positive_hull(current_mat)
+                # When comparing two cones it is fastest to solve a bunch of
+                # LP's to figure out whether the rays of one are contained in
+                # the other and vice versa. It would be even easier to just do
+                # some matrix multiplication if one already has the facets and
+                # rays. However to get the facets and rays is very hard
+                # compared to the LP's. But in this case we are comparing cones
+                # a lot, so the cost of the LP's outweigh the heavy lifting of
+                # computing rays and facets.
+                facets(cone)
+                rays(cone)
+                if ! any(j -> j == cone,
                       collector_cones)
                     push!(collector_cones, cone)
                 end
@@ -152,18 +160,18 @@ to its induced matrix action on the $m$-dimensional space over the Rationals.
 
 ```jldoctest
 julia> Q = [
-        1  1   0   0   0 ;
-        1  0   1   1   0 ;
-        1  0   1   0   1 ;
-        1  0   0   1   1 ;
-        0  1   0   0  -1 ;
-        0  1   0  -1   0 ;
-        0  1  -1   0   0 ;
-        0  0   1   0   0 ;
-        0  0   0   1   0 ;
+        1  1   0   0   0
+        1  0   1   1   0
+        1  0   1   0   1
+        1  0   0   1   1
+        0  1   0   0  -1
+        0  1   0  -1   0
+        0  1  -1   0   0
+        0  0   1   0   0
+        0  0   0   1   0
         0  0   0   0   1 ];
 
-julia> n = size(Q, 1)
+julia> n = nrows(Q)
 10
 
 julia> perms_list = [[1,3,2,4,6,5,7,8,10,9], [5,7,1,6,9,2,8,4,10,3]];
@@ -172,7 +180,7 @@ julia> sym10 = symmetric_group(n);
 
 julia> permgens = [sym10(x) for x in perms_list];
 
-julia> G, emb = sub(sym10, permgens);
+julia> G, _ = sub(sym10, permgens);
 
 julia> Oscar.GITFans.action_on_target(Q, G)
 Group homomorphism from
@@ -203,19 +211,19 @@ function action_on_target(Q::Matrix{Int}, G::PermGroup)
     matgens = typeof(mat)[]
     for ppi in permgens
       matimg = mat[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
-      push!(matgens, Nemo.solve(mat, matimg))
+      push!(matgens, solve(mat, matimg))
     end
 
     # Create the matrix group.
     matgroup = matrix_group(n, QQ, matgens)
 
     # Create the group homomorphism.
-    return Oscar.hom(G, matgroup, permgens, gens(matgroup))
+    return hom(G, matgroup, permgens, gens(matgroup))
 end
 
 
 """
-    orbit(point, generators, action, compare_func)
+    orbit(point, generators, action::Function, compare_func::Function)
 
 Return the orbit of the point `point` under the action of the group that is
 generated by the elements in the array `generators`.
@@ -225,7 +233,7 @@ and returns `true` if the two objects are considered as equal,
 and `false` otherwise.
 The elements of the returned array are in general not sorted.
 """
-function orbit(point, generators, action, compare_func)
+function orbit(point, generators, action::Function, compare_func::Function)
     orb = [point]
     # Note that in Julia (like in GAP),
     # the 'for' loop runs also over entries that get added
@@ -242,7 +250,7 @@ function orbit(point, generators, action, compare_func)
 end
 
 """
-    as_permutation(element, set, action, compare)
+    as_permutation(element, set, action::Function, compare::Function)
 
 Return the permutation (as a group element in the symmetric group of degree
 `length(set)`)
@@ -250,94 +258,87 @@ induced by the action of the group element `element` on the array `set`
 via the function `action`: (pt,element) -> pt^element.
 The equality of points is decided via the binary function `compare`.
 """
-function as_permutation(element, set, action, compare)
+function as_permutation(element, set, action::Function, compare::Function)
     n = length(set)
-    perm = Vector{Int64}(undef, n)
+    permlist = Vector{Int64}(undef, n)
     for i in 1:length(set)
-        image = action(set[i], element)
-        pos = findfirst(j -> compare(j, image), set)
+        img = action(set[i], element)
+        pos = findfirst(j -> compare(j, img), set)
         if pos === nothing
           error("the set is not invariant under the given action")
         end
-        perm[i] = pos
+        permlist[i] = pos
     end
-    return symmetric_group(n)(perm)
+    return perm(permlist)
 end
 
-function matrix_action_on_cones(cone, matrix)
-    rays = convert(Matrix{Rational{BigInt}}, cone.RAYS)
-    return Polymake.polytope.Cone(INPUT_RAYS = rays * matrix)
+function matrix_action_on_cones(C::Cone, M::QQMatrix)
+    rayscone = matrix(QQ, rays(C))
+    return positive_hull(rayscone * M)
 end
 
-function orbit_cone_orbits(cones, hom)
-    matgens = [Matrix{BigInt}(image(hom, g).X) for g in gens(domain(hom))]
+function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) where T
+    matgens = [image(ghom, g).elm for g in gens(domain(ghom))]
     act = matrix_action_on_cones
-    comp = Polymake.polytope.equal_polyhedra
-
-    result = []
-    for cone in cones
-        cone.RAYS
-        cone.FACETS
-        if all(o -> all(c -> ! comp(cone, c), o), result)
-            push!(result, orbit(cone, matgens, act, comp))
+   
+    result = Vector{Vector{Cone{T}}}([])
+    for c in cones
+        # When comparing two cones it is fastest to solve a bunch of LP's to
+        # figure out whether the rays of one are contained in the other and
+        # vice versa. It would be even easier to just do some matrix
+        # multiplication if one already has the facets and rays. However to get
+        # the facets and rays is very hard compared to the LP's. But in this
+        # case we are comparing cones a lot, so the cost of the LP's outweigh
+        # the heavy lifting of computing rays and facets.
+        rays(c)
+        facets(c)
+        if all(o -> all(x -> c != x, o), result)
+            push!(result, orbit(c, matgens, act, Base.:(==)))
         end
     end
 
     return result
 end
 
-function action_on_orbit_cone_orbits(orbits, hom::GAPGroupHomomorphism)
-#T Currently this is the only place in this file where the term `GAP` occurs
-#T outside a comment.
+function action_on_orbit_cone_orbits(orbs::Vector{Vector{Cone{T}}}, ghom::GAPGroupHomomorphism) where T
 #T Prescribing `GAPGroupHomomorphism` is quite technical;
 #T do we have a better way to request a "map that is a group homomorphism"?
-    G = domain(hom)
-    Ggens = gens(G)
+    G = domain(ghom)
 
-    if isempty(Ggens)
-        map = id_hom(G)
-        return [map for x in orbits]
+    if ngens(G) == 0
+        m = id_hom(G)
+        return GAPGroupHomomorphism[m for x in orbs]
     end
 
-    matgens = [Matrix{BigInt}(image(hom, g).X) for g in Ggens]
+    Ggens = gens(G)
+    matgens = [image(ghom, g).elm for g in Ggens]
     act = matrix_action_on_cones
-    comp = Polymake.polytope.equal_polyhedra
-
-    res = []
-    for orb in orbits
-        list = [as_permutation(gen, orb, act, comp) for gen in matgens]
-        push!(res, Oscar.hom(G, sub(list...)[1], Ggens, list))
+    
+    res = GAPGroupHomomorphism[]
+    for orb in orbs
+        list = [as_permutation(gen, orb, act, Base.:(==)) for gen in matgens]
+        push!(res, hom(G, sub(list...)[1], Ggens, list))
     end
 
     return res
 end
 
 
-"""
-    get_interior_point(cone)
-
-Return the sum of the rows of the matrix given by the rays of the cone.
-"""
-get_interior_point(cone) = vec(sum(cone.RAYS, dims = 1))
-
 
 """
-    compute_bit_list(orbits, point)
+    compute_bit_list(orbs::Vector{Vector{Cone{T}}}, point:AbstractVector{T}) where T
 
-Let `orbits` be an array of arrays of cones.
 Return an array of bitsets,
-containing at position i the bitset for the i-th entry of `orbits`,
-that is, `true` at the positions of those cones in `orbits[i]`
+containing at position i the bitset for the i-th entry of `orbs`,
+that is, `true` at the positions of those cones in `orbs[i]`
 that contain the point `point`.
 """
-function compute_bit_list(orbits, point)
-    bitset_list = [BitSet() for orb in orbits]
-    for current_orbit_nr in 1:length(orbits)
-        current_orbit = orbits[current_orbit_nr]
-        for current_cone_nr in 1:length(current_orbit)
-            current_cone = current_orbit[current_cone_nr]
-            if Polymake.polytope.contains(current_cone, point)
-                push!(bitset_list[current_orbit_nr], current_cone_nr)
+function compute_bit_list(orbs::Vector{Vector{Cone{T}}}, point::AbstractVector{T}) where T
+    bitset_list = [BitSet() for orb in orbs]
+    for (i, orb) in enumerate(orbs)
+        for (j, cone) in enumerate(orb)
+            if contains(cone, point)
+                push!(bitset_list[i], j)
             end
         end
     end
@@ -345,14 +346,12 @@ function compute_bit_list(orbits, point)
 end
 
 """
-    cones_from_bitlist(cone_list, bit_list_tuple)
+    cones_from_bitlist(cone_list::Vector{Vector{Cone{T}}}, bit_list_tuple::Vector{BitSet})
 
-Return the array of all cones at `true` positions in the bitsets,
-where `cone_list` is an array of arrays of cones,
-and `bit_list_tuple` is an array of bitsets.
+Return the array of all cones at `true` positions in the bitsets.
 """
-function cones_from_bitlist(cone_list, bit_list_tuple)
-    return_list = Any[]
+function cones_from_bitlist(cone_list::Vector{Vector{Cone{T}}}, bit_list_tuple::Vector{BitSet}) where T
+  return_list = Cone{T}[]
     for i in 1:length(cone_list)
         for j in bit_list_tuple[i]
             push!(return_list, cone_list[i][j])
@@ -362,17 +361,16 @@ function cones_from_bitlist(cone_list, bit_list_tuple)
 end
 
 
-hash_to_cone(orbit_list, hash) = Polymake.polytope.intersection(
-    cones_from_bitlist(orbit_list, hash)...)
+hash_to_cone(orbit_list::Vector{Vector{Cone{T}}}, hash::Vector{BitSet}) where T = intersect(cones_from_bitlist(orbit_list, hash)...)
 
 
 """
-    get_neighbor_hash(orbits, facet_point, inner_normal_vector)
+    get_neighbor_hash(orbits::Vector{Vector{Cone{T}}}, facet_point::Vector{QQFieldElem}, inner_normal_vector::Vector{QQFieldElem})
 
 Return the list of bitsets describing the cones adjacent to the point
 `facet_point` in the direction of `inner_normal_vector`.
 """
-function get_neighbor_hash(orbits, facet_point, inner_normal_vector)
+function get_neighbor_hash(orbits::Vector{Vector{Cone{T}}}, facet_point::Vector{QQFieldElem}, inner_normal_vector::Vector{QQFieldElem}) where T
     lambda = 1024
     facet_point_bl = compute_bit_list(orbits, facet_point)
     while true
@@ -387,48 +385,46 @@ function get_neighbor_hash(orbits, facet_point, inner_normal_vector)
 end
 
 
+#T is not needed anymore, thanks to `relative_interior_point`
+function get_interior_point_weighted(cone::Cone)
+    weights = rand(-100:100, nrays(cone))
+    return sum(rays(cone) .* weights)
+end
+
+
 """
-    fan_traversal(orbit_list, q_cone, perm_actions)
+    fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, perm_actions::Vector{GAPGroupHomomorphism}) where T
 
 Return the pair `(hash_list, edges)` where `hash_list` is an array that
 encodes orbit representatives of the maximal cones of the GIT fan described
 by `orbit_list`, `q_cone`, and `perm_actions`,
 and `edges` encodes the `Set` of edges of the incidence graph of the orbits.
 """
-function fan_traversal(orbit_list, q_cone, perm_actions)
+function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, perm_actions::Vector{GAPGroupHomomorphism}) where T
     # the induced actions on each of the orbits
     generators_new_perm = rewrite_action_to_orbits(perm_actions)
 
-    q_cone_facets_converted = convert(Matrix{Rational{BigInt}}, q_cone.FACETS)
-    q_cone_int_point = get_interior_point(q_cone)
-
+    q_cone_int_point = relative_interior_point(q_cone)
+ 
     start_hash = compute_bit_list(orbit_list, q_cone_int_point)
     orbit_start_hash_smallest = find_smallest_orbit_element(
         start_hash, generators_new_perm, bitlist_oper_tuple, ==,
         less_or_equal_array_bitlist)
     hash_list = [orbit_start_hash_smallest]
-
-    current_pos = 0
     edges = Set(Vector{Int}[])
 
-    for current_hash in hash_list
-        current_pos = current_pos + 1
+    for (current_pos, current_hash) in enumerate(hash_list)
 
         # note that we run also over elements added inside the loop
         current_cone_list = cones_from_bitlist(orbit_list, current_hash)
-        intersected_cone = Polymake.polytope.intersection(current_cone_list...)
-        facets = intersected_cone.FACETS
-        facets = convert(Matrix{Rational{BigInt}},facets)
-        facet_points = Vector{Rational{BigInt}}[
-                           Polymake.polytope.facet(intersected_cone, i-1).REL_INT_POINT
-                           for i in 1:size(facets, 1)]
+        intersected_cone = intersect(current_cone_list)
+        ic_facets = -linear_inequality_matrix(facets(intersected_cone))
+        facet_points = [T[relative_interior_point(f)...] for f in faces(intersected_cone, dim(intersected_cone)-1)]
 
         neighbor_hashes = []
         for i in 1:length(facet_points)
-            if any(x->x==0, q_cone_facets_converted*facet_points[i])
-                continue
-            end
-            push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], facets[i, :]))
+          !any(f->contains(f, facet_points[i]), faces(q_cone, dim(q_cone)-1)) || continue
+          push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], Vector{T}([ic_facets[i, :]...])))
         end
 
         neighbor_hashes = [find_smallest_orbit_element(i, generators_new_perm, bitlist_oper_tuple, ==, less_or_equal_array_bitlist) for i in neighbor_hashes]
@@ -449,27 +445,25 @@ function fan_traversal(orbit_list, q_cone, perm_actions)
 end
 
 
-orbits_of_maximal_GIT_cones(orbit_list, hash_list, matrix_action) =
+orbits_of_maximal_GIT_cones(orbit_list::Vector{Vector{Cone{T}}}, hash_list::Vector{Vector{BitSet}}, matrix_action::GAPGroupHomomorphism) where T =
     orbit_cone_orbits([hash_to_cone(orbit_list, x) for x in hash_list], matrix_action)
 
 
-function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
+function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list::Vector{Vector{BitSet}}, ghom::GAPGroupHomomorphism) where T
     # translate the descriptions of the orbit repres. of maximal cones
     # to cone objects
     result_cones = [hash_to_cone(orbit_list, x) for x in hash_list]
 
     # expand their orbits
-    expanded = orbit_cone_orbits(result_cones, hom)
+    expanded = orbit_cone_orbits(result_cones, ghom)
     maxcones = vcat(expanded...)
 
     # the defining rays for all maximal cones
-    rays_maxcones = [[convert(Vector{Rational{BigInt}}, cone.RAYS[i, :])
-                      for i in 1:size(cone.RAYS, 1)]
+    rays_maxcones = [[Vector{QQFieldElem}(x) for x in rays(cone)]
                       for cone in maxcones]
 
     # the defining rays for the orbit representatives of maximal cones
-    rays_result_cones = [[convert(Vector{Rational{BigInt}}, cone.RAYS[i, :])
-                      for i in 1:size(cone.RAYS, 1)]
+    rays_result_cones = [[Vector{QQFieldElem}(x) for x in rays(cone)]
                       for cone in result_cones]
 
     # the set of rays
@@ -480,8 +474,8 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
                             for v in rays])
                       for rays in rays_maxcones]
 
-    # the indices of rays that belong to each repres. cone (0-based)
-    index_result_cones = [sort([findfirst(x -> x == v, allrays)-1
+    # the indices of rays that belong to each repres. cone
+    index_result_cones = [sort([findfirst(x -> x == v, allrays)
                             for v in rays])
                       for rays in rays_result_cones]
 
@@ -497,9 +491,8 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
     # - representatives of the G-orbits on the maximal cones,
     #   each given by its defining rays, via the row indices (zero based)
     #   in the matrix of rays.
-    pm_rays = Polymake.Matrix(hcat(allrays...)')
-    matgens = [image(hom, x) for x in gens(domain(hom))]
-    mats_transp = [Matrix{Rational{BigInt}}(x.X)' for x in matgens]
+    matgens = [image(ghom, x) for x in gens(domain(ghom))]
+    mats_transp = [transpose(x.elm) for x in matgens]
 
     # Note that the matrices have been transposed because we use
     # matrix times vector multiplication.
@@ -514,44 +507,34 @@ function hashes_to_polyhedral_fan(orbit_list, hash_list, hom)
       error("a zero vector should not appear")
     end
 
-    rewr = [as_permutation(x, allrays, actfun, ==) for x in mats_transp]
+    rewr = [as_permutation(x, allrays, actfun, Base.:(==)) for x in mats_transp]
 
-    rewr2 = [Vector(x) .- 1 for x in rewr]  # zero based
-    pm_gens = Polymake.@convert_to Array{Array{Int}} rewr2
-
-    pm_mc_reps = Polymake.@convert_to Array{Array{Int}} index_result_cones
-
-    # Create the fan object, and set the attributes.
-    pf = Polymake.fan.PolyhedralFan()
-    Polymake.take(pf, "RAYS", pm_rays)
-    Polymake.take(pf, "GROUP.REPRESENTATIVE_MAXIMAL_CONES", pm_mc_reps)
-    Polymake.take(pf, "GROUP.RAYS_ACTION.GENERATORS", pm_gens)
+    pf = polyhedral_fan_from_rays_action(allrays, IncidenceMatrix(index_result_cones), rewr)
 
     return pf
 end
 
 
 """
-    git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
+    git_fan(a::MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
 
-Return the polymake object that represents the polyhedral fan given by
+Return the object that represents the polyhedral fan given by
 the ideal `a`, the grading matrix `Q`, and the symmetry group `G`.
 """
-function git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
+function git_fan(a::MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
     collector_cones = orbit_cones(a, Q, G)
     matrix_action = action_on_target(Q, G)
     orbit_list = orbit_cone_orbits(collector_cones, matrix_action)
     perm_actions = action_on_orbit_cone_orbits(orbit_list, matrix_action)
-    q_cone = Polymake.polytope.Cone(INPUT_RAYS = Q)
+    q_cone = positive_hull(Q)
 
     (hash_list, edges) = fan_traversal(orbit_list, q_cone, perm_actions)
-
     return hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
 end
 
 
 """
-    edges_intersection_graph(maxcones, inter_dim::Int)
+    edges_intersection_graph(maxcones::Vector{Cone{T}}, inter_dim::Int) where T
 
 Return the array of those pairs `[i, j]` such that `i < j` and such that
 the intersection of the cones `maxcones[i]` and `maxcones[j]` has dimension
@@ -560,11 +543,11 @@ the intersection of the cones `maxcones[i]` and `maxcones[j]` has dimension
 If `maxcones` is an array of cones of dimension `inter_dim + 1`
 then the returned array describes the edges of the intersection graph.
 """
-function edges_intersection_graph(maxcones, inter_dim::Int)
+function edges_intersection_graph(maxcones::Vector{Cone{T}}, inter_dim::Int) where T
     edges = Vector{Int}[]
     for j in 1:length(maxcones)
         for i in 1:(j-1)
-            if Polymake.polytope.dim(Polymake.polytope.intersection(
+            if dim(intersect(
                    maxcones[i], maxcones[j])) == inter_dim
                 push!(edges, [i, j])
             end

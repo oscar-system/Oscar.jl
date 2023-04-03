@@ -98,7 +98,10 @@ if Oscar.is_dev
   include("Experimental/GITFans-test.jl")
 end
 
-include("Experimental/PlaneCurve-test.jl")
+# Will automatically include all experimental packages following our
+# guidelines.
+include("../experimental/runtests.jl")
+
 include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
@@ -109,6 +112,7 @@ include("Experimental/JuLie-test.jl")
 include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 include("Experimental/LinearQuotients/runtests.jl")
+include("Experimental/FTheoryTools/runtests.jl")
 
 include("Rings/ReesAlgebra.jl")
 

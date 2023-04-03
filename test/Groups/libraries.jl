@@ -102,12 +102,12 @@ end
    @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_group_identification(alternating_group(5))
    @test is_isomorphic(perfect_group(x[1],x[2]),alternating_group(5))
-   @test_throws ErrorException perfect_group_identification(symmetric_group(5))
+   @test_throws ArgumentError perfect_group_identification(symmetric_group(5))
 
    @test sum(number_perfect_groups, 1:59) == 1
    @test number_perfect_groups(ZZRingElem(60)^3) == 1
    @test_throws ArgumentError number_perfect_groups(0) # invalid argument
-   @test_throws ErrorException number_perfect_groups(ZZRingElem(60)^10)  # result not known
+   @test_throws ArgumentError number_perfect_groups(ZZRingElem(60)^10)  # result not known
 end
 
 @testset "Small groups" begin
@@ -139,7 +139,7 @@ end
    # `atlas_group` for type and group name
    @test order(atlas_group(PermGroup, "A5")) == 60
    @test order(atlas_group(MatrixGroup, "A5")) == 60
-   @test_throws ErrorException atlas_group(PermGroup, "B")
+   @test_throws ArgumentError atlas_group(PermGroup, "B")
 
    # prescribe permutation degree
    info1 = all_atlas_group_infos("A5", degree => 5)
@@ -220,7 +220,7 @@ end
    H, emb = atlas_subgroup(MatrixGroup, "M11", 1)
    @test order(H) == 720
    # no representation of the group
-   @test_throws ErrorException atlas_subgroup(PermGroup, "B", 1)
+   @test_throws ArgumentError atlas_subgroup(PermGroup, "B", 1)
    # no restriction to the subgroup
    @test_throws ErrorException atlas_subgroup("M11", 100)
 
@@ -232,8 +232,8 @@ end
    @test domain(emb) == H
    @test codomain(emb) == G
    # the group was not created with `atlas_group`
-   @test_throws ErrorException atlas_subgroup(symmetric_group(5), 1)
-   @test_throws ErrorException atlas_subgroup(H, 1)
+   @test_throws ArgumentError atlas_subgroup(symmetric_group(5), 1)
+   @test_throws ArgumentError atlas_subgroup(H, 1)
    # no restriction to the subgroup
    @test_throws ErrorException atlas_subgroup(G, 100)
 

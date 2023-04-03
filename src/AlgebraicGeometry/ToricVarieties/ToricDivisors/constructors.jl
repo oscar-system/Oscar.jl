@@ -11,9 +11,7 @@
                         coeffs::Vector{T}) where {T <: IntegerUnion} = new(polymake_divisor, toric_variety, [ZZRingElem(c) for c in coeffs])
 end
 
-function pm_tdivisor(td::ToricDivisor)
-    return td.polymake_divisor
-end
+pm_tdivisor(td::ToricDivisor) = td.polymake_divisor
 
 
 ######################

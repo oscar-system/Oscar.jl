@@ -163,21 +163,17 @@ true
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   x == GAP.Globals.fail && throw(ArgumentError("the list does not describe a permutation"))
-   if length(L) <= degree(g) && x in g.X
-     return PermGroupElem(g, x)
-   end
-   throw(ArgumentError("the element does not embed in the group"))
+   @req x !== GAP.Globals.fail "the list does not describe a permutation"
+   @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+   return PermGroupElem(g, x)
 end
 
 perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   if length(L) <= degree(g) && x in g.X
-     return PermGroupElem(g, x)
-   end
-   throw(ArgumentError("the element does not embed in the group"))
+   @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+   return PermGroupElem(g, x)
 end
 
 (g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = g([Int(y) for y in L])
@@ -300,11 +296,8 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
       return one(g)
    else
       x=prod(y -> GAP.Globals.CycleFromList(GAP.Obj([Int(k) for k in y])), L)
-      if length(L) <= degree(g) && x in g.X
-         return PermGroupElem(g, x)
-      else
-         throw(ArgumentError("the element does not embed in the group"))
-      end
+      @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+      return PermGroupElem(g, x)
    end
 end
 

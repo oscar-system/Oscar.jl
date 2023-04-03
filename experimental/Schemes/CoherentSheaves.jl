@@ -677,7 +677,7 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
 
   X = covered_scheme(IP)
   MD = IdDict{AbsSpec, ModuleFP}()
-  S = ambient_coordinate_ring(IP)
+  S = graded_coordinate_ring(IP)
   n = ngens(S)-1
   for i in 1:n+1
     U = affine_charts(X)[i]
@@ -691,8 +691,8 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(matrix_space(OO(VV), 1, 1))
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(matrix_space(OO(UU), 1, 1))
+    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*identity_matrix(OO(VV), 1)
+    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*identity_matrix(OO(UU), 1)
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -957,8 +957,8 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   for G in values(glueings(C))
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
-    MG[(U, V)] = one(matrix_space(OO(VV), n, n))
-    MG[(V, U)] = one(matrix_space(OO(UU), n, n))
+    MG[(U, V)] = identity_matrix(OO(VV), n)
+    MG[(V, U)] = identity_matrix(OO(UU), n)
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -1623,9 +1623,9 @@ function projectivization(E::AbsCoherentSheaf;
   # prepare for the projective glueings
   for (U, V) in keys(glueings(C))
     P = on_patches[U]
-    SP = ambient_coordinate_ring(P)
+    SP = graded_coordinate_ring(P)
     Q = on_patches[V]
-    SQ = ambient_coordinate_ring(Q)
+    SQ = graded_coordinate_ring(Q)
     G = C[U, V]
     UV, VU = glueing_domains(G)
     f, g = glueing_morphisms(G)
@@ -1659,8 +1659,8 @@ function projectivization(E::AbsCoherentSheaf;
     B = [coordinates(E(V, UV)(w)) for w in gens(E(V))]
     #A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
     #B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
-    SQVU = ambient_coordinate_ring(QVU)
-    SPUV = ambient_coordinate_ring(PUV)
+    SQVU = graded_coordinate_ring(QVU)
+    SPUV = graded_coordinate_ring(PUV)
     # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
     # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
     fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))

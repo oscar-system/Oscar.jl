@@ -14,7 +14,13 @@ Otherwise, `false` is returned.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> isempty(X)
 false
@@ -48,7 +54,13 @@ See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding mor
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -296,7 +308,13 @@ Checks whether ``X`` is openly embedded in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -361,7 +379,13 @@ Checks whether ``X`` is closed embedded in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -556,7 +580,7 @@ end
 Return the boolean value whether an affine scheme `X` is reduced.
 
 """
-@attr function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+@attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
   return is_reduced(quo(base_ring(I), I)[1])
 end
@@ -564,6 +588,19 @@ end
 ## make is_reduced agnostic to quotient ring
 @attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   return true
+end
+
+@attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  return true
+end
+
+@attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+  F = base_ring(X)
+  # is_perfect(F) # needs new AbstractAlgebra version
+  if characteristic(F) == 0 || F isa FinField  # F is perfect
+    return is_reduced(X)
+  end
+  throw(NotImplementedError("currently we can decide this only over a perfect base field"))
 end
 
 ########################################################################
@@ -662,7 +699,7 @@ Return whether the affine scheme `X` is irreducible.
     Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
 
 """
-@attr function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
+@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true 
                                            ## integral = irreducible + reduced
@@ -675,12 +712,32 @@ end
 Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
 
 """
-@attr function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
+@attr Bool function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   if has_attribute(X,:is_reduced) && has_attribute(X,:is_irreducible)
      return get_attribute(X,:is_reduced) && get_attribute(X,:is_irreducible)
   end
   return is_prime(modulus(OO(X)))
+end
+
+@doc Markdown.doc"""
+    is_geometrically_integral(X::AbsSpec)
+
+Return if ``X/k`` is geometrically integral.
+
+That is if ``X`` is integral when base changed to any field extension of ``k``.
+"""
+@attr Bool function is_geometrically_integral(X::AbsSpec{<:Field,<:MPolyAnyRing})
+  is_integral(X) || return false
+  throw(NotImplementedError("absolute primary decomposition is currently only available over the rationals"))
+end
+
+@attr Bool function is_geometrically_integral(X::AbsSpec{<:QQField, <:MPolyAnyRing})
+  is_integral(X) || return false
+  I = ambient_closure_ideal(X)
+  AI = absolute_primary_decomposition(I)
+  @assert length(AI)==1 # it is prime since X is integral
+  return AI[1][4]==1
 end
 
 ###################################################################
@@ -692,7 +749,7 @@ end
 Return the boolean value whether an affine scheme `X` is connected.
 
 """
-@attr function is_connected(X::AbsSpec)
+@attr Bool function is_connected(X::AbsSpec)
   error("not implemented yet")
 ## note for future implementation: expensive property
 ## 1) do primary decomposition

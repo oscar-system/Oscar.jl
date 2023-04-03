@@ -47,9 +47,7 @@ Sym( [ 1 .. 3 ] )
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
-   if !GAPWrap.IsSubset(parent(g).X, H.X)
-      throw(ArgumentError("H is not a subgroup of parent(g)"))
-   end
+   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
 
@@ -76,9 +74,7 @@ Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
-   if !GAPWrap.IsSubset(parent(g).X, H.X)
-      throw(ArgumentError("H is not a subgroup of parent(g)"))
-   end
+   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
 end
 
@@ -129,9 +125,7 @@ function Base.:*(y::GAPGroupElem, c::GroupCoset)
 end
 
 function Base.:*(c::GroupCoset, d::GroupCoset)
-   if c.side != :right || d.side != :left
-      throw(ArgumentError("Wrong input"))
-   end
+   @req (c.side == :right && d.side == :left) "Wrong input"
    return double_coset(c.H, c.repr*d.repr, d.H)
 end
 
@@ -302,9 +296,7 @@ julia> right_transversal(G,H)
 ```
 """
 function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   if check && ! GAPWrap.IsSubset(G.X, H.X)
-     throw(ArgumentError("H is not a subgroup of G"))
-   end
+   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
    L = GAP.Globals.RightTransversal(G.X,H.X)
 #TODO: The object returned by GAP tries to avoid the overhead of explicitly
 #      listing all elements.
@@ -414,12 +406,8 @@ Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
 ```
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
-   if !GAPWrap.IsSubset(parent(g).X,G.X)
-      throw(ArgumentError("G is not a subgroup of parent(g)"))
-   end
-   if !GAPWrap.IsSubset(parent(g).X,H.X)
-      throw(ArgumentError("H is not a subgroup of parent(g)"))
-   end
+   @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
+   @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
 end
 
