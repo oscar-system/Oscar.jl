@@ -96,7 +96,7 @@ function lie_algebra_module_conformance_test(
       @test (x + y) * v == x * v + y * v
       @test x * (v + w) == x * v + x * w
 
-      @test bracket(x, y) * v == x * (y * v) - y * (x * v)
+      @test (x * y) * v == x * (y * v) - y * (x * v)
     end
   end
 end

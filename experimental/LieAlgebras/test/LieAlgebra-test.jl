@@ -85,15 +85,15 @@ function lie_algebra_conformance_test(
       y = L(rand(-10:10, dim(L)))
       z = L(rand(-10:10, dim(L)))
 
-      @test bracket(x + y, z) == bracket(x, z) + bracket(y, z)
-      @test bracket(x, y + z) == bracket(x, y) + bracket(x, z)
+      @test x * y == bracket(x, y)
 
-      @test bracket(x, x) == zero(L)
-      @test bracket(x, y) == -bracket(y, x)
+      @test (x + y) * z == x * z + y * z
+      @test x * (y + z) == x * y + x * z
 
-      @test bracket(x, bracket(y, z)) +
-            bracket(y, bracket(z, x)) +
-            bracket(z, bracket(x, y)) == zero(L)
+      @test x * x == zero(L)
+      @test x * y == -(y * x)
+
+      @test (x * (y * z)) + (y * (z * x)) + (z * (x * y)) == zero(L)
     end
   end
 end

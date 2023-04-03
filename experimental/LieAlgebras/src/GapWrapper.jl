@@ -32,8 +32,7 @@ function lie_algebra_highest_weight_module_struct_consts_gap(
       [
         begin
           pairs = filter(
-            pair -> !iszero(last(pair)),
-            collect(enumerate(Generic._matrix(bracket(xi, xj)))),
+            pair -> !iszero(last(pair)), collect(enumerate(Generic._matrix(xi * xj)))
           )
           [map(first, pairs), map(last, pairs)]
         end for xj in basis(L)

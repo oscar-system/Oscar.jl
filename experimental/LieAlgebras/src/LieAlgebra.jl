@@ -165,6 +165,12 @@ function Base.:*(
   return parent(x)(c * Generic._matrix(x))
 end
 
+function Base.:*(
+  x::LieAlgebraElem{C}, y::LieAlgebraElem{C}
+) where {C<:RingElement}
+  return bracket(x, y)
+end
+
 ###############################################################################
 #
 #   Comparison functions
