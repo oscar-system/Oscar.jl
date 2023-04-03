@@ -364,3 +364,4 @@ function get_dim_weightspace(t, n, L, hw)
 end
 
 end
+export BasisLieHighestWeight

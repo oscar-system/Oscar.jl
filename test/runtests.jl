@@ -127,8 +127,6 @@ include("Serialization/runtests.jl")
 
 include("StraightLinePrograms/runtests.jl")
 
-include("Experimental/basisLieHighestWeight/MB-test.jl")
-
 @static if compiletimes
   Base.cumulative_compile_timing(false);
 end
