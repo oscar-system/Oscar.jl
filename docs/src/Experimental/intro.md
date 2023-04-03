@@ -36,9 +36,12 @@ experimental/PACKAGE_NAME/
 └── test
     └── runtests.jl
 ```
-The files `src/PACKAGE_NAME.jl`, `test/runtests.jl`, and `docs/doc.main` are
-mandatory, as they are used by Oscar.jl to find your code, tests, and
-documentation.
+The files `src/PACKAGE_NAME.jl` and `test/runtests.jl` are mandatory as they
+are used by Oscar.jl to find your code and tests. The file `docs/doc.main` is
+used for integrating your documentation in the Oscar manual under the
+`Experimental` section. Optionally please provide a `README.md` describing your
+project and its goals, especially if you are starting from scratch and don't
+have any documentation yet.
 
 !!! note
     There are still older projects in `experimental` from before the
