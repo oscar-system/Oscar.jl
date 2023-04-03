@@ -71,6 +71,10 @@ function dehomogenization_map(
   ) where {
     CRT<:AbstractAlgebra.Ring
   }
+  i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
+  S = homogeneous_coordinate_ring(X)
+  C = default_covering(covered_scheme(X))
+  U = C[i+1]
   if !isdefined(X, :dehomogenization_cache)
     X.dehomogenization_cache = IdDict()
   end
@@ -78,10 +82,6 @@ function dehomogenization_map(
   if haskey(cache, U)
     return cache[U]
   end
-  i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
-  S = homogeneous_coordinate_ring(X)
-  C = default_covering(covered_scheme(X))
-  U = C[i+1]
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
   phi = hom(S, OO(U), s)
   cache[U] = phi
