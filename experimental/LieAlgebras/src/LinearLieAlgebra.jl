@@ -107,11 +107,7 @@ end
 ###############################################################################
 
 function lie_algebra(
-  R::Ring,
-  n::Int,
-  basis::Vector{<:MatElem{C}},
-  s::Vector{<:Union{AbstractString,Char,Symbol}};
-  cached::Bool=true,
+  R::Ring, n::Int, basis::Vector{<:MatElem{C}}, s::Vector{<:VarName}; cached::Bool=true
 ) where {C<:RingElement}
   return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); cached)
 end

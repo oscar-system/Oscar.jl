@@ -351,7 +351,7 @@ function abstract_module(
   L::LieAlgebra{C},
   dimV::Int,
   transformation_matrices::Vector{<:MatElem{C}},
-  s::Vector{<:Union{AbstractString,Char,Symbol}}=[Symbol("v_$i") for i in 1:dimV];
+  s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
@@ -364,7 +364,7 @@ function abstract_module(
   L::LieAlgebra{C},
   dimV::Int,
   struct_consts::Matrix{SRow{C}},
-  s::Vector{<:Union{AbstractString,Char,Symbol}}=[Symbol("v_$i") for i in 1:dimV];
+  s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
