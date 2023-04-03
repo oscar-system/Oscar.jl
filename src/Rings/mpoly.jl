@@ -742,15 +742,20 @@ function jacobi_ideal(f::MPolyRingElem)
 end
 
 @doc Markdown.doc"""
-    jacobi_matrix(g::Vector{<:MPolyRingElem})
+    jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
-Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
+Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
 this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Vector{<:MPolyRingElem})
+  @req length(g) > 0 "specify the common parent as first argument"
   R = parent(g[1])
+  return jacobi_matrix(R, g)
+end
+
+function jacobi_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
   n = nvars(R)
-  @assert all(x->parent(x) == R, g)
+  @req all(x->parent(x) === R, g) "polynomials must be elements of R"
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 

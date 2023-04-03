@@ -1047,3 +1047,15 @@ end
   @test is_surjective(psi) # works correctly!
 end
 
+@testset "free resolution in case of no relations" begin
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  Z = abelian_group(0)
+  F = free_module(R, 3)
+  G = free_module(R, 2)
+  V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+  a = hom(F, G, V)
+  Mk = kernel(a)
+  Mk1 = Mk[1]
+  fr = free_resolution(Mk1)
+  @test rank(domain(map(fr.C,1))) == 0
+end

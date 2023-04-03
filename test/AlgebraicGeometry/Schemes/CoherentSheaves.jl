@@ -45,7 +45,7 @@ end
 
 @testset "Pushforward of modules" begin
   IP = projective_space(QQ, ["x", "y", "z"])
-  S = graded_coordinate_ring(IP)
+  S = homogeneous_coordinate_ring(IP)
   (x,y,z) = gens(S)
   f = z^2 - x*y
   I = ideal(S, f)
@@ -66,15 +66,15 @@ end
   TC1 = incTC(U[1])
   @test TC1 === incTC(U[1])
   @test incTC(U[1]) isa SubquoModule
-  U21 = PrincipalOpenSubset(U[2], dehomogenize(IP, 1)(x))
-  U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
+  U21 = PrincipalOpenSubset(U[2], dehomogenization_map(IP, 1)(x))
+  U321 = PrincipalOpenSubset(U[3], dehomogenization_map(IP, 2)(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
 end
 
 @testset "pullbacks of modules" begin
   # Note: The PullbackSheafs are not yet fully functional!!!
   IP = projective_space(QQ, 2)
-  S = graded_coordinate_ring(IP)
+  S = homogeneous_coordinate_ring(IP)
   X = covered_scheme(IP)
   (x,y,z) = gens(S)
   f = x^3 + y^3 + z^3
@@ -120,7 +120,7 @@ end
 
 @testset "projectivization of vector bundles" begin
   IP = projective_space(QQ, ["x", "y", "z", "w"])
-  S = graded_coordinate_ring(IP)
+  S = homogeneous_coordinate_ring(IP)
   (x,y,z,w) = gens(S)
   f = x^4 + y^4 + z^4 + w^4
   IPC = subscheme(IP, f)
@@ -156,7 +156,7 @@ end
 
 @testset "direct sums of sheaves" begin
   IP = projective_space(QQ, ["x", "y", "z", "w"])
-  S = graded_coordinate_ring(IP)
+  S = homogeneous_coordinate_ring(IP)
   (x, y, z, w) = gens(S)
   f = x^4 + y^4 + z^4 + w^4
   IPX = subscheme(IP, f)

@@ -32,11 +32,48 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 # https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
 Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
 
+
 # When we read a `doc.main` from an experimental package, we need to equip all
-# its entries with a prefix to fit with our docs.
-setup_experimental_prefix(docs::String, prefix::String) = prefix * docs
-setup_experimental_prefix(docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], setup_experimental_prefix(docs[2], prefix))
-setup_experimental_prefix(docs::Vector{T}, prefix::String) where T = T[setup_experimental_prefix(entry, prefix) for entry in docs]
+# its entries with a prefix to fit with our docs. The doc.main of an
+# experimental package will contain paths relative to
+# `experimental/PACKAGE_NAME/docs/src`. When generating the docs a symlink is
+# set in `docs/src/Experimental/PACKAGE_NAME` pointing to
+# `experimental/PACKAGE_NAME/docs/src`. Hence the paths in `doc.main` need to
+# get the prefix `Experimental/PACKAGE_NAME`.
+#
+# Example:
+# 1. cat experimental/PlaneCurve/docs/doc.main:
+# [
+#    "plane_curves.md",
+# ]
+# after `add_prefix_to_experimental_docs` becomes
+# [
+#    "Experimental/PlaneCurve/plane_curves.md",
+# ]
+#
+# 2. cat experimental/FTheoryTools/docs/doc.main 
+# [
+#    "F-Theory Tools" => [
+#       "introduction.md",
+#       "weierstrass.md",
+#       "tate.md",
+#    ],
+# ]
+# after `add_prefix_to_experimental_docs` becomes
+# [
+#    "F-Theory Tools" => [
+#       "Experimental/FTheoryTools/introduction.md",
+#       "Experimental/FTheoryTools/weierstrass.md",
+#       "Experimental/FTheoryTools/tate.md",
+#    ],
+# ]
+#
+# Since the entries of a `doc.main` vary in type, we have split this up into
+# three functions.
+add_prefix_to_experimental_docs(Oscar::Module, docs::String, prefix::String) = joinpath(prefix, docs)
+add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], add_prefix_to_experimental_docs(Oscar, docs[2], prefix))
+add_prefix_to_experimental_docs(Oscar::Module, docs::Vector{T}, prefix::String) where T = T[add_prefix_to_experimental_docs(Oscar, entry, prefix) for entry in docs]
+
 
 function setup_experimental_package(Oscar::Module, package_name::String)
   doc_main_path = joinpath(Oscar.oscardir, "experimental", package_name, "docs/doc.main")
@@ -45,9 +82,14 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   end
 
   # Set symlink inside docs/src/experimental
-  symlink_src = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  if !ispath(symlink_src)
-    symlink("../../../experimental/" * package_name * "/docs/src", symlink_src)
+  symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
+  symlink_target = joinpath("../../../experimental", package_name, "docs/src")
+  if !ispath(symlink_link)
+    symlink(symlink_target, symlink_link)
+  elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
+      error("$symlink_link already exists, but is not a symlink to $symlink_target
+Please investigate the contents of $symlink_link,
+optionally move them somewhere else and delete the directiory once you are done.")
   end
   
   # Read doc.main of package
@@ -56,7 +98,7 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   
   # Prepend path
   prefix = "Experimental/" * package_name * "/"
-  result = setup_experimental_prefix(exp_doc, prefix)
+  result = add_prefix_to_experimental_docs(Oscar, exp_doc, prefix)
   return result
 end
 

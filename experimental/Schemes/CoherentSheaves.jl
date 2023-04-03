@@ -677,7 +677,7 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
 
   X = covered_scheme(IP)
   MD = IdDict{AbsSpec, ModuleFP}()
-  S = graded_coordinate_ring(IP)
+  S = homogeneous_coordinate_ring(IP)
   n = ngens(S)-1
   for i in 1:n+1
     U = affine_charts(X)[i]
@@ -763,7 +763,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(base_ring(modulus(R)), gens(modulus(R))))))
   M, _ = quo(F, rels)
   return M
 end
@@ -772,7 +772,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(base_ring(modulus(R)), gens(modulus(R))))))
   M, _ = quo(F, rels)
   return M
 end
@@ -1623,9 +1623,9 @@ function projectivization(E::AbsCoherentSheaf;
   # prepare for the projective glueings
   for (U, V) in keys(glueings(C))
     P = on_patches[U]
-    SP = graded_coordinate_ring(P)
+    SP = homogeneous_coordinate_ring(P)
     Q = on_patches[V]
-    SQ = graded_coordinate_ring(Q)
+    SQ = homogeneous_coordinate_ring(Q)
     G = C[U, V]
     UV, VU = glueing_domains(G)
     f, g = glueing_morphisms(G)
@@ -1659,8 +1659,8 @@ function projectivization(E::AbsCoherentSheaf;
     B = [coordinates(E(V, UV)(w)) for w in gens(E(V))]
     #A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
     #B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
-    SQVU = graded_coordinate_ring(QVU)
-    SPUV = graded_coordinate_ring(PUV)
+    SQVU = homogeneous_coordinate_ring(QVU)
+    SPUV = homogeneous_coordinate_ring(PUV)
     # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
     # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
     fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))

@@ -144,8 +144,8 @@ mutable struct ProjectiveGlueing{
     (PU, QV) = (domain(incP), domain(incQ))
     (base_scheme(PX) == X && base_scheme(QY) == Y) || error("base glueing is incompatible with the projective schemes")
     domain(f) == codomain(g) == PU && domain(g) == codomain(f) == QV || error("maps are not compatible")
-    SPU = graded_coordinate_ring(domain(f))
-    SQV = graded_coordinate_ring(codomain(f))
+    SPU = homogeneous_coordinate_ring(domain(f))
+    SQV = homogeneous_coordinate_ring(codomain(f))
     if check
       # check the commutativity of the pullbacks
       all(y->(pullback(f)(SQV(OO(V)(y))) == SPU(pullback(fb)(OO(V)(y)))), gens(base_ring(OO(Y)))) || error("maps do not commute")
@@ -272,7 +272,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
   r = ngens(I) - 1
   g = gens(I)
   IPW = projective_space(W, r, var_name=var_name)
-  S = graded_coordinate_ring(IPW)
+  S = homogeneous_coordinate_ring(IPW)
   t = gens(S)
   if is_regular_sequence(gens(I))
     # construct the blowup manually
@@ -305,7 +305,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], )) # the homogeneous variables come first
     J = kernel(phi)
     pb = inverse(pullback_to_cone)
-    Jh = ideal(graded_coordinate_ring(IPW), pb.(lifted_numerator.(gens(J))))
+    Jh = ideal(homogeneous_coordinate_ring(IPW), pb.(lifted_numerator.(gens(J))))
     IPY = subscheme(IPW, Jh)
     # Compute the IdealSheaf for the exceptional divisor
     ID = IdDict{AbsSpec, RingElem}()
@@ -550,8 +550,8 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   X = scheme(I)
   OX = StructureSheafOfRings(X)
 
-  SP = graded_coordinate_ring(P)
-  SQ = graded_coordinate_ring(Q)
+  SP = homogeneous_coordinate_ring(P)
+  SQ = homogeneous_coordinate_ring(Q)
   UV, VU = glueing_domains(G)
   f, g = glueing_morphisms(G)
 
@@ -582,8 +582,8 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   # tⱼ the variables for the homogenesous ring over V
   A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
   B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
-  SQVU = graded_coordinate_ring(QVU)
-  SPUV = graded_coordinate_ring(PUV)
+  SQVU = homogeneous_coordinate_ring(QVU)
+  SPUV = homogeneous_coordinate_ring(PUV)
   # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
   # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
   fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)], check=false), check=false)
@@ -699,8 +699,8 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   (UD, VD) = glueing_domains(P[U, V])
   (fup, gup) = glueing_morphisms(P[U, V])
   (incU, incV) = inclusion_maps(P[U, V])
-  S = graded_coordinate_ring(P[U])
-  T = graded_coordinate_ring(P[V])
+  S = homogeneous_coordinate_ring(P[U])
+  T = homogeneous_coordinate_ring(P[V])
   i = P[U][UW][2]
   j = P[V][VW][2]
   s_i = gens(S)[i]
@@ -708,8 +708,8 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   AW = affine_charts(Oscar.covered_scheme(UD))[i]
   BW = affine_charts(Oscar.covered_scheme(VD))[j]
 
-  hU = dehomogenize(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
-  hV = dehomogenize(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
+  hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
+  hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
   # We need to construct the glueing 
   #
@@ -738,14 +738,14 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   x = gens(ambient_coordinate_ring(AAW))
   y = gens(ambient_coordinate_ring(BBW))
 
-  xh = homogenize(UD, AW).(OO(AW).(x))
-  yh = homogenize(VD, BW).(OO(BW).(y))
+  xh = homogenization_map(UD, AW).(OO(AW).(x))
+  yh = homogenization_map(VD, BW).(OO(BW).(y))
 
   xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
   yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
 
-  phi = dehomogenize(VD, BW)
-  psi = dehomogenize(UD, AW) 
+  phi = dehomogenization_map(VD, BW)
+  psi = dehomogenization_map(UD, AW) 
   yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
   ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
   ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)

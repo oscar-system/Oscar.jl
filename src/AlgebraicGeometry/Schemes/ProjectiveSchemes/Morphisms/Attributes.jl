@@ -95,7 +95,7 @@ function map_on_affine_cones(
     pb_phi = pullback(phi)
     C_dom, flat_dom = affine_cone(domain(phi))
     C_cod, flat_cod = affine_cone(codomain(phi))
-    pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(gens(graded_coordinate_ring(codomain(phi))))), check=false)
+    pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(gens(homogeneous_coordinate_ring(codomain(phi))))), check=false)
     phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
   end
   return phi.map_on_affine_cones::AbsSpecMor
