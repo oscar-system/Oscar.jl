@@ -325,16 +325,6 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
   end
 end
 
-function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}}
-  A = base_ring(I)
-  A === base_ring(J) || error("ideals must lay in the same ring")
-  R = base_ring(A)
-  Ip = saturated_ideal(I)
-  Jp = saturated_ideal(J)
-  K = saturation(Ip, Jp)
-  return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
-end
-
 function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     var_name::String="s"
   ) where {RingType<:Union{MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}}

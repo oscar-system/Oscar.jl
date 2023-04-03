@@ -1686,6 +1686,22 @@ end
 ## compatibility functions to allow user to not care about which type of
 ## MPolyAnyIdeal they are handling
 ############################################################################# 
+
+@doc Markdown.doc"""
+    saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+
+Return $I:J^{\infty}$.
+"""
+function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}}
+  A = base_ring(I)
+  A === base_ring(J) || error("ideals must lie in the same ring")
+  R = base_ring(A)
+  Ip = saturated_ideal(I)
+  Jp = saturated_ideal(I)
+  K = saturation(Ip, Jp)
+  return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
+end
+
 @doc Markdown.doc"""
     saturation_with_index(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
 
