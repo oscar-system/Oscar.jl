@@ -87,7 +87,18 @@ push!(upgrade_scripts, UpgradeScript(
             return upgraded_dict
         end
 
-        U = decodeType(dict[:type])
+        dict_type = dict[:type]
+        if contains(dict_type, "MPolyRingElem")
+            dict_type = "MPolyRingElem"
+        elseif contains(dict_type, "MPolyRing")
+            dict_type = "MPolyRing"
+        elseif contains(dict_type, "PolyRingElem")
+            dict_type = "PolyRingElem"
+        elseif contains(dict_type, "PolyRing")
+            dict_type = "PolyRing"
+        end
+
+        U = decodeType(dict_type)
 
         # Upgrades QQFieldElem serialization
         if is_basic_serialization_type(U)
@@ -112,7 +123,7 @@ push!(upgrade_scripts, UpgradeScript(
 
         upgraded_data = upgrade_0_11_3(s, dict[:data])
         upgraded_dict = Dict(
-            :type => dict[:type],
+            :type => dict_type,
             :data => upgraded_data,
             :id => dict[:id]
         )
