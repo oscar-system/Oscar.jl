@@ -288,6 +288,11 @@ end
                             h = hom(R, S, gens(S))
                             @test h(i) == loaded_i
                         end
+
+                        S = parent(i[1])
+                        test_save_load_roundtrip(path, i; parent=S) do loaded_i
+                            @test i == loaded_i
+                        end
                     end
                 end
             end

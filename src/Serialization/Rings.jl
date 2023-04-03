@@ -135,7 +135,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent_ring::Union{UniversalPolyRing, MPolyRing})
     # ensure backrefs in parent are loaded
-    _ = load_unknown_type(s, dict[:parent])
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(parent_ring)
@@ -196,9 +195,9 @@ end
 
 @registerSerializationType(MPolyIdeal)
 
-function save_internal(s::SerializerState, i::MPolyIdeal)
-    generators = gens(i)
-    parent_ring = save_type_dispatch(s, parent(generators[1]))
+function save_internal(s::SerializerState, I::MPolyIdeal)
+    generators = gens(I)
+    parent_ring = save_type_dispatch(s, base_ring(I))
 
     return Dict(
         :parent => parent_ring,
@@ -217,7 +216,8 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyIdeal},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
-    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
+    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)},
+                              dict[:gens], parent=parent_ring)
     return ideal(parent_ring, gens)
 end
 
