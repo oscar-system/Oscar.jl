@@ -1,64 +1,103 @@
-function dehomogenize(
+@doc Markdown.doc"""
+    dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
+
+Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(U)`.
+"""
+function dehomogenization_map(
     X::AbsProjectiveScheme{<:Ring}, 
     U::AbsSpec
   )
+  if !isdefined(X, :dehomogenization_cache)
+    X.dehomogenization_cache = IdDict()
+  end
+  cache = X.dehomogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   charts = affine_charts(covered_scheme(X))
   any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
   i = findfirst(k->(charts[k] === U), 1:relative_ambient_dimension(X)+1) - 1
-  S = graded_coordinate_ring(X)
+  S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  return hom(S, OO(U), s)
+  phi = hom(S, OO(U), s)
+  cache[U] = phi
+  return phi
 end
 
-function dehomogenize(
+@doc Markdown.doc"""
+    dehomogenization_map(X::AbsProjectiveScheme, i::AbsSpec)
+
+Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
+Where `Uᵢ` is the `i`-th affine chart of `X`.
+"""
+function dehomogenization_map(
     X::AbsProjectiveScheme{CRT}, 
     i::Int
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
+  if !isdefined(X, :dehomogenization_cache)
+    X.dehomogenization_cache = IdDict()
+  end
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
-  S = graded_coordinate_ring(X)
+  S = homogeneous_coordinate_ring(X)
   C = standard_covering(X)
   U = C[i+1]
+  cache = X.dehomogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  return hom(S, OO(U), pullback(p[U]), s)
+  phi = hom(S, OO(U), pullback(p[U]), s)
+  cache[U] = phi
+  return phi
 end
 
-function dehomogenize(
+
+function dehomogenization_map(
     X::AbsProjectiveScheme{CRT}, 
     U::AbsSpec
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
-  return dehomogenize(X, X[U][2]-1)
+  return dehomogenization_map(X, X[U][2]-1)
 end
 
-function dehomogenize(
+function dehomogenization_map(
     X::AbsProjectiveScheme{CRT},
     i::Int
   ) where {
     CRT<:AbstractAlgebra.Ring
   }
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
-  S = graded_coordinate_ring(X)
+  S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   U = C[i+1]
+  if !isdefined(X, :dehomogenization_cache)
+    X.dehomogenization_cache = IdDict()
+  end
+  cache = X.dehomogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  return hom(S, OO(U), s)
+  phi = hom(S, OO(U), s)
+  cache[U] = phi
+  return phi
 end
 
 
 @doc Markdown.doc"""
-    homogenize(P::AbsProjectiveScheme, U::AbsSpec)
+    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec) -> function
 
 Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 
 ``P``, return a method ``h`` for the homogenization of elements 
-``a ∈ 𝒪(U)``. 
+``a ∈ 𝒪(U)``.
 
-That means ``h(a)`` returns a pair ``(p, q)`` representing a fraction 
-``p/q ∈ S`` of the `ambient_coordinate_ring` of ``P`` such 
+This means that ``h(a)`` returns a pair ``(p, q)`` representing a fraction
+``p/q ∈ S`` of the `ambient_coordinate_ring` of ``P`` such
 that ``a`` is the dehomogenization of ``p/q``.
 
 **Note:** For the time being, this only works for affine 
@@ -68,26 +107,23 @@ one of the homogeneous coordinates of ``P``.
 **Note:** Since this map returns representatives only, it 
 is not a mathematical morphism and, hence, in particular 
 not an instance of `Hecke.Map`.
-
-**Note:** Since `fraction_field` relies on some implementation 
-of division for the elements, we can not return the fraction 
-directly. 
 """
-function homogenize(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
-  # TODO: Ideally, one needs to provide this function 
-  # only once for every pair (P, U), so we should think of 
-  # some internal way for caching. The @attr macro is not 
-  # suitable for this, because it is not sensitive for 
-  # which U is put in. 
-
-  # Find the chart where a belongs to
+function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
+  if !isdefined(P, :homogenization_cache)
+    P.homogenization_cache = IdDict()
+  end
+  cache = P.homogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
+  # Find the chart where U belongs to
   X = covered_scheme(P)
   i = findfirst(V->(U===V), affine_charts(X))
   i === nothing && error("the given affine scheme is not one of the standard affine charts")
-  
+
   # Determine those variables which come from the homogeneous 
   # coordinates
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   n = ngens(S)
   R = ambient_coordinate_ring(U)
   x = gens(R)
@@ -126,24 +162,26 @@ function homogenize(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
     end
     return (pp, qq)
   end
+  cache[U] = my_dehom
   return my_dehom
 end
 
-function homogenize(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
-  # TODO: Ideally, one needs to provide this function 
-  # only once for every pair (P, U), so we should think of 
-  # some internal way for caching. The @attr macro is not 
-  # suitable for this, because it is not sensitive for 
-  # which U is put in. 
-
-  # Find the chart where a belongs to
+function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
+  if !isdefined(P, :homogenization_cache)
+    P.homogenization_cache = IdDict()
+  end
+  cache = P.homogenization_cache
+  if haskey(cache, U)
+    return cache[U]
+  end
+  # Find the chart where U belongs to
   X = covered_scheme(P)
   i = findfirst(V->(U===V), affine_charts(X))
   i === nothing && error("the given affine scheme is not one of the standard affine charts")
   
   # Determine those variables which come from the homogeneous 
   # coordinates
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   n = ngens(S)
   R = ambient_coordinate_ring(U)
   x = gens(R)
@@ -182,6 +220,7 @@ function homogenize(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
     end
     return (pp, qq)
   end
+  cache[U] = my_dehom
   return my_dehom
 end
 
@@ -197,32 +236,4 @@ function getindex(X::ProjectiveScheme, U::AbsSpec)
   return nothing, 0
 end
 
-#function dehomogenize(
-#    X::ProjectiveScheme{CRT}, 
-#    U::AbsSpec
-#  ) where {
-#    CRT<:MPolyQuoLocRing
-#  }
-#  # look up U in the coverings of X
-#  cover_of_U, index_of_U = X[U]
-#  Xcov = covered_scheme(X)
-#  S = graded_coordinate_ring(X)
-# 
-#  s = Vector{elem_type(OO(U))}()
-#  if cover_of_U === standard_covering(X)
-#    S = ambient_coordinate_ring(X)
-#    C = standard_covering(X)
-#    p = covered_projection_to_base(X)
-#    s = vcat(gens(OO(U))[1:index_of_U-1], [one(OO(U))], gens(OO(U))[index_of_U:relative_ambient_dimension(X)])
-#    return hom(S, OO(U), pullback(p[U]), s)
-#  else
-#    ref = Xcov[cover_of_U, standard_covering(X)]
-#    V = codomain(ref[U])
-#    index_of_V = standard_covering(X)[V]
-#    t = vcat(gens(OO(V))[1:index_of_V-1], [one(OO(V))], gens(OO(V))[index_of_V:relative_ambient_dimension(X)])
-#    s = pullback(ref[U]).(t)
-#    pb = compose(ref[U], covered_projection_to_base(X)[V])
-#    return hom(S, OO(U), pullback(pb), s)
-#  end
-#end
 

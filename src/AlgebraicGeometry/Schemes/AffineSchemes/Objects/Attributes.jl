@@ -1,8 +1,3 @@
-
-
-
-
-
 ########################################################################
 # (1) Attributes of AbsSpec
 #     coordinate ring and ambient space related methods
@@ -47,6 +42,14 @@ function OO(X::AbsSpec{BRT, RT}) where {BRT, RT}
   OO(underlying_scheme(X))::RT
 end
 
+@doc Markdown.doc"""
+    total_ring_of_fractions(X::AbsSpec)
+
+Return the total ring of fractions of the coordinate ring of `X`.
+"""
+@attr function total_ring_of_fractions(X::AbsSpec)
+  return total_ring_of_fractions(OO(X))
+end
 
 @doc Markdown.doc"""
     ambient_space(X::AbsSpec)

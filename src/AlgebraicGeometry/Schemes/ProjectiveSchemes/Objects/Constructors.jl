@@ -1,6 +1,6 @@
 
 function subscheme(P::AbsProjectiveScheme, f::RingElem)
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   parent(f) === S || return subscheme(P, S(f))
   Q, _ = quo(S, ideal(S, [f]))
   result = ProjectiveScheme(Q)
@@ -15,7 +15,7 @@ function subscheme(
     f::Vector{T}
   ) where {T<:RingElem}
   length(f) == 0 && return P #TODO: Replace P by an honest copy!
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   for i in 1:length(f)
     parent(f[i]) === S || return subscheme(P, S.(f))
   end
@@ -30,7 +30,7 @@ end
 function subscheme(P::AbsProjectiveScheme, 
     I::Ideal{T}
   ) where {T<:RingElem}
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   base_ring(I) === S || error("ideal does not belong to the correct ring")
   Q, _ = quo(S, I)
   result = ProjectiveScheme(Q)

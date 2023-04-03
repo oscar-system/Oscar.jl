@@ -20,6 +20,8 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   Y::Scheme # the base scheme
   projection_to_base::SchemeMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
+  homogenization_cache::IdDict # TODO make it a WeakIdDict once available
+  dehomogenization_cache::IdDict
 
   function ProjectiveScheme(S::MPolyDecRing)
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
