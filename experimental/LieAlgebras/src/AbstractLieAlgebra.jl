@@ -144,8 +144,9 @@ function lie_algebra(
 end
 
 function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
-  struct_consts = lie_algebra_struct_consts_gap(R, dynkin)
+  struct_consts, gapL = lie_algebra_struct_consts_gap(R, dynkin)
   L = lie_algebra(R, struct_consts; cached, check=false)
   set_attribute!(L, :dynkin => dynkin)
+  _set_gap_object!(L, gapL)
   return L
 end

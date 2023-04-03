@@ -165,9 +165,7 @@ function Base.:*(
   return parent(x)(c * Generic._matrix(x))
 end
 
-function Base.:*(
-  x::LieAlgebraElem{C}, y::LieAlgebraElem{C}
-) where {C<:RingElement}
+function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:RingElement}
   return bracket(x, y)
 end
 
@@ -189,6 +187,23 @@ end
 function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
   b = 0x6724cbedbd860982 % UInt
   return xor(hash(Generic._matrix(x), hash(parent(x), h)), b)
+end
+
+###############################################################################
+#
+#   Attribute accessors
+#
+###############################################################################
+
+function _gap_object(L::LieAlgebra{C}) where {C<:RingElement}
+  # later change to storing an isomorphism instead
+  get_attribute!(L, :gap_object) do
+    gap_lie_algebra_by_struct_consts(L)
+  end
+end
+
+function _set_gap_object!(L::LieAlgebra{C}, gapL::GAP.Obj) where {C<:RingElement}
+  set_attribute!(L, :gap_object => gapL)
 end
 
 ###############################################################################

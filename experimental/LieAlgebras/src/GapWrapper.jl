@@ -1,17 +1,15 @@
 function lie_algebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
   @req is_valid_dynkin(dynkin...) "Input not allowed by GAP."
 
-  GAPG = GAP.Globals
-
   isoR = Oscar.iso_oscar_gap(R)
-  L = GAPG.SimpleLieAlgebra(GAP.Obj(string(dynkin[1])), dynkin[2], codomain(isoR))
-  dimL = GAPWrap.Dimension(L)
+  gapL = GAP.Globals.SimpleLieAlgebra(GAP.Obj(string(dynkin[1])), dynkin[2], codomain(isoR))
+  dimL = GAPWrap.Dimension(gapL)
   comm_table_L =
     (
       entry -> (entry[1], Vector{elem_type(R)}(map(c -> preimage(isoR, c), entry[2])))
     ).(
       Matrix{Tuple{Vector{Int},Vector{GAP.Obj}}}(
-        (GAPG.StructureConstantsTable(GAPWrap.Basis(L)))[1:dimL]
+        (GAP.Globals.StructureConstantsTable(GAPWrap.Basis(gapL)))[1:dimL]
       )
     )
 
@@ -22,14 +20,10 @@ function lie_algebra_struct_consts_gap(R::Ring, dynkin::Tuple{Char,Int})
     )
   end
 
-  return struct_consts
+  return struct_consts, gapL
 end
 
-function lie_algebra_highest_weight_module_struct_consts_gap(
-  L::LieAlgebra{C}, weight::Vector{Int}
-) where {C<:RingElement}
-  GAPG = GAP.Globals
-
+function gap_lie_algebra_by_struct_consts(L::LieAlgebra{C}) where {C<:RingElement}
   R = base_ring(L)
   isoR = Oscar.iso_oscar_gap(R)
 
@@ -48,15 +42,25 @@ function lie_algebra_highest_weight_module_struct_consts_gap(
     isoR(zero(R))
   ]
 
-  gapL = GAPG.LieAlgebraByStructureConstants(
+  gapL = GAP.Globals.LieAlgebraByStructureConstants(
     codomain(isoR), GAP.Obj(gap_sc_table; recursive=true)
   )
+  return gapL
+end
+
+function lie_algebra_highest_weight_module_struct_consts_gap(
+  L::LieAlgebra{C}, weight::Vector{Int}
+) where {C<:RingElement}
+  R = base_ring(L)
+  isoR = Oscar.iso_oscar_gap(R)
+
+  gapL = _gap_object(L)
   dimL = GAPWrap.Dimension(gapL)
   @assert dimL == dim(L)
-  basisL = GAPG.BasisVectors(GAPWrap.Basis(gapL))
-  gapV = GAPG.HighestWeightModule(gapL, GAP.Obj(weight))
+  basisL = GAP.Globals.BasisVectors(GAPWrap.Basis(gapL))
+  gapV = GAP.Globals.HighestWeightModule(gapL, GAP.Obj(weight))
   dimV = GAPWrap.Dimension(gapV)
-  basisV = GAPG.BasisVectors(GAPWrap.Basis(gapV))
+  basisV = GAP.Globals.BasisVectors(GAPWrap.Basis(gapV))
 
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, dimL, dimV)
   for i in 1:dimL, j in 1:dimV
