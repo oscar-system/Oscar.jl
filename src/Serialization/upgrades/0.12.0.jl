@@ -28,15 +28,25 @@ push!(upgrade_scripts, UpgradeScript(
                 return backrefed_dict
             end
         end
-
+        
         upgraded_dict = dict
+
+        if contains(upgraded_dict[:type], "MPolyRingElem")
+            upgraded_dict[:type] = "MPolyRingElem"
+        elseif contains(upgraded_dict[:type], "MPolyRing")
+            upgraded_dict[:type] = "MPolyRing"
+        elseif contains(upgraded_dict[:type], "PolyRingElem")
+            upgraded_dict[:type] = "PolyRingElem"
+        elseif contains(upgraded_dict[:type], "PolyRing")
+            upgraded_dict[:type] = "PolyRing"
+        end
 
         # handle data upgrade (recurse on sub tree)
         if haskey(dict, :data) && dict[:data] isa Dict
             upgraded_dict[:data] = upgrade_0_12_0(s, dict[:data])
         end
-
-        T = decodeType(dict[:type])
+            
+        T = decodeType(upgraded_dict[:type])
         
         # remove ids according to update
         if serialize_with_id(T)
