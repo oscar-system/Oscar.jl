@@ -39,7 +39,6 @@ const oldexppkgs = [
   "GITFans",
   "GModule",
   "JuLie",
-  "LinearQuotients",
   "Matrix",
   "ModStd",
   "MPolyRingSparse",
