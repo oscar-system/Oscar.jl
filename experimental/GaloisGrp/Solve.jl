@@ -54,7 +54,7 @@ end
 #
 # now suppose SubField is given (fixed_field of U) and V is a (maximal) subgroup
 # the fixed_field(V) is a (minimal) extension of U, given via some invariant I
-# (if I is U-relative V-inv, then I is "a" generic primtive element)
+# (if I is U-relative V-inv, then I is "a" generic primitive element)
 # goal is to write minpoly(I) as exact elements of SubField.
 # conjugates (relative) of I are U//V operating on I
 #  we might need a tschirni to make them different...
@@ -310,6 +310,10 @@ function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldEl
     return ZZRingElem(1)
   end
   f = parent(defining_polynomial(S.fld))(x)
+  if iszero(f)
+    return fmpz(1)
+  end
+
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val
   return sum(length_bound(C, S.coeff_field, coeff(f, i))*B^i for i=0:degree(f))
 end

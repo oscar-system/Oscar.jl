@@ -44,8 +44,10 @@ end
   C, mG, mU = Oscar.GrpCoh.gmodule(k2, prime_field(k2))
   G = domain(mG)
 
+  pe = gen(k2)
   for g = G
     for h = G
+      mu = (mG(g) * mG(h))(pe) - mG(g*h)(pe)
       @test mG(g) * mG(h) == mG(g*h)
     end
   end
@@ -55,7 +57,9 @@ end
 
   c = Oscar.GrpCoh.CoChain{2,elem_type(C.G),elem_type(C.M)}(C,
      Dict{NTuple{2, elem_type(C.G)}, elem_type(C.M)}(
-       ((h), (g)) => preimage(mU, z(mG(g), mG(h))) for g = G for h = G))
+       ((g), (h)) => preimage(mU, z(mG(g), mG(h))) for g = G for h = G))
+
+  @test Oscar.GrpCoh.istwo_cocycle(c)         
 
   @test order(preimage(q[2], c)) == 6
 end

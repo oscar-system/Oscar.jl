@@ -2,10 +2,10 @@
    @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
       subgens = elem_type(G)[]
       F, epi = quo(G, subgens)
-      if isfinite(G)
+      if is_finite(G)
         @test order(F) == order(G)
       else
-        @test ! isfinite(F)
+        @test ! is_finite(F)
       end
    end
 end
@@ -81,7 +81,7 @@ end
    
    n=5
    G,f = quo(F, [x^2,y^n,(x*y)^2] )           # dihedral group D(2n)
-   @test isfinite(G)
+   @test is_finite(G)
    @test order(G) == 2*n
    @test !is_abelian(G)
    @test is_isomorphic(G, dihedral_group(2*n))
@@ -95,7 +95,7 @@ end
    end
    
    G,f = quo(F, [x^n,y^n,comm(x,y)])          # group C(n) x C(n)
-   @test isfinite(G)
+   @test is_finite(G)
    @test order(G) == n^2
    @test is_abelian(G)
    @test !is_injective(f)

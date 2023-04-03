@@ -17,4 +17,4 @@ true
 ```
 """
 is_smooth(X::ToricCoveredScheme) = is_smooth(normal_toric_variety(X))
-export is_smooth
+

@@ -36,7 +36,7 @@ function vanishing_locus(I::MPolyIdeal; check::Bool=true)
   return AffineAlgebraicSet(X, check=check)
 end
 
-vanishing_locus(p::MPolyElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
+vanishing_locus(p::MPolyRingElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
 ########################################################
 # (2) Intersections of algebraic sets
 ########################################################

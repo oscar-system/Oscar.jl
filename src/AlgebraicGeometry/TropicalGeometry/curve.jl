@@ -302,7 +302,7 @@ function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
 end
 
 ### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices.
-### This is the number of vertices not in W adjecent to v. 1,
+### This is the number of vertices not in W adjacent to v. 1,
 function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
     G = graph(tc)
     m = Polymake.nrows(G) #number of edges of tc

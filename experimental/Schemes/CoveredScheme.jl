@@ -101,10 +101,10 @@ affine_refinements(C::Covering) = C.affine_refinements
 ########################################################################
 
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
-  CX = affine_cone(X)
+  CX, _ = affine_cone(X)
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
@@ -144,12 +144,12 @@ affine_refinements(C::Covering) = C.affine_refinements
 end
 
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
-  CX = affine_cone(X)
+  CX, _ = affine_cone(X)
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
   S = ambient_coordinate_ring(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()
 
@@ -172,7 +172,7 @@ end
     ambient_space, pF, pY = product(F, Y)
     fiber_vars = pullback(pF).(gens(R_fiber))
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
-    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
+    patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
     pU[patch] = restrict(pY, patch, Y, check=false)
   end
