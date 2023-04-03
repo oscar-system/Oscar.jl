@@ -123,12 +123,11 @@ end
       lie_algebra_module_conformance_test(L, V)
     end
 
-    # does not work (some GAP thing)
-    # @testset "λ = [1,1,0,0] of so_4(QQ)" begin
-    #   L = special_orthogonal_lie_algebra(QQ, 4)
-    #   V = highest_weight_module(L, [1, 1, 0, 0])
-    #   lie_algebra_module_conformance_test(L, V)
-    # end
+    @testset "λ = [1,1,0,0] of so_4(CF(4))" begin
+      L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
+      V = highest_weight_module(L, [1, 1, 0, 0])
+      lie_algebra_module_conformance_test(L, V)
+    end
 
     @testset "λ = [0,1] of A_2(QQ)" begin
       L = lie_algebra(QQ, ('A', 2))
@@ -148,7 +147,7 @@ end
       lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "V of so_4(CL(4))" begin
+    @testset "V of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = standard_module(L)
       lie_algebra_module_conformance_test(L, V)
@@ -160,7 +159,7 @@ end
       lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "⋀^2 V of so_4(CL(4))" begin
+    @testset "⋀^2 V of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = exterior_power(standard_module(L), 3)
       lie_algebra_module_conformance_test(L, V)
@@ -172,7 +171,7 @@ end
       lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "S^2 V of so_4(CL(4))" begin
+    @testset "S^2 V of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = symmetric_power(standard_module(L), 2)
       lie_algebra_module_conformance_test(L, V)
@@ -184,7 +183,7 @@ end
       lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "T^2 V of sl_4(CL(4))" begin
+    @testset "T^2 V of sl_4(CF(4))" begin
       L = special_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       V = tensor_power(standard_module(L), 2)
       lie_algebra_module_conformance_test(L, V)

@@ -40,20 +40,18 @@
       )
     end
 
-    # does not work (some GAP thing)
-    # @testset "A_4(CF(4))" begin
-    #   L = lie_algebra(cyclotomic_field(4)[1], ('A', 4))
-    #   lie_algebra_conformance_test(
-    #     L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
-    #   )
-    # end
+    @testset "A_4(CF(4))" begin
+      L = lie_algebra(cyclotomic_field(4)[1], ('A', 4))
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
+      )
+    end
 
-    # does not work (some GAP thing)
-    # @testset "B_3(CF(4))" begin
-    #   L = lie_algebra(cyclotomic_field(4)[1], ('B', 3))
-    #   lie_algebra_conformance_test(
-    #     L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
-    #   )
-    # end
+    @testset "B_3(CF(4))" begin
+      L = lie_algebra(cyclotomic_field(4)[1], ('B', 3))
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
+      )
+    end
   end
 end
