@@ -22,7 +22,7 @@
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grading_group(R::MPolyDecRing)
 
 If `R` is, say, `G`-graded, return `G`.
@@ -41,7 +41,7 @@ GrpAb: Z
 """
 grading_group(R::MPolyDecRing) = R.D
 
-@doc Markdown.doc"""
+@doc raw"""
     is_graded(R::MPolyDecRing)
 
 Return `true` if `R` is graded, `false` otherwise.
@@ -78,7 +78,7 @@ function decorate(R::MPolyRing)
   return S, map(R, gens(R))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 
 Given a vector `W` of `ngens(R)` integers, define a $\mathbb Z$-grading on `R` by creating 
@@ -125,7 +125,7 @@ function grade(R::MPolyRing)
   return S, map(S, gens(R))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
  
 Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, define a $\mathbb Z^m$-grading on `R` 
@@ -178,7 +178,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_standard_graded(R::MPolyDecRing)
 
 Return `true` if `R` is standard $\mathbb Z$-graded, `false` otherwise.
@@ -212,7 +212,7 @@ function is_standard_graded(R::MPolyDecRing)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_z_graded(R::MPolyDecRing)
 
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
@@ -243,7 +243,7 @@ function is_z_graded(R::MPolyDecRing)
   return ngens(A) == 1 && rank(A) == 1 && is_free(A)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zm_graded(R::MPolyDecRing)
 
 Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
@@ -300,7 +300,7 @@ function is_zm_graded(R::MPolyDecRing)
   return is_free(A) && ngens(A) == rank(A)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_positively_graded(R::MPolyDecRing)
 
 Return `true` if `R` is positively graded, `false` otherwise.
@@ -369,7 +369,7 @@ function is_positively_graded(R::MPolyDecRing)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
     graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:Union{Symbol, AbstractString, Char}
 
@@ -445,7 +445,7 @@ function filtrate(R::MPolyRing, v::Vector{GrpAbFinGenElem}, lt)
   return S, map(S, gens(R))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
 
 Given a vector `W` of `ngens(R)` elements of a group `G` of type `GrpAbFinGen`,  
@@ -840,7 +840,7 @@ function jacobi_matrix(g::Vector{<:MPolyDecRingElem})
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(f::MPolyDecRingElem)
 
 Given a homogeneous element `f` of a graded multivariate ring, return the degree of `f`.
@@ -964,7 +964,7 @@ function degree(::Type{Vector{Int}}, a::MPolyDecRingElem)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_homogeneous(f::MPolyDecRingElem)
 
 Given an element `f` of a graded multivariate ring, return `true` if `f` is homogeneous, `false` otherwise.
@@ -1019,7 +1019,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 
 Given an element `f` of a graded multivariate ring, return the homogeneous components of `f`.
@@ -1107,7 +1107,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
   return hhh
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
 
 Given an element `f` of a graded multivariate ring, and given an element 
@@ -1236,7 +1236,7 @@ function show_homo_comp(io::IO, M)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem) 
 
 Given a polynomial ring `R` over a field which is graded by a free
@@ -2107,7 +2107,7 @@ function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::Strin
    return _homogenization(f, W, var, pos)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
 
 If $m$ is the number of rows of `W`, extend the parent polynomial ring of `f` by inserting $m$ extra variables, starting at position `pos`.
@@ -2189,7 +2189,7 @@ function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUn
   return saturation(IH, Y)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
 
     homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
@@ -2300,7 +2300,7 @@ function _dehomogenization(F::MPolyDecRingElem, R::MPolyRing, pos::Int, m::Int)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dehomogenization(F::MPolyDecRingElem, pos::Int)
 
 Given an element `F` of a $\mathbb Z^m$-graded ring, where the generators of $\mathbb Z^m$
@@ -2442,7 +2442,7 @@ end
 
 #create homogeneous polynomials in graded rings
 #TODO: make this work for non-standard gradings
-@doc Markdown.doc"""
+@doc raw"""
     rand(S::MPolyDecRing, term_range, deg_range, v...)
 
 Create a random homogeneous polynomial with a random number of
@@ -2473,35 +2473,35 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_decoration(R::MPolyDecRing)
 
 Return the underlying undecorated ring.
 """
 forget_decoration(R::MPolyDecRing) = R.R
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_grading(R::MPolyDecRing)
 
 Return the ungraded undecorated ring.
 """
 forget_grading(R::MPolyDecRing) = forget_decoration(R)
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_decoration(f::MPolyDecRingElem)
 
 Return the element in the underlying undecorated ring.
 """
 forget_decoration(f::MPolyDecRingElem) = f.f
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_grading(f::MPolyDecRingElem)
 
 Return the element in the underlying ungraded ring.
 """
 forget_grading(f::MPolyDecRingElem) = forget_decoration(f)
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_decoration(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Return the ideal in the underlying undecorated ring.
@@ -2511,7 +2511,7 @@ function forget_decoration(I::MPolyIdeal{<:MPolyDecRingElem})
   return ideal(R, map(forget_decoration, gens(I)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_grading(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Return the ideal in the underlying ungraded ring.

@@ -30,7 +30,7 @@ end
 # ---------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalLinearSpace(I::MPolyIdeal, val::TropicalSemiringMap)
 
 Construct a tropical linear space from a degree 1 polynomial ideal `I` and a map to the tropical semiring `val`.
@@ -62,7 +62,7 @@ function TropicalLinearSpace(I::MPolyIdeal, val)
     return TropicalLinearSpace(matrix(B),val)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalLinearSpace(plv::Vector{TropicalSemiringElem}, rank::IntegerUnion, nElements::IntegerUnion)
 
 Construct a tropical linear space from a (tropical) Pluecker vector `plv`, rank `rank`, and size of the ground set `nElements`.
@@ -98,7 +98,7 @@ TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(max)}},rank::Integer
 TropicalLinearSpace_impl(plv, rank, nElements, max)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalLinearSpace(A::MatElem,val::TropicalSemiringMap)
 
 Construct a tropical linear space from a matrix `A` and a map to the tropical semiring `val`.

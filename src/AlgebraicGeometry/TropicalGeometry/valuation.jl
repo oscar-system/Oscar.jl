@@ -3,7 +3,7 @@
 # ==================================================
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
 
 Constructs a map `val` from `K` to the min tropical semiring `T` (default)

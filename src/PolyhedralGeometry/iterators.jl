@@ -102,7 +102,7 @@ abstract type Halfspace{T} end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Halfspace(a, b)
 
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
@@ -141,7 +141,7 @@ abstract type Hyperplane{T} end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     AffineHyperplane(a, b)
 
 One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
@@ -206,7 +206,7 @@ end
 ######## SubObjectIterator
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SubObjectIterator(Obj, Acc, n, [options])
 
 An iterator over a designated property of `Obj::Polymake.BigObject`.

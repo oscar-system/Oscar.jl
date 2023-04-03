@@ -24,7 +24,7 @@ end
 # 2: Constructors over specified bases
 ################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     global_weierstrass_model(base::AbstractNormalToricVariety)
 
 This method constructs a global Weierstrass model over a given toric base
@@ -51,7 +51,7 @@ function global_weierstrass_model(base::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     global_weierstrass_model_over_projective_space()
 
 This method constructs a global Weierstrass model over the 3-dimensional projective space.
@@ -65,7 +65,7 @@ Global Weierstrass model over a concrete base
 global_weierstrass_model_over_projective_space() = global_weierstrass_model(projective_space(NormalToricVariety,3))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
 
 This method operates analogously to `global_weierstrass_model(base::AbstractNormalToricVariety)`.
@@ -102,7 +102,7 @@ end
 # 3: Constructors over not fully specified bases
 ################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
 
 This method constructs a global Weierstrass model over a base space that is not

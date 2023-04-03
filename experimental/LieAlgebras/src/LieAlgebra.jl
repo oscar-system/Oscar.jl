@@ -53,7 +53,7 @@ end
   return (x.mat)::dense_matrix_type(C)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     getindex(x::LieAlgebraElem{C}, i::Int) where C <: RingElement
 
 Return the $i$-th coefficient of the module element $x$.

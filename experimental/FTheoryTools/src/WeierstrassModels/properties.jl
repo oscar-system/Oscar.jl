@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     base_fully_specified(t::GlobalWeierstrassModel)
 
 Return `true` is the Weierstrass model has a concrete base space and `false` otherwise.

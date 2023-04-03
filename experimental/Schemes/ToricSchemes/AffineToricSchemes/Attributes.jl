@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     underlying_scheme(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns
@@ -36,7 +36,7 @@ function underlying_scheme(X::ToricSpec)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_normal_toric_variety(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns
@@ -60,7 +60,7 @@ Normal, affine toric variety
 affine_normal_toric_variety(X::ToricSpec) = X.antv
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cone(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns
@@ -84,7 +84,7 @@ Polyhedral cone in ambient dimension 2
 cone(X::ToricSpec) = cone(affine_normal_toric_variety(X))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dual_cone(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns the dual
@@ -116,7 +116,7 @@ function dual_cone(X::ToricSpec)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_basis(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns the Hilbert

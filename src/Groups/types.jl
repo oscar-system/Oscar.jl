@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     GAPGroup <: AbstractAlgebra.Group
 
 Each object of the abstract type `GAPGroup` stores a group object from
@@ -16,7 +16,7 @@ abstract type GAPGroup <: AbstractAlgebra.Group end
 ## `GapGroup` to GAP group
 GAP.julia_to_gap(obj::GAPGroup) = obj.X
 
-@doc Markdown.doc"""
+@doc raw"""
     GAPGroupElem <: AbstractAlgebra.GroupElem
 
 Each object of the abstract type `GAPGroupElem` stores a group element
@@ -31,7 +31,7 @@ abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 ## `GapGroupElem` to GAP group element
 GAP.julia_to_gap(obj::GAPGroupElem) = obj.X
 
-@doc Markdown.doc"""
+@doc raw"""
     BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
 
 The type `BasicGAPGroupElem` gathers all types of group elements

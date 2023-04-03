@@ -95,7 +95,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-@doc Markdown.doc"""
+@doc raw"""
     syz(A::MatrixElem)
 
 For a matrix ``A ∈ Rᵐˣⁿ`` over a ring ``R`` this returns a matrix 
@@ -134,7 +134,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-@doc Markdown.doc"""
+@doc raw"""
     has_nonempty_intersection(U::AbsMultSet, I::Ideal)
 
 For a finitely generated ideal ``I ⊂ R`` and a multiplicative 
@@ -223,7 +223,7 @@ end
 
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the module F♭ ≅ Rʳ.
-@doc Markdown.doc"""
+@doc raw"""
     base_ring_module(M::ModuleFP{T}) where {T<:AbsLocalizedRingElem}
 
 For a finitely presented module ``M`` over a localized ring ``S = R[U⁻¹]`` 

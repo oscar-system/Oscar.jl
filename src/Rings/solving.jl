@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     real_solutions(I::MPolyIdeal, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return a pair `r,p` where `p` is the rational parametrization of the solution set and `r` represents the real roots of `Ì`  with a given precision (default 32 bits).
@@ -57,7 +57,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     _rational_solutions(I::Ideal{T} where T <: MPolyRingElem, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return

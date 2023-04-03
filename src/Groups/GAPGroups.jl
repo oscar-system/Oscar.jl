@@ -156,7 +156,7 @@ false
 @gapattribute is_trivial(G::GAPGroup) = GAP.Globals.IsTrivial(G.X)::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     exponent(::Type{T} = ZZRingElem, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
@@ -567,7 +567,7 @@ function conjugacy_classes(G::GAPGroup)
    return [GAPGroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)::GapObj),cc) for cc in L]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
@@ -876,7 +876,7 @@ function is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
   return false, one(U)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
 
 Return an array of representatives `g` for all those right cosets of `H` in `G`
@@ -1149,7 +1149,7 @@ function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sylow_system(G::Group)
 
 Return a vector of Sylow $p$-subgroups of the finite group `G`,
@@ -1164,7 +1164,7 @@ an exception is thrown if `G` is not solvable.
    return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     complement_class_reps(G::T, N::T) where T <: GAPGroup
 
 Return a vector of representatives of the conjugacy classes of complements
@@ -1194,7 +1194,7 @@ function complement_class_reps(G::T, N::T) where T <: GAPGroup
    return _as_subgroups(G, GAP.Globals.ComplementClassesRepresentatives(G.X, N.X))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     complement_system(G::Group)
 
 Return a vector of Hall $p'$-subgroups of the finite group `G`,
@@ -1208,7 +1208,7 @@ an exception is thrown if `G` is not solvable.
    return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hall_system(G::Group)
 
 Return a vector of Hall $P$-subgroups of the finite group `G`,
@@ -1264,7 +1264,7 @@ false
 """
 @gapattribute is_simple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_almostsimple(G::GAPGroup)
 
 Return whether `G` is an almost simple group,
@@ -1283,7 +1283,7 @@ false
 """
 @gapattribute is_almostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_quasisimple(G::GAPGroup)
 
 Return whether `G` is a quasisimple group,
@@ -1302,7 +1302,7 @@ false
 """
 @gapattribute is_quasisimple(G::GAPGroup) = GAP.Globals.IsQuasisimpleGroup(G.X)::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_sporadic_simple(G::GAPGroup)
 
 Return whether `G` is a sporadic simple group.
@@ -1462,7 +1462,7 @@ false
 @gapattribute is_finitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_full_fp_group(G::FPGroup)
 
 Return `true` if `G` has been constructed as a free group or
@@ -1490,7 +1490,7 @@ false
 is_full_fp_group(G::FPGroup) = GAPWrap.IsFpGroup(G.X)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     relators(G::FPGroup)
 
 Return a vector of relators for the full finitely presented group `G`, i.e.,
@@ -1519,7 +1519,7 @@ function relators(G::FPGroup)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
@@ -1638,7 +1638,7 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     syllables(g::FPGroupElem)
 
 Return the syllables of `g` as a list of pairs `gen => exp` where
@@ -1670,7 +1670,7 @@ function syllables(g::FPGroupElem)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     letters(g::FPGroupElem)
 
 Return the letters of `g` as a list of integers, each entry corresponding to
@@ -1715,7 +1715,7 @@ function letters(g::FPGroupElem)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     length(g::FPGroupElem)
 
 Return the length of `g` as a word in terms of the generators of its group
@@ -1788,7 +1788,7 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    return FPGroupElem(G, w)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     nilpotency_class(G::GAPGroup) -> Int
 
 Return the nilpotency class of `G`, i.e.,
@@ -1811,7 +1811,7 @@ function describe(G::GrpAbFinGen)
    return free == 0 ? res : ( res == "" ? ( free == 1 ? "Z" : "Z^$free" ) : ( free == 1 ? "$res + Z" : "$res + Z^$free" ) )
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     describe(G::GAPGroup)
 
 Return a string that describes some aspects of the structure of `G`.

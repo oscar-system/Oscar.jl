@@ -53,7 +53,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}})
 
 Return the tropical hypersurface of a tropical polynomial `f`.
@@ -90,7 +90,7 @@ function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSem
     return Vf
 end
 
-# @doc Markdown.doc"""
+# @doc raw"""
 #     tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
 #                               AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
 
@@ -116,7 +116,7 @@ end
 #     return TropicalHypersurface(f)
 # end
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
@@ -149,7 +149,7 @@ function TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}
     return Tf
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Construct the tropical hypersurface from a polynomial `f` and a map to the
@@ -180,7 +180,7 @@ function TropicalHypersurface(f::MPolyRingElem, val::TropicalSemiringMap)
 end
 
 
-# @doc Markdown.doc"""
+# @doc raw"""
 #     tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
 
 # Return the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
@@ -212,7 +212,7 @@ end
 ################################################################################
 
 # todo: add examples for varieties, curves and linear spaces
-@doc Markdown.doc"""
+@doc raw"""
     dual_subdivision(TH::TropicalHypersurface{M, EMB})
 
 Return the dual subdivision of `TH` if it is embedded. Otherwise an error is thrown.
@@ -241,7 +241,7 @@ function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(TH::TropicalHypersurface{M, EMB})
 
 Return the tropical polynomial of `TH` if it is embedded. Otherwise an error is thrown.
@@ -268,7 +268,7 @@ function polynomial(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     minpoly(T::TropicalHypersurface)
 
 Return the minimal polynomial with smallest possible coefficients of a hypersurface.

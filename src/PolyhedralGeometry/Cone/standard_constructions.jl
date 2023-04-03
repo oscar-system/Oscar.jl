@@ -3,7 +3,7 @@
 ### Standard constructions
 ###############################################################################
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 
 Return the intersection $C0 \cap C1$ of `C0` and `C1`.
@@ -33,7 +33,7 @@ end
 intersect(C::AbstractVector{Cone{T}}) where T<:scalar_types = intersect(C...)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polarize(C::Cone)
 
 Return the polar dual of `C`, the cone consisting of all those linear functions

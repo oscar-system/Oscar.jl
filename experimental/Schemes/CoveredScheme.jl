@@ -284,7 +284,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  return last(p), p, q
 #end
 #
-#@doc Markdown.doc"""
+#@doc raw"""
 #    common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
 #
 #Given two coverings of ``X``, return a triple `(C_new, f, g)` consisting 

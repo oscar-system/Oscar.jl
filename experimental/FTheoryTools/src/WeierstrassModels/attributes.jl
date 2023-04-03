@@ -2,7 +2,7 @@
 # 1: Weierstrass sections
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_section_f(w::GlobalWeierstrassModel)
 
 Return the polynomial ``f`` used for the
@@ -20,7 +20,7 @@ julia> weierstrass_section_f(w);
 @attr MPolyRingElem{QQFieldElem} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_section_g(w::GlobalWeierstrassModel)
 
 Return the polynomial ``g`` used for the
@@ -42,7 +42,7 @@ julia> weierstrass_section_g(w);
 # 2: Weierstrass polynomial
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_polynomial(w::GlobalWeierstrassModel)
 
 Return the Weierstrass polynomial of the global Weierstrass model.
@@ -63,7 +63,7 @@ julia> weierstrass_polynomial(w);
 # 3: Toric spaces
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_base_space(w::GlobalWeierstrassModel)
 
 Return the toric base space of the global Weierstrass model.
@@ -85,7 +85,7 @@ julia> dim(toric_base_space(w))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ambient_space(w::GlobalWeierstrassModel)
 
 Return the toric base space of the global Weierstrass model.
@@ -111,7 +111,7 @@ end
 # 4: The CY hypersurface
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     cy_hypersurface(w::GlobalWeierstrassModel)
 
 Return the Calabi-Yau hypersurface in the toric ambient space
@@ -145,7 +145,7 @@ end
 # 6: Discriminant
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant(w::GlobalWeierstrassModel)
 
 Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
@@ -162,7 +162,7 @@ julia> discriminant(w);
 @attr MPolyRingElem{QQFieldElem} discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
 
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_loci(w::GlobalWeierstrassModel)
 
 Return the singular loci of the global Weierstrass model, along with the order of

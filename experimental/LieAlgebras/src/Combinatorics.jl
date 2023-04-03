@@ -6,7 +6,7 @@ function combinations(n::Integer, k::Integer)
   return sort(subsets(n, k))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     combinations(v::AbstractVector{T}, k::Integer) where {T}
 
 Returns an iterator over all combinations of `k` elements of `v`.
@@ -38,7 +38,7 @@ function multicombinations(n::Integer, k::Integer)
   )
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 
 Returns an iterator over all combinations of `k` elements of `v` with repetitions.
@@ -69,7 +69,7 @@ function permutations(n::Integer)
   return map(p -> convert(Vector{Int}, p), AbstractAlgebra.SymmetricGroup(n))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     permutations(v::AbstractVector{T}) where {T}
 
 Returns an iterator over all permutations of `v`.
@@ -95,7 +95,7 @@ function permutations_with_sign(n::Integer)
   return map(p -> (convert(Vector{Int}, p), sign(p)), AbstractAlgebra.SymmetricGroup(n))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     permutations_with_sign(v::AbstractVector{T}) where {T}
 
 Returns an iterator over all permutations of `v` with their sign.

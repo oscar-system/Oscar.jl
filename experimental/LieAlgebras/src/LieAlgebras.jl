@@ -1,7 +1,6 @@
 module LieAlgebras
 
 using ..Oscar
-using Markdown
 
 import Oscar: GAPWrap
 
