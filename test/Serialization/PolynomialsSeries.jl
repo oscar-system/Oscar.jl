@@ -12,9 +12,9 @@ Fin, d = FiniteField(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = TropicalSemiring()
-F, a = Hecke.Nemo._FiniteField(4)
+F, o = Hecke.Nemo._FiniteField(4)
 Fs, s = F["s"]
-FF, w = Hecke.Nemo._FiniteField(s^2 + a * s + 1)
+FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1)
 
 cases = [
     (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
@@ -29,7 +29,7 @@ cases = [
     (Frac, 1 // x, x^2, "Fraction Field"),
     (P7, 7 + 3*7^2, 7^5, "Padic Field"),
     (T, T(1), T(3)^2, "Tropical Semiring"),
-    (FF, FF(1), w, "Default Finite Field")
+    (FF, FF(1), r, "Default Finite Field")
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{

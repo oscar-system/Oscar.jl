@@ -78,7 +78,6 @@ end
 # SimpleNumField
 
 @registerSerializationType(Hecke.NfRel)
-
 @registerSerializationType(AnticNumberField)
 
 function save_internal(s::SerializerState, K::SimpleNumField)
@@ -98,14 +97,17 @@ end
 ################################################################################
 # FqNmodfinitefield
 @registerSerializationType(fqPolyRepField)
+@registerSerializationType(FqField)
 
-function save_internal(s::SerializerState, K::fqPolyRepField)
+function save_internal(s::SerializerState, K::Union{fqPolyRepField, FqField})
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K))
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{fqPolyRepField}, dict::Dict)
+function load_internal(s::DeserializerState,
+                       ::Type{<: Union{fqPolyRepField, FqField}},
+                       dict::Dict)
     def_pol = load_unknown_type(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
     return K
@@ -114,10 +116,12 @@ end
 #elements
 @registerSerializationType(fqPolyRepFieldElem)
 @registerSerializationType(nf_elem)
-
 @registerSerializationType(Hecke.NfRelElem)
+@registerSerializationType(FqFieldElem)
 
-function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem})
+FieldElemTypes = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem, FqFieldElem}
+
+function save_internal(s::SerializerState, k::FieldElemTypes)
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
 
@@ -128,7 +132,7 @@ function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem,
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
+                       ::Type{<: FieldElemTypes},
                        dict::Dict)
     K = load_unknown_type(s, dict[:parent])
     polynomial = load_unknown_type(s, dict[:polynomial])
@@ -136,7 +140,7 @@ function load_internal(s::DeserializerState,
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
+                                   ::Type{<: FieldElemTypes},
                                    dict::Dict,
                                    parent_field::Union{fqPolyRepField, SimpleNumField})
     polynomial_parent = parent(defining_polynomial(parent_field))
