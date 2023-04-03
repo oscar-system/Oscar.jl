@@ -35,6 +35,7 @@ GAP.@wrap DegreeOfLaurentPolynomial(x::GapObj)::GapInt
 GAP.@wrap DegreeOverPrimeField(x::GapObj)::Int
 GAP.@wrap DenominatorCyc(x::Any)::GapInt
 GAP.@wrap DenominatorRat(x::Any)::GapInt
+GAP.@wrap Dimension(x::GapObj)::Int
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap Elements(x::GapObj)::GapObj
 GAP.@wrap ElementsFamily(x::GapObj)::GapObj
