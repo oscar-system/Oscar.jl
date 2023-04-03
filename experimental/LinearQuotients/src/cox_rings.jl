@@ -276,7 +276,7 @@ in a presentation as a graded affine algebra (`MPolyQuoRing`) and an injective
 map from this ring into a Laurent polynomial ring using the algorithm from
 [Yam18](@cite).
 """
-function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient; verbose::Bool = false)
+function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
   # TODO: can we handle this without error (in a type-stable way)?
   @assert !has_terminal_singularities(L) "Variety is already terminal"
 
@@ -285,7 +285,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient; verbose::Bo
 
   # Compute the Cox ring of L itself
   RVG, RVGtoR = cox_ring(L)
-  verbose && @info "Computed K[V]^[G, G]"
+  @vprint :LinearQuotients "Computed K[V]^[G, G]\n"
 
   K = base_ring(L)
   R = codomain(RVGtoR)
@@ -307,28 +307,28 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient; verbose::Bo
 
   # Phase 1: Assure (*{i}) for all i (see [Yam18], [Sch23])
   for i in 1:length(juniors)
-    verbose && @info "Starting search for junior element #$i"
-    verbose && @info "Number of variables: $(ngens(S))"
-    new_gens = new_generators_phase_1(StoR, I, Sdeg, SAbG, juniors[i], vals, verbose = verbose)
+    @vprint :LinearQuotients "Starting search for junior element #$i\n"
+    @vprint :LinearQuotients "Number of variables: $(ngens(S))\n"
+    new_gens = new_generators_phase_1(StoR, I, Sdeg, SAbG, juniors[i], vals)
     while !isempty(new_gens)
-      verbose && @info "Found $(length(new_gens)) new generators"
+      @vprint :LinearQuotients "Found $(length(new_gens)) new generators\n"
       S, Sdeg, SAbG, StoR, I = add_generators(StoR, I, new_gens, SAbG, L)
-      verbose && @info "Number of variables: $(ngens(S))"
-      new_gens = new_generators_phase_1(StoR, I, Sdeg, SAbG, juniors[i], vals, verbose = verbose)
+      @vprint :LinearQuotients "Number of variables: $(ngens(S))\n"
+      new_gens = new_generators_phase_1(StoR, I, Sdeg, SAbG, juniors[i], vals)
     end
   end
 
   # Phase 2: Assure (*{1, 2}), (*{1, 3}), ..., (*{1, ..., length(juniors)})
   for i in 2:length(juniors)
     for j in 1:i - 1
-      verbose && @info "Running phase 2 for i = $i and i' = $j"
-      verbose && @info "Number of variables: $(ngens(S))"
-      new_gens = new_generators_phase_2(StoR, I, Sdeg, SAbG, juniors, vals, i, j, verbose = verbose)
+      @vprint :LinearQuotients "Running phase 2 for i = $i and i' = $j\n"
+      @vprint :LinearQuotients "Number of variables: $(ngens(S))\n"
+      new_gens = new_generators_phase_2(StoR, I, Sdeg, SAbG, juniors, vals, i, j)
       while !isempty(new_gens)
-        verbose && @info "Found $(length(new_gens)) new generators"
+        @vprint :LinearQuotients "Found $(length(new_gens)) new generators\n"
         S, Sdeg, SAbG, StoR, I = add_generators(StoR, I, new_gens, SAbG, L)
-        verbose && @info "Number of variables: $(ngens(S))"
-        new_gens = new_generators_phase_2(StoR, I, Sdeg, SAbG, juniors, vals, i, j, verbose = verbose)
+        @vprint :LinearQuotients "Number of variables: $(ngens(S))\n"
+        new_gens = new_generators_phase_2(StoR, I, Sdeg, SAbG, juniors, vals, i, j)
       end
     end
   end
@@ -364,7 +364,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient; verbose::Bo
   end
 
   # Relations
-  rels = relations(StoR, I, juniors, vals, degsRt, verbose = verbose)
+  rels = relations(StoR, I, juniors, vals, degsRt)
   Q, _ = quo(base_ring(rels), rels)
   QtoRt = hom(Q, Rt, gensRt)
 
@@ -442,7 +442,7 @@ end
 # Ensures (after iterative calls) (*{k}) where k is the index of the element
 # junior in the array juniors
 # See [Sch23, Algorithm 6.2.2]
-function new_generators_phase_1(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDecRing, SAbG::MPolyDecRing, junior::MatrixGroupElem, vals::Dict{<:MatrixGroupElem, <:Tuple}; verbose::Bool = false)
+function new_generators_phase_1(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDecRing, SAbG::MPolyDecRing, junior::MatrixGroupElem, vals::Dict{<:MatrixGroupElem, <:Tuple})
 
   S = domain(StoR)
   R = codomain(StoR)
@@ -457,23 +457,23 @@ function new_generators_phase_1(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDec
     push!(min_parts, forget_grading(homogeneous_component(RtoReig(StoR(x)), v))(gens(R)...))
   end
 
-  verbose && @info "Phase 1: Computing minI"
+  @vprint :LinearQuotients "Phase 1: Computing minI\n"
   minI = ideal(Sdeg, minimal_parts(I, weights))
 
-  verbose && @info "Phase 1: Computing kernel of beta"
+  @vprint :LinearQuotients "Phase 1: Computing kernel of beta\n"
   beta = hom(Sdeg, R, min_parts)
   J = forget_grading(kernel(beta))
 
-  verbose && @info "Phase 1: Computing minJ"
+  @vprint :LinearQuotients "Phase 1: Computing minJ\n"
   minJ = ideal(Sdeg, group_homogeneous_ideal(J, SAbG))
 
-  verbose && @info "Phase 1: Representing as subideal"
+  @vprint :LinearQuotients "Phase 1: Representing as subideal\n"
   return [ forget_grading(f) for f in as_subideal(minI, minJ) ]
 end
 
 # Ensures (after iterative calls) (*A\cup {l,k}) assuming (*A\cup {l}) and (*A\cup {k}), where A is any set of indices
 # See [Sch23, Algorithm 6.2.3]
-function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDecRing, SAbG::MPolyDecRing, juniors::Vector{<:MatrixGroupElem}, vals::Dict{<:MatrixGroupElem, <:Tuple}, k::Int, l::Int; verbose::Bool = false)
+function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDecRing, SAbG::MPolyDecRing, juniors::Vector{<:MatrixGroupElem}, vals::Dict{<:MatrixGroupElem, <:Tuple}, k::Int, l::Int)
   @req k > l "first index $k is not larger than the second index $l"
 
   S = domain(StoR)
@@ -483,7 +483,7 @@ function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDec
   Ihom = I
   inds = [ l, k ]
   for i in 1:2
-    verbose && @info "Phase 2: Homogenizing at $(inds[i])"
+    @vprint :LinearQuotients "Phase 2: Homogenizing at $(inds[i])\n"
     weights = ZZRingElem[ vals[juniors[inds[i]]][2](StoR(x)) for x in gens(S) ]
     append!(weights, zeros(ZZRingElem, i))
     weights[end] = -1
@@ -491,17 +491,17 @@ function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDec
     Ihom = homogenize_at_last_variable(Ihom, T)
   end
 
-  verbose && @info "Phase 2: Setting up quotient ring"
+  @vprint :LinearQuotients "Phase 2: Setting up quotient ring\n"
   Ilk = Ihom*ideal(T, gens(T)[ngens(S) + 1]) + Ihom*ideal(T, gens(T)[ngens(S) + 2])
   Q, TtoQ = quo(T, Ilk)
   IhomQ = ideal(Q, [ TtoQ(x) for x in gens(Ihom) ])
   tlkQ = ideal(Q, [ TtoQ(gens(T)[ngens(S) + 1]), TtoQ(gens(T)[ngens(S) + 2]) ])
-  verbose && @info "Phase 2: Computing intersection"
+  @vprint :LinearQuotients "Phase 2: Computing intersection\n"
   J = intersect(IhomQ, tlkQ)
-  verbose && @info "Phase 2: Simplifying"
+  @vprint :LinearQuotients "Phase 2: Simplifying\n"
   J = simplify(J)
 
-  verbose && @info "Phase 2: Moving generators around"
+  @vprint :LinearQuotients "Phase 2: Moving generators around\n"
   TtoS = hom(T, S, append!([ x for x in gens(S) ], [ one(S) for i in 1:2 ]))
   gensJ = elem_type(Q)[]
   for f in gens(J)
@@ -552,14 +552,14 @@ function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector
 end
 
 # Relations of the Cox ring, see [Sch23, Algorithm 6.3.3].
-function relations(StoR::MPolyAnyMap, I::MPolyIdeal, juniors::Vector{<:MatrixGroupElem}, vals::Dict{<:MatrixGroupElem, <:Tuple}, degsRt::Vector{Vector{ZZRingElem}}; verbose::Bool = false)
+function relations(StoR::MPolyAnyMap, I::MPolyIdeal, juniors::Vector{<:MatrixGroupElem}, vals::Dict{<:MatrixGroupElem, <:Tuple}, degsRt::Vector{Vector{ZZRingElem}})
   R = codomain(StoR)
   S = domain(StoR)
 
   T = S
   Ihom = I
   for i in 1:length(juniors)
-    verbose && @info "Relations: Homogenizing at $i"
+    @vprint :LinearQuotients "Relations: Homogenizing at $i\n"
     weights = ZZRingElem[ vals[juniors[i]][2](StoR(x)) for x in gens(S) ]
     append!(weights, zeros(ZZRingElem, i))
     weights[end] = -1
@@ -567,13 +567,13 @@ function relations(StoR::MPolyAnyMap, I::MPolyIdeal, juniors::Vector{<:MatrixGro
     Ihom = homogenize_at_last_variable(Ihom, T)
   end
 
-  verbose && @info "Relations: Computing Gröbner basis"
+  @vprint :LinearQuotients "Relations: Computing Gröbner basis\n"
   # We need homogeneous generators (with respect to all gradings) of Ihom
   gb = groebner_basis(Ihom, complete_reduction = true)
   T, _ = graded_polynomial_ring(coefficient_ring(S), append!([ "X$i" for i in 1:ngens(S) ], [ "Y$i" for i in 1:length(juniors) ]), degsRt)
   @assert ngens(T) == ngens(base_ring(Ihom))
 
-  verbose && @info "Relations: Finishing up"
+  @vprint :LinearQuotients "Relations: Finishing up\n"
   r = [ order(s) for s in juniors ]
   rels = Vector{elem_type(T)}()
   for f in gb
