@@ -1,5 +1,5 @@
 @attributes mutable struct ProjectiveAlgebraicSet{BaseRing<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseRing, GradedRingType}
-  X::ProjectiveScheme
+  X::ProjectiveScheme{BaseRing,GradedRingType}
   function ProjectiveAlgebraicSet(X::ProjectiveScheme; check::Bool=true)
     if check
       is_geometrically_reduced(X) || error("algebraic sets must be geometrically reduced")

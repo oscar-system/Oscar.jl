@@ -1,5 +1,5 @@
 @attributes mutable struct ProjectiveVariety{BaseRing<:Field, GradedRingType} <: AbsProjectiveVariety{BaseRing, GradedRingType}
-  X::AbsProjectiveScheme
+  X::ProjectiveScheme{BaseRing,GradedRingType}
 
   function ProjectiveVariety(X::AbsProjectiveScheme{S, T}; check::Bool=true) where {S, T}
     if check

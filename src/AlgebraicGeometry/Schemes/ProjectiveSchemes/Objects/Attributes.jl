@@ -261,7 +261,7 @@ homogeneous_coordinate_on_affine_cone(P::AbsProjectiveScheme, i::Int) = homogene
 # the documentation is for the abstract type
 base_ring(P::ProjectiveScheme) = P.A
 
-function base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Ring, CRET, RT, RET}
+function base_scheme(X::ProjectiveScheme{CRT, RT}) where {CRT<:Ring, RT}
   if !isdefined(X, :Y)
     X.Y = Spec(base_ring(X))
   end
@@ -273,15 +273,15 @@ function base_scheme(X::ProjectiveScheme{<:SpecOpenRing})
 end
 
 function set_base_scheme!(
-    P::ProjectiveScheme{CRT, CRET, RT, RET}, 
+    P::ProjectiveScheme{CRT, RT},
     X::Union{<:AbsSpec, <:SpecOpen}
-  ) where {CRT<:Ring, CRET, RT, RET}
+  ) where {CRT<:Ring, RT}
   OO(X) === base_ring(P) || error("schemes are not compatible")
   P.Y = X
   return P
 end
 
-function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing, <:SpecOpenRing}, CRET, RT, RET}
+function projection_to_base(X::ProjectiveScheme{CRT, RT}) where {CRT<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing, <:SpecOpenRing}, RT}
   if !isdefined(X, :projection_to_base)
     affine_cone(X)
   end
@@ -308,21 +308,19 @@ relative_ambient_dimension(P::ProjectiveScheme) = P.r
 homogeneous_coordinate_ring(P::ProjectiveScheme) = P.S
 
 
-### type getters 
+### type getters
 projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme_type(typeof(A))
-projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = 
-ProjectiveScheme{T, elem_type(T), mpoly_dec_ring_type(mpoly_ring_type(T)), mpoly_dec_type(mpoly_ring_type(T))}
+projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} =
+ProjectiveScheme{T, mpoly_dec_ring_type(mpoly_ring_type(T))}
 
 base_ring_type(P::ProjectiveScheme) = base_ring_type(typeof(P))
-base_ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = S
+base_ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = S
 
 ring_type(P::ProjectiveScheme) = ring_type(typeof(P))
-ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = U
+ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = T
 
-### type constructors 
+### type constructors
 
 # the type of a relative projective scheme over a given base scheme
 projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
-
-

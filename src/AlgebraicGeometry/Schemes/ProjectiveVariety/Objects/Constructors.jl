@@ -69,7 +69,7 @@ function projective_space(A::Field, var_symb::Vector{Symbol})
 end
 
 projective_space(A::Field, var_names::Vector{String}
-  ) = projective_variety(projective_space(A, Symbol.(var_names)), check=false)
+  ) = projective_space(A, Symbol.(var_names))
 
 
 function projective_space(
