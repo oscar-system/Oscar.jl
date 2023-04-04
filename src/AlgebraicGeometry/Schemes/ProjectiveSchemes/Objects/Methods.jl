@@ -8,7 +8,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   println(io, "Projective scheme")  # at least one new line is needed
   println(io, "  over ", base_ring(P))
-  println(io, "defined by")
+  println(io, "  defined by")
   print(io, defining_ideal(P)) # the last print statement must not add a new line
 end
 
