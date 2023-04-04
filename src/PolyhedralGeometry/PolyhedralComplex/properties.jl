@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     ambient_dim(PC::PolyhedralComplex)
 
 Return the ambient dimension of `PC`.
@@ -32,7 +32,7 @@ ambient_dim(PC::PolyhedralComplex) = Polymake.fan.ambient_dim(pm_object(PC))::In
 # is exactly the same, this can work, otherwise I suggest new access functions
 # like `_vertex_complex`.
 
-@doc Markdown.doc"""
+@doc raw"""
     vertices([as::Type,] PC::PolyhedralComplex)
 
 Return an iterator over the vertices of `PC` in the format defined by `as`.
@@ -103,7 +103,7 @@ _rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = Sub
 rays(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = lineality_dim(PC) == 0 ? _rays(RayVector{T}, PC) : _empty_subobjectiterator(as, pm_object(PC))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rays_modulo_lineality(as, PC::PolyhedralComplex)
 
 Return the rays of the recession cone of `PC` up to lineality as a `NamedTuple`
@@ -148,7 +148,7 @@ end
 rays_modulo_lineality(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _rays(RayVector{T}, PC)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     minimal_faces(as, PC::PolyhedralComplex)
 
 Return the minimal faces of a polyhedral complex as a `NamedTuple` with two
@@ -193,7 +193,7 @@ end
 minimal_faces(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(PointVector{T}, PC)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rays(PC::PolyhedralComplex)
 
 Return the rays of `PC`
@@ -235,7 +235,7 @@ _ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_PO
 _vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_polyhedra(PC::PolyhedralComplex)
 
 Return the maximal polyhedra of `PC`
@@ -267,7 +267,7 @@ julia> maximal_polyhedra(PC)
 maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectIterator{Polyhedron{T}}(pm_object(PC), _maximal_polyhedron, n_maximal_polyhedra(PC))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     n_maximal_polyhedra(PC::PolyhedralComplex)
 
 Return the number of maximal polyhedra of `PC`
@@ -297,7 +297,7 @@ julia> n_maximal_polyhedra(PC)
 n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_simplicial(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is simplicial.
@@ -318,7 +318,7 @@ true
 is_simplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_pure(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is pure.
@@ -339,7 +339,7 @@ true
 is_pure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(PC::PolyhedralComplex)
 
 Compute the dimension of the polyhedral complex.
@@ -359,7 +359,7 @@ julia> dim(PC)
 """
 dim(PC::PolyhedralComplex) = Polymake.fan.dim(pm_object(PC))::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     polyhedra_of_dim(PC::PolyhedralComplex, polyhedron_dim::Int)
 
 Return the polyhedra of a given dimension in the polyhedral complex `PC`.
@@ -419,7 +419,7 @@ lineality_space(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectItera
 lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM::Int
 
 
-@doc Markdown.doc"""
+@doc raw"""
     f_vector(PC::PolyhedralComplex)
 
 Compute the vector $(f₀,f₁,f₂,...,f_{dim(PC))$` where $f_i$ is the number of
@@ -449,7 +449,7 @@ function f_vector(PC::PolyhedralComplex)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     nrays(PC::PolyhedralComplex)
 
 Return the number of rays of `PC`.
@@ -472,7 +472,7 @@ nrays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nrays(PC) : 0
 _nrays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     nvertices(PC::PolyhedralComplex)
 
 Return the number of vertices of `PC`.
@@ -495,7 +495,7 @@ nvertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nvertices(PC) : 0
 _nvertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _nrays(PC)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     npolyhedra(PC::PolyhedralComplex)
 
 Return the total number of polyhedra in the polyhedral complex `PC`.
@@ -516,7 +516,7 @@ julia> npolyhedra(PC)
 """
 npolyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
 
-@doc Markdown.doc"""
+@doc raw"""
     codim(PC::PolyhedralComplex)
 
 Compute the codimension of a polyhedral complex.
@@ -539,7 +539,7 @@ julia> codim(PC)
 codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_embedded(PC::PolyhedralComplex)
 
 Return `true` if `PC` is embedded, i.e. if its vertices can be computed as a

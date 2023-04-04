@@ -49,7 +49,7 @@ export veronese
 
 ###############################
 
-@doc Markdown.doc"""
+@doc raw"""
     abelian_d10_pi6()
 
 Return a smooth abelian surface in $\mathbb P^4$ with degree `10` and sectional genus `6`.
@@ -62,7 +62,7 @@ function abelian_d10_pi6()
    return ProjectiveScheme(R, ideal(R, [-x^3*y^2*z-7318*x^4*z^2-x^2*z^3*u-x*y^3*u^2-14636*x^2*y*z*u^2-y*z^2*u^3-7318*y^2*u^4+y^5*v-8856*x^2*y*z^2*v+z^5*v-8856*y^2*z*u^2*v-7318*x^3*y*v^2-F(99)/52*x*z^3*v^2-F(99)/52*y^3*u*v^2-4*x*y*z*u*v^2-7318*z*u^3*v^2-8856*x*y^2*v^3-8856*z^2*u*v^3-F(99)/52*y*z*v^4+7318*x*u*v^4+v^6,-x*y^2*z*u^2-7318*x^2*z^2*u^2-z^3*u^3-7318*y*z*u^4+y^4*z*v+7318*x*y^2*z^2*v-7318*z^4*u*v-8856*y*z^2*u^2*v+x^2*y^2*v^2-F(99)/52*y^2*z*u*v^2-x*z^2*u*v^2+7318*x*y*u^2*v^2+7318*y^3*v^3+y*u*v^4,-x*y^2*u^3-7318*x^2*z*u^3-z^2*u^4-7318*y*u^5+y^4*u*v+7318*x*y^2*z*u*v-7318*z^3*u^2*v-8856*y*z*u^3*v-7318*x^3*u*v^2-F(99)/52*y^2*u^2*v^2-2*x*z*u^2*v^2-y^2*z*v^3-7318*x*z^2*v^3-8856*x*y*u*v^3-x^2*v^4-7318*y*v^5,y^5*z+7318*x*y^3*z^2-7318*y*z^4*u+x^3*y*u^2-8856*y^2*z^2*u^2-F(99)/52*x*y*z*u^3+7318*x^2*u^4+z*u^5+x^2*y^3*v-F(99)/52*y^3*z*u*v-x*y*z^2*u*v+14636*x*y^2*u^2*v+7318*z^2*u^3*v+7318*y^4*v^2+x*u^3*v^2+y^2*u*v^3,y^4*z^2+7318*x*y^2*z^3-7318*z^5*u+x^3*z*u^2-8856*y*z^3*u^2-F(99)/52*x*z^2*u^3-x*y*u^4-7318*u^6+2*x^2*y^2*z*v+7318*x^3*z^2*v-F(99)/52*y^2*z^2*u*v+y^3*u^2*v-2719*x*y*z*u^2*v-8856*z*u^4*v+x^4*v^2+7318*y^3*z*v^2-F(99)/52*x^2*z*u*v^2-F(99)/52*y*u^3*v^2+7318*x^2*y*v^3-8856*x*u^2*v^3-7318*u*v^5,-x*y^2*z^3-7318*x^2*z^4-z^5*u-7318*y*z^3*u^2-x^3*z^2*v+F(99)/52*x*z^3*u*v+x*y*z*u^2*v+7318*z*u^4*v-y^3*z*v^2-14636*x*y*z^2*v^2+8856*z^2*u^2*v^2-x^2*y*v^3+F(99)/52*y*z*u*v^3-7318*x*u^2*v^3-7318*y^2*v^4-u*v^5,y^3*z^3+7318*x*y*z^4-x^4*y*u+7318*y^4*z*u+8856*x*y^2*z^2*u+F(99)/52*x^2*y*z*u^2-7318*x^3*u^3-x*z*u^4+x^2*y*z^2*v-7318*x^2*y^2*u*v+y^2*z*u^2*v-7318*x*z^2*u^2*v+7318*y^2*z^2*v^2-x^2*u^2*v^2,-y^2*z^4-7318*x*z^5+x^4*z*u-7318*y^3*z^2*u-8856*x*y*z^3*u-F(99)/52*x^2*z^2*u^2-x^2*y*u^3-7318*x*u^5-x^2*z^3*v+7318*x^2*y*z*u*v-2*y*z^2*u^2*v-7318*y^2*u^3*v-8856*x*z*u^3*v-7318*y*z^3*v^2-u^4*v^2-7318*z*u^2*v^3,y^6+7318*x*y^4*z-7318*y^2*z^3*u-7318*x^4*u^2-8856*y^3*z*u^2-F(99)/52*x*y^2*u^3-x^2*z*u^3+y*u^5-7318*x^3*y^2*v-F(99)/52*y^4*u*v-4*x*y^2*z*u*v-14636*x^2*z^2*u*v-8856*x^2*y*u^2*v-z^3*u^2*v-8856*x*y^3*v^2-7318*z^4*v^2-x^3*u*v^2-8856*y*z^2*u*v^2-F(99)/52*y^2*z*v^3-x*z^2*v^3+y*v^5,x^4*y^2-7318*y^5*z-8856*x*y^3*z^2-7318*z^6-F(99)/52*x^2*y^2*z*u+x^3*z^2*u-8856*y*z^4*u+7318*x^3*y*u^2-F(99)/52*x*z^3*u^2-7318*z*u^5+7318*x^2*y^3*v-F(99)/52*y^2*z^3*v-x*z^4*v-2719*x*y*z^2*u*v-8856*z^2*u^3*v+2*x^2*y*u*v^2-F(99)/52*y*z*u^2*v^2+7318*x*u^3*v^2+y*z^2*v^3+7318*y^2*u*v^3+u^2*v^4,-x^3*y^3-7318*x^4*y*z-x^2*y*z^2*u-7318*x^2*y^2*u^2-7318*x*y^4*v-8856*x^2*y^2*z*v+y*z^4*v+7318*y^2*z^2*u*v-F(99)/52*x*y*z^2*v^2-x*y^2*u*v^2+7318*x^2*z*u*v^2+z^2*u^2*v^2+7318*z^3*v^3+x*z*v^4,-x^2*y^4-7318*x^3*y^2*z-2*x*y^2*z^2*u-7318*x^2*z^3*u-7318*x*y^3*u^2-z^4*u^2-7318*y*z^2*u^3-7318*y^5*v-8856*x*y^3*z*v-7318*z^5*v-8856*y*z^3*u*v-F(99)/52*y^2*z^2*v^2-x*z^3*v^2-y^3*u*v^2+7318*x*y*z*u*v^2+y*z*v^4,-x*y^5-7318*x^2*y^3*z-y^3*z^2*u-7318*y^4*u^2+7318*x^4*y*v+F(99)/52*x*y^3*u*v+x^2*y*z*u*v-y^2*u^3*v+8856*x^2*y^2*v^2-y*z^3*v^2-14636*y^2*z*u*v^2+F(99)/52*x*y*z*v^3-7318*x^2*u*v^3-z*u^2*v^3-7318*z^2*v^4-x*v^5,-x*y^4*u-7318*x^2*y^2*z*u-y^2*z^2*u^2-7318*y^3*u^3+7318*x^4*u*v+F(99)/52*x*y^2*u^2*v+x^2*z*u^2*v-y*u^4*v+x*y^2*z*v^2+7318*x^2*z^2*v^2+8856*x^2*y*u*v^2-7318*y*z*u^2*v^2+x^3*v^3+7318*x*y*v^4,-x^2*y^2*z^2-7318*x^3*z^3-x*z^4*u-7318*x*y*z^2*u^2-x^4*z*v+F(99)/52*x^2*z^2*u*v+x^2*y*u^2*v+7318*x*u^4*v-7318*x^2*y*z*v^2+y*z^2*u*v^2+7318*y^2*u^2*v^2+8856*x*z*u^2*v^2+u^3*v^3+7318*z*u*v^4,-x*y^3*z-7318*x^2*y*z^2-y*z^3*u-7318*y^2*z*u^2-x^3*y*v+F(99)/52*x*y*z*u*v-7318*x^2*u^2*v-z*u^3*v-7318*x*y^2*v^2-7318*z^2*u*v^2-x*u*v^3,7318*x^5+7318*y^5+8856*x*y^3*z+7318*z^5+F(99)/52*x^2*y^2*u+8856*y*z^3*u+F(99)/52*x*z^2*u^2+7318*u^5+8856*x^3*y*v+F(99)/52*y^2*z^2*v-4599*x*y*z*u*v+8856*z*u^3*v+F(99)/52*x^2*z*v^2+F(99)/52*y*u^2*v^2+8856*x*u*v^3+7318*v^5,-x^2*y^2*u-7318*x^3*z*u-x*z^2*u^2-7318*x*y*u^3-y^2*z^2*v-7318*x*z^3*v-7318*y^3*u*v-8856*x*y*z*u*v-x^2*z*v^2-y*u^2*v^2-7318*y*z*v^3,-x^5-y^5+8856*x^2*y*z^2-z^5+F(99)/52*x^3*z*u+8856*y^2*z*u^2+F(99)/52*x*y*u^3-u^5+F(99)/52*x*z^3*v+F(99)/52*y^3*u*v+5*x*y*z*u*v+8856*x^2*u^2*v+8856*x*y^2*v^2+8856*z^2*u*v^2+F(99)/52*y*z*v^3-v^5]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     abelian_d15_pi21_quintic_3()
 
 Return a smooth abelian surface in $\mathbb P^4$ with degree `15` and sectional genus `21` which is contained in a net of quintics.
@@ -76,7 +76,7 @@ function abelian_d15_pi21_quintic_3()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     abelian_d15_pi21_quintic_1()
 
 Return a smooth abelian surface in $\mathbb P^4$ with degree `15` and sectional genus `21` which is contained in precisely one quintic.
@@ -90,7 +90,7 @@ function abelian_d15_pi21_quintic_1()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     bielliptic_d10_pi6()
 
 Return a smooth bielliptic surface in $\mathbb P^4$ with degree `10` and sectional genus `6`.
@@ -104,7 +104,7 @@ function bielliptic_d10_pi6()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     bielliptic_d15_pi21()
 
 Return a smooth bielliptic surface in $\mathbb P^4$ with degree `15` and sectional genus `21`.
@@ -118,7 +118,7 @@ function bielliptic_d15_pi21()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     bordiga()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `6` and sectional genus `3`.
@@ -132,7 +132,7 @@ function bordiga()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     castelnuovo()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `5` and sectional genus `2`.
@@ -146,7 +146,7 @@ function castelnuovo()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cubic_scroll()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `3` and sectional genus `0`.
@@ -160,7 +160,7 @@ function cubic_scroll()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d10_pi10()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `10` and sectional genus `10`.
@@ -174,7 +174,7 @@ function elliptic_d10_pi10()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d10_pi9()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `10` and sectional genus `9`.
@@ -188,7 +188,7 @@ function elliptic_d10_pi9()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d11_pi12()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `11` and sectional genus `12`.
@@ -202,7 +202,7 @@ function elliptic_d11_pi12()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d12_pi13()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `12` and sectional genus `13`.
@@ -216,7 +216,7 @@ function elliptic_d12_pi13()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d12_pi14_ss_0()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `12`, sectional genus `14`, and no 6-secant.
@@ -230,7 +230,7 @@ function elliptic_d12_pi14_ss_0()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d12_pi14_ss_inf()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `12`, sectional genus `14`, and infinitely many 6-secants.
@@ -244,7 +244,7 @@ function elliptic_d12_pi14_ss_inf()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d7_pi6()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `7` and sectional genus `6`.
@@ -258,7 +258,7 @@ function elliptic_d7_pi6()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d8_pi7()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `8` and sectional genus `7`.
@@ -272,7 +272,7 @@ function elliptic_d8_pi7()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     elliptic_d9_pi7()
 
 Return a smooth elliptic surface in $\mathbb P^4$ with degree `9` and sectional genus `7`.
@@ -286,7 +286,7 @@ function elliptic_d9_pi7()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     quintic_elliptic_scroll()
 
 Return a smooth ruled surface in $\mathbb P^4$ with degree `5` and sectional genus `1`.
@@ -300,7 +300,7 @@ function  quintic_elliptic_scroll()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     enriques_d10_pi8()
 
 Return a smooth Enriques surface in $\mathbb P^4$ with degree `10` and sectional genus `8`.
@@ -314,7 +314,7 @@ function enriques_d10_pi8()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     enriques_d11_pi10()
 
 Return a smooth Enriques surface in $\mathbb P^4$ with degree `11` and sectional genus `10`.
@@ -328,7 +328,7 @@ function enriques_d11_pi10()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     enriques_d13_pi16()
 
 Return a smooth Enriques surface in $\mathbb P^4$ with degree `13` and sectional genus `16`.
@@ -342,7 +342,7 @@ function enriques_d13_pi16()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     enriques_d13_pi16_two()
 
 Return a smooth Enriques surface in $\mathbb P^4$ with degree `13` and sectional genus `16`.
@@ -356,7 +356,7 @@ function enriques_d13_pi16_two()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     enriques_d9_pi6()
 
 Return a smooth Enriques surface in $\mathbb P^4$ with degree `9` and sectional genus `6`.
@@ -370,7 +370,7 @@ function enriques_d9_pi6()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d10_pi9_quart_1()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in precisely one quartic.
@@ -385,7 +385,7 @@ function k3_d10_pi9_quart_1()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d10_pi9_quart_2()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in a pencil of quartics.
@@ -399,7 +399,7 @@ function k3_d10_pi9_quart_2()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d11_pi11_ss_0()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and no 6-secant.
@@ -413,7 +413,7 @@ function k3_d11_pi11_ss_0()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d11_pi11_ss_1()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and one 6-secant.
@@ -427,7 +427,7 @@ function k3_d11_pi11_ss_1()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d11_pi11_ss_2()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and two 6-secants.
@@ -441,7 +441,7 @@ function k3_d11_pi11_ss_2()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d11_pi11_ss_3()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and three 6-secants.
@@ -455,7 +455,7 @@ function k3_d11_pi11_ss_3()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d11_pi12()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `11` and sectional genus `12`.
@@ -469,7 +469,7 @@ function k3_d11_pi12()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d12_pi14()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `12` and sectional genus `14`.
@@ -483,7 +483,7 @@ function k3_d12_pi14()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d13_pi16()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `13` and sectional genus `16`.
@@ -497,7 +497,7 @@ function k3_d13_pi16()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d14_pi19()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `14` and sectional genus `19`.
@@ -511,7 +511,7 @@ function k3_d14_pi19()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d7_pi5()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `7` and sectional genus `5`.
@@ -525,7 +525,7 @@ function k3_d7_pi5()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d8_pi6()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `8` and sectional genus `6`.
@@ -539,7 +539,7 @@ function k3_d8_pi6()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     k3_d9_pi8()
 
 Return a smooth K3 surface in $\mathbb P^4$ with degree `9` and sectional genus `8`.
@@ -553,7 +553,7 @@ function k3_d9_pi8()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d10_pi8()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `10` and sectional genus `8`.
@@ -567,7 +567,7 @@ function rational_d10_pi8()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d10_pi9_quart_1()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in precisely one quartic.
@@ -581,7 +581,7 @@ function rational_d10_pi9_quart_1()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d10_pi9_quart_2()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `10` and sectional genus `9` which is contained in a pencil of quartics.
@@ -595,7 +595,7 @@ function rational_d10_pi9_quart_2()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d11_pi11_ss_0()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and no 6-secant.
@@ -609,7 +609,7 @@ function rational_d11_pi11_ss_0()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d11_pi11_ss_1()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and one 6-secant.
@@ -623,7 +623,7 @@ function rational_d11_pi11_ss_1()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d11_pi11_ss_inf()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `11`, sectional genus `11`, and infinitely many 6-secants.
@@ -637,7 +637,7 @@ function rational_d11_pi11_ss_inf()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d7_pi4()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `7` and sectional genus `4`.
@@ -651,7 +651,7 @@ function rational_d7_pi4()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d8_pi5()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `8` and sectional genus `5`.
@@ -665,7 +665,7 @@ function rational_d8_pi5()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d8_pi6()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `8` and sectional genus `6`.
@@ -679,7 +679,7 @@ function rational_d8_pi6()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d9_pi6()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `9` and sectional genus `6`.
@@ -693,7 +693,7 @@ function rational_d9_pi6()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_d9_pi7()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `9` and sectional genus `7`.
@@ -707,7 +707,7 @@ function rational_d9_pi7()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     veronese()
 
 Return a smooth rational surface in $\mathbb P^4$ with degree `4` and sectional genus `0`.

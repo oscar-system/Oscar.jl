@@ -2,7 +2,7 @@
 # 1: The Tate sections
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
 Return the Tate section ``a_1``.
@@ -17,7 +17,7 @@ julia> tate_section_a1(t);
 @attr MPolyRingElem{QQFieldElem} tate_section_a1(t::GlobalTateModel) = t.a1
 
 
-@doc Markdown.doc"""
+@doc raw"""
     tate_section_a2(t::GlobalTateModel)
 
 Return the Tate section ``a_2``.
@@ -32,7 +32,7 @@ julia> tate_section_a2(t);
 @attr MPolyRingElem{QQFieldElem} tate_section_a2(t::GlobalTateModel) = t.a2
 
 
-@doc Markdown.doc"""
+@doc raw"""
     tate_section_a3(t::GlobalTateModel)
 
 Return the Tate section ``a_3``.
@@ -47,7 +47,7 @@ julia> tate_section_a3(t);
 @attr MPolyRingElem{QQFieldElem} tate_section_a3(t::GlobalTateModel) = t.a3
 
 
-@doc Markdown.doc"""
+@doc raw"""
     tate_section_a4(t::GlobalTateModel)
 
 Return the Tate section ``a_4``.
@@ -62,7 +62,7 @@ julia> tate_section_a4(t);
 @attr MPolyRingElem{QQFieldElem} tate_section_a4(t::GlobalTateModel) = t.a4
 
 
-@doc Markdown.doc"""
+@doc raw"""
     tate_section_a6(t::GlobalTateModel)
 
 Return the Tate section ``a_6``.
@@ -81,7 +81,7 @@ julia> tate_section_a6(t);
 # 2: The Tate polynomial
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     tate_polynomial(t::GlobalTateModel)
 
 Return the Tate polynomial of the global Tate model.
@@ -100,7 +100,7 @@ julia> tate_polynomial(t);
 # 3: Toric spaces for Tate models over concrete bases
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_base_space(t::GlobalTateModel)
 
 Return the toric base space of the global Tate model.
@@ -114,12 +114,12 @@ Normal toric variety without torusfactor
 ```
 """
 @attr AbstractNormalToricVariety function toric_base_space(t::GlobalTateModel)
-    base_fully_specified(t) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
+    base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
     return t.toric_base_space
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ambient_space(t::GlobalTateModel)
 
 Return the toric ambient space of the global Tate model.
@@ -136,7 +136,7 @@ false
 ```
 """
 @attr AbstractNormalToricVariety function toric_ambient_space(t::GlobalTateModel)
-    base_fully_specified(t) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
+    base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
     return t.toric_ambient_space
 end
 
@@ -145,7 +145,7 @@ end
 # 4: The CY hypersurface
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     cy_hypersurface(t::GlobalTateModel)
 
 Return the Calabi-Yau hypersurface in the toric ambient space
@@ -156,12 +156,11 @@ julia> t = su5_tate_model_over_arbitrary_3d_base()
 Global Tate model over a not fully specified base
 
 julia> cy_hypersurface(t)
-[ Info: Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.
 Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function cy_hypersurface(t::GlobalTateModel)
-    base_fully_specified(t) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
+    base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
     return t.Y4
 end
 
@@ -170,7 +169,7 @@ end
 # 5: Turn global Tate model into a Weierstrass model
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     global_weierstrass_model(t::GlobalTateModel)
 
 Return the global Weierstrass model which is equivalent to the given Tate model.
@@ -180,8 +179,6 @@ julia> t = su5_tate_model_over_arbitrary_3d_base()
 Global Tate model over a not fully specified base
 
 julia> global_weierstrass_model(t)
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 Global Weierstrass model over a not fully specified base
 ```
 """
@@ -206,7 +203,7 @@ end
 # 6: Discriminant
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant(t::GlobalTateModel)
 
 Return the discriminant of the global Tate model.
@@ -216,14 +213,13 @@ julia> t = su5_tate_model_over_arbitrary_3d_base()
 Global Tate model over a not fully specified base
 
 julia> discriminant(t);
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
+
 ```
 """
 @attr MPolyRingElem{QQFieldElem} discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_loci(t::GlobalTateModel)
 
 Return the singular loci of the global Tate model, along with the order of
@@ -276,9 +272,6 @@ julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
 Global Tate model over a not fully specified base
 
 julia> length(singular_loci(t))
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 2
 
 julia> singular_loci(t)[2]

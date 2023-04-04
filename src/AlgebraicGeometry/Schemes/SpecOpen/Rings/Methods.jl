@@ -66,7 +66,7 @@ end
 ########################################################################
 # Generic fractions                                                    #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
 
 Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open 

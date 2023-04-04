@@ -30,7 +30,7 @@ patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
 glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
 
 
-@doc Markdown.doc"""
+@doc raw"""
   LazyProjectiveGlueing(
       X::AbsProjectiveScheme,
       Y::AbsProjectiveScheme,
@@ -91,7 +91,7 @@ function underlying_glueing(G::LazyProjectiveGlueing)
   return G.underlying_glueing
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ProjectiveGlueing(
         G::GlueingType, 
         incP::IncType, incQ::IncType,
@@ -243,7 +243,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     blow_up_chart(W::AbsSpec, I::Ideal)
 
 Return the blowup of ``W`` at the ideal ``I``; this is a `ProjectiveScheme`
@@ -592,7 +592,7 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     blow_up(X::AbsSpec, I::Ideal)
 
 Return the blow-up morphism of blowing up ``X`` at ``I`` in ``OO(X)``.
@@ -610,7 +610,7 @@ function blow_up(
   return blow_up(Isheaf)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     blow_up(I::IdealSheaf)
 
 Return the blow-up morphism of blowing up of the underlying scheme of ``I``  at ``I``.

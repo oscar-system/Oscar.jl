@@ -36,7 +36,7 @@ function _tosingular_ideal(C::ProjCurve)
     return I.gens.S
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
 
 Return a rational parametrization of  `C`. 
@@ -65,7 +65,7 @@ function parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
     return gens(ideal(S, J))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
 
 Return the Gorenstein adjoint ideal of `C`. 
@@ -89,7 +89,7 @@ function adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
     return ideal(R, I)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_point_conic(D::ProjPlaneCurve{QQFieldElem})
 
 If the conic `D` contains a rational point, return the homogeneous coordinates of such a point.
@@ -129,7 +129,7 @@ function rational_point_conic(C::ProjPlaneCurve{QQFieldElem})
     return [S(P[1, i]) for i in 1:3]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     parametrization_conic(C::ProjPlaneCurve{QQFieldElem})
 
 Given a conic `C`, return a vector `V` of polynomials in a new ring which should be
@@ -145,7 +145,7 @@ function parametrization_conic(C::ProjPlaneCurve{QQFieldElem})
     return gens(ideal(S, J))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     map_to_rational_normal_curve(C::ProjPlaneCurve{QQFieldElem})
 
 Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
@@ -174,7 +174,7 @@ function map_to_rational_normal_curve(C::ProjPlaneCurve{QQFieldElem})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rat_normal_curve_anticanonical_map(C::ProjCurve)
 
 Return a vector `V` defining the anticanonical map `C --> PP^(n-2)`. Note that the
@@ -223,7 +223,7 @@ function rat_normal_curve_anticanonical_map(C::ProjCurve)
     return gens(ideal(R, J))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     rat_normal_curve_It_Proj_Odd(C::ProjCurve)
 
 Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
@@ -276,7 +276,7 @@ function _lookup_ideal(R::Singular.PolyRingUnion, s::Symbol)
     error("could not find PHI")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     rat_normal_curve_It_Proj_Even(C::ProjCurve)
 
 Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
@@ -319,7 +319,7 @@ function rat_normal_curve_It_Proj_Even(C::ProjCurve)
     return gens(ideal(R, phi)), ProjPlaneCurve(O(conic))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyRingElem}
 
 Return a dictionary where `image` represents the image of the birational map

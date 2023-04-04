@@ -1,14 +1,5 @@
 module SymInt
-using Oscar, Markdown
-
-macro req(args...)
-  @assert length(args) == 2
-  quote
-    if !($(esc(args[1])))
-      throw(ArgumentError($(esc(args[2]))))
-    end
-  end
-end
+using Oscar
 
 include("Types.jl")
 include("Elevators.jl")

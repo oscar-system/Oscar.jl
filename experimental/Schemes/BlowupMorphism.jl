@@ -51,7 +51,7 @@ end
 # TODO: Find better name!
 covered_projective_scheme(p::BlowupMorphism) = p.projective_bundle
 
-@doc Markdown.doc"""
+@doc raw"""
     exceptional_divisor(p::BlowupMorphism)
 
 For a `BlowupMorphism` ``p : Y → X`` coming from the blowup of an 
@@ -72,7 +72,7 @@ function exceptional_divisor(p::BlowupMorphism)
   return p.exceptional_divisor
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
 
 For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding` 
@@ -212,7 +212,7 @@ function strict_transform(p::BlowupMorphism, C::CartierDivisor)
   return result
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     restrict(f::AbsCoveredSchemeMorphism,
         inc_dom::CoveredClosedEmbedding,
         inc_cod::CoveredClosedEmbedding;
@@ -300,7 +300,7 @@ function Base.show(io::IO,Bl::BlowupMorphism)
   println(io,"Blow up of a Covered Scheme with ",n0," Charts leading to a Covered Scheme with ",n1," Charts")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
   show_details(Bl::BlowupMorphism)
 
 For a `BlowupMorphism` ``p : Y → X`` display domain, codomain, center and exceptional divisor in a detailed view.

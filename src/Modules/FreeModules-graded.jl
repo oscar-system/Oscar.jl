@@ -551,7 +551,7 @@ function show(io::IO, SQ::SubquoDecModule)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
   A subquotient is (internally) given wia two submodules A and B of the same 
   FreeModule F. It represents $(A+B)/B$, so elements are given as elements
   in $A+B$
@@ -1305,7 +1305,7 @@ gens(F::SubquoDecModule, G::FreeModule_dec) = [x.a for x = gens(F)]
 rels(F::FreeModule_dec) = elem_type(F)[]
 rels(F::SubquoDecModule) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
 
-@doc Markdown.doc"""
+@doc raw"""
     tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubquoDecModule, Map
 
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.

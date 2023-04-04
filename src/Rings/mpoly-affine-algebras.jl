@@ -4,7 +4,7 @@
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(A::MPolyQuoRing)
 
 Return the Krull dimension of `A`.
@@ -25,7 +25,7 @@ function dim(A::MPolyQuoRing)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     vdim(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
@@ -76,7 +76,7 @@ end
 ##################################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_series(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -120,7 +120,7 @@ function hilbert_series(A::MPolyQuoRing)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -159,7 +159,7 @@ function hilbert_series_reduced(A::MPolyQuoRing)
    return hilbert_series(H,2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_series_expanded(A::MPolyQuoRing, d::Int)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -188,7 +188,7 @@ function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
    return hilbert_series_expanded(H, d)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_function(A::MPolyQuoRing, d::Int)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -225,7 +225,7 @@ function hilbert_function(A::MPolyQuoRing, d::Int)
    return hilbert_function(H, d)
 end
    
-@doc Markdown.doc"""
+@doc raw"""
      hilbert_polynomial(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -257,7 +257,7 @@ function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
    return hilbert_polynomial(H)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -330,7 +330,7 @@ function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:Baye
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     multi_hilbert_series(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
 
 Return the Hilbert series of the positively graded affine algebra `A`.
@@ -522,7 +522,7 @@ end
 #   return  (p, q), T
 #end
 
-@doc Markdown.doc"""
+@doc raw"""
     multi_hilbert_series_reduced(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
@@ -624,7 +624,7 @@ function _monomial_ideal_membership(m::MPolyRingElem, I::MPolyIdeal)
 	return false
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
 
 Given a positively graded affine algebra $A$ over a field $K$ with grading group $G$,
@@ -721,7 +721,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_reduced(A::MPolyQuoRing)
 
 Given an affine algebra `A`, return `true` if `A` is reduced, `false` otherwise.
@@ -744,7 +744,7 @@ function is_reduced(A::MPolyQuoRing)
   return I == radical(I)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_normal(A::MPolyQuoRing)
 
 Given an affine algebra `A` over a perfect field,
@@ -779,7 +779,7 @@ function is_normal(A::MPolyQuoRing)
   return Bool(f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      is_cohen_macaulay(A::MPolyQuoRing) 
 
 Given a $\mathbb Z$-graded affine algebra `A = R/I` over a field, say, `K`, where the grading 
@@ -870,7 +870,7 @@ function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyRingElem
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
  
 Given an element `f` of a multivariate polynomial ring over a field, or of a quotient of such a ring, 
@@ -918,7 +918,7 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyRingEle
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     subalgebra_membership_homogeneous(f::T, V::Vector{T}; check::Bool = true)
       where T <: Union{MPolyDecRingElem, MPolyQuoRingElem{TT} where TT <: MPolyDecRingElem}
 
@@ -991,7 +991,7 @@ end
 #  Minimalizing a set of subalgebra generators in graded case
 #
 ################################################################################
-@doc Markdown.doc""" 
+@doc raw""" 
     minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of homogeneous elements of a positively graded multivariate 
@@ -1069,7 +1069,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
     for i in 1:length(l[1])]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normalization(A::MPolyQuoRing; alg = :equidimDec)
 
 Find the normalization of a reduced affine algebra over a perfect field $K$.
@@ -1148,7 +1148,7 @@ function normalization(A::MPolyQuoRing; alg=:equidimDec)
   return _conv_normalize_data(A, l, br)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normalization_with_delta(A::MPolyQuoRing; alg = :equidimDec)
 
 Compute the normalization
@@ -1214,7 +1214,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     noether_normalization(A::MPolyQuoRing)
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
@@ -1257,7 +1257,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
 
 Given a polynomial $f$ in two variables with coefficients in a perfect field $K$, and

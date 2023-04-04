@@ -2,7 +2,7 @@
 # Properties
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_empty(c::ClosedSubvarietyOfToricVariety)
 
 Checks if a closed subvariety of a toric variety is empty.

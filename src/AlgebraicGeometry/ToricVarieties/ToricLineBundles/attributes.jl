@@ -2,7 +2,7 @@
 # 1. Defining data of a line bundle
 #####################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor_class(l::ToricLineBundle)
 
 Return the divisor class which defines the toric line bundle `l`.
@@ -24,7 +24,7 @@ with components [2]
 divisor_class(l::ToricLineBundle) = l.divisor_class
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(l::ToricLineBundle)
 
 Return the toric variety over which the toric line bundle `l` is defined.
@@ -44,7 +44,7 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 toric_variety(l::ToricLineBundle) = l.toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor(l::ToricLineBundle)
 
 Return a divisor corresponding to the toric line bundle `l`.
@@ -76,7 +76,7 @@ true
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(l::ToricLineBundle)
 
 Return the degree of the toric line bundle `l`.
@@ -100,7 +100,7 @@ julia> degree(l)
 # 2. Basis of global sections
 #####################
 
-@doc Markdown.doc"""
+@doc raw"""
     basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
 
 Return a basis of the global sections of the toric line bundle `l` in terms of rational functions.
@@ -135,7 +135,7 @@ julia> basis_of_global_sections_via_rational_functions(l)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
 
 Return a basis of the global sections of the toric line bundle `l`

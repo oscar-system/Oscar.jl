@@ -324,7 +324,7 @@ function Base.show(io::IO, G::DirectProductGroup)
 end
 
 # if a subgroup of a direct product of groups is also a direct product of groups
-@doc Markdown.doc"""
+@doc raw"""
     write_as_full(G::DirectProductGroup)
 
 If `G` is a subgroup of the direct product

@@ -99,7 +99,7 @@ random values.  The code may also directly create and use such a random source.
 The current seed will be printed at the beginning of the testsuite, it is fixed
 to 42 in the CI. It can be changed by setting `ENV["OSCAR_RANDOM_SEED"]` (for
 the testsuite running in a separate process) or by using `Oscar.set_seed!` (for
-the current session, e.g. `Oscar.test_module("something.jl", false)`).
+the current session, e.g. `Oscar.test_module("something", new=false)`).
 
 ```@docs
 Oscar.test_module

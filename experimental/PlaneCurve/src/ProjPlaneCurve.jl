@@ -21,7 +21,7 @@ export tangent_lines
 # the curve C, and false  if it is singular, and an error if it is not on the
 # curve.
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
@@ -66,7 +66,7 @@ end
 # If P is a smooth point of a projective plane curve C, compute the tangent of C
 # at the point P.
 
-@doc Markdown.doc"""
+@doc raw"""
     tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
@@ -116,7 +116,7 @@ end
 ################################################################################
 # gives the common components of two projective plane curves
 
-@doc Markdown.doc"""
+@doc raw"""
     common_components(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return the projective plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
@@ -147,7 +147,7 @@ end
 # curves (or is empty if no common component), the second element is the list
 # of intersection points. Some might be contained in the common component too.
 
-@doc Markdown.doc"""
+@doc raw"""
     curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
@@ -239,7 +239,7 @@ end
 # Compute the singular locus of an affine plane curve by intersecting the
 # derivatives. The points might also be contained in the components.
 
-@doc Markdown.doc"""
+@doc raw"""
     curve_singular_locus([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return the reduced singular locus of `C` as a list whose first element is the projective plane curve consisting of the singular components of `C` (if any), and the second element is the list of the singular points of the reduction of `C` (the points are in `PP` if specified, or in a new projective space otherwise). The singular component might not contain any point over the considered field.
@@ -313,7 +313,7 @@ end
 ################################################################################
 #
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth_curve(C::ProjectivePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
@@ -332,7 +332,7 @@ end
 ################################################################################
 # multiplicity
 
-@doc Markdown.doc"""
+@doc raw"""
      multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the multiplicity of `C` at `P`.
@@ -372,7 +372,7 @@ end
 ################################################################################
 # tangent lines
 
- @doc Markdown.doc"""
+ @doc raw"""
       tangent_lines(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
@@ -417,7 +417,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
      intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the intersection multiplicity of `C` and `D` at `P`.
@@ -442,7 +442,7 @@ end
 ################################################################################
 #
 
-@doc Markdown.doc"""
+@doc raw"""
      aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S<:FieldElem
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
@@ -453,7 +453,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     arithmetic_genus(C::ProjectivePlaneCurve)
 
 Return the arithmetic genus of `C`.
@@ -487,7 +487,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     geometric_genus(C::ProjectivePlaneCurve{T}) where T <: FieldElem
 
 Return the geometric genus of `C`.

@@ -3,7 +3,7 @@
 ###########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(ac::RationalEquivalenceClass)
 
 Return the normal toric variety of a rational
@@ -27,7 +27,7 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 toric_variety(ac::RationalEquivalenceClass) = ac.v
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(ac::RationalEquivalenceClass)
 
 On a simplicial and complete toric variety, the Chow ring
@@ -53,7 +53,7 @@ julia> polynomial(ac)
 polynomial(ac::RationalEquivalenceClass) = ac.p
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
 
 On a simplicial and complete toric variety, the Chow ring
@@ -114,7 +114,7 @@ end
 ###########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     representative(ac::RationalEquivalenceClass)
 
 Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
@@ -147,7 +147,7 @@ julia> representative(ac*ac)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(ac::RationalEquivalenceClass)
 
 Return the coefficients of `polynomial(ac)`.
@@ -176,7 +176,7 @@ julia> coefficients(ac*ac)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     components(ac::RationalEquivalenceClass)
 
 Turn each monomial of `representative(ac)` into a
@@ -219,7 +219,7 @@ end
 ###########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_class(ac::RationalEquivalenceClass)
 
 Returns the cohomology class of a rational

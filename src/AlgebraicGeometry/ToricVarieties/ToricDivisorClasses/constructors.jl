@@ -18,7 +18,7 @@ end
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
 
 Construct the toric divisor class associated to a group
@@ -36,7 +36,7 @@ Divisor class on a normal toric variety
 toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the toric divisor class associated to a list of integers which
@@ -58,7 +58,7 @@ toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <
 # 3: Special constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor_class(td::ToricDivisor)
 
 Construct the toric divisor class associated to the element ... of the class group of the normal toric variety `v`.

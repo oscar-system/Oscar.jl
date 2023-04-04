@@ -16,7 +16,7 @@
 
 abstract type TropicalVarietySupertype{M,EMB} end
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_polyhedral_complex(TV)
 
 Return the underlying polyhedral complex of a tropical variety. 
@@ -48,7 +48,7 @@ end
 # ----------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect(T1, T2)
 
 Intersect two tropical varieties.
@@ -82,7 +82,7 @@ function intersect(T1::TropicalVarietySupertype{M, EMB}, T2::TropicalVarietySupe
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect_stably(T1, T2)
 
 # Examples
@@ -98,7 +98,7 @@ end
 # -------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_dim(T::TropicalVariety{M, EMB})
     ambient_dim(T::TropicalCurve{M, EMB})
     ambient_dim(T::TropicalHypersurface{M, EMB})
@@ -131,7 +131,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     codim(T::TropicalVariety{M, EMB})
     codim(T::TropicalCurve{M, EMB})
     codim(T::TropicalHypersurface{M, EMB})
@@ -160,7 +160,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(T::TropicalVariety{M, EMB})
     dim(T::TropicalCurve{M, EMB})
     dim(T::TropicalHypersurface{M, EMB})
@@ -189,7 +189,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     f_vector(T::TropicalVariety{M, EMB})
     f_vector(T::TropicalCurve{M, EMB})
     f_vector(T::TropicalHypersurface{M, EMB})
@@ -220,7 +220,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_dim(T::TropicalVariety{M, EMB})
     lineality_dim(T::TropicalCurve{M, EMB})
     lineality_dim(T::TropicalHypersurface{M, EMB})
@@ -253,7 +253,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_space(T::TropicalVariety{M, EMB})
     lineality_space(T::TropicalCurve{M, EMB})
     lineality_space(T::TropicalHypersurface{M, EMB})
@@ -287,7 +287,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_polyhedra(T::TropicalVariety{M, EMB})
     maximal_polyhedra(T::TropicalCurve{M, EMB})
     maximal_polyhedra(T::TropicalHypersurface{M, EMB})
@@ -320,7 +320,7 @@ end
 
 
 # todo: do maximal polyhedra at infinity count?
-@doc Markdown.doc"""
+@doc raw"""
     n_maximal_polyhedra(T::TropicalVariety{M, EMB})
     n_maximal_polyhedra(T::TropicalCurve{M, EMB})
     n_maximal_polyhedra(T::TropicalHypersurface{M, EMB})
@@ -350,7 +350,7 @@ end
 
 
 # todo: do polyhedra at infinity count?
-@doc Markdown.doc"""
+@doc raw"""
     npolyhedra(T::TropicalVariety{M, EMB})
     npolyhedra(T::TropicalCurve{M, EMB})
     npolyhedra(T::TropicalHypersurface{M, EMB})
@@ -380,7 +380,7 @@ end
 
 
 # todo: do vertices at infinity count?
-@doc Markdown.doc"""
+@doc raw"""
     nvertices(T::TropicalVariety{M, EMB})
     nvertices(T::TropicalCurve{M, EMB})
     nvertices(T::TropicalHypersurface{M, EMB})
@@ -410,7 +410,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_pure(T::TropicalVariety{M, EMB})
     is_pure(T::TropicalCurve{M, EMB})
     is_pure(T::TropicalHypersurface{M, EMB})
@@ -439,7 +439,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_simplicial(T::TropicalVariety{M, EMB})
     is_simplicial(T::TropicalCurve{M, EMB})
     is_simplicial(T::TropicalHypersurface{M, EMB})
@@ -468,7 +468,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     vertices(T::TropicalVariety{M, EMB})
     vertices(T::TropicalCurve{M, EMB})
     vertices(T::TropicalHypersurface{M, EMB})
@@ -519,7 +519,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weights(T::TropicalVariety{M, EMB})
     weights(T::TropicalCurve{M, EMB})
     weights(T::TropicalHypersurface{M, EMB})
@@ -552,7 +552,7 @@ end
 
 
 
-# @doc Markdown.doc"""
+# @doc raw"""
 #     PolyhedralComplex(TV::TropicalVarietySupertype)
 
 # Return the underlying polyhedral complex.

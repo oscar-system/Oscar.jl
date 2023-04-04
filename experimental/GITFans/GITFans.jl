@@ -148,7 +148,7 @@ end
 #T what if some projections lie in the same orbit?
 #T later we expand the orbits, do we want to check this here?
 
-@doc Markdown.doc"""
+@doc raw"""
     action_on_target(Q::Matrix{Int}, G::PermGroup)
 
 Let `Q` be an $n \times m$ Q-matrix, and `G` be a permutation group

@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     underlying_scheme(X::ToricCoveredScheme)
 
 For a toric covered scheme ``X``, this returns
@@ -126,7 +126,7 @@ function underlying_scheme(Z::ToricCoveredScheme)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(X::ToricCoveredScheme)
 
 For a toric covered scheme ``X``, this returns
@@ -147,7 +147,7 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 normal_toric_variety(X::ToricCoveredScheme) = X.ntv
 
 
-@doc Markdown.doc"""
+@doc raw"""
     fan(X::ToricCoveredScheme)
 
 For a toric covered scheme ``X``, this returns

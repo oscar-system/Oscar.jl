@@ -3,7 +3,6 @@
 #################################################################################
 
 using Oscar
-using Markdown
 
 import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero, reduce_fraction
 import Oscar.AbstractAlgebra: elem_type, parent_type
@@ -16,7 +15,7 @@ export FmpzLocalizedRing, FmpzLocalizedRingElem
 # Multiplicatively closed sets given by powers of a specific integer            #
 #################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
 FmpzPowersOfElement
 
 The multiplicative set given by the powers of some element.
@@ -58,7 +57,7 @@ Base.in(a::Oscar.IntegerUnion, S::FmpzPowersOfElement) = (ZZ(a) in S)
 # Complements of prime ideals in ℤ                                              #
 #################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
 FmpzComplementOfPrimeIdeal
 
 The multiplicatively closed set `S = ℤ ∖ ⟨p⟩` of integers outside a prime ideal `⟨p⟩`.
@@ -92,7 +91,7 @@ Base.in(a::Oscar.IntegerUnion, S::FmpzComplementOfPrimeIdeal) = (ZZ(a) in S)
 # The complement of the zero ideal in ℤ                                         #
 #################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
 FmpzComplementOfZeroIdeal 
 
 The complement of the zero ideal in `ℤ`.
@@ -119,7 +118,7 @@ Base.in(b::Oscar.IntegerUnion, S::FmpzComplementOfZeroIdeal) = (ZZ(b) in S)
 # Localizations of ℤ                                                            #
 #################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
 FmpzLocalizedRing{MultSetType <: AbsMultSet{ZZRing, ZZRingElem}} <: AbsLocalizedRing{ZZRing, ZZRingElem, MultSetType} 
 
 A minimal implementation for the localization `ℤ[S⁻¹]` of the ring of integers 
@@ -163,7 +162,7 @@ end
 # Elements of localizations of ℤ                                      #
 #######################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     FmpzLocalizedRingElem{MultSetType}
 
 Elements `a/b ∈ ℤ[S⁻¹]` of localizations of the ring of integers 

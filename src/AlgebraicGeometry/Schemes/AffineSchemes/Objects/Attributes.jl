@@ -5,7 +5,7 @@
 
 # Here is the interface for AbsSpec
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinate_ring(X::AbsSpec)
 
 On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
@@ -33,7 +33,7 @@ Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 """
 coordinate_ring(X::AbsSpec) = OO(X)
 
-@doc Markdown.doc"""
+@doc raw"""
     OO(X::AbsSpec)
 
 On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
@@ -42,7 +42,7 @@ function OO(X::AbsSpec{BRT, RT}) where {BRT, RT}
   OO(underlying_scheme(X))::RT
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     total_ring_of_fractions(X::AbsSpec)
 
 Return the total ring of fractions of the coordinate ring of `X`.
@@ -51,7 +51,7 @@ Return the total ring of fractions of the coordinate ring of `X`.
   return total_ring_of_fractions(OO(X))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_space(X::AbsSpec)
 
 Return the ambient affine space of ``X``. 
@@ -171,7 +171,7 @@ end
   return ambient_space(underlying_scheme(X))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_embedding(X::AbsSpec)
 
 Return the embedding of ``X`` in its ambient affine space.
@@ -200,7 +200,7 @@ function ambient_embedding(X::AbsSpec)
   return inclusion_morphism(X, ambient_space(X), check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_coordinate_ring(X::AbsSpec)
 
 Return the coordinate ring of the ambient affine space of ``X``.
@@ -230,7 +230,7 @@ function ambient_coordinate_ring(X::AbsSpec)
   return ambient_coordinate_ring(underlying_scheme(X))::MPolyRing
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_coordinates(X::AbsSpec)
 
 Return the coordinate functions of the ambient affine space of ``X``.
@@ -262,7 +262,7 @@ true
 """
 ambient_coordinates(X::AbsSpec) = gens(ambient_coordinate_ring(X))
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(X::AbsSpec)
 
 Return the coordinate functions of ``X`` as elements of its coordinate ring.
@@ -299,7 +299,7 @@ true
 """
 coordinates(X::AbsSpec) = gens(OO(X))
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(X::AbsSpec)
 
 On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring ``𝕜``.
@@ -328,7 +328,7 @@ end
 #     dimension, codimension, name
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(X::AbsSpec)
 
 Return the dimension the affine scheme ``X = Spec(R)``.
@@ -375,7 +375,7 @@ end
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     codim(X::AbsSpec)
 
 Return the codimension of ``X`` in its ambient affine space.
@@ -417,7 +417,7 @@ julia> codim(Y)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     name(X::AbsSpec)
 
 Return the current name of an affine scheme.
@@ -459,7 +459,7 @@ end
 #############################################################################
 # TODO: projective schemes, covered schemes
 
-@doc Markdown.doc"""
+@doc raw"""
    reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return the induced reduced scheme of `X`.
@@ -545,7 +545,7 @@ end
 ### TODO: Make singular locus also available for projective schemes and
 ###       for covered schemes (using the workhorse here...).
  
-@doc Markdown.doc"""
+@doc raw"""
     singular_locus(X::Scheme{<:Field}) -> (Scheme, SchemeMor)
 
 Return the singular locus of `X`.
@@ -645,7 +645,7 @@ end
 
 # TODO: Covered schemes, projective schemes
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_locus_reduced(X::Scheme{<:Field}) -> (Scheme, SchemeMor)
 
 Return the singular locus of the reduced scheme ``X_{red}`` induced by `X`.
@@ -786,7 +786,7 @@ end
 
 # TODO: ambient_closure_ideal should be deleted
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
 
 Return the defining ideal of the closure of ``X`` in its ambient affine space.

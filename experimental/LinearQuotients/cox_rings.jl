@@ -64,7 +64,7 @@ function ab_g_degree(GtoAbG::Map, f::MPolyRingElem, zeta::Tuple{<:FieldElem, Int
   return AbG(c)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cox_ring(L::LinearQuotient)
 
 Return the Cox ring of the linear quotient `L` in a presentation as a graded affine
@@ -281,7 +281,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
 
 Return the Cox ring of a QQ-factorial terminalization of the linear quotient `L`

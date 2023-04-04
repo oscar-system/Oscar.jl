@@ -139,7 +139,7 @@ function AbstractAlgebra.expressify(a::MPolyQuoIdeal; context = nothing)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(a::MPolyQuoIdeal)
 
 Return the ambient ring of `a`.
@@ -186,7 +186,7 @@ function groebner_assure(a::MPolyQuoIdeal)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     gens(a::MPolyQuoIdeal)
 
 Return the generators of `a`.
@@ -216,7 +216,7 @@ end
 gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
 getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
-@doc Markdown.doc"""
+@doc raw"""
     ngens(a::MPolyQuoIdeal)
 
 Return the number of generators of `a`.
@@ -244,7 +244,7 @@ end
 
 # powers, addition and multiplication do not require the singular quotient ring
 
-@doc Markdown.doc"""
+@doc raw"""
     :^(a::MPolyQuoIdeal, m::Int)
 
 Return the `m`-th power of `a`.
@@ -267,7 +267,7 @@ function Base.:^(a::MPolyQuoIdeal, m::Int)
   return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     :+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the sum of `a` and `b`.
@@ -295,7 +295,7 @@ function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     :*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the product of `a` and `b`.
@@ -323,7 +323,7 @@ function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
 
 Return the intersection of two or more ideals.
@@ -358,7 +358,7 @@ end
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the ideal quotient of `a` by `b`. Alternatively, use `a:b`.
@@ -405,7 +405,7 @@ end
   return J
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(a::MPolyQuoIdeal)
 
 Return `true` if `a` is the zero ideal, `false` otherwise.
@@ -435,7 +435,7 @@ function is_zero(a::MPolyQuoIdeal)
   return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal(A::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
 
 Given a (graded) quotient ring `A=R/I` and a vector `V` of (homogeneous) polynomials in `R`,
@@ -549,7 +549,7 @@ function Oscar.addeq!(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return a
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify(a::MPolyQuoIdeal)
 
 If `a` is an ideal of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
@@ -593,7 +593,7 @@ end
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_membership(f::MPolyQuoRingElem{T}, a::MPolyQuoIdeal{T}) where T
 
 Return `true` if `f` is contained in `a`, `false` otherwise. Alternatively, use `f in a`.
@@ -625,7 +625,7 @@ end
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is contained in `b`, `false` otherwise.
@@ -656,7 +656,7 @@ function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is equal to `b`, `false` otherwise.
@@ -681,7 +681,7 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return issubset(a, b) && issubset(b, a)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
@@ -759,7 +759,7 @@ function simplify(f::MPolyQuoRingElem)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 
 Return `true` if `f` is equal to `g`, `false` otherwise.
@@ -787,7 +787,7 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   return f.f == g.f
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
 
 Create the quotient ring `R/I` and return the new
@@ -1071,7 +1071,7 @@ function grading(R::MPolyQuoRing)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given a homogeneous element `f` of a graded affine algebra, return the degree of `f`.
@@ -1137,7 +1137,7 @@ end
 is_filtered(q::MPolyQuoRing) = is_filtered(base_ring(q))
 is_graded(q::MPolyQuoRing) = is_graded(base_ring(q))
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 
 Given an element `f` of a graded affine algebra, and given an element `g` of the
@@ -1183,7 +1183,7 @@ function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, g::Vecto
   return homogeneous_component(a, grading_group(base_ring(parent(a)))(g))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_components(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
@@ -1209,7 +1209,7 @@ function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_homogeneous(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
@@ -1235,7 +1235,7 @@ function is_homogeneous(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   return is_homogeneous(a.f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
 
 If `A` is, say, `G`-graded, return `G`.
@@ -1281,7 +1281,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   return M, h
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(a::MPolyQuoIdeal)
 
 Return the Krull dimension of `a`.
@@ -1330,7 +1330,7 @@ end
 
 ##################################
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `a` of a graded affine algebra over a field,
