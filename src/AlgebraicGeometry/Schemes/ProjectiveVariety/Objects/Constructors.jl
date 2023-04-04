@@ -46,7 +46,7 @@ projective_variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(Projec
 function projective_variety(f::MPolyDecRingElem; check=true)
   if check
     is_irreducible(f) || error("polynomial is reducible")
-    ff = factor_absolute(f)[2]
+    ff = factor_absolute(forget_decoration(f))[2]
     # deal with weird type instability in factor_absolute
     @assert ff[2] == 1
     g = ff[1]

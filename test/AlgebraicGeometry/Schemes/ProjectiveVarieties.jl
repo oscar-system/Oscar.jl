@@ -1,8 +1,9 @@
 @testset "Projective Varieties" begin
-  P,(x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
-  G = grade(P)
+  P,_ = polynomial_ring(QQ, [:x, :y, :z])
+  G,(x,y,z) = grade(P)
   p = x^2+y^2+z^2
   X = projective_variety(p)
-  Y = projective_scheme(P, ideal([p^2]))
+  @test_throws ErrorException projective_variety(p^2)
+  Y = projective_scheme(G, ideal([p^2]))
   @test X != Y
 end
