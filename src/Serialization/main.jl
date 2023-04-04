@@ -104,6 +104,8 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
+    println(obj)
+    sleep(1)
     if is_basic_serialization_type(T) && s.depth != 0
         return save_internal(s, obj)
     end
