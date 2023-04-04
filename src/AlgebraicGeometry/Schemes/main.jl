@@ -26,6 +26,8 @@ include("AffineVariety/Objects/Types.jl")
 include("AffineAlgebraicSet/Objects/Types.jl")
 include("ProjectiveSchemes/Objects/Types.jl")
 include("ProjectiveSchemes/Morphisms/Types.jl")
+include("ProjectiveVariety/Objects/Types.jl")
+include("ProjectiveAlgebraicSet/Objects/Types.jl")
 
 ########################################################################
 # Affine schemes                                                       #
@@ -128,3 +130,19 @@ include("AffineVariety/Objects/Constructors.jl")
 include("AffineVariety/Objects/Properties.jl")
 include("AffineVariety/Objects/Attributes.jl")
 include("AffineVariety/Objects/Methods.jl")
+
+########################################################################
+# Projective Algebraic Sets                                                #
+########################################################################
+include("ProjectiveAlgebraicSet/Objects/Constructors.jl")
+include("ProjectiveAlgebraicSet/Objects/Properties.jl")
+include("ProjectiveAlgebraicSet/Objects/Attributes.jl")
+include("ProjectiveAlgebraicSet/Objects/Methods.jl")
+
+########################################################################
+# Projective Varietes
+########################################################################
+include("ProjectiveVariety/Objects/Constructors.jl")
+include("ProjectiveVariety/Objects/Properties.jl")
+include("ProjectiveVariety/Objects/Attributes.jl")
+include("ProjectiveVariety/Objects/Methods.jl")

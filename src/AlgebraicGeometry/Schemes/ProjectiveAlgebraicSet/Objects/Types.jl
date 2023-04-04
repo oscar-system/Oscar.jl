@@ -1,4 +1,4 @@
-@attributes mutable struct ProjectiveAlgebraicSet{BaseRing<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseRing, T, GradedRingType} where {T}
+@attributes mutable struct ProjectiveAlgebraicSet{BaseRing<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseRing, GradedRingType}
   X::ProjectiveScheme
   function ProjectiveAlgebraicSet(X::Spec; check::Bool=true)
     if check

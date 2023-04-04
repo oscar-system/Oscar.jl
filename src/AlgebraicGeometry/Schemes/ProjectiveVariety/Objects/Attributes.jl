@@ -1,8 +1,8 @@
 ########################################################################
 #
-# (1) AbsSpec interface
+# (1) AbsProjectiveScheme interface
 #
 ########################################################################
 
-underlying_scheme(X::AffineVariety) = X.X
+underlying_scheme(X::ProjectiveVariety) = X.X
 

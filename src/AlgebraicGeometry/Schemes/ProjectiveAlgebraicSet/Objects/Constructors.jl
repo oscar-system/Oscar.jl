@@ -3,54 +3,54 @@
 ########################################################
 
 @doc Markdown.doc"""
-    projective_algebraic_set(X::Spec; check::Bool=true) -> AffineAlgebraicSet
+    projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true) -> ProjectiveAlgebraicSet
 
-Convert `X` to an `AffineAlgebraicSet` by taking the underlying reduced scheme.
+Convert `X` to an `ProjectiveAlgebraicSet` by taking the underlying reduced scheme.
 
 If `check=false`, assumes that `X` is already reduced.
 """
-function projective_algebraic_set(X::Spec; check::Bool=true)
+function projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
   if check
     Xred,_ = reduced_scheme(X)
   else
     Xred = X
   end
-  AffineAlgebraicSet(Xred, check=check)
+  ProjectiveAlgebraicSet(Xred, check=check)
 end
 
 @doc Markdown.doc"""
-    vanishing_locus(I::MPolyIdeal; check::Bool=true)
+    vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
 
 Return the vanishing locus of ``I`` as an algebraic set.
 
 This computes the radical of ``I`` if `check=true`
 otherwise take on faith that ``I`` is radical.
 """
-function vanishing_locus(I::MPolyIdeal; check::Bool=true)
+function vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
   if check
     Irad = radical(I)
   else
     Irad = I
   end
-  X = Spec(base_ring(Irad), Irad)
-  return AffineAlgebraicSet(X, check=check)
+  X = ProjectiveScheme(base_ring(I),I)
+  return ProjectiveAlgebraicSet(X, check=check)
 end
 
-vanishing_locus(p::MPolyRingElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
+vanishing_locus(p::MPolyDecRingElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
 ########################################################
 # (2) Intersections of algebraic sets
 ########################################################
 
 @doc Markdown.doc"""
-    set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet) -> AbsAffineAlgebraicSet
+    set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet) -> AbsProjectiveAlgebraicSet
 
-Return the set theoretic intersection of `X` and `Y` as an AlgebraicSet.
+Return the set theoretic intersection of `X` and `Y` as a `ProjectiveAlgebraicSet`.
 
 This is the reduced subscheme of the scheme theoretic intersection.
 """
-function set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
+function set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet)
   Z = intersect(underlying_scheme(X), underlying_scheme(Y))
   Zred,_ = reduced_scheme(Z)
   # not sure how reduced vs geometrically reduced behaves hence check=true
-  return AffineAlgebraicSet(Zred, check=true)
+  return ProjectiveAlgebraicSet(Zred, check=true)
 end

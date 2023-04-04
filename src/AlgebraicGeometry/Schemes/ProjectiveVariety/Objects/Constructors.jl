@@ -2,41 +2,41 @@
 # (1) Generic constructors
 ########################################################
 @doc Markdown.doc"""
-    affine_variety(X::Spec; check::Bool=true) -> AffineVariety
+    projective_variety(X::AbsProjectiveScheme; check::Bool=true) -> ProjectiveVariety
 
-Convert ``X`` to an affine variety.
+Convert ``X`` to an projective variety.
 
 If check is set, then compute the reduced scheme of `X` first.
 """
-function affine_variety(X::Spec{<:Field}; check::Bool=true)
-  check  ||  AffineVariety(X, check=check)
+function projective_variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
+  check  ||  ProjectiveVariety(X, check=check)
   Xred,_ = reduced_scheme(X)
-  return AffineVariety(Xred, check=check)
+  return ProjectiveVariety(Xred, check=check)
 end
 
 @doc Markdown.doc"""
-    affine_variety(I::MPolyIdeal; check=true) -> AffineVariety
+    projective_variety(I::MPolyIdeal; check::Bool=true) -> ProjectiveVariety
 
-Return the affine variety defined by the prime ideal ``I``.
+Return the projective variety defined by the homogeneous prime ideal ``I``.
 
 Since our varieties are irreducible, we check that ``I`` stays prime when
 viewed over the algebraic closure. This is an expensive check that can be disabled.
 """
-affine_variety(I::MPolyIdeal; check=true) = AffineVariety(Spec(quo(base_ring(I),I)[1]), check=check)
+projective_variety(I::MPolyIdeal; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(base_ring(I),I), check=check)
 
 @doc Markdown.doc"""
-    affine_variety(R::Ring; check=true)
+    projective_variety(R::Ring; check::Bool=true)
 
-Return the affine variety defined by ``R``.
+Return the projective variety defined by ``R``.
 
 We require that ``R`` is a finitely generated algebra over a field ``k`` and
 moreover that the base change of ``R`` to the algebraic closure ``\bar k``
 is an integral domain.
 """
-affine_variety(R::MPolyAnyRing; check=true) = AffineVariety(Spec(R), check=check)
+projective_variety(R::Ring; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
 
 
-function affine_variety(f::MPolyRingElem; check=true)
+function projective_variety(f::MPolyDecRingElem; check=true)
   if check
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(f)[2]
@@ -45,18 +45,7 @@ function affine_variety(f::MPolyRingElem; check=true)
     g = ff[1]
     (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("polynomial is not absolutely irreducible")
   end
-  return affine_variety(ideal([f]), check=false)
-end
-
-
-
-########################################################
-# (3) Closure of algebraic sets in their ambient space
-########################################################
-
-function closure(X::AffineVariety)
-  Xcl = closure(X, ambient_space(X))
-  return affine_algebraic_set(Xcl, check=false)
+  return projective_variety(ideal([f]), check=false)
 end
 
 

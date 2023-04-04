@@ -1,3 +1,3 @@
 ################################################################################
-# Everything is inherited from AbsSpec
+# Everything is inherited from AbsProjectiveScheme
 ################################################################################
