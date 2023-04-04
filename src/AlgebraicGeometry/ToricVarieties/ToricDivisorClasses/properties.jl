@@ -1,7 +1,7 @@
 @attr Bool is_trivial(tdc::ToricDivisorClass) = iszero(divisor_class(tdc))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_effective(tdc::ToricDivisorClass)
 
 Determines whether the toric divisor class `tdc` is effective, that is if a toric divisor

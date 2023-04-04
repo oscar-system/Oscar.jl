@@ -40,7 +40,7 @@ end
 # ---------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalCurve(PC::PolyhedralComplex)
 
 Construct a tropical curve from a polyhedral complex.
@@ -88,7 +88,7 @@ function TropicalCurve(graph::IncidenceMatrix, M::Union{typeof(min),typeof(max)}
     return result
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     graph(tc::TropicalCurve)
 
 Return the graph of an abstract tropical curve `tc`.
@@ -117,7 +117,7 @@ function graph(tc::TropicalCurve)
     return get_attribute(tc, :graph)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     n_nodes(tc::TropicalCurve)
 
 Return the number of nodes of an abstract tropical curve `tc`.
@@ -155,7 +155,7 @@ struct DivisorOnTropicalCurve{M, EMB}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     DivisorOnTropicalCurve(tc::TropicalCurve, coeffs::Vector{Int})
 
 Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
@@ -189,7 +189,7 @@ base_curve(dtc::DivisorOnTropicalCurve) = dtc.base_curve
 ###
 # 3.Basic properties
 #
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(dtc::DivisorOnTropicalCurve)
 
 Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical curve.
@@ -216,7 +216,7 @@ julia> coefficients(dtc)
 """
 coefficients(dtc::DivisorOnTropicalCurve) = dtc.coefficients
 
-@doc Markdown.doc"""
+@doc raw"""
    degree(dtc::DivisorOnTropicalCurve)
 
 Compute the degree of  a divisor `dtc` on an abstract tropical curve.
@@ -239,7 +239,7 @@ julia> degree(dtc)
 """
 degree(dtc::DivisorOnTropicalCurve) = sum(coefficients(dtc))
 
-@doc Markdown.doc"""
+@doc raw"""
     is_effective(dtc::DivisorOnTropicalCurve)
 
 Check whether a divisor `dtc` on an abstract tropical curve is effective.
@@ -263,7 +263,7 @@ true
 is_effective(dtc::DivisorOnTropicalCurve) = all(e -> e>=0, coefficients(dtc))
 
 
-@doc Markdown.doc"""
+@doc raw"""
    chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
 
 Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
@@ -321,7 +321,7 @@ function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
     return deg
 end
 
-@doc Markdown.doc"""
+@doc raw"""
    v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 
 Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
@@ -375,7 +375,7 @@ function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
     return reduced
 end
 
-@doc Markdown.doc"""
+@doc raw"""
    is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
 
 Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check whether they are linearly equivalent.
@@ -419,7 +419,7 @@ end
 # -------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     structure_tropical_jacobian(TC::TropicalCurve)
 
 Compute the elementary divisors $n_i$ of the Laplacian matrix of the tropical curve `TC`.

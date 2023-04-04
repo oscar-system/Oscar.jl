@@ -2,7 +2,7 @@
 # 1: Special attributes of toric varieties
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     structure_sheaf(v::AbstractNormalToricVariety)
 
 Construct the structure sheaf of a normal toric variety.
@@ -20,7 +20,7 @@ Toric line bundle on a normal toric variety
 @attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = toric_line_bundle(v, zero(picard_group(v)))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     anticanonical_bundle(v::AbstractNormalToricVariety)
 
 Construct the anticanonical bundle of a normal toric variety.
@@ -38,7 +38,7 @@ Toric line bundle on a normal toric variety
 @attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(toric_line_bundle(v, d) for d in torusinvariant_prime_divisors(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     canonical_bundle(v::AbstractNormalToricVariety)
 
 Construct the canonical bundle of a normal toric variety.

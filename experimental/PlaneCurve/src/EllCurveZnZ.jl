@@ -147,7 +147,7 @@ end
 ################################################################################
 # Functions
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     ECM(n::ZZRingElem; nbcurve::Int = 25000, multfact::ZZRingElem = factorial(ZZ(10^4)))
 
 Return a factor of `n`, obtained with the Elliptic Curve Method.
@@ -167,7 +167,7 @@ end
 ################################################################################
 # the sum of two points might not be a point, this is not a group operation.
 
-@doc Markdown.doc"""
+@doc raw"""
     sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.ZZModRingElem
 
 Return, if possible, the sum of the points `P` and `Q`, and an error otherwise.
@@ -189,7 +189,7 @@ function sum_Point_EllCurveZnZ(
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     IntMult_Point_EllCurveZnZ(m::ZZRingElem, P::Point_EllCurve{S}) where S <: Nemo.ZZModRingElem
 
 Return, if possible, the point `mP`, and an error otherwise.
@@ -207,7 +207,7 @@ function IntMult_Point_EllCurveZnZ(m::ZZRingElem, P::Point_EllCurve{S}) where {S
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.ZZModRingElem
 
 Return a pair composed of an elliptic plane curve `E` with equation in `R`,
@@ -255,7 +255,7 @@ function evenodd(n::ZZRingElem, fac::ZZRingElem = ZZ(2))
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     cornacchia_algorithm(d::ZZRingElem, m::ZZRingElem)
 
 Return `true` and a solution of `x^2 + d*y^2 = m` if it exists, and false and
@@ -373,7 +373,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Miller_Rabin_test(N::ZZRingElem, k::Int64 = 20)
 
 Given an odd number `N`, return `false` if the number is composite, and `true` if it
@@ -394,7 +394,7 @@ end
 ################################################################################
 # Pollard's methods
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     Pollard_rho(N::ZZRingElem, bound::Int = 50000)
 
 The algorithm computes a factor of `N` using the Pollard rho algorithm
@@ -418,7 +418,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Pollard_p_1(N::ZZRingElem, B::ZZRingElem = ZZ(10)^5)
 
 The algorithm computes a factor of `N` and returns it.
@@ -685,7 +685,7 @@ function atkin_morain(
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     ECPP(n::ZZRingElem)
 
 The algorithm returns true if the number is prime, false if not, and an error if

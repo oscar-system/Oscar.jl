@@ -17,7 +17,7 @@ end
 ########################################################################
 # Generic fractions on PrincipalOpenSubsets                            #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     generic_fraction(a::MPolyLocRingElem, U::PrincipalOpenSubset)
 
 Given a regular function ``a ∈ 𝒪(U)`` on a principal open 

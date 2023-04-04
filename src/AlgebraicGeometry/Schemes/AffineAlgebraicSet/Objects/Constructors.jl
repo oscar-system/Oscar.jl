@@ -2,7 +2,7 @@
 # (1) Generic constructors
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_algebraic_set(X::Spec; check::Bool=true) -> AffineAlgebraicSet
 
 Convert `X` to an `AffineAlgebraicSet` by taking the underlying reduced scheme.
@@ -18,7 +18,7 @@ function affine_algebraic_set(X::Spec; check::Bool=true)
   AffineAlgebraicSet(Xred, check=check)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     vanishing_locus(I::MPolyIdeal; check::Bool=true)
 
 Return the vanishing locus of ``I`` as an algebraic set.
@@ -41,7 +41,7 @@ vanishing_locus(p::MPolyRingElem, check::Bool=true) = vanishing_locus(ideal(pare
 # (2) Intersections of algebraic sets
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet) -> AbsAffineAlgebraicSet
 
 Return the set theoretic intersection of `X` and `Y` as an AlgebraicSet.
@@ -59,7 +59,7 @@ end
 # (3) Closure of algebraic sets
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
   closure(X::AbsAffineAlgebraicSet)
 
 Return the closure of ``X`` in its ambient affine space.

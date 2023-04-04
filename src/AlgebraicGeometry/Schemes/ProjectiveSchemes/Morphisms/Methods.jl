@@ -15,7 +15,7 @@ function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPo
   return map_on_affine_cones(f) == map_on_affine_cones(g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     covered_scheme_morphism(f::ProjectiveSchemeMor)
 
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 

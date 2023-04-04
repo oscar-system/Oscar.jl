@@ -285,7 +285,7 @@ function _secondary_invariants(IR::InvRing)
   return nothing
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     secondary_invariants(IR::InvRing)
 
 Return a system of secondary invariants for `IR` as a `Vector` sorted by
@@ -324,7 +324,7 @@ function secondary_invariants(IR::InvRing)
   return copy(IR.secondary.invars)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_secondary_invariants(IR::InvRing)
 
 Return a system of irreducible secondary invariants for `IR` as a `Vector` sorted
@@ -390,7 +390,7 @@ end
 ################################################################################
 
 # Gat96, Algorithm 3.16 and DK15, Algorithm 3.7.2
-@doc Markdown.doc"""
+@doc raw"""
     semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
     relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)
 

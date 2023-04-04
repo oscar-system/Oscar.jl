@@ -8,14 +8,14 @@ export vanishing_ideal
 
 underlying_scheme(X::AffineAlgebraicSet) = X.X
 
-@doc Markdown.doc"""
+@doc raw"""
     vanishing_ideal(X::AbsAffineAlgebraicSet) -> Ideal
 
 Return the ideal of all polynomials vanishing in ``X``.
 """
 vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal(X::AbsAffineAlgebraicSet{}) -> Ideal
 
 Return the ideal of all polynomials vanishing in ``X``.

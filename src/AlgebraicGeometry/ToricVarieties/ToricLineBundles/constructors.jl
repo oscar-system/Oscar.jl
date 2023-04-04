@@ -20,7 +20,7 @@ end
 # 2: Generic constructors
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`.
@@ -37,7 +37,7 @@ Toric line bundle on a normal toric variety
 toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricLineBundle(v, class)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`.
@@ -61,7 +61,7 @@ end
 # 3: Special constructor
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
 
 Construct the toric variety associated to a (Cartier) torus-invariant divisor `d` on the normal toric variety `v`.
@@ -86,7 +86,7 @@ function toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
     return l
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_line_bundle(d::ToricDivisor)
 
 Construct the toric variety associated to a (Cartier) torus-invariant divisor `d`.

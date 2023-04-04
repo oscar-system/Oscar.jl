@@ -1,7 +1,7 @@
 ########################################################################
 # Concrete type for projective schemes                                 #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 
 Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r``

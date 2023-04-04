@@ -128,7 +128,7 @@ end
   return len, unique(sumsum)
 end
      
-@doc Markdown.doc"""
+@doc raw"""
     number_of_elevations(EC::ElevCtx) -> Int
 
 Return the number of elevations of the underlying list in `EC`
@@ -137,21 +137,21 @@ number_of_elevations(EC::ElevCtx) = _num_sum(EC)[1]
 
 _possible_sums(EC::ElevCtx) = _num_sum(EC)[2]
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_list(EC::ElevCtx{T, U}) where {T, U} -> Vector{T}
 
 Return the underlying list of `EC`.
 """
 underlying_list(EC::ElevCtx) = EC.L
 
-@doc Markdown.doc"""
+@doc raw"""
     degree_of_elevations(EC::ElevCtx) -> Int
 
 Return the degree of the elevations in `EC`.
 """
 degree_of_elevations(EC::ElevCtx) = EC.d
 
-@doc Markdown.doc"""
+@doc raw"""
     associated_function(EC::ElevCtx{T, U}) where {T, U} -> U
 
 Return the $\mathbb Z$-valued function associated to the underlying list
@@ -159,14 +159,14 @@ of `EC`.
 """
 associated_function(EC::ElevCtx) = EC.f
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_iterator(EC::ElevCtx) -> SubObjectIterator{PointVector{ZZRingElem}}
 
 Return the underlying iterator of `EC`.
 """
 underlying_iterator(EC::ElevCtx) = EC.it
 
-@doc Markdown.doc"""
+@doc raw"""
     associated_bounds(EC::ElevCtx) -> Vector{Tuple{Int, Int}}
 
 Return the bound conditions on the elevations of `EC`.
@@ -180,7 +180,7 @@ associated_bounds(EC::ElevCtx) = EC.bounds
 ##############################################################################
 
 # Here we create an iterator to avoid to keep stored all the elevations.
-@doc Markdown.doc"""
+@doc raw"""
     elevator(L::Vector{T}, f::U, d::Int;
              lbs::Vector{Int} = Int[0 for i in 1:length(L)],
              ubs::Vector{Int} = nothing) where {T, U} -> ElevCtx

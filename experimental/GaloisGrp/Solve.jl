@@ -1,6 +1,6 @@
 module SolveRadical
 
-using Oscar, Markdown
+using Oscar
 import Oscar: AbstractAlgebra, Hecke, GaloisGrp.GaloisCtx
 
 function __init__()
@@ -265,7 +265,7 @@ function _fixed_field(C::GaloisCtx, s::Vector{PermGroup}; invar=nothing, max_pre
   return k
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     fixed_field(C::GaloisCtx, s::Vector{PermGroup})
 
 Given a descending chain of subgroups, each being maximal in the previous
@@ -401,7 +401,7 @@ function Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
   return solve(numerator(f), max_prec = max_prec)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int))
     Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
 

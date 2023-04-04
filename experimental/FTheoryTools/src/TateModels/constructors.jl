@@ -30,7 +30,7 @@ end
 # 2: Constructors over specified bases
 ################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     global_tate_model(base::AbstractNormalToricVariety)
 
 This method constructs a global Tate model over a given toric base
@@ -56,7 +56,7 @@ function global_tate_model(base::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     global_tate_model_over_projective_space()
 
 This method constructs a global Tate model over the 3-dimensional projective space.
@@ -70,7 +70,7 @@ Global Tate model over a concrete base
 global_tate_model_over_projective_space() = global_tate_model(projective_space(NormalToricVariety,3))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
 
 This method operates analogously to `global_tate_model(base::AbstractNormalToricVariety)`.
@@ -114,7 +114,7 @@ end
 # 3: Constructors over not fully specified bases
 ################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
 
 This method constructs a global Tate model over a base space that is not

@@ -2,7 +2,7 @@
 # 1: Special attributes of toric varieties
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     trivial_divisor_class(v::AbstractNormalToricVariety)
 
 Construct the trivial divisor class of a normal toric variety.
@@ -19,7 +19,7 @@ Divisor class on a normal toric variety
 @attr ToricDivisorClass trivial_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(trivial_divisor(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     anticanonical_divisor_class(v::AbstractNormalToricVariety)
 
 Construct the anticanonical divisor class of a normal toric variety.
@@ -36,7 +36,7 @@ Divisor class on a normal toric variety
 @attr ToricDivisorClass anticanonical_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(anticanonical_divisor(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     canonical_divisor_class(v::AbstractNormalToricVariety)
 
 Construct the canonical divisor class of a normal toric variety.

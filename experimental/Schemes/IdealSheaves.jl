@@ -17,7 +17,7 @@ underlying_presheaf(I::IdealSheaf) = I.I
 # an alias for the user's convenience
 scheme(I::IdealSheaf) = space(I)
 
-@doc Markdown.doc"""
+@doc raw"""
     IdealSheaf(X::ProjectiveScheme, g::Vector{<:RingElem})
 
 Create the ideal sheaf on the covered scheme of ``X`` which is 
@@ -119,7 +119,7 @@ function IdealSheaf(X::CoveredScheme)
   return IdealSheaf(X, I, check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_sheaf(X::AbsCoveredScheme)
 
 See the documentation for `IdealSheaf`.
@@ -128,7 +128,7 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
-@doc Markdown.doc"""
+@doc raw"""
     IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
 
 Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
@@ -154,7 +154,7 @@ end
 
 ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
-@doc Markdown.doc"""
+@doc raw"""
     IdealSheaf(Y::AbsCoveredScheme, 
         phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
     )
@@ -241,7 +241,7 @@ function *(I::IdealSheaf, J::IdealSheaf)
   return IdealSheaf(X, new_dict, check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify!(I::IdealSheaf)
 
 Replaces the set of generators of the ideal sheaf by a minimal 
@@ -268,7 +268,7 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     subscheme(I::IdealSheaf) 
 
 For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
@@ -297,7 +297,7 @@ function subscheme(I::IdealSheaf)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     extend!(C::Covering, D::Dict{SpecType, IdealType}) where {SpecType<:Spec, IdealType<:Ideal}
 
 For ``C`` a covering and ``D`` a dictionary holding vectors of 
@@ -459,7 +459,7 @@ function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType
   return upper
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true) -> Int
 
 Return the order of the rational function `f` on the prime divisor given by the ideal sheaf `I`.
@@ -530,7 +530,7 @@ function order_on_divisor(
 #    order_dict[U] = upper-lower
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     smooth_lci_covering(I::IdealSheaf)
 
 For an ideal sheaf ``ℐ`` on a *smooth* scheme ``X`` with a *smooth* 

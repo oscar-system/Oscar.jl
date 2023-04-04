@@ -22,7 +22,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis(I::Ideal, val::TropicalSemiringMap, w::Vector; complete_reduction::Bool, return_lead::Bool)
 
 Compute a Groebner basis of `I` over a field with valuation `val` with respect

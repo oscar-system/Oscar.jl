@@ -25,7 +25,7 @@ end
 # no check for commutative codomains
 _check_imgs(S::Ring, imgs) = nothing 
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 
     hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)

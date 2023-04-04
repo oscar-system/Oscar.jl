@@ -22,7 +22,7 @@ export partitions
 ################################################################################
 # Partition type
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     Partition{T<:IntegerUnion} <: AbstractVector{T}
 
 A **partition** of a non-negative integer ``n`` is a decreasing sequence ``λ₁ ≥ λ₂ ≥ … ≥
@@ -128,7 +128,7 @@ function Base.copy(P::Partition{T}) where T<:IntegerUnion
   return Partition{T}(copy(P.p))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     getindex_safe(P::Partition, i::IntegerUnion)
 
 In algorithms involving partitions it is sometimes convenient to be able to access parts
@@ -160,7 +160,7 @@ end
 # Generating and counting unrestricted partitions
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     num_partitions(n::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n`. 
@@ -191,7 +191,7 @@ function num_partitions(n::IntegerUnion)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(n::IntegerUnion)
 
 A list of all partitions of a non-negative integer `n`, produced in lexicographically
@@ -267,7 +267,7 @@ function partitions(n::IntegerUnion)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ascending_partitions(n::IntegerUnion;alg="ks")
 
 Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending*
@@ -407,7 +407,7 @@ end
 # Generating and counting restricted partitions
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
@@ -466,7 +466,7 @@ function num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 
 A list of all partitions of a non-negative integer `m` into `n >= 0` parts with lower bound
@@ -587,7 +587,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 
 All partitions of a non-negative integer `m` into `n` parts (no further restrictions).
@@ -623,7 +623,7 @@ function partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
 
 All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an
@@ -839,7 +839,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   return P
 end
 
-@Markdown.doc """
+@doc raw"""
     partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
   
 All partitions of a non-negative integer `m` where each part is an element in the vector `v`
@@ -920,7 +920,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<
 
 end
 
-@Markdown.doc """
+@doc raw"""
     function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
   
 All partitions of a non-negative integer `m` where each part is an element in the vector
@@ -973,7 +973,7 @@ end
 # Relations
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ``⊵`` defined by ``λ ⊵ μ`` if and
@@ -1025,7 +1025,7 @@ end
 ################################################################################
 # Operations
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     conjugate(lambda::Partition{T}) where T<:IntegerUnion
 
 The **conjugate** of a partition is obtained by considering its Young diagram

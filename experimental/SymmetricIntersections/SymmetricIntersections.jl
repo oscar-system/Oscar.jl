@@ -1,5 +1,5 @@
 module SymInt
-using Oscar, Markdown
+using Oscar
 
 macro req(args...)
   @assert length(args) == 2

@@ -8,7 +8,7 @@ function base_ring(P::AbsProjectiveScheme)
   return base_ring(underlying_scheme(P))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
@@ -19,7 +19,7 @@ function ambient_coordinate_ring(P::AbsProjectiveScheme)
   return ambient_coordinate_ring(underlying_scheme(P))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` for a standard 
@@ -33,7 +33,7 @@ end
   return base_scheme(underlying_scheme(P))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_cone(X::ProjectiveScheme) 
 
 On ``X = Proj(S) ⊂ ℙʳ_𝕜`` this returns a pair `(C, f)` where ``C = C(X) ⊂ 𝕜ʳ⁺¹`` 
@@ -80,14 +80,14 @@ end
 # Methods for the concrete minimal instance                            #
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``A``.
 """
 base_ring(P::ProjectiveScheme) = P.A
 
-@doc Markdown.doc"""
+@doc raw"""
     base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocRing, CRET, RT, RET}
 
 Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined over a field ``𝕜``.
@@ -120,14 +120,14 @@ function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     relative_ambient_dimension(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``r``.
 """
 relative_ambient_dimension(P::ProjectiveScheme) = P.r
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinate_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``A[s₀,…,sᵣ]``.
@@ -137,7 +137,7 @@ homogeneous_coordinate_ring(P::ProjectiveScheme) = P.S
 ambient_coordinate_ring(P::ProjectiveScheme{<:Any, <:Any, <:MPolyQuoRing}) = base_ring(homogeneous_coordinate_ring(P))
 ambient_coordinate_ring(P::ProjectiveScheme{<:Any, <:Any, <:MPolyDecRing}) = homogeneous_coordinate_ring(P)
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinates(X::ProjectiveScheme)
 
 Return the generators of the homogeneous coordinate ring of ``X``.
@@ -147,7 +147,7 @@ function homogeneous_coordinates(X::ProjectiveScheme)
 end
 
 ### TODO: Replace by the map of generators.
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinates_on_affine_cone(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns a vector with the homogeneous
@@ -164,7 +164,7 @@ end
 
 homogeneous_coordinate_on_affine_cone(P::ProjectiveScheme, i::Int) = homogeneous_coordinates_on_affine_cone(P)[i]
 
-@doc Markdown.doc"""
+@doc raw"""
     defining_ideal(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns the homogeneous
@@ -190,7 +190,7 @@ ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = U
 projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_cone(X::AbsProjectiveScheme) -> AbsSpec
 
 Return the affine cone of `X`.
@@ -222,7 +222,7 @@ Return the affine cone of `X`.
   return X.C, psi 
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_cone(X::AbsProjectiveScheme{<:SpecOpenRing}) -> SpecOpen
 
 Return the affine_cone of `X`.
@@ -284,7 +284,7 @@ end
   return is_smooth(covered_scheme(P))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     covered_scheme(P::ProjectiveScheme)
     
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 

@@ -190,7 +190,7 @@ end
 
 ####
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(A::PBWAlgRing, I::PBWAlgIdeal)
 
 Given a two-sided ideal `I` of `A`, create the quotient algebra $A/I$ and
@@ -295,7 +295,7 @@ end
 
 # 2023-03-09 JAA  commented out placeholder code below -- should be replaced by code from ExteriorAlgebra.jl
 
-# @doc Markdown.doc"""
+# @doc raw"""
 #     exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
 #                                     AbstractVector{Symbol}, AbstractVector{Char}})
 

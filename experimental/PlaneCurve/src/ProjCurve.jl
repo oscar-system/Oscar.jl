@@ -9,7 +9,7 @@ import Oscar.defining_ideal
 ################################################################################
 abstract type ProjectiveCurve end
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     ProjCurve(I::MPolyIdeal)
 
 Given a homogeneous ideal `I` of Krull dimension 2, return the projective curve defined by `I`.
@@ -54,7 +54,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     defining_ideal(C::ProjCurve)
 
 Return the defining ideal of the projective curve `C`.
@@ -71,7 +71,7 @@ function Base.hash(C::ProjCurve, h::UInt)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     in(P::Oscar.Geometry.ProjSpcElem, C::ProjCurve)
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
@@ -113,7 +113,7 @@ function Base.in(P::Oscar.Geometry.ProjSpcElem, C::ProjCurve)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     curve_components(C::ProjCurve)
 
 Return a dictionary containing the irreducible components of `C` and the
@@ -131,7 +131,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_irreducible(C::ProjCurve)
 
 Return `true` if `C` is irreducible, and `false` otherwise.
@@ -165,7 +165,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     reduction(C::ProjCurve)
 
 Return the projective curve defined by the radical of the defining ideal of `C`.
@@ -199,7 +199,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     jacobi_ideal(C::ProjCurve)
 
 Return the Jacobian ideal of the defining ideal of `C`.
@@ -238,7 +238,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyRingElem}
 
 Return a dictionary where `image` represents the image of the birational map
