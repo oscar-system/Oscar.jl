@@ -401,40 +401,55 @@ end
 
 
 @doc raw"""
-    test_module(x, new::Bool = true)
+    test_module(file::AbstractString; new::Bool = true)
 
-Run the Oscar tests in the file `x.jl` where `x` is a string.
+Run the Oscar tests in the file `test/<file>.jl` where `file` may be a path.
 
-If `x == "all"` run the entire testsuite.
+The optional parameter `new` takes the values `false` and `true` (default). If
+`true`, then the tests are run in a new session, otherwise the currently active
+session is used.
+
+For experimental modules, use [`test_experimental_module`](@ref) instead.
+"""
+function test_module(file::AbstractString; new::Bool=true)
+  julia_exe = Base.julia_cmd()
+  rel_test_file = normpath("test", "$file.jl")
+  test_file = joinpath(oscardir, rel_test_file)
+
+  if new
+    cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
+    @info("spawning ", `$julia_exe -e \"$cmd\"`)
+    run(`$julia_exe -e $cmd`)
+  else
+    @info("Running tests for $rel_test_file in same session")
+    try
+      include(test_file)
+    catch e
+      if isa(e, LoadError)
+        println("You need to do \"using Test\"")
+      else
+        rethrow(e)
+      end
+    end
+  end
+end
+
+@doc raw"""
+    test_experimental_module(project::AbstractString; file::AbstractString="runtests", new::Bool = true)
+
+Run the Oscar tests in the file `experimental/<project>/test/<file>.jl`
+where `file` may be a path.
+The default is to run the entire test suite of the module `project`.
 
 The optional parameter `new` takes the values `false` and `true` (default). If
 `true`, then the tests are run in a new session, otherwise the currently active
 session is used.
 """
-function test_module(x::AbstractString, new::Bool = true)
-   julia_exe = Base.julia_cmd()
-   if x == "all"
-     test_file = joinpath(oscardir, "test/runtests.jl")
-   else
-     test_file = joinpath(oscardir, "test/$x.jl")
-   end
-
-   if new
-     cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
-     @info("spawning ", `$julia_exe -e \"$cmd\"`)
-     run(`$julia_exe -e $cmd`)
-   else
-     @info("Running tests for $x in same session")
-     try
-       include(test_file)
-     catch e
-       if isa(e, LoadError)
-         println("You need to do \"using Test\"")
-       else
-         rethrow(e)
-       end
-     end
-   end
+function test_experimental_module(
+  project::AbstractString; file::AbstractString="runtests", new::Bool=true
+)
+  test_file = "../experimental/$project/test/$file"
+  test_module(;file=test_file, new)
 end
 
 include("Exports.jl")
