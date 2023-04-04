@@ -178,8 +178,8 @@
      ],
      "Toric Schemes" => [
          "Experimental/ToricSchemes/intro.md",
-         "Experimental/ToricSchemes/AffineToricSchemes.md",
          "Experimental/ToricSchemes/NormalToricSchemes.md",
+         "Experimental/ToricSchemes/AffineToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",
