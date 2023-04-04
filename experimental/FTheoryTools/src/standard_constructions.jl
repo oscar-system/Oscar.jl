@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     su5_tate_model_over_arbitrary_3d_base()
 
 Return the SU(5) Tate model over an arbitrary
