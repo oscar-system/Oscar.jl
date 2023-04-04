@@ -51,7 +51,7 @@ Please direct questions about this part of OSCAR to the following people:
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
-Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
+Alternatively, you can [raise an issue on GitHub](https://github.com/oscar-system/Oscar.jl).
 
 
 ## Acknowledgements
