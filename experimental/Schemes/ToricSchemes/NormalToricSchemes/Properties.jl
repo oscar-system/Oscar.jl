@@ -1,20 +1,36 @@
-@doc raw"""
-    is_smooth(X::ToricCoveredScheme)
+#######################################
+### 1: Properties of ToricCoveredScheme
+#######################################
 
-For a toric covered scheme ``X``, this method
-return `true` if ``X`` is smooth and `false` otherwise.
+is_finalized(X::ToricCoveredScheme) = is_finalized(X.ntv)
+is_normal(X::ToricCoveredScheme) = is_normal(X.ntv)
+is_affine(X::ToricCoveredScheme) = is_affine(X.ntv)
+is_projective(X::ToricCoveredScheme) = is_projective(X.ntv)
+is_projective_space(X::ToricCoveredScheme) = is_projective_space(X.ntv)
+is_smooth(X::ToricCoveredScheme) = is_smooth(X.ntv)
+is_complete(X::ToricCoveredScheme) = is_complete(X.ntv)
+has_torusfactor(X::ToricCoveredScheme) = has_torusfactor(X.ntv)
+is_orbifold(X::ToricCoveredScheme) = is_orbifold(X.ntv)
+is_simplicial(X::ToricCoveredScheme) = is_simplicial(X.ntv)
+is_gorenstein(X::ToricCoveredScheme) = is_gorenstein(X.ntv)
+is_q_gorenstein(X::ToricCoveredScheme) = is_q_gorenstein(X.ntv)
+is_fano(X::ToricCoveredScheme) = is_fano(X.ntv)
 
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+#######################################
+### 2: Properties of ToricSpec
+#######################################
 
-julia> is_smooth(toric_scheme)
-true
-```
-"""
-is_smooth(X::ToricCoveredScheme) = is_smooth(normal_toric_variety(X))
-
+is_finalized(X::ToricSpec) = is_finalized(X.antv)
+is_normal(X::ToricSpec) = is_normal(X.antv)
+is_affine(X::ToricSpec) = is_affine(X.antv)
+is_projective(X::ToricSpec) = is_projective(X.antv)
+is_projective_space(X::ToricSpec) = is_projective_space(X.antv)
+is_smooth(X::ToricSpec) = is_smooth(X.antv)
+is_complete(X::ToricSpec) = is_complete(X.antv)
+has_torusfactor(X::ToricSpec) = has_torusfactor(X.antv)
+is_orbifold(X::ToricSpec) = is_orbifold(X.antv)
+is_simplicial(X::ToricSpec) = is_simplicial(X.antv)
+is_gorenstein(X::ToricSpec) = is_gorenstein(X.antv)
+is_q_gorenstein(X::ToricSpec) = is_q_gorenstein(X.antv)
+is_fano(X::ToricSpec) = is_fano(X.antv)
