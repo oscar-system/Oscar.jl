@@ -97,21 +97,6 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   return Z_trans, inc_Z_trans, pr_res
 end
 
-## THIS SHOULD GO TO mpolyquo-localization.jl
-## it is the localized and/or quotient wrapper to the MPolyIdeal-method
-function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
-  R = base_ring(I)
-  R == base_ring(J) || error("Ideals do no live in the same ring.")
-
-  I_sat = saturated_ideal(I)
-  J_sat = saturated_ideal(J)
-
-  I_result,k = Oscar.saturation_with_index(I_sat,J_sat)  ## why is saturation_with_index not exported from Rings/mpoly-ideal.jl?
-  return (ideal(R,gens(I_result)),k)
-end
-
-## THIS SHOULD GO TO mpolyquo-localization.jl
-## it is the localized and/or quotient wrapper to the MPolyIdeal-method
 @attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
   return is_one(saturated_ideal(I))
 end
@@ -182,6 +167,7 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
 
   ## do the transform on the charts
   b = -2                               # safe initialization of multiplicity return value
+  bmin = -2                            # safe initialization of minimal multiplicity for weak transform in different charts
   for U in patches(CY_simp)
     V = codomain(p_cov[U])             # affine patch on X
     Iorig_chart = I(V)                 # I on this patch
@@ -199,19 +185,21 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
 
     ## do different methods according to integer argument method
     if method == -1
-      Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                 # strict
-      btemp == b || b == -2 || error("different multiplicities in different charts!!")
-      b = btemp
+      Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                      # strict
+      b = max(b,btemp)
    elseif method == 0
       Itrans_chart,btemp = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)             # weak
-      btemp == b || b == -2 || error("different multiplicities in different charts!!")
-      b = btemp
+      if b == -2
+         b = btemp
+      end
+      bmin = min(b,btemp)
     else
       Itrans_chart,b = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
     end
     ID[U] = Itrans_chart
   end
 
+  bmin == -2 || bmin==b || error("different multiplicities in different charts, use controlled transform with control ",bmin)
   b > -2 || error("no patches in CY_simp!!!")
   I_trans = IdealSheaf(Y,ID,check=false)
   return I_trans,b
