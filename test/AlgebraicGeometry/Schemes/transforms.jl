@@ -7,9 +7,14 @@
   X = subscheme(W,I)
 
   C = ideal(R,[x,y,z])
+  C2 = ideal(R,[x,y])
   bl = blow_up(W,C)
-  IE = ideal_sheaf(exceptional_divisor(bl))
+  E = exceptional_divisor(bl)
+  IE = ideal_sheaf(E)
+  W2 = domain(bl)
+
   Isheaf = ideal_sheaf(codomain(bl),W,gens(I))
+  C2sheaf = ideal_sheaf(codomain(bl),W,gens(C2))
 
   Istrict = strict_transform(bl,Isheaf)
   @test is_smooth(subscheme(Istrict))
@@ -23,4 +28,8 @@
   @test IE*Istrict != Iweak
   @test IE*Iweak == Ictrl1
 
+  C2strict = strict_transform(bl,C2sheaf)
+  bl2 = blow_up(C2strict,covering=oscar.simplified_covering(W2),var_name="t")
+
+  E2 = strict_transform(bl2,E)
 end
