@@ -1,9 +1,24 @@
+################################################################################
+# Lower case constructors
+################################################################################
+
+projective_scheme(S::MPolyDecRing) = ProjectiveScheme(S)
+
+projective_scheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
+
+projective_scheme(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
+
+projective_scheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}} = ProjectiveScheme(Q)
+
+################################################################################
+# Subschemes
+################################################################################
 
 function subscheme(P::AbsProjectiveScheme, f::RingElem)
   S = homogeneous_coordinate_ring(P)
   parent(f) === S || return subscheme(P, S(f))
   Q, _ = quo(S, ideal(S, [f]))
-  result = ProjectiveScheme(Q)
+  result = projective_scheme(Q)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
@@ -20,25 +35,29 @@ function subscheme(
     parent(f[i]) === S || return subscheme(P, S.(f))
   end
   Q, _ = quo(S, ideal(S, f))
-  result = ProjectiveScheme(Q)
+  result = projective_scheme(Q)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
   return result
 end
 
-function subscheme(P::AbsProjectiveScheme, 
+function subscheme(P::AbsProjectiveScheme,
     I::Ideal{T}
   ) where {T<:RingElem}
   S = homogeneous_coordinate_ring(P)
   base_ring(I) === S || error("ideal does not belong to the correct ring")
   Q, _ = quo(S, I)
-  result = ProjectiveScheme(Q)
+  result = projective_scheme(Q)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
   return result
 end
+
+################################################################################
+# Projective space
+################################################################################
 
 function projective_space(
     A::CoeffRingType, 
@@ -47,7 +66,7 @@ function projective_space(
   n = length(var_symb)
   R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
-  return ProjectiveScheme(S)
+  return projective_scheme(S)
 end
 
 projective_space(
@@ -63,7 +82,7 @@ function projective_space(
   ) where {CoeffRingType<:Ring}
   R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
-  return ProjectiveScheme(S)
+  return projective_scheme(S)
 end
 
 function projective_space(
@@ -94,3 +113,14 @@ function projective_space(
   return P
 end
 
+################################################################################
+# reduced scheme
+################################################################################
+
+function reduced_scheme(X::ProjectiveScheme)
+  I = defining_ideal(X)
+  Irad = radical(I)
+  Xred = subscheme(ambient_space(X), I)
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred
+end

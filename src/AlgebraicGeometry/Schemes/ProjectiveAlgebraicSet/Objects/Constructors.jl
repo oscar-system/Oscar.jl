@@ -21,18 +21,18 @@ end
 @doc Markdown.doc"""
     vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
 
-Return the vanishing locus of ``I`` as an algebraic set.
+Return the vanishing locus of ``I`` as an algebraic set in projective space.
 
 This computes the radical of ``I`` if `check=true`
 otherwise take on faith that ``I`` is radical.
 """
-function vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
+function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
   if check
     Irad = radical(I)
   else
     Irad = I
   end
-  X = ProjectiveScheme(base_ring(I),I)
+  X = ProjectiveScheme(base_ring(Irad),Irad)
   return ProjectiveAlgebraicSet(X, check=check)
 end
 
@@ -49,6 +49,7 @@ Return the set theoretic intersection of `X` and `Y` as a `ProjectiveAlgebraicSe
 This is the reduced subscheme of the scheme theoretic intersection.
 """
 function set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet)
+  throw(NotImplementedError(:set_theoretic_intersection,X))
   Z = intersect(underlying_scheme(X), underlying_scheme(Y))
   Zred,_ = reduced_scheme(Z)
   # not sure how reduced vs geometrically reduced behaves hence check=true

@@ -17,7 +17,7 @@ end
 
 ### additional constructors
 
-function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
+function fiber_product(f::Hecke.Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
   R = base_ring(P) 
   R == domain(f) || error("rings not compatible")
   Rnew = codomain(f)
@@ -33,7 +33,7 @@ end
 
 function fiber_product(
     f::AbsSpecMor, 
-    P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
+    P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   )
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
   X = domain(f)
@@ -58,7 +58,7 @@ function fiber_product(
 end
 
 fiber_product(X::AbsSpec, 
-              P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
+              P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
              ) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
 
 ### canonical map constructors
@@ -97,7 +97,7 @@ function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:Abstract
                             )
 end
 
-identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P, 
+identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                         hom(homogeneous_coordinate_ring(P),
                                                             homogeneous_coordinate_ring(P),
                                                             gens(homogeneous_coordinate_ring(P))

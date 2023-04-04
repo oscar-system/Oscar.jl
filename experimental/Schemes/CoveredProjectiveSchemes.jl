@@ -900,7 +900,7 @@ end
 #end
 #
 #function strict_transform(
-#    P::ProjectiveScheme, 
+#    P::AbsProjectiveScheme, 
 #    E::IdealSheaf, 
 #    I::Vector{PolyType}
 #  ) where {PolyType<:MPolyRingElem}

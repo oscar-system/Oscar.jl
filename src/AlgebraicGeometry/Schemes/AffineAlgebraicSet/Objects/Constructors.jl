@@ -26,7 +26,7 @@ Return the vanishing locus of ``I`` as an algebraic set.
 This computes the radical of ``I`` if `check=true`
 otherwise take on faith that ``I`` is radical.
 """
-function vanishing_locus(I::MPolyIdeal; check::Bool=true)
+function vanishing_locus(I::MPolyIdeal{<:MPolyElem}; check::Bool=true)
   if check
     Irad = radical(I)
   else

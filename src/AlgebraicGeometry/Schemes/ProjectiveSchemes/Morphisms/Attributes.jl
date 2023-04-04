@@ -46,10 +46,10 @@ end
 # Map on affine cones with a non-trivial map on base schemes.
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{
-                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
+                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing,
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }},
-                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
+                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing,
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }}
                             };
@@ -101,7 +101,7 @@ function map_on_affine_cones(
   return phi.map_on_affine_cones::AbsSpecMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecOpenRing}, <:ProjectiveScheme{<:SpecOpenRing}})
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:SpecOpenRing}, <:AbsProjectiveScheme{<:SpecOpenRing}})
   if !isdefined(phi, :map_on_affine_cones)
     X = domain(phi)
     CX, map_X = affine_cone(X)

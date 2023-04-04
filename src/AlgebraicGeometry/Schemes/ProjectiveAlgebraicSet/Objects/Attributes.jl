@@ -1,5 +1,3 @@
-export vanishing_ideal
-
 ########################################################################
 #
 # (1) AbsProjectiveScheme interface
@@ -7,6 +5,7 @@ export vanishing_ideal
 ########################################################################
 
 underlying_scheme(X::ProjectiveAlgebraicSet) = X.X
+
 
 @doc Markdown.doc"""
     vanishing_ideal(X::AbsProjectiveAlgebraicSet) -> Ideal

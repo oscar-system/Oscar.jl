@@ -600,7 +600,7 @@ end
   if characteristic(F) == 0 || F isa FinField  # F is perfect
     return is_reduced(X)
   end
-  throw(NotImplementedError("currently we can decide this only over a perfect base field"))
+  throw(NotImplementedError(:is_geometrically_reduced, "currently we can decide this only over a perfect base field"))
 end
 
 ########################################################################
@@ -729,7 +729,7 @@ That is if ``X`` is integral when base changed to any field extension of ``k``.
 """
 @attr Bool function is_geometrically_integral(X::AbsSpec{<:Field,<:MPolyAnyRing})
   is_integral(X) || return false
-  throw(NotImplementedError("absolute primary decomposition is currently only available over the rationals"))
+  throw(NotImplementedError(:is_geometrically_integral, "absolute primary decomposition is currently only available over the rationals"))
 end
 
 @attr Bool function is_geometrically_integral(X::AbsSpec{<:QQField, <:MPolyAnyRing})
