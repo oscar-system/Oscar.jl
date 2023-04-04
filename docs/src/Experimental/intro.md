@@ -48,6 +48,12 @@ have any documentation yet.
     introduction of this structure. Thus we mentioned `FTheoryTools` and
     `PlaneCurve` as projects having adopted to the new standard.
 
+### Useful functions for development
+Apart from the hints in the [Introduction for new developers](@ref), there are some more specialized functions for the structure of the `experimental` folder.
+```@docs
+Oscar.test_experimental_module
+```
+
 ## Procedure for adding a new feature
 Ideally we envision the procedure to follow along the following lines.
 

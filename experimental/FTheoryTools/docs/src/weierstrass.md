@@ -95,6 +95,12 @@ To tell if they are auxiliary or not, one can use `base_fully_specified(w)`,
 which returns `true` in case the Tate model is defined over a concrete base and
 `false` otherwise.
 
+The user can decide to get an information whenever an auxiliary base space,
+auxiliary ambient space or auxiliary hypersurface have been computed.
+To this end, one invokes `set_verbosity_level(:GlobalWeierstrassModel, 1)`.
+More background information is available
+[here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+
 
 ## Properties
 

@@ -75,12 +75,11 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
 julia> dim(toric_base_space(w))
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 3
 ```
 """
 @attr AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
+    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
     return w.toric_base_space
 end
 
@@ -97,12 +96,11 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
 julia> dim(toric_ambient_space(w))
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 5
 ```
 """
 @attr AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
+    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
     return w.toric_ambient_space
 end
 
@@ -124,12 +122,11 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
 julia> cy_hypersurface(w)
-[ Info: Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.
 Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function cy_hypersurface(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
+    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
     return w.Y4
 end
 
@@ -192,7 +189,6 @@ Global Weierstrass model over a not fully specified base
 julia> discriminant(w);
 
 julia> length(singular_loci(w))
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 1
 ```
 """
