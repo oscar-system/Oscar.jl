@@ -20,4 +20,5 @@ include("SimplifiedSpec.jl")
 include("VectorBundles.jl")
 include("CartierDivisor.jl")
 #include("K3.jl")     replace by test with shorter run time
+include("transforms.jl")
 include("ToricSchemes.jl")
