@@ -63,7 +63,7 @@ fiber_product(X::AbsSpec,
 
 ### canonical map constructors
 
-@doc Markdown.doc"""
+@doc raw"""
     inclusion_morphism(P::T, Q::T)
 
 Assuming that ``P ⊂ Q`` is a subscheme, both proper over an inclusion of 

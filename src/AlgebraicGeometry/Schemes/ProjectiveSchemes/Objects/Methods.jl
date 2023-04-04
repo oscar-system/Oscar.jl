@@ -53,7 +53,7 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
 
 Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(U)`.
@@ -77,7 +77,7 @@ function dehomogenization_map(
   return phi
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dehomogenization_map(X::AbsProjectiveScheme, i::AbsSpec)
 
 Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
@@ -135,7 +135,7 @@ function dehomogenization_map(
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     homogenization_map(P::AbsProjectiveScheme, U::AbsSpec) -> function
 
 Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 

@@ -24,7 +24,7 @@ end
 # (2) Irreducible Components
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_components(X::ProjectiveAlgebraicSet) -> Vector{ProjectiveVariety}
 
 Return the irreducible components of `X` defined over the same base field.
@@ -38,7 +38,7 @@ function irreducible_components(X::ProjectiveAlgebraicSet)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     geometric_irreducible_components(X::ProjectiveAlgebraicSet) -> Vector{ProjectiveVariety}
 
 Return the geometric irreducible components of `X`.

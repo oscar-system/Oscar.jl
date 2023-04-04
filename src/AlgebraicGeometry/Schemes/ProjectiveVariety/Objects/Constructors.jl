@@ -1,7 +1,7 @@
 ########################################################
 # (1) Generic constructors
 ########################################################
-@doc Markdown.doc"""
+@doc raw"""
     projective_variety(X::AbsProjectiveScheme; check::Bool=true) -> ProjectiveVariety
 
 Convert ``X`` to an projective variety.
@@ -14,7 +14,7 @@ function projective_variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
   return ProjectiveVariety(Xred, check=check)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_variety(I::MPolyIdeal; check::Bool=true) -> ProjectiveVariety
 
 Return the projective variety defined by the homogeneous prime ideal ``I``.
@@ -30,7 +30,7 @@ function projective_variety(R::MPolyDecRing, I::MPolyIdeal{<:MPolyDecRingElem}; 
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_variety(R::Ring; check::Bool=true)
 
 Return the projective variety defined by the ``\mathbb{Z}`` graded ring ``R``.
@@ -42,8 +42,6 @@ is an integral domain.
 projective_variety(R::Ring; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
 
 projective_variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
-
-projective_variety(f::MPolyDecRingElem) = projective_variety(ideal(parent(f),f))
 
 function projective_variety(f::MPolyDecRingElem; check=true)
   if check

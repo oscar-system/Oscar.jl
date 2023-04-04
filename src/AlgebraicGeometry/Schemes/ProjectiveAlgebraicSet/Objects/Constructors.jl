@@ -2,7 +2,7 @@
 # (1) Generic constructors
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true) -> ProjectiveAlgebraicSet
 
 Convert `X` to an `ProjectiveAlgebraicSet` by taking the underlying reduced scheme.
@@ -18,7 +18,7 @@ function projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
   ProjectiveAlgebraicSet(Xred, check=check)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
 
 Return the vanishing locus of ``I`` as an algebraic set in projective space.
@@ -41,7 +41,7 @@ vanishing_locus(p::MPolyDecRingElem, check::Bool=true) = vanishing_locus(ideal(p
 # (2) Intersections of algebraic sets
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet) -> AbsProjectiveAlgebraicSet
 
 Return the set theoretic intersection of `X` and `Y` as a `ProjectiveAlgebraicSet`.

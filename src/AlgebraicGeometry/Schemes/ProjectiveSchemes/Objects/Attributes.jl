@@ -4,7 +4,7 @@ export homogeneous_coordinate_ring
 # Interface for abstract projective schemes                            #
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``A``.
@@ -12,7 +12,7 @@ On ``X ⊂ ℙʳ_A`` this returns ``A``.
 base_ring(P::AbsProjectiveScheme) = base_ring(underlying_scheme(P))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     base_scheme(X::AbsProjectiveScheme)
 
 Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined over a field ``𝕜``.
@@ -20,7 +20,7 @@ Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined
 base_scheme(P::AbsProjectiveScheme) =base_scheme(underlying_scheme(P))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` for a standard
@@ -29,7 +29,7 @@ graded finitely generated algebra ``S`` this returns ``S``.
 homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_ring(underlying_scheme(P))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     relative_ambient_dimension(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``r``.
@@ -44,7 +44,7 @@ homogenization_cache(X::AbsProjectiveScheme) = homogenization_cache(underlying_s
 ########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
 On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
@@ -66,7 +66,7 @@ end
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinates(X::AbsProjectiveScheme)
 
 Return the generators of the homogeneous coordinate ring of ``X``.
@@ -154,7 +154,7 @@ end
 # Converter to covered scheme
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     covered_scheme(P::AbsProjectiveScheme)
 
 Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization.
@@ -187,7 +187,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     defining_ideal(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns the homogeneous
@@ -203,7 +203,7 @@ defining_ideal(X::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}) = modulus(homogene
 # Affine Cone
 #######################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_cone(X::AbsProjectiveScheme)
 
 On ``X = Proj(S) ⊂ ℙʳ_𝕜`` this returns a pair `(C, f)` where ``C = C(X) ⊂ 𝕜ʳ⁺¹`` 
@@ -312,7 +312,7 @@ end
 end
 
 ### TODO: Replace by the map of generators.
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_coordinates_on_affine_cone(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns a vector with the homogeneous

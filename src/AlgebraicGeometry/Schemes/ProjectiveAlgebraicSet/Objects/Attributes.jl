@@ -7,7 +7,7 @@
 underlying_scheme(X::ProjectiveAlgebraicSet) = X.X
 
 
-@doc Markdown.doc"""
+@doc raw"""
     vanishing_ideal(X::AbsProjectiveAlgebraicSet) -> Ideal
 
 Return the ideal of all homogeneous polynomials vanishing in ``X``.
@@ -15,7 +15,7 @@ Return the ideal of all homogeneous polynomials vanishing in ``X``.
 vanishing_ideal(X::AbsProjectiveAlgebraicSet) = defining_ideal(X)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal(X::AbsProjectiveAlgebraicSet) -> Ideal
 
 Return the ideal of all homogeneous polynomials vanishing in ``X``.
