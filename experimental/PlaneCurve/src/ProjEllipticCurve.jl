@@ -137,7 +137,7 @@ end
 ################################################################################
 # Definition EllipticCurve
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     ProjEllipticCurve{S}(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem}
     ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
     ProjEllipticCurve(eq::Oscar.MPolyDecRingElem{S}) where {S <: Nemo.ZZModRingElem}
@@ -259,7 +259,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_form(E::ProjEllipticCurve{S}) where {S <: FieldElem}
 
 Return the equation of a projective elliptic curve defined by an equation in
@@ -315,7 +315,7 @@ end
 ################################################################################
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return the discriminant of the projective elliptic curve `E`.
@@ -328,7 +328,7 @@ function Oscar.is_smooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
    return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return the j-invariant of the projective elliptic curve `E`.
@@ -342,7 +342,7 @@ end
 ################################################################################
 #Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.ZZModRingElem}
 
-@doc Markdown.doc"""
+@doc raw"""
     Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
     Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.ZZModRingElem}
 
@@ -456,7 +456,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     curve(P::Point_EllCurve{S}) where S <: FieldElem
 
 Return the curve on which the point `P` is considered.
@@ -466,7 +466,7 @@ function curve(P::Point_EllCurve{S}) where S <: FieldElem
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     proj_space(P::Point_EllCurve{S}) where S <: FieldElem
 
 Return the projective space to which the point `P` belongs.
@@ -555,7 +555,7 @@ end
 # in Any Characteristic'', Cryptography and Security: From Theory to
 # Applications, 474--479, 2012.
 
-@doc Markdown.doc"""
+@doc raw"""
     toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Given a smooth plane cubic projective curve `C` and a point `P` on the curve,
@@ -642,7 +642,7 @@ end
 
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     proj_space(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return the projective space to which the base point of the elliptic curve `E` belongs.
@@ -657,7 +657,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     order(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Given an elliptic curve `E` over a finite field $\mathbf F$, computes
@@ -669,7 +669,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rand(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return a random point on the elliptic curve `E` defined over a finite field.
@@ -689,7 +689,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     list_rand(E::ProjEllipticCurve, N::Int)
 
 Return a list of `N` random points on the elliptic curve `E` defined over a finite field.
@@ -715,7 +715,7 @@ function list_rand(E::ProjEllipticCurve, N::Int)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     order(P::Point_EllCurve{QQFieldElem})
 
 Return the order of the point `P` or `0` if the order is infinite.
@@ -726,7 +726,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_torsion_point(P::Point_EllCurve{QQFieldElem})
 
 Return whether the point `P` is a torsion point.
@@ -736,7 +736,7 @@ function Oscar.is_torsion_point(P::Point_EllCurve{QQFieldElem})
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     torsion_points_lutz_nagell(E::ProjEllipticCurve{QQFieldElem})
 
 Return the rational torsion points of the elliptic curve `E` using the
@@ -751,7 +751,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     torsion_points_division_poly(E::ProjEllipticCurve{QQFieldElem})
 
 Return the rational torsion points of a rational elliptic curve `E` using

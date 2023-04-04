@@ -3,7 +3,6 @@
 #################################################################
 
 using Oscar
-using Markdown
 
 import Oscar.Nemo.zzModRing
 import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero
@@ -18,7 +17,7 @@ export generator, ambient_ring, Localization, parent, numerator, denominator
 # Types of multiplicatively closed sets in ℤ/nℤ                       #
 #######################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     NmodComplementOfPrimeIdeal <: AbsMultSet{zzModRing, zzModRingElem}
 
 Complement of a prime ideal in a quotient ring `ℤ/nℤ`.
@@ -56,7 +55,7 @@ Base.in(b::Oscar.IntegerUnion, S::NmodComplementOfPrimeIdeal) = (ambient_ring(S)
 # Localizations of ℤ/nℤ                                               #
 #######################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
 NmodLocalizedRing{MultSetType <: AbsMultSet{zzModRing, zzModRingElem}} <: AbsLocalizedRing{zzModRing, zzModRingElem, MultSetType}
 
 Localization of a ring `ℤ/nℤ` at a multiplicatively closed set of type `MultSetType`.
@@ -85,7 +84,7 @@ end
 # Elements in localizations of ℤ/nℤ                                   #
 #######################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     NmodLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{zzModRing, zzModRingElem, MultSetType}
 
 Elements of localizations of quotient rings `ℤ/nℤ` at a 

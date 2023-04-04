@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
@@ -27,6 +27,41 @@ const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
                         "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
+
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+# We don't want to interfere with existing stuff in experimental though.
+const expdir = joinpath(@__DIR__, "../experimental")
+const oldexppkgs = [
+  "ExteriorAlgebra",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "LinearQuotients",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
+]
+const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
+
+# force trigger recompile when folder changes
+include_dependency("../experimental")
+
 
 # When a specific branch is loaded via `]add Package#branch` julia will only
 # create a checkout and keep a bare git repo in a separate directory.
@@ -84,7 +119,7 @@ function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit=false, full=false)
 
 Print the versions of all Oscar-related dependencies.
@@ -134,14 +169,14 @@ end
 # precompilation
 const rng_seed = Ref{UInt32}(rand(UInt32))
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seed()
 
 Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
 """
 get_seed() = return rng_seed[]
 
-@doc Markdown.doc"""
+@doc raw"""
     set_seed!(s::Integer)
 
 Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
@@ -150,7 +185,7 @@ function set_seed!(s::Integer)
   rng_seed[] = convert(UInt32, s)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seeded_rng()
 
 Return a new random number generator object of type MersenneTwister which is
@@ -277,7 +312,7 @@ function open_doc()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
@@ -365,7 +400,7 @@ function build()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     test_module(x, new::Bool = true)
 
 Run the Oscar tests in the file `x.jl` where `x` is a string.
@@ -534,7 +569,7 @@ include("Deprecations.jl")
 const global OSCAR = Oscar
 const global oscar = Oscar
 
-@doc Markdown.doc"""
+@doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   ?Nemo
   ?Hecke
@@ -542,7 +577,6 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   for more information
 """
 module ANTIC
-using Markdown
 end
 
 end # module

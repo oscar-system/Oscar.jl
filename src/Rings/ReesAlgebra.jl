@@ -5,7 +5,7 @@
 # of a module?"; arXiv:math/0209187v1
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod}; check::Bool=true)
 
 For a *versal* [^1] morphism ``f : M → F`` of a module ``M`` into a free 

@@ -5,7 +5,7 @@
 # (1) Check if a scheme is empty
 ####################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_empty(X::AbsSpec)
 
 This method returns `true` if the affine scheme ``X`` is empty.
@@ -45,7 +45,7 @@ is_empty(X::EmptyScheme) = true
 # (2.0) For empty schemes and whenever issubset cannot be implemented
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_subset(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
@@ -300,7 +300,7 @@ end
 
 #TODO: Add more cross-type methods as needed.
 
-@doc Markdown.doc"""
+@doc raw"""
     is_open_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
@@ -371,7 +371,7 @@ end
 # (4) Check if a scheme can be embedded via a closed embeeded in another scheme
 ####################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
@@ -523,7 +523,7 @@ end
 #############################################################################
 # TODO: projective schemes, covered schemes
 
-@doc Markdown.doc"""
+@doc raw"""
    is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
 
 Return whether a scheme `X` is equidimensional.
@@ -574,7 +574,7 @@ end
 ##############################################################################
 # TODO: projective schemes
 
-@doc Markdown.doc"""
+@doc raw"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return the boolean value whether an affine scheme `X` is reduced.
@@ -610,7 +610,7 @@ end
 ########################################################################
 # TODO: is_regular using Hironaka's criterion
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return whether a scheme `X` is smooth.
@@ -690,7 +690,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 #    integral = OO(X) is integral domain                          #
 #    irreducible = nilradical of OO(X) is prime                   #
 ###################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_irreducible(X::AbsSpec)
 
 Return whether the affine scheme `X` is irreducible.
@@ -706,7 +706,7 @@ Return whether the affine scheme `X` is irreducible.
   return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
    is_integral(X::AbsSpec)
 
 Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
@@ -720,7 +720,7 @@ Return the boolean value whether an affine scheme `X` is integral, i.e. irreduci
   return is_prime(modulus(OO(X)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_geometrically_integral(X::AbsSpec)
 
 Return if ``X/k`` is geometrically integral.
@@ -743,7 +743,7 @@ end
 ###################################################################
 # Connectedness                                                   #
 ###################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_connected(X::AbsSpec)
 
 Return the boolean value whether an affine scheme `X` is connected.

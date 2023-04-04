@@ -2,7 +2,7 @@
 ########################################################################
 # Coverings for covered schemes                                        #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     Covering
 
 A covering of a scheme ``X`` by affine charts ``Uᵢ`` which are glued

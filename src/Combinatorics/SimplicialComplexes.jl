@@ -1,4 +1,3 @@
-using Markdown
 import Oscar: Polymake, pm_object
 
 
@@ -13,7 +12,7 @@ end
 pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
 
 Construct an abstract simplicial complex from a set of faces.
@@ -91,7 +90,7 @@ end
 ##  Properties
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     nvertices(K::SimplicialComplex)
 
 Return the number of vertices of the abstract simplicial complex `K`.
@@ -104,7 +103,7 @@ julia> nvertices(torus())
 """
 nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     facets(K::SimplicialComplex)
 
 Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
@@ -115,14 +114,14 @@ function facets(K::SimplicialComplex)
     return Vector{Set{Int}}(the_facets)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(K::SimplicialComplex)
 
 Return the dimension of the abstract simplicial complex `K`.
 """
 dim(K::SimplicialComplex) = pm_object(K).DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     f_vector(K::SimplicialComplex)
 
 Return the face vector (number of faces per dimension) of the abstract simplicial complex `K`.
@@ -138,7 +137,7 @@ julia> f_vector(torus())
 """
 f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
 
-@doc Markdown.doc"""
+@doc raw"""
     h_vector(K::SimplicialComplex)
 
 Return the h-vector of the abstract simplicial complex `K`.
@@ -155,7 +154,7 @@ julia> h_vector(torus())
 """
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
-@doc Markdown.doc"""
+@doc raw"""
     betti_numbers(K::SimplicialComplex)
 
 Return the reduced rational Betti numbers of the abstract simplicial complex `K`.
@@ -171,7 +170,7 @@ julia> betti_numbers(klein_bottle())
 """
 betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(pm_object(K)))
 
-@doc Markdown.doc"""
+@doc raw"""
     euler_characteristic(K::SimplicialComplex)
 
 Return the reduced Euler characteristic of the abstract simplicial complex `K`.
@@ -184,7 +183,7 @@ julia> euler_characteristic(complex_projective_plane())
 """
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     homology(K::SimplicialComplex, i::Int)
 
 Return `i`-th reduced integral homology group of `K`.
@@ -201,7 +200,7 @@ julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
 """
 homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1]) # index shift
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology(K::SimplicialComplex, i::Int)
 
 Return `i`-th reduced integral cohomology group of `K`.
@@ -216,7 +215,7 @@ GrpAb: Z
 """
 cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
 
-@doc Markdown.doc"""
+@doc raw"""
     minimal_nonfaces(K::SimplicialComplex)
 
 Return the minimal non-faces of the abstract simplicial complex `K`.
@@ -246,7 +245,7 @@ function minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex)
     return m
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     alexander_dual(K::SimplicialComplex)
 
 Return the Alexander dual of the abstract simplicial complex `K`.
@@ -261,7 +260,7 @@ Abstract simplicial complex of dimension 1 on 2 vertices
 """
 alexander_dual(K::SimplicialComplex) = SimplicialComplex(Polymake.topaz.alexander_dual(pm_object(K)))
 
-@doc Markdown.doc"""
+@doc raw"""
     stanley_reisner_ideal(K::SimplicialComplex)
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`.
@@ -278,7 +277,7 @@ function stanley_reisner_ideal(K::SimplicialComplex)
     return stanley_reisner_ideal(R, K)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
@@ -296,7 +295,7 @@ function stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
     return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     stanley_reisner_ring(K::SimplicialComplex)
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
@@ -316,7 +315,7 @@ function stanley_reisner_ring(K::SimplicialComplex)
     return stanley_reisner_ring(R, K)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
@@ -336,7 +335,7 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisne
 ###  Fundamental group
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     fundamental_group(K::SimplicialComplex)
 
 Return the fundamental group of the abstract simplicial complex `K`.
@@ -409,7 +408,7 @@ complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective
 ###  Subcomplexes
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
 
 Return the star of the face `sigma` in the abstract simplicial complex `K`.
@@ -424,7 +423,7 @@ Abstract simplicial complex of dimension 2 on 3 vertices
 """
 star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.star_subcomplex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
 
-@doc Markdown.doc"""
+@doc raw"""
     link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
 
 Return the link of the face `sigma` in the abstract simplicial complex `K`.

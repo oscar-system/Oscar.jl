@@ -25,7 +25,7 @@ function invariant_ring(K::Field, M::Vector{<: MatrixElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     invariant_ring(G::MatrixGroup)
     invariant_ring(K::Field = QQ, G::PermGroup)
 
@@ -142,7 +142,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
   return IR.reynolds_operator
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
 In the non-modular case, return the image of `f` under the Reynolds operator
@@ -267,7 +267,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
   return MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
        where {FldT, GrpT, T <: MPolyRingElem}
 
@@ -337,7 +337,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
      basis(IR::InvRing, d::Int, algo::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
@@ -407,7 +407,7 @@ julia> basis(IR, 3)
 """
 basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
 
-@doc Markdown.doc"""
+@doc raw"""
     basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
@@ -540,7 +540,7 @@ function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{G
   return num//den
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     molien_series([S::PolyRing], I::InvRing, [chi::GAPGroupClassFunction])
 
 In the non-modular case, return the Molien series of `I` as a rational function.

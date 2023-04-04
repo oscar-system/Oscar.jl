@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     sigma_sharp(L::ZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
 
 Return generators for $\Sigma^\#(L\otimes \ZZ_p)$ of a lattice `L`.
@@ -113,7 +113,7 @@ function _sigma_sharp(rkL, detL, q, p)
   @assert false
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reflection(gram::QQMatrix, v::QQMatrix) -> QQMatrix
 
 Return the matrix representation of the orthogonal reflection in the row vector `v`.
@@ -129,7 +129,7 @@ function reflection(gram::MatElem, v::MatElem)
   return ref
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     spin(gram_diag::MatElem, isometry::MatElem, check=true) -> QQFieldElem
 
 Compute the spinor norm of `f`.
@@ -175,7 +175,7 @@ function spin(gram_diag::MatElem, isometry::MatElem, check=true)
   return spinor_norm[1,1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     det_spin(G::QQMatrix, T::QQMatrix, p, nu) -> Tuple{QQFieldElem, QQFieldElem}
 
 Return approximations for `(det_p, spin_p)` of the approximate isometry `T`.
@@ -313,7 +313,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   return D, inv(diagonal_morphism)*injD[end], projd, injd, maps_det
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     det_spin_homomorphism(L::ZLat) -> GAPGroupHomomorphism
 
 Return the det spin homomorphism.
@@ -433,7 +433,7 @@ function det_spin_homomorphism(L::ZLat; signed=false)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
 
 Return the image of $O(L) \to O(L^\vee / L)$.

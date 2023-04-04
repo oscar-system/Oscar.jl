@@ -4,7 +4,7 @@
 # (1) Isomorphism, inverse and identity
 ########################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isomorphism(f::AbsSpecMor)
 
 This method checks if a morphism is an isomorphism.
@@ -16,7 +16,7 @@ This method checks if a morphism is an isomorphism.
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_inverse_of(f::AbsSpecMor, g::AbsSpecMor)
 
 This method checks if a morphism ``f`` is the inverse of a morphism ``g``.
@@ -25,7 +25,7 @@ function is_inverse_of(f::S, g::T) where {S<:AbsSpecMor, T<:AbsSpecMor}
   return is_isomorphism(f) && (inverse(f) == g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_identity_map(f::AbsSpecMor)
 
 This method checks if a morphism is the identity map.

@@ -2,7 +2,7 @@
 # 1: Special attributes of toric varieties
 ################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     chow_ring(v::AbstractNormalToricVariety)
 
 Return the Chow ring of the simplicial toric variety `v`.
@@ -56,7 +56,7 @@ Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Fi
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
 
 Returns a list of generators of the Chow ring of a complete,
@@ -83,7 +83,7 @@ julia> length(gens_of_rational_equivalence_classes(p2))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
 
 Returns a dictionary which maps the generators of the chow

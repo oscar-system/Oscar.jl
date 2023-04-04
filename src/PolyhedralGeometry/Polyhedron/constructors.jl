@@ -10,7 +10,7 @@ struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
 
-    @doc Markdown.doc"""
+    @doc raw"""
         Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
 
     Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
@@ -26,7 +26,7 @@ Polyhedron(x...) = Polyhedron{QQFieldElem}(x...)
 # Avoid, if possible, to increase type stability
 Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
 
-@doc Markdown.doc"""
+@doc raw"""
     Polyhedron{T}(A::AnyVecOrMat, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
@@ -58,7 +58,7 @@ Polyhedron{T}(A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:s
 
 Polyhedron{T}(A::AnyVecOrMat, b::Any) where T<:scalar_types = Polyhedron{T}(A, [b])
 
-@doc Markdown.doc"""
+@doc raw"""
     Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
 
 The (convex) polyhedron obtained intersecting the halfspaces `I` (inequalities)
@@ -122,7 +122,7 @@ end
 
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
-@doc Markdown.doc"""
+@doc raw"""
     convex_hull([::Type{T} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If

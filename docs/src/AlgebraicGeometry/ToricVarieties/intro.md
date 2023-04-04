@@ -16,7 +16,7 @@ and objects from commutative algebra and polyhedral geometry derived thereof. In
 we provide support for the following:
 - torus-invariant divisor (classes),
 - line bundles,
-- line bundle cohomology via `cohomCalg` (cf. [cohomCalg:Implementation](@cite)),
+- line bundle cohomology via `cohomCalg` (cf. [BJRR10*1](@cite)),
 - vanishing sets of line bundle cohomology (cf. `Appendix B` of [Bie18](@cite)),
 - cohomology ring and cohomology classes,
 - Chow ring, algebraic cycles and intersection theory,

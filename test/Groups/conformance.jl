@@ -26,13 +26,13 @@ import Oscar.AbstractAlgebra.GroupsCore
       @test one(G) isa typeof(g)
       @test one(G)==one(g)==one(h)
 
-      @test isfinite(G) isa Bool
+      @test is_finite(G) isa Bool
 #      @test hasorder(G) isa Bool
 #      @test hasgens(G) isa Bool
       @test ngens(G) isa Int
       @test gens(G) isa Vector{typeof(g)}
 
-      if isfinite(G)
+      if is_finite(G)
          @test order(G) isa ZZRingElem
          @test order(G) > 0
          @test is_trivial(G) == (order(G) == 1)

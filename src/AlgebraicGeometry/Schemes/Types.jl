@@ -1,7 +1,7 @@
 
 
 ### Abstract type for arbitrary schemes ###############################
-@doc Markdown.doc"""
+@doc raw"""
     Scheme{BaseRingType<:Ring} 
 
 A scheme over a ring ``𝕜`` of type `BaseRingType`.
@@ -10,7 +10,7 @@ abstract type Scheme{BaseRingType} end
 
 
 ### Abstract type for morphisms of arbitrary schemes ##################
-@doc Markdown.doc"""
+@doc raw"""
     SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
 
 A morphism of schemes ``f : X → Y`` of type `MorphismType` with 

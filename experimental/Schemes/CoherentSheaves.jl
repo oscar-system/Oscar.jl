@@ -23,14 +23,14 @@ end
 
 ### Interface for coherent sheaves
 
-@doc Markdown.doc"""
+@doc raw"""
     scheme(F::AbsCoherentSheaf)
 
 Return the scheme on which this sheaf is defined.
 """
 scheme(F::AbsCoherentSheaf) = space(underlying_presheaf(F))
 
-@doc Markdown.doc"""
+@doc raw"""
     sheaf_of_rings(F::AbsCoherentSheaf) 
 
 Return the sheaf of rings over which ``ℱ`` is defined.
@@ -125,7 +125,7 @@ end
 ########################################################################
 # Coherent sheaves of modules on covered schemes                       #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     SheafOfModules <: AbsPreSheaf
 
 A sheaf of modules ``ℳ`` on an `AbsCoveredScheme` ``X``.
@@ -661,7 +661,7 @@ sheaf_of_rings(M::SheafOfModules) = M.OOX
 default_covering(M::SheafOfModules) = M.C
 
 
-@doc Markdown.doc"""
+@doc raw"""
     twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
 
 For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf 
@@ -677,7 +677,7 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
 
   X = covered_scheme(IP)
   MD = IdDict{AbsSpec, ModuleFP}()
-  S = ambient_coordinate_ring(IP)
+  S = homogeneous_coordinate_ring(IP)
   n = ngens(S)-1
   for i in 1:n+1
     U = affine_charts(X)[i]
@@ -691,8 +691,8 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(matrix_space(OO(VV), 1, 1))
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(matrix_space(OO(UU), 1, 1))
+    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*identity_matrix(OO(VV), 1)
+    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*identity_matrix(OO(UU), 1)
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -701,7 +701,7 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
   return M
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     tautological_bundle(IP::ProjectiveScheme{<:Field})
 
 For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentSheaf` on ``ℙ``.
@@ -710,7 +710,7 @@ function tautological_bundle(IP::ProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cotangent_sheaf(X::AbsCoveredScheme)
 
 For an `AbsCoveredScheme` ``X``, return the sheaf ``Ω¹(X)`` of Kaehler-differentials 
@@ -737,7 +737,7 @@ on ``X`` as a `CoherentSheaf`.
   return M
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cotangent_module(X::AbsSpec)
 
 Return the ``𝒪(X)``-module ``Ω¹(X)`` of Kaehler-differentials on ``X``.
@@ -763,7 +763,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(base_ring(modulus(R)), gens(modulus(R))))))
   M, _ = quo(F, rels)
   return M
 end
@@ -772,7 +772,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(base_ring(modulus(R)), gens(modulus(R))))))
   M, _ = quo(F, rels)
   return M
 end
@@ -930,7 +930,7 @@ function Base.show(io::IO, M::DirectSumSheaf)
   print(io, "direct sum of $(summands(M))")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_module(R::StructureSheafOfRings, n::Int)
 
 Return the sheaf of free ``𝒪``-modules ``𝒪ⁿ`` for a structure 
@@ -957,15 +957,15 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   for G in values(glueings(C))
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
-    MG[(U, V)] = one(matrix_space(OO(VV), n, n))
-    MG[(V, U)] = one(matrix_space(OO(UU), n, n))
+    MG[(U, V)] = identity_matrix(OO(VV), n)
+    MG[(V, U)] = identity_matrix(OO(UU), n)
   end
 
   M = SheafOfModules(X, MD, MG)
   return M
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dual(M::SheafOfModules)
 
 For a `SheafOfModules` ``ℳ`` on an `AbsCoveredScheme` ``X``, return 
@@ -977,7 +977,7 @@ the ``𝒪_X``-dual ``ℋ om_{𝒪_X}(ℳ , 𝒪_X)`` of ``ℳ``.
   return HomSheaf(M, F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     tangent_sheaf(X::AbsCoveredScheme)
 
 Return the tangent sheaf ``T_X`` of `X`, constructed as ``ℋ om_{𝒪_X}(Ω¹_X, 𝒪_X)``.
@@ -1568,7 +1568,7 @@ end
 # AbsCoherentSheaf.
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     projectivization(E::AbsCoherentSheaf; 
         var_names::Vector{String}=Vector{String}(),
         check::Bool=true
@@ -1623,9 +1623,9 @@ function projectivization(E::AbsCoherentSheaf;
   # prepare for the projective glueings
   for (U, V) in keys(glueings(C))
     P = on_patches[U]
-    SP = ambient_coordinate_ring(P)
+    SP = homogeneous_coordinate_ring(P)
     Q = on_patches[V]
-    SQ = ambient_coordinate_ring(Q)
+    SQ = homogeneous_coordinate_ring(Q)
     G = C[U, V]
     UV, VU = glueing_domains(G)
     f, g = glueing_morphisms(G)
@@ -1659,8 +1659,8 @@ function projectivization(E::AbsCoherentSheaf;
     B = [coordinates(E(V, UV)(w)) for w in gens(E(V))]
     #A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
     #B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
-    SQVU = ambient_coordinate_ring(QVU)
-    SPUV = ambient_coordinate_ring(PUV)
+    SQVU = homogeneous_coordinate_ring(QVU)
+    SPUV = homogeneous_coordinate_ring(PUV)
     # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
     # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
     fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))

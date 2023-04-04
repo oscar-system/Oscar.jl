@@ -23,3 +23,123 @@ end
   @test describe(abelian_group(GrpAbFinGen, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
   @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
 end
+
+@testset "group functions for finite GrpAbFinGen" begin
+  @testset for para in [ [2, 3, 4], Int[], [2, 4] ]
+    G1 = abelian_group(GrpAbFinGen, para)
+    iso = isomorphism(PcGroup, G1)
+    G2 = codomain(iso)
+    primes = [p for (p, e) in collect(factor(order(G1)))]
+
+    # elements
+    @test [order(iso(x)) for x in gens(G1)] == [order(x) for x in gens(G1)]
+    for x in gens(G1), y in gens(G1)
+      @test is_one(comm(x, y))
+    end
+
+    # properties
+    @test is_abelian(G1) == is_abelian(G2)
+    @test is_finite(G1) == is_finite(G2)
+    @test is_finitelygenerated(G1) == is_finitelygenerated(G2)
+    @test is_perfect(G1) == is_perfect(G2)
+    @test is_pgroup(G1) == is_pgroup(G2)
+    @test is_quasisimple(G1) == is_quasisimple(G2)
+    @test is_simple(G1) == is_simple(G2)
+    @test is_solvable(G1) == is_solvable(G2)
+    @test is_sporadic_simple(G1) == is_sporadic_simple(G2)
+
+    # attributes
+    @test images(iso, fitting_subgroup(G1)[1]) == fitting_subgroup(G2)
+    @test images(iso, frattini_subgroup(G1)[1]) == frattini_subgroup(G2)
+    @test is_pgroup_with_prime(G1) == is_pgroup_with_prime(G2)
+    @test nilpotency_class(G1) == nilpotency_class(G2)
+    @test number_conjugacy_classes(G1) == order(G1)
+    @test number_conjugacy_classes(Int, G1) isa Int
+    @test order(G1) == order(G2)
+    @test images(iso, socle(G1)[1]) == socle(G2)
+    @test images(iso, solvable_radical(G1)[1]) == solvable_radical(G2)
+    if is_pgroup(G1) && order(G1) != 1
+      @test prime_of_pgroup(G1) == prime_of_pgroup(G2)
+    end
+    sg1 = small_generating_set(G1)
+    @test order(sub(G1, sg1)[1]) == order(G1)
+    @test length(sg1) <= length(para)
+
+    # conjugacy classes of elements
+    cc = conjugacy_classes(G1)
+    @test length(cc) == order(G1)
+    @test all(C -> length(C) == 1, cc)
+    @test rand(cc[1]) == representative(cc[1])
+    @test acting_group(cc[1]) == G1
+    for x in gens(G1), y in gens(G1)
+      @test is_conjugate(G1, x, y) == (x == y)
+      @test representative_action(G1, x, y)[1] == (x == y)
+    end
+    C = cc[1]
+    for H in C
+      @test H == representative(C)
+    end
+
+    # conjugacy classes of subgroups
+    CC = conjugacy_classes_subgroups(G1)
+    @test length(CC) == length(conjugacy_classes_subgroups(G2))
+    @test all(C -> length(C) == 1, CC)
+    @test rand(CC[1]) == representative(CC[1])
+    @test acting_group(CC[1]) == G1
+    for C1 in CC, x in gens(G1)
+      H = representative(C1)
+      @test conjugate_group(H, x) == H
+      @test H^x == H
+    end
+    for C1 in CC, C2 in CC
+      H = representative(C1)
+      K = representative(C2)
+      @test is_conjugate(G1, H, K) == (H == K)
+      @test representative_action(G1, H, K)[1] == (H == K)
+      @test is_conjugate_subgroup(G1, H, K) == is_subgroup(K, H)[1]
+    end
+    C = CC[1]
+    for H in C
+      @test H == representative(C)
+    end
+    S1 = subgroup_reps(G1)
+    S2 = subgroup_reps(G2)
+    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    for n in 2:4
+      S1 = subgroup_reps(G1, order = ZZ(n))
+      S2 = subgroup_reps(G2, order = ZZ(n))
+      @test length(S1) == length(S2)
+    end
+    for n in 1:4
+      S1 = low_index_subgroup_reps(G1, n)
+      S2 = low_index_subgroup_reps(G2, n)
+      @test length(S1) == length(S2)
+    end
+    S1 = conjugacy_classes_maximal_subgroups(G1)
+    S2 = conjugacy_classes_maximal_subgroups(G2)
+    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+
+    # operations
+    x = representative(rand(cc))
+    H = representative(rand(CC))
+    @test images(iso, core(G1, H)[1]) == core(G2, images(iso, H)[1])
+    @test images(iso, normalizer(G1, x)[1]) == normalizer(G2, iso(x))
+    @test images(iso, normalizer(G1, H)[1]) == normalizer(G2, images(iso, H)[1])
+    @test images(iso, normal_closure(G1, H)[1]) == normal_closure(G2, images(iso, H)[1])
+
+    # operations depending on primes
+    for p in primes
+      @test images(iso, pcore(G1, p)[1]) == pcore(G2, p)
+      @test images(iso, sylow_subgroup(G1, p)[1]) == sylow_subgroup(G2, p)
+    end
+
+    # operations depending on sets of primes
+    for P in subsets(Set(primes))
+      @test [images(iso, S)[1] for S in hall_subgroup_reps(G1, collect(P))] ==
+            hall_subgroup_reps(G2, collect(P))
+    end
+    @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
+          sort!([order(S) for S in hall_system(G2)])
+    @test [images(iso, S)[1] for S in sylow_system(G1)] == sylow_system(G2)
+  end
+end

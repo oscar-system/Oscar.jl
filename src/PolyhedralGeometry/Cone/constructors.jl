@@ -22,7 +22,7 @@ Cone(x...; kwargs...) = Cone{QQFieldElem}(x...; kwargs...)
 # Avoid, if possible, to increase type stability
 Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
-@doc Markdown.doc"""
+@doc raw"""
     positive_hull([::Type{T} = QQFieldElem,] R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
@@ -85,7 +85,7 @@ function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
 
     cone_from_inequalities([::Type{T} = QQFieldElem,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
 

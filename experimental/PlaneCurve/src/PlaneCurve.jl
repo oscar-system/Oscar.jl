@@ -1,5 +1,5 @@
 module PlaneCurveModule
-using Oscar, Markdown
+using Oscar
 import Base.==
 
 export AffinePlaneCurve
@@ -29,7 +29,7 @@ abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 # Point (first attempt).
 # The point is described by its coordinates.
 # ambient_dim gives the dimension of the space to which belongs the point.
-@doc Markdown.doc"""
+@doc raw"""
     Point(coordinates::Vector{S}) where {S <: FieldElem}
 
 Return the point with the given coordinates.
@@ -71,7 +71,7 @@ end
 ################################################################################
 # Associate a maximal ideal to a point in a given ring (not specific to curves)
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_point(R::MPolyRing{S}, P::Point{S}) where S <: FieldElem
 
 Return the maximal ideal associated to the point `P` in the ring `R`.
@@ -96,7 +96,7 @@ end
 ################################################################################
 # Structure of Affine Plane Curves and Projective Plane Curves
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     AffinePlaneCurve{S}(eq::Oscar.MPolyRingElem{S}) where S <: FieldElem
 
 Return the Affine Plane Curve defined by the polynomial in two variables `eq`.
@@ -137,7 +137,7 @@ function Base.show(io::IO, C::AffinePlaneCurve)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     ProjPlaneCurve{S}(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem}
 
 Return the Projective Plane Curve defined by the homogeneous polynomial in three variables `eq`.
@@ -176,7 +176,7 @@ end
 
 ProjPlaneCurve(eq::Oscar.MPolyDecRingElem{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
 
-@doc Markdown.doc"""
+@doc raw"""
     ProjPlaneCurve(f::MPolyRingElem{T}) where {T <: FieldElem}
 
 Given a homogeneous polynomial `f` in three variables with coefficients in a field,
@@ -236,7 +236,7 @@ function ==(C::PlaneCurve{S}, D::PlaneCurve{S}) where S <: FieldElem
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
@@ -245,7 +245,7 @@ function Base.in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
   return iszero(evaluate(C.eq, P.coord))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
@@ -258,7 +258,7 @@ end
 # Compute the degree of the equation of the curve if not already known,
 # and show it.
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(C::PlaneCurve)
 
 Return the degree of the defining polynomial of `C`.
@@ -272,7 +272,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     jacobi_ideal(C::PlaneCurve)
 
 Return the Jacobian ideal of the defining polynomial of `C`.
@@ -296,7 +296,7 @@ end
 ################################################################################
 # Components of the curve
 
-@doc Markdown.doc"""
+@doc raw"""
     curve_components(C::PlaneCurve{S}) where S <: FieldElem
 
 Return a dictionary containing the irreducible components of `C` and their multiplicity.
@@ -328,7 +328,7 @@ end
 ################################################################################
 # Check irreducibility.
 
-@doc Markdown.doc"""
+@doc raw"""
     is_irreducible(C::PlaneCurve{S}) where S <: FieldElem
 
 Return `true` if `C` is irreducible, and `false` otherwise.
@@ -358,7 +358,7 @@ end
 ################################################################################
 # Check reducedness by computing a factorization
 
-@doc Markdown.doc"""
+@doc raw"""
     is_reduced(C::PlaneCurve{S}) where S <: FieldElem
 
 Return `true` if `C` is reduced, and `false` otherwise.
@@ -393,7 +393,7 @@ end
 ################################################################################
 # Compute squarefree equation.
 
-@doc Markdown.doc"""
+@doc raw"""
     reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
     reduction(C::ProjPlaneCurve{S}) where S <: FieldElem
 
@@ -436,7 +436,7 @@ end
 ################################################################################
 # Union of two plane curves of the same type (with multiplicity)
 
-@doc Markdown.doc"""
+@doc raw"""
     union(C::T, D::T) where T <: PlaneCurve
 
 Return the union of `C` and `D` (with multiplicity).
@@ -461,7 +461,7 @@ Base.union(C::T, D::T) where T <: PlaneCurve = T(C.eq*D.eq)
 ################################################################################
 # Ring associated to a curve
 
-@doc Markdown.doc"""
+@doc raw"""
     ring(C::PlaneCurve)
 
 Return the coordinate ring of the curve `C`.

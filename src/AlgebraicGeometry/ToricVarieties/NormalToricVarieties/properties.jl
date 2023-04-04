@@ -2,7 +2,7 @@
 # 4: Properties
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_normal(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
@@ -16,7 +16,7 @@ true
 is_normal(v::AbstractNormalToricVariety) = true
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_affine(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is affine.
@@ -30,7 +30,7 @@ false
 @attr Bool is_affine(v::AbstractNormalToricVariety) = pm_object(v).AFFINE
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_projective(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
@@ -44,7 +44,7 @@ true
 @attr Bool is_projective(v::AbstractNormalToricVariety) = pm_object(v).PROJECTIVE
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_projective_space(v::AbstractNormalToricVariety)
 
 Decides if the normal toric varieties `v` is a projective space.
@@ -85,7 +85,7 @@ true
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is smooth.
@@ -99,7 +99,7 @@ true
 @attr Bool is_smooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_complete(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is complete.
@@ -113,7 +113,7 @@ true
 @attr Bool is_complete(v::AbstractNormalToricVariety) = pm_object(v).COMPLETE
 
 
-@doc Markdown.doc"""
+@doc raw"""
     has_torusfactor(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` has a torus factor.
@@ -127,7 +127,7 @@ false
 @attr Bool has_torusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(v)) < ambient_dim(v)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_orbifold(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is an orbifold.
@@ -141,7 +141,7 @@ true
 @attr Bool is_orbifold(v::AbstractNormalToricVariety) = pm_object(v).SIMPLICIAL
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_simplicial(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
@@ -155,7 +155,7 @@ true
 is_simplicial(v::AbstractNormalToricVariety) = is_orbifold(v)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_gorenstein(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is Gorenstein.
@@ -169,7 +169,7 @@ true
 @attr Bool is_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_q_gorenstein(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is Q-Gorenstein.
@@ -183,7 +183,7 @@ true
 @attr Bool is_q_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).Q_GORENSTEIN
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_fano(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is fano.

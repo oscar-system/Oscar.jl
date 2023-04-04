@@ -45,6 +45,26 @@ end
   Kx, = quo(Kx, I)
   x = Kx(x)
   @test K(2) * x == Kx(2) * x
+
+  # simplify
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  I = ideal(R, [x^2])
+  Q, q = quo(R,I)
+
+  z = one(Q)
+  simplify(z)
+  mul!(z, z, Q(x))
+  mul!(z, z, Q(x))
+  @test iszero(z)
+
+  R, (x,) = polynomial_ring(QQ, ["x"])
+  I = ideal(R, [x])
+  Q, q = quo(R,I)
+
+  z = zero(Q)
+  simplify(z)
+  addeq!(z, Q(x))
+  @test iszero(z)
 end
 
 @testset "MPolyQuoRing.ideals" begin
