@@ -113,6 +113,7 @@ torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ```@docs
 fan(v::AbstractNormalToricVariety)
 cone(v::AffineNormalToricVariety)
+dual_cone(v::AffineNormalToricVariety)
 mori_cone(v::NormalToricVariety)
 nef_cone(v::NormalToricVariety)
 ```
