@@ -29,6 +29,9 @@ otherwise take on faith that ``I`` is radical.
 function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
   if check
     Irad = radical(I)
+    # additional checks in the constructor
+    # note that Irad knows that it is a radical ideal
+    # by construction
   else
     Irad = I
   end
@@ -54,4 +57,35 @@ function set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjecti
   Zred,_ = reduced_scheme(Z)
   # not sure how reduced vs geometrically reduced behaves hence check=true
   return ProjectiveAlgebraicSet(Zred, check=true)
+end
+
+########################################################
+# (3) Irreducible Components
+########################################################
+
+@doc raw"""
+    irreducible_components(X::AbsProjectiveAlgebraicSet) -> Vector{ProjectiveVariety}
+
+Return the irreducible components of `X` defined over the same base field.
+
+Note that even if `X` is irreducible, there may be several geometric irreducible components.
+"""
+function irreducible_components(X::AbsProjectiveAlgebraicSet)
+  I = defining_ideal(X)
+  J = minimal_primes(I)
+  return typeof(X)[vanishing_locus(j,check=false) for j in J]
+end
+
+
+@doc raw"""
+    geometric_irreducible_components(X::AbsProjectiveAlgebraicSet) -> Vector{ProjectiveVariety}
+
+Return the geometric irreducible components of `X`.
+
+They are the irreducible components of `X` seen over an algebraically closed field.
+
+This is expensive and involves taking field extensions.
+"""
+function geometric_irreducible_components(X::AbsProjectiveAlgebraicSet)
+  throw(NotImplementedError(:geometric_irreducible_components, X))
 end

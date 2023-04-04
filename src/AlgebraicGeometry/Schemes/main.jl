@@ -46,7 +46,7 @@ include("AffineSchemes/Morphisms/Methods.jl")
 # Projective Schemes                                                   #
 ########################################################################
 include("ProjectiveSchemes/Objects/Constructors.jl")
-#include("ProjectiveSchemes/Objects/Properties.jl")
+include("ProjectiveSchemes/Objects/Properties.jl")
 include("ProjectiveSchemes/Objects/Attributes.jl")
 include("ProjectiveSchemes/Objects/Methods.jl")
 

@@ -61,7 +61,7 @@ function dehomogenization_map(
     X::AbsProjectiveScheme{<:Ring}, 
     U::AbsSpec
   )
-  cache = dehomogenization_cache(X)
+  cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
   end
@@ -92,7 +92,7 @@ function dehomogenization_map(
   S = homogeneous_coordinate_ring(X)
   C = standard_covering(X)
   U = C[i+1]
-  cache = dehomogenization_cache(X)
+  cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
   end
@@ -123,7 +123,7 @@ function dehomogenization_map(
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   U = C[i+1]
-  cache = dehomogenization_cache(X)
+  cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
   end
@@ -154,7 +154,7 @@ is not a mathematical morphism and, hence, in particular
 not an instance of `Hecke.Map`.
 """
 function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
-  cache = homogenization_cache(P)
+  cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
   end
@@ -209,7 +209,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
 end
 
 function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
-  cache = homogenization_cache(P)
+  cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
   end

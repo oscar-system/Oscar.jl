@@ -33,7 +33,7 @@ end
 @doc raw"""
     projective_variety(R::Ring; check::Bool=true)
 
-Return the projective variety defined by the ``\mathbb{Z}`` graded ring ``R``.
+Return the projective variety defined by the ``\mathbb{Z}`` standard graded ring ``R``.
 
 We require that ``R`` is a finitely generated algebra over a field ``k`` and
 moreover that the base change of ``R`` to the algebraic closure ``\bar k``
@@ -48,6 +48,7 @@ function projective_variety(f::MPolyDecRingElem; check=true)
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(forget_decoration(f))[2]
     # deal with weird type instability in factor_absolute
+    # https://github.com/oscar-system/Oscar.jl/issues/2211
     @assert ff[2] == 1
     g = ff[1]
     (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("polynomial is not absolutely irreducible")
