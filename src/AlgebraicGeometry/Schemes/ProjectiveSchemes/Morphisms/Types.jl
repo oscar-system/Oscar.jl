@@ -47,8 +47,8 @@ space over the same ring with the identity on the base.
       Q::CodomainType,
       f::PullbackType;
       check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, 
-             CodomainType<:ProjectiveScheme, 
+    ) where {DomainType<:AbsProjectiveScheme,
+             CodomainType<:AbsProjectiveScheme,
              PullbackType<:Map
             }
     T = homogeneous_coordinate_ring(P)
@@ -66,8 +66,8 @@ space over the same ring with the identity on the base.
       Q::CodomainType,
       f::PullbackType;
       check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, 
-             CodomainType<:ProjectiveScheme, 
+    ) where {DomainType<:AbsProjectiveScheme,
+             CodomainType<:AbsProjectiveScheme,
              PullbackType<:MPolyAnyMap{<:Any, <:Any, <:Map}
             }
     T = homogeneous_coordinate_ring(P)
@@ -87,8 +87,8 @@ space over the same ring with the identity on the base.
       f::PullbackType,
       h::BaseMorType;
       check::Bool=true
-    ) where {DomainType<:ProjectiveScheme,
-             CodomainType<:ProjectiveScheme,
+    ) where {DomainType<:AbsProjectiveScheme,
+             CodomainType<:AbsProjectiveScheme,
              PullbackType<:Map,
              BaseMorType<:SchemeMor
             }

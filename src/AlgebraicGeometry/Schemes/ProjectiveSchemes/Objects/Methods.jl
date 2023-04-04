@@ -1,3 +1,57 @@
+################################################################################
+# Printing and IO
+################################################################################
+function Base.show(io::IO, )
+  print(io, "subscheme of ℙ^$(relative_ambient_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
+  println(io, "Projective scheme")  # at least one new line is needed
+  println(io, "  over ", base_ring(P))
+  println(io, "  defined by")
+  print(io, defining_ideal(P)) # the last print statement must not add a new line
+end
+
+function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "Projective scheme")
+  else
+    # nested printing allowed, preferably supercompact
+    print(io, "Projective scheme in ")
+    print(IOContext(io, :supercompact => true), ambient_space(P), " over ", base_ring(P))
+  end
+end
+
+# Projective space
+function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
+  println(io, "Projective space of dimension $(relative_ambient_dimension(P))")  # at least one new line is needed
+  print(io, "  over ")
+  print(io, base_ring(P)) # the last print statement must not add a new line
+end
+
+function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
+  if get(io, :supercompact, false) # no nested printing
+    if is_unicode_allowed()
+      ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
+      print(io, "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"])")
+    else
+      print(io, "IP^$(relative_ambient_dimension(P))")
+    end
+  else
+    if is_unicode_allowed()
+      ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
+      print(io, "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"]) over ")
+      print(IOContext(io, :supercompact => true), base_ring(P))
+    else
+      # nested printing allowed, preferably supercompact
+      print(io, "IP^$(relative_ambient_dimension(P)) over ")
+      print(IOContext(io, :supercompact => true), base_ring(P))
+    end
+  end
+end
+
+
 @doc raw"""
     dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
 
@@ -7,10 +61,7 @@ function dehomogenization_map(
     X::AbsProjectiveScheme{<:Ring}, 
     U::AbsSpec
   )
-  if !isdefined(X, :dehomogenization_cache)
-    X.dehomogenization_cache = IdDict()
-  end
-  cache = X.dehomogenization_cache
+  cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
   end
@@ -37,14 +88,11 @@ function dehomogenization_map(
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
-  if !isdefined(X, :dehomogenization_cache)
-    X.dehomogenization_cache = IdDict()
-  end
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
   C = standard_covering(X)
   U = C[i+1]
-  cache = X.dehomogenization_cache
+  cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
   end
@@ -75,10 +123,7 @@ function dehomogenization_map(
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   U = C[i+1]
-  if !isdefined(X, :dehomogenization_cache)
-    X.dehomogenization_cache = IdDict()
-  end
-  cache = X.dehomogenization_cache
+  cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
   end
@@ -109,10 +154,7 @@ is not a mathematical morphism and, hence, in particular
 not an instance of `Hecke.Map`.
 """
 function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
-  if !isdefined(P, :homogenization_cache)
-    P.homogenization_cache = IdDict()
-  end
-  cache = P.homogenization_cache
+  cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
   end
@@ -167,10 +209,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
 end
 
 function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
-  if !isdefined(P, :homogenization_cache)
-    P.homogenization_cache = IdDict()
-  end
-  cache = P.homogenization_cache
+  cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
   end
@@ -224,7 +263,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::Ab
   return my_dehom
 end
 
-function getindex(X::ProjectiveScheme, U::AbsSpec)
+function getindex(X::AbsProjectiveScheme, U::AbsSpec)
   Xcov = covered_scheme(X)
   for C in coverings(Xcov)
     for j in 1:npatches(C)

@@ -415,7 +415,9 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
   else
     error("not implemented for base ring")
   end
-  return ideal(R, J)
+  Irad = ideal(R, J)
+  set_attribute!(Irad, :is_radical => true)
+  return Irad
 end
 
 @doc raw"""

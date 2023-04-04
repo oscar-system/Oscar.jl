@@ -662,12 +662,12 @@ default_covering(M::SheafOfModules) = M.C
 
 
 @doc raw"""
-    twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
+    twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
 
 For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf 
 ``𝒪(d)`` as a `CoherentSheaf` on ``ℙ``.
 """
-function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
+function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
   # First, look up whether this sheaf has already been computed:
   if !has_attribute(IP, :twisting_sheaves)
     set_attribute!(IP, :twisting_sheaves, Dict{Int, SheafOfModules}())
@@ -701,12 +701,13 @@ function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
   return M
 end
 
+
 @doc raw"""
-    tautological_bundle(IP::ProjectiveScheme{<:Field})
+    tautological_bundle(IP::AbsProjectiveScheme{<:Field})
 
 For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentSheaf` on ``ℙ``.
 """
-function tautological_bundle(IP::ProjectiveScheme{<:Field})
+function tautological_bundle(IP::AbsProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)
 end
 

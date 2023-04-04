@@ -4,7 +4,7 @@
 
 function Base.show(io::IO, X::AffineAlgebraicSet)
   d = dim(ambient_space(X))
-  println(io, "affine algebraic set in $(ambient_space(X))")
+  println(io, "Affine algebraic set in $(ambient_space(X))")
 end
 
 ########################################################

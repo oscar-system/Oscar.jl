@@ -136,6 +136,8 @@ export Polymake
 export PrincipalOpenSubset
 export ProjectiveScheme
 export ProjectiveSchemeMor
+export ProjectiveVariety
+export ProjectiveAlgebraicSet
 export QQ
 export RationalEquivalenceClass
 export RayVector
@@ -763,6 +765,7 @@ export is_q_gorenstein
 export is_quadratic_form
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
+export is_radical
 export is_reduced
 export is_regular
 export is_regular_sequence
@@ -1072,7 +1075,10 @@ export projection
 export projection_to_base
 export projective_geometry
 export projective_plane
+export projective_scheme
 export projective_space
+export projective_variety
+export projective_algebraic_set
 export pullback
 export pullback_type
 export pyramid
@@ -1304,6 +1310,7 @@ export valued_weighted_degree
 export vamos_matroid
 export vanishing_sets
 export vanishing_locus
+export vanishing_ideal
 export vdim
 export vector_matrix
 export vertex_and_ray_indices
