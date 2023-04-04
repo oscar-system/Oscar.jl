@@ -47,8 +47,7 @@ function projective_space(
   n = length(var_symb)
   R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
-  I = ideal(S, [zero(S)])
-  return ProjectiveScheme(S, I)
+  return ProjectiveScheme(S)
 end
 
 projective_space(
@@ -64,8 +63,7 @@ function projective_space(
   ) where {CoeffRingType<:Ring}
   R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
-  I = ideal(S, [zero(S)])
-  return ProjectiveScheme(S, I)
+  return ProjectiveScheme(S)
 end
 
 function projective_space(
