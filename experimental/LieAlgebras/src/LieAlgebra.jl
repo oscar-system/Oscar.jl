@@ -17,6 +17,7 @@ abstract type LieAlgebraElem{C<:RingElement} end
 # Base.show(io::IO, x::MyLieAlgebra{C})
 # symbols(L::MyLieAlgebra{C})
 # bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C})
+# _gap_object(L::MyLieAlgebra{C})
 
 ###############################################################################
 #
@@ -198,13 +199,6 @@ end
 #   Attribute accessors
 #
 ###############################################################################
-
-function _gap_object(L::LieAlgebra{C}) where {C<:RingElement}
-  # later change to storing an isomorphism instead
-  get_attribute!(L, :gap_object) do
-    gap_lie_algebra_by_struct_consts(L)
-  end
-end
 
 function _set_gap_object!(L::LieAlgebra{C}, gapL::GAP.Obj) where {C<:RingElement}
   set_attribute!(L, :gap_object => gapL)
