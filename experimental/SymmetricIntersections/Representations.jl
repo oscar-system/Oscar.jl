@@ -496,7 +496,7 @@ is_projective(rep::LinRep, p::GAPGroupHomomorphism) = is_projective(character_re
     projective_representation(RR::RepRing, f::GAPGroupHomomorphism, p::GAPGroupHomomorphism) -> ProjRep
     projective_representation(rep::LinRep, p::GAPGroupHomomorphism) -> ProjRep
 
-Return a linear representation `rep` in `RR` and associating mapping `f` representating
+Return a linear representation `rep` in `RR` and associating mapping `f` representing
 a lift along the cover `p` of a projective representation of the codomain of `p`.
 
 If `check=true`, `f` is check to be `p`-projective.

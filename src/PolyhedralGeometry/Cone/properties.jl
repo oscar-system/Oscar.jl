@@ -373,7 +373,7 @@ Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
 * `Halfspace`,
-* `Cone.
+* `Cone`.
 
 # Examples
 ```jldoctest
@@ -504,3 +504,12 @@ false
 ```
 """
 contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool
+
+
+@doc Markdown.doc"""
+    relative_interior_point(C::Cone)
+
+Compute a point in the relative interior point of `C`, i.e. a point in `C` not
+contained in any facet.
+"""
+relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(Polymake.common.dense(pm_object(C).REL_INT_POINT))

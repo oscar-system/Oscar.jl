@@ -24,6 +24,8 @@ include("CoveredSchemes/Morphisms/Types.jl")
 include("AbstractTypes.jl")
 include("AffineVariety/Objects/Types.jl")
 include("AffineAlgebraicSet/Objects/Types.jl")
+include("ProjectiveSchemes/Objects/Types.jl")
+include("ProjectiveSchemes/Morphisms/Types.jl")
 
 ########################################################################
 # Affine schemes                                                       #
@@ -37,6 +39,18 @@ include("AffineSchemes/Morphisms/Constructors.jl")
 include("AffineSchemes/Morphisms/Properties.jl")
 include("AffineSchemes/Morphisms/Attributes.jl")
 include("AffineSchemes/Morphisms/Methods.jl")
+
+########################################################################
+# Projective Schemes                                                   #
+########################################################################
+include("ProjectiveSchemes/Objects/Constructors.jl")
+#include("ProjectiveSchemes/Objects/Properties.jl")
+include("ProjectiveSchemes/Objects/Attributes.jl")
+include("ProjectiveSchemes/Objects/Methods.jl")
+
+include("ProjectiveSchemes/Morphisms/Constructors.jl")
+include("ProjectiveSchemes/Morphisms/Attributes.jl")
+include("ProjectiveSchemes/Morphisms/Methods.jl")
 
 ########################################################################
 # Principal open subsets of affine schemes                             #

@@ -773,7 +773,7 @@ ERROR: ArgumentError: the group is not transitive
 """
 function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
    @req is_transitive(G, L) "the group is not transitive"
-   length(L) == 0 && throw(ArgumentError("the action domain is empty"))
+   @req length(L) != 0 "the action domain is empty"
    H = stabilizer(G, L[1])[1]
    return length(orbits(gset(H, L, closed = true)))
 end
@@ -806,15 +806,13 @@ ERROR: ArgumentError: the group does not act
 function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
   gL = GapObj(L)
   res = GAP.Globals.Transitivity(G.X, gL)::Int
-  res === GAP.Globals.fail && throw(ArgumentError("the group does not act"))
+  @req res !== GAP.Globals.fail "the group does not act"
   # If the result is `0` then it may be that `G` does not act on `L`,
   # and in this case we want to throw an exception.
   if res == 0 && length(L) > 0
     lens = GAP.Globals.OrbitLengths(G.X, gL)
 #TODO: Compute the orbit lengths more efficiently than GAP does.
-    if sum(lens) != length(L)
-      throw(ArgumentError("the group does not act"))
-    end
+    @req sum(lens) == length(L) "the group does not act"
   end
   return res
 end

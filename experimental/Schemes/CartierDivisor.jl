@@ -158,19 +158,19 @@ function ==(C::CartierDivisor, D::CartierDivisor)
 end
 
 
-function effective_cartier_divisor(IP::AbsProjectiveScheme, f::MPolyDecRingElem)
-  parent(f) === ambient_coordinate_ring(IP) || error("element does not belong to the correct ring")
-  d = total_degree(f)
+function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
+  parent(f) === homogeneous_coordinate_ring(IP) || error("element does not belong to the correct ring")
+  d = degree(f)
   X = covered_scheme(IP)
   triv_dict = IdDict{AbsSpec, RingElem}()
   for U in affine_charts(X)
-    triv_dict[U] = dehomogenize(IP, U)(f)
+    triv_dict[U] = dehomogenization_map(IP, U)(f)
   end
   C = EffectiveCartierDivisor(X, triv_dict, trivializing_covering=default_covering(X))
   return C
 end
 
-function cartier_divisor(IP::AbsProjectiveScheme, f::MPolyDecRingElem)
+function cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
   return one(ZZ)*effective_cartier_divisor(IP, f)
 end
 

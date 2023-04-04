@@ -11,7 +11,7 @@ export schur_polynomial
 
 @doc Markdown.doc"""
     schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
-    schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
+    schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
 
 Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in `n` variables.
 
@@ -67,7 +67,7 @@ function schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:
 end
 
 
-function schur_polynomial(R::FmpzMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
+function schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
   @req n >= 0 "n >= 0 required"
   if n==0 || n < length(lambda)
     if isempty(lambda)
@@ -94,7 +94,7 @@ end
 
 
 #returning the schur polynomial in the first k generators of R using Cauchy's bialternant formula.
-function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where T<:Integer
+function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) where T<:Integer
   #if isempty(x) #this event is handled in the calling methods
   #	if sum(lambda)==0
   #	return 1
@@ -130,7 +130,7 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
 
   # initializing a few helpful Variables
   exponents = Int[getindex_safe(lambda,i)+n-i for i=1:n] #the exponents from the Matrix read from top to bottom
-  exp_incr = zeros(Int,n) #the increment with wich exponents increase
+  exp_incr = zeros(Int,n) #the increment with which exponents increase
   for i = 1:n-1
     exp_incr[i] = exponents[i] - exponents[i+1]
   end
@@ -140,7 +140,7 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{fmpz_mpoly}) where
   d = R()
 
   # Initialize Dictionaries (calculating all possible combinations of k=1...n columns)
-  sub_dets = [Dict{BitArray{1},fmpz_mpoly}() for i=1:n]
+  sub_dets = [Dict{BitArray{1},ZZMPolyRingElem}() for i=1:n]
   # sub_dets[i] holds all the minors of size i, i.e.
   # sub_dets[2][[false,true,true,false,false]] is the minor of the 2x2 matrix
   # consisting of the first two rows intersected with the 2nd and 3rd columns.
@@ -204,7 +204,7 @@ end
 
 # returning the schur polynomial in the first k generators of R using the
 # Combinatorial formula.
-function schur_polynomial_combinat(R::FmpzMPolyRing, lambda::Partition{T}, k::Int=length(lambda)) where T<:Integer
+function schur_polynomial_combinat(R::ZZMPolyRing, lambda::Partition{T}, k::Int=length(lambda)) where T<:Integer
   if isempty(lambda)
     return one(R)
   end

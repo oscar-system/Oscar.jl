@@ -256,3 +256,8 @@ function morphism_type(::Type{D}, ::Type{C}, f::Type{F}) where {D <: Union{MPoly
 end
 
 morphism_type(::D, ::C, ::F) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F} = morphism_type(D, C, F)
+
+function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
+  return ideal(codomain(f), [f(g) for g in gens(I)])
+end
+
