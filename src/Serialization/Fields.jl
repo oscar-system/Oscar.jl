@@ -97,16 +97,15 @@ end
 ################################################################################
 # FqNmodfinitefield
 @registerSerializationType(fqPolyRepField)
-@registerSerializationType(FqField)
 
-function save_internal(s::SerializerState, K::Union{fqPolyRepField, FqField})
+function save_internal(s::SerializerState, K::fqPolyRepField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K))
     )
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: Union{fqPolyRepField, FqField}},
+                       ::Type{<: fqPolyRepField},
                        dict::Dict)
     def_pol = load_unknown_type(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
@@ -117,14 +116,10 @@ end
 @registerSerializationType(fqPolyRepFieldElem)
 @registerSerializationType(nf_elem)
 @registerSerializationType(Hecke.NfRelElem)
-@registerSerializationType(FqFieldElem)
 
-FieldElemTypes = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem, FqFieldElem}
-
-function save_internal(s::SerializerState, k::FieldElemTypes)
+function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
-
     return Dict(
         :parent => save_type_dispatch(s, K),
         :polynomial => save_type_dispatch(s, polynomial)
@@ -132,7 +127,7 @@ function save_internal(s::SerializerState, k::FieldElemTypes)
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: FieldElemTypes},
+                       ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
                        dict::Dict)
     K = load_unknown_type(s, dict[:parent])
     polynomial = load_unknown_type(s, dict[:polynomial])
@@ -140,7 +135,7 @@ function load_internal(s::DeserializerState,
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: FieldElemTypes},
+                                   ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
                                    dict::Dict,
                                    parent_field::Union{fqPolyRepField, SimpleNumField})
     polynomial_parent = parent(defining_polynomial(parent_field))
@@ -149,6 +144,70 @@ function load_internal_with_parent(s::DeserializerState,
     return parent_field(polynomial)
 end
 
+################################################################################
+# FqField
+@registerSerializationType(FqField)
+@registerSerializationType(FqFieldElem)
+
+function save_internal(s::SerializerState, K::FqField)
+    if absolute_degree(K) == 1
+        return Dict(
+            :order => save_type_dispatch(s, order(K))
+        )
+    end
+    return Dict(
+        :def_pol => save_type_dispatch(s, defining_polynomial(K))
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: FqField},
+                       dict::Dict)
+    if haskey(dict, :order)
+        order = load_type_dispatch(s, ZZRingElem, dict[:order])
+        return Hecke.Nemo._FiniteField(order)[1]
+    end
+    def_pol = load_unknown_type(s, dict[:def_pol])
+    Hecke.Nemo._FiniteField(def_pol, cached=false)[1]
+end
+
+# elements
+function save_internal(s::SerializerState, k::FqFieldElem)
+    K = parent(k)
+
+    if absolute_degree(K) == 1
+        return Dict(
+            :parent => save_type_dispatch(s, K),
+            :polynomial => save_type_dispatch(s, lift(ZZ, k))
+        )
+    end
+    return Dict(
+        :parent => save_type_dispatch(s, K),
+        :polynomial => save_type_dispatch(s, k)
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: FqFieldElem},
+                       dict::Dict)
+    K = load_type_dispatch(s, FqField, dict[:parent])
+    if absolute_degree(K) == 1
+        polynomial = load_type_dispatch(s, ZZRingElem, dict[:polynomial])
+    else
+        polynomial = load_type_dispatch(s, PolyRingElem, dict[:polynomial])
+    end
+    return K(polynomial)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: FqFieldElem},
+                                   dict::Dict,
+                                   parent_field::Union{fqPolyRepField, SimpleNumField})
+    polynomial_parent = parent(defining_polynomial(parent_field))
+    polynomial = load_unknown_type(s, dict[:polynomial]; parent=polynomial_parent)
+
+    return parent_field(polynomial)
+end
 
 
 ################################################################################
