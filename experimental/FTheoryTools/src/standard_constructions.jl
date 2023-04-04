@@ -1,3 +1,15 @@
+@doc Markdown.doc"""
+    su5_tate_model_over_arbitrary_3d_base()
+
+Return the SU(5) Tate model over an arbitrary
+3-dimensional base space. For more details see
+e.g. [Wei18](@cite) and references therein.
+
+```jldoctest
+julia> su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
+```
+"""
 function su5_tate_model_over_arbitrary_3d_base()
     auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
     a1 = a10;
