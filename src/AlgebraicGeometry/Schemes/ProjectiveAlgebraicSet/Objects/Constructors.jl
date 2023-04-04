@@ -39,7 +39,7 @@ function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
   return ProjectiveAlgebraicSet(X, check=check)
 end
 
-vanishing_locus(p::MPolyDecRingElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
+vanishing_locus(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
 ########################################################
 # (2) Intersections of algebraic sets
 ########################################################
