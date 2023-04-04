@@ -110,6 +110,19 @@ end
 
 ###############################################################################
 #
+#   Attribute accessors
+#
+###############################################################################
+
+function _gap_object(L::AbstractLieAlgebra{C}) where {C<:RingElement}
+  # later change to storing an isomorphism instead
+  get_attribute!(L, :gap_object) do
+    gap_lie_algebra_by_struct_consts(L)
+  end
+end
+
+###############################################################################
+#
 #   Constructor
 #
 ###############################################################################
@@ -141,12 +154,4 @@ function lie_algebra(
   end
 
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
-end
-
-function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
-  struct_consts, gapL = lie_algebra_struct_consts_gap(R, dynkin)
-  L = lie_algebra(R, struct_consts; cached, check=false)
-  set_attribute!(L, :dynkin => dynkin)
-  _set_gap_object!(L, gapL)
-  return L
 end
