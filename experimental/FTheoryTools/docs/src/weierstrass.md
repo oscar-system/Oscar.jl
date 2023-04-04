@@ -8,8 +8,6 @@ Pages = ["Weierstrass.md"]
 
 # Global Weierstrass models
 
-## ... over concrete bases
-
 A global Weierstrass model describes a particular form of an elliptic fibration.
 We focus on elliptic fibrations over base 3-folds ``B3``. Consider
 the weighted projective space ``\mathbb{P}^{2,3,1}`` with coordinates
@@ -22,6 +20,37 @@ Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B3`` such that
 * ``z`` transforms as a section of ``0 \overline{K}_{B_3} = \mathcal{O}_{B_3}``.
 In this 5-fold ambient space, a global Weierstrass model is the hypersurface defined
 by the vanishing of the Weierstrass polynomial ``P_W = x^3 - y^2 + f x z^4 + g z^6``.
+
+Crucially, for non-trivial F-theory settings, the elliptic fibration in question must
+be singular. In fact, by construction, one usually engineers certain singularities.
+This can be read-off from the Weierstrass table, which we have reproduced from
+[Wei18](@cite):
+
+| type | ``\mathrm{ord}(f)`` | ``\mathrm{ord}(g)`` | ``\mathrm{ord}(\Delta)`` | sing. | monodromy cover | algebra ``\mathfrak{g}`` | comp. |
+| :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- |
+| ``I_0`` | ``\geq 0`` | ``\geq 0`` | 0 | 
+| ``I_1`` | ``0`` | ``0`` | ``1`` |
+| ``II`` | ``\geq 1`` | ``1`` | ``2`` |
+| ``III`` | ``1`` | ``\geq 2`` | ``3`` | ``A_1`` | | ``\mathfrak{su}(2)`` |
+| ``IV^{ns}`` | ``\geq 2`` | ``2`` | ``4`` | ``A_2`` | ``\left. \psi^2 - \frac{g}{w^2} \right\|_{w = 0}`` | ``\mathfrak{sp}(1)`` | 1 |
+| ``IV^{s}`` | ``\geq 2`` | ``2`` | ``4`` | ``A_2`` | ``\left. \psi^2 - \frac{g}{w^2} \right\|_{w = 0}`` | ``\mathfrak{su}(3)`` | 2 |
+| ``I_m^{ns}`` | ``0`` | ``0`` | ``m`` | ``A_m`` | ``\left. \psi^2 + \frac{9g}{2f} \right\|_{w = 0}`` | ``\mathfrak{sp}(\left[ \frac{m}{2} \right])`` | 1 |
+| ``I_m^{s}`` | ``0`` | ``0`` | ``m`` | ``A_m`` | ``\left. \psi^2 + \frac{9g}{2f} \right\|_{w = 0}`` | ``\mathfrak{su}(m)`` | 2 |
+| ``I_0^{*ns}`` | ``\geq 2`` | ``\geq 3`` | ``6`` | ``D_4`` | ``\left. \psi^3 + \psi \cdot \frac{f}{w^2} + \frac{g}{w^3} \right\|_{w = 0}`` | ``\mathfrak{g_2}`` | 1 |
+| ``I_0^{*ss}`` | ``\geq 2`` | ``\geq 3`` | ``6`` | ``D_4`` | ``\left. \psi^3 + \psi \cdot \frac{f}{w^2} + \frac{g}{w^3} \right\|_{w = 0}`` | ``\mathfrak{so}(7)`` | 2 |
+| ``I_0^{*s}`` | ``\geq 2`` | ``\geq 3`` | ``6`` | ``D_4`` | ``\left. \psi^3 + \psi \cdot \frac{f}{w^2} + \frac{g}{w^3} \right\|_{w = 0}`` | ``\mathfrak{so}(8)`` | 3 |
+| ``I_{2n-5}^{*ns}`` (``n \geq 3``) | ``2`` | ``3`` | ``2n+1`` | ``D_{2n-1}`` | ``\left. \psi^2 + \frac{1}{4} \left( \frac{\Delta}{w^{2n+1}} \right) \left( \frac{2wf}{9g} \right)^3 \right\|_{w = 0}`` | ``\mathfrak{so}(4n-3)`` | ``1`` |
+| ``I_{2n-5}^{*s}`` (``n \geq 3``) | ``2`` | ``3`` | ``2n+1`` | ``D_{2n-1}`` | ``\left. \psi^2 + \frac{1}{4} \left( \frac{\Delta}{w^{2n+1}} \right) \left( \frac{2wf}{9g} \right)^3 \right\|_{w = 0}`` | ``\mathfrak{so}(4n-2)`` | 2 |
+| ``I_{2n-4}^{*ns}`` (``n \geq 3``) | ``2`` | ``3`` | ``2n+2`` | ``D_{2n}`` | ``\left. \psi^2 + \frac{1}{4} \left( \frac{\Delta}{w^{2n+2}} \right) \left( \frac{2wf}{9g} \right)^2 \right\|_{w = 0}`` | ``\mathfrak{so}(4n-1)`` | 1 |
+| ``I_{2n-4}^{*s}`` (``n \geq 3``) | ``2`` | ``3`` | ``2n+2`` | ``D_{2n}`` | ``\left. \psi^2 + \frac{1}{4} \left( \frac{\Delta}{w^{2n+2}} \right) \left( \frac{2wf}{9g} \right)^2 \right\|_{w = 0}`` | ``\mathfrak{so}(4n)`` | 2 |
+| ``IV^{*ns}`` | ``\geq 3`` | ``4`` | ``8`` | ``E_6`` | ``\left. \psi^2 - \frac{g}{w^4} \right\|_{w = 0}`` | ``\mathfrak{f}(4)`` | 1 |
+| ``IV^{*s}`` | ``\geq 3`` | ``4`` | ``8`` | ``E_6`` | ``\left. \psi^2 - \frac{g}{w^4} \right\|_{w = 0}`` | ``\mathfrak{e}(6)`` | 2 |
+| ``III^\ast`` | ``3`` | ``\geq 5`` | ``9`` | ``E_7`` | | ``\mathfrak{e}(7)`` | |
+| ``II^\ast`` | ``\geq 4`` | ``5`` | ``10`` | ``E_8`` | | ``\mathfrak{e}(8)`` | |
+| non-min. | ``\geq 4`` | ``\geq 6`` | ``\geq 12`` | non-can. | | | |
+
+
+## ... over concrete bases
 
 To construct a Weierstrass model as a hypersurface in an ambient space,
 we first need to construct the ambient space in question. For a toric base,

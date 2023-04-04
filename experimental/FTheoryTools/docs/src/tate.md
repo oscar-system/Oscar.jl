@@ -8,8 +8,6 @@ Pages = ["Tate.md"]
 
 # Global Tate models
 
-## ... over concrete bases
-
 A global Tate model describes a particular form of an elliptic fibration.
 We focus on elliptic fibrations over base 3-folds ``B3``. Consider
 the weighted projective space ``\mathbb{P}^{2,3,1}`` with coordinates
@@ -27,12 +25,47 @@ In this 5-fold ambient space, a global Tate model is the hypersurface defined
 by the vanishing of the Tate polynomial
 ``P_T = x^3 - y^2 - x y z a_1 + x^2 z^2 a_2 - y z^3 a_3 + x z^4 a_4 + z^6 a_6``.
 
-Just as for Weierstrass models, our constructors construct for a given
-toric 3-fold one ambient space for the Tate model in question. As mentioned
-for Weierstrass models, there can exist other ambient spaces. Also, note that
-the ambient space constructed by our methods need not be smooth.
+Crucially, for non-trivial F-theory settings, the elliptic fibration in question must
+be singular. In fact, by construction, one usually engineers certain singularities.
+For this, vanishing orders of the sections ``a_i`` above need to specified. The
+following table -- often referred to as the Tate table and taken from [Wei10](@cite) -- 
+summarizes the singularities introduced by certain vanishing orders:
 
-We support the following constructors:
+| sing. type | discr. ``\deg(\Delta)`` | enhancement type | gauge group | ``a_1`` | ``a_2`` | ``a_3`` | ``a_4`` | ``a_6`` |
+| :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- |
+| ``I_0`` | 0 |  |  | 0 | 0 | 0 | 0 | 0 |
+| ``I_1`` | 1 |  |  | 0 | 0 | 1 | 1 | 1 |
+| ``I_2`` | 2 | ``A_1`` | ``SU(2)`` | 0 | 0 | 1 | 1 | 2 |
+| ``I_{2k}^{ns}`` | ``2k`` | ``C_{2k}`` | ``SP(2k)`` | 0 | 0 | k | k | 2k |
+| ``I_{2k}^{s}`` | ``2k`` | ``A_{2k-1}`` | ``SU(2k)`` | 0 | 1 | k | k | 2k |
+| ``I_{2k+1}^{ns}`` | ``2k+1`` | | unconv. | 0 | 0 | k+1 | k+1 | 2k+1 |
+| ``I_{2k+1}^{s}`` | ``2k+1`` | ``A_{2k}`` | ``SU(2k+1)`` | 0 | 1 | k | k+1 | 2k+1 |
+| ``II`` | 2 | | | 1 | 1 | 1 | 1 | 1 |
+| ``III`` | 3 | ``A_1`` | ``SU(2)`` | 1 | 1 | 1 | 1 | 2 |
+| ``IV^{ns}`` | 4 |  | unconv. | 1 | 1 | 1 | 2 | 2 |
+| ``IV^{s}`` | 4 | ``A_2`` | ``SU(3)`` | 1 | 1 | 1 | 2 | 3 |
+| ``I_0^{*ns}`` | 6 | ``G_2`` | ``G_2`` | 1 | 1 | 2 | 2 | 3 |
+| ``I_0^{*ss}`` | 6 | ``B_3`` | ``SO(7)`` | 1 | 1 | 2 | 2 | 4 |
+| ``I_0^{*s}`` | 6 | ``D_4`` | ``SO(8)`` | 1 | 1 | 2 | 2 | 4 |
+| ``I_1^{*ns}`` | 7 | ``B_4`` | ``SO(9)`` | 1 | 1 | 2 | 3 | 4 |
+| ``I_1^{*s}`` | 7 | ``D_5`` | ``SO(10)`` | 1 | 1 | 2 | 3 | 5 |
+| ``I_2^{*ns}`` | 8 | ``B_5`` | ``SO(11)`` | 1 | 1 | 3 | 3 | 5 |
+| ``I_2^{*s}`` | 8 | ``D_6`` | ``SO(12)`` | 1 | 1 | 3 | 3 | 5 |
+| ``I_{2k-3}^{*ns}`` | 2k+3 | ``B_{2k}`` | ``SO(4k+1)`` | 1 | 1 | k | k+1 | 2k |
+| ``I_{2k-3}^{*s}`` | 2k+3 | ``D_{2k+1}`` | ``SO(4k+2)`` | 1 | 1 | k | k+1 | 2k+1 |
+| ``I_{2k-2}^{*ns}`` | 2k+4 | ``B_{2k+1}`` | ``SO(4k+3)`` | 1 | 1 | k+1 | k+1 | 2k+1 |
+| ``I_{2k-2}^{*s}`` | 2k+4 | ``D_{2k+2}`` | ``SO(4k+4)`` | 1 | 1 | k+1 | k+1 | 2k+1 |
+| ``IV^{*ns}`` | 8 | ``F_4`` | ``F_4`` | 1 | 2 | 2 | 3 | 4 |
+| ``IV^{*s}`` | 8 | ``E_6`` | ``E_6`` | 1 | 2 | 2 | 3 | 5 |
+| ``III^{*}`` | 9 | ``E_7`` | ``E_7`` | 1 | 2 | 3 | 3 | 5 |
+| ``II^{*}`` | 10 | ``E_8`` | ``E_8`` | 1 | 2 | 3 | 4 | 5 |
+| non-min. | 12 |  |  | 1 | 2 | 3 | 4 | 6 |
+
+
+## ... over concrete bases
+
+For some F-theory constructions, one fixes a particular
+ base space. We support the following constructors:
 ```@docs
 global_tate_model(base::AbstractNormalToricVariety)
 global_tate_model_over_projective_space()
