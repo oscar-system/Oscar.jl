@@ -199,10 +199,21 @@ _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
 _vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
 
-function _facet_indices(::Val{_vertex_polyhedron}, P::Polymake.BigObject)  
-	A=P.VERTICES
-	return P.FACETS_THRU_VERTICES[findall(!iszero, view(A, :, 1)),[collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))]]
+
+_facet_indices(::Val{_vertex_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_VERTICES[_vertex_indices(P),_facet_indices(P)]
+
+_facet_indices(::Val{_ray_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_RAYS[_ray_indices(P),_facet_indices(P)]
+
+function _facet_indices(P::Polymake.BigObject)
+    vi = Polymake.get_attachment(P, "_facet_indices")
+    if isnothing(vi)
+        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}([collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))])
+        Polymake.attach(P, "_facet_indices", vi);
+    end
+    return vi;
 end
+
+
 
 @doc Markdown.doc"""
     vertices(P::Polyhedron)
