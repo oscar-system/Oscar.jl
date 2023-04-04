@@ -72,6 +72,16 @@ global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where 
 ```
 
 
+## Standard constructions
+
+Certain Tate models have been studied in the physics literature over and over again. Thereby,
+these constructions became famous and some were given special names. We aim to provide
+support for such standard constructions. Currently, we have support for the following:
+```@docs
+su5_tate_model_over_arbitrary_3d_base()
+```
+
+
 ## Attributes
 
 For all Tate models, we support the following attributes:
