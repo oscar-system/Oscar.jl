@@ -24,7 +24,7 @@ by the vanishing of the Weierstrass polynomial ``P_W = x^3 - y^2 + f x z^4 + g z
 Crucially, for non-trivial F-theory settings, the elliptic fibration in question must
 be singular. In fact, by construction, one usually engineers certain singularities.
 This can be read-off from the Weierstrass table, which we have reproduced from
-[Wei18](@cite):
+[Wei18](@cite) with small corrections:
 
 | type | ``\mathrm{ord}(f)`` | ``\mathrm{ord}(g)`` | ``\mathrm{ord}(\Delta)`` | sing. | monodromy cover | algebra ``\mathfrak{g}`` | comp. |
 | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- |
