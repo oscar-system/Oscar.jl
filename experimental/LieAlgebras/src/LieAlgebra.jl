@@ -17,7 +17,6 @@ abstract type LieAlgebraElem{C<:RingElement} end
 # Base.show(io::IO, x::MyLieAlgebra{C})
 # symbols(L::MyLieAlgebra{C})
 # bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C})
-# _gap_object(L::MyLieAlgebra{C})
 
 ###############################################################################
 #
@@ -192,16 +191,6 @@ end
 function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
   b = 0x6724cbedbd860982 % UInt
   return xor(hash(coefficients(x), hash(parent(x), h)), b)
-end
-
-###############################################################################
-#
-#   Attribute accessors
-#
-###############################################################################
-
-function _set_gap_object!(L::LieAlgebra{C}, gapL::GAP.Obj) where {C<:RingElement}
-  set_attribute!(L, :gap_object => gapL)
 end
 
 ###############################################################################
