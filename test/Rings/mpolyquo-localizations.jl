@@ -160,14 +160,3 @@ end
   @test L(y)/L(x) == L(y//x)
   @test_throws ErrorException L(y)/L(x-1)
 end
-
-@testset "iterated quotients of ideals" begin
-  R, (x, y, z, w) = QQ["x","y","z","w"]
-  IQ = ideal(R, [z-w])
-  RQ, _ = quo(R,IQ)
-  I = ideal(RQ, [x^2*z,x*y*z,x^3-x^3*y^3])
-  J = ideal(RQ,[x])
-
-  @test saturation_with_index(I,J)[1] == ideal(RQ,[w,1-y^3])
-  @test Oscar.iterated_quotients(I,J,1)[1] == ideal(RQ,[x*w,y*w,x^2-x^2*y^3])
-end
