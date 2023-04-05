@@ -86,7 +86,6 @@ end
 
 
 @doc raw"""
-
     cone_from_inequalities([::Type{T} = QQFieldElem,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
 
 The (convex) cone defined by
