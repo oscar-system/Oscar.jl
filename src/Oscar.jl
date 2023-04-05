@@ -453,7 +453,7 @@ function test_experimental_module(
   project::AbstractString; file::AbstractString="runtests", new::Bool=true
 )
   test_file = "../experimental/$project/test/$file"
-  test_module(;file=test_file, new)
+  test_module(test_file; new)
 end
 
 include("Exports.jl")
