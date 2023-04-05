@@ -4,14 +4,14 @@
 
 function Base.show(io::IO, X::AffineAlgebraicSet)
   d = dim(ambient_space(X))
-  println(io, "affine algebraic set in $(ambient_space(X))")
+  println(io, "Affine algebraic set in $(ambient_space(X))")
 end
 
 ########################################################
 # (2) Irreducible Components
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_components(X::AffineAlgebraicSet) -> Vector{AffineVariety}
 
 Return the irreducible components of `X` defined over the same base field.
@@ -23,7 +23,7 @@ function irreducible_components(X::AffineAlgebraicSet)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     geometric_irreducible_components(X::AffineAlgebraicSet) -> Vector{AffineVariety}
 
 Return the geometric irreducible components of `X`.

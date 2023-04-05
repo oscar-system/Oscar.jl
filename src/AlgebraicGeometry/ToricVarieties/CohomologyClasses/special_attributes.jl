@@ -2,7 +2,7 @@
 # 1: Special attributes of toric varieties
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_ring(v::AbstractNormalToricVariety)
 
 Return the cohomology ring of the simplicial and complete toric variety `v`.
@@ -28,7 +28,7 @@ julia> ngens(cohomology_ring(p2))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     volume_form(v::NormalToricVariety)
 
 Construct the volume form of the normal
@@ -81,7 +81,7 @@ end
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     intersection_form(v::NormalToricVariety)
 
 Computes the intersection numbers among the cohomology classes

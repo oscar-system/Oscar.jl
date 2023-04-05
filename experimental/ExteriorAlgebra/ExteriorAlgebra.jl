@@ -51,7 +51,7 @@ export exterior_algebra  # MAIN EXPORT!
 # Attach docstring to "abstract" function exterior_algebra, so that
 # it is automatically "inherited" by the methods.
 
-@doc Markdown.doc"""
+@doc raw"""
     exterior_algebra(K::Field, numVars::Int)
     exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
                                                      AbstractVector{Symbol},
@@ -150,7 +150,7 @@ end
 # # Returns 2 components: ExtAlg, list of the gens/variables in order (e1,..,en)
 
 
-# @doc Markdown.doc"""
+# @doc raw"""
 #     exterior_algebra_PBWAlgQuo(coeffRing::Ring, numVars::Int)
 #     exterior_algebra_PBWAlgQuo(coeffRing::Ring, listOfVarNames::Vector{String})
 

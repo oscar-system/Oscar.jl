@@ -10,7 +10,7 @@
 #
 
 # For an m×n-matrix A with entries aᵢⱼ in a localized ring S = R[U⁻¹] 
-# this returns a pair of matrices (B, D) ∈ Rᵐˣⁿ × Uⁿˣⁿ where D is a 
+# this returns a pair of matrices (B, D) ∈ Rᵐˣⁿ × Uᵐˣᵐ where D is a 
 # diagonal matrix such that D ⋅ A = B
 function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
   m = nrows(A)
@@ -20,6 +20,15 @@ function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, Matri
   D = zero_matrix(SMat, R, 0, m)
   #D = zero_matrix(R, m, m)
   B = zero_matrix(R, m, n)
+
+  # Catching a shortcut case
+  if iszero(m) || iszero(n)
+    for i in 1:m
+      push!(D, sparse_row(R, [(i, one(R))]))
+    end
+    return B, D
+  end
+
   for i in 1:m
     d = lcm(vec(denominator.(A[i,:])))
     push!(D, sparse_row(R, [(i, d)]))
@@ -86,7 +95,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-@doc Markdown.doc"""
+@doc raw"""
     syz(A::MatrixElem)
 
 For a matrix ``A ∈ Rᵐˣⁿ`` over a ring ``R`` this returns a matrix 
@@ -125,7 +134,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-@doc Markdown.doc"""
+@doc raw"""
     has_nonempty_intersection(U::AbsMultSet, I::Ideal)
 
 For a finitely generated ideal ``I ⊂ R`` and a multiplicative 
@@ -214,7 +223,7 @@ end
 
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the module F♭ ≅ Rʳ.
-@doc Markdown.doc"""
+@doc raw"""
     base_ring_module(M::ModuleFP{T}) where {T<:AbsLocalizedRingElem}
 
 For a finitely presented module ``M`` over a localized ring ``S = R[U⁻¹]`` 

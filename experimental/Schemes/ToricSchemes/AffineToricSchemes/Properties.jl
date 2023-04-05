@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(X::ToricSpec)
 
 Checks whether this toric scheme is smooth.
@@ -35,7 +35,7 @@ false
 is_smooth(X::ToricSpec) = is_smooth(affine_normal_toric_variety(X))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_simplicial(X::ToricSpec)
 
 Checks whether this toric scheme is simplicial.

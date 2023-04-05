@@ -1,3 +1,12 @@
 [
-   "plane_curves.md",
+# TODO: plane curve documentation is currently disabled, as the whole design
+# for curves in OSCAR needs to be revised.
+
+#     "Plane Curves" => [
+#         "introduction.md",
+#         "plane_curves.md",
+#         "divisors.md",
+#         "elliptic_curves.md",
+#         "non_plane_curves.md",
+#     ],
 ]

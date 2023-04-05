@@ -264,7 +264,7 @@ end
   @test id == identity_map(IP2_QQ)
 end
 
-@testset "warham_preparations" begin
+@testset "properties of projective schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   S, _ = grade(R)
   X = ProjectiveScheme(S)
@@ -287,5 +287,10 @@ end
   @test degree(Y) == 4
   @test is_smooth(Y)
   @test arithmetic_genus(Y) == 1
+  @test is_reduced(Y)
+  @test is_integral(Y)
+  @test is_geometrically_integral(Y)
+  @test !is_empty(Y)
+  @test is_geometrically_reduced(Y)
 end
 

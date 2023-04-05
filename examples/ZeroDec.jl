@@ -11,7 +11,7 @@
 ######################################### zerodecomp ####################################################################################################
 
 #Implementation of Algorithm 4.2.7
-@doc Markdown.doc"""
+@doc raw"""
     zerodecomp(I::Singular.sideal, outputReduced::Bool = false)
 
 Compute the primary decomposition of a zero-dimensional Ideal $I$ over a basefield of characteristig 0 that has a global ordering,

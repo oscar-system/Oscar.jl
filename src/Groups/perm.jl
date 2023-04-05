@@ -103,7 +103,7 @@ julia> number_moved_points(gen(s, 1))
 """
 @gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
@@ -128,7 +128,7 @@ function perm(L::AbstractVector{<:IntegerUnion})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     perm(G::PermGroup, L::AbstractVector{<:IntegerUnion})
     (G::PermGroup)(L::AbstractVector{<:IntegerUnion})
 
@@ -180,7 +180,7 @@ end
 
 # cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
-@doc Markdown.doc"""
+@doc raw"""
     cperm(L::AbstractVector{<:T}...) where T <: IntegerUnion
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
     cperm(L::Vector{Vector{T}}) where T <: IntegerUnion
@@ -570,7 +570,7 @@ end
 #
 #   perm
 #
-@doc Markdown.doc"""
+@doc raw"""
     @perm ex
     
 Input a permutation in cycle notation. Supports arbitrary expressions for
@@ -612,7 +612,7 @@ end
 #
 #   perm(n,gens)
 #
-@doc Markdown.doc"""
+@doc raw"""
     @perm n gens
     
 Input a list of permutations in cycle notation, created as elements of the

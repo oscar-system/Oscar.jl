@@ -1,7 +1,7 @@
 ########################################################
 # (1) Generic constructors
 ########################################################
-@doc Markdown.doc"""
+@doc raw"""
     affine_variety(X::Spec; check::Bool=true) -> AffineVariety
 
 Convert ``X`` to an affine variety.
@@ -14,7 +14,7 @@ function affine_variety(X::Spec{<:Field}; check::Bool=true)
   return AffineVariety(Xred, check=check)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_variety(I::MPolyIdeal; check=true) -> AffineVariety
 
 Return the affine variety defined by the prime ideal ``I``.
@@ -24,7 +24,7 @@ viewed over the algebraic closure. This is an expensive check that can be disabl
 """
 affine_variety(I::MPolyIdeal; check=true) = AffineVariety(Spec(quo(base_ring(I),I)[1]), check=check)
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_variety(R::Ring; check=true)
 
 Return the affine variety defined by ``R``.

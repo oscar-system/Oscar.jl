@@ -46,7 +46,7 @@ function _pm_arr_arr_to_group_generators(M, n)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     combinatorial_symmetries(P::Polyhedron)
 
 Compute the combinatorial symmetries (i.e., automorphisms of the face lattice)
@@ -77,7 +77,7 @@ julia> order(G)
 combinatorial_symmetries(P::Polyhedron) = automorphism_group(P; type=:combinatorial, action=:on_vertices)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_symmetries(P::Polyhedron)
 
 Get the group of linear symmetries on the vertices of a polyhedron. These are
@@ -114,7 +114,7 @@ julia> order(G)
 linear_symmetries(P::Polyhedron) = automorphism_group(P; type=:linear, action=:on_vertices)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
 
 Compute generators of the group of automorphisms of a polyhedron.
@@ -209,7 +209,7 @@ function automorphism_group_generators(P::Polyhedron; type = :combinatorial, act
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group_generators(IM::IncidenceMatrix; action = :all)
 
 Compute the generators of the group of automorphisms of an IncidenceMatrix. 
@@ -301,7 +301,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
 
 Compute the group of automorphisms of a polyhedron. The parameters and return
@@ -315,7 +315,7 @@ function automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(IM::IncidenceMatrix; action = :all)
 
 Compute the group of automorphisms of an IncidenceMatrix. The parameters and

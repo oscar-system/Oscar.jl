@@ -23,7 +23,7 @@ export standard_tableaux
 export weight
 
 
-@doc Markdown.doc"""
+@doc raw"""
     Tableau{T} <: AbstractVector{AbstractVector{T}}
 
 A **Young diagram** is a diagram of finitely many empty "boxes" arranged
@@ -86,7 +86,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     shape(tab::Tableau{T})
 
 Returns the shape of a tableau, i.e. the partition given by the lengths of the
@@ -97,7 +97,7 @@ function shape(tab::Tableau{T}) where T
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weight(tab::Tableau)
 
 The **weight** of a tableau is the number of times each number appears in the
@@ -126,7 +126,7 @@ function weight(tab::Tableau)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     reading_word(tab::Tableau)
 
 The **reading word** of a tableau is the word obtained by concatenating the
@@ -158,7 +158,7 @@ function reading_word(tab::Tableau)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_semistandard(tab::Tableau)
 
 A tableau is called **semistandard** if the entries weakly increase along each
@@ -204,7 +204,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
 
 Returns a list of all semistandard tableaux of given shape and filling
@@ -274,7 +274,7 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where
 
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
 
 Shortcut for `semistandard_tableaux(Partition(shape), max_val)`.
@@ -283,7 +283,7 @@ function semistandard_tableaux(shape::Vector{T}, max_val::T=sum(shape)) where T<
   return semistandard_tableaux(Partition(shape), max_val)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
 
 Returns a list of all semistandard tableaux consisting of `box_num`
@@ -307,7 +307,7 @@ function semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
 
 Returns a list of all semistandard tableaux with shape `s` and given weight. This
@@ -416,7 +416,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_standard(tab::Tableau)
 
 A tableau is called **standard** if it is semistandard and the entries
@@ -476,7 +476,7 @@ function is_standard(tab::Tableau)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_tableaux(s::Partition)
     standard_tableaux(s::Vector{Integer})
 
@@ -538,7 +538,7 @@ function standard_tableaux(s::Vector{T}) where T<:Integer
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_tableaux(n::Integer)
 
 Returns a list of all standard tableaux with n boxes.
@@ -554,7 +554,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hook_length(lambda::Partition, i::Integer, j::Integer)
 
 Consider the Young diagram of a partition ``λ``. The **hook length** of a
@@ -573,7 +573,7 @@ function hook_length(lambda::Partition, i::Integer, j::Integer)
   return h
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hook_length(tab::Tableau, i::Integer, j::Integer)
 
 Shortcut for `hook_length(shape(tab), i, j)`.
@@ -583,7 +583,7 @@ function hook_length(tab::Tableau, i::Integer, j::Integer)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hook_lengths(lambda::Partition)
 
 Returns the tableau of shape ``λ`` in which the entry at position `(i,j)`
@@ -600,7 +600,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     num_standard_tableaux(lambda::Partition)
 
 Returns the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
@@ -625,7 +625,7 @@ function num_standard_tableaux(lambda::Partition)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     schensted(sigma::Vector{Integer})
     schensted(sigma::Perm{T})
 
@@ -666,7 +666,7 @@ function schensted(sigma::Perm{T}) where T<:Integer
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     bump!(tab::Tableau, x::Int)
 
 Inserts the integer `x` into the tableau `tab` according to the bumping
@@ -703,7 +703,7 @@ function bump!(tab::Tableau, x::Integer)
   return tab
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     bump!(tab::Tableau, x::Integer, Q::Tableau, y::Integer)
 
 Inserts `x` into tab according to the bumping algorithm by applying the

@@ -26,7 +26,7 @@ function binomial_exponents_to_ideal(R::MPolyRing, binoms::Union{AbstractMatrix,
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, ZZMatrix})
 
 This function converts the rows of a matrix to binomials. Each row $r$ is
@@ -51,7 +51,7 @@ function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, ZZMatrix})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ideal(pts::ZZMatrix)
 
 Return the toric ideal generated from the linear relations between the points
@@ -74,7 +74,7 @@ function toric_ideal(pts::ZZMatrix)
     return toric_ideal(R, pts)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ideal(R::MPolyRing, pts::ZZMatrix)
 
 Return the toric ideal generated from the linear relations between the points

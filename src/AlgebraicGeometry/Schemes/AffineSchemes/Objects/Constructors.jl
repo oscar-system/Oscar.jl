@@ -4,7 +4,7 @@
 # (1) Generic constructors
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Spec(R::MPolyRing, I::MPolyIdeal)
 
 Constructs the affine scheme of the ideal ``I`` in the ring ``R``.
@@ -23,7 +23,7 @@ Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by 
 Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
 
 
-@doc Markdown.doc"""
+@doc raw"""
     Spec(R::MPolyRing, U::AbsMPolyMultSet)
 
 Given a polynomial ring ``R``, we can localize that polynomial
@@ -45,7 +45,7 @@ Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field
 Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(Localization(R, U)[1])
 
 
-@doc Markdown.doc"""
+@doc raw"""
     Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 
 We allow to combine quotients and localizations at the same time.
@@ -74,7 +74,7 @@ Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocRing(R, 
 ########################################################
 #TODO: Do we need this? It is quite unusual.
 
-@doc Markdown.doc"""
+@doc raw"""
     Spec(X::Spec)
 
 For convenience, an affine spectrum can be passed to `Spec`
@@ -104,7 +104,7 @@ Base.deepcopy_internal(X::Spec, dict::IdDict) = Spec(deepcopy_internal(OO(X), di
 # (3) Affine n-dimensional space
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 
 The ``n``-dimensional affine space over a ring ``kk`` is created
@@ -142,7 +142,7 @@ function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 
 Creates the ``n``-dimensional affine space over a ring ``kk``,
@@ -180,7 +180,7 @@ end
 # (4) StdSpec (needed?)
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_spec(X::AbsSpec)
 
 For an affine spectrum with coordinate ring of type `MPolyRing`, 
@@ -200,7 +200,7 @@ end
 standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
 #
 #For an affine spectrum whose coordinate ring is the
@@ -227,7 +227,7 @@ function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
 end
 
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing})
 #
 #For an affine spectrum whose coordinate ring is the
@@ -252,7 +252,7 @@ end
 standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing})
 #
 #For an affine spectrum whose coordinate ring is the
@@ -282,7 +282,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
 # (5) Closed subschemes
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     subscheme(X::AbsSpec, f::Vector{<:RingElem})
 
 For an affine spectrum ``X`` and elements ``f_1``, ``f_2``,
@@ -324,7 +324,7 @@ end
 subscheme(X::AbsSpec, f::RingElem) = subscheme(X, ideal(OO(X), [f]))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     subscheme(X::AbsSpec, I::Ideal)
 
 For a scheme ``X = Spec(R)`` and an ideal ``I ⊂ 𝒪(X)``
@@ -367,7 +367,7 @@ end
 # (6) Open subschemes
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     hypersurface_complement(X::AbsSpec, f::RingElem)
 
 For a scheme ``X = Spec(R)`` and an element ``f ∈ R``
@@ -441,7 +441,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
 
 For a scheme ``X = Spec(R)`` and elements ``f₁, f₂, ... ∈ R``
@@ -533,7 +533,7 @@ Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT<:Ring} = E
 # TODO  intersect X,Y for X<Y should return a copy of X with === ambient_coordinate_rings
 # Spec(X) does not apply for instance to principal open subsets hence a change
 # is necessary
-@doc Markdown.doc"""
+@doc raw"""
     Base.intersect(X::AbsSpec, Y::AbsSpec)
 
 This method computes the intersection to two affine
@@ -708,7 +708,7 @@ end
 ########################################################
 
 #TODO: Add more cross-type methods as needed.
-@doc Markdown.doc"""
+@doc raw"""
     closure(X::AbsSpec, Y::AbsSpec) 
 
 Returns the closure of ``X`` in ``Y``.

@@ -23,21 +23,21 @@ export submodule_dimension
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_irreducible(M::T) where T <: SymGrass -> Bool
 
 Given a symmetric Grassmannian, return whether it is irreducible.
 """
 is_irreducible(M::T) where T <: SymGrass
 
-@doc Markdown.doc"""
+@doc raw"""
     is_empty(M::T) where T <: SymGrass -> Bool
 
 Given a symmetric Grassmannian, return whether it is empty.
 """
 is_empty(M::T) where T <: SymGrass
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_dimension(M::T) where T <: SymGrass -> Int
 
 Given a symmetric Grassmannian, return its dimension as projective
@@ -45,7 +45,7 @@ variety.
 """
 projective_dimension(M::T) where T <: SymGrass
 
-@doc Markdown.doc"""
+@doc raw"""
     submodule_dimension(M::T) where T <: SymGrass -> Int
 
 Given a symmetric Grassmannian, return the dimension of the submodules
@@ -53,7 +53,7 @@ it parametrizes.
 """
 submodule_dimension(M::T) where T <: SymGrass
 
-@doc Markdown.doc"""
+@doc raw"""
     module_representation(M::T) where T <: SymGrass -> LinRep
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V`,
@@ -61,7 +61,7 @@ return the representation mapping associated to `V`.
 """
 module_representation(M::T) where T <: SymGrass
 
-@doc Markdown.doc"""
+@doc raw"""
     defining_ideal(M::T) where T <: SymGrass -> MPolyIdeal
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V`,
@@ -69,7 +69,7 @@ return the ideal defining its structure as projective variety.
 """
 defining_ideal(M::T) where T <: SymGrass
 
-@doc Markdown.doc"""
+@doc raw"""
     describe(M::T) where T <: Union{IsotGrass,
                                     CharGrass}  -> nothing
                            
@@ -82,7 +82,7 @@ describe(M::T) where T <: Union{IsotGrass, CharGrass}
 
 ### Isotypical Grassmannians
 
-@doc Markdown.doc"""
+@doc raw"""
     submodule_character(M::IsotGrass) -> Oscar.GAPGroupClassFunction
 
 Given the isotypical Grassmannian variety `M` parametrizing isotypical submodules
@@ -131,7 +131,7 @@ function describe(M::IsotGrass)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     parametrization_data(M::IsotGrass)
                                         -> Tuple{Vector{MatSpaceElem}, Int}
 
@@ -151,7 +151,7 @@ function parametrization_data(M::IsotGrass{S, T, U}) where {S, T, U}
   return B, n
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_element(M::IsotGrass)
                                              -> Vector{MatSpaceElem}
 
@@ -172,7 +172,7 @@ end
 
 ### Character Grassmannians
 
-@doc Markdown.doc"""
+@doc raw"""
     isotypical_factors(M::CharGrass{S, T, U})
                     where {S, T, U} -> Vector{IsotGrass{S, T, U}}
 
@@ -182,7 +182,7 @@ Grassmannian which define `M` as product variety.
 """
 isotypical_factors(M::CharGrass) = M.constituents
 
-@doc Markdown.doc"""
+@doc raw"""
     isotypical_factor(M::CharGrass{S, T, U},
                       chi::Oscar.GAPGroupClassFunction)
                            where {S, T, U} -> IsotGrass{S, T, U}
@@ -201,7 +201,7 @@ function isotypical_factor(M::CharGrass{S, T, U},
   return isotypical_factors(M)[j]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     character_decomposition(M::CharGrass)
                                      -> Vector{Oscar.GAPGroupClassFunction}
 
@@ -211,7 +211,7 @@ characters associated to its isotypical factors.
 """
 character_decomposition(M::CharGrass) = M.dec
 
-@doc Markdown.doc"""
+@doc raw"""
     submodule_character(M::CharGrass) -> Oscar.GAPGroupClassFunction
 
 Given the character Grassmannian variety `M` parametrizing submodules
@@ -266,7 +266,7 @@ function describe(M::CharGrass)
   return str
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     parametrization_data(M::CharGrass)
                                         -> Vector{Tuple{Vector{MatSpaceElem}, Int}}
 
@@ -281,7 +281,7 @@ The elements of `B` are given by matrices in the standard coordinates of `V` and
 """
 parametrization_data(M::CharGrass) = parametrization_data.(isotypical_factors(M))
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_element(M::CharGrass)
                                              -> Vector{Vector{MatSpaceElem}}
 
@@ -299,7 +299,7 @@ submodule_dimension(M::DetGrass) = M.d
 
 module_representation(M::DetGrass) = M.rep
 
-@doc Markdown.doc"""
+@doc raw"""
     submodule_determinant_character(M::DetGrass)
                                                  -> Oscar.GAPGroupClassFunction
 
@@ -308,7 +308,7 @@ of a module `V` with determinant character `chi`, return `chi`.
 """
 submodule_determinant_character(M::DetGrass) = M.det_char
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_components(M::DetGrass{S, T, U}) where {S, T, U}
                                         -> Vector{CharGrass{S, T, U}}
 
@@ -341,7 +341,7 @@ submodule_dimension(M::InvGrass) = M.d
 
 module_representation(M::InvGrass) = M.rep
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_components(M::InvGrass{S, T, U}) where {S, T, U}
                                         -> Vector{CharGrass{S, T, U}}
 
@@ -464,7 +464,7 @@ function _submodules_space_isotypical_as_vs(rep::LinRep{S, T, U},
   return MapFromFunc(_basis_parametrisation, V, parent(B[1]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     isotypical_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
     isotypical_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
                                                                                                           -> IsotGrass{S, T, U}
@@ -488,7 +488,7 @@ end
 
 isotypical_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = isotypical_grassmannian(linear_lift(prep), chi)
 
-@doc Markdown.doc"""
+@doc raw"""
     character_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction) where {S, T, U}
     character_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V}
                                                                                             -> CharGrass{S, T, U}
@@ -518,7 +518,7 @@ end
 
 character_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction) = character_grassmannian(linear_lift(prep), chi)
 
-@doc Markdown.doc"""
+@doc raw"""
     invariant_grassmannian(rep::LinRep{S, T, U}, t::Int) where {S, T, U}
     invariant_grassmannian(prep::ProjRep{S, T, U, V}, t::Int) where {S, T, U, V}
                                                                      -> InvGrass{S, T, U}
@@ -545,7 +545,7 @@ end
 
 invariant_grassmannian(prep::ProjRep, t::Int) = invariant_grassmannian(linear_lift(prep), t)
 
-@doc Markdown.doc"""
+@doc raw"""
     determinant_grassmannian(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U}
     determinant_grassmannian(prep::ProjRep{S, T, U, V}, chi::Oscar.GAPGroupClassFunction, t::Int) where {S, T, U, V}
                                                                                                                       -> DeterminantalGrassmannian{S, T, U}

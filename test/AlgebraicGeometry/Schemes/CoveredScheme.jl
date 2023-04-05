@@ -154,7 +154,7 @@ end
   @test is_irreducible(Ycov)
   @test is_integral(Ycov)
 
-  R = forget_grading(base_ring(S))
+  R = forget_grading(S)
   A = Spec(R)
   @test is_integral(A)
   @test is_integral(hypersurface_complement(A, R[1]))

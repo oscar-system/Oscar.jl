@@ -1,6 +1,6 @@
 module GaloisGrp
 
-using Oscar, Markdown, Random
+using Oscar, Random
 import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
               upper_bound
@@ -180,7 +180,7 @@ function degree_ring()
   return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cost(I::SLPoly)
 
 Counts the number of multiplications to evaluate `I`, optionally
@@ -197,7 +197,7 @@ function cost(I::SLPoly, ts::ZZPolyRingElem)
   return value(evaluate(I, [C(0) for i = 1:n]))+n*degree(ts)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     total_degree(I::SLPoly)
 
 Determines an upper bound for the total degree of `I`.
@@ -212,7 +212,7 @@ Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
 Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
 
 #my 1st invariant!!!
-@doc Markdown.doc"""
+@doc raw"""
     sqrt_disc(a::Vector)
 
 The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
@@ -224,7 +224,7 @@ function sqrt_disc(a::Vector)
   return prod([a[i] - a[j] for i = 1:length(a)-1 for j = i+1:length(a)])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     elementary_symmetric(g::Vector, i::Int)
 
 Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.    
@@ -235,7 +235,7 @@ function elementary_symmetric(g::Vector, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     power_sum(g::Vector, i::Int)
 
 Evaluates the `i`-th power sums at the values in `g`, ie. the sum
@@ -245,7 +245,7 @@ function power_sum(g::Vector, i::Int)
   return sum(a^i for a = g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant(g::Vector)
 
 Compute the product of all differences of distinct elements in the array.    
@@ -268,7 +268,7 @@ function (R::SLPolyRing)(a::SLPoly)
   error("wrong parent")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     roots_upper_bound(f::ZZPolyRingElem) -> ZZRingElem
 
 An upper upper_bound for the absolute value of the complex roots of the input.    
@@ -292,7 +292,7 @@ end
 #from https://doi.org/10.2307/2153295
 #Symmetric Functions, m-Sets, and Galois Groups
 #by David Casperson and John McKay
-@doc Markdown.doc"""
+@doc raw"""
     msum_poly(f::PolyRingElem, m::Int)
 
 Compute the polynomial with roots sums of `m` roots of `f` using
@@ -313,7 +313,7 @@ function msum_poly(f::PolyRingElem, m::Int)
   return Hecke.power_sums_to_polynomial(p[2:end])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 A `GaloisCtx`, is the context object used for the computation of Galois
 groups of (univariate) polynomials. It contains
  - the polynomial
@@ -601,7 +601,7 @@ end
 
 #TODO: change pr to be a "bound_ring_elem": in the Qt case this has to handle
 #      both power series prec as well as q-adic...
-@doc Markdown.doc"""
+@doc raw"""
     roots(G::GaloisCtx, pr::Int)
 
 The roots of the polynomial used to define the Galois-context in the fixed order
@@ -661,7 +661,7 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::T
   return rt
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     upper_bound(G::GaloisCtx, f...)
 
 Given a `GaloisCtx` and some multivariate function, upper_bound the image of `f`
@@ -799,7 +799,7 @@ end
 #- "datenbank" fuer Beispiele
 
 #a gimmick, not used in galois groups
-@doc Markdown.doc"""
+@doc raw"""
     to_elementary_symmetric(f)
 
 For a multivariate symmetric polynomial `f`, (i.e. `f` is invariant under
@@ -856,7 +856,7 @@ function ^(f::SLPoly, p::Oscar.PermGroupElem)
   return e
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     isprobably_invariant(g, p) -> Bool
 
 For a multivariate function, mainly an `SLPoly`, test if this is
@@ -922,7 +922,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
    return false, g[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     invariant(G::PermGroup, H::PermGroup)
 
 For a permutation group `G` and a maximal subgroup `H`, find
@@ -1086,7 +1086,7 @@ function invariant(G::PermGroup, H::PermGroup)
   return sum(m^s for s = H)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup)
 
 Find a `G`-relative `H`-invariant `I` and form the corresponding resolvent polynomial
@@ -1193,7 +1193,7 @@ function Base.push!(G::GroupFilter, F::Function, s::String="")
   push!(G.f, (F, s))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 # `DescentEnv`
 
 Given a permutation group `G`, known to contain the Galois group of some polynomial,
@@ -1362,7 +1362,7 @@ function map_coeff(C::GaloisCtx{Hecke.qAdicRootCtx}, x)
   return (C.C.Q[1])(x)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     starting_group(GC::GaloisCtx, K::SimpleNumberField) 
 
 Finds a _starting group_, that is a group `G` as a subgroup of the
@@ -1651,7 +1651,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   return G, F, si
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f)) -> p, c
 
 Tries to find a useful prime for the computation of Galois group. Useful means
@@ -1781,7 +1781,7 @@ function order_from_shape(ct::Set{CycleType}, n)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
   primitive_by_shape(ct::Set{CycleType}, n::Int)
 
 Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
@@ -1834,7 +1834,7 @@ function primitive_by_shape(ct::Set{CycleType}, n::Int)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     an_sn_by_shape(ct::Set{CycleType}, n::Int)
 
 Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
@@ -1888,7 +1888,7 @@ end
 # - for larger degrees: improve starting group by doing Galois groups of subfields
 # - more base rings
 # - applications: subfields of splitting field (done), towers, solvability by radicals
-@doc Markdown.doc"""
+@doc raw"""
     galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K)) -> PermGroup, GaloisCtx
 
 Computes the Galois group of the splitting field of the defining polynomial of `K`.
@@ -2003,7 +2003,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
 
 Performs a generic Stauduhar descent: starting with the group `G` that needs to be a 
@@ -2168,7 +2168,7 @@ end
 Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
 
 
-@doc Markdown.doc"""
+@doc raw"""
 Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 `I` evaluated at the (roots in ) `r` does not have repetitions.
 
@@ -2272,7 +2272,7 @@ function relative_invariant(G, U; Chain::Union{Nothing, <:Vector{<:Tuple{PermGro
   return a, T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
 
 Given the `GaloisCtx` as returned by a call to `galois_group` and a subgroup
@@ -2344,7 +2344,7 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   return res
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     galois_quotient(C::GaloisCtx, d::Int)
 
 Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
@@ -2418,7 +2418,7 @@ function cauchy_ideal(f::ZZPolyRingElem; parent::MPolyRing = polynomial_ring(QQ,
   return cauchy_ideal(f(gen(Hecke.Globals.Qx)), parent=parent)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cauchy_ideal(f::PolyRingElem{<:FieldElem})
 
 The coefficients of `f` are the elementary symmetric functions evaluated
@@ -2447,7 +2447,7 @@ function cauchy_ideal(f::PolyRingElem{<:FieldElem}; parent::MPolyRing = polynomi
   return ideal(c)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     galois_ideal(C::GaloisCtx, extra::Int = 5)
 
 The so-called Galois ideal is a description of the splitting field of the polynomial
@@ -2652,7 +2652,7 @@ function galois_group(f::ZZPolyRingElem; pStart::Int = 2*degree(f), prime::Int =
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart, prime = prime)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     galois_group(f::PolyRingElem{<:FieldElem})
 
 Computes the automorphism group of a splitting field of `f` as an explicit

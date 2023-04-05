@@ -16,7 +16,7 @@ _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 _rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
-@doc Markdown.doc"""
+@doc raw"""
     rays(C::Cone)
 
 Return the rays of `C`.
@@ -60,7 +60,7 @@ rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 _rays(C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
 
-@doc Markdown.doc"""                                                 
+@doc raw"""                                                 
     rays_modulo_lineality(as, C::Cone)
 
 Return the rays of the cone of `C` up to lineality as a `NamedTuple` with two
@@ -120,7 +120,7 @@ end
 rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
     
 
-@doc Markdown.doc"""
+@doc raw"""
     faces(C::Cone, face_dim::Int)
 
 Return an iterator over the faces of `C` of dimension `face_dim`.
@@ -171,7 +171,7 @@ _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 ###############################################################################
 ## Scalar properties
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     nfacets(C::Cone)
 
 Return the number of facets of a cone `C`.
@@ -188,7 +188,7 @@ julia> nfacets(C)
 """
 nfacets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     nrays(C::Cone)
 
 Return the number of rays of `C`.
@@ -207,7 +207,7 @@ julia> nrays(PO)
 nrays(C::Cone) = lineality_dim(C) == 0 ? _nrays(C) : 0
 _nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(C::Cone)
 
 Return the dimension of `C`.
@@ -223,7 +223,7 @@ julia> dim(C)
 """
 dim(C::Cone) = pm_object(C).CONE_DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_dim(C::Cone)
 
 Return the ambient dimension of `C`.
@@ -239,7 +239,7 @@ julia> ambient_dim(C)
 """
 ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     codim(C::Cone)
 
 Return the codimension of `C`.
@@ -256,7 +256,7 @@ julia> codim(C)
 codim(C::Cone) = ambient_dim(C)-dim(C)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     f_vector(C::Cone)
 
 Compute the vector $(f₁,f₂,...,f_{(dim(C)-1))$` where $f_i$ is the number of
@@ -289,7 +289,7 @@ function f_vector(C::Cone)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_dim(C::Cone)
 
 Compute the dimension of the lineality space of $C$, i.e. the largest linear
@@ -324,7 +324,7 @@ lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_pointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
@@ -345,7 +345,7 @@ true
 """
 is_pointed(C::Cone) = pm_object(C).POINTED::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_fulldimensional(C::Cone)
 
 Determine whether `C` is full-dimensional.
@@ -366,7 +366,7 @@ is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 ###############################################################################
 
 # TODO: facets as `Vector`? or `Matrix`?
-@doc Markdown.doc"""
+@doc raw"""
     facets(as::Type{T} = LinearHalfspace, C::Cone)
 
 Return the facets of `C` in the format defined by `as`.
@@ -405,7 +405,7 @@ facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
 facets(::Type{Halfspace}, C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_space(C::Cone)
 
 Return a basis of the lineality space of `C`.
@@ -429,7 +429,7 @@ _generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=fal
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_span(C::Cone)
 
 Return the (linear) hyperplanes generating the linear span of `C`.
@@ -453,7 +453,7 @@ _linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_S
 
 _linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_basis(C::Cone{QQFieldElem})
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
@@ -486,7 +486,7 @@ _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
 
-@doc Markdown.doc"""
+@doc raw"""
     contains(C::Cone, v::AbstractVector)
 
 Check whether `C` contains `v`.
@@ -506,7 +506,7 @@ false
 contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     relative_interior_point(C::Cone)
 
 Compute a point in the relative interior point of `C`, i.e. a point in `C` not

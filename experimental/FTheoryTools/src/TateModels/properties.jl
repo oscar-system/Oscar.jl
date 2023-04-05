@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     base_fully_specified(t::GlobalTateModel)
 
 Return `true` is the Tate model has a concrete base space and `false` otherwise.

@@ -8,7 +8,7 @@ export underlying_moduli_space_of_modules
 
 ### Action on homogeneous ideals/polynomials
 
-@doc Markdown.doc"""
+@doc raw"""
     is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyDecRingElem -> Bool
 
 Given a linear representation `rep` of a group `E` on a finite vector space `V` and a
@@ -38,7 +38,7 @@ function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyDecRing
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem -> LinRep
 
 Given a linear representation `rep` on a finite vector space `V` and a semi-invariant
@@ -65,7 +65,7 @@ function linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem
   return Oscar.SymInt._linear_representation(representation_ring(rep), coll)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_invariant_ideal(rep::LinRep, I::S)
                                 where S <: MPolyIdeal{<: MPolyDecRingElem} -> Bool
 
@@ -90,7 +90,7 @@ function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDec
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_representation(rep::LinRep, I::S)
                               where S <: MPolyIdeal{<: MPolyDecRingElem} -> LinRep
 
@@ -118,7 +118,7 @@ end
 
 ### Parametrising certain symmetric intersections
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_moduli_space_of_modules(symci::SymInter{S, T, U, V})
                                         where {S, T, U, V} -> CharGrass{S, T, U}
 
@@ -128,7 +128,7 @@ homogeneous part of a polynomial algebra generating the ideals in `symci`.
 """
 underlying_moduli_space_of_modules(symci::SymInter) = symci.para
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_group_action(symci::SymInter{S, T, U, V})
                                                where {S, T, U, V} -> ProjRep{S, T, U, V}
 
@@ -138,7 +138,7 @@ encodes the symmetry of the complete intersections defined by the ideals in `sym
 """
 projective_group_action(symci::SymInter) = symci.prep
 
-@doc Markdown.doc"""
+@doc raw"""
     parametrization_data(symci::SymInter)
                                         -> Vector{Tuple{Vector{MPolyDecRingElem}, Int}}
 
@@ -162,7 +162,7 @@ function parametrization_data(symci::SymInter)
   return pd2
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_element(symci::SymInter) -> MPolyIdeal_dec
 
 Given a parametrizing space `symci` for ideal defining symmetric intersections,
@@ -183,7 +183,7 @@ function standard_element(symci::SymInter)
   return ideal(S, std_el2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetric_intersections(prep::ProjRep{S, T, U, V}, d::Int, t::Int;
                                      j::MapFromFunc = nothing,
                                      check::Bool = true) -> Vector{SymInter{S, T, U, V}}
@@ -229,7 +229,7 @@ function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j = nothing, che
   return reps
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetric_intersections(prep::ProjRep, M::CharGrass, j::MapFromFunc)
                                                                 -> SymInter
 
@@ -268,7 +268,7 @@ function Base.show(io::IO, symci::SymInter)
   print(io, "Parameter space for symmetric intersections")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
                               -> Vector{Tuple{ProjRep, Vector{SymInter}}}
                               

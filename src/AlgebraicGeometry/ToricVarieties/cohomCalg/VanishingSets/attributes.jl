@@ -2,7 +2,7 @@
 # Attributes
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(tvs::ToricVanishingSet)
 
 Return the toric variety of the vanishing set `tvs`.
@@ -25,7 +25,7 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 toric_variety(tvs::ToricVanishingSet) = tvs.toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polyhedra(tvs::ToricVanishingSet)
 
 Return the vector of the polyhedra whose complement defines the vanishing set `tvs`.
@@ -49,7 +49,7 @@ julia> polyhedra(vs[3])
 polyhedra(tvs::ToricVanishingSet) = tvs.ps
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_index(tvs::ToricVanishingSet)
 
 Return the cohomology index of the toric vanishing set `tvs`.

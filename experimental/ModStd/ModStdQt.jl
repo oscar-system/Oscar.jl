@@ -1,6 +1,6 @@
 module ModStdQt
 
-using Oscar, Markdown
+using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
 
@@ -558,7 +558,7 @@ function _cmp(f::MPolyRingElem, g::MPolyRingElem)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute

@@ -102,7 +102,7 @@ end
 # 5: A base space for efficient testing
 ################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     test_base()
 
 This method constructs a 3-dimensional toric variety, which we

@@ -2,7 +2,7 @@
 # 1: Weierstrass sections
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_section_f(w::GlobalWeierstrassModel)
 
 Return the polynomial ``f`` used for the
@@ -20,7 +20,7 @@ julia> weierstrass_section_f(w);
 @attr MPolyRingElem{QQFieldElem} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_section_g(w::GlobalWeierstrassModel)
 
 Return the polynomial ``g`` used for the
@@ -42,7 +42,7 @@ julia> weierstrass_section_g(w);
 # 2: Weierstrass polynomial
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     weierstrass_polynomial(w::GlobalWeierstrassModel)
 
 Return the Weierstrass polynomial of the global Weierstrass model.
@@ -63,7 +63,7 @@ julia> weierstrass_polynomial(w);
 # 3: Toric spaces
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_base_space(w::GlobalWeierstrassModel)
 
 Return the toric base space of the global Weierstrass model.
@@ -75,17 +75,16 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
 julia> dim(toric_base_space(w))
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 3
 ```
 """
 @attr AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
+    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
     return w.toric_base_space
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ambient_space(w::GlobalWeierstrassModel)
 
 Return the toric base space of the global Weierstrass model.
@@ -97,12 +96,11 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
 julia> dim(toric_ambient_space(w))
-[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 5
 ```
 """
 @attr AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
+    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
     return w.toric_ambient_space
 end
 
@@ -111,7 +109,7 @@ end
 # 4: The CY hypersurface
 #####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     cy_hypersurface(w::GlobalWeierstrassModel)
 
 Return the Calabi-Yau hypersurface in the toric ambient space
@@ -124,12 +122,11 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
 julia> cy_hypersurface(w)
-[ Info: Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.
 Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function cy_hypersurface(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
+    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
     return w.Y4
 end
 
@@ -145,7 +142,7 @@ end
 # 6: Discriminant
 #######################################
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant(w::GlobalWeierstrassModel)
 
 Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
@@ -162,7 +159,7 @@ julia> discriminant(w);
 @attr MPolyRingElem{QQFieldElem} discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
 
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_loci(w::GlobalWeierstrassModel)
 
 Return the singular loci of the global Weierstrass model, along with the order of
@@ -192,7 +189,6 @@ Global Weierstrass model over a not fully specified base
 julia> discriminant(w);
 
 julia> length(singular_loci(w))
-[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 1
 ```
 """

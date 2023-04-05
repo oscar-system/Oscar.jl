@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     is_cartier(td::ToricDivisor)
 
 Checks if the divisor `td` is Cartier.
@@ -18,7 +18,7 @@ true
 @attr Bool is_cartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_principal(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is principal.
@@ -40,7 +40,7 @@ false
 @attr Bool is_trivial(td::ToricDivisor) = all([c == 0 for c in coefficients(td)])
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_basepoint_free(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is basepoint free.
@@ -60,7 +60,7 @@ true
 @attr Bool is_basepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_effective(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is effective,
@@ -87,7 +87,7 @@ true
 @attr Bool is_effective(td::ToricDivisor) = all(c -> (c >= 0), coefficients(td))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_integral(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is integral.
@@ -106,7 +106,7 @@ true
 @attr Bool is_integral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_ample(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is ample.
@@ -125,7 +125,7 @@ false
 @attr Bool is_ample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_very_ample(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is very ample.
@@ -144,7 +144,7 @@ false
 @attr Bool is_very_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_nef(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is nef.
@@ -163,7 +163,7 @@ true
 @attr Bool is_nef(td::ToricDivisor) = pm_tdivisor(td).NEF
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_q_cartier(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is Q-Cartier.
@@ -182,7 +182,7 @@ true
 @attr Bool is_q_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_prime(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is a prime divisor.
