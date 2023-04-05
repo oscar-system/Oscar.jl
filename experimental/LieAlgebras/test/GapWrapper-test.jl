@@ -1,3 +1,5 @@
+import Oscar: GAPWrap
+
 num_random_tests = 10
 
 @testset "LieAlgebras.GapWrapper" begin
@@ -26,7 +28,7 @@ num_random_tests = 10
         @testset for L in lie_algebras
           iso = Oscar.LieAlgebras._iso_oscar_gap(L)
           @test domain(iso) == L
-          @test GAP.Globals.IsLieAlgebra(codomain(iso))
+          @test GAPWrap.IsLieAlgebra(codomain(iso))
 
           for _ in 1:num_random_tests
             x = L(rand(-10:10, dim(L)))
@@ -67,7 +69,7 @@ num_random_tests = 10
         @testset for L in lie_algebras
           iso = Oscar.LieAlgebras._iso_oscar_gap(L)
           @test domain(iso) == L
-          @test GAP.Globals.IsLieAlgebra(codomain(iso))
+          @test GAPWrap.IsLieAlgebra(codomain(iso))
 
           for _ in 1:num_random_tests
             x = L(rand(-10:10, dim(L)))
@@ -99,7 +101,7 @@ num_random_tests = 10
   end
 
   @testset "GAP -> Oscar" begin
-    baserings = [GAP.Globals.Rationals, GAP.Globals.CyclotomicField(4)]
+    baserings = [GAP.Globals.Rationals, GAPWrap.CF(4)]
     @testset for RG in baserings
       @testset "AbstractLieAlgebra" begin
         lie_algebras = [

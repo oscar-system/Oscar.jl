@@ -11,7 +11,7 @@ function _iso_oscar_gap_lie_algebra_functions(
 
   f = function (x::LieAlgebraElem{C})
     cfs = GAP.Obj([coeffs_iso(c) for c in coefficients(x)])
-    return GAP.Globals.LinearCombination(basis_LG, cfs)
+    return GAPWrap.LinearCombination(basis_LG, cfs)
   end
 
   finv = function (x)
@@ -66,8 +66,8 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra{C}) where {C<:RingElement}
 end
 
 function _iso_gap_oscar(F::GAP.GapObj)
-  if GAP.Globals.IsLieAlgebra(F)
-    if GAP.Globals.IsLieObjectCollection(F)
+  if GAPWrap.IsLieAlgebra(F)
+    if GAPWrap.IsLieObjectCollection(F)
       return _iso_gap_oscar_linear_lie_algebra(F)
     else
       return _iso_gap_oscar_abstract_lie_algebra(F)
@@ -135,11 +135,11 @@ end
 function _linear_lie_algebra_from_GAP(
   LG::GAP.GapObj, coeffs_iso::Map{GAP.GapObj}, s::Vector{<:VarName}; cached::Bool=true
 )
-  @req GAP.Globals.IsLieObjectCollection(LG) "Input is not a linear Lie algebra."
+  @req GAPWrap.IsLieObjectCollection(LG) "Input is not a linear Lie algebra."
 
   RO = codomain(coeffs_iso)
   basis = [
-    map_entries(coeffs_iso, GAP.Globals.UnderlyingRingElement(b)) for b in GAPWrap.Basis(LG)
+    map_entries(coeffs_iso, GAPWrap.UnderlyingRingElement(b)) for b in GAPWrap.Basis(LG)
   ]
   n = size(basis[1])[1]
   LO = LinearLieAlgebra{elem_type(RO)}(RO, n, basis, Symbol.(s); cached)
