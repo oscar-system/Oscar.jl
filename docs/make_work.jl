@@ -110,11 +110,9 @@ end
 function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
 
   # Remove symbolic links from earlier runs
-  expdocdir = joinpath(Oscar.oscardir, "docs/src/Experimental")
-  old_links = filter(x -> islink(joinpath(expdocdir, x)) && x in Oscar.exppkgs,
-                     readdir(expdocdir))
-  for x in old_links
-    rm(joinpath(expdocdir, x))
+  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
+  for x in readdir(expdocdir; join=true)
+    islink(x) && rm(x)
   end
 
   # include the list of pages, performing substitutions
