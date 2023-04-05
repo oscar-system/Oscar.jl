@@ -28,8 +28,8 @@ by the vanishing of the Tate polynomial
 Crucially, for non-trivial F-theory settings, the elliptic fibration in question must
 be singular. In fact, by construction, one usually engineers certain singularities.
 For this, vanishing orders of the sections ``a_i`` above need to specified. The
-following table -- often referred to as the Tate table and taken from [Wei10](@cite) -- 
-summarizes the singularities introduced by certain vanishing orders:
+following table---often referred to as the Tate table and taken from
+[Wei10](@cite)---summarizes the singularities introduced by certain vanishing orders:
 
 | sing. type | ``\mathrm{ord}(\Delta)`` | singularity | group ``G`` | ``a_1`` | ``a_2`` | ``a_3`` | ``a_4`` | ``a_6`` |
 | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- | :----------- |
