@@ -18,9 +18,9 @@ function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
   function dlog(x::Hecke.NfRelElem)
     @assert parent(x) == E
     d = denominator(x, OE)
-    xabs = d*EabstoE\(x)
+    xabs = d*(EabstoE\(x))
     dabs = copy(d)
-    F = prime_decomposition(OEabs, minimum(EabstoE\P))
+    F = prime_decomposition(OEabs, minimum(Pabs))
     for PP in F
       @assert valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
@@ -62,7 +62,7 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
 
   RPabs, mRPabs = quo(OEabs, Pabs^i)
   URPabs, mURPabs = unit_group(RPabs)
-  f = hom(URPabs, URp, [mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(URPabs[i])))))))) for i in 1:ngens(URPabs)])
+  f = hom(URPabs, URp, [mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(x)))))))) for x in gens(URPabs)])
 
   K, mK = kernel(f)
 
@@ -78,7 +78,7 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
     d = denominator(x, OE)
     xabs = EabstoE\(d*x)
     dabs = copy(d)
-    F = prime_decomposition(OEabs, minimum(EabstoE\P))
+    F = prime_decomposition(OEabs, minimum(Pabs))
     for PP in F
       @assert valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
@@ -111,7 +111,7 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
 
   t = e-1
 
-  psi(x) = x <= t ? x : t + 2*(x-t)
+  psi(x) = t + 2*(x-t)
 
   pi = uniformizer(P)
 
@@ -131,7 +131,7 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   RPabs, mRPabs = quo(OEabs, Pabs^i)
   URPabs, mURPabs = unit_group(RPabs)
 
-  f = hom(URPabs, URp, [mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(URPabs[i])))))))) for i in 1:ngens(URPabs)])
+  f = hom(URPabs, URp, [mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(x)))))))) for x in gens(URPabs)])
 
   K, mK = kernel(f)
 
@@ -170,6 +170,7 @@ function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
   @assert is_prime(p)
   @assert is_maximal(order(p))
   @assert order(p) === base_ring(O)
+  E = nf(O)
   F = prime_decomposition(O, p)
   P = F[1][1]
   if i == 0
@@ -232,6 +233,11 @@ function _get_product_quotient(E::Hecke.NfRel, Fac)
     return v
   end
 
+  for i in 1:10
+    a = rand(G)
+    @assert dlog(exp(a)) == a
+  end
+
   return G, dlog, exp
 end
 
@@ -268,7 +274,8 @@ function _local_determinants_morphism(Lf::LatWithIsom)
 
   qL, fqL = discriminant_group(Lf)
   OqL = orthogonal_group(qL)
-  # Since any isometry of L centrlizing f induces an isometry of qL centralising
+
+  # Since any isometry of L centralizing f induces an isometry of qL centralising
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH22.
   G, _ = centralizer(OqL, fqL)
@@ -289,13 +296,6 @@ function _local_determinants_morphism(Lf::LatWithIsom)
 
   res = get_attribute(Lf, :transfer_data)
 
-  # These are invertible matrices representing lifts to the ambient space of the
-  # lattice in Lf of the generators of G. These are not isometries. We will
-  # transfer them using `res` to the ambient space of H. They are though isometry
-  # of H2/H. Our goal lift them to isometry of H2 up to a good enough precision
-  # and compute their determinant.
-  gene_herm = [_transfer_discriminant_isometries(res, g) for g in gens(G)]
-
   # We want only the prime ideal in O_K which divides the quotient H2/H. For
   # this, we collect all the primes dividing DEQ or for which H is not locally
   # unimodular. Then, we check for which prime ideals p, the local quotient
@@ -314,9 +314,9 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   for p in S
     lp = prime_decomposition(OE, p)
     P = lp[1][1]
-    k = valuation(N, p)
+    n = valuation(N*OE, P)
     a = valuation(DEQ, P)
-    push!(Fsharpdata, (p, 2*k+a))
+    push!(Fsharpdata, (p, n+a))
   end
 
   RmodFsharp, Fsharplog, Fsharpexp = _get_product_quotient(E, Fsharpdata)
@@ -354,9 +354,10 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   Eabs, EabstoE = Hecke.absolute_simple_field(E)
   OEabs = maximal_order(Eabs)
   UOEabs, mUOEabs = unit_group(OEabs)
-  UOK, mUOK = unit_group(base_ring(OE))
+  OK = base_ring(OE)
+  UOK, mUOK = unit_group(OK)
 
-  fU = hom(UOEabs, UOK, [mUOK\(norm(OE(EabstoE(Eabs(mUOEabs(k)))))) for k in gens(UOEabs)])
+  fU = hom(UOEabs, UOK, [mUOK\norm(OE(mUOK(m))) for m in gens(UOK)])
   KU, jU = kernel(fU)
 
   gene_norm_one = Hecke.NfRelElem[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]
@@ -369,34 +370,37 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   # we just need to create the map from G to Q.
   Q, mQ = quo(FmodFsharp, I)
 
-  function dlog(x::Vector{Hecke.NfRelElem})
+  SQ, SQtoQ = snf(Q)
+
+  function dlog(x::Vector)
     @assert length(x) == length(Fsharpdata)
-    return mQ(FmodFsharp(Fsharplog(x)))
+    return SQtoQ\(mQ(j\(Fsharplog(x))))
   end
 
-  imgs = elem_type(Q)[]
+  imgs = elem_type(SQ)[]
   # For each of our matrices in gene_herm, we do successive P-adic liftings in
   # order to approximate an isometry of D^{-1}H^#, up to a certain precision
   # (given by Theorem 6.25 in BH22). We do this for all the primes we have to
   # consider up to now, and then map the corresponding determinant adeles inside
   # Q. Since our matrices were approximate lifts of the generators of G, we can
   # create the map we wanted from those data.
-  for g in gene_herm
+  for g in gens(G)
     ds = elem_type(E)[]
     for p in S
-      println(p)
       lp = prime_decomposition(OE, p)
       P = lp[1][1]
       k = valuation(N, p)
       a = valuation(DEQ, P)
       e = valuation(DEK, P)
-      g_approx = _approximate_isometry(H2, g, P, e, a, k)
+      g_approx = _approximate_isometry(H2, g, P, e, a, k, res)
       push!(ds, det(g_approx))
     end
     push!(imgs, dlog(ds))
   end
 
-  f = hom(G, Q, gens(G), imgs_Q)
+  GSQ, SQtoGSQ, _ = Oscar._isomorphic_gap_group(SQ)
+  f = hom(G, GSQ, gens(G), SQtoGSQ.(imgs), check=false)
+
   return f
 end
 
@@ -422,7 +426,7 @@ function _is_special(L::Hecke.HermLat, p::Hecke.NfOrdIdl)
       return false
     end
   end
-  u = uniformizer(P)
+  u = elem_in_nf(uniformizer(P))
   s = involution(L)
   su = s(u)
   H = block_diagonal_matrix([matrix(E, 2, 2, [0 u^(S[i]); su^(S[i]) 0]) for i in 1:length(S)])
@@ -439,50 +443,49 @@ end
 # Starting from an isometry of the torsion quadratic module `domain(g)`, for
 # which we assume that the cover M has full rank, we compute a fake lift to the
 # ambient space of the cover. This is not an isometry, but induces g on `domain(g)`.
-function _get_ambient_isometry(g::AutomorphismGroupElem{TorQuadModule})
-  q = domain(g)
-  L = cover(q)
-  @assert rank(L) == degree(L)
-  d = degree(L)
-  M1 = reduce(vcat, [matrix(QQ, 1, d, lift(t)) for t in gens(q)])
-  M2 = reduce(vcat, [matrix(QQ, 1, d, lift(g(t))) for t in gens(q)])
-  return solve(M1, M2)
-end
+#function _get_ambient_isometry(g::AutomorphismGroupElem{TorQuadModule})
+#  q = domain(g)
+#  L = cover(q)
+#  @assert rank(L) == degree(L)
+#  d = degree(L)
+#  M1 = reduce(vcat, [matrix(QQ, 1, d, lift(t)) for t in gens(q)])
+#  M2 = reduce(vcat, [matrix(QQ, 1, d, lift(g(t))) for t in gens(q)])
+#  return solve(M1, M2)
+#end
 
 # Using the function used for the transfer construction, between the ambient
 # space of the cover of our torsion module, and the ambient space of the
 # corresponding hermitian structure, we transfer the fake lift computed with the
 # previous function. This will be an invertible matrix, but the corresponding
 # automorphism is not an isometry.
-function _transfer_discriminant_isometries(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule})
+function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   E = base_ring(codomain(res))
-  m = _get_ambient_isometry(g)
   q = domain(g)
   @assert ambient_space(cover(q)) === domain(res)
-  gE = zero_matrix(E, 0, rank(codomain(res)))
-  vE = vec(collect(zeros(E, 1, rank(codomain(res)))))
-  for i in 1:rank(codomain(res))
-    vE[i] = one(E)
+  B2 = zero(Bp)
+  for i in 1:nrows(Bp)
+    vE = vec(collect(Bp[i, :]))
     vQ = res\vE
-    vQ = matrix(QQ, 1, length(vQ), vQ)
-    gvq = vQ*m
-    gvQ = vec(collect(gvq))
+    vq = q(vQ)
+    gvq = g(vq)
+    gvQ = lift(gvq)
     gvE = res(gvQ)
-    gE = vcat(gE, matrix(E, 1, length(gvE), gvE))
-    vE[i] = zero(E)
+    B2[i, :] = gvE
   end
-  return gE
+  return solve_left(Bp[:, 1:nrows(Bp)], B2[:, 1:nrows(B2)])
 end
 
 # the minimum P-valuation among all the non-zero entries of M
 function _scale_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   @assert nf(order(P)) === base_ring(M)
+  iszero(M) && return inf
   return minimum([valuation(v, P) for v in collect(M) if !iszero(v)])
 end
 
 # the minimum P-valuation among all the non-zero diagonal entries of M
 function _norm_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   @assert nf(order(P)) === base_ring(M)
+  iszero(diagonal(M)) && return inf
   r =  minimum([valuation(v, P) for v in diagonal(M) if !iszero(v)])
   return r
 end
@@ -509,6 +512,8 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
   if check
     @assert _scale_valuation(inv(G), P) >= 1+a
     @assert _norm_valuation(inv(G), P) + valuation(rho, P) >= 1+a
+    println(_scale_valuation(R, P))
+    println(a)
     @assert _scale_valuation(R, P) >= l-a
     @assert _norm_valuation(R, P) + valuation(rho,P) >= l-a
   end
@@ -518,7 +523,7 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
   # R and D to be the diagonal.
   U = zero_matrix(E, nrows(R), ncols(R))
   for i in 1:nrows(R)
-    for j in 1:i-1
+    for j in i+1:ncols(R)
       U[i, j] = R[i, j]
     end
   end
@@ -544,35 +549,50 @@ end
 # Starting from our fake isometry g on H (which will be here D^{-1}H^#), and a
 # prime ideal P, we iteratively lift g to a finer fake isometry, i.e. a matrix
 # defining a P-local isometry up to the precision P^{2*k+a}.
-function _approximate_isometry(H::Hecke.HermLat, g::T, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
-  E = base_ring(g)
-  @assert base_field(H) === E
+function _approximate_isometry(H::Hecke.HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
+  E = base_field(H)
   @assert nf(order(P)) === E
-
-  ok, m = is_modular(H, minimum(P))
-
-  # This should never happend since we collect the prime ideals in such a way it
-  # is not possible. Though, we keep it in case something was forgotten before
-  if ok && (m == -a)
+  ok, b = is_modular(H, minimum(P))
+  if ok && b == -a
     return identity_matrix(E, rank(H))
   end
 
-  # we do know work on the p-completions, p = P \cap O_K
-  Bp = local_basis_matrix(H, minimum(P))
+  Bp = _local_basis_modular_submodules(H, minimum(P), a, res)
   Gp = Bp*gram_matrix(ambient_space(H))*map_entries(involution(E), transpose(Bp))
-  Fp = Bp*g*inv(Bp)
+  Fp = _transfer_discriminant_isometry(res, g, Bp)
+  println(Fp)
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
   Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
-
   rho = _find_rho(P, e)
+
   l = 0
   while _scale_valuation(Rp, P) < 2*k+a
     Fp, l = _local_hermitian_lifting(Gp, Fp, rho, l, P, e, a)
     Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
   end
 
-  return Fp
+  return Fp[1:nd,1:nd]
+end
+
+function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfRelOrdIdl, a::Int, res::AbstractSpaceRes)
+  L = restrict_scalars(H, res)
+  B, _ , exps = jordan_decomposition(H, p)
+  exps[end] == -a && pop!(B)
+  subs = eltype(B)[]
+  for b in B
+    H2 = lattice_in_same_ambient_space(H, b)
+    if !is_sublattice(H, H2)
+      L2 = restrict_scalars(H2, res)
+      L2 = intersect(L, L2)
+      B2 = basis_matrix(L2)
+      gene = [res(vec(collect(B2[i, :]))) for in in 1:nrows(B2)]
+      H2 = lattice(ambient_space(H), gene)
+      b = local_basis_matrix(H2, p, type = :submodule)
+    end
+    push!(subs, b)
+  end
+  return reduce(vcat, subs)
 end
 
 # We need a special rho for Algorithm 8 of BH23: we construct such an element
@@ -592,7 +612,6 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   while true
-    println("bla")
     Eabst, t = Eabs["t"]
     g = EabstoE\(E(-rand(K, -5:5)^2-1))
     nu = 2*valuation(Eabs(2), Pabs)-2*e+2

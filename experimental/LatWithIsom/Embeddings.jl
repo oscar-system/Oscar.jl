@@ -921,13 +921,12 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       end
 
       ext, _ = sub(D, D.(_glue))
-      println(ext == C2)
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
 
       qC2 = discriminant_group(C2)
-      OqC2 = orthogonal_group(C2)
+      OqC2 = orthogonal_group(qC2)
       phi2 = hom(qC2, disc, [disc(lift(x)) for x in gens(qC2)])
       @assert is_bijective(phi2)
 

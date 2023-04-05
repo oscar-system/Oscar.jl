@@ -13,7 +13,7 @@ import Hecke: kernel_lattice, invariant_lattice, rank, genus, basis_matrix,
               gram_matrix, ambient_space, rational_span, scale, signature_tuple,
               is_integral, det, norm, degree, discriminant, charpoly, minpoly,
               rescale, dual, lll, discriminant_group, divides, lattice,
-              hermitian_structure, coinvariant_lattice
+              hermitian_structure, coinvariant_lattice, is_even
 
 ###############################################################################
 #
@@ -182,7 +182,7 @@ Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 
 Note that to be even, `L` must be integral (see [`is_integral(::ZLat)`](@ref)).
 """
-is_even(Lf::LatWithIsom) = is_even(lattice(Lf))::Int
+is_even(Lf::LatWithIsom) = Hecke.iseven(lattice(Lf))::Bool
 
 @doc Markdown.doc"""
     discriminant(Lf::LatWithIsom) -> QQFieldElem
@@ -432,11 +432,9 @@ $q_L$ induced by `f`.
     unique!(UL)
     GL = Oscar._orthogonal_group(qL, UL, check = false)
   else
-    @req is_hermitian(Lf) "Not yet implemented for indefinite lattices with isometry which are not hermitian"
-    qL, fqL = discriminant_group(Lf)
-    OqL = orthogonal_group(qL)
-    CdL, _ =  centralizer(OqL, fqL)
-    GL, _ = sub(OqL, unique([OqL(s.X) for s in CdL]))
+    @req is_of_hermitian_type(Lf) "Not yet implemented for indefinite lattices with isometry which are not of hermitian type"
+    dets = LWI._local_determinants_morphism(Lf)
+    GL, _ = kernel(dets)
   end
   return GL::AutomorphismGroup{TorQuadModule}
 end

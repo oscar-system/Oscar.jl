@@ -288,7 +288,7 @@ function _ideals_of_norm(E, d::QQFieldElem)
 end
 
 function _ideals_of_norm(E, d::ZZRingElem)
-  isone(d) && return [1*maximal_order(E)]
+  isone(d) && return [fractional_ideal(maximal_order(E), one(E))]
   @assert E isa Hecke.NfRel
   K = base_field(E)
   OK = maximal_order(K)
@@ -312,7 +312,7 @@ function _ideals_of_norm(E, d::ZZRingElem)
   for I in Hecke.cartesian_product_iterator(primes)
     I = prod(I)
     if absolute_norm(I) == d
-      push!(ids, I)
+      push!(ids, fractional_ideal(OE, I))
     end
   end
   return ids
@@ -399,7 +399,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
 
   ok || return reps
 
-  gene = HermGenus[]
+  gene = Hecke.HermGenus[]
   E, b = cyclotomic_field_as_cm_extension(n*m)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
@@ -416,33 +416,37 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   @info "All possible signatures: $(length(signatures))"
 
   for dd in detE, sign in signatures
-    append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(DE*dd)))
+    append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = Hecke.numerator(DE*dd)))
   end
   gene = unique(gene)
 
   @info "All possible genera: $(length(gene))"
-
   for g in gene
     @info "g = $g"
     H = representative(g)
     if !is_integral(DE*scale(H))
       continue
     end
-    if iseven(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
+    if is_even(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
       continue
     end
     @info "$H"
-    M = trace_lattice(H)
+    M, fM = Hecke.trace_lattice_with_isometry(H)
     @assert det(M) == d
+    M = lattice_with_isometry(M, fM)
     @assert is_of_hermitian_type(M)
     @assert order_of_isometry(M) == n*m
-    if iseven(M) != iseven(Lf)
+    if is_even(M) != is_even(Lf)
       continue
     end
     if !is_of_same_type(Lf, lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
       continue
     end
-    append!(reps, LatWithIsom[trace_lattice(HH) for HH in genus_representatives(H)])
+    gr = genus_representatives(H)
+    for HH in gr
+      M, fM = Hecke.trace_lattice_with_isometry(HH)
+      push!(reps, lattice_with_isometry(M, fM))
+    end
   end
   return reps
 end
@@ -566,7 +570,9 @@ function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -
     LA = lattice_with_isometry(representative(A))
     RA = representatives_of_hermitian_type(LA, q^d)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
-      E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p, check=false)
+      E = try admissible_equivariant_primitive_extensions(L1, L2, Lf, p, check=false)
+      catch e return L1, L2, Lf, p
+      end
       GC.gc()
       append!(reps, E)
     end
