@@ -83,7 +83,12 @@ function setup_experimental_package(Oscar::Module, package_name::String)
 
   # Set symlink inside docs/src/experimental
   symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  symlink_target = joinpath("../../../experimental", package_name, "docs/src")
+  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs/src")
+
+  if !ispath(symlink_target)
+    return []
+  end
+
   if !ispath(symlink_link)
     symlink(symlink_target, symlink_link)
   elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
@@ -91,11 +96,11 @@ function setup_experimental_package(Oscar::Module, package_name::String)
 Please investigate the contents of $symlink_link,
 optionally move them somewhere else and delete the directiory once you are done.")
   end
-  
+
   # Read doc.main of package
   exp_s = read(doc_main_path, String)
   exp_doc = eval(Meta.parse(exp_s))
-  
+
   # Prepend path
   prefix = "Experimental/" * package_name * "/"
   result = add_prefix_to_experimental_docs(Oscar, exp_doc, prefix)
