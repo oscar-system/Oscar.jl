@@ -23,7 +23,7 @@ export tangent_lines
 # the curve C, and false  if it is singular, and an error if it is not on the
 # curve.
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
@@ -57,7 +57,7 @@ end
 # If P is a smooth point of an affine plane curve C, compute the tangent of C
 # at the point P.
 
-@doc Markdown.doc"""
+@doc raw"""
     tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
@@ -96,7 +96,7 @@ end
 ################################################################################
 # gives the common components of two affine plane curves
 
-@doc Markdown.doc"""
+@doc raw"""
     common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return the affine plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
@@ -132,7 +132,7 @@ end
 # curves (or is empty if no common component), the second element is the list
 # of intersection points. Some might be contained in the common component too.
 
-@doc Markdown.doc"""
+@doc raw"""
     curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return a list whose first element is the affine plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D`.
@@ -209,7 +209,7 @@ end
 # Intersection in the sense of varieties.
 # Might change depending on future changes on VarietyModule.
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect( C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return the variety defined by the intersection of `C` and `D`.
@@ -225,7 +225,7 @@ end
 # derivatives and then checking if the intersection belongs also to the
 # curve. The points might also be contained in the components.
 
-@doc Markdown.doc"""
+@doc raw"""
     curve_singular_locus(C::AffinePlaneCurve)
 
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
@@ -311,7 +311,7 @@ end
 ################################################################################
 # compute the multiplicity of the affine plane curve C at the point P
 
-@doc Markdown.doc"""
+@doc raw"""
     multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the multiplicity of `C` at `P`.
@@ -347,7 +347,7 @@ end
 # compute the set of tangent lines of the affine plane curve C at the point P
 # (linear factors of the homogeneous part of lower degree of the equation).
 
-@doc Markdown.doc"""
+@doc raw"""
     tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
@@ -396,7 +396,7 @@ end
 # Singular locus in the sense of varieties.
 # Might change depending on future changes on VarietyModule.
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_locus(C::AffinePlaneCurve)
 
 Return the singular locus of `C` as a variety.
@@ -412,7 +412,7 @@ end
 # Compute the intersection multiplicity of the two affine plane curves at the
 # given point.
 
-@doc Markdown.doc"""
+@doc raw"""
     intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the intersection multiplicity of `C` and `D` at `P`.
@@ -448,7 +448,7 @@ end
 ################################################################################
 # Check if the two curves intersect transversally at the given point.
 
-@doc Markdown.doc"""
+@doc raw"""
     aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
@@ -484,7 +484,7 @@ end
 ################################################################################
 # Check if a reduced curve is smooth.
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth_curve(C::AffinePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
@@ -512,7 +512,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     arithmetic_genus(C::AffinePlaneCurve)
 
 Return the arithmetic genus of the projective closure of `C`.
@@ -529,7 +529,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     geometric_genus(C::AffinePlaneCurve)
 
 Return the geometric genus of the projective closure of `C`.

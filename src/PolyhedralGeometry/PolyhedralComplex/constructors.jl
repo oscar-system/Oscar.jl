@@ -18,7 +18,7 @@ PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(
 pm_object(pc::PolyhedralComplex) = pc.pm_complex
 
 
-@doc Markdown.doc"""
+@doc raw"""
     PolyhedralComplex{T}(polyhedra, vr, far_vertices, L) where T<:scalar_types
 
 # Arguments

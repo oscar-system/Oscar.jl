@@ -92,7 +92,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
   return T(numerator(k))::T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
@@ -211,7 +211,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,

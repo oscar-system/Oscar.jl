@@ -162,8 +162,8 @@ end
 @attr function _poly_module(M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
-  v = [_lifting_map(F)(g) for g in gens(M)] 
-  w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
+  v = elem_type(FP)[_lifting_map(F)(g) for g in gens(M)] 
+  w = elem_type(FP)[f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
   MP = SubModuleOfFreeModule(FP, vcat(v, w))
   return MP
 end

@@ -1,6 +1,5 @@
 module PrimDec
 using Oscar
-import Markdown
 import Singular
 
 include("ZeroDec.jl")
@@ -23,7 +22,7 @@ include("ZeroDec.jl")
 #           basering has a global ordering
 #           basering has characteristic 0
 #OUTPUT:    Primary decomposition of I with associated primes in a list 
-@doc Markdown.doc"""
+@doc raw"""
     decomp(I::Oscar.ideal; usefglm::Bool)
 
 Computes the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,

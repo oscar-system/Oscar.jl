@@ -211,7 +211,7 @@
   E53res = pullback(inc_Y53)(E5353)
 
   # Compute the intersection matrix:
-  # A = zero(matrix_space(ZZ, 8, 8))
+  # A = zero_matrix(ZZ, 8, 8)
   # E = [E1res, E2res, E3res, E41res, E42res, E51res, E52res, E53res]
   # F = weil_divisor.(E)   # too slow to be a test
   # for i in 1:8

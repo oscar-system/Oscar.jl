@@ -32,7 +32,7 @@ function _check_imgs_quo(R, S::Ring, imgs, coeff_map = nothing)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 
     hom(A::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)

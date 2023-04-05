@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     underlying_scheme(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns
@@ -18,14 +18,25 @@ julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
 
 julia> underlying_scheme(affine_toric_scheme)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2 over Rational Field by ideal()
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2 over Rational Field by ideal(0)
 ```
 """
-underlying_scheme(X::ToricSpec) = X.X
-export underlying_scheme
+function underlying_scheme(X::ToricSpec)
+  if !isdefined(X, :X)
+    if length(X.var_names) == 0
+      I = toric_ideal(affine_normal_toric_variety(X))
+      X.X = Spec(base_ring(I), I)
+    else
+      R, _ = polynomial_ring(QQ, X.var_names)
+      I = toric_ideal(R, hilbert_basis(X))
+      X.X = Spec(R, I)
+    end
+  end
+  return X.X
+end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_normal_toric_variety(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns
@@ -47,10 +58,9 @@ Normal, affine toric variety
 ```
 """
 affine_normal_toric_variety(X::ToricSpec) = X.antv
-export affine_normal_toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cone(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns
@@ -72,10 +82,9 @@ Polyhedral cone in ambient dimension 2
 ```
 """
 cone(X::ToricSpec) = cone(affine_normal_toric_variety(X))
-export cone
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dual_cone(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns the dual
@@ -99,11 +108,15 @@ julia> polarize(cone(affine_toric_scheme)) == dual_cone(affine_toric_scheme)
 true
 ```
 """
-dual_cone(X::ToricSpec) = X.dual_cone
-export dual_cone
+function dual_cone(X::ToricSpec) 
+  if !isdefined(X, :dual_cone)
+    X.dual_cone = polarize(cone(X))
+  end
+  return X.dual_cone
+end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_basis(X::ToricSpec)
 
 For an affine toric scheme ``X``, this returns the Hilbert
@@ -135,5 +148,10 @@ julia> hilbert_basis(affine_toric_scheme)
 [ 0   1]
 ```
 """
-hilbert_basis(X::ToricSpec) = X.hb
-export hilbert_basis
+function hilbert_basis(X::ToricSpec)
+  if !isdefined(X, :hb)
+    X.hb = matrix(ZZ, hilbert_basis(dual_cone(X)))
+  end
+  return X.hb
+end
+

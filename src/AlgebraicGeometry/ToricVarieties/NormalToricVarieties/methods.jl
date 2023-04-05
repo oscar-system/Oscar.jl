@@ -2,7 +2,7 @@
 # Betti numbers
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     betti_number(v::AbstractNormalToricVariety, i::Int)
 
 Compute the `i`-th Betti number of the normal toric variety `v`. 

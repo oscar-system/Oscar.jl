@@ -2,7 +2,7 @@ export has_canonical_singularities
 export has_terminal_singularities
 export linear_quotient
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_quotient(G::MatrixGroup)
 
 Return the linear quotient by `G`, that is, the orbit space of the action of `G`
@@ -50,7 +50,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     class_group(L::LinearQuotient)
 
 Return the class group of the linear quotient `L` and a map from `group(L)` to
@@ -92,7 +92,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     age(g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
 
 Return the age of `g` with respect to the chosen root of unity `zeta[1]` of order
@@ -110,7 +110,7 @@ function age(g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
   return ZZRingElem(sum( m*powers_of_zeta[e] for (e, m) in sp ))//order(g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     representatives_of_junior_elements(G::MatrixGroup, zeta::Tuple{FieldElem, Int})
 
 Return representatives of the conjugacy classes of `G` which consist of junior
@@ -162,7 +162,7 @@ function weights_of_action(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T
   return S, RtoS
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     monomial_valuation(R::MPolyRing, g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
 
 Return the monomial valuation on `R` defined by `g` with respect to the chosen
@@ -200,7 +200,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     has_canonical_singularities(L::LinearQuotient)
 
 Return `true` if `L` has canonical singularities, `false` otherwise.
@@ -218,7 +218,7 @@ function has_canonical_singularities(L::LinearQuotient)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     has_terminal_singularities(L::LinearQuotient)
 
 Return `true` if `L` has terminal singularities, `false` otherwise.

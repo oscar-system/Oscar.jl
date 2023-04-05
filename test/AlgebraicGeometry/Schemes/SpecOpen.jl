@@ -74,7 +74,7 @@ end
   V = domain(maximal_extension(Axy, 1//x))
   @test Axy == V
 
-  M = matrix_space(R,2,2)([x u; y v])
+  M = matrix(R, [x u; y v])
   h = det(M)
   X = subscheme(A, h)
   XU = intersect(X, U)

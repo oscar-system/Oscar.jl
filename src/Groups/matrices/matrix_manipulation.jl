@@ -33,7 +33,7 @@ function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <:
    return X
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     upper_triangular_matrix(L)
 
 Return the upper triangular matrix whose entries on and above the diagonal are the elements of `L`.
@@ -56,7 +56,7 @@ function upper_triangular_matrix(L)
    return x
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     lower_triangular_matrix(L)
 
 Return the upper triangular matrix whose entries on and below the diagonal are the elements of `L`.

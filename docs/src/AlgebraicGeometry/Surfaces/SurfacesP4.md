@@ -15,6 +15,34 @@ Pages = ["SurfacesP4.md"]
 
 # Nongeneral Type Surfaces in $\mathbb P^4$
 
+Every smooth, projective surface can be embedded in $\mathbb P^5$, but there are constraints
+on the numerical invariants of a smooth surface in $\mathbb P^4$: The invariants of each such
+surface $S$ satisfy the double point formula
+
+$d^2-5d-10(\pi-1)+2(\chi(\mathcal O_S)-K_S^2) = 0.$
+
+Here, $d$ is the degree of $S$, $\pi$ its sectional genus, $\chi(\mathcal O_S)$ its Euler-Poincare
+characteristic, and $K_S$ its canonical class.
+The double point  formula is a key ingredient in the proof of a
+theorem of Ellingsrud and Peskine which states that there are only finitely many families of
+smooth surfaces in $\mathbb P^4$ which are not of general type. That is, the degree of such
+surfaces in bounded from above. The best bound known so far is $52$, while
+examples exist up to degree $15$.
+
+For details, we refer to
+- [DES93](@cite)
+- [Pop93](@cite)
+- [DS00](@cite)
+and the references given there.
+
+Below, we present functions which return one hard coded example for each family presented
+in the first two papers above.  Based on these papers, the existence of further families has
+been shown. Explicit examples to be included here are under construction.
+
+!!! note
+    To ease subsequent computations, all hard coded examples are defined over a finite prime field.
+
+
 ## Rational Surfaces
 
 #### A Rational Surface with $d=3$, $\pi=0$

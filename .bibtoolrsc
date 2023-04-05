@@ -33,6 +33,7 @@ sort.order{* =
 }
 
 print.align.key = 0
+print.line.length = 120
 preserve.key.case = on
 sort.cased = off
 print.use.tab = off

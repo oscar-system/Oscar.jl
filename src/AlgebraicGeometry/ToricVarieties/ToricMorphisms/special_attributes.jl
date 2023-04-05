@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     morphism_from_cox_variety(variety::AbstractNormalToricVariety)
 
 This method returns the quotient morphism from the Cox variety to the toric variety in question.
@@ -21,7 +21,7 @@ A toric morphism
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cox_variety(variety::AbstractNormalToricVariety)
 
 This method returns the Cox variety of the toric variety in question.

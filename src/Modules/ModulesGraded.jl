@@ -4,7 +4,7 @@
 # FreeMod_dec constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
 
 Construct a decorated (graded or filtered) free module over the ring `R` with rank `n`
@@ -17,7 +17,7 @@ function FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = fa
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:n], [decoration(R)[0] for i=1:n])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false)
 
 Create the decorated free module $R^n$ equipped with its basis of standard unit vectors
@@ -44,7 +44,7 @@ Decorated free module of rank 3 over Multivariate Polynomial Ring in x, y over R
 free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, n, name, cached = cached)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) 
 
 Construct a decorated (graded or filtered) free module over the ring `R` 
@@ -59,7 +59,7 @@ function FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:length(d)],d)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false)
 
 Create the decorated free module $R^n$ (`n` is the length of `d`)
@@ -120,21 +120,21 @@ function forget_decoration(F::FreeMod_dec)
   return F.F
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(F::FreeMod_dec)
 
 Return the underlying ring of `F`.
 """
 base_ring(F::FreeMod_dec) = forget_decoration(F).R
 
-@doc Markdown.doc"""
+@doc raw"""
     rank(F::FreeMod_dec)
 
 Return the rank of `F`.
 """
 rank(F::FreeMod_dec) = rank(forget_decoration(F))
 
-@doc Markdown.doc"""
+@doc raw"""
     decoration(F::FreeMod_dec)
 
 Return the vector of degrees of the standard unit vectors.
@@ -142,14 +142,14 @@ Return the vector of degrees of the standard unit vectors.
 decoration(F::FreeMod_dec) = F.d
 decoration(R::MPolyDecRing) = R.D
 
-@doc Markdown.doc"""
+@doc raw"""
     is_graded(F::FreeMod_dec)
 
 Check if `F` is graded.
 """
 is_graded(F::FreeMod_dec) = is_graded(base_ring(F))
 
-@doc Markdown.doc"""
+@doc raw"""
     is_filtered(F::FreeMod_dec)
 
 Check if `F` is filtered.
@@ -158,7 +158,7 @@ is_filtered(F::FreeMod_dec) = is_filtered(base_ring(F))
 
 is_decorated(F::FreeMod_dec) = true
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(F::FreeMod_dec, G::FreeMod_dec)
 
 Return  `true` if `F` and `G` are equal, `false` otherwise.
@@ -174,7 +174,7 @@ end
 # FreeModElem_dec constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T
 
 Return the element of `F` whose coefficients with respect to the basis of
@@ -182,7 +182,7 @@ standard unit vectors of `F` are given by the entries of `c`.
 """
 FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T = FreeModElem_dec{T}(c, parent)
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
 
 Return the element of `F` whose coefficients with respect to the basis of
@@ -194,7 +194,7 @@ function FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
   return FreeModElem_dec{T}(sparse_coords,parent)
 end
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    (F::FreeMod_dec{T})(c::SRow{T}) where T
 #
 #Return the element of `F` whose coefficients with respect to the basis of
@@ -204,7 +204,7 @@ function (F::FreeMod_dec{T})(c::SRow{T}) where T
   return FreeModElem_dec(c, F)
 end
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    (F::FreeMod_dec{T})(c::Vector{T}) where T
 #
 #Return the element of `F` whose coefficients with respect to the basis of
@@ -214,7 +214,7 @@ function (F::FreeMod_dec{T})(c::Vector{T}) where T
   return FreeModElem_dec(c, F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (F::FreeMod_dec)()
 
 Return the zero element of `F`.
@@ -223,7 +223,7 @@ function (F::FreeMod_dec)()
   return FreeModElem_dec(sparse_row(base_ring(F)), F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
 
 Return the element of `F` whose coefficients with respect to the basis of 
@@ -233,7 +233,7 @@ function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingEl
   return FreeModElem_dec{T}(coords, parent)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem_dec(v::FreeModElem{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
 
 Lift `v` to the decorated module `parent`.
@@ -249,14 +249,14 @@ parent_type(::Type{FreeModElem_dec{T}}) where {T} = FreeMod_dec{T}
 elem_type(::FreeMod_dec{T}) where {T} = FreeModElem_dec{T}
 parent_type(::FreeModElem_dec{T}) where {T} = FreeMod_dec{T}
 
-@doc Markdown.doc"""
+@doc raw"""
 """
 function forget_decoration(v::FreeModElem_dec)
   return FreeModElem(coordinates(v),forget_decoration(parent(v)))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     generator_symbols(F::FreeMod_dec)
 
 Return the list of symbols of the standard unit vectors.
@@ -267,7 +267,7 @@ end
 @enable_all_show_via_expressify FreeModElem_dec
 
 
-@doc Markdown.doc"""
+@doc raw"""
     degree_homogeneous_helper(u::FreeModElem_dec)
 
 Compute the degree and homogeneity of `u` (simultaneously).
@@ -313,7 +313,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
   return ww, homogeneous
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(a::FreeModElem_dec)
 
 Return the degree of `a`. If `a` has no degree an error is thrown.
@@ -323,7 +323,7 @@ function degree(a::FreeModElem_dec)
   d === nothing ? error("elem has no degree") : return d
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_components(a::FreeModElem_dec)
 
 Return the homogeneous components of `a` in a dictionary.
@@ -347,7 +347,7 @@ function homogeneous_components(a::FreeModElem_dec)
   return res
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
 
 Return the homogeneous component of `a` which has degree `g`.
@@ -361,7 +361,7 @@ function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
   return x
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_homogeneous(a::FreeModElem_dec)
 
 Check if `a` is homogeneous.
@@ -378,7 +378,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     tensor_product(G::FreeMod_dec...; task::Symbol = :none)
 
 Given decorated free modules $G_i$ compute the decorated tensor product 

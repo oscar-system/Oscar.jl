@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(X::ToricCoveredScheme)
 
 For a toric covered scheme ``X``, this method
@@ -17,4 +17,4 @@ true
 ```
 """
 is_smooth(X::ToricCoveredScheme) = is_smooth(normal_toric_variety(X))
-export is_smooth
+

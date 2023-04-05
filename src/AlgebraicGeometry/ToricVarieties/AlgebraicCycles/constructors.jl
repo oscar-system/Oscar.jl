@@ -13,7 +13,7 @@ end
 # 2: Generic constructors
 ####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
@@ -43,7 +43,7 @@ function rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRi
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
@@ -69,7 +69,7 @@ end
 # 3: Special constructors
 ####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(d::ToricDivisor)
 
 Construct the rational equivalence class of algebraic cycles corresponding to the toric divisor `d`.
@@ -97,7 +97,7 @@ function rational_equivalence_class(d::ToricDivisor)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(c::ToricDivisorClass)
 
 Construct the algebraic cycle corresponding to the toric divisor class `c`.
@@ -117,7 +117,7 @@ Rational equivalence class on a normal toric variety represented by 2V(x3)
 rational_equivalence_class(c::ToricDivisorClass) = rational_equivalence_class(toric_divisor(c))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     RationalEquivalenceClass(l::ToricLineBundle)
 
 Construct the toric algebraic cycle corresponding to the toric line bundle `l`.
@@ -137,7 +137,7 @@ julia> polynomial(rational_equivalence_class(l))
 rational_equivalence_class(l::ToricLineBundle) = rational_equivalence_class(toric_divisor(l))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(cc::CohomologyClass)
 
 Construct the toric algebraic cycle corresponding to the cohomology class `cc`.
@@ -163,7 +163,7 @@ Rational equivalence class on a normal toric variety represented by 2V(x3)
 rational_equivalence_class(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(chow_ring(toric_variety(cc)), cc))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
 
 Construct the rational equivalence class of algebraic
