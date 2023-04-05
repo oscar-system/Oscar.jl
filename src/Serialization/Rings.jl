@@ -64,7 +64,7 @@ function load_internal(s::DeserializerState,
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
-
+    
     if T <: PolyRing
         return polynomial_ring(base_ring, symbols..., cached=false)[1]
     elseif T <: UniversalPolyRing
@@ -160,6 +160,18 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyRingElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
+    coeff_ring = coefficient_ring(parent_ring)
+    coeff_type = elem_type(coeff_ring)
+    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    
+    return parent_ring(coeffs)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: PolyRingElem},
+                                   dict::Dict,
+                                   parent_ring::FqPolyRing)
+
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)

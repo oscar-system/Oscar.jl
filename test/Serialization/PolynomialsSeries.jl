@@ -12,7 +12,7 @@ Fin, d = FiniteField(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = TropicalSemiring()
-F, o = Hecke.Nemo._FiniteField(4)
+F,  = Hecke.Nemo._FiniteField(4)
 Fs, s = F["s"]
 FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1)
 

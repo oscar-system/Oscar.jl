@@ -174,16 +174,16 @@ end
 # elements
 function save_internal(s::SerializerState, k::FqFieldElem)
     K = parent(k)
-
     if absolute_degree(K) == 1
         return Dict(
             :parent => save_type_dispatch(s, K),
             :polynomial => save_type_dispatch(s, lift(ZZ, k))
         )
     end
+    println(lift(ZZ["x"][1], k))
     return Dict(
         :parent => save_type_dispatch(s, K),
-        :polynomial => save_type_dispatch(s, k)
+        :polynomial => save_type_dispatch(s, lift(ZZ["x"][1], k))
     )
 end
 
@@ -202,10 +202,15 @@ end
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: FqFieldElem},
                                    dict::Dict,
-                                   parent_field::Union{fqPolyRepField, SimpleNumField})
-    polynomial_parent = parent(defining_polynomial(parent_field))
-    polynomial = load_unknown_type(s, dict[:polynomial]; parent=polynomial_parent)
-
+                                   parent_field::FqField)
+    if absolute_degree(parent_field) == 1
+        polynomial = load_type_dispatch(s, ZZRingElem, dict[:polynomial])
+    else
+        polynomial_parent = parent(defining_polynomial(parent_field))
+        polynomial = load_type_dispatch(s, PolyRingElem, dict[:polynomial];
+                                        parent=polynomial_parent)
+        println(polynomial)
+    end
     return parent_field(polynomial)
 end
 

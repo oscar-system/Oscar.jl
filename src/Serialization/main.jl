@@ -104,8 +104,6 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    println(obj)
-    sleep(1)
     if is_basic_serialization_type(T) && s.depth != 0
         return save_internal(s, obj)
     end
@@ -145,7 +143,7 @@ end
 
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
-    @assert is_basic_serialization_type(T)
+    @assert is_basic_serialization_type(T) 
     if parent !== nothing
         load_internal_with_parent(s, T, str, parent)
     end
