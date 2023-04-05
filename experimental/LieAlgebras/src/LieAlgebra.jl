@@ -222,8 +222,8 @@ function lie_algebra(
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
   cached::Bool=true,
 )
-  @req GAP.Globals.IsLieAlgebra(gapL) "gapL must be a Lie algebra."
-  if GAP.Globals.IsLieObjectCollection(gapL)
+  @req GAPWrap.IsLieAlgebra(gapL) "gapL must be a Lie algebra."
+  if GAPWrap.IsLieObjectCollection(gapL)
     return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s; cached))
   else
     return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s; cached))
