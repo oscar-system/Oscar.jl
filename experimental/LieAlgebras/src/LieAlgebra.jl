@@ -202,13 +202,13 @@ end
 # currently, the user should only use _iso_oscar_gap(LO) to get the isomorphism
 
 function _get_iso_oscar_gap!(f, LO::LieAlgebra{C}) where {C<:RingElement}
-  get_attribute!(f, LO, :iso_oscar_gap)::MapFromFunc{typeof(LO),GAP.GapObj}
+  get_attribute!(f, LO, :iso_oscar_gap)::Map{typeof(LO),GAP.GapObj}
 end
 
 function _set_iso_oscar_gap!(
-  f, LO::LieAlgebra{C}, iso::MapFromFunc{<:LieAlgebra{C},GAP.GapObj}
+  LO::LieAlgebra{C}, iso::Map{<:LieAlgebra{C},GAP.GapObj}
 ) where {C<:RingElement}
-  set_attribute!(f, LO, :iso_oscar_gap => iso)
+  set_attribute!(LO, :iso_oscar_gap => iso)
 end
 
 ###############################################################################
@@ -217,34 +217,15 @@ end
 #
 ###############################################################################
 
-function general_linear_lie_algebra(R::Ring, n::Int)
-  basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
-  s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
-  L = lie_algebra(R, n, basis, s)
-  set_attribute!(L, :type => :general_linear)
-  return L
-end
-
-function special_linear_lie_algebra(R::Ring, n::Int)
-  basis_e = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in (i + 1):n]
-  basis_f = [(b = zero_matrix(R, n, n); b[j, i] = 1; b) for i in 1:n for j in (i + 1):n]
-  basis_h = [
-    (b = zero_matrix(R, n, n); b[i, i] = 1; b[i + 1, i + 1] = -1; b) for i in 1:(n - 1)
-  ]
-  s_e = ["e_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  s_f = ["f_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  s_h = ["h_$(i)" for i in 1:(n - 1)]
-  L = lie_algebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h])
-  set_attribute!(L, :type => :special_linear)
-  return L
-end
-
-function special_orthogonal_lie_algebra(R::Ring, n::Int)
-  basis = [
-    (b = zero_matrix(R, n, n); b[i, j] = 1; b[j, i] = -1; b) for i in 1:n for j in (i + 1):n
-  ]
-  s = ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  L = lie_algebra(R, n, basis, s)
-  set_attribute!(L, :type => :special_orthogonal)
-  return L
+function lie_algebra(
+  gapL::GAP.GapObj,
+  s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
+  cached::Bool=true,
+)
+  @req GAP.Globals.IsLieAlgebra(gapL) "gapL must be a Lie algebra."
+  if GAP.Globals.IsLieObjectCollection(gapL)
+    return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s; cached))
+  else
+    return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s; cached))
+  end
 end
