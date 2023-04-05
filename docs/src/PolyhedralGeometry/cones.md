@@ -37,6 +37,7 @@ reason for keeping cones as a distinct type.
 
 ```@docs
 positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+cone_from_inequalities
 secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
