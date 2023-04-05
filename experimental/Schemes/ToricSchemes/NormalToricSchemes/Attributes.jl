@@ -49,100 +49,72 @@ covered scheme with 3 affine patches in its default covering
 ```
 """
 @attr function underlying_scheme(Z::ToricCoveredScheme)
-  F = fan(Z)
-  C = maximal_cones(F)
-  
   antv = affine_open_covering(Z)
   var_names = [Symbol.(["x_$(i)_$(k)" for i in 1:ngens(base_ring(toric_ideal(antv[k])))]) for k in 1:length(antv)]
   patch_list = [ToricSpec(U, var_names=n) for (U, n) in zip(antv, var_names)]
-  
   cov = Covering(patch_list)
   
   for i in 1:(length(patch_list)-1)
-    X = patch_list[i]
-    CX = cone(X)
-    CXdual = dual_cone(X)
     for j in i+1:length(patch_list)
+      
+      X = patch_list[i]
       Y = patch_list[j]
-      CY = cone(Y)
+      
+      # Step 1: Only glue if the cone of intersection has the "right" dimension:
+      facet = intersect(cone(X), cone(Y))
+      (dim(facet) == dim(cone(X)) - 1) || continue
+      
+      # Step 2: Find localization element vmat
+      CXdual = dual_cone(X)
       CYdual = dual_cone(Y)
-      
-      # Now glue X and Y
-      
-      # Step 1: Find the cone of the intersection of X and Y.
-      facet = intersect(CX, CY)
-      
-      # Step 2: Harvest the dual cone
-      dual_facet = polarize(facet)
-      if !(dim(facet) == dim(CX) - 1)
-        continue
+      candidates = polarize(facet).pm_cone.HILBERT_BASIS_GENERATORS[2]
+      pos = findfirst(j -> (contains(CXdual, candidates[j,:]) && contains(CYdual, -candidates[j,:])), 1:nrows(candidates))
+      sign = 1
+      if pos === nothing
+        pos = findfirst(j -> (contains(CXdual, -candidates[j,:]) && contains(CYdual, candidates[j,:])), 1:nrows(candidates))
+        sign = -1
       end
+      @req pos !== nothing "no element found for localization"
+      vmat = sign * matrix(ZZ.(collect(candidates[pos,:])))
       
-      # Step 3: Extract the candidates for the localization element.
-      candidates = dual_facet.pm_cone.HILBERT_BASIS_GENERATORS[2]
-      v = candidates[1,:]
-      for j in 1:nrows(candidates)
-        v = candidates[j,:]
-        if contains(CXdual, v) && contains(CYdual, -v)
-          break
-        elseif contains(CXdual, -v) && contains(CYdual, v)
-          v = -v
-          break
-        end
-      end
-      (contains(CXdual, v) && contains(CYdual, -v)) || error("no element found for localization")
-      
-      # Step 4: We express the loclization element (it is v, resp. -v) in the Hilbert basis of the two patches.
-      # -> Then localize at this element.
-      vmat = matrix(ZZ.(collect(v)))
-      
+      # Step 3: Localize X at vmat
       AX = transpose(hilbert_basis(X))
       Id = identity_matrix(ZZ, ncols(AX))
       sol = solve_mixed(AX, vmat, Id, zero(vmat))
       fX = prod([x^k for (x, k) in zip(gens(ambient_coordinate_ring(X)), sol)])
       U = PrincipalOpenSubset(X, OO(X)(fX))
       
+      # Step 4: Localize Y at vmat
       AY = transpose(hilbert_basis(Y))
       Id = identity_matrix(ZZ, ncols(AY))
       sol = solve_mixed(AY, -vmat, Id, zero(vmat))
       fY = prod([x^(k>0 ? 1 : 0) for (x, k) in zip(gens(ambient_coordinate_ring(Y)), sol)])
       V = PrincipalOpenSubset(Y, OO(Y)(fY))
       
-      # Step 5: Set up the glueing isomorphisms.
-      # (Assumption: v is part of the Hilbert basis.)
-      l = 0
-      for j in 1:ncols(AX)
-        if vmat == AX[:, j]
-          l = j
-          break
-        end
-      end
+      # Step 5: Compute the glueing isomorphisms V -> U
+      l = findfirst(j -> (vmat == AX[:,j]), 1:ncols(AX))
       Idext = identity_matrix(ZZ, ncols(AX))
       Idext[l,l] = 0
       img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
       fres = hom(OO(V), OO(U), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for w in img_gens])
       
-      l = 0
-      for j in 1:ncols(AY)
-        if -vmat == AY[:, j] 
-          l = j
-          break
-        end
-      end
+      # Step 6: Compute the glueing isomorphisms U -> V
+      l = findfirst(j -> (-vmat == AY[:,j]), 1:ncols(AY))
       Idext = identity_matrix(ZZ, ncols(AY))
       Idext[l,l] = 0
       img_gens = [solve_mixed(AY, AX[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AX)]
       gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
       
+      # Step 7: Assign the gluing isomorphisms
       set_attribute!(gres, :inverse, fres)
       set_attribute!(fres, :inverse, gres)
       f = SpecMor(U, V, fres)
       g = SpecMor(V, U, gres)
       set_attribute!(g, :inverse, f)
       set_attribute!(f, :inverse, g)
-      
       G = SimpleGlueing(X, Y, f, g)
       add_glueing!(cov, G)
+      
     end
   end
   
