@@ -83,7 +83,7 @@ function setup_experimental_package(Oscar::Module, package_name::String)
 
   # Set symlink inside docs/src/experimental
   symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs/src")
+  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs", "src")
 
   if !ispath(symlink_target)
     return []
