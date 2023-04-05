@@ -94,7 +94,7 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
       error("$symlink_link already exists, but is not a symlink to $symlink_target
 Please investigate the contents of $symlink_link,
-optionally move them somewhere else and delete the directiory once you are done.")
+optionally move them somewhere else and delete the directory once you are done.")
   end
 
   # Read doc.main of package
@@ -108,6 +108,14 @@ optionally move them somewhere else and delete the directiory once you are done.
 end
 
 function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
+
+  # Remove symbolic links from earlier runs
+  expdocdir = joinpath(Oscar.oscardir, "docs/src/Experimental")
+  old_links = filter(x -> islink(joinpath(expdocdir, x)) && x in Oscar.exppkgs,
+                     readdir(expdocdir))
+  for x in old_links
+    rm(joinpath(expdocdir, x))
+  end
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
