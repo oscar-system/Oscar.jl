@@ -110,19 +110,6 @@ end
 
 ###############################################################################
 #
-#   Attribute accessors
-#
-###############################################################################
-
-function _gap_object(L::AbstractLieAlgebra{C}) where {C<:RingElement}
-  # later change to storing an isomorphism instead
-  get_attribute!(L, :gap_object) do
-    gap_lie_algebra_by_struct_consts(L)
-  end
-end
-
-###############################################################################
-#
 #   Constructor
 #
 ###############################################################################
