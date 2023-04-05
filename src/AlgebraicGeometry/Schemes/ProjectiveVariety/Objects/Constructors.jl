@@ -44,6 +44,9 @@ julia> dim(X)
 2
 
 julia> Y = projective_variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
+Projective variety
+  in IP^3 over Rational Field
+  defined by ideal(s0^3 + s1^3 + s2^3 + s3^3, s0)
 
 julia> dim(Y)
 1
