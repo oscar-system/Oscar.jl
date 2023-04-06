@@ -1,6 +1,6 @@
 module ModStdQt
 
-using Oscar, Markdown
+using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
 
@@ -558,7 +558,7 @@ function _cmp(f::MPolyRingElem, g::MPolyRingElem)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute
@@ -574,8 +574,8 @@ The return value is an array
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
       extension, the last entry (the integer) is the multiplicity.
       Since there are degree(h(t)) many abs. irreducible factors, which 
-      are all conjugate to the 1st tuple entry. 
-      The 2nd entry is the product of all the other conjugates,
+      are all conjugate to the 1st tuple entry, we return the product of the 
+      remaining degree - 1 many as the 2nd entry.
 
 # Examples     
 
@@ -588,7 +588,7 @@ julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
  (X[1] + t*X[2], X[1] - t*X[2], 1)
- (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
+ (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1, 1)
 
 julia> parent(f[3][1])
 Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
