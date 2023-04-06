@@ -681,8 +681,8 @@ function primary_decomposition(I::IdealSheaf)
     #@show length(prime_parts)
   end
 
-  prime_components = [IdealSheaf(X, P, check=true) for P in prime_parts] # TODO: Set to false!
-  primary_components = [IdealSheaf(X, Q, check=true) for Q in primary_parts]
+  prime_components = [IdealSheaf(X, P, check= false) for P in prime_parts] # TODO: Set to false!
+  primary_components = [IdealSheaf(X, Q, check= false) for Q in primary_parts]
 
   return collect(zip(primary_components, prime_components))
 end
