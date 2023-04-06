@@ -1267,18 +1267,26 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   R = base_ring(W)
 
   H, mH = homogeneous_component(R, d)
-  B = Set{elem_type(W)}()
-  for h = basis(H)
-    b = W(mH(h))
-    if !iszero(b)
-      push!(B, b)
+  I = modulus(W)
+  M = gens(leading_ideal(I))
+  cache = Dict{typeof(d), typeof(mH)}()
+  q = Set{elem_type(H)}()
+  for h = M
+    g = degree(h)
+    if haskey(cache, g)
+      mI = cache[g]
+    else
+      mI = cache[g] = homogeneous_component(R, d-g)[2]
+    end
+    for x = gens(domain(mI))
+      push!(q, preimage(mH, h*mI(x)))
     end
   end
-  B = [x for x = B]
 
-  M, h = vector_space(base_ring(R), B, target = W)
-  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
-  return M, h
+  s, ms = sub(H, collect(q))
+  Q, mQ = quo(H, s)
+#  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
+  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
 end
 
 @doc raw"""
