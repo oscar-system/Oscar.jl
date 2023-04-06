@@ -105,6 +105,10 @@ In the graded case, we additionally have:
 grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
+```@docs
+homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+```
+
 ### Dimension
 
 ```@docs
