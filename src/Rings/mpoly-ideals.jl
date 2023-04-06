@@ -583,6 +583,9 @@ x^2 + 1
 """
 @attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
+  if is_zero(I)
+     return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(R, zero(R)), 1)]
+  end
   singular_assure(I)
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
   decomp = d[:primary_decomp]
