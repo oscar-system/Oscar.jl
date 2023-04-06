@@ -218,13 +218,18 @@ function inverse(F::AffAlgHom)
   return psi
 end
 
-function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
-  @assert parent(f) === codomain(F)
-  return preimage_with_kernel(F, f)[1]
+function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+  return preimage(F, f), kernel(F)
 end
 
-function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
-  @assert parent(f) === codomain(F)
+function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+  fl, g = has_preimage(F, f)
+  fl && error("Element not contained in image")
+  return g
+end
+
+function has_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+  @req parent(f) === codomain(F) "Polynomial is not element of the codomain"
   r = domain(F)
   s = codomain(F)
   n = ngens(r)
@@ -233,8 +238,11 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRing
   (S, _, _, g) = _ring_helper(s, f, [zero(s)])
   (T, inc, pr, J, o) = _groebner_data(F, :degrevlex)
   D = normal_form([inc(g)], J, ordering = first(collect(keys(J.gb))))
-  !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
-  return (pr(D[1]), kernel(F))
+
+  if leading_monomial(D[1]) < gen(T, m)
+    return true, pr(D[1])
+  end
+  return false, zero(r)
 end
 
 @doc raw"""

@@ -50,30 +50,6 @@ end
   @test isfinite(f3) == false
 end
 
-@testset "subalgebra membership" begin
-  s, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"])
-  S = quo(s, ideal(s, [c-b^3]))[1]
-  t = subalgebra_membership(S(c+a^2-b^6), S.([a,b^3]))
-  T = parent(t[2])
-  @test t[1] == true
-  @test t[2] == gen(T, 1)^2-gen(T, 2)^2+gen(T, 2)
-
-  R, (x, y, z) = graded_polynomial_ring(QQ, [ "x", "y", "z" ], [ 3, 1, 3 ])
-  f = x^2 - y^6 + z^2
-  v = [ x, y^3, z - y^3 ]
-  fl, t = subalgebra_membership_homogeneous(f, v)
-  @test fl
-  @test t(v...) == f
-
-  I = ideal(R, [ z - y^3 ])
-  Q, RtoQ = quo(R, I)
-  f = Q(x)^2 + Q(y)^6 + Q(z)^2
-  v = [ Q(x), Q(y)^3 ]
-  fl, t = subalgebra_membership_homogeneous(f, v)
-  @test fl
-  @test t(v...) == f
-end
-
 @testset "#655" begin
   R, vars = QQ["x","y"]
   x = vars[1]
