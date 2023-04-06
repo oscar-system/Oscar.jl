@@ -83,19 +83,24 @@ function setup_experimental_package(Oscar::Module, package_name::String)
 
   # Set symlink inside docs/src/experimental
   symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  symlink_target = joinpath("../../../experimental", package_name, "docs/src")
+  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs", "src")
+
+  if !ispath(symlink_target)
+    return []
+  end
+
   if !ispath(symlink_link)
     symlink(symlink_target, symlink_link)
   elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
       error("$symlink_link already exists, but is not a symlink to $symlink_target
 Please investigate the contents of $symlink_link,
-optionally move them somewhere else and delete the directiory once you are done.")
+optionally move them somewhere else and delete the directory once you are done.")
   end
-  
+
   # Read doc.main of package
   exp_s = read(doc_main_path, String)
   exp_doc = eval(Meta.parse(exp_s))
-  
+
   # Prepend path
   prefix = "Experimental/" * package_name * "/"
   result = add_prefix_to_experimental_docs(Oscar, exp_doc, prefix)
@@ -103,6 +108,12 @@ optionally move them somewhere else and delete the directiory once you are done.
 end
 
 function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
+
+  # Remove symbolic links from earlier runs
+  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
+  for x in readdir(expdocdir; join=true)
+    islink(x) && rm(x)
+  end
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)

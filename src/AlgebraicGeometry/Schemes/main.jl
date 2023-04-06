@@ -26,8 +26,8 @@ include("AffineVariety/Objects/Types.jl")
 include("AffineAlgebraicSet/Objects/Types.jl")
 include("ProjectiveSchemes/Objects/Types.jl")
 include("ProjectiveSchemes/Morphisms/Types.jl")
-include("ProjectiveVariety/Objects/Types.jl")
 include("ProjectiveAlgebraicSet/Objects/Types.jl")
+include("ProjectiveVariety/Objects/Types.jl")
 
 ########################################################################
 # Affine schemes                                                       #

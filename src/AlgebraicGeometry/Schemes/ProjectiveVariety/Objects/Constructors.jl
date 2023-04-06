@@ -6,11 +6,17 @@
 
 Convert ``X`` to an projective variety.
 
-If check is set, then compute the reduced scheme of `X` first.
+If `check` is set, compute the reduced scheme of `X` first.
 """
 function projective_variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
   check  ||  return ProjectiveVariety(X, check=check)
-  Xred,_ = reduced_scheme(X)
+  Xred = reduced_scheme(X)
+  return ProjectiveVariety(Xred, check=check)
+end
+
+function projective_variety(X::AbsProjectiveAlgebraicSet{<:Field}; check::Bool=true)
+  check  ||  return ProjectiveVariety(X, check=check)
+  Xred = X # already geometrically reduced
   return ProjectiveVariety(Xred, check=check)
 end
 
@@ -21,6 +27,30 @@ Return the projective variety defined by the homogeneous prime ideal ``I``.
 
 Since our varieties are irreducible, we check that ``I`` stays prime when
 viewed over the algebraic closure. This is an expensive check that can be disabled.
+
+```jldoctest
+julia> P3 = projective_space(QQ,3)
+Projective space of dimension 3
+  over Rational Field
+
+julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
+
+julia> X = projective_variety(s0^3 + s1^3 + s2^3 + s3^3)
+Projective variety
+  in IP^3 over Rational Field
+  defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
+
+julia> dim(X)
+2
+
+julia> Y = projective_variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
+Projective variety
+  in IP^3 over Rational Field
+  defined by ideal(s0^3 + s1^3 + s2^3 + s3^3, s0)
+
+julia> dim(Y)
+1
+```
 """
 projective_variety(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(base_ring(I),I), check=check)
 
