@@ -271,7 +271,6 @@ export binomial_primary_decomposition
 export bipyramid
 export birkhoff_polytope
 export blocks
-export blowup_on_ith_minimal_torus_orbit
 export bond_matroid
 export borcherds_method
 export boundary_lattice_points
