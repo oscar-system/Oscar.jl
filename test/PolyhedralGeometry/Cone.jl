@@ -11,9 +11,18 @@ const pm = Polymake
     Cone4 = positive_hull(T, R)
     Cone5 = positive_hull(T, [1 0 0; 1 1 0; 1 1 1; 1 0 1])
     Cone6 = positive_hull(T, [1//3 1//2; 4//5 2])
+    Cone7 = positive_hull(T, [0 1])
+    Cone8 = positive_hull(T, [1 1; 1 -1])
 
     @testset "core functionality" begin
         @test is_pointed(Cone1)
+        if T == QQFieldElem
+          @test !is_smooth(Cone2)
+          @test is_smooth(Cone7)
+          @test !is_smooth(Cone8)
+        end
+        @test is_simplicial(Cone7)
+        @test !is_simplicial(Cone5)
         @test is_fulldimensional(Cone1)
         if T == QQFieldElem
             @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
