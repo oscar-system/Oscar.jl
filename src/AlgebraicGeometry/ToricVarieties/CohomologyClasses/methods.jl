@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     integrate(c::CohomologyClass)
 
 Integrate the cohomolgy class `c` over the normal

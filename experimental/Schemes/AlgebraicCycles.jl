@@ -27,7 +27,7 @@ coefficient_ring_elem_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = elem_
 
 ### essential getters and functionality
 
-@doc Markdown.doc"""
+@doc raw"""
     scheme(D::AbsAlgebraicCycle)
 
 Return the `CoveredScheme` ``X`` on which `D` is defined.
@@ -38,7 +38,7 @@ scheme(D::AbsAlgebraicCycle) = scheme(underlying_cycle(D))
 # of `I` in the formal sum for `D`.
 getindex(D::AbsAlgebraicCycle, I::IdealSheaf) = getindex(underlying_cycle(D), I)
 
-@doc Markdown.doc"""
+@doc raw"""
     components(D::AbsAlgebraicCycle)
 
 Return the irreducible components ``Eⱼ`` of the divisor 
@@ -132,7 +132,7 @@ function setindex!(D::AlgebraicCycle, c::RingElem, I::IdealSheaf)
   coefficient_dict(D)[I] = c
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     AlgebraicCycle(X::CoveredScheme, R::Ring)
 
 Return the zero `AlgebraicCycle` over `X` with coefficients 
@@ -144,14 +144,14 @@ function AlgebraicCycle(X::AbsCoveredScheme, R::Ring)
 end
 
 # provide non-camelcase methods
-@doc Markdown.doc"""
+@doc raw"""
     algebraic_cycle(X::AbsCoveredScheme, R::Ring)
 
 See the documentation for `AlgebraicCycle`.
 """
 algebraic_cycle(X::AbsCoveredScheme, R::Ring) = AlgebraicCycle(X, R)
 
-@doc Markdown.doc"""
+@doc raw"""
     AlgebraicCycle(I::IdealSheaf, R::Ring)
 
 Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients 
@@ -165,7 +165,7 @@ end
 
 algebraic_cycle(I::IdealSheaf, R::Ring) = AlgebraicCycle(I, R)
 
-@doc Markdown.doc"""
+@doc raw"""
     AlgebraicCycle(I::IdealSheaf)
 
 Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
@@ -304,7 +304,7 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     integral(W::AbsAlgebraicCycle)
 
 Assume ``W`` is an algebraic cycle on ``X``. This returns the sum of 

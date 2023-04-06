@@ -4,7 +4,7 @@ function test_elem(K::QQAbField)
   return sum(zs)
 end
 
-@testset "AbelianClousre" begin
+@testset "AbelianClosure" begin
   @testset "Interface" begin
     K, z = abelian_closure(QQ)
     test_Field_interface(K)

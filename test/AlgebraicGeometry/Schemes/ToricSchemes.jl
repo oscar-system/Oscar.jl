@@ -9,7 +9,7 @@ using Test
   
   @testset "A simplicial (and not smooth) affine toric scheme" begin
     @test is_smooth(underlying_scheme(affine_toric_scheme)) == false
-    @test is_simplicial(affine_normal_toric_variety(affine_toric_scheme)) == true
+    @test is_simplicial(underlying_toric_variety(affine_toric_scheme)) == true
     @test is_simplicial(affine_toric_scheme) == true
     @test dim(cone(affine_toric_scheme)) == 2
     @test polarize(cone(affine_toric_scheme)) == dual_cone(affine_toric_scheme)
@@ -20,9 +20,9 @@ end
   X = ToricCoveredScheme(S)
   
   @testset "Toric Scheme of Hirzebruch surface F3" begin
-    @test issmooth(X) == true
-    @test issmooth(underlying_scheme(X)) == true
-    @test issmooth(normal_toric_variety(X)) == true
+    @test is_smooth(X) == true
+    @test is_smooth(underlying_scheme(X)) == true
+    @test is_smooth(underlying_toric_variety(X)) == true
     @test dim(fan(X)) == 2
   end
   
@@ -32,7 +32,7 @@ end
   
   @testset "Product of projective spaces" begin
     @test is_smooth(Y) == true
-    @test is_simplicial(normal_toric_variety(Y)) == true
+    @test is_simplicial(underlying_toric_variety(Y)) == true
     @test length(values(glueings(default_covering(Y)))) == 16
   end
 end

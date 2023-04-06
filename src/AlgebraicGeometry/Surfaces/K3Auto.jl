@@ -2,7 +2,7 @@
 # Types
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     BorcherdsCtx
 
 Contains all the data necessary to run Borcherds' method.
@@ -56,7 +56,7 @@ function Base.show(io::IOContext, d::BorcherdsCtx)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     BorcherdsCtx(L::ZLat, S::ZLat, compute_OR::Bool=true) -> BorcherdsCtx
 
 Return the context for Borcherds' method.
@@ -169,7 +169,7 @@ end
 # Chambers
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     K3Chamber
 
 The ``L|S`` chamber induced from a Weyl vector in `L`.
@@ -218,7 +218,7 @@ mutable struct K3Chamber
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, [parent_wall::ZZMatrix, walls::Vector{ZZMatrix}])
 
 Return the ``L|S``-chamber with the given Weyl vector.
@@ -257,7 +257,7 @@ function Base.:(==)(C::K3Chamber, D::K3Chamber)
   return C.weyl_vector[:,1:rank(C.data.S)] == D.weyl_vector[:,1:rank(D.data.S)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     walls(D::K3Chamber) -> Vector{ZZMatrix}
 
 Return the walls of the chamber `D`, i.e. its facets.
@@ -281,14 +281,14 @@ function walls(D::K3Chamber)
   return D.walls
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     weyl_vector(D::K3Chamber) -> ZZMatrix
 
 Return the Weyl vector defining this chamber.
 """
 weyl_vector(D::K3Chamber) = D.weyl_vector
 
-@doc Markdown.doc"""
+@doc raw"""
     rays(D::K3Chamber)
 
 Return the rays of the chamber `D`.
@@ -318,7 +318,7 @@ function Base.show(io::IO, c::K3Chamber)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     fingerprint(D::K3Chamber)
 
 Return the fingerprint of this chamber.
@@ -455,7 +455,7 @@ function _fingerprint_backtrack!(D::K3Chamber)
   D.fp_diagonal = res
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _possible(D::K3Chamber, per, I, J) -> Int
 
 Return the number of possible extensions of an `n`-partial isometry to
@@ -500,7 +500,7 @@ end
 # close vector functions
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     enumerate_quadratic_triple -> Vector{Tuple{Vector{Int}, QQFieldElem}}
 
 Return $\{x \in \mathbb Z^n : x Q x^T + 2xb^T + c <=0\}$.
@@ -523,7 +523,7 @@ function enumerate_quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=fal
   return cv
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     short_vectors_affine(S::ZLat, v::MatrixElem, alpha, d)
     short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha, d)
 
@@ -584,7 +584,7 @@ function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldEle
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
 
 Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
@@ -651,7 +651,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   return S
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _find_basis(row_matrices::Vector, dim::Integer)
 
 Return the first `dim` linearly independent vectors in row_matrices and their indices.
@@ -683,7 +683,7 @@ end
 
 _find_basis(row_matrices::Vector) = _find_basis(row_matrices, ncols(row_matrices[1]))
 
-@doc Markdown.doc"""
+@doc raw"""
     is_pm1_on_discr(S::ZLat, g::ZZMatrix) -> Bool
 
 Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
@@ -698,7 +698,7 @@ function is_pm1_on_discr(S::ZLat, g::ZZMatrix)
   # return isone(gg) || gg == OD(-matrix(one(OD)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(D::K3Chamber, E::K3Chamber) -> Vector{ZZMatrix}
 
 Return the set ``\mathrm{Hom}_G(D, E)`` of elements of ``G`` mapping `D` to `E`.
@@ -708,7 +708,7 @@ The elements are represented with respect to the basis of ``S``.
 Hecke.hom(D::K3Chamber, E::K3Chamber) = alg319(D, E)
 #alg319(gram_matrix(D.data.SS), D.B,D.gramB, walls(D), walls(E), D.data.membership_test)
 
-@doc Markdown.doc"""
+@doc raw"""
     aut(E::K3Chamber) -> Vector{ZZMatrix}
 
 Return the stabilizer ``\mathrm{Aut}_G(E)`` of ``E`` in ``G``.
@@ -851,7 +851,7 @@ function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::QQMatrix, raysD::
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     _alg58(L::ZLat, S::ZLat, R::ZLat, prRdelta, w)
 
 Compute Delta_w
@@ -1011,7 +1011,7 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   return result
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
 
 Return tuples (r_S, r) where r is an element of Delta_w and r_S is the
@@ -1136,7 +1136,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     _walls_of_chamber(data::BorcherdsCtx, weyl_vector)
 
 Return the walls of the L|S chamber induced by `weyl_vector`.
@@ -1182,7 +1182,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, alg=:short)
   return walls
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_S_nondegenerate(L::ZLat, S::ZLat, w::QQMatrix)
 
 Return whether the ``L|S`` chamber defined by `w` is `S`-nondegenerate.
@@ -1240,7 +1240,7 @@ function inner_point(L::ZLat, S::ZLat, w::QQMatrix)
   return h
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     inner_point(L::ZLat, S::ZLat, w::QQMatrix)
     inner_point(C::K3Chamber)
 
@@ -1249,7 +1249,7 @@ Return a reasonably small integer inner point of the given L|S chamber.
 inner_point(C::K3Chamber) = inner_point(C.data.L, C.data.S, change_base_ring(QQ,C.weyl_vector))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
 
 Return the (-2)-walls of L containing $v^{perp_S}$ but not all of ``S``.
@@ -1292,7 +1292,7 @@ function unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
   return Pv
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     adjacent_chamber(D::K3Chamber, v::ZZMatrix) -> K3Chamber
 
 Return return the ``L|S`` chamber adjacent to `D` via the wall defined by `v`.
@@ -1363,7 +1363,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     K3_surface_automorphism_group(S::ZLat [, ample_class]) -> generators, rational curves, chambers
 
 Compute the automorphism group of a very-general $S$-polarized K3 surface.
@@ -1413,7 +1413,7 @@ function borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=fa
   return borcherds_method(L, S, weyl; compute_OR=compute_OR, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
     borcherds_method(L::ZLat, S::ZLat, w::QQMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
 
@@ -1572,7 +1572,7 @@ function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{Q
   return h2, w
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     span_in_S(L, S, weyl) -> QQMatrix
 
 Return a basis matrix of the linear hull of $C(weyl) \cap S$.
@@ -1601,7 +1601,7 @@ function span_in_S(L, S, weyl)
   return gensN
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::QQMatrix, weyl::QQMatrix, ample0::QQMatrix, perturbation_factor=1000)
 
 Return an `S`-nondegenerate Weyl vector of `L`.
@@ -1667,7 +1667,7 @@ function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::QQMatrix, weyl::QQMatr
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weyl_vector(L::ZLat, U0::ZLat) -> weyl, u0
 
 Return a Weyl vector of ``L`` as well as an interior point of the corresponding chamber.
@@ -1794,7 +1794,7 @@ function weyl_vector(L::ZLat, U0::ZLat)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     borcherds_method_preprocessing(S::ZLat, n::Integer; ample=nothing) -> ZLat, ZLat, ZZMatrix
 
 Return an embedding of `S` into an even unimodular, hyperbolic lattice `L` of
@@ -1865,7 +1865,7 @@ end
 # ample
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ample_class(S::ZLat)
 
 Return an interior point of a Weyl chamber of the hyperbolic lattice `S`.
@@ -1965,7 +1965,7 @@ end
 #  Elliptic Fibrations
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     fibration_type(NS::ZLat, f) -> rank, torsion, ADE_fibers
 
 Return the Mordell-Weil rank, torsion subgroup and reducible singular fibers
@@ -2004,7 +2004,7 @@ function fibration_type(NS::ZLat, f::QQMatrix)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     find_section(L::ZLat, f) ->
 
 Given an isotropic ``f \in L`` return a vector ``x \in L`` with ``x^2 = -2``
@@ -2071,7 +2071,7 @@ function _common_invariant(Gamma)
   return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     has_zero_entropy(S::ZLat; rank_unimod=26) ->
 
 Compute if the symmetry group of a Weyl chamber is elliptic, parabolic or hyperbolic.

@@ -13,7 +13,7 @@ end
 ########################################################################
 # Simplification of Coverings                                          #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     simplify(C::Covering)
 
 Given a covering ``C`` apply `simplify` to all basic affine patches 

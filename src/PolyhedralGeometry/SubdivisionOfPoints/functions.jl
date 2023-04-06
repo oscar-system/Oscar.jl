@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     secondary_cone(SOP::SubdivisionOfPoints)
 
 Return the secondary cone of a subdivision of points, the closure of all the

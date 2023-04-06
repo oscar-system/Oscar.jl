@@ -3,7 +3,7 @@
 ########################################################################
 
 # TODO: Write one dummy constructor for the documentation with an ideal.
-@doc Markdown.doc"""
+@doc raw"""
     function SpecOpen(X::AbsSpec, I::MPolyLocalizedIdeal)
 
 Return the complement of the zero locus of ``I`` in ``X``.
@@ -31,7 +31,7 @@ end
 ########################################################################
 # Constructors from closed subvarieties                                #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
   complement(X::Scheme, Y::Scheme) -> Scheme
 
 Return the complement ``X \ Y`` of ``Y`` in ``X``.

@@ -23,7 +23,7 @@
 
 module AbelianClosure 
 
-using ..Oscar, Markdown
+using ..Oscar
 
 import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_internal, hash
 
@@ -73,7 +73,7 @@ const _QQAbGen_sparse = QQAbFieldGen(_QQAb_sparse)
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     abelian_closure(QQ::RationalField)
 
 Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals

@@ -130,19 +130,19 @@ julia> order(transitive_group(m...)) == order(S)
 true
 
 julia> transitive_group_identification(symmetric_group(64))
-ERROR: identification of transitive groups of degree 64 are not available
+ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
-ERROR: group is not transitive on its moved points
+ERROR: ArgumentError: group is not transitive on its moved points
 ```
 """
 function transitive_group_identification(G::PermGroup)
   moved = moved_points(G)
-  is_transitive(G, moved) || error("group is not transitive on its moved points")
+  @req is_transitive(G, moved) "group is not transitive on its moved points"
   deg = length(moved)
-  has_transitive_groups(deg) || error("identification of transitive groups of degree $(deg) are not available")
+  @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
   res = GAP.Globals.TransitiveIdentification(G.X)::Int
   return deg, res
 end

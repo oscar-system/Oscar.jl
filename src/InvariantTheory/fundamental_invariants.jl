@@ -176,7 +176,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
 
 Return a system of fundamental invariants for `IR`.

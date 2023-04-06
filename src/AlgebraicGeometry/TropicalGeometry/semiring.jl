@@ -51,7 +51,7 @@ Oscar.parent_type(::Type{TropicalSemiringElem{T}}) where {T} = TropicalSemiring{
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
 
     TropicalSemiring(M::Union{typeof(min),typeof(max)}=min)
 
@@ -166,7 +166,7 @@ isinf(x::TropicalSemiringElem) = x.isinf
 
 Oscar.parent(x::TropicalSemiringElem{T}) where T = TropicalSemiring{T}()
 
-@doc Markdown.doc"""
+@doc raw"""
     convention(T::TropicalSemiring)
 
 Return `min` if `T` is the min tropical semiring,
@@ -437,7 +437,7 @@ end
 #  Tropical Minors
 #
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     tropical_minors(A::MatElem, k::Int)
 
 Return an array consisting of the k-minors of a tropical matrix `A`.

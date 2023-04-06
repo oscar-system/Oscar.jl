@@ -74,7 +74,7 @@ end
   V = domain(maximal_extension(Axy, 1//x))
   @test Axy == V
 
-  M = matrix_space(R,2,2)([x u; y v])
+  M = matrix(R, [x u; y v])
   h = det(M)
   X = subscheme(A, h)
   XU = intersect(X, U)
@@ -411,3 +411,21 @@ end
   @test is_closed_embedding(Vxy_minus_origin_p, Vxy_minus_origin_p)
 
 end
+
+@testset "Issue 2129" begin
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, x)
+  Q, _ = quo(R, I)
+  X = Spec(Q)
+  U = SpecOpen(X, [y])
+  W = OO(U)
+
+  P, (u,v) = W["u", "v"]
+  PQ, _ = quo(P, ideal(P, [u]))
+
+  @test evaluate(v, gens(PQ)) == v
+
+  PP, (uu, vv) = P["uu", "vv"]
+  @test one(W) * uu == uu
+end
+
