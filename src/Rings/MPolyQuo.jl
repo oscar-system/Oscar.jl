@@ -1259,6 +1259,179 @@ function hash(w::MPolyQuoRingElem, u::UInt)
   return hash(w.f, u)
 end
 
+################################################################
+### homogeneous components quotient ring
+################################################################
+
+@doc raw"""
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+
+Given a graded quotient `A` of a multivariate polynomial ring over a field, 
+where the grading group is free of type `GrpAbFinGen`, and given an element `g` of 
+that group, return the homogeneous component of `A` of degree `g`. Additionally, return
+the embedding of the component into `A`.
+
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
+and given a vector `g` of $m$ integers, convert `g` into an element of the grading
+group of `A`, and return the homogeneous component of `A` whose degree 
+is that element. Additionally, return the embedding of the component into `A`.
+
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
+
+Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
+and given an integer `g`, convert `g` into an element of the grading group of `A`, 
+and return the homogeneous component of `A` whose degree is that element.
+Additionally, return the embedding of the component into `A`.
+
+!!! note
+    If the component is not finite dimensional, an error message will be thrown.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+
+julia> L = homogeneous_component(R, 2);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+homogeneous component of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+ to Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+z^2
+y*z
+y^2
+x*z
+x*y
+x^2
+w*z
+w*y
+w*x
+w^2
+
+julia> PTC = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
+
+julia> A, _ = quo(R, PTC);
+
+julia> L = homogeneous_component(A, 2);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+Quotient space over:
+Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2) defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+z^2
+y*z
+x*z
+w*z
+w*y
+w*x
+w^2
+```
+
+```jldoctest
+julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
+
+julia> G = abelian_group([0, 0])
+GrpAb: Z^2
+
+julia> g = gens(G)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
+
+julia> W = [g[1], g[1], g[2], g[2], g[2]];
+
+julia> S, _ = grade(R, W);
+
+julia> L = homogeneous_component(S, [2,1]);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] of degree Element of
+GrpAb: Z^2
+with components [2 1]
+ to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+x[2]^2*y[3]
+x[2]^2*y[2]
+x[2]^2*y[1]
+x[1]*x[2]*y[3]
+x[1]*x[2]*y[2]
+x[1]*x[2]*y[1]
+x[1]^2*y[3]
+x[1]^2*y[2]
+x[1]^2*y[1]
+
+julia> I = ideal(S, [x[1]*y[1]-x[2]*y[2]]);
+
+julia> A, = quo(S, I);
+
+julia> L = homogeneous_component(A, [2,1]);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+Quotient space over:
+Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]) defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+x[2]^2*y[3]
+x[2]^2*y[2]
+x[2]^2*y[1]
+x[1]*x[2]*y[3]
+x[1]*x[2]*y[2]
+x[1]^2*y[3]
+x[1]^2*y[2]
+```
+"""
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
@@ -1287,6 +1460,16 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
   return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+end
+
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(W)
+  return homogeneous_component(W, grading_group(W)(g))
+end
+
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
+  @assert is_z_graded(W)
+  return homogeneous_component(W, grading_group(W)([g]))
 end
 
 @doc raw"""
