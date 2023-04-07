@@ -936,6 +936,29 @@ is_feasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
 
 
 @doc raw"""
+    contains(P::Polyhedron, Q::Polyhedron)
+
+Check whether `P` contains `Q`.
+
+# Examples
+```jldoctest
+julia> P = cube(3,0,1)
+Polyhedron in ambient dimension 3
+
+julia> Q = cube(3,-1,2)
+Polyhedron in ambient dimension 3
+
+julia> contains(P, Q)
+false
+
+julia> contains(Q, P)
+true
+```
+"""
+contains(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(Q), pm_object(P))::Bool
+
+
+@doc raw"""
     contains(P::Polyhedron, v::AbstractVector)
 
 Check whether `P` contains `v`.
