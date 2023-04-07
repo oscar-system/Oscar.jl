@@ -1078,6 +1078,7 @@ end
   @test rank(domain(map(fr.C,1))) == 0
 end
 
+
 @testset "vector_space_dimension and vector_space_basis" begin
   R,(x,y,z,w) = QQ["x","y","z","w"]
   U=complement_of_point_ideal(R,[0,0,0,0])
@@ -1089,4 +1090,23 @@ end
   @test vector_space_dimension(Mloc,1) == 1
   @test length(vector_space_basis(Mloc)) == 2
   @test length(vector_space_basis(Mloc,0)) == 1
+end 
+
+@testset "generic kernel" begin
+  R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  A = R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
+  		13*x*y^2+12*y*z^2  4*x^2*y^2*z+8*x*y*z;
+		9*x*y^2+4*z  12*x^2*y*z^2+9*x*y^2*z]
+  F1 = FreeMod(R, nrows(A))
+  F2 = FreeMod(R, ncols(A))
+  phi = FreeModuleHom(F1,F2,A)
+  kphi, emb = kernel(phi)
+  @test ngens(kphi) == 1
+  @test codomain(emb) === F1
+  S2 = SubQuo(F2, [(x^2*y^2*F2[1]+y*z*F2[2]), x*z*F2[1]+z^2*F2[2]])
+  S3, pi = quo(F2,S2)
+  phi2 =  phi * pi
+  kphi2, inclkphi2 = kernel(phi2)
+  @test ngens(kphi2) == 23
+  @test codomain(emb) === F1
 end

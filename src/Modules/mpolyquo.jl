@@ -44,25 +44,6 @@ end
 # Methods which should not be necessary, but the stuff doesn't work,   #
 # unless we implement them.                                            #
 ########################################################################
-@attr function kernel(
-    f::FreeModuleHom{DomainType, CodomainType}
-  ) where {
-           DomainType<:FreeMod{<:MPolyQuoRingElem},
-           CodomainType<:SubquoModule{<:MPolyQuoRingElem}
-          }
-  R = base_ring(codomain(f))
-  P = base_ring(R)
-  F = _poly_module(domain(f))
-  M = _as_poly_module(codomain(f))
-  id = _iso_with_poly_module(codomain(f))
-  # Why does img_gens(f) return a list of SubQuoElems???
-  phi = _lifting_iso(codomain(f))
-  g = hom(F, M, phi.(f.(gens(domain(f)))))
-  K, inc = kernel(g)
-  tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), tr.(gens(K)))
-  return KK, inc2
-end
 
 function coordinates(
     v::FreeModElem{T}, 
