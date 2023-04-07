@@ -1109,4 +1109,14 @@ end
   kphi2, inclkphi2 = kernel(phi2)
   @test ngens(kphi2) == 23
   @test codomain(emb) === F1
+  R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  f = oscar.canonical_epimorphism(S3)
+  kf, _ = kernel(f)
+  @test ngens(kf) == 2
+  @test ngens(oscar.generator_module(kf)) == 2
+  @test oscar.has_relations(kf) == false
+  rm = oscar.relations_module(kf)
+  @test ngens(rm) == 0
+  @test oscar.relations_module(kf) == rm
+  @test ngens(oscar.generators_plus_relations_module(kf)) == 2
 end
