@@ -1291,21 +1291,28 @@ Additionally, return the embedding of the component into `A`.
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
   w -> [1]
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
 
-julia> L = homogeneous_component(R, 2)
-(R_[2] of dim 10, Map from
-R_[2] of dim 10 to R defined by a julia-function with inverse)
+julia> L = homogeneous_component(R, 2);
 
 julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-R_[2] of dim 10 to R defined by a julia-function with inverse
+homogeneous component of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+ to Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1321,26 +1328,20 @@ w^2
 
 julia> PTC = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
 
-julia> A, _ = quo(R, PTC)
-(Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by 
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2), Map from
-R to A defined by a julia-function with inverse)
+julia> A, _ = quo(R, PTC);
 
-julia> L = homogeneous_component(A, 2)
-(Quotient space over:
-Rational Field with 7 generators and no relations, Map from
-Quotient space over:
-Rational Field with 7 generators and no relations to A defined by a julia-function with inverse)
+julia> L = homogeneous_component(A, 2);
 
 julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
 Quotient space over:
-Rational Field with 7 generators and no relations to A defined by a julia-function with inverse
+Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2) defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1360,8 +1361,12 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 0]
- Element of G with components [0 1]
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -1373,13 +1378,20 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by 
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   y[1] -> [0 1]
   y[2] -> [0 1]
-  y[3] -> [0 1] of degree Element of G with components [2 1]
- to S defined by a julia-function with inverse
+  y[3] -> [0 1] of degree Element of
+GrpAb: Z^2
+with components [2 1]
+ to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1394,14 +1406,7 @@ x[1]^2*y[1]
 
 julia> I = ideal(S, [x[1]*y[1]-x[2]*y[2]]);
 
-julia> A, = quo(S, I)
-(Quotient of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by 
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]), Map from
-S to A defined by a julia-function with inverse)
+julia> A, = quo(S, I);
 
 julia> L = homogeneous_component(A, [2,1]);
 
@@ -1410,7 +1415,12 @@ julia> HC = gens(L[1]);
 julia> EMB = L[2]
 Map from
 Quotient space over:
-Rational Field with 7 generators and no relations to A defined by a julia-function with inverse
+Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]) defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
