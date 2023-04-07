@@ -349,7 +349,7 @@ is_simplicial(C::Cone) = pm_object(C).SIMPLICIAL_CONE::Bool
 
 
 @doc raw"""
-    is_smooth(C::Cone)
+    is_smooth(C::Cone{QQFieldElem})
 
 Determine whether `C` is smooth, i.e. whether its ray generators form part of a
 lattice basis.
@@ -369,7 +369,7 @@ julia> is_smooth(C1)
 false
 ```
 """
-is_smooth(C::Cone) = pm_object(C).SMOOTH_CONE::Bool
+is_smooth(C::Cone{QQFieldElem}) = pm_object(C).SMOOTH_CONE::Bool
 
 
 @doc raw"""
@@ -532,6 +532,29 @@ _hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Polymake.BigObject, i::Ba
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.HILBERT_BASIS_GENERATORS[1], 0) : C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
+
+
+@doc raw"""
+    contains(C0::Cone, C1::Cone)                           
+    
+Check whether `C0` contains `C1`.
+                                             
+# Examples                 
+```jldoctest                                                                                
+julia> C0 = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> C1 = positive_hull([1 1])
+Polyhedral cone in ambient dimension 2
+
+julia> contains(C0, C1)
+true
+
+julia> contains(C1, C0)
+false
+```
+"""
+contains(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C1), pm_object(C0))::Bool
 
 
 @doc raw"""

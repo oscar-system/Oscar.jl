@@ -16,6 +16,8 @@ const pm = Polymake
 
     @testset "core functionality" begin
         @test is_pointed(Cone1)
+        @test contains(Cone1, Cone7)
+        @test !contains(Cone7, Cone1)
         if T == QQFieldElem
           @test !is_smooth(Cone2)
           @test is_smooth(Cone7)
