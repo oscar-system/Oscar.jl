@@ -2020,8 +2020,7 @@ function relations_module(M::SubquoModule)
     return M.quo
   end
   U = SubModuleOfFreeModule(ambient_free_module(M),relations(M))
-  # M.quo = U 
-  # Todo activate this
+  M.quo = U 
   return U
 end
 
