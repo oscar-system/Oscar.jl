@@ -1275,12 +1275,20 @@ function ambient_free_module(M::SubModuleOfFreeModule)
   return M.F
 end
 
-function generator_morphism(M::SubModuleOfFreeModule)
+@doc raw"""
+    canonical_epimorphism(M::SubModuleOfFreeModule)
+
+Return the canonical epimorphism `a : F → M`, where `F` is a free module of rank `ngens(M)` and 
+`M` is a submodule of a free module.
+"""
+function canonical_epimorphism(M::SubModuleOfFreeModule)
   n = ngens(M)
   R = base_ring(M)
   F = FreeMod(R,n)
   g = collect(gens(M))
-  return FreeModuleHom(F,M,g)
+  f = FreeModuleHom(F,M,g)
+  # Todo: cache f
+  return f
 end
 
 @doc raw"""
@@ -1991,17 +1999,38 @@ function show_subquo(SQ::SubquoModule)
   print(io_compact, "with ambient free module ", SQ.F)
 end
 
+@doc raw"""
+    generator_module(M::SubquoModule)
+
+Given a subquotient `M`, return the associated generators module, as
+a submodule of the associated free module. This is only for internal use.
+"""
 function generator_module(M::SubquoModule)
   return M.sub
 end
 
+@doc raw"""
+    relations_module(M::SubquoModule)
+
+Given a subquotient `M`, return the associated relations module, as
+a submodule of the associated free module. This is only for internal use.
+"""
 function relations_module(M::SubquoModule)
   if has_relations(M)
     return M.quo
   end
-  return SubModuleOfFreeModule(ambient_free_module(M),relations(M))
+  U = SubModuleOfFreeModule(ambient_free_module(M),relations(M))
+  # M.quo = U 
+  # Todo activate this
+  return U
 end
 
+@doc raw"""
+    relations_module(M::SubquoModule)
+
+Given a subquotient `M`, return the sum of the associated generators module
+and relations module. This is only for internal use.
+"""
 function generators_plus_relations_module(M::SubquoModule)
   return M.sum
 end
@@ -2010,12 +2039,20 @@ function has_relations(M::SubquoModule)
   return isdefined(M, :quo)
 end
 
-function generator_morphism(M::SubquoModule)
+@doc raw"""
+    canonical_epimorphism(M::SubquoModule)
+
+Return the canonical epimorphism `a : F → M`, where `F` is a free module of rank `ngens(M)` and 
+`M` is a subquotient module.
+"""
+function canonical_epimorphism(M::SubquoModule)
   n = ngens(M)
   R = base_ring(M)
   F = FreeMod(R,n)
   g = collect(gens(M))
-  return FreeModuleHom(F,M,g)
+  f = FreeModuleHom(F,M,g)
+  # Todo cache f
+  return f
 end
 
 
@@ -5719,7 +5756,7 @@ function kernel(
   g = [x.repres for x in g]
   T = parent(g[1])
   cdhq = relations_module(codomain(h))
-  G2 = domain(generator_morphism(cdhq))
+  G2 = domain(canonical_epimorphism(cdhq))
   append!(g, collect(cdhq.gens))
   G1G2, pr = direct_product(G1, G2)
   tau = FreeModuleHom(G1G2, T, g)
