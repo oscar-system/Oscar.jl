@@ -337,7 +337,7 @@ function compute_bit_list(orbs::Vector{Vector{Cone{T}}}, point::AbstractVector{T
     bitset_list = [BitSet() for orb in orbs]
     for (i, orb) in enumerate(orbs)
         for (j, cone) in enumerate(orb)
-            if contains(cone, point)
+            if point in cone
                 push!(bitset_list[i], j)
             end
         end
@@ -423,7 +423,7 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
 
         neighbor_hashes = []
         for i in 1:length(facet_points)
-          !any(f->contains(f, facet_points[i]), faces(q_cone, dim(q_cone)-1)) || continue
+          !any(f->facet_points[i] in f, faces(q_cone, dim(q_cone)-1)) || continue
           push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], Vector{T}([ic_facets[i, :]...])))
         end
 
