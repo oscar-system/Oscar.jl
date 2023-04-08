@@ -71,10 +71,11 @@ default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 mutable struct MPolyQuoRingElem{S} <: RingElem
   f::S
   P::MPolyQuoRing{S}
+  simplified::Bool
 
-  function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}) where {S}
+  function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}, simplified = false) where {S}
     @assert parent(f) === base_ring(P)
-    return new{S}(f, P)
+    return new{S}(f, P, simplified)
   end
 end
 
@@ -85,7 +86,7 @@ function AbstractAlgebra.expressify(a::MPolyQuoRingElem; context = nothing)
 end
 
 function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
-  return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P)
+  return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P, a.simplified)
 end
 
 ##############################################################################
@@ -138,7 +139,7 @@ function AbstractAlgebra.expressify(a::MPolyQuoIdeal; context = nothing)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(a::MPolyQuoIdeal)
 
 Return the ambient ring of `a`.
@@ -185,7 +186,7 @@ function groebner_assure(a::MPolyQuoIdeal)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     gens(a::MPolyQuoIdeal)
 
 Return the generators of `a`.
@@ -215,7 +216,7 @@ end
 gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
 getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
-@doc Markdown.doc"""
+@doc raw"""
     ngens(a::MPolyQuoIdeal)
 
 Return the number of generators of `a`.
@@ -243,7 +244,7 @@ end
 
 # powers, addition and multiplication do not require the singular quotient ring
 
-@doc Markdown.doc"""
+@doc raw"""
     :^(a::MPolyQuoIdeal, m::Int)
 
 Return the `m`-th power of `a`.
@@ -266,7 +267,7 @@ function Base.:^(a::MPolyQuoIdeal, m::Int)
   return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     :+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the sum of `a` and `b`.
@@ -294,7 +295,7 @@ function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     :*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the product of `a` and `b`.
@@ -322,7 +323,7 @@ function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
 
 Return the intersection of two or more ideals.
@@ -357,7 +358,7 @@ end
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the ideal quotient of `a` by `b`. Alternatively, use `a:b`.
@@ -404,7 +405,7 @@ end
   return J
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(a::MPolyQuoIdeal)
 
 Return `true` if `a` is the zero ideal, `false` otherwise.
@@ -434,7 +435,7 @@ function is_zero(a::MPolyQuoIdeal)
   return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal(A::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
 
 Given a (graded) quotient ring `A=R/I` and a vector `V` of (homogeneous) polynomials in `R`,
@@ -502,18 +503,25 @@ canonical_unit(a::MPolyQuoRingElem) = one(parent(a))
 
 parent(a::MPolyQuoRingElem) = a.P
 
+zero(R::MPolyQuoRing) = MPolyQuoRingElem(zero(base_ring(R)), R, true)
+
+function is_zero(a::MPolyQuoRingElem)
+  return iszero(simplify(a).f)
+end
+
+
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.P == b.P || error("wrong parents")
   return true
 end
 
-+(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
++(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && MPolyQuoRingElem(a.f+b.f, a.P)
 
 -(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && MPolyQuoRingElem(a.f-b.f, a.P)
 
 -(a::MPolyQuoRingElem) = MPolyQuoRingElem(-a.f, a.P)
 
-*(a::MPolyQuoRingElem, b::MPolyQuoRingElem) = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
+*(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
 ^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
 
@@ -531,15 +539,17 @@ end
 
 function Oscar.mul!(a::MPolyQuoRingElem, b::MPolyQuoRingElem, c::MPolyQuoRingElem)
   a.f = b.f*c.f
+  a.simplified = false
   return a
 end
 
 function Oscar.addeq!(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   a.f += b.f
+  a.simplified = false
   return a
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify(a::MPolyQuoIdeal)
 
 If `a` is an ideal of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
@@ -578,13 +588,12 @@ function simplify(a::MPolyQuoIdeal)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
   a.gens.S = si
   a.gens.O = [R(g) for g = gens(a.gens.S)]
-
   return a
 end
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_membership(f::MPolyQuoRingElem{T}, a::MPolyQuoIdeal{T}) where T
 
 Return `true` if `f` is contained in `a`, `false` otherwise. Alternatively, use `f in a`.
@@ -616,7 +625,7 @@ end
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is contained in `b`, `false` otherwise.
@@ -647,7 +656,7 @@ function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is equal to `b`, `false` otherwise.
@@ -672,12 +681,16 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return issubset(a, b) && issubset(b, a)
 end
 
-@doc Markdown.doc"""
-    simplify(f::MPolyQuoRingElem)
+@doc raw"""
+    simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
 the `default_ordering` on `R`.
+
+!!! note
+Since this method only has a computational backend for quotients of polynomial rings 
+over a field, it is not implemented generically.
 
 # Examples
 ```jldoctest
@@ -695,18 +708,58 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem)
+function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+  f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
   SR = singular_origin_ring(R)
   G  = singular_origin_groebner_basis(R)
   g  = f.f
   f.f = OR(reduce(SR(g), G))
+  f.simplified = true
   return f::elem_type(R)
 end
 
+# Extra method for quotients of graded rings. 
+# TODO: Could this be simplified if the type-parameter signature of decorated rings 
+# was consistent with the one for polynomial rings? I.e. if the first type parameter 
+# was the one for the coefficient rings and not the one for the underlying polynomial ring?
+function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
+  f.simplified && return f
+  R  = parent(f)
+  OR = oscar_origin_ring(R)
+  SR = singular_origin_ring(R)
+  G  = singular_origin_groebner_basis(R)
+  g  = f.f
+  f.f = OR(reduce(SR(g), G))
+  f.simplified = true
+  return f::elem_type(R)
+end
 
-@doc Markdown.doc"""
+# The above methods for `simplify` assume that there is a singular backend which 
+# can be used. However, we are using (graded) quotient rings also with coefficient 
+# rings R which can not be translated to Singular; for instance when R is again 
+# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+# Still in many of those cases, we can use `RingFlattening` to bind a computational 
+# backend. In particular, this allows us to do ideal_membership tests; see 
+# the file `flattenings.jl` for details. 
+#
+# The generic method below is a compromise in the sense that `simplify` does not reduce 
+# a given element to a unique representative as would be the case in a groebner basis reduction, 
+# but it nevertheless reduces the element to zero in case its representative is 
+# contained in the modulus. This allows for both, the use of `RingFlattening`s and 
+# the potential speedup of `iszero` tests. 
+function simplify(f::MPolyQuoRingElem)
+  f.simplified && return f
+  if f.f in modulus(parent(f))
+    f.f = zero(f.f)
+  end
+  f.simplified = true
+  return f::elem_type(parent(f))
+end
+
+
+@doc raw"""
     ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 
 Return `true` if `f` is equal to `g`, `false` otherwise.
@@ -734,7 +787,7 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   return f.f == g.f
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
 
 Create the quotient ring `R/I` and return the new
@@ -814,8 +867,11 @@ lift(a::MPolyQuoRingElem) = a.f
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
 function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
-  parent(a) !== Q && error("Parent mismatch")
-  return a
+  if parent(a) === Q
+    return a
+  else
+    return Q(base_ring(Q)(a))
+  end
 end
 
 function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
@@ -840,7 +896,6 @@ end
 
 (Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
-zero(Q::MPolyQuoRing) = Q(0)
 one(Q::MPolyQuoRing) = Q(1)
 
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
@@ -1016,7 +1071,7 @@ function grading(R::MPolyQuoRing)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given a homogeneous element `f` of a graded affine algebra, return the degree of `f`.
@@ -1082,7 +1137,7 @@ end
 is_filtered(q::MPolyQuoRing) = is_filtered(base_ring(q))
 is_graded(q::MPolyQuoRing) = is_graded(base_ring(q))
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 
 Given an element `f` of a graded affine algebra, and given an element `g` of the
@@ -1128,7 +1183,7 @@ function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, g::Vecto
   return homogeneous_component(a, grading_group(base_ring(parent(a)))(g))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_components(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
@@ -1154,7 +1209,7 @@ function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_homogeneous(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
@@ -1180,7 +1235,7 @@ function is_homogeneous(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   return is_homogeneous(a.f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
 
 If `A` is, say, `G`-graded, return `G`.
@@ -1204,6 +1259,179 @@ function hash(w::MPolyQuoRingElem, u::UInt)
   return hash(w.f, u)
 end
 
+################################################################
+### homogeneous components quotient ring
+################################################################
+
+@doc raw"""
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+
+Given a graded quotient `A` of a multivariate polynomial ring over a field, 
+where the grading group is free of type `GrpAbFinGen`, and given an element `g` of 
+that group, return the homogeneous component of `A` of degree `g`. Additionally, return
+the embedding of the component into `A`.
+
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
+and given a vector `g` of $m$ integers, convert `g` into an element of the grading
+group of `A`, and return the homogeneous component of `A` whose degree 
+is that element. Additionally, return the embedding of the component into `A`.
+
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
+
+Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
+and given an integer `g`, convert `g` into an element of the grading group of `A`, 
+and return the homogeneous component of `A` whose degree is that element.
+Additionally, return the embedding of the component into `A`.
+
+!!! note
+    If the component is not finite dimensional, an error message will be thrown.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+
+julia> L = homogeneous_component(R, 2);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+homogeneous component of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+ to Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+z^2
+y*z
+y^2
+x*z
+x*y
+x^2
+w*z
+w*y
+w*x
+w^2
+
+julia> PTC = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
+
+julia> A, _ = quo(R, PTC);
+
+julia> L = homogeneous_component(A, 2);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+Quotient space over:
+Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2) defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+z^2
+y*z
+x*z
+w*z
+w*y
+w*x
+w^2
+```
+
+```jldoctest
+julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
+
+julia> G = abelian_group([0, 0])
+GrpAb: Z^2
+
+julia> g = gens(G)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
+
+julia> W = [g[1], g[1], g[2], g[2], g[2]];
+
+julia> S, _ = grade(R, W);
+
+julia> L = homogeneous_component(S, [2,1]);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] of degree Element of
+GrpAb: Z^2
+with components [2 1]
+ to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+x[2]^2*y[3]
+x[2]^2*y[2]
+x[2]^2*y[1]
+x[1]*x[2]*y[3]
+x[1]*x[2]*y[2]
+x[1]*x[2]*y[1]
+x[1]^2*y[3]
+x[1]^2*y[2]
+x[1]^2*y[1]
+
+julia> I = ideal(S, [x[1]*y[1]-x[2]*y[2]]);
+
+julia> A, = quo(S, I);
+
+julia> L = homogeneous_component(A, [2,1]);
+
+julia> HC = gens(L[1]);
+
+julia> EMB = L[2]
+Map from
+Quotient space over:
+Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]) defined by a julia-function with inverse
+
+julia> for i in 1:length(HC) println(EMB(HC[i])) end
+x[2]^2*y[3]
+x[2]^2*y[2]
+x[2]^2*y[1]
+x[1]*x[2]*y[3]
+x[1]*x[2]*y[2]
+x[1]^2*y[3]
+x[1]^2*y[2]
+```
+"""
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
@@ -1212,21 +1440,39 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   R = base_ring(W)
 
   H, mH = homogeneous_component(R, d)
-  B = Set{elem_type(W)}()
-  for h = basis(H)
-    b = W(mH(h))
-    if !iszero(b)
-      push!(B, b)
+  I = modulus(W)
+  M = gens(leading_ideal(I))
+  cache = Dict{typeof(d), typeof(mH)}()
+  q = Set{elem_type(H)}()
+  for h = M
+    g = degree(h)
+    if haskey(cache, g)
+      mI = cache[g]
+    else
+      mI = cache[g] = homogeneous_component(R, d-g)[2]
+    end
+    for x = gens(domain(mI))
+      push!(q, preimage(mH, h*mI(x)))
     end
   end
-  B = [x for x = B]
 
-  M, h = vector_space(base_ring(R), B, target = W)
-  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
-  return M, h
+  s, ms = sub(H, collect(q))
+  Q, mQ = quo(H, s)
+#  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
+  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
 end
 
-@doc Markdown.doc"""
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(W)
+  return homogeneous_component(W, grading_group(W)(g))
+end
+
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
+  @assert is_z_graded(W)
+  return homogeneous_component(W, grading_group(W)([g]))
+end
+
+@doc raw"""
     dim(a::MPolyQuoIdeal)
 
 Return the Krull dimension of `a`.
@@ -1275,7 +1521,7 @@ end
 
 ##################################
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `a` of a graded affine algebra over a field,
@@ -1337,6 +1583,10 @@ end
 #
 ################################################################################
 
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{MPolyQuoRingElem{S}}) where {S <: RingElem}
+  return MPolyQuoRingElem{S}
+end
+
 function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{T}) where {S, T <: RingElem}
   if AbstractAlgebra.promote_rule(S, T) === S
     return MPolyQuoRingElem{S}
@@ -1349,3 +1599,5 @@ end
   return is_prime(modulus(A))
 end
 
+# extension of common functionality
+symbols(A::MPolyQuoRing) = symbols(base_ring(A))

@@ -18,7 +18,7 @@ end
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
 
 Construct the toric cohomology class
@@ -38,7 +38,7 @@ Cohomology class on a normal toric variety given by x1
 cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = CohomologyClass(v, p)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_class(d::ToricDivisor)
 
 Construct the toric cohomology class
@@ -64,7 +64,7 @@ function cohomology_class(d::ToricDivisor)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_class(c::ToricDivisorClass)
 
 Construct the toric cohomology class
@@ -85,7 +85,7 @@ Cohomology class on a normal toric variety given by 2*x3
 cohomology_class(c::ToricDivisorClass) = cohomology_class(toric_divisor(c))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_class(l::ToricLineBundle)
 
 Construct the toric cohomology class

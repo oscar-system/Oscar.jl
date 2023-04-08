@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     ModuleFP{T}
 
 The abstract supertype of all finitely presented modules.
@@ -6,14 +6,14 @@ The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}
 
 The abstract supertype of all finitely generated free modules.
 """
 abstract type AbstractFreeMod{T} <: ModuleFP{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractSubQuo{T} <: ModuleFP{T}
 
 The abstract supertype of all finitely presented subquotient modules.
@@ -21,21 +21,21 @@ The abstract supertype of all finitely presented subquotient modules.
 abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleFPElem{T} <: ModuleElem{T}
 
 The abstract supertype of all elements of finitely presented modules.
 """
 abstract type ModuleFPElem{T} <: ModuleElem{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
 
 The abstract supertype of all elements of finitely generated free modules.
 """
 abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractSubQuoElem{T} <: ModuleFPElem{T}
 
 The abstract supertype of all elements of subquotient modules.
@@ -44,7 +44,7 @@ abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
 abstract type ModuleFPHomDummy end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleFPHom{T1, T2, RingMapType}
 
 The abstract supertype for morphisms of finitely presented modules over multivariate polynomial rings .
@@ -58,7 +58,7 @@ abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, Mo
 
 parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeMod{T <: RingElem} <: AbstractFreeMod{T}
 
 The type of free modules.
@@ -89,7 +89,7 @@ option is set in suitable functions.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem{T}
 
 The type of free module elements. An element of a free module $F$ is given by a sparse row (`SRow`)
@@ -126,7 +126,7 @@ struct FreeModElem{T} <: AbstractFreeModElem{T}
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens{T}
 
 Data structure for a generating systems for submodules.
@@ -181,7 +181,7 @@ Relative Gröbner / standard bases are also supported.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule{T} <: ModuleFP{T}
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
@@ -206,7 +206,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule{T} <: ModuleFP{T}
 
 The type of subquotient modules.
@@ -245,7 +245,7 @@ option is set in suitable functions.
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModuleElem{T}
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
@@ -426,7 +426,7 @@ const CRing_dec = Union{MPolyDecRing, MPolyQuoRing{<:Oscar.MPolyDecRingElem}}
 const CRingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRingElem}}
 #TODO: other name for CRing_dec -> which?
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeMod_dec{T <: CRingElem_dec} <: ModuleFP_dec{T}
 
 The type of decorated (graded or filtered) free modules.
@@ -454,7 +454,7 @@ option is set in suitable functions.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem_dec{T}
 
 The type of decorated free module elements. An element of a decorated free module $F$ is 
@@ -479,7 +479,7 @@ const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubquoDecModule{T} will be inclu
 const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubquoDecModuleElem{T} will be included
 
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2, RingMapType} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
@@ -625,7 +625,7 @@ struct FreeModuleHom_dec{
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeResolution{T}
 
 Data structure for free resolutions.

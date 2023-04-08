@@ -1,6 +1,6 @@
 # constructors #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal(g::Vector{T}) where {T <: MPolyRingElem}
 
     ideal(g::Vector{T}) where {T <: MPolyDecRingElem}
@@ -65,7 +65,7 @@ end
 
 
 # elementary operations #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Throws an error if the base rings of the ideals `I` and `J` do not coincide.
@@ -76,7 +76,7 @@ function check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ^(I::MPolyIdeal, m::Int)
 
 Return the `m`-th power of `I`.
@@ -98,7 +98,7 @@ function Base.:^(I::MPolyIdeal, m::Int)
   return MPolyIdeal(base_ring(I), I.gens.S^m)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     +(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return the sum of `I` and `J`.
@@ -127,7 +127,7 @@ function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 end
 Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
-@doc Markdown.doc"""
+@doc raw"""
     *(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return the product of `I` and `J`.
@@ -166,7 +166,7 @@ end
 #######################################################
 
 # ideal intersection #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
 
 Return the intersection of two or more ideals.
@@ -192,7 +192,7 @@ end
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     quotient(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return the ideal quotient of `I` by `J`. Alternatively, use `I:J`.
@@ -240,7 +240,7 @@ end
 #######################################################
 
 # saturation #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return the saturation of `I` with respect to `J`.
@@ -267,7 +267,7 @@ function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   return MPolyIdeal(base_ring(I), K)
 end
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return $I:J^{\infty}$ together with the smallest integer $m$ such that $I:J^m = I:J^{\infty}$.
@@ -295,7 +295,7 @@ function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
  end
 
 # elimination #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
 
 Given a vector `V` of polynomials which are variables, these variables are eliminated from `I`.
@@ -354,7 +354,7 @@ end
 # primary decomposition #######################################################
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     radical(I::MPolyIdeal)
 
 Return the radical of `I`.
@@ -405,21 +405,34 @@ julia> RI = radical(I)
 ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 ```
 """
-function radical(I::MPolyIdeal)
+@attr T function radical(I::T) where {T <: MPolyIdeal}
   singular_assure(I)
   R = base_ring(I)
   if elem_type(base_ring(R)) <: FieldElement
-  J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
+    J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
   elseif base_ring(I.gens.Sx) isa Singular.Integers
-  J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
+    J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
   else
-   error("not implemented for base ring")
+    error("not implemented for base ring")
   end
-  return ideal(R, J)
+  Irad = ideal(R, J)
+  set_attribute!(Irad, :is_radical => true)
+  return Irad
+end
+
+@doc raw"""
+    is_radical(I::MPolyIdeal)
+
+Return whether `I` is a radical ideal.
+
+Computes the radical.
+"""
+@attr Bool function is_radical(I::MPolyIdeal)
+  return I == radical(I)
 end
 #######################################################
-@doc Markdown.doc"""
-    primary_decomposition(I::MPolyIdeal; alg = :GTZ)
+@doc raw"""
+    primary_decomposition(I::MPolyIdeal; alg = :GTZ, cache=true)
 
 Return a minimal primary decomposition of `I`. If `I` is the unit ideal, return `[ideal(1)]`.
 
@@ -436,6 +449,8 @@ Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cit
 
 !!! warning
     The algorithm of Gianni, Trager, and Zacharias may not terminate over a small finite field. If it terminates, the result is correct.
+
+If `cache=false` is set, the primary decomposition is recomputed and not cached.
 
 # Examples
 ```jldoctest
@@ -454,7 +469,7 @@ julia> L = primary_decomposition(I)
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
  (ideal(y, x^2), ideal(x, y))
 
-julia> L = primary_decomposition(I, alg = :SY)
+julia> L = primary_decomposition(I, alg = :SY, cache=false)
 3-element Vector{Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}}}:
  (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
@@ -484,7 +499,14 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+function primary_decomposition(I::T; alg=:GTZ, cache=true) where {T<:MPolyIdeal}
+  !cache && return _compute_primary_decomposition(I, alg=alg)
+  return get_attribute!(I, :primary_decomposition) do
+    return _compute_primary_decomposition(I, alg=alg)
+  end::Vector{Tuple{T,T}}
+end
+
+function _compute_primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
@@ -502,8 +524,9 @@ function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   end
   return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end
+
 ########################################################
-@doc Markdown.doc"""
+@doc raw"""
     absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
 
 If `I` is an ideal in a multivariate polynomial ring over the rationals, return an absolute minimal primary decomposition of `I`.
@@ -558,8 +581,11 @@ julia> minpoly(a)
 x^2 + 1
 ```
 """
-function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
+@attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
+  if is_zero(I)
+     return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(R, zero(R)), 1)]
+  end
   singular_assure(I)
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
   decomp = d[:primary_decomp]
@@ -603,7 +629,7 @@ function _map_last_var(Qx::MPolyRing, I::Singular.sideal, start, a)
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     minimal_primes(I::MPolyIdeal; alg = :GTZ)
 
 Return a vector containing the minimal associated prime ideals of `I`.
@@ -679,7 +705,7 @@ function minimal_primes(I::MPolyIdeal; alg = :GTZ)
   return [ideal(R, i) for i in l]
 end
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     equidimensional_decomposition_weak(I::MPolyIdeal)
 
 Return a vector of equidimensional ideals where the last entry is the
@@ -709,7 +735,7 @@ julia> L = equidimensional_decomposition_weak(I)
  ideal(x^5 - 2*x^4*y - 2*x^4 + x^3*y^2 + 2*x^3*y - x^2*y^2 + 2*x^2*y + 2*x^2 + 2*x*y^3 + x*y^2 - 2*x*y - x - y^4 - 2*y^3 - y^2)
 ```
 """
-function equidimensional_decomposition_weak(I::MPolyIdeal)
+@attr function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
@@ -717,7 +743,7 @@ function equidimensional_decomposition_weak(I::MPolyIdeal)
   return [ideal(R, i) for i in l]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     equidimensional_decomposition_radical(I::MPolyIdeal)
 
 Return a vector of equidimensional radical ideals increasingly ordered by dimension.
@@ -745,7 +771,7 @@ julia> L = equidimensional_decomposition_radical(I)
  ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 ```
 """
-function equidimensional_decomposition_radical(I::MPolyIdeal)
+@attr function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
@@ -753,7 +779,7 @@ function equidimensional_decomposition_radical(I::MPolyIdeal)
   return [ideal(R, i) for i in l]
 end
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     equidimensional_hull(I::MPolyIdeal)
 
 If the base ring of `I` is a polynomial ring over a field, return the intersection
@@ -811,7 +837,7 @@ function equidimensional_hull(I::MPolyIdeal)
   return ideal(R, i)
 end
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     equidimensional_hull_radical(I::MPolyIdeal)
 
 Return the intersection of the associated primes of `I` of maximal dimension.
@@ -846,7 +872,7 @@ function equidimensional_hull_radical(I::MPolyIdeal)
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     ==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return `true` if `I` is equal to `J`, `false` otherwise.
@@ -875,7 +901,7 @@ end
 ### todo: wenn schon GB's  bekannt ...
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return `true` if `I` is contained in `J`, `false` otherwise.
@@ -906,7 +932,7 @@ end
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_membership(f::T, I::MPolyIdeal{T}) where T
 
 Return `true` if `f` is contained in `I`, `false` otherwise. Alternatively, use `f in I`.
@@ -940,7 +966,7 @@ function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = d
 end
 Base.:in(f::MPolyRingElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     radical_membership(f::T, I::MPolyIdeal{T}) where T
 
 Return `true` if `f` is contained in the radical of `I`, `false` otherwise.
@@ -974,7 +1000,7 @@ function radical_membership(f::T, I::MPolyIdeal{T}) where T
 end
 inradical(f::MPolyRingElem, I::MPolyIdeal) = radical_membership(f,I)
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_prime(I::MPolyIdeal)
 
 Return `true` if `I` is prime, `false` otherwise.
@@ -994,13 +1020,13 @@ julia> is_prime(I)
 false
 ```
 """
-function is_prime(I::MPolyIdeal)
+@attr Bool function is_prime(I::MPolyIdeal)
   D = minimal_primes(I)
   return length(D) == 1 && issubset(D[1], I)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_primary(I::MPolyIdeal)
 
 Return `true` if `I` is primary, `false` otherwise.
@@ -1020,13 +1046,13 @@ julia> is_primary(I)
 true
 ```
 """
-function is_primary(I::MPolyIdeal)
+@attr Bool function is_primary(I::MPolyIdeal)
   D = primary_decomposition(I)
   return length(D) == 1
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(I::MPolyIdeal)
 
 Return the ambient ring of `I`.
@@ -1048,7 +1074,7 @@ function base_ring(I::MPolyIdeal{S}) where {S}
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     ngens(I::MPolyIdeal)
 
 Return the number of generators of `I`.
@@ -1070,7 +1096,7 @@ function ngens(I::MPolyIdeal)
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     gens(I::MPolyIdeal)
 
 Return the generators of `I`.
@@ -1098,7 +1124,7 @@ gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
 getindex(I::MPolyIdeal, i::Int) = gen(I, i)
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     dim(I::MPolyIdeal)
 
 Return the Krull dimension of `I`.
@@ -1115,7 +1141,7 @@ julia> dim(I)
 1
 ```
 """
-function dim(I::MPolyIdeal)
+@attr Int function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
@@ -1127,7 +1153,7 @@ end
 
 #######################################################
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     codim(I::MPolyIdeal)
 
 Return the codimension of `I`.
@@ -1152,7 +1178,7 @@ codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(I::MPolyIdeal)
 
 Return `true` if `I` is the zero ideal, `false` otherwise.
@@ -1168,12 +1194,12 @@ julia> is_zero(I)
 false
 ```
 """
-function is_zero(I::MPolyIdeal)
+@attr Bool function is_zero(I::MPolyIdeal)
   lg = gens(I)
   return isempty(lg) || all(iszero, lg)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_one(I::MPolyIdeal)
 
 Return `true` if `I` is generated by `1`, `false` otherwise.
@@ -1189,7 +1215,7 @@ julia> is_one(I)
 true
 ```
 """
-function is_one(I::MPolyIdeal)
+@attr Bool function is_one(I::MPolyIdeal)
   R = base_ring(I)
   if iszero(I)
       return false
@@ -1207,7 +1233,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_monomial(f::MPolyRingElem)
 
 Return `true` if `f` is a monomial, `false` otherwise.
@@ -1249,7 +1275,7 @@ function _ismonomial(V::Vector{<: MPolyRingElem})
   return all(is_monomial, V)
 end
 
-function is_monomial(I::MPolyIdeal)
+@attr Bool function is_monomial(I::MPolyIdeal)
   if _ismonomial(gens(I))
     return true
   end
@@ -1266,7 +1292,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `I` in a graded multivariate polynomial ring
@@ -1327,7 +1353,7 @@ function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::In
     return convert(MPolyIdeal{QQMPolyRingElem}, Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grassmann_pluecker_ideal([ring::MPolyRing,] subspace_dimension::Int, ambient_dimension::Int)
 
 Given a ring, an ambient dimension and a subspace dimension return the ideal in the given ring

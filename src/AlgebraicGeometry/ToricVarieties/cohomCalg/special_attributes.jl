@@ -2,7 +2,7 @@
 # (1) Special attributes of toric varieties
 ###########################
 
-@doc Markdown.doc"""
+@doc raw"""
     vanishing_sets(variety::AbstractNormalToricVariety)
 
 Compute the vanishing sets of an abstract toric variety `v` by use of the cohomCalg algorithm.
@@ -22,16 +22,13 @@ end
 # (2) Special attributes of toric line bundles
 ###########################
 
-@doc Markdown.doc"""
+@doc raw"""
     all_cohomologies(l::ToricLineBundle)
 
 Computes the dimension of all sheaf cohomologies of the 
 toric line bundle `l` by use of the cohomCalg algorithm 
-[BJRR10](@cite),
-[cohomCalg:Implementation(@cite),
-[RR10](@cite),
-[Jow11](@cite),
-[BJRR12](@cite).
+[BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
+[Jow11](@cite) and [BJRR12](@cite)).
 
 # Examples
 ```jldoctest
@@ -155,16 +152,13 @@ function all_cohomologies(l::ToricLineBundle)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology(l::ToricLineBundle, i::Int)
 
 Computes the dimension of the i-th sheaf cohomology of the
 toric line bundle `l` by use of the cohomCalg algorithm
-[BJRR10](@cite),
-[cohomCalg:Implementation(@cite),
-[RR10](@cite),
-[Jow11](@cite),
-[BJRR12](@cite).
+[BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
+[Jow11](@cite) and [BJRR12](@cite)).
 
 # Examples
 ```jldoctest

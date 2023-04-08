@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     contains(tvs::ToricVanishingSet, l::ToricLineBundle)
 
 Checks if the toric line bundle `l` is contained in the toric vanishing set `tvs`.

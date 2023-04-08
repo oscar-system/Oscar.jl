@@ -14,14 +14,14 @@ base_ring_type(C::Covering) = base_ring_type(typeof(C))
 ########################################################################
 patches(C::Covering) = C.patches
 basic_patches(C::Covering) = C.patches
-@doc Markdown.doc"""
+@doc raw"""
     affine_charts(C::Covering)
 
 Return the list of affine charts that make up the `Covering` `C`.
 """
 affine_charts(C::Covering) = C.patches
 npatches(C::Covering) = length(C.patches)
-@doc Markdown.doc"""
+@doc raw"""
     glueings(C::Covering)
 
 Return a dictionary of glueings of the `affine_chart`s of `C`.

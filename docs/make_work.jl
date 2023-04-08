@@ -24,11 +24,108 @@ using Documenter, DocumenterCitations
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
+# We monkey-patch Base.walkdir to use true as default value for follow_symlinks
+# (normally false is the default), in order to "trick" the Documenter code into
+# following those symlinks.
+# See also:
+# https://github.com/JuliaDocs/Documenter.jl/pull/552
+# https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
+Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
+
+
+# When we read a `doc.main` from an experimental package, we need to equip all
+# its entries with a prefix to fit with our docs. The doc.main of an
+# experimental package will contain paths relative to
+# `experimental/PACKAGE_NAME/docs/src`. When generating the docs a symlink is
+# set in `docs/src/Experimental/PACKAGE_NAME` pointing to
+# `experimental/PACKAGE_NAME/docs/src`. Hence the paths in `doc.main` need to
+# get the prefix `Experimental/PACKAGE_NAME`.
+#
+# Example:
+# 1. cat experimental/PlaneCurve/docs/doc.main:
+# [
+#    "plane_curves.md",
+# ]
+# after `add_prefix_to_experimental_docs` becomes
+# [
+#    "Experimental/PlaneCurve/plane_curves.md",
+# ]
+#
+# 2. cat experimental/FTheoryTools/docs/doc.main 
+# [
+#    "F-Theory Tools" => [
+#       "introduction.md",
+#       "weierstrass.md",
+#       "tate.md",
+#    ],
+# ]
+# after `add_prefix_to_experimental_docs` becomes
+# [
+#    "F-Theory Tools" => [
+#       "Experimental/FTheoryTools/introduction.md",
+#       "Experimental/FTheoryTools/weierstrass.md",
+#       "Experimental/FTheoryTools/tate.md",
+#    ],
+# ]
+#
+# Since the entries of a `doc.main` vary in type, we have split this up into
+# three functions.
+add_prefix_to_experimental_docs(Oscar::Module, docs::String, prefix::String) = joinpath(prefix, docs)
+add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], add_prefix_to_experimental_docs(Oscar, docs[2], prefix))
+add_prefix_to_experimental_docs(Oscar::Module, docs::Vector{T}, prefix::String) where T = T[add_prefix_to_experimental_docs(Oscar, entry, prefix) for entry in docs]
+
+
+function setup_experimental_package(Oscar::Module, package_name::String)
+  doc_main_path = joinpath(Oscar.oscardir, "experimental", package_name, "docs/doc.main")
+  if !isfile(doc_main_path)
+    return[]
+  end
+
+  # Set symlink inside docs/src/experimental
+  symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
+  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs", "src")
+
+  if !ispath(symlink_target)
+    return []
+  end
+
+  if !ispath(symlink_link)
+    symlink(symlink_target, symlink_link)
+  elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
+      error("$symlink_link already exists, but is not a symlink to $symlink_target
+Please investigate the contents of $symlink_link,
+optionally move them somewhere else and delete the directory once you are done.")
+  end
+
+  # Read doc.main of package
+  exp_s = read(doc_main_path, String)
+  exp_doc = eval(Meta.parse(exp_s))
+
+  # Prepend path
+  prefix = "Experimental/" * package_name * "/"
+  result = add_prefix_to_experimental_docs(Oscar, exp_doc, prefix)
+  return result
+end
+
 function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
+
+  # Remove symbolic links from earlier runs
+  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
+  for x in readdir(expdocdir; join=true)
+    islink(x) && rm(x)
+  end
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
+  collected = Any["Experimental/intro.md"]
+  for pkg in Oscar.exppkgs
+    pkgdocs = setup_experimental_package(Oscar, pkg)
+    if length(pkgdocs) > 0
+      append!(collected, pkgdocs)
+    end
+  end
+  push!(doc, ("Experimental" => collected))
 
   # Load the bibliography
   bib = CitationBibliography(joinpath(Oscar.oscardir, "docs", "oscar_references.bib"), sorting = :nyt)

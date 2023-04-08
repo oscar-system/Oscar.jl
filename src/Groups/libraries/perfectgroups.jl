@@ -2,7 +2,7 @@
 # Perfect groups
 ###################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     orders_perfect_groups()
 
 Returns a sorted vector of all numbers to $2 \cdot 10^6$ that occur as orders
@@ -28,7 +28,7 @@ function orders_perfect_groups()
     return Vector{Int}(GAP.Globals.SizesPerfectGroups())
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     has_number_perfect_groups(n::Int)
 
 Return `true` if the number of perfect groups of order `n` are available
@@ -47,7 +47,7 @@ false
 """
 has_number_perfect_groups(n::Int) = has_perfect_groups(n) # for now just an alias
 
-@doc Markdown.doc"""
+@doc raw"""
     has_perfect_group_identification(n::Int)
 
 Return `true` if identification is supported for the perfect
@@ -66,7 +66,7 @@ false
 """
 has_perfect_group_identification(n::Int) = has_perfect_groups(n) # for now just an alias
 
-@doc Markdown.doc"""
+@doc raw"""
     has_perfect_groups(deg::Int)
 
 Return `true` if the perfect groups of order `n` are available
@@ -151,9 +151,9 @@ julia> perfect_group_identification(SL(2,7))
 ```
 """
 function perfect_group_identification(G::GAPGroup)
-   is_perfect(G) || error("group is not perfect")
+   @req is_perfect(G) "group is not perfect"
    res = GAP.Globals.PerfectIdentification(G.X)
-   res !== GAP.Globals.fail || error("identification is not available for groups of order $(order(G))")
+   @req (res !== GAP.Globals.fail) "identification is not available for groups of order $(order(G))"
    return Tuple{Int,Int}(res)
 end
 
@@ -174,7 +174,7 @@ julia> number_perfect_groups(1966080)
 function number_perfect_groups(n::IntegerUnion)
    @req n >= 1 "group order must be positive, not $n"
    res = GAP.Globals.NumberPerfectGroups(GAP.Obj(n))
-   res !== GAP.Globals.fail || error("the number of perfect groups of order $n is not available")
+   @req (res !== GAP.Globals.fail) "the number of perfect groups of order $n is not available"
    return res::Int
 end
 

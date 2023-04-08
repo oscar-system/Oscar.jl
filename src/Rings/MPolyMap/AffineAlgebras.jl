@@ -41,7 +41,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel(F::AffAlgHom)
 
 Return the kernel of `F`.
@@ -59,7 +59,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_injective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
@@ -96,7 +96,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_surjective(F::AffAlgHom)
 
 Return `true` if `F` is surjective, `false` otherwise.
@@ -125,7 +125,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_bijective(F::AffAlgHom)
 
 Return `true` if `F` is bijective, `false` otherwise.
@@ -140,7 +140,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_finite(F::AffAlgHom)
 
 Return `true` if `F` is finite, `false` otherwise.
@@ -171,7 +171,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     inverse(F::AffAlgHom)
 
 If `F` is bijective, return its inverse.
@@ -237,7 +237,7 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRing
   return (pr(D[1]), kernel(F))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
 Return the preimage of the ideal `I` under `F`.

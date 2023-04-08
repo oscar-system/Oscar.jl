@@ -8,8 +8,8 @@
 # To the outside, this is primarily the map identifying S with its 
 # flattened version.
 ########################################################################
-mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring, 
-                              CoeffRingType<:Ring
+@attributes mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
+                              FlatRingType<:Ring, CoeffRingType<:Ring
                              } <: Hecke.Map{TowerRingType, FlatRingType, 
                                             SetMap, RingFlattening
                                            }
@@ -121,6 +121,125 @@ mutable struct RingFlattening{TowerRingType<:MPolyRing, FlatRingType<:Ring,
                                                      L_to_S_flat
                                                     )
   end
+
+  # Flattenings of quotient rings of the form (𝕜[x][u])/J → 𝕜[x, u]/J'
+  function RingFlattening(
+      S::MPolyQuoRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem{<:MPolyRingElem}}
+    P = base_ring(S) # the free polynomial ring
+    P_flattening = flatten(P)
+    R = base_ring(P) # the coefficient ring of S
+    kk = coefficient_ring(R)
+
+    P_flat = codomain(P_flattening)
+    S_flat, _ = quo(P_flat, P_flattening(modulus(S)))
+
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
+    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)])
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
+    return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     R_to_S_flat
+                                                    )
+  end
+
+  # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J → 𝕜[x, u]/(I' + J')
+  function RingFlattening(
+      S::MPolyQuoRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem{<:MPolyQuoRingElem}}
+    P = base_ring(S)::MPolyRing # the polynomial ring behind S
+    A = base_ring(P)::MPolyQuoRing # the coefficient ring of S
+
+    P_flattening = flatten(P)
+    P_flat = codomain(P_flattening)
+    mod_flat = P_flattening(modulus(S))
+    S_flat, _ = quo(P_flat, mod_flat)
+
+    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end])
+
+    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)])
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(P.(gens(A)))))
+
+    return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     A_to_S_flat
+                                                    )
+  end
+
+  # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J → (𝕜[x, u]/(I' + J'))[U'⁻¹]
+  function RingFlattening(
+      S::MPolyQuoRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem{<:MPolyQuoLocRingElem}}
+    P = base_ring(S)::MPolyRing
+    Q = base_ring(P)::MPolyQuoLocRing
+    R = base_ring(Q)::MPolyRing
+
+    P_flattening = flatten(P)
+    P_flat = codomain(P_flattening)
+    mod_flat = P_flattening(modulus(S))
+    S_flat, _ = quo(P_flat, mod_flat)
+
+    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end])
+    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)])
+
+    # The common type of homomorphisms from a localization to S
+    # involves computation of the inverse of elements in S. 
+    # This has no computational backend. Hence, we need to cheat here. 
+    B = base_ring(S_flat)
+    psi = hom(B, S, vcat(gens(S), S.(gens(Q))))
+    v = vcat([zero(Q) for i in 1:ngens(S)], gens(Q))
+    function my_map(a::RingElem) 
+      p = lifted_numerator(a)
+      q = lifted_denominator(a)
+      pp = psi(p)
+      qq = S(P(inv(evaluate(q, v)))) # We know that all admissible representatives of denominators must come from elements in L.
+      return pp*qq
+    end
+
+    #S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))))
+    S_flat_to_S = MapFromFunc(my_map, S_flat, S)
+
+    return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     Q_to_S_flat
+                                                    )
+  end
+
+  # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J → (𝕜[x, u])[U'⁻¹]/J'
+  function RingFlattening(
+      S::MPolyQuoRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem{<:MPolyLocRingElem}}
+    P = base_ring(S)::MPolyRing
+    L = base_ring(P)::MPolyLocRing
+
+    P_flattening = flatten(P)
+    P_flat = codomain(P_flattening)
+    mod_flat = P_flattening(modulus(S))
+    S_flat, _ = quo(P_flat, mod_flat)
+
+    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end])
+    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)])
+
+    # The common type of homomorphisms from a localization to S
+    # involves computation of the inverse of elements in S. 
+    # This has no computational backend. Hence, we need to cheat here. 
+    B = base_ring(S_flat)
+    psi = hom(B, S, vcat(gens(S), S.(gens(L))))
+    v = vcat([zero(L) for i in 1:ngens(S)], gens(L))
+    function my_map(a::RingElem) 
+      p = lifted_numerator(a)
+      q = lifted_denominator(a)
+      pp = psi(p)
+      qq = S(P(inv(evaluate(q, v)))) # We know that all admissible representatives of denominators must come from elements in L.
+      return pp*qq
+    end
+
+    S_flat_to_S = MapFromFunc(my_map, S_flat, S)
+    return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     L_to_S_flat
+                                                    )
+  end
 end
 
 ### Getters 
@@ -149,9 +268,13 @@ end
   return RingFlattening(R)
 end
 
+@attr RingFlattening function flatten(R::MPolyQuoRing)
+  return RingFlattening(R)
+end
+
 function (phi::RingFlattening)(I::MPolyIdeal)
   if !has_attribute(I, :flat_counterpart)
-    I_flat = ideal(codomain(phi), phi.(gens(I)))
+    I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
     set_attribute!(I, :flat_counterpart, I_flat)
     return I_flat
   end
@@ -293,5 +416,32 @@ function saturation(
   phi = flatten(S)
   pre_res = saturation(phi(I), phi(J))
   return ideal(S, inverse(phi).(gens(pre_res)))
+end
+
+### transferred functionality for quotient rings
+function is_invertible_with_inverse(
+    a::MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                            MPolyQuoLocRingElem, MPolyLocRingElem}
+                                   }})
+  phi = flatten(parent(a))
+  a_flat = phi(a)
+  is_unit(a_flat) || return false, a
+  return true, inverse(phi)(inv(a_flat))
+end
+
+function is_unit(
+    a::MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                            MPolyQuoLocRingElem, MPolyLocRingElem}
+                                   }})
+  return is_unit(flatten(parent(a))(a))
+end
+
+function inv(
+    a::MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                            MPolyQuoLocRingElem, MPolyLocRingElem}
+                                   }})
+  phi = flatten(parent(a))
+  a_flat = phi(a)
+  return inverse(phi)(inv(a_flat))
 end
 

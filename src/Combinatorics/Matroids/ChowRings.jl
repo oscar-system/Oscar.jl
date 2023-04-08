@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     chow_ring(M::Matroid; ring::MPolyRing=nothing, extended::Bool=false)
 
 Return the Chow ring of a matroid, optionally also with the simplicial generators and the polynomial ring.
@@ -132,7 +132,7 @@ function relations_extended_ring(ring::MPolyRing, proper_flats::Vector{Vector}, 
     return relations
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     augmented_chow_ring(M::Matroid)
 
 Return an augmented Chow ring of a matroid. As described in [BHMPW20](@cite). 

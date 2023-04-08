@@ -5,7 +5,7 @@
 ###############################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     points(SOP::SubdivisionOfPoints)
 
 Return the points of the subdivision of points, `SOP`.
@@ -43,7 +43,7 @@ _matrix_for_polymake(::Val{_point}) = _point_matrix
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_cells(SOP::SubdivisionOfPoints)
 
 Return an iterator over the maximal cells of `SOP`.
@@ -139,7 +139,7 @@ julia> ambient_dim(SOP)
 ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM::Int - 1
 
 
-@doc Markdown.doc"""
+@doc raw"""
     npoints(SOP::SubdivisionOfPoints)
 
 Return the number of points of a `SubdivisionOfPoints`.
@@ -162,7 +162,7 @@ npoints(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
 ## Points properties
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     min_weights(SOP::SubdivisionOfPoints)
 
 Return the minimal weights inducing a subdivision of points. This method will
@@ -188,7 +188,7 @@ julia> min_weights(SOP)
 min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types = Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_cells(IncidenceMatrix, SOP::SubdivisionOfPoints)
 
 Return the maximal cells of `SOP` as an incidence matrix.

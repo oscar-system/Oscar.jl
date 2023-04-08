@@ -178,23 +178,19 @@
      ],
      "Toric Schemes" => [
          "Experimental/ToricSchemes/intro.md",
-         "Experimental/ToricSchemes/AffineToricSchemes.md",
          "Experimental/ToricSchemes/NormalToricSchemes.md",
+         "Experimental/ToricSchemes/AffineToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",
         "AlgebraicGeometry/TropicalGeometry/curve.md",
      ],
      "Curves" => [
-#        "Experimental/introduction.md",
-#        "Experimental/plane_curves.md",
-#        "Experimental/divisors.md",
-#        "Experimental/elliptic_curves.md",
-#        "Experimental/non_plane_curves.md",
          "AlgebraicGeometry/Curves/para_rational_curves.md",
      ],
      "Surfaces" => [
-        "AlgebraicGeometry/Surfaces/K3Surfaces.md"
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
      ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
@@ -238,7 +234,6 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
-    "DeveloperDocumentation/experimental.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

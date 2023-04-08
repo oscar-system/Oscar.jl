@@ -5,7 +5,7 @@
 # (1) General constructors
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 
 This method constructs a morphism from the scheme ``X``
@@ -18,10 +18,22 @@ Note that expensive checks can be turned off by setting `check=false`.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> Y = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> SpecMor(X, Y, gens(OO(X)));
 ```
@@ -59,7 +71,7 @@ end
 # (2) Special constructors
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     identity_map(X::AbsSpec{<:Any, <:MPolyRing})
 
 This method constructs the identity morphism from an affine scheme to itself.
@@ -67,7 +79,13 @@ This method constructs the identity morphism from an affine scheme to itself.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> identity_map(X);
 ```
@@ -78,16 +96,21 @@ identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = SpecMor(X, X, hom(OO(X), OO(X)
 identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X))))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
 
-This method constructs the inclusion map from ``X`` to ``Y``.
-For convenience, also the method `inclusion_morphism` is supported.
+Return the inclusion map from ``X`` to ``Y``.
 
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -113,7 +136,7 @@ true
 inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     compose(f::AbsSpecMor, g::AbsSpecMor)
 
 This method computes the composition of two morphisms.
@@ -121,7 +144,13 @@ This method computes the composition of two morphisms.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -149,7 +178,7 @@ function compose(f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
 
 This method restricts the domain of the morphism ``f``
@@ -158,7 +187,13 @@ to ``U`` and its codomain to ``V``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
