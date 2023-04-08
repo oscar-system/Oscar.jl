@@ -46,6 +46,7 @@ const oldexppkgs = [
   "Rings",
   "Schemes",
   "SymmetricIntersections",
+  "LatWithIsom"
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
 

@@ -5,6 +5,8 @@ export primitive_embeddings_of_elementary_lattice
 
 const GG = GAP.Globals
 
+import Base: +, -, *, ^
+import Oscar: evaluate
 ################################################################################
 #
 # Miscellaneous
@@ -99,20 +101,86 @@ function is_invariant(aut::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor
   return all(g -> is_invariant(g, i), gens(aut))
 end
 
-function _get_V(L, q, f, fq, mu, p)
-  f_mu = mu(f)
-  if !is_zero(f_mu)
-    L_sub = intersect(lattice_in_same_ambient_space(L, inv(f_mu)*basis_matrix(L)), dual(L))
-    B = basis_matrix(L_sub)
-    V, Vinq = sub(q, q.([vec(collect(B[i,:])) for i in 1:nrows(B)]))
-  else 
-    V, Vinq = q, id_hom(q)
-  end  
-  pV, pVinV = primary_part(V, p)
-  pV, pVinV = sub(V, pVinV.([divexact(order(g), p)*g for g in gens(pV) if !(order(g)==1)]))
-  pVinq = compose(pVinV, Vinq)
+function ^(f::TorQuadModuleMor, y::Integer)
+  @assert y >= 0
+  @assert domain(f) === codomain(f)
+  if y == 0
+    return id_hom(domain(f))
+  elseif y == 1
+    return f
+  else
+    k = 1
+    f2 = f
+    while k != y
+      f2 = compose(f2, f)
+      k += 1
+    end
+    return f2
+  end
+end
+
+function +(f::TorQuadModuleMor, g::TorQuadModuleMor)
+  @assert domain(f) === domain(g)
+  @assert codomain(f) === codomain(g)
+  return hom(domain(f), codomain(g), [f(a)+g(a) for a in gens(domain(f))])
+end
+
+function -(f::TorQuadModuleMor, g::TorQuadModuleMor)
+  @assert domain(f) === domain(g)
+  @assert codomain(f) === codomain(g)
+  return hom(domain(f), codomain(g), [f(a)-g(a) for a in gens(domain(f))])
+end
+
+function *(x::Int, f::TorQuadModuleMor)
+  z = hom(domain(f), codomain(f), zero_matrix(ZZ, ngens(domain(f)), ngens(codomain(f))))
+  if x == 0
+    return z
+  elseif x < 0
+    neg = true
+    x = -x
+  else
+    neg = false
+  end
+  k = 1
+  f2 = f
+  while k != x
+    f2 += f
+    k += 1
+  end
+  if neg
+    return z-f
+  else
+    return f
+  end
+end
+
+function evaluate(p::QQPolyRingElem, f::TorQuadModuleMor)
+  c = collect(coefficients(p))
+  @assert domain(f) === codomain(f)
+  g = hom(domain(f), codomain(f), zero_matrix(ZZ, ngens(domain(f)), ngens(codomain(f))))
+  for i in 1:length(c)
+    g += Int(ZZ(c[i]))*f^(i-1)
+  end
+  return g
+end
+
+function kernel(f::TorQuadModuleMor)
+  g = f.map_ab
+  Kg, KgtoA = kernel(g)
+  S, StoKg = snf(Kg)
+  return sub(domain(f), TorQuadModuleElem[domain(f)(KgtoA(StoKg(a))) for a in gens(S)])
+end
+
+function _get_V(fq, mu, p)
+  q = domain(fq)
+  V, Vinq = primary_part(q, p)
+  pV, pVinq = sub(q, Vinq.([divexact(order(g), p)*g for g in gens(V) if !(order(g)==1)]))
   fpV = restrict_automorphism(fq, pVinq)
-  return pV, pVinq, fpV
+  fpV_mu = evaluate(mu, fpV)
+  K, KtopV = kernel(fpV_mu)
+  Ktoq = compose(KtopV, pVinq)
+  fK = restrict_automorphism(fq, Ktoq)
+  return K, Ktoq, fK
 end
 
 function _rho_functor(q::TorQuadModule, p, l::Union{Integer, fmpz})
@@ -705,7 +773,8 @@ end
     admissible_equivariant_primitive_extensions(Afa::LatWithIsom,
                                                 Bfb::LatWithIsom,
                                                 Cfc::LatWithIsom,
-                                                p::Int; check=true)
+                                                p::Integer,
+                                                q::Integer = p; check=true)
                                                      -> Vector{LatWithIsom}
 
 Given a triple of lattices with isometry `(A, fa)`, `(B, fb)` and `(C, fc)` and a
@@ -715,8 +784,8 @@ representatives of the double coset $G_B\backslash S\slash/G_A$ where:
   - $G_A$ and $G_B$ are the respective images of the morphisms
     $O(A, fa) -> O(q_A, \bar{fa})$ and $O(B, fb) -> O(q_B, \bar{fb})$;
   - $S$ is the set of all primitive extensions $A \perp B \subseteq C'$ with isometry
-    $fc'$ where $p\cdot C' \subseteq A\perpB$ and the type of $(C', fc'^p)$ is equal
-    to the type of $(C, fc)$.
+    $fc'$ where $p\cdot C' \subseteq A\perpB$ and such that the type of $(C', fc'^q)$
+    is equal to the type of `(C, fc)`.
 
 If `check == true` the input triple is checked to a `p`-admissible triple of
 integral lattices (with isometry) with `fA` and `fB` having relatively coprime
@@ -731,14 +800,16 @@ See Algorithm 2 of [BH22].
 function admissible_equivariant_primitive_extensions(A::LatWithIsom,
                                                      B::LatWithIsom,
                                                      C::LatWithIsom,
-                                                     p::Integer; check=true)
+                                                     p::Integer,
+                                                     q::Integer = p; check=true)
   # requirement for the algorithm of BH22
   @req is_prime(p) "p must be a prime number" 
 
   if check 
     @req all(L -> is_integral(L), [A, B, C]) "Underlying lattices must be integral"
-    @req is_of_hermitian_type(A) && is_of_hermitian_type(B) "Afa and Bfb must be of hermitian type"
-    @req gcd(minpoly(A), minpoly(B)) == 1 "Minimal irreducible polynomials must be relatively coprime"
+    chiA = minpoly(A)
+    chiB = minpoly(parent(chiA), isometry(B))
+    @req gcd(chiA, chiB) == 1 "Minimal irreducible polynomials must be relatively coprime"
     @req is_admissible_triple(A, B, C, p) "Entries, in this order, do not define an admissible triple"
     if ambient_space(A) === ambient_space(B) === ambient_space(C)
       G = gram_matrix(ambient_space(C))
@@ -754,11 +825,12 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
   qA, fqA = discriminant_group(A)
   qB, fqB = discriminant_group(B)
   GA = image_centralizer_in_Oq(A)
+  @assert fqA in GA
   GB = image_centralizer_in_Oq(B)
+  @assert fqB in GB
 
   # this is where we will perform the glueing
   if ambient_space(A) === ambient_space(B)
-    println("same_amb")
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _sum_with_embeddings_orthogonal_groups(qA, qB)
   else
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _direct_sum_with_embeddings_orthogonal_groups(qA, qB)
@@ -781,23 +853,26 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       fC2 = _B*fC2*inv(_B)
       @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
     else
-      C2 = direct_sum(lattice(A), lattice(B))[1]
+      _B = block_diagonal_matrix([basis_matrix(A), basis_matrix(B)])
+      C2 = lattice_in_same_ambient_space(cover(D), _B)
       fC2 = block_diagonal_matrix([isometry(A), isometry(B)])
+      @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
     end
-    if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), type(C))
-      qC2 = discriminant_group(C2)
-      ok, phi2 = is_isometric_with_isometry(qC2, D)
-      @assert ok
+    qC2 = discriminant_group(C2)
+    phi2 = hom(qC2, D, [D(lift(x)) for x in gens(qC2)])
+    @assert is_bijective(phi2)
+    if is_of_type(lattice_with_isometry(C2, fC2^q, ambient_representation=false), type(C))
       GC = Oscar._orthogonal_group(qC2, [compose(phi2, compose(hom(g), inv(phi2))).map_ab.map for g in gens(GC2)])
       C2fc2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
+      @assert discriminant_group(C2fc2)[2] in GC
       set_attribute!(C2fc2, :image_centralizer_in_Oq, GC)
       push!(results, C2fc2)
     end
     return results
   end
   # these are GA|GB-invariant, fA|fB-stable, and should contain the kernels of any glue map
-  VA, VAinqA, fVA = _get_V(lattice(A), qA, isometry(A), fqA, minpoly(B), p)
-  VB, VBinqB, fVB = _get_V(lattice(B), qB, isometry(B), fqB, minpoly(A), p)
+  VA, VAinqA, fVA = _get_V(hom(fqA), minpoly(B), p)
+  VB, VBinqB, fVB = _get_V(hom(fqB), minpoly(A), p)
 
   # since the glue kernels must have order p^g, in this condition, we have nothing
   if min(order(VA), order(VB)) < p^g
@@ -841,11 +916,13 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
     actA = hom(stabA, OSA, [OSA(restrict_automorphism(x, SAinqA)) for x in gens(stabA)])
     imA, _ = image(actA)
     kerA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x) for x in gens(kernel(actA)[1])]
+    push!(kerA, OqAinOD(one(OqA)))
     fSA = OSA(restrict_automorphism(fqA, SAinqA))
 
     actB = hom(stabB, OSB, [OSB(restrict_automorphism(x, SBinqB)) for x in gens(stabB)])
     imB, _ = image(actB)
     kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(kernel(actB)[1])]
+    push!(kerB, OqBinOD(one(OqB)))
     fSB = OSB(restrict_automorphism(fqB, SBinqB))
 
     # we get all the elements of qB of order exactly p^{l+1}, which are not mutiple of an
@@ -916,10 +993,6 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
         @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
       end
 
-      if !is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation=false), type(C))
-        continue
-      end
-
       ext, _ = sub(D, D.(_glue))
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
@@ -929,10 +1002,15 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       OqC2 = orthogonal_group(qC2)
       phi2 = hom(qC2, disc, [disc(lift(x)) for x in gens(qC2)])
       @assert is_bijective(phi2)
-
+      
+      if !is_of_type(lattice_with_isometry(C2, fC2^q, ambient_representation = false), type(C))
+        continue
+      end
       C2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
-      im2_phi, _ = sub(OSA, OSA.([compose(phig, compose(hom(g1), inv(phig))) for g1 in gens(imB)]))
-      im3, _ = sub(imA, gens(intersect(imA, im2_phi)[1]))
+      geneOSA =  AutomorphismGroupElem{TorQuadModule}[OSA(compose(phig, compose(hom(g1), inv(phig)))) for g1 in unique(gens(imB))]
+      im2_phi, _ = sub(OSA, geneOSA)
+      gene_inter = AutomorphismGroupElem{TorQuadModule}[h for h in unique(gens(intersect(imA, im2_phi)[1]))]
+      im3, _ = sub(imA, gene_inter)
       stab = Tuple{AutomorphismGroupElem{TorQuadModule}, AutomorphismGroupElem{TorQuadModule}}[(actA\x, actB\(imB(compose(inv(phig), compose(hom(x), phig))))) for x in gens(im3)]
       stab = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x[1])*OqBinOD(x[2]) for x in stab]
       stab = union(stab, kerA)
@@ -940,6 +1018,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       stab = TorQuadModuleMor[restrict_automorphism(g, j) for g in stab]
       stab = TorQuadModuleMor[hom(disc, disc, [disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
       stab = Oscar._orthogonal_group(qC2, [compose(phi2, compose(g, inv(phi2))).map_ab.map for g in stab])
+      @assert discriminant_group(C2)[2] in stab
       set_attribute!(C2, :image_centralizer_in_Oq, stab)
       push!(results, C2)
     end

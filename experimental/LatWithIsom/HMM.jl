@@ -440,6 +440,8 @@ end
 #
 ###############################################################################
 
+Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
+
 # Starting from an isometry of the torsion quadratic module `domain(g)`, for
 # which we assume that the cover M has full rank, we compute a fake lift to the
 # ambient space of the cover. This is not an isometry, but induces g on `domain(g)`.
@@ -458,10 +460,14 @@ end
 # corresponding hermitian structure, we transfer the fake lift computed with the
 # previous function. This will be an invertible matrix, but the corresponding
 # automorphism is not an isometry.
-function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T, P::Hecke.NfRelOrdIdl, i::Int) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   E = base_ring(codomain(res))
+  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Pabs = EabstoE\P
+  OEabs = order(Pabs)
   q = domain(g)
   @assert ambient_space(cover(q)) === domain(res)
+  #Bp = reduce(vcat, [matrix(E, 1, ncols(Bp), res(lift(q(res\vec(collect(Bp[i, :])))))) for i in 1:nrows(Bp)])
   B2 = zero(Bp)
   for i in 1:nrows(Bp)
     vE = vec(collect(Bp[i, :]))
@@ -472,7 +478,21 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
     gvE = res(gvQ)
     B2[i, :] = gvE
   end
-  return solve_left(Bp[:, 1:nrows(Bp)], B2[:, 1:nrows(B2)])
+
+  Bpabs = map_entries(a -> EabstoE\a, Bp)
+  B2abs = map_entries(a -> EabstoE\a, B2)
+  d = lcm(lcm([denominator(a, OEabs) for a in Bpabs]), lcm([denominator(a, OEabs) for a in B2abs]))
+  dBpabs = change_base_ring(OEabs, d*Bpabs)
+  dB2abs = change_base_ring(OEabs, d*B2abs)
+  Q, p = quo(OEabs, Pabs^(i+valuation(d, Pabs))) 
+  BpQ = map_entries(p, dBpabs)
+  B2Q = map_entries(p, dB2abs)
+  println(BpQ, B2Q)
+  KQ = solve_left(BpQ, B2Q)
+  K = map_entries(a -> EabstoE(Eabs(p\a)), KQ)
+  @assert _scale_valuation(K*Bp-B2, P) >= i
+  println(K)
+  return K
 end
 
 # the minimum P-valuation among all the non-zero entries of M
@@ -512,8 +532,6 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
   if check
     @assert _scale_valuation(inv(G), P) >= 1+a
     @assert _norm_valuation(inv(G), P) + valuation(rho, P) >= 1+a
-    println(_scale_valuation(R, P))
-    println(a)
     @assert _scale_valuation(R, P) >= l-a
     @assert _norm_valuation(R, P) + valuation(rho,P) >= l-a
   end
@@ -554,13 +572,12 @@ function _approximate_isometry(H::Hecke.HermLat, g::AutomorphismGroupElem{TorQua
   @assert nf(order(P)) === E
   ok, b = is_modular(H, minimum(P))
   if ok && b == -a
-    return identity_matrix(E, rank(H))
+    return identity_matrix(E, 1)
   end
 
-  Bp = _local_basis_modular_submodules(H, minimum(P), a, res)
+  Bp, v = _local_basis_modular_submodules(H, minimum(P), a, res)
   Gp = Bp*gram_matrix(ambient_space(H))*map_entries(involution(E), transpose(Bp))
-  Fp = _transfer_discriminant_isometry(res, g, Bp)
-  println(Fp)
+  Fp = _transfer_discriminant_isometry(res, g, Bp, P, v)
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
   Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
@@ -572,13 +589,16 @@ function _approximate_isometry(H::Hecke.HermLat, g::AutomorphismGroupElem{TorQua
     Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
   end
 
-  return Fp[1:nd,1:nd]
+  return Fp
 end
 
-function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfRelOrdIdl, a::Int, res::AbstractSpaceRes)
+function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfOrdIdl, a::Int, res::AbstractSpaceRes)
   L = restrict_scalars(H, res)
   B, _ , exps = jordan_decomposition(H, p)
-  exps[end] == -a && pop!(B)
+  if exps[end] == -a
+    pop!(B)
+    pop!(exps)
+  end
   subs = eltype(B)[]
   for b in B
     H2 = lattice_in_same_ambient_space(H, b)
@@ -586,13 +606,13 @@ function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfRelOrdIdl,
       L2 = restrict_scalars(H2, res)
       L2 = intersect(L, L2)
       B2 = basis_matrix(L2)
-      gene = [res(vec(collect(B2[i, :]))) for in in 1:nrows(B2)]
+      gene = [res(vec(collect(B2[i, :]))) for i in 1:nrows(B2)]
       H2 = lattice(ambient_space(H), gene)
       b = local_basis_matrix(H2, p, type = :submodule)
     end
     push!(subs, b)
   end
-  return reduce(vcat, subs)
+  return reduce(vcat, subs), a-exps[end]
 end
 
 # We need a special rho for Algorithm 8 of BH23: we construct such an element

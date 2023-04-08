@@ -13,7 +13,7 @@ import Hecke: kernel_lattice, invariant_lattice, rank, genus, basis_matrix,
               gram_matrix, ambient_space, rational_span, scale, signature_tuple,
               is_integral, det, norm, degree, discriminant, charpoly, minpoly,
               rescale, dual, lll, discriminant_group, divides, lattice,
-              hermitian_structure, coinvariant_lattice, is_even
+              hermitian_structure, coinvariant_lattice
 
 ###############################################################################
 #
@@ -207,9 +207,9 @@ signature_tuple(Lf::LatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int,
 ###############################################################################
 
 @doc Markdown.doc"""
-    lattice_with_isometry(L::ZLat, f::QQMatrix, n::IntExt; check::Bool = true,
-                                                           ambient_representation = true)
-				                                                                -> LatWithIsom
+    lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
+                                                ambient_representation = true)
+				                                                             -> LatWithIsom
 
 Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
 of `L` of order `n`, return the corresponding lattice with isometry pair $(L, f)$.
@@ -219,16 +219,14 @@ ambient space of `L` and the induced isometry on `L` is automatically computed.
 Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
 on the complement of the rational span of `L` if it is not of full rank.
 """
-function lattice_with_isometry(L::ZLat, f::QQMatrix, n::IntExt; check::Bool = true,
-                                                                ambient_representation::Bool = true)
+function lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
+                                                     ambient_representation::Bool = true)
   if rank(L) == 0
-    return LatWithIsom(L, matrix(QQ,0,0,[]), -1)
+    return LatWithIsom(L, matrix(QQ,0,0,[]), identity_matrix(QQ, degree(L)), -1)
   end
 
   if check
     @req det(f) != 0 "f is not invertible"
-    m = multiplicative_order(f)
-    @req n == m "The order of f is equal to $m, not $n"
   end
 
   if ambient_representation
@@ -245,6 +243,8 @@ function lattice_with_isometry(L::ZLat, f::QQMatrix, n::IntExt; check::Bool = tr
     f_ambient = inv(C)*f_ambient*C
   end
 
+  n = multiplicative_order(f)
+
   if check
     @req f*gram_matrix(L)*transpose(f) == gram_matrix(L) "f does not define an isometry of L"
     @req f_ambient*gram_matrix(ambient_space(L))*transpose(f_ambient) == gram_matrix(ambient_space(L)) "f_ambient is not an isometry of the ambient space of L"
@@ -254,30 +254,6 @@ function lattice_with_isometry(L::ZLat, f::QQMatrix, n::IntExt; check::Bool = tr
   return LatWithIsom(L, f, f_ambient, n)::LatWithIsom
 end
 
-
-@doc Markdown.doc"""
-    lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
-                                                ambient_representation::Bool, = true)
-                                                                  -> LatWithIsom
-
-Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
-of `L`, return the corresponding lattice with isometry pair $(L, f)$.
-
-If `ambient_representation` is set to true, `f` is consider as an isometry of the
-ambient space of `L` and the induced isometry on `L` is automatically computed.
-Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
-on the complement of the rational span of `L` if it is not of full rank.
-"""
-function lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
-                                                     ambient_representation::Bool = true)
-  if rank(L) == 0
-    return LatWithIsom(L, matrix(QQ,0,0,[]), identity_matrix(QQ, degree(L)), -1)
-  end
-
-  n = multiplicative_order(f)
-  return lattice_with_isometry(L, f, n, check = check,
-                               ambient_representation = ambient_representation)::LatWithIsom
-end
 
 @doc Markdown.doc"""
     lattice_with_isometry(L::ZLat) -> LatWithIsom
@@ -304,7 +280,7 @@ Given a lattice with isometry $(L, f)$ and a rational number `a`, return the lat
 with isometry $(L(a), f)$ (see [`rescale(::ZLat, ::RationalUnion)`](@ref)).
 """
 function rescale(Lf::LatWithIsom, a::Hecke.RationalUnion)
-  return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), order_of_isometry(Lf), check=false)
+  return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), check=false)
 end
 
 @doc Markdown.doc"""
@@ -317,7 +293,7 @@ induced by `g`.
 """
 function dual(Lf::LatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
-  return lattice_with_isometry(dual(lattice(Lf)), ambient_isometry(Lf), order_of_isometry(Lf), check = false)
+  return lattice_with_isometry(dual(lattice(Lf)), ambient_isometry(Lf), check = false)
 end
 
 @doc Markdown.doc"""
@@ -607,7 +583,7 @@ $\mathbb{Z}$-lattice $\Ker(f^k-1)$.
   for l in divs
     Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl), check=false, ambient_representation=false)[1]
+      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl), check=false, ambient_representation=false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))

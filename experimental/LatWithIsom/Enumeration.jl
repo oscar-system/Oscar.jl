@@ -228,17 +228,17 @@ function admissible_triples(G::ZGenus, p::Int64; pA::Int = -1, pB::Int = -1)
   @req is_prime(p) "p must be a prime number"
   @req is_integral(G) "G must be a genus of integral lattices"
   n = rank(G)
-  p, _ = signature_pair(G)
+  pG, _ = signature_pair(G)
   if pA >= 0
-    @req pA <= p "Wrong restrictions"
+    @req pA <= pG "Wrong restrictions"
     if pB >= 0
-      @req pA + pB == p "Wrong restrictions"
+      @req pA + pB == pG "Wrong restrictions"
     else
-      pB = p - pA
+      pB = pG - pA
     end
   elseif pB >= 0
-    @req pB <= p "Wrong restrictions"
-    pA = p - pB
+    @req pB <= pG "Wrong restrictions"
+    pA = pG - pB
   end
   d = numerator(det(G))
   even = iseven(G)
@@ -369,7 +369,7 @@ $(L, f)$. Note that in this case, the isometries `g`'s are of order $nm$.
 See Algorithm 3 of [BH22].
 """
 function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
-  rank(Lf) == 0 && return LatWithIsom[]
+  rank(Lf) == 0 && return LatWithIsom[Lf]
 
   @req m >= 1 "m must be a positive integer"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian"
@@ -392,6 +392,8 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
     end
     return reps
   end
+
+  !iseven(s2) && return reps
 
   @info "Order bigger than 3"
 
@@ -416,7 +418,8 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   @info "All possible signatures: $(length(signatures))"
 
   for dd in detE, sign in signatures
-    append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = Hecke.numerator(DE*dd)))
+    println(dd)
+    append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(dd)*DE))
   end
   gene = unique(gene)
 
@@ -432,7 +435,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
     end
     @info "$H"
     M, fM = Hecke.trace_lattice_with_isometry(H)
-    @assert det(M) == d
+    det(M) == d || continue
     M = lattice_with_isometry(M, fM)
     @assert is_of_hermitian_type(M)
     @assert order_of_isometry(M) == n*m
@@ -520,7 +523,7 @@ function _representative(t::Dict; check::Bool = true)
     end
     H = H
     M = trace_lattice(H)
-    @assert det(M) == d
+    det(M) == d || continue
     @assert is_of_hermitian_type(M)
     @assert order_of_isometry(M) == n
     if iseven(M) != iseven(G)
@@ -547,7 +550,7 @@ Note that `d` can be 0.
 See Algorithm 4 of [BH22].
 """
 function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -1, pB::Int = -1)
-  rank(Lf) == 0 && return LatWithIsom[]
+  rank(Lf) == 0 && return LatWithIsom[Lf]
 
   @req is_prime(p) "p must be a prime number"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
@@ -570,7 +573,7 @@ function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -
     LA = lattice_with_isometry(representative(A))
     RA = representatives_of_hermitian_type(LA, q^d)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
-      E = try admissible_equivariant_primitive_extensions(L1, L2, Lf, p, check=false)
+      E = try admissible_equivariant_primitive_extensions(L1, L2, Lf, p)
       catch e return L1, L2, Lf, p
       end
       GC.gc()
@@ -613,7 +616,10 @@ Note that `e` can be 0.
 See Algorithm 5 of [BH22].
 """
 function splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0)
-  rank(Lf) == 0 && return LatWithIsom[]
+  if rank(Lf) == 0
+    (b == 0) && return LatWithIsom[Lf]
+    return LatWithIsom[]
+  end
 
   @req is_prime(p) "p must be a prime number"
   @req b in [0, 1] "b must be an integer equal to 0 or 1"
@@ -633,13 +639,15 @@ function splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0)
 
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, q^e)
-  B0 = kernel_lattice(Lf, x^(q^e-1)-1)
+  B0 = kernel_lattice(Lf, x^(q^(e-1))-1)
   A = splitting_of_hermitian_prime_power(A0, p)
   is_empty(A) && return reps
   B = splitting_of_prime_power(B0, p)
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B])
     b == 1 && !Hecke.divides(order_of_isometry(L1), p)[1] && !Hecke.divides(order_of_isometry(L2), p)[1] && continue
-    E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, check=false)
+    E = try admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p)
+    catch e return L2, L1, Lf, q, p
+    end
     @assert b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
   end
@@ -701,7 +709,7 @@ function splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
   is_empty(A) && return reps
   B = splitting_of_partial_mixed_prime_power(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
-    E = admissible_equivariant_primitive_extensions(LA, LB, Lf, q, check = false)
+    E = admissible_equivariant_primitive_extensions(LB, LA, Lf, q, p)
     append!(reps, E)
   end
   return reps
@@ -753,7 +761,7 @@ function splitting_of_mixed_prime_power(Lf::LatWithIsom, p::Int)
   isempty(A) && return reps
   B = splitting_of_mixed_prime_power(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
-    E = admissible_equivariant_primitive_extensions(LA, LB, Lf, p, check = false)
+    E = admissible_equivariant_primitive_extensions(LB, LA, Lf, p)
     @assert all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
     append!(reps, E)
   end
