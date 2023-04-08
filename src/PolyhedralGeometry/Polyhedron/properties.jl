@@ -959,23 +959,23 @@ Base.in(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polymake.pol
 
 
 @doc raw"""
-    contains(P::Polyhedron, v::AbstractVector)
+    in(v::AbstractVector, P::Polyhedron)
 
-Check whether `P` contains `v`.
+Check whether the vector `v` is contained in the polyhedron `P`.
 
 # Examples
 The positive orthant only contains vectors with non-negative entries:
 ```jldoctest
 julia> PO = Polyhedron([-1 0; 0 -1], [0, 0]);
 
-julia> contains(PO, [1, 2])
+julia> [1, 2] in PO
 true
 
-julia> contains(PO, [1, -2])
+julia> [1, -2] in PO
 false
 ```
 """
-contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
+Base.in(v::AbstractVector, P::Polyhedron) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
 
 
 @doc raw"""

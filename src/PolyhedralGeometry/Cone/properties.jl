@@ -558,23 +558,23 @@ Base.in(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.incl
 
 
 @doc raw"""
-    contains(C::Cone, v::AbstractVector)
+    in(v::AbstractVector, C::Cone)
 
-Check whether `C` contains `v`.
+Check whether the vector `v` is contained in the cone `C`.
 
 # Examples
 The positive orthant only contains vectors with non-negative entries:
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1]);
 
-julia> contains(C, [1, 2])
+julia> [1, 2] in C
 true
 
-julia> contains(C, [1, -2])
+julia> [1, -2] in C
 false
 ```
 """
-contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool
+Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v)::Bool
 
 
 @doc raw"""
