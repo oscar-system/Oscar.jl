@@ -21,8 +21,8 @@
     R,x = polynomial_ring(QQ, "x")
 
     @testset "core functionality" begin
-        @test contains(Q1, Q0)
-        @test !contains(Q0, Q1)
+        @test Q0 in Q1
+        @test !(Q1 in Q0)
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
         if T == QQFieldElem

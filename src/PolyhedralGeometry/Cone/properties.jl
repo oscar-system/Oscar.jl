@@ -535,26 +535,26 @@ _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
 
 @doc raw"""
-    contains(C0::Cone, C1::Cone)                           
+    in(C0::Cone, C1::Cone)                           
     
-Check whether `C0` contains `C1`.
+Check whether `C0` is contained in `C1` as a subset.
                                              
 # Examples                 
 ```jldoctest                                                                                
-julia> C0 = positive_hull([1 0; 0 1])
+julia> C0 = positive_hull([1 1])
 Polyhedral cone in ambient dimension 2
 
-julia> C1 = positive_hull([1 1])
+julia> C1 = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
-julia> contains(C0, C1)
+julia> C0 in C1
 true
 
-julia> contains(C1, C0)
+julia> C1 in C0
 false
 ```
 """
-contains(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C1), pm_object(C0))::Bool
+Base.in(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C0), pm_object(C1))::Bool
 
 
 @doc raw"""

@@ -936,9 +936,9 @@ is_feasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
 
 
 @doc raw"""
-    contains(P::Polyhedron, Q::Polyhedron)
+    in(P::Polyhedron, Q::Polyhedron)
 
-Check whether `P` contains `Q`.
+Check whether `P` is contained in `Q` as a subset.
 
 # Examples
 ```jldoctest
@@ -948,14 +948,14 @@ Polyhedron in ambient dimension 3
 julia> Q = cube(3,-1,2)
 Polyhedron in ambient dimension 3
 
-julia> contains(P, Q)
-false
-
-julia> contains(Q, P)
+julia> P in Q
 true
+
+julia> Q in P
+false
 ```
 """
-contains(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(Q), pm_object(P))::Bool
+Base.in(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(P), pm_object(Q))::Bool
 
 
 @doc raw"""
