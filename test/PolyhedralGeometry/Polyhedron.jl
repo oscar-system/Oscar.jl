@@ -23,6 +23,8 @@
     @testset "core functionality" begin
         @test Q0 in Q1
         @test !(Q1 in Q0)
+        @test [1, 0] in Q0
+        @test !([-1, -1] in Q0)
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
         if T == QQFieldElem

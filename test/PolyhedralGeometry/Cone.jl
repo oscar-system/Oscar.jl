@@ -18,6 +18,8 @@ const pm = Polymake
         @test is_pointed(Cone1)
         @test Cone7 in Cone1
         @test !(Cone1 in Cone7)
+        @test [1, 0] in Cone1
+        @test !([-1, -1] in Cone1)
         if T == QQFieldElem
           @test !is_smooth(Cone2)
           @test is_smooth(Cone7)
