@@ -53,7 +53,7 @@ function addAndReduce!(sp::VSBasis, v::TVec)
         return v
     end
  
-    for j = 1:length(A)
+    for j in 1:length(A)
         i = pivot[j]
         if i != newPivot
             continue

@@ -20,17 +20,19 @@ function calc_wt(mon, weights)
     """
     
     """
+    degree_mon = degrees(mon)
     wt = [0 for i in 1:length(weights[1])]
-    for i in 1:length(mon)
-        wt .+= mon[i] * weights[i]
+    for i in 1:length(degree_mon)
+        wt .+= degree_mon[i] * weights[i]
     end
     return wt
 end
 
 function calc_vec(v0, mon, mats)
     vec = v0
-    for i in length(mon):-1:1
-        for j in 1:mon[i]
+    degree_mon = degrees(mon)
+    for i in length(degree_mon):-1:1
+        for j in 1:degree_mon[i]
             vec = mul(vec, transpose(mats[i]))
         end
     end
@@ -106,12 +108,12 @@ function calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
             # check if the extended monomial can be deleted from calculated_monomials, i.e. the other possible extensions are already contained
             can_be_deleted = true
             k = m
-            for l = 1:m
+            for l in 1:m
                 if (sub_mon_cur-e[i])[l] != 0
                     k = l
                 end
             end
-            for l = 1:k
+            for l in 1:k
                 can_be_deleted = can_be_deleted && haskey(calc_monomials, sub_mon_cur-e[i]+e[l])
             end
             if can_be_deleted && sub_mon_cur != e[i]

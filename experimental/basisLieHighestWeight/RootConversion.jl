@@ -166,13 +166,13 @@ function alpha_to_eps_E6(weight)
     for E6, potentially wrong order or roots (1-2-3-5-6, 3-4)
     """
     eps = [0.0 for i=1:6]
-    for i=1:4
+    for i in 1:4
         eps[i] += weight[i]
         eps[i+1] += - weight[i]
     end
     eps[4] += weight[5]
     eps[5] += weight[5]
-    for i=1:5
+    for i in 1:5
         eps[i] += -0.5*weight[6]
     end
     eps[6] += 0.5*sqrt(3)*weight[6]
@@ -185,13 +185,13 @@ function eps_to_alpha_E6(weight)
     for E6
     """
     alpha = [0.0 for i=1:6]
-    for j=1:3
-        for i=1:j
+    for j in 1:3
+        for i in 1:j
             alpha[j] += weight[i]
         end
         alpha[j] += j*(sqrt(3) / 3) *weight[6]
     end
-    for i=1:4
+    for i in 1:4
         alpha[4] += 0.5*weight[i]
         alpha[5] += 0.5*weight[i]
     end
@@ -207,13 +207,13 @@ function alpha_to_eps_E7(weight)
     for E7, potentially wrong order of roots (1-2-3-4-6-7, 4-5)
     """
     eps = [0.0 for i=1:7]
-    for i=1:5
+    for i in 1:5
         eps[i] += weight[i]
         eps[i+1] += - weight[i]
     end
     eps[5] += weight[6]
     eps[6] += weight[6]
-    for i=1:6
+    for i in 1:6
         eps[i] += -0.5*weight[7]
     end
     eps[7] += 0.5*sqrt(2)*weight[7]
@@ -226,13 +226,13 @@ function eps_to_alpha_E7(weight)
     for E7
     """
     alpha = [0.0 for i=1:7]
-    for j=1:4
-        for i=1:j
+    for j in 1:4
+        for i in 1:j
             alpha[j] += weight[i]
         end
         alpha[j] += j*(sqrt(2) / 2) *weight[7]
     end
-    for i=1:5
+    for i in 1:5
         alpha[5] += 0.5*weight[i]
         alpha[6] += 0.5*weight[i]
     end
@@ -248,13 +248,13 @@ function alpha_to_eps_E8(weight)
     for E8
     """
     eps = [0.0 for i=1:8]
-    for i=1:6
+    for i in 1:6
         eps[i] += weight[i]
         eps[i+1] += - weight[i]
     end
     eps[6] += weight[7]
     eps[7] += weight[7]
-    for i=1:8
+    for i in 1:8
         eps[i] += -0.5*weight[8]
     end
     return eps
@@ -265,13 +265,13 @@ function eps_to_alpha_E8(weight)
     for E8
     """
     alpha = [0.0 for i=1:8]
-    for j=1:5
-        for i=1:j
+    for j in 1:5
+        for i in 1:j
             alpha[j] += weight[i]
         end
         alpha[j] += -j*weight[8]
     end
-    for i=1:6
+    for i in 1:6
         alpha[6] += 0.5*weight[i]
         alpha[7] += 0.5*weight[i]
     end

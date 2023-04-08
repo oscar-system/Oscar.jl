@@ -68,18 +68,29 @@ end
 #     compute monomials for weightspace     #
 #############################################
 
-function get_monomials_of_weightspace(wts, weight, t)
-    # TODO CHECK IF XN WORKS FOR ALL OTHER TYPES
+function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
+    return [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, convert(Vector{Int64}, lattice_point)))) for lattice_point in lattice_points_weightspace]
+end
+
+function get_lattice_points_of_weightspace(wts, weight, t)
+    """
+    calculates all lattice points in a given weightspace for lie algebras of type t
+    input:
+    wts: the operator weights in eps_i
+    weight: lambda - mu
+
+    output: all lattice points with weight weight
+    """
     if t in ["A", "G"]
-        return get_monomials_of_weightspace_An(wts, weight)
+        return get_lattice_points_of_weightspace_A_G_n(wts, weight)
     else
-        return get_monomials_of_weightspace_Xn(wts, weight)
+        return get_lattice_points_of_weightspace_Xn(wts, weight)
     end
 end
 
-function get_monomials_of_weightspace_An(wts, weight)
+function get_lattice_points_of_weightspace_A_G_n(wts, weight)
     """
-    calculates all monomials in a given weightspace for lie algebras that have type A
+    calculates all monomials in a given weightspace for lie algebras that have type A or G
     input:
     wts: the operator weights in eps_i
     weight: lambda - mu
@@ -99,10 +110,7 @@ function get_monomials_of_weightspace_An(wts, weight)
     -> poly = polytope.Polytope(INEQUALITIES=[0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1], EQUATIONS=[-2 1 1 0 2; -1 1 -1 1 1; 0 1 0 -1 0])
     => returns [[1 0 0], [1 1 0]]
     """
-    #println("")
-    #println(weight)
-    #println(wts)
-    
+    # build linear (in-)equations
     wts = [reshape(w, 1, :) for w in wts]
     n = length(wts)
     ineq = zeros(Int64, n, n+2)
@@ -111,47 +119,25 @@ function get_monomials_of_weightspace_An(wts, weight)
     end
     equ = cat([-i for i in vec(weight)], [1 for i=1:length(weight)], dims = (2,2))
     equ = cat(equ, [transpose(w) for w in wts] ..., dims = (2,2))
-    #println("ineq: ", ineq)
-    #println("equ: ", equ)
+
+    # find integer solutions of linear (in-)equation as lattice points of polytope
     poly = polytope.Polytope(INEQUALITIES=ineq, EQUATIONS=equ)
-    #println(poly)
-    #println(typeof(poly))
-    #println(poly.VERTICES)
-    #println(poly.INTERIOR_LATTICE_POINTS)
-    #monomials = convert(Matrix{Int64}, poly.INTERIOR_LATTICE_POINTS)[:, 3:end] # first coordinate is for homogenous coordinates and second one for eps_1 + ... + eps_k = 0
 
-    #println("")
-    #println("TEST")
-    #q = polytope.Polytope(INEQUALITIES=[0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1], EQUATIONS=[-2 1 2 1 2; -1 1 0 2 1; 0 1 1 0 0])
-    #println(q)
-    #println(q.LATTICE_POINTS)
+    # convert lattice-points to Oscar monomials
+    lattice_points_weightspace = lattice_points(Polyhedron(poly))
+    lattice_points_weightspace = [lattice_point[2:end] for lattice_point in lattice_points_weightspace]
+    return lattice_points_weightspace
 
-    #monomials = convert(Matrix{Int64}, poly.INTERIOR_LATTICE_POINTS)[:, 3:end] # first coordinate is for homogenous coordinates and second one for eps_1 + ... + eps_k = 0
-    #println(poly.INTERIOR_LATTICE_POINTS[:, 3:end])
-    #println(lattice_points(Polyhedron(poly)))
-    monomials = lattice_points(Polyhedron(poly))
-    #println(length(monomials))
-    ##@time monomials = c_time(monomials) #convert(Vector{Vector{Int64}}, monomials)
-    #println(typeof(monomials))
-    #@time monomials = [convert(Vector{Int64}) for m in monomials]    
-    #monomials = convert(Matrix{Int64}, lattice_points(Polyhedron(poly)))[:, 3:end] # first coordinate is for homogenous coordinates and second one for eps_1 + ... + eps_k = 0
-    #monomials = [monomials[i,:] for i in 1:size(monomials,1)]
-    #println(mons)
-    return monomials
-    
-    #poly = polytope.Polytope(INEQUALITIES=[0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1], EQUATIONS=[0 1 2 0 1; 0 1 1 2 0; 0 1 2 1 0])
-    #println("vertices: ", poly.VERTICES)
-    #println("lattice_points: ", poly.LATTICE_POINTs)
 end
 
-function get_monomials_of_weightspace_Xn(wts, weight)
+function get_lattice_points_of_weightspace_Xn(wts, weight)
     """
-    calculates all monomials in a given weightspace for lie algebras that don't have type A
+    calculates all lattice points in a given weightspace for lie algebras that don't have type A
     input:
     wts: the operator weights in eps_i
     weight: lambda - mu
 
-    output: all monomials with weight weight
+    output: all lattice points with weight weight
     
     works by calculating all integer solutions to the following linear program:
     [  |              |    ]       [   x   ]      
@@ -176,6 +162,6 @@ function get_monomials_of_weightspace_Xn(wts, weight)
     equ = [-i for i in vec(weight)]
     equ = cat(equ, [transpose(w) for w in wts] ..., dims = (2,2))
     poly = polytope.Polytope(INEQUALITIES=ineq, EQUATIONS=equ)
-    monomials = lattice_points(Polyhedron(poly))
-    return monomials
+    lattice_points_weightspace = lattice_points(Polyhedron(poly))
+    return lattice_points_weightspace
 end

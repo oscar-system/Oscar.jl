@@ -1,7 +1,6 @@
 using Oscar
 using Test
 using TestSetExtensions
-#using SparseArrays
 
 include("MBOld.jl")
 
@@ -17,13 +16,19 @@ can compute with the weaker version.
 """
 
 function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
-    #print("TESTETSETSET", dynkin, n, lambda)
-    dim, m, v = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
-    w = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda) # algorithm that needs to be tested
+    #print("compare_algorithms", dynkin, n, lambda)
+    # old algorithm
+    mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
+
+    # new algorithm
+    mons_new = BasisLieHighestWeight.basisLieHighestWeight2(string(dynkin), n, lambda) # algorithm that needs to be tested
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
     gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
-    @test Set(m) == w # compare if result of basic and sophisticated algorithm match
-    @test gapDim == length(w) # check if dimension is correct
+
+    # comparison
+    # convert set of monomials over different ring objects to string representation to compare for equality
+    @test issetequal(string.(mons_old), string.(mons_new)) # compare if result of basic and more sophisticated algorithm match
+    @test gapDim == length(mons_new) # check if dimension is correct
 end
 
 function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
@@ -37,8 +42,10 @@ end
 @testset ExtendedTestSet "Test basisLieHighestWeight" begin
     # TODO: add test for basis (not just dimension)
     @testset "Known examples" begin
-        @test BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0]) == Set([[0,0,0], [0,0,1], [1,0,0]])
-        @test BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0], ops=[1,2,1]) == Set([[0,0,0], [0,1,1], [1,0,0]])
+        mons = BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0])
+        @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
+        mons = BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0], ops=[1,2,1])
+        @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
     end
     @testset "Compare with simple algorithm and check dimension" begin
         @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D')
@@ -64,7 +71,7 @@ end
         end
     end
     @testset "Check dimension" begin
-        @testset "Monomial order $monomial_order" for monomial_order in ("Lex", "GLex", "GRevLex", "GRevLex")
+        @testset "Monomial order $monomial_order" for monomial_order in ("Lex", "RevLex", "GRevLex")
            #@testset "Operators $ops" for ops in ("regular", "longest-word")
             check_dimension('A', 3, [1,1,1], monomial_order)
     #            #check_dimension('B', 3, [2,1,0], monomial_order, ops)
