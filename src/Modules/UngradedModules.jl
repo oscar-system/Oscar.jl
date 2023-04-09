@@ -5095,7 +5095,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
     # TODO: Use official getter and setter methods instead 
     # of messing manually with the internals of the complex.
-    for i in first(range(C)):k-1
+    for i in first(chain_range(C)):k-1
       N = domain(map(C, i))
 
       if iszero(N) # Fill up with zero maps
@@ -6474,6 +6474,11 @@ by Submodule with 2 generators
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
   return [homology(C,i) for i in Hecke.range(C)]
 end
+
+function homology(C::FreeResolution)
+  return homology(C.C)
+end
+
 
 @doc raw"""
     homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
