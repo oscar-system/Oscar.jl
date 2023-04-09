@@ -298,6 +298,7 @@ export cellular_primary_decomposition
 export center, has_center, set_center
 export centralizer
 export chain_complex
+export chain_range
 export chamber
 export character_field
 export character_lattice
@@ -886,6 +887,7 @@ export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divi
 export map_from_torusinvariant_weil_divisor_group_to_class_group
 export map_gens_of_chow_ring_to_cox_ring
 export map_on_affine_cones
+export map_range
 export map_word
 export maps_on_patches
 export mat_elem_type

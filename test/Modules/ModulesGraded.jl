@@ -531,10 +531,10 @@ end
     free_res1a = free_resolution(M)
     free_res2 = free_resolution(M, algorithm=:sres)
     free_res3 = free_resolution_via_kernels(M)
-    @test first(range(free_res1)) == 1
-    @test first(range(free_res1a)) == 4
-    @test first(range(free_res2)) == 4
-    @test first(range(free_res3)) == 4
+    @test first(chain_range(free_res1)) == 1
+    @test first(chain_range(free_res1a)) == 4
+    @test first(chain_range(free_res2)) == 4
+    @test first(chain_range(free_res3)) == 4
 end
 
 @testset "Betti tables 2" begin
@@ -615,7 +615,7 @@ end
     F1 = graded_free_module(Rg, 1)
 	N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
 	tensor_resolution = tensor_product(N,free_res)
-	@test range(tensor_resolution) == range(free_res)
+	@test chain_range(tensor_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
     	f = map(free_res,i)
 		M_i = domain(f)
@@ -640,7 +640,7 @@ end
     F1 = graded_free_module(Rg, 1)
     N = SubquoModule(F1, Rg[x+2*x^2*z; x+y-z], Rg[z^4;])
     tensor_resolution = tensor_product(free_res,N)
-    @test range(tensor_resolution) == range(free_res)
+    @test chain_range(tensor_resolution) == chain_range(free_res)
     for i in Hecke.map_range(tensor_resolution)
       f = map(free_res,i)
       M_i = domain(f)
@@ -665,7 +665,7 @@ end
     F1 = graded_free_module(Rg, 1)
     N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
     hom_resolution = hom(N,free_res)
-    @test range(hom_resolution) == range(free_res)
+    @test chain_range(hom_resolution) == chain_range(free_res)
     for i in Hecke.map_range(hom_resolution)
       f = map(free_res,i)
       hom_f = map(hom_resolution,i)
@@ -676,8 +676,8 @@ end
     end
     N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4; x^2-y*z])
     hom_resolution = hom(free_res,N)
-    @test last(range(hom_resolution)) == first(range(free_res))
-    @test first(range(hom_resolution)) == last(range(free_res))
+    @test last(chain_range(hom_resolution)) == first(chain_range(free_res))
+    @test first(chain_range(hom_resolution)) == last(chain_range(free_res))
     for i in Hecke.map_range(hom_resolution)
         f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
         hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
@@ -687,7 +687,7 @@ end
         end
     end
     hom_hom_resolution = hom(hom_resolution,N)
-    @test range(hom_hom_resolution) == range(free_res)
+    @test chain_range(hom_hom_resolution) == chain_range(free_res)
 end
 
 @testset "Hom resolution module" begin
@@ -702,8 +702,8 @@ end
     F1 = graded_free_module(Rg, 1)
     N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
 	hom_resolution = hom(free_res,N)
-	@test last(range(hom_resolution)) == first(range(free_res))
-	@test first(range(hom_resolution)) == last(range(free_res))
+	@test last(chain_range(hom_resolution)) == first(chain_range(free_res))
+	@test first(chain_range(hom_resolution)) == last(chain_range(free_res))
 	for i in Hecke.map_range(hom_resolution)
                 f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
                 hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
@@ -713,10 +713,10 @@ end
 		end
 	end
 	hom_hom_resolution = hom(hom_resolution,N)
-	@test range(hom_hom_resolution) == range(free_res)
+	@test chain_range(hom_hom_resolution) == chain_range(free_res)
 	hom_resolution = hom_without_reversing_direction(free_res,N)
-	@test last(range(hom_resolution)) == -first(range(free_res))
-	@test first(range(hom_resolution)) == -last(range(free_res))
+	@test last(chain_range(hom_resolution)) == -first(chain_range(free_res))
+	@test first(chain_range(hom_resolution)) == -last(chain_range(free_res))
 	for i in Hecke.map_range(hom_resolution)
 		f = map(free_res,-i+1)
 		hom_f = map(hom_resolution,i)
@@ -726,7 +726,7 @@ end
 		end
 	end
 	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
-	@test range(hom_hom_resolution) == range(free_res)
+	@test chain_range(hom_hom_resolution) == chain_range(free_res)
 end
 
 @testset "Tor and Ext" begin

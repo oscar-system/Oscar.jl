@@ -4840,14 +4840,22 @@ true
 """
 is_complete(FR::FreeResolution) = FR.C.complete
 
-function range(FR::FreeResolution)
-  return range(FR.C)
+function chain_range(FR::FreeResolution)
+  return Hecke.range(FR.C)
 end
 
-# not exported
 function map_range(FR::FreeResolution)
   return Hecke.map_range(FR.C)
 end
+
+function chain_range(C::ComplexOfMorphisms)
+  return Hecke.range(C)
+end
+
+function map_range(C::ComplexOfMorphisms)
+  return Hecke.map_range(C)
+end
+
 
 #= Fill functions (and helpers) for Hecke ComplexOfMorphismses in terms of free resolutions =#
 function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
@@ -6125,7 +6133,7 @@ Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
-  tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
+  tensor_modules = [tensor_product(P, domain(map(C,first(chain_range(C)))), task=:cache_morphism)[1]]
   append!(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in Hecke.map_range(C)])
 
   for i in 1:length(Hecke.map_range(C))
@@ -6216,7 +6224,7 @@ represented as subquotient with no relations
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
-  lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
+  lifted_resolution = tensor_product(free_res.C[first(chain_range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
@@ -6403,19 +6411,19 @@ function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, 
   #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
-  chain_range = Hecke.map_range(C)
-  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  m_range = Hecke.map_range(C)
+  hom_modules = [hom(domain(map(C,first(m_range))),P)]
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in m_range])
 
-  for i=1:length(chain_range)
+  for i=1:length(m_range)
     A = hom_modules[i][1]
     B = hom_modules[i+1][1]
 
-    j = chain_range[i]
+    j = m_range[i]
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(chain_range(C)), typ=C.typ)
 end
 
 function hom_without_reversing_direction(F::FreeResolution, M::ModuleFP)
