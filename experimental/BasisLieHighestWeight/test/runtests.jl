@@ -1,6 +1,6 @@
 using Oscar
 using Test
-using TestSetExtensions
+# using TestSetExtensions
 
 include("MBOld.jl")
 
@@ -39,7 +39,7 @@ function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial
 end
 
 
-@testset ExtendedTestSet "Test basisLieHighestWeight" begin
+@testset "Test basisLieHighestWeight" begin
     # TODO: add test for basis (not just dimension)
     @testset "Known examples" begin
         mons = BasisLieHighestWeight.basisLieHighestWeight2("A", 2, [1,0])
