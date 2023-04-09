@@ -1,6 +1,697 @@
 
 
 ###############################################################################
+# Graded Modules constructors
+###############################################################################
+
+@doc Markdown.doc"""
+    graded_free_module(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false)
+
+Create the graded free module $R^n$ equipped with its basis of standard unit vectors
+and standard degrees, that is the standard unit vectors have degree 0.
+
+The string `name` specifies how the basis vectors are printed. 
+
+# Examples
+```jldoctest
+julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1]
+  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+
+julia> graded_free_module(R,3)
+Graded free module R^3([0]) of rank 3 over R
+
+```
+"""
+function graded_free_module(
+  R::Ring,
+  p::Int,
+  name::String="e",
+  d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p],
+)
+  @assert is_graded(R)
+  M = FreeMod(R, p, name)
+  M = grade(M, d)
+  return M
+end
+
+function graded_free_module(
+  R::Ring, d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p]
+)
+  return graded_free_module(R, length(d), "e", d)
+end
+
+function graded_free_module(R::Ring, W::Vector{<:IntegerUnion})
+  @assert is_graded(R)
+  A = grading_group(R)
+  return graded_free_module(R, length(W), "e", [W[i] * A[1] for i in 1:length(W)])
+end
+
+# TODO: move
+function is_graded(R::MPolyRing)
+  return false
+end
+
+function grade(M::FreeMod, d::Vector{GrpAbFinGenElem})
+  @assert length(d) == ngens(M)
+  @assert is_graded(base_ring(M))
+  R = base_ring(M)
+  N = free_module(R, length(d))
+  N.d = d
+  return N
+end
+
+function grading_group(M::FreeMod)
+  return grading_group(base_ring(M))
+end
+
+function grade(M::FreeMod, W::Vector{<:IntegerUnion})
+  @assert length(W) == ngens(M)
+  R = base_ring(M)
+  @assert is_graded(R)
+  A = grading_group(R)
+  N = free_module(R, length(W))
+  N.d = [W[i] * A[1] for i in 1:length(W)]
+  return N
+end
+
+function set_grading!(M::FreeMod, d::Vector{GrpAbFinGenElem})
+  @assert length(d) == ngens(M)
+  @assert is_graded(base_ring(M))
+  M.d = d
+end
+
+function set_grading!(M::FreeMod, W::Vector{<:IntegerUnion})
+  @assert length(W) == ngens(M)
+  R = base_ring(M)
+  @assert is_graded(R)
+  A = grading_group(R)
+  M.d = [W[i] * A[1] for i in 1:length(W)]
+end
+
+function degrees(M::FreeMod)
+  @assert is_graded(M)
+  return M.d
+end
+
+function degrees_of_generators(M::FreeMod)
+  return degrees(M)
+end
+
+
+function is_graded(M::FreeMod)
+  return isa(M.d, Vector{GrpAbFinGenElem})
+end
+
+###############################################################################
+# Graded Free Modules functions
+###############################################################################
+
+# for isomorphism of graded free modules, perhaps exists somewhere
+function compare_vectors_as_multisets(v1::Vector{T}, v2::Vector{T}) where {T<:Any}
+  v1_dict = Dict{T,Int}()
+  for entry in v1
+    if haskey(v1_dict, entry)
+      v1_dict[entry] += 1
+    else
+      v1_dict[entry] = 1
+    end
+  end
+  v2_dict = Dict{T,Int}()
+  for entry in v2
+    if haskey(v2_dict, entry)
+      v2_dict[entry] += 1
+    else
+      v2_dict[entry] = 1
+    end
+  end
+  return v1_dict == v2_dict
+end
+
+
+function swap!(A, i, j)
+  A[i], A[j] = A[j], A[i]
+end
+
+function generate(k, A)
+  if k == 1
+    return [copy(A)]
+  else
+    perms = generate(k - 1, A)
+    for i in 0:(k - 2)
+      if k % 2 == 0
+        swap!(A, i + 1, k)
+      else
+        swap!(A, 1, k)
+      end
+      perms = vcat(perms, generate(k - 1, A))
+    end
+    return perms
+  end
+end
+
+function permutations(v::Vector{T}) where T
+  return generate(length(v), v)
+end
+
+
+function find_bijections(v_dict, w_dict, v_key, bijections, current_bijection)
+  if v_key > length(keys(v_dict))
+    push!(bijections, deepcopy(current_bijection))
+    return nothing
+  end
+  element = collect(keys(v_dict))[v_key]
+  v_indices = v_dict[element]
+  w_indices = w_dict[element]
+  if length(v_indices) == length(w_indices)
+    for w_perm in permutations(w_indices)
+      next_bijection = deepcopy(current_bijection)
+      for (i, j) in zip(v_indices, w_perm)
+        next_bijection[i] = j
+      end
+      find_bijections(v_dict, w_dict, v_key + 1, bijections, next_bijection)
+    end
+  end
+end
+
+function get_multiset_bijection(v::Vector{T}, w::Vector{T}, all_bijections::Bool=false) where {T<:Any}
+  v_dict = Dict{T,Vector{Int}}()
+  w_dict = Dict{T,Vector{Int}}()
+  for (i, x) in enumerate(v)
+    push!(get!(v_dict, x, []), i)
+  end
+  for (i, x) in enumerate(w)
+    push!(get!(w_dict, x, []), i)
+  end
+  bijections = []
+  find_bijections(v_dict, w_dict, 1, bijections, Dict{Int,Int}())
+  return all_bijections ? bijections : (isempty(bijections) ? nothing : bijections[1])
+end
+
+###############################################################################
+# Graded Free Module elements functions
+###############################################################################
+
+function degree(el::FreeModElem)
+  !is_graded(parent(el)) && error("The parent module is not graded.")
+  A = grading_group(base_ring(parent(el)))
+  iszero(el) && return A[0]
+  el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
+  isa(el.d, GrpAbFinGenElem) || error("The element is not homogeneous.")
+  return el.d
+end
+
+function is_homogeneous(el::FreeModElem)
+  !is_graded(parent(el)) && error("The parent module is not graded.")
+  iszero(el) && return true
+  el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
+  return isa(el.d, GrpAbFinGenElem)
+end
+
+function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpAbFinGenElem})
+  element_degree = nothing
+  for (position, coordval) in coords
+      if !is_homogeneous(coordval)
+          return nothing
+      end
+      current_degree = degree(coordval) + unit_vector_degrees[position]
+      if element_degree === nothing
+          element_degree = current_degree
+      elseif element_degree != current_degree
+          return nothing
+      end
+  end
+  return element_degree
+end
+
+# function determine_degree(el::FreeModElem)
+#   coords = coordinates(el)
+#   unit_vector_degrees = degrees(parent(el))
+#   element_degree = nothing
+#   for (position, coordval) in coords
+#     if !is_homogeneous(coordval)
+#       return nothing
+#     end
+#     current_degree = degree(coordval) + unit_vector_degrees[position]
+#     if element_degree === nothing
+#       element_degree = current_degree
+#     elseif element_degree != current_degree
+#       return nothing
+#     end
+#   end
+#   return element_degree
+# end
+
+# function is_homogeneous(el::FreeModElem)
+#   !is_graded(parent(el)) && error("The parent module is not graded.")
+#   iszero(el) && return true
+#   el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree(el)
+#   return isa(el.d, GrpAbFinGenElem)
+# end
+
+# function degree(el::FreeModElem)
+#   !is_graded(parent(el)) && error("The parent module is not graded.")
+#   A = grading_group(base_ring(parent(el)))
+#   iszero(el) && return A[0]
+#   el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree(el)
+#   isa(el.d, GrpAbFinGenElem) || error("The element is not homogeneous.")
+#   return el.d
+# end
+
+###############################################################################
+# Graded Free Module homomorphisms constructors
+###############################################################################
+
+function graded_map(A::MatElem)
+  R = base_ring(A)
+  G = grading_group(R)
+  Fcdm = graded_free_module(R, [G[0] for _ in 1:ncols(A)])
+  return graded_map(Fcdm, A)
+end
+
+function graded_map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
+  R = base_ring(F)
+  G = grading_group(R)
+  source_degrees = Vector{eltype(G)}()
+  for i in 1:nrows(A)
+      for j in 1:ncols(A)
+          if A[i, j] != R[0]
+              push!(source_degrees, degree(A[i, j]) + degree(F[j]))
+              break
+          end
+      end
+  end
+  Fcdm = graded_free_module(R, source_degrees)
+  phi = hom(Fcdm, F, A)
+  return phi
+end
+
+function graded_map(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T <: RingElement}
+  R = base_ring(F)
+  G = grading_group(R)
+  nrows = length(V)
+  ncols = rank(F)
+  
+  source_degrees = Vector{eltype(G)}()
+  for i in 1:nrows
+    for j in 1:ncols
+      if coordinates(V[i])[j] != R[0]
+        push!(source_degrees, degree(coordinates(V[i])[j]) + degree(F[j]))
+        break
+      end
+    end
+  end
+  Fcdm = graded_free_module(R, source_degrees)
+  phi = hom(Fcdm, F, V)
+  return phi
+end
+
+
+function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}) where {T <: RingElement}
+  R = base_ring(F)
+  G = grading_group(R)
+  nrows = length(V)
+  source_degrees = Vector{eltype(G)}()
+  for i in 1:nrows
+    for (j, coord_val) in coordinates(V[i])
+      if coord_val != R[0]
+        push!(source_degrees, degree(coord_val) + degree(F[j]))
+        break
+      end
+    end
+  end
+  Fcdm = graded_free_module(R, source_degrees)
+  phi = hom(Fcdm, F, V)
+  return phi
+end
+
+###############################################################################
+# Graded Free Module homomorphisms functions
+###############################################################################
+
+function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule}}
+  if !is_graded(domain(f)) || !is_graded(codomain(f))
+      return f
+  end
+  f.d = degree(f)
+  return f
+end
+
+function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod_dec, T2 <: FreeMod_dec}
+  return f
+end
+# for decorations: add SubquoModule_dec for codomain once it exists
+
+function degree(f::FreeModuleHom)
+  if isdefined(f, :d)
+    return f.d
+  end
+  T1 = domain(f)
+  T2 = codomain(f)
+  if !is_graded(T1) || !is_graded(T2)
+    error("Both domain and codomain must be graded.")
+  end
+  domain_degrees = degrees(T1)
+  df = nothing
+  for i in 1:length(domain_degrees)
+    image_vector = f(T1[i])
+    if isempty(coordinates(image_vector))
+      continue
+    end
+    current_df = degree(image_vector) - domain_degrees[i]
+    if df === nothing
+      df = current_df
+    elseif df != current_df
+      error("The homomorphism is not homogeneous.")
+    end
+  end
+  if df === nothing
+    R = base_ring(T1)
+    G = grading_group(R)
+    return G[0]
+  end
+  return df
+end
+
+function is_graded(f::FreeModuleHom)
+  return isdefined(f, :d)
+end
+
+function grading_group(f::FreeModuleHom)
+  return grading_group(base_ring(domain(f)))
+end
+
+function is_homogeneous(f::FreeModuleHom)
+  A = grading_group(f)
+  return isdefined(f, :d) && degree(f)==A[0]
+end
+
+###############################################################################
+# Graded submodules
+###############################################################################
+
+function is_graded(M::SubModuleOfFreeModule)
+  is_graded(M.F) && all(is_homogeneous, M.gens)
+end
+
+function degrees_of_generators(M::SubModuleOfFreeModule{T}) where T
+  return map(gen -> degree(gen), gens(M))
+end
+
+###############################################################################
+# Graded subquotient constructors
+###############################################################################
+
+# mostly automatic, just needed for matrices
+
+function graded_cokernel(A::MatElem)
+  return cokernel(graded_map(A))
+end
+
+function graded_cokernel(F::FreeMod{R}, A::MatElem{R}) where R
+  @assert is_graded(F)
+  cokernel(graded_map(F,A))
+end
+
+function graded_image(F::FreeMod{R}, A::MatElem{R}) where R
+  @assert is_graded(F)
+  image(graded_map(F,A))[1]
+end
+
+function graded_image(A::MatElem)
+  return image(graded_map(A))[1]
+end
+
+###############################################################################
+# Graded subquotients
+###############################################################################
+
+function is_graded(M::SubquoModule)
+  if isdefined(M, :quo) 
+    return is_graded(M.sub) && is_graded(M.quo) && is_graded(M.sum)
+  else
+    return is_graded(M.sub)
+  end
+end
+
+function degrees_of_generators(M::SubquoModule{T}) where T
+  return map(gen -> degree(repres(gen)), gens(M))
+end
+
+###############################################################################
+# Graded subquotient elements
+###############################################################################
+
+
+# function degree(el::SubquoModuleElem)
+#   return degree(repres(el))
+# end
+
+function degree(el::SubquoModuleElem)
+  if !iszero(el.coeffs)
+      return determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+  else
+      return degree(repres(el))
+  end
+end
+
+###############################################################################
+# Graded subquotient homomorphisms functions
+###############################################################################
+
+function set_grading(f::SubQuoHom)
+  if !is_graded(domain(f)) || !is_graded(codomain(f))
+    return(f)
+  end
+  f.d = degree(f)
+  return f
+end
+
+function degree(f::SubQuoHom)
+  if isdefined(f, :d)
+    return f.d
+  end
+  T1 = domain(f)
+  T2 = codomain(f)
+  if !is_graded(T1) || !is_graded(T2)
+    error("Both domain and codomain must be graded.")
+  end
+  if iszero(T1)
+    R = base_ring(T1)
+    G = grading_group(R)
+    return G[0]
+  end
+  domain_degrees = degrees_of_generators(T1)
+  df = nothing
+  for i in 1:length(domain_degrees)
+    image_vector = f(T1[i])
+    if isempty(coordinates(image_vector))
+      continue
+    end
+    current_df = degree(image_vector) - domain_degrees[i]
+    if df === nothing
+      df = current_df
+    elseif df != current_df
+      error("The homomorphism is not graded.")
+    end
+  end
+  if df === nothing
+    R = base_ring(T1)
+    G = grading_group(R)
+    return G[0]
+  end
+  return df
+end
+
+function is_graded(f::SubQuoHom)
+  return isdefined(f, :d)
+end
+
+function grading_group(f::SubQuoHom)
+  return grading_group(base_ring(domain(f)))
+end
+
+function is_homogeneous(f::SubQuoHom)
+  A = grading_group(f)
+  return isdefined(f, :d) && degree(f)==A[0]
+end
+
+
+###############################################################################
+# Graded free resolutions
+###############################################################################
+
+function is_graded(resolution::FreeResolution{T}) where T
+  C = resolution.C
+ return all(is_graded(C[i]) for i in reverse(Hecke.range(C))) && all(is_graded(map(C, i)) for i in reverse(Hecke.map_range(C)))
+end
+
+###############################################################################
+# Betti table
+###############################################################################
+
+function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
+  generator_count = Dict{Tuple{Int, Any}, Int}()
+  C = F.C
+  rng = Hecke.map_range(C)
+  n = first(rng)
+  for i in 0:n
+      module_degrees = F[i].d
+      module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
+      for degree in module_degrees
+          idx = (i, degree)
+          generator_count[idx] = get(generator_count, idx, 0) + 1
+      end
+  end
+  return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
+end
+
+function betti(b::FreeResolution; reverse_direction::Bool = false)
+	return betti_table(b, project = nothing, reverse_direction = reverse_direction)
+end
+
+function dict(b::BettiTable)
+  return b.B
+end
+
+function reverse_direction!(b::BettiTable)
+  if b.reverse_direction
+    b.reverse_direction = false
+  else
+    b.reverse_direction = true
+  end
+  return
+end
+
+function induce_shift(B::Dict{Tuple{Int, Any}, Int})
+  A = parent(first(keys(B))[2])
+  new_B = Dict{Tuple{Int, Any}, Int}()
+  for ((i, key), value) in B
+      new_key = (i, key-i*A[1])
+      new_B[new_key] = value
+  end
+  return new_B
+end
+
+function Base.show(io::IO, b::BettiTable)
+  T = induce_shift(b.B)
+  x = collect(keys(T))
+  isempty(x) && (println("Empty table"); return)
+  step, min, max = b.reverse_direction ? (-1, maximum([x[i][1] for i in 1:length(x)]), minimum([x[i][1] for i in 1:length(x)])) : (1, minimum([x[i][1] for i in 1:length(x)]), maximum([x[i][1] for i in 1:length(x)]))
+  s1 = ndigits(max)
+  sum0 = sum([getindex(T, x[i]) for i in 1:length(x)])
+  s3 = ndigits(sum0)
+  if b.project == nothing
+      for i in 1:ngens(parent(x[1][2]))
+          s2 = ndigits(maximum(x[j][2][i] for j in 1:length(x)))
+          spaces = maximum([s2, s1, s3])
+          ngens(parent(x[1][2])) > 1 && print(io, "Betti Table for component ", i, "\n")
+          print(io, " "^(s2 + (7 - s2)))
+          for j in min:step:max
+            print(io, j, " "^(spaces - ndigits(j) + 1))
+          end
+          print(io, "\n")
+          L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
+          mi = minimum(L)
+          mx = maximum(L)
+          for j in mi:mx
+              print(io, j, " "^(s2 - ndigits(j) + (5 - s2)))
+              print(io, ": ")
+              for h in min:step:max
+                sum0 = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
+                print(io, sum0 == 0 ? "-" : sum0)
+                print(io, " "^(spaces - (sum0 == 0 ? 0 : ndigits(sum0)) + (sum0 == 0 ? 0 : 1)))
+                sum0 = 0
+              end
+              print(io,"\n")
+          end
+          divider_width = 6 + (b.reverse_direction ? (min - max) : (max - min) + 1) * (spaces + 1)
+          print(io, "-" ^ divider_width)
+          print(io, "\n", "total: ")
+          for i in min:step:max
+            sum0 = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i)
+            print(io, sum0, " "^(spaces - ndigits(sum0) + 1))
+          end
+          print(io, "\n", "\n")
+      end
+  else 
+      parent(b.project)==parent(x[1][2]) || return error("projection vector has wrong type")
+      print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
+      print(io, "  ")
+      L = Vector{fmpz}(undef,0)
+      for i in 1:length(x)
+          sum0 = (b.project.coeff*transpose(x[i][2].coeff))[1] 
+          Base.push!(L, sum0)
+          sum0 = 0
+      end
+      L1 = sort(unique(L))
+      s2 = ndigits(maximum(L1))
+      spaces = maximum([s1, s2, s3])
+      for l in 1:s2 + (5 - s2)
+          print(io," ")
+      end
+      for j in min:step:max
+          print(io, j)
+          for l in 1:spaces - ndigits(j) + 1
+              print(io," ")
+          end
+      end
+      print(io, "\n")
+      for k in 1:length(L1)
+          print(io, L1[k])
+          for l in 1:s2-ndigits(L1[k]) + (5 - s2)
+              print(io, " ")
+          end
+          print(io, ": ")
+          for h in min:step:max
+              for i in 1:length(x)
+                  sum1 = (b.project.coeff*transpose(x[i][2].coeff))[1]
+                  if sum1 == L1[k] && x[i][1] == h
+                      sum0+= getindex(T,x[i])
+                  end
+              end
+              if sum0 == 0 
+                  print(io, "-")
+                  for l in 1:spaces
+                      print(io, " ")
+                  end
+              else
+                  print(io, sum0)
+                  for l in 1:spaces - ndigits(sum0) + 1
+                      print(io, " ")
+                  end
+              end
+              sum0 = 0
+          end
+          print(io, "\n")
+      end
+      if b.reverse_direction
+        divider_width = 6 + (min - max + 1) * (spaces + 1)
+      else
+        divider_width = 6 + (max - min + 1) * (spaces + 1)
+      end
+      print(io, "-" ^ divider_width)
+      print(io, "\n", "total: ")
+      for i in min:step:max
+          sum0 = 0
+          for j in 1:length(x)
+              if x[j][1]==i
+                  sum0 += getindex(T,x[j])
+              end
+          end
+          print(io, sum0)
+          for l in 1:spaces - ndigits(sum0) + 1
+              print(io, " ")
+          end
+      end
+  end
+end
+
+
+
+
+###############################################################################
 # FreeMod_dec constructors
 ###############################################################################
 

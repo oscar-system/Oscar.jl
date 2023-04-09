@@ -4576,6 +4576,10 @@ function kernel(a::ModuleFPHom)
  error("kernel is not implemented for the given types.")
 end
 
+function map(FR::FreeResolution, i::Int)
+  return map(FR.C, i)
+end
+
 @doc raw"""
     free_resolution(F::FreeMod)
 
