@@ -3,7 +3,7 @@ export basisLieHighestWeight2
 export is_fundamental
 
 using Polymake
-using Distributed
+# using Distributed
 using Markdown
 #using CUDA
 #using CuArrays
