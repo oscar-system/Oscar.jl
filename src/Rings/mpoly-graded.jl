@@ -777,17 +777,17 @@ AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int, ::Type{T}) where T
 
 function has_weighted_ordering(R::MPolyDecRing)
   grading_to_ordering = false
-  w_ord = degrevlex(gens(forget_decoration(R))) # dummy, not used
+  w_ord = degrevlex(gens(R)) # dummy, not used
   # This is not meant to be exhaustive, there a probably more gradings which one
   # can meaningfully translate into a monomial ordering
   # However, we want to stick to global orderings.
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
-      w_ord = degrevlex(gens(forget_decoration(R)))
+      w_ord = degrevlex(gens(R))
       grading_to_ordering = true
     elseif all(x -> x > 0, w)
-      w_ord = wdegrevlex(gens(forget_decoration(R)), w)
+      w_ord = wdegrevlex(gens(R), w)
       grading_to_ordering = true
     end
   end
