@@ -159,27 +159,25 @@ end
 # Therefore we store a vector `conjugacy_classes(tbl)` via an attribute,
 # which is compatible with the `GAP.Globals.ConjugacyClasses` value of
 # the underlying GAP character table.
-function conjugacy_classes(tbl::GAPGroupCharacterTable)
-    return get_attribute!(tbl, :conjugacy_classes) do
-      @req isdefined(tbl, :group) "character table stores no group"
+@attr Vector{T} function conjugacy_classes(tbl::GAPGroupCharacterTable) where T <: GAPGroupConjClass
+    @req isdefined(tbl, :group) "character table stores no group"
 
-      # If `GAPTable(tbl)` does not yet store conjugacy classes
-      # then compute them.
-      if characteristic(tbl) == 0
-        ccl = GAP.Globals.ConjugacyClasses(GAPTable(tbl))::GapObj
-        ccl = [conjugacy_class(group(tbl),
-                 preimage(isomorphism_to_GAP_group(tbl),
-                          GAP.Globals.Representative(x)))
-              for x in ccl]
-      else
-        ordtbl = get_attribute(tbl, :ordinary_table)
-        ccl = conjugacy_classes(ordtbl)
-        known, fus = known_class_fusion(tbl, ordtbl)
-        @assert known "the class fusion is not stored"
-        ccl = ccl[fus]
-      end
-      return ccl
+    # If `GAPTable(tbl)` does not yet store conjugacy classes
+    # then compute them.
+    if characteristic(tbl) == 0
+      ccl = GAP.Globals.ConjugacyClasses(GAPTable(tbl))::GapObj
+      ccl = [conjugacy_class(group(tbl),
+               preimage(isomorphism_to_GAP_group(tbl),
+                        GAPWrap.Representative(x)))
+             for x in ccl]
+    else
+      ordtbl = get_attribute(tbl, :ordinary_table)
+      ccl = conjugacy_classes(ordtbl)
+      known, fus = known_class_fusion(tbl, ordtbl)
+      @assert known "the class fusion is not stored"
+      ccl = ccl[fus]
     end
+    return ccl
 end
 
 
@@ -720,8 +718,8 @@ end
 ##############################################################################
 #
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-Oscar.nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-Oscar.ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 
 @doc raw"""
@@ -1251,7 +1249,7 @@ function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
   known && return induce(chi, tbl, fus)
 
   subtbl = chi.table
-  if (!isdefined(tbl, :group)) || (!isdefined(subtbl, :group))
+  if !(isdefined(tbl, :group) && isdefined(subtbl, :group))
     # If there is no stored group then let GAP try to find the result.
     fus = GAP.Globals.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
     @req fus !== GAP.Globals.fail "class fusion is not uniquely determinaed"
@@ -1328,7 +1326,7 @@ function restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
   known && return restrict(chi, subtbl, fus)
 
   tbl = chi.table
-  if (!isdefined(tbl, :group)) || (!isdefined(subtbl, :group))
+  if !(isdefined(tbl, :group) && isdefined(subtbl, :group))
     # If there is no stored group then let GAP try to find the result.
     fus = GAP.Globals.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))::GapObj
     @req fus !== GAP.Globals.fail "class fusion is not uniquely determinaed"
