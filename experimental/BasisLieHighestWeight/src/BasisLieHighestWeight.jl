@@ -1,170 +1,221 @@
 module BasisLieHighestWeight
-export basisLieHighestWeight2
+export basisLieHighestWeight
 export is_fundamental
 
 using Polymake
 # using Distributed
 using Markdown
-#using CUDA
-#using CuArrays
 
 include("./NewMonomial.jl")
-
-#include("./VectorSpaceBases.jl") #--- bekommt gerade noch ZZ, Short und TVEC aus VectorSpaceBases
 
 fromGap = Oscar.GAP.gap_to_julia
 
 @doc Markdown.doc"""
-    basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
+    basisLieHighestWeight(type::String, rank::Int, heighest_weight::Vector{Int}; 
+    operators::Union{String, Vector{Int}} = "regular", 
+    monomial_order::Union{String, Function} = "GRevLex", cache_size::Int = 0, 
+    parallel::Bool = false, return_no_minkowski::Bool = false, 
+    return_operators::Bool = false)
 
-Compute a monomial basis for the highest weight module with highest weight
-``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type
-``t`` and rank ``n``.
+Computes a monomial basis for the highest weight module with highest weight
+``heighest_weight`` (in terms of the fundamental weights), for a simple Lie algebra of type
+``type`` and rank ``rank``.
 
 # Parameters
-- `t`: Explain
-- `n`: Explain
-- `hw`: Explain
+- `type`: type of liealgebra we want to investigate, one of "A", "B", "C", "D", "E", "F", "G"
+- `rank`: rank of liealgebra
+- `operators`: currently not implemented, because we used https://github.com/jmichel7/Gapjm.jl to work with coxeter 
+                groups and get left descending elements 
+- `monomial_order`: highest weight 
+- `cache_size`: number of computed monomials we want to cache, default is 0 
+- `parallel`: currently not implemented, because we used Distributed.jl, but if true parts of the algorithms can be 
+                parallelized
+- `return_no_minkowski`: if true return monomials for which Monkowski-property did not suffice to find all monomials
+- `return_operators`: if true return the GAP objects operators
 
 # Examples
 ```jldoctest
-julia> 1+1
-2
+julia> BasisLieHighestWeight.basisLieHighestWeight("A", 2, [1,0])
+Set{ZZMPolyRingElem} with 3 elements:
+  1
+  x1
+  x3
 ```
 """
-function basisLieHighestWeight2(t, n, hw; ops = "regular", known_monomials = [], monomial_order = "GRevLex", cache_size::Int = 1000000, parallel::Bool = false, return_no_minkowski::Bool = false, return_ops::Bool = false)
-    # The function precomputes objects that are independent of the highest weight and can be used in all recursion steps. Then it starts the recursion and returns the result.
+function basisLieHighestWeight(type::String, rank::Int, heighest_weight::Vector{Int}; 
+                                operators::Union{String, Vector{Int}} = "regular", 
+                                monomial_order::Union{String, Function} = "GRevLex", cache_size::Int = 0, 
+                                parallel::Bool = false, return_no_minkowski::Bool = false, 
+                                return_operators::Bool = false)
+    # The function precomputes objects that are independent of the highest weight and can be used in all recursion 
+    # steps. Then it starts the recursion and returns the result.
 
     # initialization of objects that can be precomputed
-    L, CH = lieAlgebra(t, n) # L Lie Algebra of Type t,n and CH Chevalleybasis of L
-    ops = get_ops(t, n, ops, L, CH) # operators that are represented by our monomials. x_i is connected to ops[i]
-    wts = weightsForOperators(L, CH[3], ops) # weights of the operators
-    wts = (v->Int.(v)).(wts)
-    wts_eps = [w_to_eps(t, n, w) for w in wts] # this is another way of representing the weights and equivalent to wts, but some functionality is easier with those.
-    ZZx, x = PolynomialRing(ZZ, length(ops))
+    lie_algebra, chevalley_basis = lieAlgebra(type, rank) # lie_algebra of type, rank and its chevalley_basis
+    # operators that are represented by our monomials. x_i is connected to operators[i]
+    operators = get_operators(type, rank, operators, lie_algebra, chevalley_basis) 
+    weights = weightsForOperators(lie_algebra, chevalley_basis[3], operators) # weights of the operators
+    weights = (weight->Int.(weight)).(weights)
+    weights_eps = [w_to_eps(type, rank, w) for w in weights]
+    ZZx, x = PolynomialRing(ZZ, length(operators)) # for our monomials
+    monomial_order_lt = get_monomial_order_lt(monomial_order, ZZx, x) # less than function to sort monomials by order
     
     # save computations from recursions
-    calc_hw = Dict{Vector{Int}, Set{ZZMPolyRingElem}}([0 for i=1:n] => Set([ZZx(1)]))
-    no_minkowski = Set() # we save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
+    calc_heighest_weight = Dict{Vector{Int}, Set{ZZMPolyRingElem}}([0 for i in 1:rank] => Set([ZZx(1)]))
+    # we save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
+    no_minkowski = Set{Vector{Int}}()
 
-    # start recursion over hw
-    res = compute_monomials(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, calc_hw, cache_size, parallel, no_minkowski)
+    # start recursion over heighest_weight
+    monomial_basis = compute_monomials(type, rank, lie_algebra, ZZx, x, heighest_weight, operators, weights, 
+        weights_eps, monomial_order_lt, calc_heighest_weight, cache_size, parallel, no_minkowski)
     
     # output
-    if return_no_minkowski && return_ops
-        return res, no_minkowski, ops
+    if return_no_minkowski && return_operators
+        return monomial_basis, no_minkowski, operators
     elseif return_no_minkowski
-        return res, no_minkowski
-    elseif return_ops
-        return res, ops
+        return monomial_basis, no_minkowski
+    elseif return_operators
+        return monomial_basis, operators
     else
-        return res
+        return monomial_basis
     end
 end
 
-function sub_simple_refl(word, L, n)
+function sub_simple_refl(word::Vector{Int}, lie_algebra::GAP.Obj)::GAP.Obj
     """
     substitute simple reflections (i,i+1), saved in dec by i, with E_{i,i+1}  
     """
-    R = GAP.Globals.RootSystem(L)
-    CG = fromGap(GAP.Globals.CanonicalGenerators(R)[1], recursive = false)
-    ops = GAP.Obj([CG[i] for i in word], recursive = false)
-    return ops
+    root_system = GAP.Globals.RootSystem(lie_algebra)
+    canonical_generators = fromGap(GAP.Globals.CanonicalGenerators(root_system)[1], recursive = false)
+    operators = GAP.Obj([canonical_generators[i] for i in word], recursive = false)
+    return operators
 end
 
-function get_ops(t, n, ops, L, CH)
+function get_operators(type::String, rank::Int, operators::Union{String, Vector{Int}}, lie_algebra::GAP.Obj, 
+                        chevalley_basis::GAP.Obj)::GAP.Obj
     """
-    handles user input for ops
+    handles user input for operators
     "regular" for all operators
     "longest-word" for random longest-word in Weyl-group
-    ops::Vector{Int} for explicit longest-word
+    operators::Vector{Int} for explicit longest-word
     """
-    # create standard ops
-    if ops == "regular" # use ops as specified by GAP
-        ops = CH[1]
-        return ops
-    # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was temporarily deleted
-    #elseif ops == "longest-word" # choose a random longest word. Created by extending by random not leftdescending reflections until total length is reached
-    #    ops = longest_weyl_word(t,n)
-    #    ops = sub_simple_refl(ops, L, n)
-    #    return ops
+    # create standard operators
+    if operators == "regular" # use operators as specified by GAP
+        operators = chevalley_basis[1]
+        return operators
+    # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was 
+    # temporarily deleted
+    # choose a random longest word. Created by extending by random not leftdescending reflections until total length is 
+    # reached
+    #elseif operators == "longest-word"
+    #    operators = longest_weyl_word(t,n)
+    #    operators = sub_simple_refl(operators, lie_algebra, n)
+    #    return operators
     end
 
-    # use user defined ops
+    # use user defined operators
     # wrong input
-    if !(typeof(ops) == Vector{Int})
-        println("ops needs to  of type Vector{Int}")
+    if !(typeof(operators) == Vector{Int})
+        println("operators needs to be of type Vector{Int}")
         return -1
     end
-    if !(all([(1 <= i <= n) for i in ops]))
-        println("all values of ops need to between 1 and the rank of the lie algebra.")
+    if !(all([(1 <= i <= rank) for i in operators]))
+        println("all values of operators need to between 1 and the rank of the lie algebra.")
     end
-    # If one of the conditions is met, the algorithms works for sure. Otherwise a warning is printed (and can be ignored).
-    #if  !(is_longest_weyl_word(t, n, ops)) && !(Set(ops) == [i for i=1:n])
-    #    println("WARNING: ops may be incorrect input.")
+    # If one of the conditions is met, the algorithms works. Otherwise a warning is printed (and can be ignored).
+    #if  !(is_longest_weyl_word(type, rank, operators)) && !(Set(operators) == [i for i=1:n])
+    #    println("WARNING: operators may be incorrect input.")
     #end
-    ops = sub_simple_refl(ops, L, n)
-    return ops
+    operators = sub_simple_refl(operators, lie_algebra)
+    return operators
 end
 
-function compute_monomials(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, calc_hw, cache_size::Int, parallel::Bool, no_minkowski)
+function compute_monomials(type::String, rank::Int, lie_algebra::GAP.Obj, ZZx::ZZMPolyRing, x::Vector{ZZMPolyRingElem}, 
+                            heighest_weight::Vector{Int}, operators::GAP.Obj, weights::Vector{Vector{Int64}}, 
+                            weights_eps::Vector{Vector{Int64}}, monomial_order_lt::Function, 
+                            calc_heighest_weight::Dict{Vector{Int64}, Set{ZZMPolyRingElem}}, cache_size::Int, 
+                            parallel::Bool, no_minkowski::Set{Vector{Int}})::Set{ZZMPolyRingElem}
     """
-    This function calculates the monomial basis M_{hw} recursively. The recursion saves all computed results in calc_hw and we first check, if we already
-    encountered this highest weight in a prior step. If this is not the case, we need to perform computations. The recursion works by using the
-    Minkowski-sum. If M_{hw} is the desired set of monomials (identified by the exponents as lattice points), it is know that for lambda_1 + lambda_2 = hw
-    we have M_{lambda_1} + M_{lambda_2} subseteq M_{hw}. The complexity grows exponentially in the size of hw. Therefore, it is very helpful to obtain
-    a part of M_{hw} by going through all partitions of hw and using the Minkowski-property. The base cases of the recursion are the fundamental weights
-    hw = [0, ..., 1, ..., 0]. In this case, or if the Minkowski-property did not find enough monomials, we need to perform the computations "by hand".
+    This function calculates the monomial basis M_{heighest_weight} recursively. The recursion saves all computed 
+    results in calc_heighest_weight and we first check, if we already encountered this highest weight in a prior step. 
+    If this is not the case, we need to perform computations. The recursion works by using the Minkowski-sum. 
+    If M_{heighest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is know 
+    that for lambda_1 + lambda_2 = heighest_weight we have M_{lambda_1} + M_{lambda_2} subseteq M_{heighest_weight}. 
+    The complexity grows exponentially in the size of heighest_weight. Therefore, it is very helpful to obtain a part of
+    M_{heighest_weight} by going through all partitions of heighest_weight and using the Minkowski-property. The base 
+    cases of the recursion are the fundamental weights heighest_weight = [0, ..., 1, ..., 0]. In this case, or if the 
+    Minkowski-property did not find enough monomials, we need to perform the computations "by hand".
     """
-    #println("compute_monomials: ", t, n, L, hw, ops, wts, wts_eps, monomial_order, calc_hw)
     # simple cases
-    if haskey(calc_hw, hw) # we already computed the result in a prior recursion step
-        return calc_hw[hw]
-    elseif hw == [0 for i=1:n] # we mathematically know the solution
+    # we already computed the heighest_weight result in a prior recursion step
+    if haskey(calc_heighest_weight, heighest_weight) 
+        return calc_heighest_weight[heighest_weight]
+    elseif heighest_weight == [0 for i=1:rank] # we mathematically know the solution
         return Set(ZZx(1))
     end
     
     # calculation required
-    gapDim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(hw)) # number of monomials that we need to find, i.e. |M_{hw}|.
-    # fundamental weights
-    if is_fundamental(hw) # if hw is a fundamental weight, no partition into smaller summands is possible. This is the basecase of the recursion.
-        push!(no_minkowski, hw)
-        set_mon = add_by_hand(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, gapDim, Set{ZZMPolyRingElem}(), cache_size, parallel)
-        push!(calc_hw, hw => set_mon)
+    # number of monomials that we need to find, i.e. |M_{heighest_weight}|.
+    # if heighest_weight is a fundamental weightype, ranko partition into smaller summands is possible. This is the 
+    # basecase of the recursion.
+    gapDim = GAP.Globals.DimensionOfHighestWeightModule(lie_algebra, GAP.Obj(heighest_weight)) # fundamental weights
+    if is_fundamental(heighest_weight) || sum(abs.(heighest_weight)) == 0
+        push!(no_minkowski, heighest_weight)
+        set_mon = add_by_hand(type, rank, lie_algebra, ZZx, x, heighest_weight, operators, weights, weights_eps, 
+                                monomial_order_lt, gapDim, Set{ZZMPolyRingElem}(), cache_size, parallel)
+        push!(calc_heighest_weight, heighest_weight => set_mon)
         return set_mon
     else
         # use Minkowski-Sum for recursion
         set_mon = Set{ZZMPolyRingElem}()
         i = 0
-        sub_weights = compute_sub_weights(hw)
+        sub_weights = compute_sub_weights(heighest_weight)
         l = length(sub_weights)
-        # go through partitions lambda_1 + lambda_2 = hw until we have monomials enough monomials or used all partitions
+        # go through all partitions lambda_1 + lambda_2 = heighest_weight until we have enough monomials or used all 
+        # partitions
         while length(set_mon) < gapDim && i < l 
             i += 1
             lambda_1 = sub_weights[i]
-            lambda_2 = hw .- lambda_1
-            mon_lambda_1 = compute_monomials(t, n, L, ZZx, x, lambda_1, ops, wts, wts_eps, monomial_order, calc_hw, cache_size, parallel, no_minkowski)
-            mon_lambda_2 = compute_monomials(t, n, L, ZZx, x, lambda_2, ops, wts, wts_eps, monomial_order, calc_hw, cache_size, parallel, no_minkowski)
-            # Minkowski-sum: M_{lambda_1} + M_{lambda_2} subseteq M_{hw}, if monomials get identified with points in ZZ^n
+            lambda_2 = heighest_weight .- lambda_1
+            mon_lambda_1 = compute_monomials(type, rank, lie_algebra, ZZx, x, lambda_1, operators, weights, weights_eps,
+                                                monomial_order_lt, calc_heighest_weight, cache_size, parallel, 
+                                                no_minkowski)
+            mon_lambda_2 = compute_monomials(type, rank, lie_algebra, ZZx, x, lambda_2, operators, weights, weights_eps,
+                                                monomial_order_lt, calc_heighest_weight, cache_size, parallel, 
+                                                no_minkowski)
+            # Minkowski-sum: M_{lambda_1} + M_{lambda_2} subseteq M_{heighest_weight}, if monomials get identified with 
+            # points in ZZ^n
             mon_sum = Set([p*q for p in mon_lambda_1 for q in mon_lambda_2])
             union!(set_mon, mon_sum)
         end
         # check if we found enough monomials
         if length(set_mon) < gapDim
-            push!(no_minkowski, hw)
-            set_mon = add_by_hand(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, gapDim, set_mon, cache_size, parallel)
+            push!(no_minkowski, heighest_weight)
+            set_mon = add_by_hand(type, rank, lie_algebra, ZZx, x, heighest_weight, operators, weights, weights_eps, 
+                                    monomial_order_lt, gapDim, set_mon, cache_size, parallel)
         end
-        push!(calc_hw, hw => set_mon)
+        push!(calc_heighest_weight, heighest_weight => set_mon)
         return set_mon
     end
 end
 
-function is_fundamental(hw)
-    """
-    returns true if hw is fundamental weight, i.e. hw = [0, ..., 1, ..., 0] (or hw = [0, ..., 0])
-    """
+@doc Markdown.doc"""
+    is_fundamental(heighest_weight::Vector{Int})::Bool
+
+    returns true if ``heighest_weight`` is fundamental, i.e. [0, ..., 1, ..., 0]
+
+# Examples
+```jldoctest
+julia> BasisLieHighestWeight.is_fundamental([0, 1, 0])
+true
+
+julia> BasisLieHighestWeight.is_fundamental([0, 1, 1])
+false
+```
+"""
+function is_fundamental(heighest_weight::Vector{Int})::Bool
     one = false
-    for i in hw
+    for i in heighest_weight
         if i > 0
             if one || i > 1
                 return false
@@ -173,72 +224,79 @@ function is_fundamental(hw)
             end
         end
     end
-    return true
+    return false
 end
 
-function order_sub_weights(hw, sub_weights)
+function order_sub_weights(heighest_weight::Vector{Int}, sub_weights::Vector{Any})::Vector{Vector{Int}}
     """
     sort weights incrasing by their 2-norm
     """
     sort!(sub_weights, by=x->sum((x).^2))
 end
 
-function compute_sub_weights(hw)
+function compute_sub_weights(heighest_weight::Vector{Int})::Vector{Vector{Int}}
     """
-    returns list of weights w != 0 with 0 <= w <= hw elementwise
+    returns list of weights w != 0 with 0 <= w <= heighest_weight elementwise
     """
     sub_weights = []
-    foreach(Iterators.product((0:x for x in hw)...)) do i
+    foreach(Iterators.product((0:x for x in heighest_weight)...)) do i
         push!(sub_weights, [i...])
     end
     popfirst!(sub_weights) # [0, ..., 0]
-    pop!(sub_weights) # hw
-    order_sub_weights(hw, sub_weights)
+    pop!(sub_weights) # heighest_weight
+    order_sub_weights(heighest_weight, sub_weights)
     return sub_weights
 end
 
-function add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e, cache_size)
-    #println("add_known_monomials: ", weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e)
-    #println("")
+function add_known_monomials!(weightspace::Vector{Any}, set_mon_in_weightspace::Dict{Vector{Int64}, 
+                                Set{ZZMPolyRingElem}}, number_of_operators::Int, weights::Vector{Vector{Int64}}, 
+                                matrices_of_operators::Vector{SMat{ZZRingElem}}, calc_monomials::Dict{ZZMPolyRingElem, 
+                                Tuple{TVec, Vector{Int}}}, 
+                                space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.VSBasis}, e::Vector{Vector{Int}},
+                                cache_size::Int)
     """
-    By using the Minkowski-sum, we know that all monomials in set_mon_in_weightspace are in our basis. Since we want to extend the weightspacse with
-    missing monomials, we go need to calculate and add the vector of each monomial to our basis.
+    By using the Minkowski-sum, we know that all monomials in set_mon_in_weightspace are in our basis. Since we want to
+    extend the weightspacse with missing monomials, we go need to calculate and add the vector of each monomial to our 
+    basis.
     """
     weight = weightspace[1]
     for mon in set_mon_in_weightspace[weight]
-        #vec, wt = calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
-        d = sz(mats[1])
+        #vec, wt = calc_new_mon!(mon, number_of_operators, weights, matrices_of_operators, calc_monomials, space, e, 
+        #                            cache_size)
+        d = sz(matrices_of_operators[1])
         v0 = sparse_row(ZZ, [(1,1)]) # starting vector v
-        vec = calc_vec(v0, mon, mats)
-        wt = calc_wt(mon, wts)  
+        vec = calc_vec(v0, mon, matrices_of_operators)
+        wt = calc_weight(mon, weights)  
         #println("vec:" , vec)
         #println("wt: ", wt)
         if !haskey(space, wt)
             space[wt] = nullSpace()
         end
-        addAndReduce!(space[wt], vec)
+        add_and_reduce!(space[wt], vec)
     end
-    #GC.gc()
 end
 
-function add_new_monomials!(t, n, ZZx, x, mats, wts, monomial_order, weightspace, wts_eps, set_mon_in_weightspace, calc_monomials, space, e, cache_size, set_mon, m)
+function add_new_monomials!(type::String, rank::Int, ZZx::ZZMPolyRing, x::Vector{ZZMPolyRingElem}, 
+                            matrices_of_operators::Vector{SMat{ZZRingElem}}, weights::Vector{Vector{Int}}, 
+                            monomial_order_lt::Function, weightspace::Vector{Any}, weights_eps::Vector{Vector{Int}}, 
+                            set_mon_in_weightspace::Dict{Vector{Int64}, Set{ZZMPolyRingElem}}, 
+                            calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}}, space::Dict{Vector{Int64}, 
+                            Oscar.BasisLieHighestWeight.VSBasis}, e::Vector{Vector{Int}}, cache_size::Int, 
+                            set_mon::Set{ZZMPolyRingElem})
     """
-    If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all monomials in the order monomial_order
-    and calculate the corresponding vector. If it extends the basis, we add it to the result and else we try the next one. We know, that all monomials that work
-    lie in the weyl-polytope. Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-polytope is bounded
-    these are finitely many, we can sort them and then go trough them, until we found enough. 
+    If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
+    monomials in the order monomial_order_lt and calculate the corresponding vector. If it extends the basis, we add it 
+    to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
+    Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
+    polytope is bounded these are finitely many, we can sort them and then go trough them, until we found enough. 
     """
-    #println("")
-    #println("add_new_monomials: ", t, n, ZZx, x, mats, wts, monomial_order, weightspace, wts_eps, set_mon_in_weightspace, calc_monomials, space, e, cache_size, set_mon, m)
-    #println("")
-    #println("memory: ", Int(Base.Sys.free_memory()) / 2^20)
     weight = weightspace[1]
     dim_weightspace = weightspace[2]
     
     # get monomials from weyl-polytope that are in the weightspace
-    poss_mon_in_weightspace = convert_lattice_points_to_monomials(ZZx, get_lattice_points_of_weightspace(wts_eps, w_to_eps(t, n, weight), t))
-    lt_function = lt_monomial_order(monomial_order, ZZx, x)
-    poss_mon_in_weightspace = sort(poss_mon_in_weightspace, lt=lt_function)
+    poss_mon_in_weightspace = convert_lattice_points_to_monomials(ZZx, 
+                                    get_lattice_points_of_weightspace(weights_eps, w_to_eps(type, rank, weight), type))
+    poss_mon_in_weightspace = sort(poss_mon_in_weightspace, lt=monomial_order_lt)
 
     # check which monomials should get added to the basis
     i=0
@@ -256,15 +314,15 @@ function add_new_monomials!(t, n, ZZx, x, mats, wts, monomial_order, weightspace
         end
 
         # calculate the vector and check if it extends the basis
-        #vec, _ = calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
-        d = sz(mats[1])
+        #vec, _ = calc_new_mon!(mon, m, weights, matrices_of_operators, calc_monomials, space, e, cache_size)
+        d = sz(matrices_of_operators[1])
         v0 = sparse_row(ZZ, [(1,1)]) # starting vector v
-        vec = calc_vec(v0, mon, mats)
+        vec = calc_vec(v0, mon, matrices_of_operators)
         #println("vec:" , vec)
         if !haskey(space, weight)
             space[weight] = nullSpace()
         end
-        vec_red = addAndReduce!(space[weight], vec)
+        vec_red = add_and_reduce!(space[weight], vec)
         if isempty(vec_red) # v0 == 0
             continue
         end
@@ -272,38 +330,30 @@ function add_new_monomials!(t, n, ZZx, x, mats, wts, monomial_order, weightspace
         # save monom
         number_mon_in_weightspace += 1
         push!(set_mon, mon)
-        
     end
-
-    # Weirdly, removing this causes memory problems. The lines should not be necessary since the objects are not referenced
-    # and the garbage collector should run automatically. If I find out what causes this, it will be removed.
-    #weight = 0
-    #dim_weightspace = 0
-    #lt_function = 0
-    #number_mon_in_weightspace = 0
-    #poss_mon_in_weightspace = 0
-    #GC.gc()
 end
 
 
-function add_by_hand(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, gapDim, set_mon, cache_size::Int, parallel::Bool)
+function add_by_hand(type::String, rank::Int, lie_algebra::GAP.Obj, ZZx::ZZMPolyRing, x::Vector{ZZMPolyRingElem}, 
+                        heighest_weight::Vector{Int}, operators::GAP.Obj, weights::Vector{Vector{Int64}}, 
+                        weights_eps::Vector{Vector{Int64}}, monomial_order_lt::Function, gapDim::Int, 
+                        set_mon::Set{ZZMPolyRingElem}, cache_size::Int, parallel::Bool)::Set{ZZMPolyRingElem}
     """
-    This function calculates the missing monomials by going through each non full weightspace and adding possible monomials
-    manually by computing their corresponding vectors and checking if they enlargen the basis.
+    This function calculates the missing monomials by going through each non full weightspace and adding possible 
+    monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
     """
-    #println("")
-    #println("")
-    #println("add_by_hand: ", hw)
     # initialization
-    mats = tensorMatricesForOperators(L, hw, ops) # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
-    m = length(mats)
-    e = [(1:m .== i) for i in 1:m] # e_i
-    space = Dict(0*wts[1] => nullSpace()) # span of basis vectors to keep track of the basis
-    d = sz(mats[1])
+    # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
+    matrices_of_operators = tensorMatricesForOperators(lie_algebra, heighest_weight, operators) 
+    number_of_operators = length(matrices_of_operators)
+    e = [1*(1:number_of_operators .== i) for i in 1:number_of_operators] # e_i
+    space = Dict(0*weights[1] => nullSpace()) # span of basis vectors to keep track of the basis
     v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
-    calc_monomials = Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}}(ZZx(1) => (v0, 0 * wts[1])) # saves the calculated vectors to decrease necessary matrix multiplicatons
+    # saves the calculated vectors to decrease necessary matrix multiplicatons
+    calc_monomials = Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}}(ZZx(1) => (v0, 0 * weights[1])) 
     push!(set_mon, ZZx(1))
-    weightspaces = get_dim_weightspace(t, n, L, hw) # required monomials of each weightspace
+    # required monomials of each weightspace
+    weightspaces = get_dim_weightspace(type, rank, lie_algebra, heighest_weight) 
 
     # sort the monomials from the minkowski-sum by their weightspaces
     set_mon_in_weightspace = Dict{Vector{Int}, Set{ZZMPolyRingElem}}()
@@ -311,7 +361,7 @@ function add_by_hand(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, gap
         set_mon_in_weightspace[weight] = Set{ZZMPolyRingElem}()
     end
     for mon in set_mon
-        weight = calc_wt(mon, wts)
+        weight = calc_weight(mon, weights)
         push!(set_mon_in_weightspace[weight], mon)
     end
 
@@ -323,41 +373,41 @@ function add_by_hand(t, n, L, ZZx, x, hw, ops, wts, wts_eps, monomial_order, gap
     deleteat!(weightspaces, full_weightspaces)
     weightsapces = full_weightspaces
     
-
-    # use parallel computations if parallel=true. The weightspaces could be calculated completely indepent. We just save
-    # the computed monomials.
-    # insert known monomials into basis
+    # use parallel computations if parallel=true. The weightspaces could be calculated completely indepent. This is not 
+    # implemented, since I used the package Distributed.jl for this, which is not in the Oscar dependencies. But I plan 
+    # to reimplement this. insert known monomials into basis
     for weightspace in weightspaces
-        add_known_monomials!(weightspace, set_mon_in_weightspace, m, wts, mats, calc_monomials, space, e, cache_size)
+        add_known_monomials!(weightspace, set_mon_in_weightspace, number_of_operators, weights, matrices_of_operators, 
+                                calc_monomials, space, e, cache_size)
     end 
 
     # calculate new monomials
     for weightspace in weightspaces
-        add_new_monomials!(t, n, ZZx, x, mats, wts, monomial_order, weightspace, wts_eps, set_mon_in_weightspace, calc_monomials, space, e, cache_size, set_mon, m)
+        add_new_monomials!(type, rank, ZZx, x, matrices_of_operators, weights, monomial_order_lt, weightspace, 
+                            weights_eps, set_mon_in_weightspace, calc_monomials, space, e, cache_size, set_mon)
     end
-    #println("calc_monomials: ", length(calc_monomials))
     return set_mon
 end
 
-function get_dim_weightspace(t, n, L, hw)
+function get_dim_weightspace(type::String, rank::Int, lie_algebra::GAP.Obj, heighest_weight::Vector{Int})::Vector{Any}
     """
     calculates matrix, first row weights, second row dimension of corresponding weightspace
     GAP computes the dimension for all positive weights. The dimension is constant on orbits of the weylgroup,
     and we can therefore calculate the dimension of each weightspace.
     """
     # calculate dimension for dominant weights with GAP
-    R = GAP.Globals.RootSystem(L)
-    W = fromGap(GAP.Globals.DominantCharacter(R, GAP.Obj(hw)))
-    dominant_weights = W[1]
-    dominant_weights_dim = W[2]
+    root_system = GAP.Globals.RootSystem(lie_algebra)
+    dominant_weights, dominant_weights_dim = fromGap(GAP.Globals.DominantCharacter(root_system, 
+                                                                                    GAP.Obj(heighest_weight)))
+    dominant_weights = convert(Vector{Vector{Int}}, dominant_weights)
     dim_weightspace = []
 
     # calculate dimension for the rest by checking which positive weights lies in the orbit.
     for i in 1:length(dominant_weights)
-        orbit_weights = orbit_weylgroup(t,n, dominant_weights[i])
+        orbit_weights = orbit_weylgroup(type, rank, lie_algebra, dominant_weights[i])
         dim = dominant_weights_dim[i]
-        for weight in eachrow(orbit_weights)
-            append!(dim_weightspace, [[hw-eps_to_w(t,n,weight), dim]])
+        for weight in orbit_weights
+            append!(dim_weightspace, [[heighest_weight - weight, dim]])
         end
     end
     return dim_weightspace

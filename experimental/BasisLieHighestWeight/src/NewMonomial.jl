@@ -1,12 +1,3 @@
-# main file
-#--- bekommt gerade noch ZZ, Short und TVEC aus VectorSpaceBases
-
-
-# TODO use dimension of weightspace to stop unnecessary calculations
-# TODO use UInt8 instead of Int for polynomials again
-
-# module MB2
-
 include("./VectorSpaceBases.jl")
 include("./TensorModels.jl")
 include("./LieAlgebras.jl")
@@ -16,19 +7,22 @@ include("./WeylPolytope.jl")
 fromGap = Oscar.GAP.gap_to_julia
 
 
-function calc_wt(mon, weights)
+function calc_weight(mon::ZZMPolyRingElem, weights::Vector{Vector{Int}})::Vector{Int}
     """
-    
+    calculates weight associated with monomial mon
     """
     degree_mon = degrees(mon)
-    wt = [0 for i in 1:length(weights[1])]
+    weight = [0 for i in 1:length(weights[1])]
     for i in 1:length(degree_mon)
-        wt .+= degree_mon[i] * weights[i]
+      weight .+= degree_mon[i] * weights[i]
     end
-    return wt
+    return weight
 end
 
-function calc_vec(v0, mon, mats)
+function calc_vec(v0::SRow{ZZRingElem}, mon::ZZMPolyRingElem, mats)::SRow{ZZRingElem}
+  """
+  calculates vector associated with monomial mon
+  """
     vec = v0
     degree_mon = degrees(mon)
     for i in length(degree_mon):-1:1
@@ -39,7 +33,8 @@ function calc_vec(v0, mon, mats)
     return vec
 end
 
-function highest_calc_sub_monomial(mon::Vector{Int}, calc_monomials)
+function highest_calc_sub_monomial(mon::ZZMPolyRingElem, 
+                                    calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}})::ZZMPolyRingElem
     """
     returns the key in calc_monomials that can be extended by the least amount of left-operations to mon
     """
@@ -48,8 +43,6 @@ function highest_calc_sub_monomial(mon::Vector{Int}, calc_monomials)
     m = length(mon)
     for i in 1:m
         while sub_mon[i] > 0
-            #println(sub_mon)
-            #println(calc_monomials)
             if haskey(calc_monomials, sub_mon)
                 return sub_mon
             else
@@ -57,59 +50,49 @@ function highest_calc_sub_monomial(mon::Vector{Int}, calc_monomials)
             end
         end
     end
-    #println(sub_mon)
-    return sub_mon # [0 for i in 1:m]
+    return sub_mon
 end
 
-function calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
+function calc_new_mon!(mon::ZZMPolyRingElem, number_of_operators::Int, weights::Vector{Int}, 
+                        matrices_of_operators::Vector{SMat{ZZRingElem}}, 
+                        calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}}, 
+                        space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.VSBasis}, e::Vector{Vector{Int}}, 
+                        cache_size::Int)::Tuple{SRow{ZZRingElem}, Vector{Int}}
     # calculate vector of mon by extending a previous calculated vector to a
     # monom that differs only by left-multiplication, save results in calc_monomials
     sub_mon = highest_calc_sub_monomial(mon, calc_monomials)
     #println("sub_mon: ", sub_mon)
     sub_mon_cur = copy(sub_mon)
-    if !haskey(calc_monomials, sub_mon_cur)
-        println("ERROR IN calc_new_mon")
-        println(mon)
-        println(sub_mon_cur)
-        println(calc_monomials)
-    end
-    (vec, wt) = calc_monomials[sub_mon]
-
-    # this block cannot be used in MB3 because we don't iterate through monomials in universal order,
-    # but instead in the monomial-order for each weightspace
-    #if mon == sub_mon # mon already contained so we need to reduce it to 0
-    #    return spzeros(ZZ, m), wt
-    #end
-
-    #needs_to_be_saved = true
-    for i in m:-1:1
+    (vec, weight) = calc_monomials[sub_mon]
+    for i in number_of_operators:-1:1
         for k in sub_mon[i]:(mon[i]-1)
             sub_mon_cur += e[i]
-            wt += wts[i]
-            if !haskey(space, wt)
-                space[wt] = nullSpace()
+            weight += weights[i]
+            if !haskey(space, weight)
+                space[weight] = nullSpace()
             end
             #if isempty(vec.nzind) # v already 0
             #    needs_to_be_saved = false
             #else
             #    vec = mats[i] * vec
             #end
-            #vec = addAndReduce!(space[wt], vec)
+            #vec = add_and_reduce!(space[weight], vec)
             #println(sub_mon_cur)
             #if needs_to_be_saved
-            #    calc_monomials[sub_mon_cur] = (vec, wt)
+            #    calc_monomials[sub_mon_cur] = (vec, weight)
             #end
             #mul!(A, vec)
-            vec = mats[i] * vec
+            vec = matrices_of_operators[i] * vec
             if length(calc_monomials) < cache_size
-                calc_monomials[sub_mon_cur] = (vec, wt)
+                calc_monomials[sub_mon_cur] = (vec, weight)
             end
 
-            # check if the extended monomial can be deleted from calculated_monomials, i.e. the other possible extensions are already contained
+            # check if the extended monomial can be deleted from calculated_monomials, i.e. the other possible 
+            # extensions are already contained
             can_be_deleted = true
-            k = m
-            for l in 1:m
-                if (sub_mon_cur-e[i])[l] != 0
+            k = number_of_operators
+            for l in 1:number_of_operators
+                if (sub_mon_cur - e[i])[l] != 0
                     k = l
                 end
             end
@@ -121,7 +104,8 @@ function calc_new_mon!(mon, m, wts, mats, calc_monomials, space, e, cache_size)
             end
         end
     end
-    # calc_monomials[sub_mon_cur] = (vec, wt) this position is for graded_reverse_lexicographic enough instead of the one above
-    return vec, wt
+    # calc_monomials[sub_mon_cur] = (vec, weight) this position is for graded_reverse_lexicographic enough instead of 
+    # the one above
+    return vec, weight
 end
 

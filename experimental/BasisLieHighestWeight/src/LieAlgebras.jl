@@ -1,22 +1,18 @@
-# ?
-
 using Oscar
-#using SparseArrays
 
 fromGap = Oscar.GAP.gap_to_julia
 
 
-function lieAlgebra(t::String, n::Int)
+function lieAlgebra(type::String, rank::Int)::Tuple{GAP.Obj, GAP.Obj}
     """
     Creates the Lie-algebra as a GAP object that gets used for a lot other computations with GAP
     """
-    L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
-    return L, GAP.Globals.ChevalleyBasis(L)
+    lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
+    return lie_algebra, GAP.Globals.ChevalleyBasis(lie_algebra)
 end
 
 
 gapReshape(A) = sparse_matrix(QQ, hcat(A...))
-#gapReshape(A) = sparse(hcat(A...))
 
 # temporary workaround for issue 2128
 function multiply_scalar(A::SMat{T}, d) where T
@@ -24,39 +20,35 @@ function multiply_scalar(A::SMat{T}, d) where T
         scale_row!(A, i, T(d))
     end
     return A
-    #return identity_matrix(SMat, QQ, size(A)[1])*A
 end
 
-function matricesForOperators(L, hw, ops)
+function matricesForOperators(lie_algebra::GAP.Obj, heighest_weight::Vector{Int}, 
+                              ops::GAP.Obj)::Vector{SMat{ZZRingElem}}
     """
     used to create tensorMatricesForOperators
     """
-    #M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
-    #mats = GAP.Globals.List(ops, o -> GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
-    M = Oscar.GAP.Globals.HighestWeightModule(L, Oscar.GAP.julia_to_gap(hw))
-    mats = Oscar.GAP.Globals.List(ops, o -> Oscar.GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
-    #mats = gapReshape.(fromGap(mats))
-    mats = gapReshape.( Oscar.GAP.gap_to_julia(mats))
-    denominators = map(y->denominator(y[2]), union(union(mats...)...))
-    #d = convert(QQ, lcm(denominators))
-    d = lcm(denominators)# // 1
-    mats = (A->change_base_ring(ZZ, multiply_scalar(A, d))).(mats)
-    return mats
+    M = Oscar.GAP.Globals.HighestWeightModule(lie_algebra, Oscar.GAP.julia_to_gap(heighest_weight))
+    matrices_of_operators = Oscar.GAP.Globals.List(ops, o -> Oscar.GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
+    matrices_of_operators = gapReshape.( Oscar.GAP.gap_to_julia(matrices_of_operators))
+    denominators = map(y->denominator(y[2]), union(union(matrices_of_operators...)...))
+    common_denominator = lcm(denominators)# // 1
+    matrices_of_operators = (A->change_base_ring(ZZ, multiply_scalar(A, common_denominator))).(matrices_of_operators)
+    return matrices_of_operators
 end
 
 
-function weightsForOperators(L, cartan, ops)
+function weightsForOperators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators::GAP.Obj)::Vector{Vector{Int}}
     """
     Calculates the weight wts[i] for each operator ops[i]
     """
     cartan = fromGap(cartan, recursive=false)
-    ops = fromGap(ops, recursive=false)
+    operators = fromGap(operators, recursive=false)
     asVec(v) = fromGap(GAP.Globals.ExtRepOfObj(v))
-    if any(iszero.(asVec.(ops)))
+    if any(iszero.(asVec.(operators)))
         error("ops should be non-zero")
     end
     nzi(v) = findfirst(asVec(v) .!= 0)
     return [
-        [asVec(h*v)[nzi(v)] / asVec(v)[nzi(v)] for h in cartan] for v in ops
+        [asVec(h*v)[nzi(v)] / asVec(v)[nzi(v)] for h in cartan] for v in operators
     ]
 end

@@ -1,11 +1,9 @@
-# ?
-
 using Oscar
-#using SparseArrays
 
-# TODO: make the first one a symmetric product, or reduce more generally
-
-function kron(A, B)
+function kron(A::SMat{ZZRingElem}, B::SMat{ZZRingElem})::SMat{ZZRingElem}
+    """
+    Computes the Kronecker-product of A and B
+    """
     res = sparse_matrix(ZZ, nrows(A)*nrows(B), ncols(A)*ncols(B))
     for i in 1:nrows(B)
         for j in 1:nrows(A)
@@ -19,14 +17,11 @@ function kron(A, B)
             setindex!(res, new_row, (j-1)*nrows(B)+i)
         end
     end
-    #println("ncols(res): ", ncols(res))
-    #println("nrows(res): ", nrows(res))
-    
     return res
 end
 
 # temprary fix sparse in Oscar does not work
-function tensorProduct(A, B)
+function tensorProduct(A::SMat{ZZRingElem}, B::SMat{ZZRingElem})::SMat{ZZRingElem}
     temp_mat = kron(A, spid(sz(B))) + kron(spid(sz(A)), B)
     res = sparse_matrix(ZZ, nrows(A)*nrows(B), ncols(A)*ncols(B))
     for i in 1:nrows(temp_mat)
@@ -36,32 +31,28 @@ function tensorProduct(A, B)
 end
 
 
-spid(n) = identity_matrix(SMat, ZZ, n)
-sz(A) = nrows(A) #size(A)[1]
+spid(n::Int) = identity_matrix(SMat, ZZ, n)::SMat{ZZRingElem}
+sz(A::SMat{ZZRingElem}) = nrows(A)::Int #size(A)[1]
 #tensorProduct(A, B) = kron(A, spid(sz(B))) + kron(spid(sz(A)), B)
 tensorProducts(As, Bs) = (AB->tensorProduct(AB[1], AB[2])).(zip(As, Bs))
 tensorPower(A, n) = (n == 1) ? A : tensorProduct(tensorPower(A, n-1), A)
 tensorPowers(As, n) = (A->tensorPower(A, n)).(As)
 
-
-function tensorMatricesForOperators(L, hw, ops)
+function tensorMatricesForOperators(lie_algebra::GAP.Obj, heighest_weight::Vector{Int}, 
+                                    operators::GAP.Obj)::Vector{SMat{ZZRingElem}}
     """
     Calculates the matrices g_i corresponding to the operator ops[i].
     """
-    #println("hw: ", hw)
-    mats = []
-
-    for i in 1:length(hw)
-        #println("hw[i]: ", hw[i])
-        if hw[i] <= 0
+    matrices_of_operators = []
+    for i in 1:length(heighest_weight)
+        if heighest_weight[i] <= 0
             continue
         end
-        wi = Int.(1:length(hw) .== i) # i-th fundamental weight
-        _mats = matricesForOperators(L, wi, ops)
-        _mats = tensorPowers(_mats, hw[i])
-        mats = mats == [] ? _mats : tensorProducts(mats, _mats)
-        #println(spdiagm(0 => [ZZ(1) for _ in 1:5])agm)
-        #display(mats)
+        wi = Int.(1:length(heighest_weight) .== i) # i-th fundamental weight
+        _matrices_of_operators = matricesForOperators(lie_algebra, wi, operators)
+        _matrices_of_operators = tensorPowers(_matrices_of_operators, heighest_weight[i])
+        matrices_of_operators = matrices_of_operators == [] ? _matrices_of_operators : 
+                                  tensorProducts(matrices_of_operators, _matrices_of_operators)
     end
-    return mats
+    return matrices_of_operators
 end

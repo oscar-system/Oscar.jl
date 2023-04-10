@@ -1,64 +1,58 @@
-# manages the basisvectors and its linear independence
+# manages the linear (in-)dependence of integer vectors
+# this file is only of use to BasisLieHighestWeight for the basis vectors
 
 using Oscar
-# SparseArrays
 
-TVec = SRow{ZZRingElem} # values ZZ, indices Int (TVec is datatype of basisvectors basisLieHighestWeight)
+TVec = SRow{ZZRingElem} # values ZZ, indices Int (TVec is datatype of basisvectors in basisLieHighestWeight)
 Short = UInt8 # for exponents of monomials; max. 255
 
 struct VSBasis
-    A::Vector{TVec} # vector of basisvectors
-    pivot::Vector{Int} # vector of pivotelements, i.e. pivot[i] is first nonzero element of A[i]
+    basis_vectors::Vector{TVec} # vector of basisvectors
+    pivot::Vector{Int} # vector of pivotelements, i.e. pivot[i] is first nonzero element of basis_vectors[i]
     dim::Vector{Int} # dimension
 end
 
-
 nullSpace() = VSBasis([], [], []) # empty Vektorraum
 
+reduceCol(a, b, i::Int) = (b[i]*a - a[i]*b)::TVec # create zero entry in a
 
-function normalize(v::TVec)
+function normalize(v::TVec)::Tuple{TVec, Int64}
     """
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
-    used: addAndReduce!
+    used: add_and_reduce!
     """
     if is_empty(v)
         return (v, 0)
     end
-
     pivot = first(v)[1]  # first nonzero element of vector
-
     return divexact(v, gcd(map(y->y[2], union(v)))), pivot
 end
 
-
-reduceCol(a, b, i::Int) = b[i]*a - a[i]*b # create zero entry in a
-
-
-function addAndReduce!(sp::VSBasis, v::TVec)
+function add_and_reduce!(sp::VSBasis, v::TVec)::TVec
     """
-    for each pivot of sp.A we make entry of v zero and return the result and insert it into sp
+    for each pivot of sp.basis_vectors we make entry of v zero and return the result and insert it into sp
     0 => linear dependent
-    * => linear independent, new column element of sp.A since it increases basis
-    invariants: the row of a pivotelement in any column in A is 0 (except the pivotelement)
-                elements of A are integers, gcd of each column is 1
+    * => linear independent, new column element of sp.basis_vectors since it increases basis
+    invariants: the row of a pivotelement in any column in basis_vectors is 0 (except the pivotelement)
+                elements of basis_vectors are integers, gcd of each column is 1
     """
-    #println("sp: ", sp)
-    #println("v: ", v)
-    A = sp.A
+    # initialize objects
+    basis_vectors = sp.basis_vectors
     pivot = sp.pivot
+    v, newPivot = normalize(v)
 
-    v, newPivot = normalize(v) 
-    if newPivot == 0 # v zero vector
-
+    # case v zero vector
+    if newPivot == 0
         return v
     end
- 
-    for j in 1:length(A)
+
+    # use pivots of basis basis_vectors to create zeros in v
+    for j in 1:length(basis_vectors)
         i = pivot[j]
         if i != newPivot
             continue
         end
-        v = reduceCol(v, A[j], i)
+        v = reduceCol(v, basis_vectors[j], i)
         v, newPivot = normalize(v)
         if newPivot == 0
             #return 0
@@ -66,12 +60,14 @@ function addAndReduce!(sp::VSBasis, v::TVec)
         end
     end
 
+    # new pivot element of v
     pos = findfirst(pivot .> newPivot)
     if (pos === nothing)
         pos = length(pivot) + 1
     end
 
-    insert!(A, pos, v)
+    # save result
+    insert!(basis_vectors, pos, v)
     insert!(pivot, pos, newPivot)
     return v
 end
