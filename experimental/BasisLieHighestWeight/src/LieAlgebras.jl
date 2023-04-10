@@ -22,12 +22,12 @@ function multiply_scalar(A::SMat{T}, d) where T
     return A
 end
 
-function matricesForOperators(lie_algebra::GAP.Obj, heighest_weight::Vector{Int}, 
+function matricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{Int}, 
                               ops::GAP.Obj)::Vector{SMat{ZZRingElem}}
     """
     used to create tensorMatricesForOperators
     """
-    M = Oscar.GAP.Globals.HighestWeightModule(lie_algebra, Oscar.GAP.julia_to_gap(heighest_weight))
+    M = Oscar.GAP.Globals.HighestWeightModule(lie_algebra, Oscar.GAP.julia_to_gap(highest_weight))
     matrices_of_operators = Oscar.GAP.Globals.List(ops, o -> Oscar.GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
     matrices_of_operators = gapReshape.( Oscar.GAP.gap_to_julia(matrices_of_operators))
     denominators = map(y->denominator(y[2]), union(union(matrices_of_operators...)...))

@@ -6,12 +6,12 @@ include("./RootConversion.jl")
 fromGap = Oscar.GAP.gap_to_julia
 
 function weylpolytope(type::String, rank::Int, lie_algebra::GAP.Obj, 
-                      heighest_weight::Vector{Int})::Polymake.BigObjectAllocated
+                      highest_weight::Vector{Int})::Polymake.BigObjectAllocated
     """
     returns weyl-polytope in homogeneous coordinates, i.e. convex hull of orbit of weyl-group of 
-    type type and rank rank on highest weight vector heighest_weight 
+    type type and rank rank on highest weight vector highest_weight 
     """
-    vertices = orbit_weylgroup(type, rank, lie_algebra, heighest_weight)
+    vertices = orbit_weylgroup(type, rank, lie_algebra, highest_weight)
     vertices = transpose(hcat(vertices ...))
     vertices = [w for w in eachrow(vertices)]
     vertices = transpose(hcat(vertices ...))
@@ -60,7 +60,7 @@ end
 
 function get_lattice_points_of_weightspace(weights, weight, type)
     """
-    calculates all lattice points in a given weightspace for lie algebras of type type
+    calculates all lattice points in a given weightspace for a lie algebra of type type
     input:
     weights: the operator weights in eps_i
     weight: lambda - mu
