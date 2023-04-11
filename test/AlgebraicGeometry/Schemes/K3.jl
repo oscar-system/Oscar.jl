@@ -56,9 +56,9 @@
   # Now the singular locus consists of two points. 
   # We blow them up successively rather than at once. 
   #println("starting primary decomposition of singular locus")
-  decomp = primary_decomposition(I_sing_X3)
+  decomp = Oscar.minimal_associated_points(I_sing_X3)
   #println("finished primary decomposition of singular locus")
-  l = radical.([a for (_, a) in decomp])
+  l = radical.([a for a in decomp])
 
   #@show "blowing up first center"
   #@show gens.(l[1].(patches(oscar.simplified_covering(X3))))
@@ -67,7 +67,6 @@
   #@show "done blowing up"
   X41 = domain(prX41)
   E41 = exceptional_divisor(prX41)
-  X41 = domain(prX41)
   Y41, inc_Y41, pr_Y41 = strict_transform(prX41, inc_Y3)
 
   l2 = radical(strict_transform(prX41, l[2]))
@@ -88,12 +87,10 @@
   # Now the singular locus consists of three points. 
   # We blow them up successively rather than at once. 
   #println("starting primary decomposition of singular locus")
-  decomp = primary_decomposition(I_sing_X42)
+  centers = Oscar.minimal_associated_points(I_sing_X42)
   #println("finished primary decomposition of singular locus")
 
-  centers = [a for (_, a) in decomp]
-
-  prX51 = blow_up(first(centers))
+  prX51 = blow_up(radical(first(centers)))
 
   E51 = exceptional_divisor(prX51)
 
@@ -101,14 +98,14 @@
   Y51, inc_Y51, prY51 = strict_transform(prX51, inc_Y42)
   centers = (x->strict_transform(prX51, x)).(centers[2:3])
 
-  prX52 = blow_up(first(centers))
+  prX52 = blow_up(radical(first(centers)))
   E52 = exceptional_divisor(prX52)
 
   #@show E52
   Y52, inc_Y52, prY52 = strict_transform(prX52, inc_Y51)
   centers = (x->strict_transform(prX52, x)).(centers[2:2])
 
-  prX53 = blow_up(first(centers))
+  prX53 = blow_up(radical(first(centers)))
   E53 = exceptional_divisor(prX53)
 
   #@show E53
