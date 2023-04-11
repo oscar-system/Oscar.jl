@@ -1697,9 +1697,9 @@ function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuo
   A === base_ring(J) || error("ideals must lie in the same ring")
   R = base_ring(A)
 
-  I_sat = ideal(base_ring(R), normal_form(gens(saturated_ideal(I)), modulus(R)))
-  J_sat = ideal(base_ring(R), normal_form(gens(saturated_ideal(J)), modulus(R)))
-  K = saturation(Ip, Jp)
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+  K = saturation(I_sat, J_sat)
   return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
 end
 
@@ -1714,8 +1714,6 @@ function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPoly
 
   I_sat = saturated_ideal(I)
   J_sat = saturated_ideal(J)
-#  I_sat = ideal(base_ring(R), normal_form(gens(saturated_ideal(I)), modulus(R)))
-#  J_sat = ideal(base_ring(R), normal_form(gens(saturated_ideal(J)), modulus(R)))
 
   I_result,k = saturation_with_index(I_sat,J_sat)
   return (ideal(R,gens(I_result)),k)
