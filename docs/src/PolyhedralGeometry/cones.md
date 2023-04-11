@@ -44,7 +44,7 @@ secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```@docs
 ambient_dim(C::Cone)
 Base.in(v::AbstractVector, C::Cone)
-Base.in(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 f_vector(C::Cone)
 hilbert_basis(C::Cone{QQFieldElem})
 codim(C::Cone)

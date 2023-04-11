@@ -21,8 +21,8 @@
     R,x = polynomial_ring(QQ, "x")
 
     @testset "core functionality" begin
-        @test Q0 in Q1
-        @test !(Q1 in Q0)
+      @test issubset(Q0, Q1)
+        @test !issubset(Q1, Q0)
         @test [1, 0] in Q0
         @test !([-1, -1] in Q0)
         @test nvertices(Q0) == 3

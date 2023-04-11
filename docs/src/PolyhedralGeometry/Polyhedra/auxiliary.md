@@ -60,7 +60,7 @@ automorphism_group_generators(IM::IncidenceMatrix)
 all_triangulations
 boundary_lattice_points(P::Polyhedron{QQFieldElem})
 Base.in(v::AbstractVector, P::Polyhedron)
-Base.in(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
 ehrhart_polynomial(P::Polyhedron{QQFieldElem})
 ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
 h_star_polynomial(P::Polyhedron{QQFieldElem})
