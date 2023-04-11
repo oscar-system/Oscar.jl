@@ -589,14 +589,16 @@ Fields:
   end
 
   function MPolyIdeal(B::IdealGens{T}) where T
-    oscar_assure(B)
-    R = B.gens.Ox
-    if R isa MPolyDecRing
-     if is_graded(R)
-      if !(all(is_homogeneous, B.gens.O))
-        throw(ArgumentError("The generators of the ideal must be homogeneous."))
-      end 
-     end
+    if length(B) >= 1
+      oscar_assure(B)
+      R = B.gens.Ox
+      if R isa MPolyDecRing
+         if is_graded(R)
+           if !(all(is_homogeneous, B.gens.O))
+              throw(ArgumentError("The generators of the ideal must be homogeneous."))
+           end 
+         end
+      end
     end
     r = new{T}()
     r.gens = B
