@@ -39,7 +39,6 @@ const oldexppkgs = [
   "GITFans",
   "GModule",
   "JuLie",
-  "LinearQuotients",
   "Matrix",
   "ModStd",
   "MPolyRingSparse",
@@ -249,10 +248,11 @@ function __init__()
 
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
-    
+
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:GlobalWeierstrassModel)
-    
+
+    add_verbosity_scope(:LinearQuotients)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -453,7 +453,7 @@ function test_experimental_module(
   project::AbstractString; file::AbstractString="runtests", new::Bool=true
 )
   test_file = "../experimental/$project/test/$file"
-  test_module(;file=test_file, new)
+  test_module(test_file; new)
 end
 
 include("Exports.jl")

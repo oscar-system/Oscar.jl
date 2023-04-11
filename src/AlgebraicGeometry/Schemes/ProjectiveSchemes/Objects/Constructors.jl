@@ -117,10 +117,10 @@ end
 # reduced scheme
 ################################################################################
 
-function reduced_scheme(X::ProjectiveScheme)
+function reduced_scheme(X::AbsProjectiveScheme)
   I = defining_ideal(X)
   Irad = radical(I)
-  Xred = subscheme(ambient_space(X), I)
+  Xred = subscheme(ambient_space(X), Irad)
   set_attribute!(Xred, :is_reduced=>true)
   return Xred
 end

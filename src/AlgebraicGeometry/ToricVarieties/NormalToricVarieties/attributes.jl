@@ -970,6 +970,52 @@ Polyhedral cone in ambient dimension 2
 @attr Cone cone(v::AffineNormalToricVariety) = maximal_cones(v)[1]
 
 
+@doc raw"""
+    dual_cone(v::AffineNormalToricVariety)
+
+Return the dual cone of the affine normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> dual_cone(antv)
+Polyhedral cone in ambient dimension 2
+
+julia> polarize(cone(antv)) == dual_cone(antv)
+true
+```
+"""
+@attr Cone dual_cone(v::AffineNormalToricVariety) = polarize(cone(v))
+
+
+@doc raw"""
+    hilbert_basis(v::AffineNormalToricVariety)
+
+For an affine toric variety ``v``, this returns the Hilbert
+basis of the cone dual to the cone of ``v``.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([-1 1; 1 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> hilbert_basis(antv)
+[-1   1]
+[ 1   1]
+[ 0   1]
+```
+"""
+@attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(dual_cone(v)))
+
+
 ############################
 # Affine covering
 ############################

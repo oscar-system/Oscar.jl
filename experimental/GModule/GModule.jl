@@ -759,7 +759,7 @@ function Oscar.is_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldE
   return GAP.Globals.MTX.IsIrreducible(G)
 end
 
-function is_absolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
 end
@@ -1167,7 +1167,6 @@ end
 
 export indecomposition
 export irreducible_modules
-export is_absolutely_irreducible
 export is_decomposable
 
 ## Fill in some stubs for Hecke
@@ -1216,7 +1215,6 @@ using .GModuleFromGap
 
 export indecomposition
 export irreducible_modules
-export is_absolutely_irreducible
 export is_decomposable
 
 module RepPc

@@ -28,25 +28,22 @@ Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 
 ```
 
 
-## Properties
-
-We currently support the following properties:
-```@docs
-is_simplicial(X::ToricSpec)
-is_smooth(X::ToricSpec)
-```
-
-
 ## Attributes
 
-We currently support the following attributes:
-```@docs
-underlying_scheme(X::ToricSpec)
-affine_normal_toric_variety(X::ToricSpec)
-cone(X::ToricSpec)
-dual_cone(X::ToricSpec)
-hilbert_basis(X::ToricSpec)
-```
+An affine toric scheme has all attributes of a normal toric scheme.
+In addition, there are the following special attributes, that we
+overload from the corresponding affine toric variety:
+* ``cone(X::ToricSpec)``,
+* ``dual_cone(X::ToricSpec)``,
+* ``hilbert_basis(X::ToricSpec)``,
+* ``toric_ideal(R::MPolyRing, X::ToricSpec)``,
+* ``toric_ideal(X::ToricSpec)``.
+
+
+## Properties
+
+For an affine toric scheme, all properties of normal toric
+schemes are supported.
 
 
 ## A note on the torus inclusion and the torus action
