@@ -40,7 +40,7 @@ function contains(tvs::ToricVanishingSet, l::ToricLineBundle)
     class = divisor_class(l).coeff
     class = [class[1, i] for i in 1:ncols(class)]
     for p in polyhedra(tvs)
-        if contains(p, class)
+        if class in p
             return false
         end
     end

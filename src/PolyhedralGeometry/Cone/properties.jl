@@ -325,6 +325,54 @@ lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 ## Boolean properties
 ###############################################################################
 @doc raw"""
+    is_simplicial(C::Cone)
+
+Determine whether `C` is simplicial, i.e. whether the number of ray generators
+is the same as the dimension of the cone modulo lineality.
+
+# Examples
+```jldoctest
+julia> C0 = positive_hull([0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> is_simplicial(C0)
+true
+
+julia> C1 = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+Polyhedral cone in ambient dimension 3
+
+julia> is_simplicial(C1)
+false
+```
+"""
+is_simplicial(C::Cone) = pm_object(C).SIMPLICIAL_CONE::Bool
+
+
+@doc raw"""
+    is_smooth(C::Cone{QQFieldElem})
+
+Determine whether `C` is smooth, i.e. whether its ray generators form part of a
+lattice basis.
+
+# Examples
+```jldoctest
+julia> C0 = positive_hull([0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> is_smooth(C0)
+true
+
+julia> C1 = positive_hull([1 1; 1 -1])
+Polyhedral cone in ambient dimension 2
+
+julia> is_smooth(C1)
+false
+```
+"""
+is_smooth(C::Cone{QQFieldElem}) = pm_object(C).SMOOTH_CONE::Bool
+
+
+@doc raw"""
     is_pointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
@@ -487,23 +535,46 @@ _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
 
 @doc raw"""
-    contains(C::Cone, v::AbstractVector)
+    in(C0::Cone, C1::Cone)                           
+    
+Check whether `C0` is contained in `C1` as a subset.
+                                             
+# Examples                 
+```jldoctest                                                                                
+julia> C0 = positive_hull([1 1])
+Polyhedral cone in ambient dimension 2
 
-Check whether `C` contains `v`.
+julia> C1 = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> C0 in C1
+true
+
+julia> C1 in C0
+false
+```
+"""
+Base.in(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C0), pm_object(C1))::Bool
+
+
+@doc raw"""
+    in(v::AbstractVector, C::Cone)
+
+Check whether the vector `v` is contained in the cone `C`.
 
 # Examples
 The positive orthant only contains vectors with non-negative entries:
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1]);
 
-julia> contains(C, [1, 2])
+julia> [1, 2] in C
 true
 
-julia> contains(C, [1, -2])
+julia> [1, -2] in C
 false
 ```
 """
-contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool
+Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v)::Bool
 
 
 @doc raw"""
