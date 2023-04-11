@@ -109,18 +109,20 @@ end
     singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
     B = IdealGens(Ox, si)
     R = base_ring(Ox)
-    if R isa MPolyDecRing
-     if is_graded(R)
-      oscar_assure(B)
-      if !(all(is_homogeneous, B.gens.O))
-        throw(ArgumentError("The generators of the ideal must be homogeneous."))
-      end 
-     end
+    if length(B) >= 1  
+      if R isa MPolyDecRing
+        if is_graded(R)
+          oscar_assure(B)
+           if !(all(is_homogeneous, B.gens.O))
+             throw(ArgumentError("The generators of the ideal must be homogeneous."))
+           end 
+        end
+      end
     end
     r = new{T}()
     r.gens = B
     r.qRing = Ox
-    br = base_ring(Ox)
+    br = R
     r.gens.gens.O = [br(g) for g = gens(r.gens.gens.S)]
     r.dim = -1
     return r
