@@ -101,8 +101,8 @@ end
 #  return is_one(saturated_ideal(I))
 #end
 
-@Markdown.doc """
-  strict_transform(p::BlowupMorphism, I::IdealSheaf)
+@doc """
+    strict_transform(p::BlowupMorphism, I::IdealSheaf)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
 strict transform of ``I`` on ``Y``.
@@ -112,24 +112,30 @@ function strict_transform(p::BlowupMorphism, I::IdealSheaf)
   return Istrict
 end
 
-@Markdown.doc """
-  weak_transform(p::BlowupMorphism, I::IdealSheaf)
+@doc """
+    weak_transform(p::BlowupMorphism, I::IdealSheaf)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
-weak transform of ``I`` on ``Y`` and the multiplicity of the exceptional divisor in the total transform of ``I``.
+weak transform of ``I`` on ``Y``.
 """
 function weak_transform(p::BlowupMorphism, I::IdealSheaf)
   Iweak,_ =_do_transform(p,I,0)
   return Iweak
 end
 
+@doc """
+    weak_transform_with_multiplicity((p::BlowupMorphism, I::IdealSheaf)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+weak transform of ``I`` on ``Y`` and the multiplicity of the exceptional divisor in the total transform of ``I``.
+"""
 function weak_transform_with_multiplicity(p::BlowupMorphism, I::IdealSheaf)
   Iweak, multi = _do_transform(p,I,0)
   return Iweak,multi
 end
 
-@Markdown.doc """
-  controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::int)
+@doc """
+    controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::int)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
 controlled transform of ``I`` on ``Y`` with control ``b``.
@@ -208,7 +214,7 @@ end
 ##########################################################################################################
 ## Handle Cartier divisors separately, as ideal quotients are quotients of ring elements in this case
 ##########################################################################################################
-@Markdown.doc """
+@doc """
   strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `EffectiveCartierDivisor` ``C`` on ``X`` return the
