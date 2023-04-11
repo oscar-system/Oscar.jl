@@ -1,1 +1,0 @@
-include("PlaneCurve/PlaneCurve.jl")

@@ -285,7 +285,7 @@ function _secondary_invariants(IR::InvRing)
   return nothing
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     secondary_invariants(IR::InvRing)
 
 Return a system of secondary invariants for `IR` as a `Vector` sorted by
@@ -309,7 +309,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
@@ -324,7 +324,7 @@ function secondary_invariants(IR::InvRing)
   return copy(IR.secondary.invars)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_secondary_invariants(IR::InvRing)
 
 Return a system of irreducible secondary invariants for `IR` as a `Vector` sorted
@@ -343,7 +343,7 @@ computed and cached first).
 ```jldoctest
 julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
-julia> G = MatrixGroup(5, QQ, [M]);
+julia> G = matrix_group(M);
 
 julia> IR = invariant_ring(G);
 
@@ -390,7 +390,7 @@ end
 ################################################################################
 
 # Gat96, Algorithm 3.16 and DK15, Algorithm 3.7.2
-@doc Markdown.doc"""
+@doc raw"""
     semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
     relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)
 

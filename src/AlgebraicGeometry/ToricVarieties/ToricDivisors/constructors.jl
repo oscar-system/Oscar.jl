@@ -11,16 +11,14 @@
                         coeffs::Vector{T}) where {T <: IntegerUnion} = new(polymake_divisor, toric_variety, [ZZRingElem(c) for c in coeffs])
 end
 
-function pm_tdivisor(td::ToricDivisor)
-    return td.polymake_divisor
-end
+pm_tdivisor(td::ToricDivisor) = td.polymake_divisor
 
 
 ######################
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear
@@ -60,7 +58,7 @@ end
 # 3: Special constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor associated to a character of the normal toric variety `v`.

@@ -162,7 +162,7 @@ function _denest_recursive(BR, R::Union{MPolyRing, PolyRing}, n::Int)
   return R, n
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     denest(R::Union{PolyRing, MPolyRing})
 
 Return a multivariate polynomial ring resulting from denesting an iterated
@@ -201,7 +201,7 @@ function _denest_recursive(r::MPolyBuildCtx, f::MPolyRingElem, e0::Vector{Int})
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     denest(S::MPolyRing, f::Union{PolyRingElem, MPolyRingElem})
 
 Return an element of `S` resulting from denesting a element `f` of an
@@ -264,7 +264,7 @@ function _renest_recursive(R::MPolyRing, off::Int, idxs::Vector{Int}, gcoeffs, g
   return finish(z)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     renest(R::Union{PolyRing, MPolyRing}, g::MPolyRingElem)
 
 Return an element of iterated polynomial ring `R` from its denested

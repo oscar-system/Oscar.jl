@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
 
 Visualize a polyhedral object of dimension at most four (in 3-space).

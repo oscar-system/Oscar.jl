@@ -540,7 +540,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
     if any(x->!x[1], em)
       return nothing
     end
-    emb = parent(defining_polynomial(FF))([x[2](gen(Nemo.base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
+    emb = parent(defining_polynomial(FF))([x[2](gen(base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
     return emb
   end
 

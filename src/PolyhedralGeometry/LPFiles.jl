@@ -35,7 +35,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     save_lp(target::Union{String, IO}, lp::Union{MixedIntegerLinearProgram,LinearProgram})
 
 Save a (mixed integer) linear program to an `.lp` file using the LP file format.
@@ -49,7 +49,7 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> save_lp(stdout, milp)
 MAXIMIZE
@@ -74,7 +74,7 @@ function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{Q
                     lp.convention == :max)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     save_mps(target::String, lp::Union{MixedIntegerLinearProgram,LinearProgram})
 
 Save a (mixed integer) linear program to an `.mps` file using the MPS file format.
@@ -88,7 +88,7 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> save_mps(stdout, milp)
 * Class:	MIP
@@ -125,7 +125,7 @@ function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{
                      pm_object(lp))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     load_mps(file::String)
 
 Load a (mixed integer) linear program from an `.mps` file using the MPS file format.
@@ -146,7 +146,7 @@ function load_mps(file::String)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     load_lp(file::String)
 
 Load a (mixed integer) linear program from an `.lp` file using the LP file format.

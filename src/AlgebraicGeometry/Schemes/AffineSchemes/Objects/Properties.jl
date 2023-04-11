@@ -5,7 +5,7 @@
 # (1) Check if a scheme is empty
 ####################################################################################
 
-@Markdown.doc """
+@doc raw"""
     is_empty(X::AbsSpec)
 
 This method returns `true` if the affine scheme ``X`` is empty.
@@ -14,7 +14,13 @@ Otherwise, `false` is returned.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> isempty(X)
 false
@@ -39,7 +45,7 @@ is_empty(X::EmptyScheme) = true
 # (2.0) For empty schemes and whenever issubset cannot be implemented
 
 
-@Markdown.doc """
+@doc raw"""
     is_subset(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
@@ -48,7 +54,13 @@ See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding mor
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -288,7 +300,7 @@ end
 
 #TODO: Add more cross-type methods as needed.
 
-@Markdown.doc """
+@doc raw"""
     is_open_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
@@ -296,7 +308,13 @@ Checks whether ``X`` is openly embedded in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -353,7 +371,7 @@ end
 # (4) Check if a scheme can be embedded via a closed embeeded in another scheme
 ####################################################################################
 
-@Markdown.doc """
+@doc raw"""
     is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
@@ -361,7 +379,13 @@ Checks whether ``X`` is closed embedded in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -499,7 +523,7 @@ end
 #############################################################################
 # TODO: projective schemes, covered schemes
 
-@doc Markdown.doc"""
+@doc raw"""
    is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
 
 Return whether a scheme `X` is equidimensional.
@@ -530,7 +554,7 @@ true
 
 julia> is_equidimensional(Y)
 false
-'''
+```
 """
 @attr Bool function is_equidimensional(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = modulus(OO(X))
@@ -550,13 +574,13 @@ end
 ##############################################################################
 # TODO: projective schemes
 
-@doc Markdown.doc"""
+@doc raw"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return the boolean value whether an affine scheme `X` is reduced.
 
 """
-@attr function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+@attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
   return is_reduced(quo(base_ring(I), I)[1])
 end
@@ -566,6 +590,19 @@ end
   return true
 end
 
+@attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  return true
+end
+
+@attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+  F = base_ring(X)
+  # is_perfect(F) # needs new AbstractAlgebra version
+  if characteristic(F) == 0 || F isa FinField  # F is perfect
+    return is_reduced(X)
+  end
+  throw(NotImplementedError(:is_geometrically_reduced, "currently we can decide this only over a perfect base field"))
+end
+
 ########################################################################
 # (7) Smoothness test based on projective modules.
 # The routine checks whether the module for the cotangent sheaf Ω¹(X)
@@ -573,7 +610,7 @@ end
 ########################################################################
 # TODO: is_regular using Hironaka's criterion
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return whether a scheme `X` is smooth.
@@ -629,7 +666,7 @@ true
   f = gens(saturated_ideal(I))
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A)
+  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
 
@@ -639,7 +676,7 @@ end
   f = gens(I)
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A)
+  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
 
@@ -653,7 +690,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 #    integral = OO(X) is integral domain                          #
 #    irreducible = nilradical of OO(X) is prime                   #
 ###################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_irreducible(X::AbsSpec)
 
 Return whether the affine scheme `X` is irreducible.
@@ -662,20 +699,20 @@ Return whether the affine scheme `X` is irreducible.
     Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
 
 """
-@attr function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
+@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true 
                                            ## integral = irreducible + reduced
   return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
    is_integral(X::AbsSpec)
 
 Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
 
 """
-@attr function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
+@attr Bool function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   if has_attribute(X,:is_reduced) && has_attribute(X,:is_irreducible)
      return get_attribute(X,:is_reduced) && get_attribute(X,:is_irreducible)
@@ -683,16 +720,36 @@ Return the boolean value whether an affine scheme `X` is integral, i.e. irreduci
   return is_prime(modulus(OO(X)))
 end
 
+@doc raw"""
+    is_geometrically_integral(X::AbsSpec)
+
+Return if ``X/k`` is geometrically integral.
+
+That is if ``X`` is integral when base changed to any field extension of ``k``.
+"""
+@attr Bool function is_geometrically_integral(X::AbsSpec{<:Field,<:MPolyAnyRing})
+  is_integral(X) || return false
+  throw(NotImplementedError(:is_geometrically_integral, "absolute primary decomposition is currently only available over the rationals"))
+end
+
+@attr Bool function is_geometrically_integral(X::AbsSpec{<:QQField, <:MPolyAnyRing})
+  is_integral(X) || return false
+  I = ambient_closure_ideal(X)
+  AI = absolute_primary_decomposition(I)
+  @assert length(AI)==1 # it is prime since X is integral
+  return AI[1][4]==1
+end
+
 ###################################################################
 # Connectedness                                                   #
 ###################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_connected(X::AbsSpec)
 
 Return the boolean value whether an affine scheme `X` is connected.
 
 """
-@attr function is_connected(X::AbsSpec)
+@attr Bool function is_connected(X::AbsSpec)
   error("not implemented yet")
 ## note for future implementation: expensive property
 ## 1) do primary decomposition

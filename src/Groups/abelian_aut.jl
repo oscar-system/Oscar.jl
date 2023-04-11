@@ -8,7 +8,7 @@ function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   return codomain(iso), iso, iso2
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{GrpAbFinGen} 
 
 Return the automorphism group of `G`.
@@ -52,7 +52,7 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
   return subgrp1, hom(subgrp1, aut, img)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(f::AutomorphismGroupElem{GrpAbFinGen}) -> GrpAbFinGenMap 
 
 Return the element `f` of type `GrpAbFinGenMap`.
@@ -99,7 +99,7 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bo
   return aut(g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(f::AutomorphismGroupElem{GrpAbFinGen}) -> ZZMatrix
 
 Return the underlying matrix of `f` as a module homomorphism.
@@ -107,7 +107,7 @@ Return the underlying matrix of `f` as a module homomorphism.
 matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
 
 
-@doc Markdown.doc"""
+@doc raw"""
     defines_automorphism(G::GrpAbFinGen, M::ZZMatrix) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
@@ -160,14 +160,14 @@ function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
 
 Return a matrix inducing `f`.
 """
 matrix(f::AutomorphismGroupElem{TorQuadModule}) = hom(f).map_ab.map
 
-@doc Markdown.doc"""
+@doc raw"""
     defines_automorphism(G::TorQuadModule, M::ZZMatrix) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
@@ -204,7 +204,7 @@ function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadModule
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     orthogonal_group(T::TorQuadModule)  -> AutomorphismGroup{TorQuadModule}
 
 Return the full orthogonal group of this torsion quadratic module.
@@ -236,18 +236,19 @@ Return the full orthogonal group of this torsion quadratic module.
   return _orthogonal_group(T, gensOT, check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     embedding_orthogonal_group(i::TorQuadModuleMor) -> GAPGroupHomomorphism
 
 Given an embedding $i\colon A \to D$ between two torsion quadratic modules,
-such that `A` admits a complement `B` in $D \cong A \oplus B$, return the
-embedding $O(A) \to O(D)$ obtained by extending the isometries of `A` by
-the identity on `B`.
+such that `A` admits a complement `B` in $D \cong A \oplus B$ to which it is
+orthogonal, return the embedding $O(A) \to O(D)$ obtained by extending the
+isometries of `A` by the identity on `B`.
 """
 function embedding_orthogonal_group(i::TorQuadModuleMor)
   @req is_injective(i) "i must be injective"
   ok, j = has_complement(i)
   @req ok "The domain of i must have a complement in the codomain"
+  @req all(v -> i(v[1])*j(v[2]) == 0, Hecke.cartesian_product_iterator([gens(domain(i)), gens(domain(j))], inplace=true)) "The domain of i and its complement must be in orthogonal direct sum"
   A = domain(i)
   B = domain(j)
   D = codomain(i)

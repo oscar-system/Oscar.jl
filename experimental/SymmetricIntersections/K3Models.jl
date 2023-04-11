@@ -21,7 +21,7 @@ function _symplectic_subgroup_k3(chi1::Oscar.GAPGroupClassFunction, chi2::Oscar.
   return p(ker)[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     possible_ideals_for_k3(G::Oscar.GAPGroup, Gs::Oscar.GAPGroup, n::Int, d::Int, t::Int)
                                      -> Vector{Tuple{ProjRep, Vector{SymmetricIntersections}}}
 
@@ -75,7 +75,7 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, Gs::Oscar.GAPGroup, n::Int, d
   return res
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     possible_ideals_for_k3(G::Oscar.GAPGroup n::Int, d::Int, t::Int)
                                      -> Vector{Tuple{ProjRep, Vector{SymmetricIntersections}}}
 
@@ -127,7 +127,7 @@ function possible_ideals_for_k3(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   return res
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     possible_ideals_for_cubics(G::Oscar.GAPGroup)
                                      -> Vector{Tuple{ProjRep, Vector{SymmetricIntersections}}}
 

@@ -432,42 +432,6 @@ end
 ##
 ##  action homomorphisms
 
-# Use a GAP attribute for caching the mapping.
-# The following must be executed at runtime,
-# the function gets called in Oscar's `__init__`.
-function __init_JuliaData()
-    if ! hasproperty(GAP.Globals, :JuliaData)
-      GAP.evalstr("""
-DeclareAttribute( "JuliaData", IsObject );
-
-InstallOtherMethod( ImagesRepresentative,
-[ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
-function( hom, elm )
-local data;
-data:= JuliaData( hom );
-return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
-end );
-
-InstallMethod( RestrictedMapping,
-CollFamSourceEqFamElms,
-[ IsActionHomomorphism and HasJuliaData, IsGroup ],
-function( hom, H )
-local data, OscarG, xset, Omega, Hgens, Hacts, OscarH, res;
-data:= JuliaData( hom ); # the Oscar G-set and the acting Oscar group G
-OscarG:= data[2]; # the acting Oscar group G
-xset:= UnderlyingExternalSet( hom );
-Omega:= HomeEnumerator( xset ); # the set of Oscar objects
-Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
-Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
-OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
-res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
-SetJuliaData( res, [ data[1], OscarH ] );
-return res;
-end );
-""")
-    end
-end
-
 """
     action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
 
@@ -809,7 +773,7 @@ ERROR: ArgumentError: the group is not transitive
 """
 function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
    @req is_transitive(G, L) "the group is not transitive"
-   length(L) == 0 && throw(ArgumentError("the action domain is empty"))
+   @req length(L) != 0 "the action domain is empty"
    H = stabilizer(G, L[1])[1]
    return length(orbits(gset(H, L, closed = true)))
 end
@@ -842,15 +806,13 @@ ERROR: ArgumentError: the group does not act
 function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
   gL = GapObj(L)
   res = GAP.Globals.Transitivity(G.X, gL)::Int
-  res === GAP.Globals.fail && throw(ArgumentError("the group does not act"))
+  @req res !== GAP.Globals.fail "the group does not act"
   # If the result is `0` then it may be that `G` does not act on `L`,
   # and in this case we want to throw an exception.
   if res == 0 && length(L) > 0
     lens = GAP.Globals.OrbitLengths(G.X, gL)
 #TODO: Compute the orbit lengths more efficiently than GAP does.
-    if sum(lens) != length(L)
-      throw(ArgumentError("the group does not act"))
-    end
+    @req sum(lens) == length(L) "the group does not act"
   end
   return res
 end

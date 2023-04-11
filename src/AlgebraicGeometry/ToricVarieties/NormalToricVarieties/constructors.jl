@@ -13,15 +13,13 @@ end
            AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 
-function pm_object(v::AbstractNormalToricVariety)
-    return v.polymakeNTV
-end
+pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
 
 ######################
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
 
 Construct the affine normal toric variety $U_{C}$ corresponding to a polyhedral
@@ -56,7 +54,7 @@ function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(C::Cone; set_attributes::Bool = true)
 
 Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
@@ -90,7 +88,7 @@ function normal_toric_variety(C::Cone; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
@@ -130,7 +128,7 @@ function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vec
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
 
 Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
@@ -159,7 +157,7 @@ function normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
 
 Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
@@ -187,7 +185,7 @@ function normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 
 For internal design, we make a strict distinction between
@@ -223,7 +221,7 @@ end
 # 3: Special constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
 
 Constructs the (toric) affine space of dimension `d`.
@@ -254,7 +252,7 @@ function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool =
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
 
 Construct the projective space of dimension `d`.
@@ -303,7 +301,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bo
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 
 Construct the weighted projective space corresponding to the weights `w`.
@@ -369,7 +367,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hirzebruch_surface(r::Int; set_attributes::Bool = true)
 
 Constructs the r-th Hirzebruch surface.
@@ -425,7 +423,7 @@ function hirzebruch_surface(r::Int; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     del_pezzo_surface(b::Int; set_attributes::Bool = true)
 
 Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
@@ -541,7 +539,7 @@ end
 # 4: Advanced constructions
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
 
 Return the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
@@ -587,7 +585,7 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
@@ -650,7 +648,7 @@ end
 # 5: Toric varieties from triangulations
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
 
 Returns the list of toric varieties obtained from fine regular
@@ -702,7 +700,7 @@ end
 # 6: Toric varieties from GLSMs
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 
 Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)

@@ -92,7 +92,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
   return T(numerator(k))::T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
@@ -124,7 +124,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -152,7 +152,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [2   0   0]
 [0   0   2]
 
-julia> G = MatrixGroup(3, GF(3), [M])
+julia> G = matrix_group(M)
 Matrix group of degree 3 over Galois field with characteristic 3
 
 julia> IR = invariant_ring(G)
@@ -211,7 +211,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
@@ -233,7 +233,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 

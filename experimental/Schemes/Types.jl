@@ -11,171 +11,6 @@ export VarietyFunctionFieldElem
 
 
 ########################################################################
-# Abstract projective schemes                                          #
-########################################################################
-abstract type AbsProjectiveScheme{BaseRingType, RingType} <: Scheme{BaseRingType} end
-
-########################################################################
-# Concrete type for projective schemes                                 #
-########################################################################
-@Markdown.doc """
-    ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
-
-Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r``
-over a ring of coefficients ``A`` of type `CoeffRingType` with elements of
-type `CoeffRingElemType`. The subscheme ``X`` is given by means of a homogeneous
-ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
-`RingType` with elements of type `RingElemType`.
-"""
-@attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType} <: AbsProjectiveScheme{CoeffRingType, RingType}
-  A::CoeffRingType	# the base ring
-  r::Int	# the relative dimension
-  S::RingType   # A[s₀,…,sᵣ]
-  I::MPolyIdeal{RingElemType} # generators for the defining ideal
-
-  # fields used for caching
-  C::Scheme # The affine cone of this scheme.
-  Y::Scheme # the base scheme
-  projection_to_base::SchemeMor
-  homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
-
-  function ProjectiveScheme(S::MPolyDecRing)
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
-    n = ngens(S)-1
-    A = coefficient_ring(S)
-    I = ideal(S, [zero(S)])
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
-  end
-
-  function ProjectiveScheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:RingElem}
-    for f in gens(I)
-      parent(f) == S || error("elements do not belong to the correct ring")
-    end
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
-    n = ngens(S)-1
-    A = coefficient_ring(S)
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
-  end
-
-  function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    S = base_ring(Q)
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
-    A = coefficient_ring(S)
-    I = modulus(Q)
-    r = ngens(S)-1
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
-  end
-end
-
-########################################################################
-# Morphisms of projective schemes                                      #
-########################################################################
-@Markdown.doc """
-    ProjectiveSchemeMor
-
-A morphism of projective schemes
-
-    ℙˢ(B)     ℙʳ(A)
-      ∪         ∪
-      P    →    Q
-      ↓         ↓
-   Spec(B) → Spec(A)
-
-given by means of a commutative diagram of homomorphisms of
-graded rings
-
-  A[v₀,…,vᵣ] → B[u₀,…,uₛ]
-      ↑            ↑
-      A      →     B
-
-If no morphism `A → B` of the base rings is specified, then
-both ``P`` and ``Q`` are assumed to be defined in relative projective
-space over the same ring with the identity on the base.
-"""
-@attributes mutable struct ProjectiveSchemeMor{
-    DomainType<:ProjectiveScheme,
-    CodomainType<:ProjectiveScheme,
-    PullbackType<:Hecke.Map,
-    BaseMorType
-  } <: SchemeMor{DomainType, CodomainType,
-                 ProjectiveSchemeMor,
-                 BaseMorType
-                }
-  domain::DomainType
-  codomain::CodomainType
-  pullback::PullbackType
-  base_ring_morphism::Hecke.Map
-
-  #fields for caching
-  map_on_base_schemes::SchemeMor
-  map_on_affine_cones::SchemeMor
-
-  ### Simple morphism of projective schemes over the same base scheme
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType;
-      check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, 
-             CodomainType<:ProjectiveScheme, 
-             PullbackType<:Map
-            }
-    T = ambient_coordinate_ring(P)
-    S = ambient_coordinate_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    if check
-      #TODO: Check map on ideals (not available yet)
-    end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
-  end
-  
-  ### Morphisms with an underlying base change
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType;
-      check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, 
-             CodomainType<:ProjectiveScheme, 
-             PullbackType<:MPolyAnyMap{<:Any, <:Any, <:Map}
-            }
-    T = ambient_coordinate_ring(P)
-    S = ambient_coordinate_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    if check
-      #TODO: Check map on ideals (not available yet)
-    end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f, coefficient_map(f))
-  end
-
-
-  ### complicated morphisms over a non-trivial morphism of base schemes
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType,
-      h::BaseMorType;
-      check::Bool=true
-    ) where {DomainType<:ProjectiveScheme,
-             CodomainType<:ProjectiveScheme,
-             PullbackType<:Map,
-             BaseMorType<:SchemeMor
-            }
-    T = ambient_coordinate_ring(P)
-    S = ambient_coordinate_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    pbh = pullback(h)
-    OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
-    OO(codomain(h)) == coefficient_ring(S) || error("base scheme map not compatible")
-    if check
-      T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) || error("maps not compatible")
-      coefficient_map(f) == pbh || error("maps not compatible")
-    end
-    return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, coefficient_map(f), h)
-  end
-end
-
-########################################################################
 # Rational functions on irreducible varieties                          #
 ########################################################################
 
@@ -236,7 +71,7 @@ end
 ########################################################################
 # Sheaves                                                              #
 ########################################################################
-@Markdown.doc """
+@doc raw"""
     AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
 Abstract type for a sheaf ℱ on a space X.
@@ -261,7 +96,7 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     PreSheafOnScheme
 
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
@@ -330,7 +165,7 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
-@Markdown.doc """
+@doc raw"""
     StructureSheafOfRings <: AbsPreSheaf
 
 On an `AbsCoveredScheme` ``X`` this returns the sheaf ``𝒪`` of rings of
@@ -570,7 +405,7 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
-@Markdown.doc """
+@doc raw"""
     IdealSheaf <: AbsPreSheaf
 
 A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.

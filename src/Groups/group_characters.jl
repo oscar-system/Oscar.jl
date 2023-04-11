@@ -345,7 +345,7 @@ function Base.iterate(wi::WordsIterator, state::Int)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     as_sum_of_roots(val::nf_elem, root::String)
 
 Return a string representing the element `val` of a cyclotomic field
@@ -368,7 +368,7 @@ function as_sum_of_roots(val::nf_elem, root::String)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", root::String = "\\zeta")
 
 Return `(mat, legend)` where `mat` is a matrix of strings that describe
@@ -630,7 +630,7 @@ Oscar.nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTab
 Oscar.ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
 number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     order(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
 
 Return the order of the group for which `tbl` is the character table.
@@ -647,7 +647,7 @@ function order(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
   return T(GAPWrap.Size(tbl.GAPTable))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     orders_class_representatives(tbl::GAPGroupCharacterTable)
 
 Return the array of the orders of conjugacy class representatives for `tbl`,
@@ -661,7 +661,7 @@ julia> println(orders_class_representatives(character_table("A5")))
 """
 @gapattribute orders_class_representatives(tbl::GAPGroupCharacterTable) = Vector{Int}(GAP.Globals.OrdersClassRepresentatives(tbl.GAPTable)::GapObj)
 
-@doc Markdown.doc"""
+@doc raw"""
     orders_centralizers(tbl::GAPGroupCharacterTable)
 
 Return the array of the orders of centralizers of conjugacy class
@@ -676,7 +676,7 @@ ZZRingElem[60, 4, 3, 5, 5]
 """
 @gapattribute orders_centralizers(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesCentralizers(tbl.GAPTable)::GAP.Obj)
 
-@doc Markdown.doc"""
+@doc raw"""
     class_lengths(tbl::GAPGroupCharacterTable)
 
 # Examples
@@ -687,7 +687,7 @@ ZZRingElem[1, 15, 20, 12, 12]
 """
 @gapattribute class_lengths(tbl::GAPGroupCharacterTable) = Vector{ZZRingElem}(GAP.Globals.SizesConjugacyClasses(tbl.GAPTable)::GapObj)
 
-@doc Markdown.doc"""
+@doc raw"""
     maxes(tbl::GAPGroupCharacterTable)
 
 Return either nothing (if the value is not known) or an array of identifiers
@@ -716,7 +716,7 @@ function maxes(tbl::GAPGroupCharacterTable)
   return nothing
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     identifier(tbl::GAPGroupCharacterTable)
 
 Return a string that identifies `tbl`.
@@ -730,7 +730,7 @@ julia> identifier(character_table("A5"))
 """
 @gapattribute identifier(tbl::GAPGroupCharacterTable) = string(GAP.Globals.Identifier(tbl.GAPTable)::GapObj)
 
-@doc Markdown.doc"""
+@doc raw"""
     class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 
 Return the array of integers ``i`` such that the ``i``-th conjugacy class
@@ -745,7 +745,7 @@ julia> println(class_positions_of_pcore(character_table("2.A5"), 2))
 """
 class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion) = Vector{Int}(GAP.Globals.ClassPositionsOfPCore(tbl.GAPTable, GAP.Obj(p))::GapObj)
 
-@doc Markdown.doc"""
+@doc raw"""
     pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 
 Return the `p`-core of the group of `tbl`,
@@ -839,7 +839,7 @@ function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable)::GapObj)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     class_multiplication_coefficient(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) where T <: IntegerUnion
 
 Return the class multiplication coefficient of the classes `i`, `j`, and `k`
@@ -884,7 +884,7 @@ end
 
 class_multiplication_coefficient(tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) = class_multiplication_coefficient(ZZRingElem, tbl, i, j, k)
 
-@doc Markdown.doc"""
+@doc raw"""
     possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
 
 Return the array of possible class fusions from `subtbl` to `tbl`.
@@ -942,7 +942,7 @@ function _translate_parameter_list(paras)
     end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     character_parameters(tbl::GAPGroupCharacterTable)
 
 Return a vector of character parameters for the rows of `tbl`
@@ -972,7 +972,7 @@ function character_parameters(tbl::GAPGroupCharacterTable)
     end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     class_parameters(tbl::GAPGroupCharacterTable)
 
 Return a vector of class parameters for the columns of `tbl`
@@ -1002,7 +1002,7 @@ function class_parameters(tbl::GAPGroupCharacterTable)
     end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     names_of_fusion_sources(tbl::GAPGroupCharacterTable)
 
 Return the array of strings that are identifiers of those character tables
@@ -1012,7 +1012,7 @@ function names_of_fusion_sources(tbl::GAPGroupCharacterTable)
     return [string(name) for name in GAP.Globals.NamesOfFusionSources(tbl.GAPTable)::GapObj]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     known_class_fusion(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable)
 
 Return `(flag, fus)` where `flag == true` if a class fusion to `tbl2` is stored
@@ -1074,7 +1074,7 @@ function group_class_function(G::GAPGroup, values::Vector{<:QQAbElem})
     return group_class_function(character_table(G), values)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     trivial_character(tbl::GAPGroupCharacterTable)
 
 Return the character of `tbl` that has the value `QQAbElem(1)` in each position.
@@ -1084,7 +1084,7 @@ function trivial_character(tbl::GAPGroupCharacterTable)
     return group_class_function(tbl, [val for i in 1:ncols(tbl)])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     trivial_character(G::GAPGroup)
 
 Return the character of (the ordinary character table of) `G`
@@ -1095,7 +1095,7 @@ function trivial_character(G::GAPGroup)
     return group_class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     natural_character(G::PermGroup)
 
 Return the permutation character of degree `degree(G)`
@@ -1109,7 +1109,7 @@ function natural_character(G::PermGroup)
     return group_class_function(G, vals)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
 
 Return the character that maps each element of `G` to its trace.
@@ -1123,7 +1123,7 @@ function natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_ele
     return group_class_function(G, vals)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable[, fusion::Vector{Int}])
 
 Return the class function of `tbl` that is induced from `chi`,
@@ -1159,7 +1159,7 @@ function induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharact
   return GAPGroupClassFunction(tbl, ind[1])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     induced_cyclic(tbl::GAPGroupCharacterTable)
 
 Return the array of permutation characters of `tbl` that are induced from
@@ -1173,7 +1173,7 @@ Base.length(chi::GAPGroupClassFunction) = length(chi.values)
 
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
            where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
 
@@ -1232,7 +1232,7 @@ end
 
 Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
-@doc Markdown.doc"""
+@doc raw"""
     scalar_product(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
                    where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
 
@@ -1273,7 +1273,7 @@ function Base.:^(chi::GAPGroupClassFunction, g::GAPGroupElem)
     return group_class_function(tbl, values(chi)[pi])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     conj(chi::GAPGroupClassFunction)
 
 Return the class function whose values are the complex conjugates of
@@ -1283,7 +1283,7 @@ function conj(chi::GAPGroupClassFunction)
     return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, -1)::GAP.Obj)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (sigma::QQAbAutomorphism)(chi::GAPGroupClassFunction)
 
 Return the class function whose values are the images of the values of `chi`
@@ -1295,7 +1295,7 @@ end
 
 Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
 
-@doc Markdown.doc"""
+@doc raw"""
     is_rational(chi::GAPGroupClassFunction)
 
 Return `true` if all values of `chi` are rational, i.e., in `QQ`,
@@ -1313,7 +1313,7 @@ function is_rational(chi::GAPGroupClassFunction)
     return all(is_rational, [x.data for x in values(chi)])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_irreducible(chi::GAPGroupClassFunction)
 
 Return `true` if `chi` is an irreducible character, and `false` otherwise.
@@ -1348,7 +1348,7 @@ function(chi::GAPGroupClassFunction)(g::GAPGroupElem)
     error("$g is not an element in the underlying group")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     class_positions_of_kernel(chi::GAPGroupClassFunction)
 
 Return the array of those integers `i` such that `chi[i] == chi[1]` holds.
@@ -1370,7 +1370,7 @@ function class_positions_of_kernel(list::Vector{T}) where T
     return filter(i -> list[i] == deg, 1:length(list))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel(chi::GAPGroupClassFunction)
 
 Return `C, f` where `C` is the kernel of `chi`
@@ -1396,7 +1396,7 @@ function kernel(chi::GAPGroupClassFunction)
     return _as_subgroup(G, GAP.Globals.KernelOfCharacter(tbl.GAPTable, chi.values))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     class_positions_of_center(chi::GAPGroupClassFunction)
 
 Return the array of those integers `i` such that `chi[i]` is `chi[1]` times
@@ -1412,7 +1412,7 @@ function class_positions_of_center(chi::GAPGroupClassFunction)
     return Vector{Int}(GAP.Globals.ClassPositionsOfCentre(chi.values))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     center(chi::GAPGroupClassFunction)
 
 Return `C, f` where `C` is the center of `chi`
@@ -1438,7 +1438,7 @@ function center(chi::GAPGroupClassFunction)
     return _as_subgroup(G, GAP.Globals.CentreOfCharacter(tbl.GAPTable, chi.values))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     det(chi::GAPGroupClassFunction)
 
 Return the determinant character of the character `chi`.
@@ -1460,7 +1460,7 @@ end
 
 # Note that defining the determinantal order for arbitrary characters
 # is not possible in GAP.
-@doc Markdown.doc"""
+@doc raw"""
     order(::Type{T} = ZZRingElem, chi::GAPGroupClassFunction)
           where T <: IntegerUnion
 
@@ -1479,7 +1479,7 @@ function order(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
     return T(GAP.Globals.Order(det(chi).values))::T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     indicator(chi::GAPGroupClassFunction, n::Int = 2)
 
 Return the `n`-th Frobenius-Schur indicator of `chi`, that is,
@@ -1495,7 +1495,7 @@ function indicator(chi::GAPGroupClassFunction, n::Int = 2)
     return ind[1]::Int
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     character_field(chi::GAPGroupClassFunction)
 
 Return the pair `(F, phi)` where `F` is a number field that is generated
@@ -1559,7 +1559,7 @@ function character_field(chi::GAPGroupClassFunction)
     return F, MapFromFunc(f, finv, F, FF)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     schur_index(chi::GAPGroupClassFunction)
 
 Return the minimal integer `m` such that the character `m * chi`
@@ -1640,7 +1640,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     error("cannot determine the Schur index with the currently used criteria")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
 
 Return the vector of symmetrizations of `characters` with the ordinary
@@ -1673,7 +1673,7 @@ function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
 
 Return the vector of symmetrizations of `characters`
@@ -1688,7 +1688,7 @@ function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
 
 Return the vector of symmetrizations of `characters`
@@ -1703,7 +1703,7 @@ function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     exterior_power(chi::GAPGroupClassFunction, n::Int)
 
 Return the class function of the `n`-th exterior power of the module that is
@@ -1720,7 +1720,7 @@ function exterior_power(chi::GAPGroupClassFunction, n::Int)
       GAP.Globals.AntiSymmetricParts(tbl.GAPTable, GAP.Obj([chi.values]), n)[1])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetric_power(chi::GAPGroupClassFunction, n::Int)
 
 Return the class function of the `n`-th symmetric power of the module that is
@@ -1737,7 +1737,7 @@ function symmetric_power(chi::GAPGroupClassFunction, n::Int)
       GAP.Globals.SymmetricParts(tbl.GAPTable, GAP.Obj([chi.values]), n)[1])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int)
 
 Return the vector of the so-called Murnaghan components of the $m$-th
@@ -1755,7 +1755,7 @@ function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
 
 Return the vector of the Murnaghan components of the $m$-th tensor powers

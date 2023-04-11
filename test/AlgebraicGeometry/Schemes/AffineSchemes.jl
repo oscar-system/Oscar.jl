@@ -171,3 +171,13 @@ end
   @test image_ideal(inc) == modulus(OO(Y))
   @test complement(inc) == SpecOpen(X, [h])
 end
+
+@testset "fix for is_smooth" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I1 = ideal(R, [x,y]);
+  I2 = ideal(R, [z]);
+  I3 = ideal(R, [x, z-1])
+  I = intersect(I1, I2, I3)
+  X = Spec(R, I)
+  @test !is_smooth(X)
+end

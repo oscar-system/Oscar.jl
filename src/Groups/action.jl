@@ -392,7 +392,7 @@ end
 ^(I::MPolyIdeal, p::MatrixGroupElem) = on_indeterminates(I, p)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     stabilizer(G::Oscar.GAPGroup, pnt::Any[, actfun::Function])
 
 Return the subgroup of `G` that consists of all those elements `g`

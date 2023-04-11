@@ -2,7 +2,7 @@
 ########################################################################
 # Methods for CoveredSchemeMorphism                                    #
 ########################################################################
-@Markdown.doc """
+@doc raw"""
     simplify!(X::AbsCoveredScheme)
 
 Apply `simplify` to the `default_covering` of `X` and store the 

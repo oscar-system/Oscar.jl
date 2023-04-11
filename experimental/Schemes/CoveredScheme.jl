@@ -100,11 +100,11 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
-  CX = affine_cone(X)
+@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
+  CX, _ = affine_cone(X)
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
@@ -143,13 +143,13 @@ affine_refinements(C::Covering) = C.affine_refinements
   return result
 end
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
-  CX = affine_cone(X)
+@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+  CX, _ = affine_cone(X)
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
   S = ambient_coordinate_ring(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()
 
@@ -172,7 +172,7 @@ end
     ambient_space, pF, pY = product(F, Y)
     fiber_vars = pullback(pF).(gens(R_fiber))
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
-    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
+    patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
     pU[patch] = restrict(pY, patch, Y, check=false)
   end
@@ -238,7 +238,7 @@ refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tup
 #covered_scheme_type(X::Spec) = covered_scheme_type(typeof(X))
 #
 #covered_scheme_type(::Type{T}) where {T<:ProjectiveScheme} = covered_scheme_type(affine_patch_type(P))
-#covered_scheme_type(P::ProjectiveScheme) = covered_scheme_type(typeof(P))
+#covered_scheme_type(P::AbsProjectiveScheme) = covered_scheme_type(typeof(P))
 
 ### getter methods
 refinements(X::CoveredScheme) = X.refinements
@@ -284,7 +284,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  return last(p), p, q
 #end
 #
-#@Markdown.doc """
+#@doc raw"""
 #    common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
 #
 #Given two coverings of ``X``, return a triple `(C_new, f, g)` consisting 

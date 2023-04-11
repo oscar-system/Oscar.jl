@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     MixedIntegerLinearProgram(P, c; integer_variables = [], k = 0, convention = :max)
 
 The mixed integer linear program on the feasible set `P` (a Polyhedron) with
@@ -75,9 +75,7 @@ function describe(io::IO, MILP::MixedIntegerLinearProgram)
     end
 end
 
-function Base.show(io::IO, MILP::MixedIntegerLinearProgram)
-    print(io, "A mixed integer linear program")
-end
+Base.show(io::IO, MILP::MixedIntegerLinearProgram) = print(io, "Mixed integer linear program")
 
 
 ###############################################################################
@@ -85,11 +83,10 @@ end
 ### Access
 ###############################################################################
 ###############################################################################
-function _integer_variables(milp::MixedIntegerLinearProgram)
-    return milp.polymake_milp.INTEGER_VARIABLES
-end
+_integer_variables(milp::MixedIntegerLinearProgram) = milp.polymake_milp.INTEGER_VARIABLES
 
-@doc Markdown.doc"""
+
+@doc raw"""
     objective_function(MILP::MixedIntegerLinearProgram; as = :pair)
 
 Return the objective function x ↦ dot(c,x)+k of the mixed integer linear program MILP.
@@ -110,7 +107,7 @@ function objective_function(milp::MixedIntegerLinearProgram{T}; as::Symbol = :pa
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     feasible_region(milp::MixedIntegerLinearProgram)
 
 Return the feasible region of the mixed integer linear program `milp`, which is
@@ -126,7 +123,7 @@ feasible_region(milp::MixedIntegerLinearProgram) = milp.feasible_region
 ###############################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     optimal_solution(MILP::MixedIntegerLinearProgram)
 
 Return either a point of the feasible region of `MILP` which optimizes the
@@ -139,7 +136,7 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_solution(milp)
 2-element PointVector{QQFieldElem}:
@@ -147,7 +144,7 @@ julia> optimal_solution(milp)
  3//2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_solution(milp)
 2-element PointVector{QQFieldElem}:
@@ -170,7 +167,7 @@ function optimal_solution(milp::MixedIntegerLinearProgram{T}) where T<:scalar_ty
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     optimal_value(MILP::MixedIntegerLinearProgram)
 
 Return, if it exists, the optimal value of the objective function of `MILP`
@@ -184,13 +181,13 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_value(milp)
 5/2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> optimal_value(milp)
 2
@@ -206,7 +203,7 @@ function optimal_value(milp::MixedIntegerLinearProgram{T}) where T<:scalar_types
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_milp(MILP::MixedIntegerLinearProgram)
 
 Return a pair `(m,v)` where the optimal value `m` of the objective function of
@@ -220,18 +217,16 @@ julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> solve_milp(milp)
 (5/2, QQFieldElem[1, 3//2])
 
 julia> milp = MixedIntegerLinearProgram(c, [1,1])
-A mixed integer linear program
+Mixed integer linear program
 
 julia> solve_milp(milp)
 (2, QQFieldElem[1, 1])
 ```
 """
-function solve_milp(milp::MixedIntegerLinearProgram)
-   return optimal_value(milp),optimal_solution(milp)
-end
+solve_milp(milp::MixedIntegerLinearProgram) = optimal_value(milp),optimal_solution(milp)

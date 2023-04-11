@@ -1,6 +1,6 @@
 module SolveRadical
 
-using Oscar, Markdown
+using Oscar
 import Oscar: AbstractAlgebra, Hecke, GaloisGrp.GaloisCtx
 
 function __init__()
@@ -54,7 +54,7 @@ end
 #
 # now suppose SubField is given (fixed_field of U) and V is a (maximal) subgroup
 # the fixed_field(V) is a (minimal) extension of U, given via some invariant I
-# (if I is U-relative V-inv, then I is "a" generic primtive element)
+# (if I is U-relative V-inv, then I is "a" generic primitive element)
 # goal is to write minpoly(I) as exact elements of SubField.
 # conjugates (relative) of I are U//V operating on I
 #  we might need a tschirni to make them different...
@@ -265,7 +265,7 @@ function _fixed_field(C::GaloisCtx, s::Vector{PermGroup}; invar=nothing, max_pre
   return k
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     fixed_field(C::GaloisCtx, s::Vector{PermGroup})
 
 Given a descending chain of subgroups, each being maximal in the previous
@@ -306,7 +306,14 @@ function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldEl
   if degree(S.fld) == 1
     return ceil(ZZRingElem, abs(x))
   end
+  if iszero(x)
+    return ZZRingElem(1)
+  end
   f = parent(defining_polynomial(S.fld))(x)
+  if iszero(f)
+    return fmpz(1)
+  end
+
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val
   return sum(length_bound(C, S.coeff_field, coeff(f, i))*B^i for i=0:degree(f))
 end
@@ -394,7 +401,7 @@ function Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
   return solve(numerator(f), max_prec = max_prec)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int))
     Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
 

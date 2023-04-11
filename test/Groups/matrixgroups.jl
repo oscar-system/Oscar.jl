@@ -74,10 +74,7 @@ end
    @testset for (F, z) in fields
       f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
-      G = MatrixGroup(3, F)
-      mats = [matrix(F, [0 z 0; 0 0 1; 1 0 0]),
-              matrix(F, [0 1 0; 1 0 0; 0 0 1])]
-      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      G = matrix_group(matrix(F, [0 z 0; 0 0 1; 1 0 0]), matrix(F, [0 1 0; 1 0 0; 0 0 1]))
       for a in map(matrix, gens(G)), b in map(matrix, gens(G))
          @test g(a * b) == g(a) * g(b)
          @test g(a - b) == g(a) - g(b)
@@ -142,7 +139,7 @@ end
      @test order(G) == GAP.Globals.Order(H)
    end
 
-   G = MatrixGroup(2, QQ, dense_matrix_type(QQ)[])
+   G = matrix_group(2, QQ, dense_matrix_type(QQ)[])
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
 end
 
@@ -222,9 +219,7 @@ end
    @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
    @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
-   G = MatrixGroup(nrows(x), F)
-   G.gens = typeof(x)[]   # empty list of generators
-   G.X
+   G = matrix_group(nrows(x), F)
    @test one(G) == one(x)
 
    G = GL(3,F)
@@ -327,8 +322,8 @@ end
    x2 = G([2,0,0,0,3,0,0,0,1])
    @test x1==G([4,0,1,4,0,0,0,4,0])
    @test x1==G([4 0 1; 4 0 0; 0 4 0])
-   @test matrix_group(x1,x2)==MatrixGroup(3,base_ring(x1),[x1,x2])
-   @test matrix_group(x1,x2)==matrix_group([x1,x2])
+   @test matrix_group(x1,x2) == matrix_group(3,base_ring(x1),[x1,x2])
+   @test matrix_group(x1,x2) == matrix_group([x1,x2])
    H = matrix_group([x1,x2])
    @test isdefined(H,:gens)
    @test H[1]==x1
@@ -352,16 +347,16 @@ end
    @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
    x3 = matrix(base_ring(G),3,3,[0,0,0,0,1,0,0,0,1])
-   @test_throws AssertionError matrix_group(matrix(x1),x3)
+   @test_throws ArgumentError matrix_group(matrix(x1),x3)
    @test parent(x1)==G
 
    G4 = GL(4,5)
    x3 = G4([1,0,2,0,0,1,0,2,0,0,1,0,0,0,0,1])
-   @test_throws AssertionError matrix_group([x1,x3])
+   @test_throws ArgumentError matrix_group([x1,x3])
 
    G4 = GL(3,7)
    x3 = G4([2,0,0,0,3,0,0,0,1])
-   @test_throws AssertionError matrix_group([x1,x3])
+   @test_throws ArgumentError matrix_group([x1,x3])
 end
 
 @testset "Iterator" begin

@@ -234,7 +234,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyRingEl
   return false, k
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     primary_invariants(IR::InvRing;
       ensure_minimality::Int = 0, degree_bound::Int = 1,
       primary_degrees::Vector{Int} = Int[])
@@ -272,7 +272,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 

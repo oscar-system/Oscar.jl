@@ -2,14 +2,14 @@
 
 @testset "Polyhedron{$T}" for T in [QQFieldElem, nf_elem]
 
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     @test convex_hull(T, pts) isa Polyhedron{T}
     Q0 = convex_hull(T, pts)
     @test convex_hull(T, pts; non_redundant = true) == Q0
     Q1 = convex_hull(T, pts, [1 1])
     Q2 = convex_hull(T, pts, [1 1], [1 1])
     square = cube(T, 2)
-    C1 = cube(T, 2, 0, 1)
+    CR = cube(T, 2, 0, 3//2)
     Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
     L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
@@ -18,8 +18,13 @@
         affine_hull(point)
     end
     s = simplex(T, 2)
+    R,x = polynomial_ring(QQ, "x")
 
     @testset "core functionality" begin
+        @test Q0 in Q1
+        @test !(Q1 in Q0)
+        @test [1, 0] in Q0
+        @test !([-1, -1] in Q0)
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
         if T == QQFieldElem
@@ -39,6 +44,15 @@
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
             @test is_smooth(Q0)
             @test is_normal(Q0)
+            @test is_lattice_polytope(Q0)
+            @test is_very_ample(square)
+            @test is_smooth(square)
+            @test ehrhart_polynomial(R, square) == 4*x^2 + 4*x + 1
+            @test h_star_polynomial(R, CR) == x^4 + 3*x^3 + 10*x^2 + 3*x + 1
+            @test is_normal(square)
+            @test_throws ArgumentError ehrhart_polynomial(CR)
+            @test_throws ArgumentError is_normal(CR)
+            @test_throws ArgumentError is_smooth(Q1)
         end
         @test is_feasible(Q0)
         @test is_bounded(Q0)
@@ -46,6 +60,11 @@
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
+        Ps = [Q0,Q0,Q0]
+        @test intersect(Ps) isa Polyhedron{T}
+        @test intersect(Ps...) isa Polyhedron{T}
+        @test intersect(Ps) == Q0
+        @test intersect(Ps...) == Q0
         @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]

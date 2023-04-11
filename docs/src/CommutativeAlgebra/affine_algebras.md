@@ -105,6 +105,10 @@ In the graded case, we additionally have:
 grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
+```@docs
+homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+```
+
 ### Dimension
 
 ```@docs
@@ -151,7 +155,7 @@ true
 ### Reducing Polynomial Representatives
 
 ```@docs
-simplify(f::MPolyQuoRingElem)
+simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
 ```
 
 ### Tests on Elements of Affine Algebras

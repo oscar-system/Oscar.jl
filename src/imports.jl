@@ -165,8 +165,8 @@ exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer,
 
 for i in names(Hecke)
   (i in exclude || !isdefined(Hecke, i)) && continue
-  eval(Meta.parse("import Hecke." * string(i)))
-  eval(Expr(:export, i))
+  @eval import Hecke: $i
+  @eval export $i
 end
 
 import Hecke:

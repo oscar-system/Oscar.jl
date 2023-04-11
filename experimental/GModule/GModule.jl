@@ -563,7 +563,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
       end
     end
   end
-  istwo_cocycle(sigma, mA)
+#  istwo_cocycle(sigma, mA)
 
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
@@ -619,8 +619,7 @@ function isone_cochain(X::Dict{<:GAPGroupElem, nf_elem}, mA)
   end
 end
 
-
-function istwo_cocycle(X::Dict, mA)
+function istwo_cocycle(X::Dict, mA, op = *)
   G = domain(mA)
   for g = G
     for h = G
@@ -634,9 +633,8 @@ function istwo_cocycle(X::Dict, mA)
 
              However, if we mix the conventions, all bets are off...
         =#       
-        a = X[(g, h*k)]*X[(h, k)] - mA(k)(X[(g, h)])*X[(g*h, k)]
-#        @show a, iszero(a) || valuation(a)
-        @assert iszero(a) # only for local stuff...|| valuation(a) > 20
+        a = op(X[(g, h*k)], X[(h, k)]) - op(mA(k)(X[(g, h)]), X[(g*h, k)])
+        @show a, iszero(a) || valuation(a)
       end
     end
   end
@@ -761,7 +759,7 @@ function Oscar.is_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldE
   return GAP.Globals.MTX.IsIrreducible(G)
 end
 
-function is_absolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
 end
@@ -950,12 +948,6 @@ end
 function gmodule(K::AnticNumberField, M::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   F = free_module(K, dim(M))
   return gmodule(F, group(M), [hom(F, F, map_entries(K, mat(x))) for x = M.ac])
-end
-
-function (K::QQAbField)(a::nf_elem)
-  fl, f = Hecke.is_cyclotomic_type(parent(a))
-  @assert fl
-  return QQAbElem(a, f)
 end
 
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QQAbElem}}
@@ -1175,7 +1167,6 @@ end
 
 export indecomposition
 export irreducible_modules
-export is_absolutely_irreducible
 export is_decomposable
 
 ## Fill in some stubs for Hecke
@@ -1224,7 +1215,6 @@ using .GModuleFromGap
 
 export indecomposition
 export irreducible_modules
-export is_absolutely_irreducible
 export is_decomposable
 
 module RepPc
@@ -1258,7 +1248,7 @@ Note: the field is NOT extended - but it throws an error if it was too small.
 Implements: Brueckner, Chap 1.2.3
 """
 function reps(K, G::Oscar.GAPGroup)
-  isfinite(G) || error("the group is not finite")
+  @req is_finite(G) "the group is not finite"
   if order(G) == 1
     F = free_module(K, 1)
     h = hom(F, F, [F[1]])
