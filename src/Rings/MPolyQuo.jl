@@ -107,7 +107,7 @@ end
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
     singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
-    B = IdealGens(Ox, si)                   #
+    B = IdealGens(Ox, si)
     R = base_ring(Ox)
     if R isa MPolyDecRing
      if is_graded(R)
@@ -116,9 +116,9 @@ end
         throw(ArgumentError("The generators of the ideal must be homogeneous."))
       end 
      end
-    end                                     #
+    end
     r = new{T}()
-    r.gens = B                              #
+    r.gens = B
     r.qRing = Ox
     br = base_ring(Ox)
     r.gens.gens.O = [br(g) for g = gens(r.gens.gens.S)]
@@ -136,8 +136,8 @@ end
   end
   
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
-    R = base_ring(Ox)                      #
-    @assert all(x->parent(x) == R, V)      #
+    R = base_ring(Ox)
+    @assert all(x->parent(x) == R, V)
     return MPolyQuoIdeal(Ox, ideal(R, V))
   end
 end
