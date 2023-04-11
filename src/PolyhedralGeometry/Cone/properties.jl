@@ -535,9 +535,9 @@ _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
 
 @doc raw"""
-    in(C0::Cone, C1::Cone)                           
+    issubset(C0::Cone, C1::Cone)                           
     
-Check whether `C0` is contained in `C1` as a subset.
+Check whether `C0` is a subset of the cone `C1`.
                                              
 # Examples                 
 ```jldoctest                                                                                
@@ -547,14 +547,14 @@ Polyhedral cone in ambient dimension 2
 julia> C1 = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
-julia> C0 in C1
+julia> issubset(C0, C1)
 true
 
-julia> C1 in C0
+julia> issubset(C1, C0)
 false
 ```
 """
-Base.in(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C0), pm_object(C1))::Bool
+Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C0), pm_object(C1))::Bool
 
 
 @doc raw"""
