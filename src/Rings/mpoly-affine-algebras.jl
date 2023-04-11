@@ -825,48 +825,6 @@ end
 #
 ##############################################################################
 
-# helper function for the containment problem, surjectivity and preimage
-function _containment_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
-   T, _ = polynomial_ring(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
-                                                               # since we do not have block orderings in Oscar
-   phi = hom(R, T, [gen(T, i) for i in 1:M])
-
-   # Groebner computation
-   A = phi.(gens(I))
-   B = [phi(W[i])-gen(T, M + i) for i in 1:N]
-   J = ideal(T, vcat(A, B))
-   GG = gens(T)
-
-   if ord == :lex
-      #G = groebner_basis(J, complete_reduction = true)
-      #return (T, phi, G)
-      O = degrevlex(GG[1:M])*lex(GG[M+1:M+N])
-   else ## ord == :degrevlex
-      O = degrevlex(GG[1:M])*degrevlex(GG[M+1:M+N])
-   end
-   groebner_assure(J, O, true)
-   return (T, phi, J)
-end
-
-# helper function to obtain information about qring status and 
-# convert elements, if needed
-function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyQuoRingElem
-   R = base_ring(r)
-   I = modulus(r)
-   W = [lift(v) for v in V]
-   F = lift(f)
-   return (R, I, W, F)
-end
-
-function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyRingElem
-   R = r
-   I = ideal(R, [R(0)])
-   W = [v for v in V]
-   F = f
-   return (R, I, W, F)
-end
-
-
 @doc raw"""
     subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
