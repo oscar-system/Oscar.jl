@@ -103,6 +103,39 @@ function basis_lie_highest_weight(type::String, rank::Int, highest_weight::Vecto
                                 monomial_order::Union{String, Function} = "GRevLex", cache_size::Int = 0, 
                                 parallel::Bool = false, return_no_minkowski::Bool = false, 
                                 return_operators::Bool = false)
+    """
+    Pseudocode:
+
+    basis_lie_highest_weight(highest_weight)
+        return compute_monomials(highest_weight)
+
+    compute_monomials(highest_weight)
+        if highest_weight was already computed 
+            return old results
+        if highest_weight = [0, ..., 0] or [0, ..., 1, ..., 0]
+            return add_by_hand(highest_weight, {})
+        else
+            set_mon = {}
+            go through all partitions lambda_1 + lambda_2 = highest_weight
+                add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
+            if set_mon too small
+                add_by_hand(highest_weight, set_mon)
+            return set_mon
+    
+    add_by_hand(highest_weight, set_mon)
+        add_known_monomials(set_mon)
+        go through all weightspaces that are not full
+            add_new_monomials(weightspace, set_mon)
+        return set_mon
+      
+    add_known_monomials(set_mon)
+        add all monomials from set_mon to basis
+    
+    add_new_monomials(weightspace, set_mon)
+        calculate monomials with weight in weightspace
+        go through them one by one in monomial_order until basis is full
+        return set_mon
+    """
     # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
     # steps. Then it starts the recursion and returns the result.
 
