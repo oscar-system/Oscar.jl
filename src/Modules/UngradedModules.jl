@@ -640,7 +640,11 @@ are computed, given the Oscar side.
 """
 function singular_assure(F::ModuleGens)
   if !isdefined(F, :S) || !isdefined(F, :SF)
-    SF = singular_module(F.F)
+    if isdefined(F, :ordering)
+      SF = singular_module(F.F, F.ordering)
+    else
+      SF = singular_module(F.F)
+    end
     sr = base_ring(SF)
     F.SF = SF
     if length(F) == 0
