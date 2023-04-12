@@ -14,21 +14,21 @@ function calc_weight(mon::ZZMPolyRingElem, weights::Vector{Vector{Int}})::Vector
     degree_mon = degrees(mon)
     weight = [0 for i in 1:length(weights[1])]
     for i in 1:length(degree_mon)
-      weight .+= degree_mon[i] * weights[i]
+        weight .+= degree_mon[i] * weights[i]
     end
     return weight
 end
 
 function calc_vec(v0::SRow{ZZRingElem}, mon::ZZMPolyRingElem, 
                   matrices_of_operators::Vector{SMat{ZZRingElem}})::SRow{ZZRingElem}
-  """
-  calculates vector associated with monomial mon
-  """
+    """
+    calculates vector associated with monomial mon
+    """
     vec = v0
     degree_mon = degrees(mon)
     for i in length(degree_mon):-1:1
         for j in 1:degree_mon[i]
-            vec = mul(vec, transpose(matrices_of_operators[i]))
+            vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult
         end
     end
     return vec
@@ -73,7 +73,7 @@ function calc_new_mon!(x::Vector{ZZMPolyRingElem}, mon::ZZMPolyRingElem, weights
                 space[weight] = nullSpace()
             end
 
-            vec = mul(vec, transpose(matrices_of_operators[i]))
+            vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult
             if length(calc_monomials) < cache_size
                 calc_monomials[sub_mon_cur] = (vec, weight)
             end

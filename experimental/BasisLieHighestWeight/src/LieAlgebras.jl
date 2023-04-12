@@ -3,9 +3,9 @@ using Oscar
 fromGap = Oscar.GAP.gap_to_julia
 
 
-function lieAlgebra(type::String, rank::Int)::Tuple{GAP.Obj, GAP.Obj}
+function create_lie_lgebra(type::String, rank::Int)::Tuple{GAP.Obj, GAP.Obj}
     """
-    Creates the Lie-algebra as a GAP object that gets used for a lot other computations with GAP
+    Creates the Lie-algebra as a GAP object that gets used for a lot of other computations with GAP
     """
     lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
     return lie_algebra, GAP.Globals.ChevalleyBasis(lie_algebra)
@@ -37,7 +37,7 @@ function matricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{Int},
 end
 
 
-function weightsForOperators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators::GAP.Obj)::Vector{Vector{Int}}
+function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators::GAP.Obj)::Vector{Vector{Int}}
     """
     Calculates the weight wts[i] for each operator ops[i]
     """

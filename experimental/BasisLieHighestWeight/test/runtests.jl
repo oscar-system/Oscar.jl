@@ -21,28 +21,28 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
     mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
 
     # new algorithm
-    mons_new = BasisLieHighestWeight.basisLieHighestWeight(string(dynkin), n, lambda) 
+    mons_new = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda) 
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
-    gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
+    gap_dim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
 
     # comparison
     # convert set of monomials over different ring objects to string representation to compare for equality
     @test issetequal(string.(mons_old), string.(mons_new)) # compare if result of old and new algorithm match
-    @test gapDim == length(mons_new) # check if dimension is correct
+    @test gap_dim == length(mons_new) # check if dimension is correct
 end
 
 function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
-    w = BasisLieHighestWeight.basisLieHighestWeight(string(dynkin), n, lambda, monomial_order=monomial_order) 
+    w = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda, monomial_order=monomial_order) 
     L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
-    gapDim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
-    @test gapDim == length(w) # check if dimension is correct
+    gap_dim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
+    @test gap_dim == length(w) # check if dimension is correct
 end
 
 @testset "Test basisLieHighestWeight" begin
     @testset "Known examples" begin
-        mons = BasisLieHighestWeight.basisLieHighestWeight("A", 2, [1,0])
+        mons = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0])
         @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
-        mons = BasisLieHighestWeight.basisLieHighestWeight("A", 2, [1,0], operators=[1,2,1])
+        mons = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0], operators=[1,2,1])
         @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
     end
     @testset "Compare with simple algorithm and check dimension" begin

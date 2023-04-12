@@ -1,20 +1,19 @@
 # manages the linear (in-)dependence of integer vectors
-# this file is only of use to BasisLieHighestWeight for the basis vectors
+# this file is only of use to basis_lie_highest_weight for the basis vectors
 
 using Oscar
 
-TVec = SRow{ZZRingElem} # values ZZ, indices Int (TVec is datatype of basisvectors in basisLieHighestWeight)
+TVec = SRow{ZZRingElem} # TVec is datatype of basisvectors in basisLieHighestWeight
 Short = UInt8 # for exponents of monomials; max. 255
 
 struct VSBasis
     basis_vectors::Vector{TVec} # vector of basisvectors
     pivot::Vector{Int} # vector of pivotelements, i.e. pivot[i] is first nonzero element of basis_vectors[i]
-    dim::Vector{Int} # dimension
 end
 
-nullSpace() = VSBasis([], [], []) # empty Vektorraum
+nullSpace() = VSBasis([], []) # empty Vektorraum
 
-reduceCol(a, b, i::Int) = (b[i]*a - a[i]*b)::TVec # create zero entry in a
+reduce_col(a::TVec, b::TVec, i::Int) = (b[i]*a - a[i]*b)::TVec # create zero entry in a
 
 function normalize(v::TVec)::Tuple{TVec, Int64}
     """
@@ -52,7 +51,7 @@ function add_and_reduce!(sp::VSBasis, v::TVec)::TVec
         if i != newPivot
             continue
         end
-        v = reduceCol(v, basis_vectors[j], i)
+        v = reduce_col(v, basis_vectors[j], i)
         v, newPivot = normalize(v)
         if newPivot == 0
             #return 0

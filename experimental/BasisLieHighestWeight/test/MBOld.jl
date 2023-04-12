@@ -1,4 +1,7 @@
- 
+ # This file is an old version of the algorithm that can compute (not all cases) of 
+ # BasisLieHighestWeight.basis_lie_highest_weight and is used in runtests.jl to check that the newer algorithm matches
+ # There is code doubling, but I am not sure how the src part is going to change when its integrated with the other
+ # lie algebra work.
 
 
 module MBOld
