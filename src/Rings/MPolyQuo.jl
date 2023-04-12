@@ -125,7 +125,7 @@ end
    end
    return r
   end
-  
+
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
     base_ring(Ox) === base_ring(I) || error("base rings must match")
     r = new{T}()
