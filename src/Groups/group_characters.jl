@@ -159,7 +159,7 @@ end
 # Therefore we store a vector `conjugacy_classes(tbl)` via an attribute,
 # which is compatible with the `GAP.Globals.ConjugacyClasses` value of
 # the underlying GAP character table.
-@attr Vector{T} function conjugacy_classes(tbl::GAPGroupCharacterTable) where T <: GAPGroupConjClass
+@attr function conjugacy_classes(tbl::GAPGroupCharacterTable)
     @req isdefined(tbl, :group) "character table stores no group"
 
     # If `GAPTable(tbl)` does not yet store conjugacy classes
