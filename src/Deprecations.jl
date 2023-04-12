@@ -210,6 +210,7 @@ end
 
 @deprecate ToricIdentityMorphism(v::AbstractNormalToricVariety) toric_identity_morphism(v)
 
+@deprecate induced_class_function induce
 @deprecate radical_subgroup solvable_radical
 @deprecate has_radical_subgroup has_solvable_radical
 @deprecate set_radical_subgroup set_solvable_radical

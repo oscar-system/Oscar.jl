@@ -115,11 +115,11 @@ together with its embedding morphism into `G`.
 ###############################################################################
 
 """
-    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
+    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, GrpAbFinGen}
 
 Return the index of `H` in `G`, as an instance of `I`.
 """
-index(G::T, H::T) where T <: GAPGroup = index(ZZRingElem, G, H)
+index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen} = index(ZZRingElem, G, H)
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
    i = GAP.Globals.Index(G.X, H.X)::GapInt

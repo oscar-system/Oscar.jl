@@ -621,7 +621,7 @@ export index_of_gen
 export index_of_leading_term
 export indicator
 export induced_automorphism
-export induced_class_function
+export induce
 export induced_cyclic
 export induced_ring_ordering
 export initial
