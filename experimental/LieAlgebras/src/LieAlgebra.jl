@@ -175,10 +175,6 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:RingElement}
-  return L1 === L2
-end
-
 function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
   return Generic._matrix(x1) == Generic._matrix(x2)
