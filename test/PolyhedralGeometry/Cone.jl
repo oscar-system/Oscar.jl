@@ -141,5 +141,6 @@ const pm = Polymake
         @test cone_from_inequalities(T, [-1 0 0; 0 0 -1]; non_redundant = true) == Cone2
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4)) == Cone4
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
+        @test cone_from_equations(T, [0 1 0]) == cone_from_inequalities(T, Matrix{Int}(undef, 0, 3), linear_span(Cone4))
     end
 end

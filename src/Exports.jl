@@ -353,6 +353,7 @@ export components
 export compose
 export composition_series
 export cone
+export cone_from_equations
 export cone_from_inequalities
 export cones
 export conjugacy_class
