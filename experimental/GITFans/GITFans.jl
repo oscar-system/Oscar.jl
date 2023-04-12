@@ -7,9 +7,6 @@ module GITFans
 # the necessary Julia packages
 using Oscar
 
-# for using LaTex in docstrings processed by Documenter.jl
-import Markdown
-
 export git_fan
 
 #############################################################################
