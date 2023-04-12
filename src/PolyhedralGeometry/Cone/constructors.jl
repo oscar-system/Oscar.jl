@@ -119,13 +119,12 @@ function cone_from_inequalities(::Type{T}, I::AbstractCollection[LinearHalfspace
 end
 
 @doc raw"""
-
     cone_from_equations([::Type{T} = QQFieldElem,] E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false)
 
 The (convex) cone defined by
-
-$$\{ x | Ex = 0 \}.$$
-
+```math
+\{ x | Ex = 0 \}.
+```
 Use `non_redundant = true` if the given description contains no redundant rows to
 avoid unnecessary redundancy checks.
 
