@@ -53,28 +53,6 @@ function kernel(f::AffAlgHom)
   end # TODO: need some ideal_type(domain(f)) here :)
 end
 
-function _groebner_data(F::AffAlgHom)
-  R = domain(F)
-  S = codomain(F)
-  S2 = base_ring(modulus(S))
-  m = ngens(R)
-  n = ngens(S)
-  J = get_attribute!(F, :groebner_data) do
-    K = coefficient_ring(R)
-    @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
-    T, _ = polynomial_ring(K, m + n)
-
-    S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
-
-    fs = map(lift, _images(F))
-    return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
-  end
-  T = base_ring(J)
-  S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
-  TtoR = hom(T, R, append!(zeros(R, n), gens(R)))
-  return T, S2toT, TtoR, J
-end
-
 ##############################################################################
 #
 #  Injectivity
@@ -87,9 +65,8 @@ end
 Return `true` if `F` is injective, `false` otherwise.
 """
 function is_injective(F::AffAlgHom)
-  iszero(kernel(F))
+  return iszero(kernel(F))
 end
-
 
 ################################################################################
 #
@@ -249,4 +226,31 @@ function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
   Ix = Singular.Ideal(CS, CS.(V))
   prIx = Singular.preimage(salghom, Ix)
   return ideal(D, D.(gens(prIx)))
+end
+
+# Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .
+# Construct the polynomial ring K[y, x], the natural maps K[x] -> K[y, x]
+# and K[y, x] -> K[y], and the ideal I_2 + (y_i - f_i) in it.
+# No actual Gröbner basis computation is done here, but computed bases are
+# cached in the ideal.
+function _groebner_data(F::AffAlgHom)
+  R = domain(F)
+  S = codomain(F)
+  S2 = base_ring(modulus(S))
+  m = ngens(R)
+  n = ngens(S)
+  J = get_attribute!(F, :groebner_data) do
+    K = coefficient_ring(R)
+    @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
+    T, _ = polynomial_ring(K, m + n)
+
+    S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
+
+    fs = map(lift, _images(F))
+    return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
+  end
+  T = base_ring(J)
+  S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
+  TtoR = hom(T, R, append!(zeros(R, n), gens(R)))
+  return T, S2toT, TtoR, J
 end

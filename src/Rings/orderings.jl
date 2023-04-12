@@ -2056,3 +2056,5 @@ function monomial_ordering(R::MPolyRing, ord::Singular.sordering)
 end
 
 end  # module Orderings
+
+import Oscar.Orderings: induce # needed at least for group characters

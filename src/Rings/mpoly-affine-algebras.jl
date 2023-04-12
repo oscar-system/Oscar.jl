@@ -937,7 +937,7 @@ end
 #
 ################################################################################
 
-@doc raw""" 
+@doc raw"""
     minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of homogeneous elements of a positively graded multivariate
