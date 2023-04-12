@@ -1016,6 +1016,10 @@ julia> hilbert_basis(antv)
 @attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(dual_cone(v)))
 
 
+variable_ray_correspondence(v::AbstractNormalToricVariety) = Dict{RayVector, MPolyRingElem}(zip(rays(v), gens(cox_ring(v))))
+ray_variable_correspondence(v::AbstractNormalToricVariety) = Dict{MPolyRingElem, RayVector}(zip(gens(cox_ring(v)), rays(v)))
+
+
 ############################
 # Affine covering
 ############################
