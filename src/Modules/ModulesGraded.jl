@@ -108,28 +108,6 @@ end
 # Graded Free Modules functions
 ###############################################################################
 
-# for isomorphism of graded free modules, perhaps exists somewhere
-function compare_vectors_as_multisets(v1::Vector{T}, v2::Vector{T}) where {T<:Any}
-  v1_dict = Dict{T,Int}()
-  for entry in v1
-    if haskey(v1_dict, entry)
-      v1_dict[entry] += 1
-    else
-      v1_dict[entry] = 1
-    end
-  end
-  v2_dict = Dict{T,Int}()
-  for entry in v2
-    if haskey(v2_dict, entry)
-      v2_dict[entry] += 1
-    else
-      v2_dict[entry] = 1
-    end
-  end
-  return v1_dict == v2_dict
-end
-
-
 function swap!(A, i, j)
   A[i], A[j] = A[j], A[i]
 end
@@ -151,7 +129,7 @@ function generate(k, A)
   end
 end
 
-function permutations(v::Vector{T}) where T
+function permute(v::Vector{T}) where T
   return generate(length(v), v)
 end
 
@@ -165,7 +143,7 @@ function find_bijections(v_dict, w_dict, v_key, bijections, current_bijection)
   v_indices = v_dict[element]
   w_indices = w_dict[element]
   if length(v_indices) == length(w_indices)
-    for w_perm in permutations(w_indices)
+    for w_perm in permute(w_indices)
       next_bijection = deepcopy(current_bijection)
       for (i, j) in zip(v_indices, w_perm)
         next_bijection[i] = j

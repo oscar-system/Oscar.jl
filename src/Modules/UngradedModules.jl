@@ -192,7 +192,7 @@ Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
 function is_isomorphic(F::FreeMod, G::FreeMod)
   @assert rank(F) == rank(G)
   is_graded(F) == is_graded(G) || return false
-  is_graded(F) && return compare_vectors_as_multisets(F.d,G.d)
+  is_graded(F) && return MSet(F.d) == MSet(G.d)
   return F.R == G.R && rank(F) == rank(G)
 end
 

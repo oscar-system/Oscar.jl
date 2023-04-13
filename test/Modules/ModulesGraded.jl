@@ -199,6 +199,18 @@ end
     @test domain(incl) == K
 end
 
+@testset "Is isomorphic for graded free modules" begin
+    R, _= polynomial_ring(QQ, ["x", "y", "z"])
+    Z = abelian_group(0)
+    Rg, (x, y, z)=grade(R,[Z[1], Z[1], Z[1]])
+    F = graded_free_module(Rg, [1,1,3,2])
+    G = graded_free_module(Rg, [1,1,2,3])
+    @test is_isomorphic(F, G)
+    F = graded_free_module(Rg, [1,1,5,2])
+    G = graded_free_module(Rg, [1,1,2,3])
+    @test !is_isomorphic(F, G)
+end
+
 @testset "Canonical isomorphism between graded subquotients" begin
     R, _= polynomial_ring(QQ, ["x", "y", "z"])
     Z = abelian_group(0)
