@@ -5,7 +5,7 @@
 ###############################################################################
 
 @doc raw"""
-    graded_free_module(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false)
+    graded_free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
 Create the graded free module $R^n$ equipped with its basis of standard unit vectors
 and standard degrees, that is the standard unit vectors have degree 0.
@@ -518,113 +518,88 @@ function Base.show(io::IO, b::BettiTable)
   T = induce_shift(b.B)
   x = collect(keys(T))
   isempty(x) && (println("Empty table"); return)
-  step, min, max = b.reverse_direction ? (-1, maximum([x[i][1] for i in 1:length(x)]), minimum([x[i][1] for i in 1:length(x)])) : (1, minimum([x[i][1] for i in 1:length(x)]), maximum([x[i][1] for i in 1:length(x)]))
+  step, min, max = b.reverse_direction ? (-1, maximum(first, x), minimum(first, x)) : (1, minimum(first, x), maximum(first, x))
   s1 = ndigits(max)
-  sum0 = sum([getindex(T, x[i]) for i in 1:length(x)])
-  s3 = ndigits(sum0)
+  s3 = ndigits(sum(values(T)))
   if b.project == nothing
-      for i in 1:ngens(parent(x[1][2]))
-          s2 = ndigits(maximum(x[j][2][i] for j in 1:length(x)))
-          spaces = maximum([s2, s1, s3])
-          ngens(parent(x[1][2])) > 1 && print(io, "Betti Table for component ", i, "\n")
-          print(io, " "^(s2 + (7 - s2)))
-          for j in min:step:max
-            print(io, j, " "^(spaces - ndigits(j) + 1))
-          end
-          print(io, "\n")
-          L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
-          mi = minimum(L)
-          mx = maximum(L)
-          for j in mi:mx
-              print(io, j, " "^(s2 - ndigits(j) + (5 - s2)))
-              print(io, ": ")
-              for h in min:step:max
-                sum0 = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
-                print(io, sum0 == 0 ? "-" : sum0)
-                print(io, " "^(spaces - (sum0 == 0 ? 0 : ndigits(sum0)) + (sum0 == 0 ? 0 : 1)))
-                sum0 = 0
-              end
-              print(io,"\n")
-          end
-          divider_width = 6 + (b.reverse_direction ? (min - max) : (max - min) + 1) * (spaces + 1)
-          print(io, "-" ^ divider_width)
-          print(io, "\n", "total: ")
-          for i in min:step:max
-            sum0 = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i)
-            print(io, sum0, " "^(spaces - ndigits(sum0) + 1))
-          end
-          print(io, "\n", "\n")
-      end
-  else 
-      parent(b.project)==parent(x[1][2]) || return error("projection vector has wrong type")
-      print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
-      print(io, "  ")
-      L = Vector{fmpz}(undef,0)
-      for i in 1:length(x)
-          sum0 = (b.project.coeff*transpose(x[i][2].coeff))[1] 
-          Base.push!(L, sum0)
-          sum0 = 0
-      end
-      L1 = sort(unique(L))
-      s2 = ndigits(maximum(L1))
-      spaces = maximum([s1, s2, s3])
-      for l in 1:s2 + (5 - s2)
-          print(io," ")
-      end
+    for i in 1:ngens(parent(x[1][2]))
+      s2 = ndigits(maximum(x[j][2][i] for j in 1:length(x)))
+      spaces = maximum([s2, s1, s3])
+      ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
+      print(io, " "^(s2 + (7 - s2)))
       for j in min:step:max
-          print(io, j)
-          for l in 1:spaces - ndigits(j) + 1
-              print(io," ")
-          end
+        print(io, j, " "^(spaces - ndigits(j) + 1))
       end
       print(io, "\n")
-      for k in 1:length(L1)
-          print(io, L1[k])
-          for l in 1:s2-ndigits(L1[k]) + (5 - s2)
-              print(io, " ")
-          end
-          print(io, ": ")
-          for h in min:step:max
-              for i in 1:length(x)
-                  sum1 = (b.project.coeff*transpose(x[i][2].coeff))[1]
-                  if sum1 == L1[k] && x[i][1] == h
-                      sum0+= getindex(T,x[i])
-                  end
-              end
-              if sum0 == 0 
-                  print(io, "-")
-                  for l in 1:spaces
-                      print(io, " ")
-                  end
-              else
-                  print(io, sum0)
-                  for l in 1:spaces - ndigits(sum0) + 1
-                      print(io, " ")
-                  end
-              end
-              sum0 = 0
-          end
-          print(io, "\n")
+      L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
+      mi = minimum(L)
+      mx = maximum(L) 
+      for j in mi:mx
+        print(io, j, " "^(s2 - ndigits(j) + (5 - s2)))
+        print(io, ": ")
+        for h in min:step:max
+          sum_current = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
+          print(io, sum_current == 0 ? "-" : sum_current)
+          print(io, " "^(spaces - (sum_current == 0 ? 0 : ndigits(sum_current)) + (sum_current == 0 ? 0 : 1)))
+        end
+        print(io,"\n")
       end
-      if b.reverse_direction
-        divider_width = 6 + (min - max + 1) * (spaces + 1)
-      else
-        divider_width = 6 + (max - min + 1) * (spaces + 1)
-      end
+      divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
       print(io, "-" ^ divider_width)
       print(io, "\n", "total: ")
-      for i in min:step:max
-          sum0 = 0
-          for j in 1:length(x)
-              if x[j][1]==i
-                  sum0 += getindex(T,x[j])
-              end
-          end
-          print(io, sum0)
-          for l in 1:spaces - ndigits(sum0) + 1
-              print(io, " ")
-          end
+      for i_total in min:step:max
+        sum_row = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i_total)
+        print(io, sum_row, " "^(spaces - ndigits(sum_row) + 1))
       end
+      print(io, "\n")
+    end
+  else 
+    parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
+    print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
+    print(io, "  ")
+    L = Vector{fmpz}(undef,0)
+    for i in 1:length(x)
+        temp_sum = (b.project.coeff * transpose(x[i][2].coeff))[1] 
+        Base.push!(L, temp_sum)
+    end
+    L1 = sort(unique(L))
+    s2 = ndigits(maximum(L1))
+    spaces = maximum([s1, s2, s3])
+    print(io, " " ^ (s2 + (5 - s2)))
+    for j in min:step:max
+        print(io, j, " " ^ (spaces - ndigits(j) + 1))
+    end
+    print(io, "\n")
+    for k in 1:length(L1)
+        print(io, L1[k], " " ^ (s2 - ndigits(L1[k]) + (5 - s2)), ": ")
+        for h in min:step:max
+            partial_sum = 0
+            for i in 1:length(x)
+                current_sum = (b.project.coeff * transpose(x[i][2].coeff))[1]
+                if current_sum == L1[k] && x[i][1] == h
+                    partial_sum += getindex(T, x[i])
+                end
+            end
+            if partial_sum == 0
+                print(io, "-", " " ^ spaces)
+            else
+                print(io, partial_sum, " " ^ (spaces - ndigits(partial_sum) + 1))
+            end
+        end
+        print(io, "\n")
+    end
+    divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
+    print(io, "-" ^ divider_width)
+    print(io, "\n", "total: ")
+    for i in min:step:max
+        total_sum = 0
+        for j in 1:length(x)
+            if x[j][1] == i
+                total_sum += getindex(T, x[j])
+            end
+        end
+        print(io, total_sum, " " ^ (spaces - ndigits(total_sum) + 1))
+    end
   end
 end
 
