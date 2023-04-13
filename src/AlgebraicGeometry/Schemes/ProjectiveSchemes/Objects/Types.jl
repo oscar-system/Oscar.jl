@@ -2,15 +2,15 @@
 # Concrete type for projective schemes                                 #
 ########################################################################
 @doc raw"""
-    ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
+    ProjectiveScheme{CoeffRingType, RingType}
 
 Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r``
-over a ring of coefficients ``A`` of type `CoeffRingType` with elements of
-type `CoeffRingElemType`. The subscheme ``X`` is given by means of a homogeneous
+over a ring of coefficients ``A`` of type `CoeffRingType`.
+The subscheme ``X`` is given by means of a homogeneous
 ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
-`RingType` with elements of type `RingElemType`.
+`RingType`.
 """
-@attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType} <: AbsProjectiveScheme{CoeffRingType, RingType}
+@attributes mutable struct ProjectiveScheme{CoeffRingType, RingType} <: AbsProjectiveScheme{CoeffRingType, RingType}
   A::CoeffRingType	# the base ring
   r::Int	# the relative dimension
   S::RingType   # A[s₀,…,sᵣ]/I
@@ -27,7 +27,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     n = ngens(S)-1
     A = coefficient_ring(S)
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S)
+    return new{typeof(A), typeof(S)}(A, n, S)
   end
 
   function ProjectiveScheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:RingElem}
@@ -38,7 +38,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     n = ngens(S)-1
     A = coefficient_ring(S)
     Q, _ = quo(S, I)
-    return new{typeof(A), elem_type(A), typeof(Q), elem_type(Q)}(A, n, Q)
+    return new{typeof(A), typeof(Q)}(A, n, Q)
   end
 
   function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}}
@@ -48,16 +48,10 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
     all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
     A = coefficient_ring(S)
     r = ngens(S)-1
-    result = new{typeof(A), elem_type(A), typeof(Q), elem_type(Q)}(A, r, Q)
+    result = new{typeof(A), typeof(Q)}(A, r, Q)
     return result
   end
 end
 
-function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
-  print(io, "subscheme of ℙ^$(relative_ambient_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
-end
 
-function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}) 
-  print(io, "ℙ^$(relative_ambient_dimension(P))_{$(base_ring(P))}")
-end
 

@@ -23,7 +23,7 @@
 @deprecate gelfand_tsetlin(lambda::AbstractVector) gelfand_tsetlin_polytope(lambda)
 
 
-# Deprecate after 0.11.4
+# Deprecated after 0.11.4
 function AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
     Base.depwarn("'AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
     "'affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
@@ -210,6 +210,7 @@ end
 
 @deprecate ToricIdentityMorphism(v::AbstractNormalToricVariety) toric_identity_morphism(v)
 
+@deprecate induced_class_function induce
 @deprecate radical_subgroup solvable_radical
 @deprecate has_radical_subgroup has_solvable_radical
 @deprecate set_radical_subgroup set_solvable_radical
@@ -225,3 +226,8 @@ end
 # `is_normal` had the wrong order of arguments,
 # see https://github.com/oscar-system/Oscar.jl/issues/1793
 @deprecate is_normal(G::T, H::T) where T <: GAPGroup is_normalized_by(H, G)
+
+
+# Deprecated after 0.12.0
+@deprecate contains(P::Polyhedron, v::AbstractVector) Base.in(v, P)
+@deprecate contains(C::Cone, v::AbstractVector) Base.in(v, C)

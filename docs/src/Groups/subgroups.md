@@ -22,7 +22,7 @@ sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
 is_subset(H::T, G::T) where T <: GAPGroup
 is_subgroup(H::T, G::T) where T <: GAPGroup
 embedding(H::T, G::T) where T <: GAPGroup
-index(G::T, H::T) where T <: GAPGroup
+index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen}
 is_maximal_subgroup(H::T, G::T) where T <: GAPGroup
 is_normalized_by(H::T, G::T) where T <: GAPGroup
 is_normal_subgroup(H::T, G::T) where T <: GAPGroup

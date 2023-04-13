@@ -264,6 +264,7 @@ closed subset ``R\setminus m``, where ``m`` is the maximal ideal
 
 $$m = \langle x_1-a_1,\dots, x_n-a_n\rangle \subset R.$$
 
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
@@ -1867,7 +1868,7 @@ types 'MPolyLocRing', 'MPolyQuoLocRing', 'MPolyRing' and 'MPolyQuoRing' and $R$ 
 Note that the last two variants are only provided to allow a coherent usage.  
 
 # Examples
-``` jldoctest
+```jldoctest
 julia> R, (x, y) = QQ["x", "y"]
 (Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 

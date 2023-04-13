@@ -8,8 +8,8 @@ function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
   return true
 end
 
-function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}}, 
-            g::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}}) 
+function ==(f::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}},
+            g::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}})
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   return map_on_affine_cones(f) == map_on_affine_cones(g)
