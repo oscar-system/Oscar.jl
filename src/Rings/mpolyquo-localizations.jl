@@ -1728,7 +1728,7 @@ Return ``I:J^b`` and ``b``, for the given natural number ``b``.
 
 Internal function for weak and controlled transform.
 """
-function iterated_quotients(I::T, J::T, b::Int=Int(0)) where T <: MPolyAnyIdeal
+function iterated_quotients(I::T, J::T, b::Int=0) where T <: MPolyAnyIdeal
   R = base_ring(I)
   R == base_ring(J) || error("Ideals do not live in the same ring.")
   b > -1 || error("negative multiplicity not allowed")
