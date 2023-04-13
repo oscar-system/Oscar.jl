@@ -53,7 +53,7 @@ Construct the rational equivalence class of algebraic cycles corresponding to a 
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> rational_equivalence_class(P2, [1, 2, 3, 4, 5, 6])
+julia> rational_equivalence_class(P2, [6, 5, 4, 3, 2, 1])
 Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
 ```
 """
