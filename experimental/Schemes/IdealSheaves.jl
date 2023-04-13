@@ -611,16 +611,16 @@ function minimal_associated_points(I::IdealSheaf)
 
       if nmatches == 0                             ## not found
         add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
-        add_dict[U] = components_here[i]           ## and fill it
+        add_dict[U] = comp                         ## and fill it
         push!(associated_primes_temp, add_dict)
       elseif nmatches == 1                         ## unique match, update it
         component_index = matches[1]
-        associated_primes_temp[component_index][U] = components_here[i]
+        associated_primes_temp[component_index][U] = comp
       else                                                ## more than one match, form union
         target_comp = pop!(matches)
         merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
         deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = components_here[i]
+        associated_primes_temp[target_comp][U] = comp
       end
     end
   end
@@ -655,22 +655,22 @@ function associated_points(I::IdealSheaf)
     components_here = [ a for (_,a) in primary_decomposition(I(U))]
 
 ## run through all primes in Ass(I(U)) and try to match them with previously found ones
-    for i in 1:length(components_here)
-      matches = match_on_intersections(X,U,components_here[i],associated_primes_temp,false)
+    for comp in components_here
+      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
       nmatches = length(matches)
 
       if nmatches == 0                             ## not found
         add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
-        add_dict[U] = components_here[i]           ## and fill it
+        add_dict[U] = comp                         ## and fill it
         push!(associated_primes_temp, add_dict)
       elseif nmatches == 1                         ## unique match, update it
         component_index = matches[1]
-        associated_primes_temp[component_index][U] = components_here[i]
+        associated_primes_temp[component_index][U] = comp
       else                                                ## more than one match, form union
         target_comp = pop!(matches)
         merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
         deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = components_here[i]
+        associated_primes_temp[target_comp][U] = comp
       end
     end
   end
