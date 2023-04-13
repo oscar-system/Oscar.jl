@@ -9,7 +9,7 @@ function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjective
 end
 
 @doc raw"""
-    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
 
 Suppose ``P ⊂ ℙʳ_A`` and ``Q ⊂ ℙˢ_B`` are projective schemes, ``h : Spec(A) → Spec(B)`` is a 
 morphism of their `base_scheme`s, and ``f : T → S`` a morphism of the 

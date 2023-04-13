@@ -117,7 +117,7 @@ In the case of `A != B`, this involves a non-trivial morphism
 of rings ``A \to B``.
 
 ## Abstract types and basic interface 
-At the moment we have no abstract type for such morphisms and their interface spelled 
+At the moment we have no abstract type for such morphisms and no interface spelled 
 out. 
 
 ## Types 
@@ -128,7 +128,7 @@ out.
 ## Constructors
 ```@docs
     morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
-    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
     morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
 ```
 ## Attributes
