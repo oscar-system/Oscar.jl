@@ -83,9 +83,10 @@ julia> gens_of_rational_equivalence_classes(p2)
 ```
 """
 @attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
-    g = gens(chow_ring(v))
-    cs = cones(v)
-    return [prod([g[l]^(cs[k,l]) for l in 1:nrays(v)]) for k in 1:n_cones(fan(v))]
+  cr = chow_ring(v)
+  R = base_ring(cr)
+  cs = cones(v)
+  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:n_cones(v)]
 end
 
 
@@ -107,19 +108,20 @@ Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 ent
 ```
 """
 @attr Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
-    g = gens(chow_ring(v))
-    g2 = gens(cox_ring(v))
-    cs = cones(v)
-    mapping = Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-    for k in 1:nrows(cs)
-      p1 = prod([g[l]^(cs[k,l]) for l in 1:nrays(v)]).f
-      p2 = prod([g2[l]^(cs[k,l]) for l in 1:nrays(v)])
-      coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
-      if coeff != 1
-        p1 = 1//coeff * p1
-        p2 = 1//coeff * p2
-      end
-      mapping[p1] = p2
+  cr = chow_ring(v)
+  R = base_ring(cr)
+  co = cox_ring(v)
+  cs = cones(v)
+  mapping = Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  for k in 1:nrows(cs)
+    p1 = simplify(cr(R([1], [Vector{Int}(cs[k,:])]))).f
+    p2 = co([1], [Vector{Int}(cs[k,:])])
+    coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
+    if coeff != 1
+      p1 = 1//coeff * p1
+      p2 = 1//coeff * p2
     end
-    return mapping
+    mapping[p1] = p2
+  end
+  return mapping
 end
