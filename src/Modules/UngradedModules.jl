@@ -109,6 +109,8 @@ function AbstractAlgebra.extra_name(F::FreeMod)
 end
 
 function show(io::IO, F::FreeMod)
+  @show_name(io, F)
+  @show_special(io, F)
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
   if is_graded(F)
@@ -171,6 +173,7 @@ Here, `F` and `G` are equal iff their base rings, ranks, and names for printing 
 function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
+  is_graded(F) == is_graded(G) || return false
   if is_graded(F) && is_graded(G) 
     return F.R == G.R && F.d == G.d && F.S == G.S
   end
@@ -190,7 +193,6 @@ Return  `true` if `F` and `G` are isomorphic, `false` otherwise.
 Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
-  @assert rank(F) == rank(G)
   is_graded(F) == is_graded(G) || return false
   is_graded(F) && return MSet(F.d) == MSet(G.d)
   return F.R == G.R && rank(F) == rank(G)

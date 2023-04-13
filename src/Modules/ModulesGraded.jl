@@ -24,28 +24,23 @@ Graded free module R^3([0]) of rank 3 over R
 
 ```
 """
-function graded_free_module(
-  R::Ring,
-  p::Int,
-  name::String="e",
-  d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p],
-)
+function graded_free_module(R::Ring, p::Int, name::String="e", d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p])
   @assert is_graded(R)
   M = FreeMod(R, p, name)
-  M = grade(M, d)
+  M.d = d
   return M
 end
 
-function graded_free_module(
-  R::Ring, d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p]
-)
-  return graded_free_module(R, length(d), "e", d)
+function graded_free_module(R::Ring, d::Vector{GrpAbFinGenElem}, name::String="e")
+  p = length(d)
+  return graded_free_module(R, p, name, d)
 end
 
-function graded_free_module(R::Ring, W::Vector{<:IntegerUnion})
+function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
   @assert is_graded(R)
   A = grading_group(R)
-  return graded_free_module(R, length(W), "e", [W[i] * A[1] for i in 1:length(W)])
+  d = [W[i] * A[1] for i in 1:length(W)]
+  return graded_free_module(R, length(W), name, d)
 end
 
 # TODO: move
@@ -59,6 +54,7 @@ function grade(M::FreeMod, d::Vector{GrpAbFinGenElem})
   R = base_ring(M)
   N = free_module(R, length(d))
   N.d = d
+  N.S = M.S
   return N
 end
 
@@ -73,6 +69,7 @@ function grade(M::FreeMod, W::Vector{<:IntegerUnion})
   A = grading_group(R)
   N = free_module(R, length(W))
   N.d = [W[i] * A[1] for i in 1:length(W)]
+  N.S = M.S
   return N
 end
 
@@ -202,40 +199,6 @@ function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpA
   end
   return element_degree
 end
-
-# function determine_degree(el::FreeModElem)
-#   coords = coordinates(el)
-#   unit_vector_degrees = degrees(parent(el))
-#   element_degree = nothing
-#   for (position, coordval) in coords
-#     if !is_homogeneous(coordval)
-#       return nothing
-#     end
-#     current_degree = degree(coordval) + unit_vector_degrees[position]
-#     if element_degree === nothing
-#       element_degree = current_degree
-#     elseif element_degree != current_degree
-#       return nothing
-#     end
-#   end
-#   return element_degree
-# end
-
-# function is_homogeneous(el::FreeModElem)
-#   !is_graded(parent(el)) && error("The parent module is not graded.")
-#   iszero(el) && return true
-#   el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree(el)
-#   return isa(el.d, GrpAbFinGenElem)
-# end
-
-# function degree(el::FreeModElem)
-#   !is_graded(parent(el)) && error("The parent module is not graded.")
-#   A = grading_group(base_ring(parent(el)))
-#   iszero(el) && return A[0]
-#   el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree(el)
-#   isa(el.d, GrpAbFinGenElem) || error("The element is not homogeneous.")
-#   return el.d
-# end
 
 ###############################################################################
 # Graded Free Module homomorphisms constructors
@@ -534,11 +497,7 @@ function dict(b::BettiTable)
 end
 
 function reverse_direction!(b::BettiTable)
-  if b.reverse_direction
-    b.reverse_direction = false
-  else
-    b.reverse_direction = true
-  end
+  b.reverse_direction = !b.reverse_direction
   return
 end
 
