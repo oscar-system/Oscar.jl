@@ -1690,7 +1690,7 @@ end
 @doc """
     saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
 
-Return $I:J^{\infty}$.
+Return ``I:J^{\infty}``.
 """
 function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}}
   A = base_ring(I)
@@ -1706,7 +1706,7 @@ end
 @doc """
     saturation_with_index(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
 
-Return $I:J^{\infty}$ together with the smallest integer $m$ such that $I:J^m = I:J^{\infty}$.
+Return ``I:J^{\infty}`` together with the smallest integer ``m`` such that ``I:J^m = I:J^{\infty}``.
 """
 function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
   R = base_ring(I)
@@ -1723,7 +1723,7 @@ end
     iterated_quotients(I::T, J::T) where T <: MPolyAnyIdeal
     iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
 
-Return ``I:J^m`` and maximal ``m`` such that ``J(I:J^m)== (I:J^(m-1))``, if not ``b`` has been specified
+Return ``I:J^m`` and maximal ``m`` such that ``J(I:J^m)== (I:J^(m-1))``, if no ``b`` has been specified
 Return ``I:J^b`` and ``b``, for the given natural number ``b``.
 
 Internal function for weak and controlled transform.
