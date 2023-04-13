@@ -116,7 +116,7 @@ end
     weak_transform(p::BlowupMorphism, I::IdealSheaf)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
-weak transform ``J`` of ``I`` on ``Y``, i.e. an `IdealSheaf` satisfying ``E^m J = I`` with ``m``
+weak transform ``J`` of ``I`` on ``Y``, i.e. an `IdealSheaf` satisfying ``E^m J = p^*I`` with ``m``
 maximal and ``E`` the 'IdealSheaf' of the exceptional divisor of ``p``.
 """
 function weak_transform(p::BlowupMorphism, I::IdealSheaf)
@@ -129,7 +129,7 @@ end
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
 weak transform ``J`` of ``I`` on ``Y`` and the multiplicity ``m`` of the exceptional divisor, i.e. 
-the maximal ``m`` such that ``E^m J = I``, where ``E`` denotes the `IdealSheaf` of the exceptional
+the maximal ``m`` such that ``E^m J = p^*I``, where ``E`` denotes the `IdealSheaf` of the exceptional
 divisor of ``p``.
 """
 function weak_transform_with_multiplicity(p::BlowupMorphism, I::IdealSheaf)
@@ -142,7 +142,7 @@ end
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
 controlled transform of ``I`` on ``Y`` with control ``b``,i.e. an `IdealSheaf` ``J`` such that
-``E^b J = I`` where ``E``denotes the `IdealSheaf` of the exceptional divisor.
+``E^b J = p^*I`` where ``E``denotes the `IdealSheaf` of the exceptional divisor.
 """
 function controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
   Icontrol,_ = _do_transform(p,I,b)
@@ -198,13 +198,13 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
       Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                      # strict
       b = max(b,btemp)
     elseif method == 0
-      Itrans_chart,btemp = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)             # weak
+      Itrans_chart,btemp = iterated_quotients(Itotal_chart,IE_chart, method)             # weak
       if b == -2
          b = btemp
       end
       bmin = min(b,btemp)
     else
-      Itrans_chart,b = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
+      Itrans_chart,b = iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
     end
     ID[U] = Itrans_chart
   end
