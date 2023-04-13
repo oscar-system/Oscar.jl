@@ -57,10 +57,7 @@ end
 
 Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(U)`.
 """
-function dehomogenization_map(
-    X::AbsProjectiveScheme{<:Ring}, 
-    U::AbsSpec
-  )
+function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
@@ -77,11 +74,15 @@ function dehomogenization_map(
 end
 
 @doc raw"""
-    dehomogenization_map(X::AbsProjectiveScheme, i::AbsSpec)
+    dehomogenization_map(X::AbsProjectiveScheme, i::Int)
 
 Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
 Where `Uᵢ` is the `i`-th affine chart of `X`.
 """
+function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
+  error("method not implemented for this type of input")
+end
+
 function dehomogenization_map(
     X::AbsProjectiveScheme{CRT}, 
     i::Int
@@ -113,12 +114,7 @@ function dehomogenization_map(
   return dehomogenization_map(X, X[U][2]-1)
 end
 
-function dehomogenization_map(
-    X::AbsProjectiveScheme{CRT},
-    i::Int
-  ) where {
-    CRT<:AbstractAlgebra.Ring
-  }
+function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
@@ -135,7 +131,7 @@ end
 
 
 @doc raw"""
-    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec) -> function
+    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
 
 Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 
 ``P``, return a method ``h`` for the homogenization of elements 
@@ -153,6 +149,10 @@ one of the homogeneous coordinates of ``P``.
 is not a mathematical morphism and, hence, in particular 
 not an instance of `Hecke.Map`.
 """
+function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+  error("method not implemented for this type of input")
+end
+
 function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
   cache = _homogenization_cache(P)
   if haskey(cache, U)
