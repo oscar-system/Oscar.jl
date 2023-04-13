@@ -59,10 +59,13 @@ end
 # Projective space
 ################################################################################
 
-function projective_space(
-    A::CoeffRingType, 
-    var_symb::Vector{Symbol}
-  ) where {CoeffRingType<:Ring}
+@doc raw"""
+    projective_space(A::Ring, var_symb::Vector{Symbol})
+
+Create the (relative) projective space `Proj(A[x₀,…,xₙ])` over `A` 
+where `x₀,…,xₙ` is a list of `Symbol`s for the variable names.  
+"""
+function projective_space(A::Ring, var_symb::Vector{Symbol})
   n = length(var_symb)
   R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
@@ -75,11 +78,13 @@ projective_space(
                 ) where {CoeffRingType<:Ring} = projective_space(A, Symbol.(var_names))
 
 
-function projective_space(
-    A::CoeffRingType, 
-    r::Int; 
-    var_name::String="s"
-  ) where {CoeffRingType<:Ring}
+@doc raw"""
+    projective_space(A::Ring, r::Int; var_name::String="s")
+
+Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A` 
+where `s` is a string for the variable names.  
+"""
+function projective_space(A::Ring, r::Int; var_name::String="s")
   R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
   return projective_scheme(S)

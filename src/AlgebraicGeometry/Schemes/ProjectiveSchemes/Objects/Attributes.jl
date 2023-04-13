@@ -61,6 +61,11 @@ function ambient_space(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   return P
 end
 
+@doc raw"""
+    ambient_space(P::AbsProjectiveScheme)
+
+On ``X ⊂ ℙʳ_A`` this returns ``ℙʳ_A``.
+"""
 @attr function ambient_space(P::AbsProjectiveScheme)
   return projective_scheme(ambient_coordinate_ring(P))
 end
@@ -324,3 +329,26 @@ ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = T
 # the type of a relative projective scheme over a given base scheme
 projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
+
+
+########################################################################
+# Attributes for projective schemes over a field                       #
+########################################################################
+
+@attr Int function dim(P::AbsProjectiveScheme{<:Field})
+  return dim(defining_ideal(P))-1
+end
+
+@attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
+  return hilbert_polynomial(homogeneous_coordinate_ring(P))
+end
+
+@attr ZZRingElem function degree(P::AbsProjectiveScheme{<:Field})
+  return degree(homogeneous_coordinate_ring(P))
+end
+
+@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+  h = hilbert_polynomial(P)
+  return (-1)^dim(P) * (first(coefficients(h)) - 1)
+end
+
