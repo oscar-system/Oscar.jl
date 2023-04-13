@@ -7,6 +7,7 @@ const GG = GAP.Globals
 
 import Base: +, -, *, ^
 import Oscar: evaluate
+import Hecke: kernel
 ################################################################################
 #
 # Miscellaneous
@@ -166,7 +167,7 @@ end
 
 function kernel(f::TorQuadModuleMor)
   g = f.map_ab
-  Kg, KgtoA = kernel(g)
+  Kg, KgtoA = Hecke.kernel(g)
   S, StoKg = snf(Kg)
   return sub(domain(f), TorQuadModuleElem[domain(f)(KgtoA(StoKg(a))) for a in gens(S)])
 end
@@ -324,7 +325,7 @@ function subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQua
   end
 
   F = base_ring(Qp)
-  k, K = kernel(VptoQp.matrix, side = :left)
+  k, K = Hecke.kernel(VptoQp.matrix, side = :left)
   gene_H0p = ModuleElem{fpFieldElem}[Vp(vec(collect(K[i,:]))) for i in 1:k]
   orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
   for (orb, stab) in orb_and_stab
@@ -719,12 +720,12 @@ function equivariant_primitive_extensions(A::LatWithIsom, GA::AutomorphismGroup{
     # of the elements of the stabilizers acting trivially in the respective S*
     actA = hom(stabA, OSA, [OSA(Oscar.restrict_automorphism(x, SAinqA)) for x in gens(stabA)])
     imA, _ = image(actA)
-    kerA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x) for x in gens(kernel(actA)[1])]
+    kerA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x) for x in gens(Hecke.kernel(actA)[1])]
     fSA = OSA(restrict_automorphism(fqA, SAinqA))
 
     actB = hom(stabB, OSB, [OSB(Oscar.restrict_automorphism(x, SBinqB)) for x in gens(stabB)])
     imB, _ = image(actB)
-    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(kernel(actB)[1])]
+    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(Hecke.kernel(actB)[1])]
     fSB = OSB(restrict_automorphism(fqB, SBinqB))
 
 
@@ -915,13 +916,13 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
     # of the elements of the stabilizers acting trivially in the respective S*
     actA = hom(stabA, OSA, [OSA(restrict_automorphism(x, SAinqA)) for x in gens(stabA)])
     imA, _ = image(actA)
-    kerA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x) for x in gens(kernel(actA)[1])]
+    kerA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x) for x in gens(Hecke.kernel(actA)[1])]
     push!(kerA, OqAinOD(one(OqA)))
     fSA = OSA(restrict_automorphism(fqA, SAinqA))
 
     actB = hom(stabB, OSB, [OSB(restrict_automorphism(x, SBinqB)) for x in gens(stabB)])
     imB, _ = image(actB)
-    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(kernel(actB)[1])]
+    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(Hecke.kernel(actB)[1])]
     push!(kerB, OqBinOD(one(OqB)))
     fSB = OSB(restrict_automorphism(fqB, SBinqB))
 

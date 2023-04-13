@@ -638,3 +638,19 @@ function is_hermitian(t::Dict)
   return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, [i for i in ke if i != n])
 end
 
+###############################################################################
+#
+#  Useful
+#
+###############################################################################
+
+function to_oscar(Lf::LatWithIsom)
+  L = lattice(Lf)
+  f = ambient_isometry(Lf)
+  println(stdout, "B = matrix(QQ, $(rank(L)), $(degree(L)), " , basis_matrix(L), " );")
+  println(stdout, "G = matrix(QQ, $(degree(L)), $(degree(L)), ", gram_matrix(ambient_space(L)), " );")
+  println(stdout, "L = Zlattice(B, gram = G);")
+  println(stdout, "f = matrix(QQ, $(degree(L)), $(degree(L)), ", f, " );")
+  println(stdout, "Lf = lattice_with_isometry(L, f);")
+end
+

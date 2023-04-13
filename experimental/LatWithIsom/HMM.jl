@@ -392,7 +392,7 @@ function _local_determinants_morphism(Lf::LatWithIsom)
       k = valuation(N, p)
       a = valuation(DEQ, P)
       e = valuation(DEK, P)
-      g_approx = _approximate_isometry(H2, g, P, e, a, k, res)
+      g_approx = _approximate_isometry(H, H2, g, P, e, a, k, res)
       push!(ds, det(g_approx))
     end
     push!(imgs, dlog(ds))
@@ -460,7 +460,7 @@ Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
 # corresponding hermitian structure, we transfer the fake lift computed with the
 # previous function. This will be an invertible matrix, but the corresponding
 # automorphism is not an isometry.
-function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T, P::Hecke.NfRelOrdIdl, i::Int) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T, P::Hecke.NfRelOrdIdl, BHp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   E = base_ring(codomain(res))
   Eabs, EabstoE = Hecke.absolute_simple_field(E)
   Pabs = EabstoE\P
@@ -479,19 +479,19 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
     B2[i, :] = gvE
   end
 
-  Bpabs = map_entries(a -> EabstoE\a, Bp)
-  B2abs = map_entries(a -> EabstoE\a, B2)
+  newBp = Bp*BHp
+  newB2 = B2*BHp
+  Bpabs = map_entries(a -> EabstoE\a, newBp)
+  B2abs = map_entries(a -> EabstoE\a, newB2)
   d = lcm(lcm([denominator(a, OEabs) for a in Bpabs]), lcm([denominator(a, OEabs) for a in B2abs]))
   dBpabs = change_base_ring(OEabs, d*Bpabs)
   dB2abs = change_base_ring(OEabs, d*B2abs)
-  Q, p = quo(OEabs, Pabs^(i+valuation(d, Pabs))) 
+  Q, p = quo(OEabs, Pabs^(1+valuation(d, Pabs))) 
   BpQ = map_entries(p, dBpabs)
   B2Q = map_entries(p, dB2abs)
-  println(BpQ, B2Q)
   KQ = solve_left(BpQ, B2Q)
   K = map_entries(a -> EabstoE(Eabs(p\a)), KQ)
-  @assert _scale_valuation(K*Bp-B2, P) >= i
-  println(K)
+  @assert _scale_valuation(K*newBp-newB2, P) >= 0
   return K
 end
 
@@ -567,7 +567,7 @@ end
 # Starting from our fake isometry g on H (which will be here D^{-1}H^#), and a
 # prime ideal P, we iteratively lift g to a finer fake isometry, i.e. a matrix
 # defining a P-local isometry up to the precision P^{2*k+a}.
-function _approximate_isometry(H::Hecke.HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
+function _approximate_isometry(H::Hecke.HermLat, H2::Hecke.HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
   E = base_field(H)
   @assert nf(order(P)) === E
   ok, b = is_modular(H, minimum(P))
@@ -575,9 +575,12 @@ function _approximate_isometry(H::Hecke.HermLat, g::AutomorphismGroupElem{TorQua
     return identity_matrix(E, 1)
   end
 
-  Bp, v = _local_basis_modular_submodules(H, minimum(P), a, res)
+  BHp = local_basis_matrix(H, minimum(P), type = :submodule)
+  BHp_inv = inv(BHp)
+  Bps = _local_basis_modular_submodules(H2, minimum(P), a, res)
+  Bp = reduce(vcat, Bps)
   Gp = Bp*gram_matrix(ambient_space(H))*map_entries(involution(E), transpose(Bp))
-  Fp = _transfer_discriminant_isometry(res, g, Bp, P, v)
+  Fp = block_diagonal_matrix([_transfer_discriminant_isometry(res, g, Bps[i], P, BHp_inv) for i in 1:length(Bps)])
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
   Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
@@ -612,7 +615,7 @@ function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfOrdIdl, a:
     end
     push!(subs, b)
   end
-  return reduce(vcat, subs), a-exps[end]
+  return subs
 end
 
 # We need a special rho for Algorithm 8 of BH23: we construct such an element

@@ -409,6 +409,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   @info "We have the different"
 
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
+  println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
   @info "All possible ideal dets: $(length(detE))"
@@ -416,9 +417,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   signatures = _possible_signatures(s1, s2, E, rk)
 
   @info "All possible signatures: $(length(signatures))"
-
   for dd in detE, sign in signatures
-    println(dd)
     append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(dd)*DE))
   end
   gene = unique(gene)
@@ -500,6 +499,7 @@ function _representative(t::Dict; check::Bool = true)
   DE = EabstoE(different(maximal_order(Eabs)))
 
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
+  println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
   @info "All possible ideal dets: $(length(detE))"
