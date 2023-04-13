@@ -619,9 +619,7 @@ function minimal_associated_points(I::IdealSheaf)
       else                                                ## more than one match, form union
         target_comp = pop!(matches)
         merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        for x in matches
-          deleteat!(associated_primes_temp,x)
-        end
+        deleteat!(associated_primes_temp,matches)
         associated_primes_temp[target_comp][U] = components_here[i]
       end
     end
@@ -671,9 +669,7 @@ function associated_points(I::IdealSheaf)
       else                                                ## more than one match, form union
         target_comp = pop!(matches)
         merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        for x in matches
-          deleteat!(associated_primes_temp,x)
-        end
+        deleteat!(associated_primes_temp,matches)
         associated_primes_temp[target_comp][U] = components_here[i]
       end
     end
