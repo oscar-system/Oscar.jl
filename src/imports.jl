@@ -1,5 +1,4 @@
 # standard packages
-using Markdown
 using Pkg
 using Random
 using RandomExtensions
