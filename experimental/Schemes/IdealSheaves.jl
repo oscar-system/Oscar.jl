@@ -269,7 +269,7 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
-@Markdown.doc """
+@doc """
     subscheme(I::IdealSheaf) 
 
 For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
