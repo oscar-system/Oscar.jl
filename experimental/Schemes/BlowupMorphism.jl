@@ -116,7 +116,8 @@ end
     weak_transform(p::BlowupMorphism, I::IdealSheaf)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
-weak transform of ``I`` on ``Y``.
+weak transform ``J`` of ``I`` on ``Y``, i.e. an `IdealSheaf` satisfying ``E^m J = I`` with ``m``
+maximal and ``E`` the 'IdealSheaf' of the exceptional divisor of ``p``.
 """
 function weak_transform(p::BlowupMorphism, I::IdealSheaf)
   Iweak,_ =_do_transform(p,I,0)
@@ -127,7 +128,9 @@ end
     weak_transform_with_multiplicity((p::BlowupMorphism, I::IdealSheaf)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
-weak transform of ``I`` on ``Y`` and the multiplicity of the exceptional divisor in the total transform of ``I``.
+weak transform ``J`` of ``I`` on ``Y`` and the multiplicity ``m`` of the exceptional divisor, i.e. 
+the maximal ``m`` such that ``E^m J = I``, where ``E`` denotes the `IdealSheaf` of the exceptional
+divisor of ``p``.
 """
 function weak_transform_with_multiplicity(p::BlowupMorphism, I::IdealSheaf)
   Iweak, multi = _do_transform(p,I,0)
@@ -138,7 +141,8 @@ end
     controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
-controlled transform of ``I`` on ``Y`` with control ``b``.
+controlled transform of ``I`` on ``Y`` with control ``b``,i.e. an `IdealSheaf` ``J`` such that
+``E^b J = I`` where ``E``denotes the `IdealSheaf` of the exceptional divisor.
 """
 function controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
   Icontrol,_ = _do_transform(p,I,b)
