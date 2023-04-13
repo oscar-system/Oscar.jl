@@ -151,7 +151,7 @@ julia> cones(PF, 2)
 ```
 """
 function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
-    l = cone_dim  - length(lineality_space(PF))
+    l = cone_dim - length(lineality_space(PF))
     l < 1 && return nothing
     return SubObjectIterator{Cone{T}}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
@@ -166,19 +166,33 @@ _ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Poly
 @doc raw"""
     cones(PF::PolyhedralFan)
 
-Return a list of all non-zero-dimensional cones of a polyhedral fan.
+Return the ray indices of all non-zero-dimensional
+cones in a polyhedral fan.
 
 # Examples
-The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
 ```jldoctest
-julia> PF = face_fan(cube(3));
+julia> PF = face_fan(cube(2))
+Polyhedral fan in ambient dimension 2
 
-julia> length(cones(PF))
-26
+julia> cones(PF)
+8×4 IncidenceMatrix
+[1, 3]
+[2, 4]
+[1, 2]
+[3, 4]
+[1]
+[3]
+[2]
+[4]
 ```
 """
-function cones(PF::_FanLikeType{T}) where T<:scalar_types
-    return reduce(vcat, cones(PF,d) for d in 1:dim(PF))
+function cones(PF::_FanLikeType)
+  pmo = pm_object(PF)
+  ncones = pmo.HASSE_DIAGRAM.N_NODES
+  cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES,i) for i in 0:(ncones-1)];
+  cones = filter(x->!(-1 in x) && length(x)>0, cones);
+  cones = [Polymake.to_one_based_indexing(x) for x in cones];
+  return IncidenceMatrix([Vector{Int}(x) for x in cones])
 end
 
 
@@ -225,6 +239,24 @@ julia> n_maximal_cones(PF)
 ```
 """
 n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
+
+@doc raw"""
+    n_cones(PF::PolyhedralFan)
+
+Return the number of cones of `PF`.
+
+# Examples
+The cones given in this construction are non-redundant. There are six
+cones in this fan.
+```jldoctest
+julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]))
+Polyhedral fan in ambient dimension 2
+
+julia> n_cones(PF)
+4
+```
+"""
+n_cones(PF::_FanLikeType) = nrows(cones(PF))
 
 @doc raw"""
     ambient_dim(PF::PolyhedralFan)

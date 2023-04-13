@@ -934,6 +934,7 @@ export multi_hilbert_series_reduced
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
+export n_cones
 export n_connected_components
 export n_maximal_cells
 export n_maximal_cones
