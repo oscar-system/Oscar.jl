@@ -566,25 +566,19 @@ function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
   
   # compute the new maximal cones
   max_cone_indices = ray_indices(maximal_cones(PF))
-  cone_indices = filter(x -> cone_list[n,x], 1:ncols(cone_list))
+  cone_indices = Polymake.row(cone_list, n)
   newmaxcones = (Vector{Int})[]
   for i in 1:n_maximal_cones(PF)
-    indices_ith_max_cone = filter(x -> max_cone_indices[i,x], 1:ncols(max_cone_indices))
+    indices_ith_max_cone = Polymake.row(max_cone_indices, i)
     if issubset(cone_indices, indices_ith_max_cone)
       for subset in subsets(Vector{Int64}(cone_indices), length(cone_indices)-1)
-        tmp = [Int(k) for k in max_cone_indices[i,:]]
-        for j in 1:length(cone_indices)
-          tmp[cone_indices[j]] = 0
-        end
-        for j in 1:length(subset)
-          tmp[subset[j]] = 1
-        end
-        append!(tmp, 1)
-        newmaxcones = vcat(newmaxcones, [findall(i -> i == 1, tmp)])
+        tmp = Base.setdiff(indices_ith_max_cone, cone_indices)
+        tmp = Base.union(subset, tmp)
+        push!(tmp, newindex)
+        push!(newmaxcones, tmp)
       end
     else
-      tmp = [Int(k) for k in max_cone_indices[i,:]]
-      newmaxcones = vcat(newmaxcones, [findall(i -> i == 1, tmp)])
+      push!(newmaxcones, Vector{Int}(indices_ith_max_cone))
     end
   end
   newmaxcones = IncidenceMatrix(newmaxcones)
