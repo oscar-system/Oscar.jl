@@ -59,8 +59,8 @@ end
 @doc raw"""
     gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
 
-Returns a list of generators of the Chow ring of a complete,
-simplicial toric variety.
+Returns a list of generators of the Chow ring of a
+complete, simplicial toric variety.
 
 Recall that the cones of a complete, simplicial toric variety
 can be seen as generators of the Chow ring (lemma 12.5.1 in
@@ -72,14 +72,20 @@ rational equivalence into account.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> length(gens_of_rational_equivalence_classes(p2))
-6
+julia> gens_of_rational_equivalence_classes(p2)
+6-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ x3^2
+ x3^2
+ x3^2
+ x3
+ x3
+ x3
 ```
 """
 @attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
     g = gens(chow_ring(v))
-    r_list = [rays(c) for c in cones(v)]
-    return [prod([g[findfirst(x->x==r, rays(v))] for r in rs]) for rs in r_list]
+    cs = cones(v)
+    return [prod([g[l]^(cs[k,l]) for l in 1:nrays(v)]) for k in 1:n_cones(fan(v))]
 end
 
 
@@ -94,18 +100,20 @@ a choice, i.e. is not unique.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> length(map_gens_of_chow_ring_to_cox_ring(p2))
-4
+julia> map_gens_of_chow_ring_to_cox_ring(p2)
+Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
+  x3^2 => x1*x3
+  x3   => x3
 ```
 """
 @attr Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
     g = gens(chow_ring(v))
     g2 = gens(cox_ring(v))
-    r_list = [rays(c) for c in cones(v)]
+    cs = cones(v)
     mapping = Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-    for rs in r_list
-      p1 = prod([g[findfirst(x->x==r, rays(v))] for r in rs]).f
-      p2 = prod([g2[findfirst(x->x==r, rays(v))] for r in rs])
+    for k in 1:nrows(cs)
+      p1 = prod([g[l]^(cs[k,l]) for l in 1:nrays(v)]).f
+      p2 = prod([g2[l]^(cs[k,l]) for l in 1:nrays(v)])
       coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
       if coeff != 1
         p1 = 1//coeff * p1
