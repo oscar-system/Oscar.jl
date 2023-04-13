@@ -135,7 +135,7 @@ function weak_transform_with_multiplicity(p::BlowupMorphism, I::IdealSheaf)
 end
 
 @doc """
-    controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::int)
+    controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
 
 For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
 controlled transform of ``I`` on ``Y`` with control ``b``.
