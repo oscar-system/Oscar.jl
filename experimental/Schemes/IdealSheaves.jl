@@ -605,8 +605,8 @@ function minimal_associated_points(I::IdealSheaf)
     components_here = minimal_primes(I(U))
 
 ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
-    for i in 1:length(components_here)
-      matches = match_on_intersections(X,U,components_here[i],associated_primes_temp,false)
+    for comp in components_here
+      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
       nmatches = length(matches)
 
       if nmatches == 0                             ## not found
