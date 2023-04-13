@@ -284,7 +284,7 @@ $s \in S$.
 """
 function is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor; check::Bool = true)
   @req !check || is_invariant(i) "i must be an injection"
-  @req domain(f) === codomain(i) "f must be an endomorphism of the target of i"
+  @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
   U = domain(i)
   for a in gens(U)
     b = f(i(a))
@@ -334,7 +334,7 @@ If `S` is not invariant under the action of `f`, then an error is thrown.
 """
 function restrict_endomorphism(f::TorQuadModuleMor, i::TorQuadModuleMor; check::Bool = true)
   @req !check || is_injective(i) "i must be an injection"
-  @req domain(f) === codomain(i) "f must be an endomorphism of the target of i"
+  @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
   imgs = TorQuadModuleElem[]
   U = domain(i)
   for a in gens(U)
