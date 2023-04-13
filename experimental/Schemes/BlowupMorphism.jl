@@ -197,7 +197,7 @@ function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
     if method == -1
       Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                      # strict
       b = max(b,btemp)
-   elseif method == 0
+    elseif method == 0
       Itrans_chart,btemp = Oscar.iterated_quotients(Itotal_chart,IE_chart, method)             # weak
       if b == -2
          b = btemp
