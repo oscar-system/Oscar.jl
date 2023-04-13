@@ -1782,4 +1782,3 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
 end
-
