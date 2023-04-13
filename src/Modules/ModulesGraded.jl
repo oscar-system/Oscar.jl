@@ -4,7 +4,7 @@
 # Graded Modules constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     graded_free_module(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false)
 
 Create the graded free module $R^n$ equipped with its basis of standard unit vectors
