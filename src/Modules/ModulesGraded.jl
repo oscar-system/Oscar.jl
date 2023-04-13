@@ -105,11 +105,11 @@ end
 # Graded Free Modules functions
 ###############################################################################
 
-function swap!(A, i, j)
+function swap!(A::Vector{T}, i::Int, j::Int) where T
   A[i], A[j] = A[j], A[i]
 end
 
-function generate(k, A)
+function generate(k::Int, A::Vector{T}) where T
   if k == 1
     return [copy(A)]
   else
@@ -130,8 +130,7 @@ function permute(v::Vector{T}) where T
   return generate(length(v), v)
 end
 
-
-function find_bijections(v_dict, w_dict, v_key, bijections, current_bijection)
+function find_bijections(v_dict::Dict{T,Vector{Int}}, w_dict::Dict{T,Vector{Int}}, v_key::Int, bijections::Vector{Dict{Int,Int}}, current_bijection::Dict{Int,Int}) where T
   if v_key > length(keys(v_dict))
     push!(bijections, deepcopy(current_bijection))
     return nothing
@@ -150,7 +149,11 @@ function find_bijections(v_dict, w_dict, v_key, bijections, current_bijection)
   end
 end
 
-function get_multiset_bijection(v::Vector{T}, w::Vector{T}, all_bijections::Bool=false) where {T<:Any}
+function get_multiset_bijection(
+    v::Vector{T},
+    w::Vector{T},
+    all_bijections::Bool=false
+) where {T<:Any}
   v_dict = Dict{T,Vector{Int}}()
   w_dict = Dict{T,Vector{Int}}()
   for (i, x) in enumerate(v)
@@ -159,7 +162,7 @@ function get_multiset_bijection(v::Vector{T}, w::Vector{T}, all_bijections::Bool
   for (i, x) in enumerate(w)
     push!(get!(w_dict, x, []), i)
   end
-  bijections = []
+  bijections = Vector{Dict{Int,Int}}()
   find_bijections(v_dict, w_dict, 1, bijections, Dict{Int,Int}())
   return all_bijections ? bijections : (isempty(bijections) ? nothing : bijections[1])
 end
