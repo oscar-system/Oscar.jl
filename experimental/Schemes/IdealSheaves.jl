@@ -269,7 +269,7 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
-@Markdown.doc """
+@doc """
     subscheme(I::IdealSheaf) 
 
 For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
@@ -599,7 +599,7 @@ function minimal_associated_points(I::IdealSheaf)
                                                   ## at least one for each identified component
 
 # run through all charts and try to match the components
-  while !iszero(length(charts_todo))
+  while length(charts_todo) > 0
     U = pop!(charts_todo)
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
