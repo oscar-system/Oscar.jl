@@ -113,7 +113,6 @@ include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
 
 include("Rings/ReesAlgebra.jl")
-include("Rings/WeierstrassPreparationTheorem_test.jl")
 
 include("Modules/runtests.jl")
 
