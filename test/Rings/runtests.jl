@@ -31,3 +31,4 @@ include("PBWAlgebraQuo-test.jl")
 include("FreeAssAlgIdeal-test.jl")
 
 include("binomial-ideals-test.jl")
+include("WeierstrassPreparationTheorem_test.jl")
