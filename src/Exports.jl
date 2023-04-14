@@ -747,6 +747,7 @@ export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
 export is_normalized_by
+export is_one
 export is_open_embedding
 export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
@@ -801,6 +802,7 @@ export is_vertical_k_separation
 export is_very_ample
 export is_weakly_connected
 export is_welldefined
+export is_zero
 export is_z_graded
 export is_zm_graded
 export isfinite
