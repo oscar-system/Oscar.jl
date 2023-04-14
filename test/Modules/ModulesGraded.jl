@@ -566,13 +566,13 @@ end
     (1, 5*Z[1]) => 2,
     (2, 6*Z[1]) => 4)
     T = betti_table(fr)
-    @test dict(T) == T1
+    @test as_dictionary(T) == T1
     T = betti(fr)
-    @test dict(T) == T1
+    @test as_dictionary(T) == T1
     reverse_direction!(T)
-    @test dict(T) == T1
+    @test as_dictionary(T) == T1
     fr2 = free_resolution_via_kernels(M)
-    @test dict(betti(fr2)) == T1
+    @test as_dictionary(betti(fr2)) == T1
 end
 
 @testset "Resolution and Betti tables 2" begin
@@ -611,7 +611,7 @@ end
     (2, 4 * Z[1]) => 10,
     (3, 5 * Z[1]) => 5,
     (4, 6 * Z[1]) => 1)
-    @test dict(B) == B1
+    @test as_dictionary(B) == B1
     @test all(iszero, homology(free_res3.C))
 end
 

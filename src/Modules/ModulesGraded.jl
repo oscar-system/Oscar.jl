@@ -495,7 +495,7 @@ function betti(b::FreeResolution; reverse_direction::Bool = false)
 	return betti_table(b, project = nothing, reverse_direction = reverse_direction)
 end
 
-function dict(b::BettiTable)
+function as_dictionary(b::BettiTable)
   return b.B
 end
 
@@ -517,7 +517,10 @@ end
 function Base.show(io::IO, b::BettiTable)
   T = induce_shift(b.B)
   x = collect(keys(T))
-  isempty(x) && (println("Empty table"); return)
+  if isempty(x)
+    println(io, "Empty table")
+    return
+  end
   step, min, max = b.reverse_direction ? (-1, maximum(first, x), minimum(first, x)) : (1, minimum(first, x), maximum(first, x))
   s1 = ndigits(max)
   s3 = ndigits(sum(values(T)))
@@ -533,7 +536,7 @@ function Base.show(io::IO, b::BettiTable)
       print(io, "\n")
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
-      mx = maximum(L) 
+      mx = maximum(L)
       for j in mi:mx
         print(io, j, " "^(s2 - ndigits(j) + (5 - s2)))
         print(io, ": ")
@@ -553,13 +556,13 @@ function Base.show(io::IO, b::BettiTable)
       end
       print(io, "\n")
     end
-  else 
+  else
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
     print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
     print(io, "  ")
     L = Vector{fmpz}(undef,0)
     for i in 1:length(x)
-        temp_sum = (b.project.coeff * transpose(x[i][2].coeff))[1] 
+        temp_sum = (b.project.coeff * transpose(x[i][2].coeff))[1]
         Base.push!(L, temp_sum)
     end
     L1 = sort(unique(L))

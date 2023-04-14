@@ -430,7 +430,7 @@ export describe
 export desimulate_valuation
 export det
 export diameter
-export dict
+export as_dictionary
 export dihedral_group
 export dim
 export dim_of_torusfactor
