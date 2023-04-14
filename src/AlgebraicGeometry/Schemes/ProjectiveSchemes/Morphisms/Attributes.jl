@@ -15,7 +15,7 @@ pullback(phi::ProjectiveSchemeMor) = phi.pullback
 
 For a morphism `phi : P → Q` of relative projective spaces 
 over `psi : Spec(A) → Spec(B)` this returns the associated 
-map `B→ A`.
+map `B → A`.
 """
 function base_ring_morphism(phi::ProjectiveSchemeMor) 
   if isdefined(phi, :base_ring_morphism)
