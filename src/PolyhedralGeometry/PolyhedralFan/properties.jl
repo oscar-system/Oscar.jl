@@ -527,11 +527,11 @@ Polyhedral fan in ambient dimension 3
 
 julia> rays(star)
 5-element SubObjectIterator{RayVector{QQFieldElem}}:
- [0, 1, 0]
- [0, 0, 1]
- [-1, -1, -1]
  [1, 0, 0]
+ [0, 0, 1]
  [1, 1, 1]
+ [0, 1, 0]
+ [-1, -1, -1]
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
