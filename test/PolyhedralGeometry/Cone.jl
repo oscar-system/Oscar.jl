@@ -16,8 +16,8 @@ const pm = Polymake
 
     @testset "core functionality" begin
         @test is_pointed(Cone1)
-        @test Cone7 in Cone1
-        @test !(Cone1 in Cone7)
+        @test issubset(Cone7, Cone1)
+        @test !issubset(Cone1, Cone7)
         @test [1, 0] in Cone1
         @test !([-1, -1] in Cone1)
         if T == QQFieldElem
@@ -141,5 +141,6 @@ const pm = Polymake
         @test cone_from_inequalities(T, [-1 0 0; 0 0 -1]; non_redundant = true) == Cone2
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4)) == Cone4
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
+        @test cone_from_equations(T, [0 1 0]) == cone_from_inequalities(T, Matrix{Int}(undef, 0, 3), linear_span(Cone4))
     end
 end

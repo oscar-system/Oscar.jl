@@ -37,6 +37,8 @@ reason for keeping cones as a distinct type.
 
 ```@docs
 positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+cone_from_inequalities
+cone_from_equations
 secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
@@ -44,7 +46,7 @@ secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```@docs
 ambient_dim(C::Cone)
 Base.in(v::AbstractVector, C::Cone)
-Base.in(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 f_vector(C::Cone)
 hilbert_basis(C::Cone{QQFieldElem})
 codim(C::Cone)

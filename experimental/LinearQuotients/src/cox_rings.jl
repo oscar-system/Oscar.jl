@@ -299,8 +299,8 @@ function cox_ring(L::LinearQuotient; algo_gens::Symbol = :default, algo_rels::Sy
   relsT = elem_type(T)[ StoT(r) for r in gens(modulus(Q)) ]
   T = grade(T, degrees)[1]
 
-  # TODO: Funnily enough ideal(relsT) would raise an error about the generators
-  # not being homogeneous (which is correct, I still want to build this ideal)
+  # The relations are in general not homogeneous
+  relsT = reduce(vcat, [ collect(values(homogeneous_components(T(f)))) for f in relsT ])
   Q, TtoQ = quo(T, ideal(T, relsT))
   QtoR = hom(Q, Rgraded, [ Rgraded(f) for f in hom_invars ])
 

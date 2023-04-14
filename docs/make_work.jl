@@ -173,8 +173,6 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
 
     makedocs(bib,
            format   = Documenter.HTML(prettyurls = !local_build, collapselevel = 1),
-  #         format   = Documenter.HTML(),
-  #         format   = Markdown(),
            sitename = "Oscar.jl",
            modules = [Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
            clean = true,

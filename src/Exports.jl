@@ -353,6 +353,7 @@ export components
 export compose
 export composition_series
 export cone
+export cone_from_equations
 export cone_from_inequalities
 export cones
 export conjugacy_class
@@ -479,6 +480,7 @@ export exterior_power
 export f_vector
 export face_fan
 export faces
+export facet_indices
 export facet_points
 export facets
 export factor_of_direct_product
@@ -621,7 +623,7 @@ export index_of_gen
 export index_of_leading_term
 export indicator
 export induced_automorphism
-export induced_class_function
+export induce
 export induced_cyclic
 export induced_ring_ordering
 export initial
@@ -933,6 +935,7 @@ export multi_hilbert_series_reduced
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
+export n_cones
 export n_connected_components
 export n_maximal_cells
 export n_maximal_cones

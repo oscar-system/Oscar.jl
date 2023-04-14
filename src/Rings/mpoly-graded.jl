@@ -808,19 +808,6 @@ function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   return parent(M.poly)(f)
 end
 
-# constructor for ideals#######################################################
-
-function ideal(g::Vector{T}) where {T <: MPolyDecRingElem}
-  @assert length(g) > 0
-  @assert all(x->parent(x) == parent(g[1]), g)
-  if is_graded(parent(g[1]))
-     if !(all(is_homogeneous, g))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-     end
-  end
-  return MPolyIdeal(parent(g[1]), g)
-end
-
 function jacobi_matrix(f::MPolyDecRingElem)
   R = parent(f)
   n = nvars(R)
@@ -2122,7 +2109,7 @@ the extra variables print as `var[`$i$`]`, for $i = 1 \dots m$.
 Given a vector `V` of elements in a common polynomial ring, create an extended ring with $\mathbb Z^m$-grading as above.
 Homogenize the elements of `V` correspondingly,  and return the vector of homogenized elements.
 
-    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
+    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
 
 Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading as above.
 

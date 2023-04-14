@@ -252,7 +252,7 @@ Base.size(iter::SubObjectIterator) = (iter.n,)
 ################################################################################
 
 # Incidence matrices
-for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
+for (sym, name) in (("facet_indices", "Incidence matrix resp. facets"), ("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
@@ -370,7 +370,7 @@ for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
     end
 end
 
-for f in ("_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
+for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
     M = Symbol(f)
     @eval begin
         $M(::Val{_empty_access}, P::Polymake.BigObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))

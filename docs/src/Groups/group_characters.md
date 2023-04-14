@@ -173,7 +173,8 @@ arithmetic operations:
 
 ```@docs
 scalar_product
-induced_class_function
+induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
+restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
 ```
 
 ## Symmetrizations of group characters
