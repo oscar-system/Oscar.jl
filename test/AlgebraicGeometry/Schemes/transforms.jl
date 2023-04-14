@@ -33,3 +33,52 @@
 
   E2 = strict_transform(bl2,E)
 end
+
+@testset "associated_points" begin
+  # set up standard P2
+  R, (x,y,z) = polynomial_ring(QQ,["x","y","z"])
+  S,_=grade(R,[1,1,1])
+  P2 = ProjectiveScheme(S)
+  X = covered_scheme(P2)
+
+  C = standard_covering(P2)
+  Ux = patches(C)[1]
+  Uy = patches(C)[2]
+  Uz = patches(C)[3]
+
+  # define ideal on patches: one line, one isolated point, one embedded point
+  Rx = OO(Ux)
+  (y,z) = gens(Rx)
+  Ix = ideal(Rx,[y^2,y*z])
+
+  Ry = OO(Uy)
+  (x,z) = gens(Ry)
+  Iy = ideal(Ry,[x,z])
+
+  Rz = OO(Uz)
+  (x,y) = gens(Rz)
+  Iz = ideal(Rz,[y])
+
+  # glue together to an ideal sheaf on P2
+  ID = IdDict{AbsSpec, Oscar.Ideal}()
+  ID[Ux]=Ix
+  ID[Uy]=Iy
+  ID[Uz]=Iz
+  ISheaf=IdealSheaf(X, ID, check=true)
+
+  # decompose and check that we obtain the expected results
+  L1 = Oscar.associated_points(ISheaf)
+  L2 = Oscar.minimal_associated_points(ISheaf)
+  dimsL1 = [dim(a) for a in L1]
+  dimsL2 = [dim(a) for a in L2]
+  @test length(L1) == 3
+  @test length(L2) == 2
+  onesinL1 = findall(x->x==1,dimsL1)
+  zerosinL1 = findall(x->x==0,dimsL1)
+  onesinL2 = findall(x->x==1,dimsL2)
+  zerosinL2 = findall(x->x==0,dimsL2)
+  @test length(onesinL1) == 1
+  @test length(zerosinL1) == 2
+  @test length(zerosinL2) == 1
+  @test length(onesinL2) == 1
+end
