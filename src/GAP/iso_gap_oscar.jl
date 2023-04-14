@@ -91,8 +91,8 @@ function _iso_gap_oscar_field_quadratic(FG::GAP.GapObj)
        end
      elseif mod(N, 8) == 0
        N = div(N, 4)
-       FGgens = GAP.Globals.GeneratorsOfField(FG)
-       if any(x -> GAP.Globals.GaloisCyc(x,-1) != x, FGgens)
+       FGgens = GAPWrap.GeneratorsOfField(FG)
+       if any(x -> GAPWrap.GaloisCyc(x,-1) != x, FGgens)
          N = -N
        end
      end
@@ -109,7 +109,8 @@ function _iso_gap_oscar_field_quadratic(FG::GAP.GapObj)
 end
 
 # If `FG` is a number field that is not cyclotomic then
-# it can be in `IsAlgebraicExtension` or in `IsCyclotomicCollection`.
+# it can be in `IsAlgebraicExtension` or in `IsCyclotomicCollection`
+# or in `IsNumberFieldByMatrices`.
 function _iso_gap_oscar_number_field(FG::GapObj)
    if GAPWrap.IsCyclotomicCollection(FG)
      # The abelian number fields of GAP store one generator.
@@ -141,7 +142,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      R, x = polynomial_ring(QQ, "x")
      polFO = R(Vector{QQFieldElem}(cfs))
      FO, _ = number_field(polFO, "z")
-     fam = GAPWrap.ElementsFamily(GAP.Globals.FamilyObj(FG))
+     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      finv = function(x::Nemo.nf_elem)
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
@@ -150,6 +151,46 @@ function _iso_gap_oscar_number_field(FG::GapObj)
 
      f = function(x::GAP.Obj)
         coeffs = Vector{QQFieldElem}(GAPWrap.ExtRepOfObj(x))
+        return FO(coeffs)
+     end
+   elseif GAPWrap.IsNumberFieldByMatrices(FG)
+     # `pol` is the minimal polynomial of `M` because the GAP code
+     # caches the objects.
+     M = GAPWrap.PrimitiveElement(FG)
+     pol = GAPWrap.DefiningPolynomial(FG)
+
+     # Construct the isomorphic number field in Oscar.
+     cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
+     R, x = polynomial_ring(QQ, "x")
+     polFO = R(Vector{QQFieldElem}(cfs))
+     FO, _ = number_field(polFO, "z")
+
+     # The canonical basis of `FG` does in general not consist of the
+     # powers of `M`.
+     # Thus we cache the powers of `M` in order to compute preimages
+     # of elements from `FO`,
+     # and we compute the decomposition of the elements of the canonical
+     # basis of `FG` in terms of powers of `M` in order to compute images
+     # in `FO`.
+     pow = GAPWrap.One(M)
+     Mpowers = [pow]
+     for i in 2:degree(FO)
+       pow = pow * M
+       push!(Mpowers, pow)
+     end
+
+     C = GAPWrap.CanonicalBasis(FG)
+     A = inv(GapObj([GAPWrap.Coefficients(C, m) for m in Mpowers]))
+     Mpowers = GapObj(Mpowers)
+
+     finv = function(x::Nemo.nf_elem)
+        coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
+        return GAPWrap.LinearCombination(coeffs, Mpowers)
+     end
+
+     f = function(x::GAP.Obj)
+        coeffs = GAPWrap.Coefficients(C, x)
+        coeffs = Vector{QQFieldElem}(coeffs * A)
         return FO(coeffs)
      end
    else
@@ -289,7 +330,7 @@ function preimage_matrix(f::Map{GapObj, T}, a::MatElem) where T
    for i in 1:nrows(a)
       rows[i] = GapObj([preimage(f, a[i, j]) for j in 1:ncols(a)])
    end
-   return GAP.Globals.ImmutableMatrix(domain(f), GapObj(rows), true)
+   return GAPWrap.ImmutableMatrix(domain(f), GapObj(rows), true)
 end
 
 function AbstractAlgebra.map_entries(f::Map{GapObj, T}, a::GapObj) where T
