@@ -1,6 +1,6 @@
 ##############################################################
 #
-#Conversion from Singular (weierstr.lib)
+# Conversion from Singular (weierstr.lib)
 #
 #############################################################
 
@@ -10,45 +10,45 @@ export weierstrass_division_theorem
 
 
 """
-`order_of_generality(f::MPolyElem, n::Int)`
+    order_of_generality(f::MPolyElem, n::Int)
 
-compute for a given polynomial `f` an integer `d` such that `f` is `x_n`-general of order `d` 
-with `x_n` the n-th variable of the polynomial ring of `f` 
+Compute for a given polynomial `f` an integer `d` such that `f` is `x_n`-general of order `d` 
+with `x_n` the `n`-th variable of the polynomial ring of `f`.
 """
 function order_of_generality(f::MPolyElem, n::Int)
 	 
 	vect = fill(parent(f)(0), nvars(parent(f))) 
-	vect[n] = gens(parent(f))[n] 
+	vect[n] = gen(parent(f),n) 
 	f = evaluate(f, vect) 
 	f != 0 || return false, -1
 	return true, degree(leading_monomial(f, ordering=neglex(gens(parent(f)))), n)
 end
 
 """
-`jet(f::MPolyElem, degree_f::Int)`
+    jet(f::MPolyElem, degree_f::Int)
 
 Given a polynomial `f` and an integer degree `degree_f` , this function returns the polynomial,
-which contains only the monomials of `f`, which total degree is lower than or equal to `degree_f`
+which contains only the monomials of `f`, which total degree is lower than or equal to `degree_f`.
 """
 function jet(f::MPolyElem, degree_f::Int) 
-	while f != 0
-		if total_degree(leading_monomial(f, ordering=deglex(gens(parent(f))))) > degree_f
-			f = f-coeff(f, leading_monomial(f, ordering=deglex(gens(parent(f)))))*leading_monomial(f, ordering=deglex(gens(parent(f))))
-		else 
-			break
-		end
-	end
+  i = length(f)
+  while i >= 1
+    if total_degree(term(f,i)) > degree_f
+      f = f - term(f,i)
+    end
+    i = i - 1
+  end 
 	return f
 end
 
 
 """
-`jet(f::MPolyElem, degree_f::Int, vecw::Vector{Int})` 
+    jet(f::MPolyElem, degree_f::Int, vecw::Vector{Int})
 
 Given a polynomial `f`, an integer degree `degree_f` and an integer vector `vecw`, which has to have 
 the same length as length(parent(f)), this function returns a polynomial, which only contains 
 monomial, whose exponents taken as a vector multiplied (scalar product) with the given 
-weight-vector `intw` are lower than or equal to `degree_f`
+weight-vector `intw` are lower than or equal to `degree_f`.
 """
 function jet(f::MPolyElem, degree_f::Int, vecw::Vector{Int}) 
 
@@ -64,7 +64,7 @@ function jet(f::MPolyElem, degree_f::Int, vecw::Vector{Int})
 end
 
 """
-`invert_unit(u::MPolyElem, n::Int)`
+    invert_unit(u::MPolyElem, n::Int)
 If `u` is an unit, returning boolean value for success and the inverse of `u`. 
 Else return false and the zero polynomial. 
 """
@@ -90,17 +90,17 @@ function invert_unit(u::MPolyElem, n::Int)
 end
 
 """
-`last_var_general(f::MPolyElem, n::Int)`
+    last_var_general(f::MPolyElem, n::Int)
 
-transform `f` into a polynomial, which is x_n general of finite order for x_n the `n`-th ring variable.
+Transform `f` into a polynomial, which is x_n general of finite order for x_n the `n`-th ring variable.
 """
 var_general(f::MPolyElem, n::Int) = var_general(f, n, 0)
 
 """
-`var_general(f::MPolyElem, n::Int, nesting_depth::Int)`
+    var_general(f::MPolyElem, n::Int, nesting_depth::Int)
 
-transform `f` into a polynomial, which is x_n general of finite order for x_n the `n`-th ring variable.
-`nesting_depth` is the counter of recursive calls. First call with `nesting_depth` = 0
+Transform `f` into a polynomial, which is x_n general of finite order for x_n the `n`-th ring variable.
+`nesting_depth` is the counter of recursive calls. First call with `nesting_depth` = 0.
 """
 function var_general(f::MPolyElem, n::Int, nesting_depth::Int) 
 	R = parent(f)
@@ -108,21 +108,21 @@ function var_general(f::MPolyElem, n::Int, nesting_depth::Int)
 	_, d = order_of_generality(f, n) 
 	if d > 0 
 		return f	
-	else 
-		m = gens(R) 
-		g = initial_form(f)
-		i = 1
-		while i <= j 
-			if i != n
-				m_hilf = m
-				m_hilf[i] = R(0)
-				if length(g) > length(evaluate(g, m_hilf))
-					m[i] = gens(R)[i]+rand(1-(nesting_depth)*10 : 1+(nesting_depth)*10)*gens(R)[n]
-					g = evaluate(f, m)
-					break
-				end
+  end 
+	m = gens(R) 
+	g = initial_form(f)
+	i = 1
+	while i <= j 
+		if i != n
+			m_hilf = m
+			m_hilf[i] = R(0)
+			if length(g) > length(evaluate(g, m_hilf))
+				m[i] = gen(R,i)+rand(1-(nesting_depth)*10 : 1+(nesting_depth)*10)*gen(R,n)
+				g = evaluate(f, m)
+				break
 			end
-			i = i+1
+		end
+		i = i+1
 		end
 		
 		if nesting_depth <= 3
@@ -134,15 +134,14 @@ function var_general(f::MPolyElem, n::Int, nesting_depth::Int)
 			m=rand_coeff(m, n, 2, nesting_depth*d, ^)
 		end
 		g = evaluate(f, m)
-		return var_general(g, n, nesting_depth+1)
-	end		
+		return var_general(g, n, nesting_depth+1)		
 end
 
 
 """
-`initial_form(f::MPolyElem)` 
+    initial_form(f::MPolyElem) 
 
-transform `f` into an initial form for the algorithm
+Transform `f` into an initial form for the algorithm.
 """
 function initial_form(f::MPolyElem)
 	degree_f = total_degree(leading_monomial(f, ordering=negdegrevlex(gens(parent(f))))) 
@@ -151,7 +150,7 @@ function initial_form(f::MPolyElem)
 end
 
 """
-`rand_coeff(m::Vector{fmpq_mpoly}, n::Int, mini::Int, maxi::Int, operator)`
+    rand_coeff(m::Vector{fmpq_mpoly}, n::Int, mini::Int, maxi::Int, operator)
 
 Given a vector of monomials `m`, an Integer `n`, integer bounds mini und maxi and an 
 operator, this function computes the monomials for var_general, to compute a polynomial,
@@ -163,7 +162,7 @@ function rand_coeff(m::Vector{fmpq_mpoly}, n::Int, mini::Int, maxi::Int, operato
 	i = 1
 	while i <= j 
 		if i != n
-			m[i] = gens(R)[i]+operator(gens(R)[n],rand(mini : maxi))
+			m[i] = gen(R,i)+operator(gen(R,n),rand(mini : maxi))
 		end				
 		i = i+1
 	end
@@ -172,7 +171,7 @@ end
 
 
 """
-`weierstrass_division_theorem(g::MPolyElem, f::MPolyElem, degree::Int)`
+    weierstrass_division_theorem(g::MPolyElem, f::MPolyElem, degree::Int)
 
 Given a multivariate polynomial `f`, which is general of order `d` in the last ring variable,
 a polynomial `g` and an integer degree `degree`, performing the weierstrass division theorem of 
@@ -188,12 +187,12 @@ function weierstrass_division_theorem(g::MPolyElem, f::MPolyElem, degree::Int, n
 	
 	D = degree+d
 	fhat = jet(f, d-1, vect) 
-	ftilde = divexact((f-fhat), gens(R)[n]^d)
+	ftilde = divexact((f-fhat), gen(R,n)^d)
 	_, u = invert_unit(ftilde, D) 
 	
 	j = g 
 	jhat = jet(j, d-1, vect) 
-	jtilde = divexact(j-r, gens(R)[n]^d)
+	jtilde = divexact(j-r, gen(R,n)^d)
 	r = jhat
 	h = jtilde
 	i = 0
@@ -201,7 +200,7 @@ function weierstrass_division_theorem(g::MPolyElem, f::MPolyElem, degree::Int, n
 
 		j = jet(-fhat*u*jtilde, D) 
 		jhat = jet(j, d-1, vect)
-		jtilde = divexact(j-jhat, gens(R)[n]^d)
+		jtilde = divexact(j-jhat, gen(R,n)^d)
 		r = r+jhat
 		h = h+jtilde
 		i = i+1
@@ -212,7 +211,7 @@ function weierstrass_division_theorem(g::MPolyElem, f::MPolyElem, degree::Int, n
 end
 
 """
-`weierstrass_preparation_theorem(f::MPolyElem, degree::Int, n::Int)`
+    weierstrass_preparation_theorem(f::MPolyElem, degree::Int, n::Int)
 
 Given a multivariate polynomial `f` and an integer degree `degree`, performing the 
 weierstrass preparation theorem of `f` up to degree `degree` for the `n`-th ring variable.
@@ -231,8 +230,8 @@ function weierstrass_preparation_theorem(f::MPolyElem, degree::Int, n::Int)
 		f = var_general(f, n, 0) 
 		success, d = order_of_generality(f, n)
 	end
-	u, f2, iter_count = weierstrass_division_theorem(gens(R)[n]^d, f, degree, n) 
-	return u, gens(R)[n]^d-f2, iter_count
+	u, f2, iter_count = weierstrass_division_theorem(gen(R,n)^d, f, degree, n) 
+	return u, gen(R,n)^d-f2, iter_count
 
 end
 
