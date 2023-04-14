@@ -517,7 +517,8 @@ end
     starsubdivision(PF::PolyhedralFan, n::Int)
 
 Return the star subdivision of a polyhedral fan at its n-th torus orbit.
-Note that this torus orbit need not be maximal.
+Note that this torus orbit need not be maximal. We follow definition 3.3.17
+of [CLS11](@cite).
 
 # Examples
 ```jldoctest
@@ -554,7 +555,7 @@ function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
   
   # check if nth cone is smooth
   #cone = Polymake.fan.cone(Oscar.pm_object(PF), n-1)
-  #@req cone.SMOOTH_CONE "Cannot subdivide maximal cone $n as it is not smooth!"
+  @req _cone_is_smooth(PF, nthcone) "Cannot subdivide maximal cone $n as it is not smooth!"
   
   # compute new ray
   R = Polymake.common.primitive(Oscar.pm_object(PF).RAYS)
@@ -571,6 +572,7 @@ function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
   for i in 1:n_maximal_cones(PF)
     indices_ith_max_cone = Polymake.row(max_cone_indices, i)
     if issubset(cone_indices, indices_ith_max_cone)
+      _cone_is_smooth(PF, indices_ith_max_cone) || error("All cones containing sigma need to be smooth")
       for subset in subsets(Vector{Int64}(cone_indices), length(cone_indices)-1)
         tmp = Base.setdiff(indices_ith_max_cone, cone_indices)
         tmp = Base.union(subset, tmp)
@@ -588,6 +590,17 @@ function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
   
 end
 
+
+function _cone_is_smooth(PF::_FanLikeType, c::AbstractSet{Int})
+  R = matrix(ZZ, rays(PF))
+  return _is_unimodular(R[Vector{Int}(c),:])
+end
+
+function _is_unimodular(M::ZZMatrix)
+  nrows(M) <= ncols(M) || return false
+  n = nrows(M)
+  return abs(det(snf(M)[:,1:n])) == 1
+end
 
 
 ###############################################################################
