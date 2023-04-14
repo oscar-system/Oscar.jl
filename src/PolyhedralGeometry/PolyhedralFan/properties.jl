@@ -514,7 +514,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    starsubdivision(PF::PolyhedralFan, n::Int)
+    star_subdivision(PF::PolyhedralFan, n::Int)
 
 Return the star subdivision of a polyhedral fan at its n-th torus orbit.
 Note that this torus orbit need not be maximal. We follow definition 3.3.17
@@ -522,7 +522,7 @@ of [CLS11](@cite).
 
 # Examples
 ```jldoctest
-julia> star = starsubdivision(normal_fan(simplex(3)), 1)
+julia> star = star_subdivision(normal_fan(simplex(3)), 1)
 Polyhedral fan in ambient dimension 3
 
 julia> rays(star)
@@ -543,7 +543,7 @@ julia> ray_indices(maximal_cones(star))
 [1, 4, 5]
 ```
 """
-function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
+function star_subdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
   
   # check if n-th cone exist
   @req n <= n_cones(PF) "Cannot subdivide cone $n as it does not exist"

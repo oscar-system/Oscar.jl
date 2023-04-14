@@ -634,7 +634,7 @@ Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = starsubdivision(fan(v), n)
+    new_fan = star_subdivision(fan(v), n)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
     old_vars = [string(x) for x in gens(cox_ring(v))]
