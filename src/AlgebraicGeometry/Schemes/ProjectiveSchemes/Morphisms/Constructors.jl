@@ -13,7 +13,7 @@ end
 
 Suppose ``P ⊂ ℙʳ_A`` and ``Q ⊂ ℙˢ_B`` are projective schemes, ``h : Spec(A) → Spec(B)`` is a 
 morphism of their `base_scheme`s, and ``f : T → S`` a morphism of the 
-`homogeneous_coordinate_ring`s of `Q` and `P` over ``h* : B → A``.
+`homogeneous_coordinate_ring`s of `Q` and `P` over ``h^* : B → A``.
 This constructs the associated morphism of projective schemes.
 """
 function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
