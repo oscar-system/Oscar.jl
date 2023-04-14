@@ -1,31 +1,3 @@
-export ambient_isometry
-export image_centralizer_in_Oq
-export isometry
-export is_of_hermitian_type
-export is_of_same_type
-export is_of_type
-export is_hermitian
-export lattice_with_isometry
-export order_of_isometry
-export type
-
-import Hecke: kernel_lattice, invariant_lattice, rank, genus, basis_matrix,
-              gram_matrix, ambient_space, rational_span, scale, signature_tuple,
-              is_integral, det, norm, degree, discriminant, charpoly, minpoly,
-              rescale, dual, lll, discriminant_group, divides, lattice,
-              hermitian_structure, coinvariant_lattice
-
-###############################################################################
-#
-#  String I/O
-#
-###############################################################################
-
-function Base.show(io::IO,  Lf::LatWithIsom)
-  println(io, "Lattice of rank $(rank(Lf)) with isometry of order $(order_of_isometry(Lf))")
-  println(io, "given by")
-  print(IOContext(io, :compact => true), isometry(Lf))
-end
 
 ###############################################################################
 #

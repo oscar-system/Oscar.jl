@@ -45,8 +45,7 @@ const oldexppkgs = [
   "MPolyRingSparse",
   "Rings",
   "Schemes",
-  "SymmetricIntersections",
-  "LatWithIsom"
+  "SymmetricIntersections"
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
 

@@ -2,8 +2,14 @@
 ###############################################################################
 #
 #  Computations of the finite quotients E_0/E^i: subsection 6.8. of BH23
+#  ============================================================================
+#
+#  The 5 following functions are an import of identical functions written by
+#  Tommy Hofmann on Magma.
 #
 ###############################################################################
+
+# Split case
 
 function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
   OE = order(P)
@@ -46,6 +52,8 @@ function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
 
   return URPabs, exp, dlog
 end
+
+# Inert case
 
 function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
   OE = order(P)
@@ -97,6 +105,8 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
 
   return S, exp, dlog
 end
+
+# Ramified case
 
 function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   OE = order(P)
@@ -166,6 +176,9 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   return S, exp, dlog
 end
 
+# We obtain the quotient here: we first check what the ramification type of p
+# in O is to distribute to the appropriate function above.
+
 function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
   @assert is_prime(p)
   @assert is_maximal(order(p))
@@ -188,6 +201,10 @@ function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
   end
   return S, dexp, dlog, P
 end
+
+# This is the product quotient from Remark 6.16 in BH23, the finite
+# abelian group where one do the local determinants computations
+# for the hermitian version of Miranda-Morrison theory
 
 function _get_product_quotient(E::Hecke.NfRel, Fac)
   OE = maximal_order(E)
@@ -248,7 +265,13 @@ end
 ###############################################################################
 
 # We collect all the prime ideals p for which the local quotient
-# (D^{-1}L^#/L)_p is not unimodular
+# (D^{-1}L^#/L)_p is not unimodular.
+#
+# According to BH23, the quotient D^{-1}L^#/L is unimodular at p
+# if and only if 
+#  - either L is unimodular at p, and D and p are coprime
+#  - or D^{-1}L^# is P^a-modular where P is largest prime ideal
+#    over p fixed the canonical involution, and a is the valuation of D at P. 
 
 function _elementary_divisors(L::HermLat, D::Hecke.NfRelOrdIdl)
   Ps = collect(keys(factor(D)))
@@ -268,6 +291,23 @@ end
 
 # We compute here the map delta from Theorem 6.15 of BH22. Its kernel is
 # precisely the image of the map O(L, f) \to O(D_L, D_f).
+#
+# This map is defined on the centralizer O(D_L, D_f) of D_f in O(D_L). For
+# each generator g, we find a good enough approximation on the ambient space
+# of L restricting g, which we transport by the trace construction on the
+# hermitian structure of (L, f), and we create a better approximation of the new
+# isometry of D^{-1}L^#/L on the hermitian ambient space of L, up to the
+# valuation given by Theorem 6.25 in BH23.
+#
+# This better approximation is obtained by applying successive hermitian hensel
+# lifting as described in Algorithm 8 of BH23.
+#
+# Once this new approximation obtained, we compute its determinant which we map
+# in the big product quotient constructed according to BH23, Section 6.
+#
+# The major part of the following algorithm follows the implementation of a
+# similar function on Magma by Tommy Hofmann. Only the last loop about
+# determinants approximations is new in this code.
 
 function _local_determinants_morphism(Lf::LatWithIsom)
   @assert is_of_hermitian_type(Lf)
@@ -279,6 +319,7 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH22.
   G, _ = centralizer(OqL, fqL)
+
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
   # (aka D_L) correspond to the quotient D^{-1}H^#/H by the trace construction,
   # where D is the absolute different of the base algebra of H (a cyclotomic
@@ -294,6 +335,11 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   H2 = inv(DEQ)*dual(H)
   @assert is_sublattice(H2, H) # This should be true since the lattice in Lf is integral
 
+  # This is the map used for the trace construction: it is stored on Lf when we
+  # have constructed H. We need this map because it sets the rule of the
+  # transfer between the quadratic world in which we study (L, f) and the
+  # hermitian world in which H lives. In particular, the trace lattice of H2
+  # with respect to res will be exactly the dual of L.
   res = get_attribute(Lf, :transfer_data)
 
   # We want only the prime ideal in O_K which divides the quotient H2/H. For
@@ -405,6 +451,17 @@ function _local_determinants_morphism(Lf::LatWithIsom)
 end
 
 # We check whether for the prime ideal p E_O(L_p) != F(L_p).
+#
+# There exists some prime ideals p which are elementary divisors for the
+# quotients D^{-1}L^#/L and, according to Kir16b, for which the above quotient
+# can still be trivial. We call special those which do not satisfy this second
+# property: considering them, we can actually reduce the size of the finite
+# abelian group in which we will perform our local approximate determinants
+# computations.
+#
+# This function is an import of a function written by Markus Kirschmer in the
+# Magma package about hermitian lattices.
+
 function _is_special(L::Hecke.HermLat, p::Hecke.NfOrdIdl)
   OE = base_ring(L)
   E = nf(OE)
@@ -433,7 +490,6 @@ function _is_special(L::Hecke.HermLat, p::Hecke.NfOrdIdl)
   return is_locally_isometric(L, hermitian_lattice(E, gram = H), p)
 end
 
-
 ###############################################################################
 #
 #  Local hermitian lifting - path to algorithm 8 of BH23
@@ -442,24 +498,12 @@ end
 
 Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
 
-# Starting from an isometry of the torsion quadratic module `domain(g)`, for
-# which we assume that the cover M has full rank, we compute a fake lift to the
-# ambient space of the cover. This is not an isometry, but induces g on `domain(g)`.
-#function _get_ambient_isometry(g::AutomorphismGroupElem{TorQuadModule})
-#  q = domain(g)
-#  L = cover(q)
-#  @assert rank(L) == degree(L)
-#  d = degree(L)
-#  M1 = reduce(vcat, [matrix(QQ, 1, d, lift(t)) for t in gens(q)])
-#  M2 = reduce(vcat, [matrix(QQ, 1, d, lift(g(t))) for t in gens(q)])
-#  return solve(M1, M2)
-#end
+# Once we have fixed good local basis matrices if D^{-1}H^# and H, at the prime
+# ideal p below P, we transfer any g\in O(D_L, D_f) via the trace construction
+# (fixed by res). The new map we obtain should be a local invertible map with
+# integer (for the given local field at p) entries which defines an isometry of
+# D^{-1}H^# modulo H.
 
-# Using the function used for the transfer construction, between the ambient
-# space of the cover of our torsion module, and the ambient space of the
-# corresponding hermitian structure, we transfer the fake lift computed with the
-# previous function. This will be an invertible matrix, but the corresponding
-# automorphism is not an isometry.
 function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T, P::Hecke.NfRelOrdIdl, BHp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   E = base_ring(codomain(res))
   Eabs, EabstoE = Hecke.absolute_simple_field(E)
@@ -467,7 +511,9 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
   OEabs = order(Pabs)
   q = domain(g)
   @assert ambient_space(cover(q)) === domain(res)
-  #Bp = reduce(vcat, [matrix(E, 1, ncols(Bp), res(lift(q(res\vec(collect(Bp[i, :])))))) for i in 1:nrows(Bp)])
+
+  # B2 will be a local basis at p of the image of D^{-1}H^# under the induced
+  # action of g via res.
   B2 = zero(Bp)
   for i in 1:nrows(Bp)
     vE = vec(collect(Bp[i, :]))
@@ -479,18 +525,42 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
     B2[i, :] = gvE
   end
 
+  # Here BHp is the inverse of a local basis matrix of H at p. Since we look for
+  # F such that F*Bp == B2 mod inv(BHp), we then transform the problem into
+  # finding a matrix F such that F*newBp == newB2 mod O_p. Then to ensure that F
+  # has integral coefficients, we multiplying newBp and newB2 by a big enough
+  # integer d so that they are both integral (all their entries are in OEabs,
+  # after passing to an absolute simple extension), we keep track of the
+  # P-valuation i of d, and we then map everything in OEabs/Pabs^i. There, there
+  # should be a modular solution KQ such that KQ*BpQ == B2Q. We lift this matrix
+  # in OEabs and map it back to OE.
   newBp = Bp*BHp
   newB2 = B2*BHp
   Bpabs = map_entries(a -> EabstoE\a, newBp)
   B2abs = map_entries(a -> EabstoE\a, newB2)
+
+  # Here d is not necessarily well defined in O_E, but as it is implemented,
+  # each of the denominator(a, O_E) return the smallest positive integer d such
+  # that d*a lies in O_E, while a might be a non-integral element in E.
   d = lcm(lcm([denominator(a, OEabs) for a in Bpabs]), lcm([denominator(a, OEabs) for a in B2abs]))
   dBpabs = change_base_ring(OEabs, d*Bpabs)
   dB2abs = change_base_ring(OEabs, d*B2abs)
-  Q, p = quo(OEabs, Pabs^(1+valuation(d, Pabs))) 
+
+  # We would need to solve the equation modulo OE, but we multiplied by d, so we
+  # need to keep track of d. Note that with the precaution we took earlier, the
+  # Pabs-valuation of d is necessarily positive, so this quotient cannot be
+  # trivial.
+  Q, p = quo(OEabs, Pabs^(valuation(d, Pabs))) 
   BpQ = map_entries(p, dBpabs)
   B2Q = map_entries(p, dB2abs)
+
+  # Our local modular solution we have to lift
   KQ = solve_left(BpQ, B2Q)
   K = map_entries(a -> EabstoE(Eabs(p\a)), KQ)
+
+  # If what we have done is correct then K*newBp == newB2 modulo O_p, so all
+  # entries in the difference K*newBp-newB2 must have non-negative P-valuation.
+  # Since it is the case, then K satisfies K*Bp == B2 mod H locally at p.
   @assert _scale_valuation(K*newBp-newB2, P) >= 0
   return K
 end
@@ -564,9 +634,20 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
   return newF, l2
 end
 
-# Starting from our fake isometry g on H (which will be here D^{-1}H^#), and a
-# prime ideal P, we iteratively lift g to a finer fake isometry, i.e. a matrix
-# defining a P-local isometry up to the precision P^{2*k+a}.
+# Starting from our isometry g on H2/H (here H2=  D^{-1}H^#), and a
+# prime ideal P, we iteratively lift g to invertible map which defines an
+# isometry of H2 up to a given precision specified in BH23, local at the prime
+# ideal p below P.
+#
+# Here:
+#  - e is the P-valuation of the relative different
+#  - a is the P-valuation of the absolute different
+#  - k is the p-valuation of the norm of H
+#  - res is the map representing the functor used for the trace equivalence
+#  - g is the torsion quadratic module automorphism, which centralizes D_f in
+#    D_L (H is the hermitian structure associated to (L, f) along res) which
+#    aims to approximately transfer to H2 along res at P
+#
 function _approximate_isometry(H::Hecke.HermLat, H2::Hecke.HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
   E = base_field(H)
   @assert nf(order(P)) === E
@@ -595,6 +676,17 @@ function _approximate_isometry(H::Hecke.HermLat, H2::Hecke.HermLat, g::Automorph
   return Fp
 end
 
+# We use this function compute a local basis matrix of H at p, whose integral
+# span defines a sublattice of H. If H has a P^{-a}-modular block at p, we remove
+# the corresponding basis vector(s) from the output to only keep the Jordan
+# blocks of H_p which are of P-valuation different from -a
+#
+# In our context of use, -a is actually the biggest scale valuation for
+# D^{-1}H^#. Since we take care ealier to discard the cases where D^{-1}H^# is
+# P^{-a}=modular locally at p, we just have to remove the last jordan block from
+# the jordan decomposition of D^{-1}H^# at p. From that point, we massage a bit
+# the basis matrices of the other jordan blocks to obtain local basis matrices
+# which span sublattices of D^{-1}H^#.
 function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfOrdIdl, a::Int, res::AbstractSpaceRes)
   L = restrict_scalars(H, res)
   B, _ , exps = jordan_decomposition(H, p)
@@ -620,6 +712,14 @@ end
 
 # We need a special rho for Algorithm 8 of BH23: we construct such an element
 # here, which will be used to lift fake isometries up to a better precision.
+#
+# If the prime ideal is non dyadic, then 1//2 will always be good for us.
+# Otherwise, if the prime p is dyadic, we do in two different ways
+#  - p is inert or split, in which case we can use an algorithm of Markus
+#    Kirschmer, implemented on Hecke which provies us the "special unit", which is
+#    exactly what we look for (a unit at P with trace 1);
+#  - p is ramified, and then we cook up a good element. The actual code from
+#    that part is taken from the Sage implementation of Simon Brandhorst
 function _find_rho(P::Hecke.NfRelOrdIdl, e)
   OE = order(P)
   E = nf(OE)

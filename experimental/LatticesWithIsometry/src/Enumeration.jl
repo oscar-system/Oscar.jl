@@ -1,10 +1,3 @@
-export admissible_triples
-export is_admissible_triple
-export splitting_of_hermitian_prime_power
-export splitting_of_mixed_prime_power
-export splitting_of_partial_mixed_prime_power
-export splitting_of_prime_power
-export representatives_of_hermitian_type
 
 ##################################################################################
 #

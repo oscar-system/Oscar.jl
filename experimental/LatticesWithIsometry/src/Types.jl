@@ -1,14 +1,12 @@
-export LatWithIsom
-
 @doc Markdown.doc"""
     LatWithIsom
 
-A container type for a pair `(L, f)` consisting on an integer lattice `L` of
+A container type for pairs `(L, f)` consisting on an integer lattice `L` of
 type `ZLat` and an isometry `f` given as a `QQMatrix` representing the action
 on a given basis of `L`.
 
 The associated action `f_ambient` on the ambient space of `L` as well as the order
-`n` of `f` are stored in this container type.
+`n` of `f` are also stored.
 
 To construct an object of type `LatWithIsom`, see the set of functions called
 [`lattice_with_isometry`](@ref)
