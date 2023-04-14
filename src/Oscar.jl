@@ -51,10 +51,10 @@ const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), read
 # Error if something is incomplete in experimental
 for pkg in exppkgs
   if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
-    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
   if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
-    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
 end
 
