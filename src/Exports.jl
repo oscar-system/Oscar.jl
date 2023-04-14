@@ -593,7 +593,9 @@ export homogeneity_space
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
+export homogeneous_coordinates_on_affine_cone
 export homogenization
+export homogenization_map
 export homogenize
 export homology
 export homomorphism_of_semidirect_product

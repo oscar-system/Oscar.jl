@@ -64,6 +64,20 @@ end
 
 Create the (relative) projective space `Proj(A[x₀,…,xₙ])` over `A` 
 where `x₀,…,xₙ` is a list of `Symbol`s for the variable names.  
+
+# Examples
+```jldoctest
+julia> projective_space(QQ, [:x, :PPP, :?])
+Projective space of dimension 2
+  over Rational Field
+
+julia> homogeneous_coordinate_ring(ans)
+Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by 
+  x -> [1]
+  PPP -> [1]
+  ? -> [1]
+
+```
 """
 function projective_space(A::Ring, var_symb::Vector{Symbol})
   n = length(var_symb)
