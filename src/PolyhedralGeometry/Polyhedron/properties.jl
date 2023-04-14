@@ -199,6 +199,17 @@ _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
 _vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
 
+_facet_indices(::Val{_vertex_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_VERTICES[_vertex_indices(P),_facet_indices(P)]
+
+function _facet_indices(P::Polymake.BigObject)
+    vi = Polymake.get_attachment(P, "_facet_indices")
+    if isnothing(vi)
+        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}([collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))])
+        Polymake.attach(P, "_facet_indices", vi);
+    end
+    return vi;
+end
+
 @doc raw"""
     vertices(P::Polyhedron)
 
@@ -292,6 +303,8 @@ rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_di
 _rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
 _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
+
+_facet_indices(::Val{_ray_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_RAYS[_ray_indices(P),_facet_indices(P)]
 
 _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
