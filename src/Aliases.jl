@@ -1,6 +1,5 @@
 @alias has_isfinite has_is_finite
 @alias SymmetricGroup symmetric_group
-@alias exponent_vectors exponents
 
 # make some Julia names compatible with our naming conventions
 @alias is_subset issubset
