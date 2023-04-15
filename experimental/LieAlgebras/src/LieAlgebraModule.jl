@@ -126,6 +126,11 @@ function show_standard_module(io::IO, V::LieAlgebraModule{C}) where {C<:RingElem
   print(IOContext(io, :compact => true), base_lie_algebra(V))
 end
 
+function show_dual(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
+  print(io, "Dual of ")
+  print(IOContext(io, :compact => true), get_attribute(V, :base_module))
+end
+
 function show_exterior_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "$(get_attribute(V, :power))-th exterior power of ")
   print(IOContext(io, :compact => true), base_module(V))
@@ -189,6 +194,9 @@ function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
 end
 
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+  if is_dual(V) && base_module(V) == parent(v)
+    return V(coefficients(v))
+  end
   @req V == parent(v) "Incompatible modules."
   return v
 end
@@ -336,6 +344,10 @@ function is_standard_module(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback) == :standard_module
 end
 
+function is_dual(V::LieAlgebraModule{C}) where {C<:RingElement}
+  return get_attribute(V, :type, :fallback) == :dual
+end
+
 function is_exterior_power(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback) == :exterior_power
 end
@@ -349,7 +361,7 @@ function is_tensor_power(V::LieAlgebraModule{C}) where {C<:RingElement}
 end
 
 function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
-  @req is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
+  @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
   return get_attribute(V, :base_module)
 end
 
@@ -405,6 +417,26 @@ function standard_module(L::LinearLieAlgebra{C}) where {C<:RingElement}
   )
   set_attribute!(std_V, :type => :standard_module, :show => show_standard_module)
   return std_V
+end
+
+function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
+  L = base_lie_algebra(V)
+  dim_dual_V = dim(V)
+
+  transformation_matrices = map(1:dim(L)) do i
+    -transpose(transformation_matrix(V, i))
+  end
+
+  if is_standard_module(V)
+    parentheses = identity
+  else
+    parentheses = x -> "($x)"
+  end
+  s = [Symbol("$(parentheses(s))*") for s in symbols(V)]
+
+  pow_V = LieAlgebraModule{C}(L, dim_dual_V, transformation_matrices, s; check=false)
+  set_attribute!(pow_V, :type => :dual, :base_module => V, :show => show_dual)
+  return pow_V
 end
 
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}

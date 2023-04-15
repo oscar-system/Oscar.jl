@@ -17,6 +17,7 @@ import ..Oscar:
   coeff,
   coefficients,
   dim,
+  dual,
   elem_type,
   expressify,
   exterior_power,
@@ -43,6 +44,7 @@ export combinations
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export is_dual
 export is_exterior_power
 export is_standard_module
 export is_symmetric_power

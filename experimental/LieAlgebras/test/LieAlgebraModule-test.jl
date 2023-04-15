@@ -22,6 +22,8 @@ function lie_algebra_module_conformance_test(
     @test base_ring(v) == base_ring(V)
     @test elem_type(base_ring(V)) == C
 
+    @test base_lie_algebra(V) === L
+
     # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebra modules
     @test dim(V) == ngens(V)
     @test basis(V) == gens(V)
@@ -202,6 +204,7 @@ end
     @test length(repr(V)) < 10^4 # outputs tend to be excessively long due to recursion
 
     @test is_standard_module(V)
+    @test !is_dual(V)
     @test !is_exterior_power(V)
     @test !is_symmetric_power(V)
     @test !is_tensor_power(V)
@@ -209,6 +212,33 @@ end
     x = L(rand(-10:10, dim(L)))
     v = V(rand(-10:10, dim(V)))
     @test x * v == V(matrix_repr(x) * coefficients(v))
+  end
+
+  @testset "dual" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    V = symmetric_power(standard_module(L), 2)
+    type_V = module_type_bools(V)
+
+    dual_V = dual(V)
+    @test type_V == module_type_bools(V) # construction of dual_V should not change type of V
+    @test base_module(dual_V) === V
+    @test dim(dual_V) == dim(V)
+    @test length(repr(dual_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+    @test !is_standard_module(dual_V)
+    @test is_dual(dual_V)
+    @test !is_exterior_power(dual_V)
+    @test !is_symmetric_power(dual_V)
+    @test !is_tensor_power(dual_V)
+
+    dual_dual_V = dual(dual_V)
+    @test dim(dual_dual_V) == dim(V)
+    @test all(
+      i ->
+        Oscar.LieAlgebras.transformation_matrix(dual_dual_V, i) ==
+        Oscar.LieAlgebras.transformation_matrix(V, i),
+      1:dim(L),
+    )
   end
 
   @testset "exterior_power" begin
@@ -224,6 +254,7 @@ end
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
       @test !is_standard_module(pow_V)
+      @test !is_dual(V)
       @test is_exterior_power(pow_V)
       @test !is_symmetric_power(pow_V)
       @test !is_tensor_power(pow_V)
@@ -256,6 +287,7 @@ end
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
       @test !is_standard_module(pow_V)
+      @test !is_dual(V)
       @test !is_exterior_power(pow_V)
       @test is_symmetric_power(pow_V)
       @test !is_tensor_power(pow_V)
@@ -288,6 +320,7 @@ end
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
       @test !is_standard_module(pow_V)
+      @test !is_dual(V)
       @test !is_exterior_power(pow_V)
       @test !is_symmetric_power(pow_V)
       @test is_tensor_power(pow_V)
