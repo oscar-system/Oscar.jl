@@ -32,6 +32,8 @@ function lie_algebra_module_conformance_test(
 
     @test iszero(zero(V))
 
+    @test coefficients(v) == [coeff(v, i) for i in 1:dim(V)]
+    @test all(i -> coeff(v, i) == v[i], 1:dim(V))
     @test sum(v[i] * basis(V, i) for i in 1:dim(V)) == v
 
     @test v == v
@@ -206,7 +208,7 @@ end
 
     x = L(rand(-10:10, dim(L)))
     v = V(rand(-10:10, dim(V)))
-    @test x * v == V(transpose(matrix_repr(x) * transpose(Generic._matrix(v))))
+    @test x * v == V(matrix_repr(x) * coefficients(v))
   end
 
   @testset "exterior_power" begin
@@ -315,7 +317,7 @@ end
       struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)
       for (i, xi) in enumerate(basis(L)), (j, vj) in enumerate(basis(V))
         struct_const_V[i, j] = [
-          (c, k) for (k, c) in enumerate(Generic._matrix(xi * vj)) if !iszero(c)
+          (c, k) for (k, c) in enumerate(coefficients(xi * vj)) if !iszero(c)
         ]
       end
       return struct_const_V

@@ -102,8 +102,8 @@ function bracket(
   check_parent(x, y)
   L = parent(x)
   mat = sum(
-    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(Generic._matrix(x)),
-    (j, cyj) in enumerate(Generic._matrix(y))
+    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(coefficients(x)),
+    (j, cyj) in enumerate(coefficients(y))
   )
   return L(mat)
 end

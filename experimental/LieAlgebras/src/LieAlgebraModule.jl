@@ -70,11 +70,19 @@ function zero(V::LieAlgebraModule{C}) where {C<:RingElement}
 end
 
 function iszero(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  return iszero(Generic._matrix(v))
+  return iszero(coefficients(v))
 end
 
 @inline function Generic._matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   return (v.mat)::dense_matrix_type(C)
+end
+
+function coefficients(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+  return collect(Generic._matrix(v))[1, :]
+end
+
+function coeff(v::LieAlgebraModuleElem{C}, i::Int) where {C<:RingElement}
+  return Generic._matrix(v)[1, i]
 end
 
 @doc raw"""
@@ -83,7 +91,7 @@ end
 Return the $i$-th coefficient of the module element $x$.
 """
 function getindex(v::LieAlgebraModuleElem{C}, i::Int) where {C<:RingElement}
-  return Generic._matrix(v)[1, i]
+  return coeff(v, i)
 end
 
 function Base.deepcopy_internal(
@@ -141,7 +149,7 @@ function expressify(
   v::LieAlgebraModuleElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(Generic._matrix(v))
+  for (i, c) in enumerate(coefficients(v))
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -280,12 +288,12 @@ function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
   check_parent(v1, v2)
-  return Generic._matrix(v1) == Generic._matrix(v2)
+  return coefficients(v1) == coefficients(v2)
 end
 
 function Base.hash(v::LieAlgebraModuleElem{C}, h::UInt) where {C<:RingElement}
   b = 0x723913014484513a % UInt
-  return xor(hash(Generic._matrix(v), hash(parent(v), h)), b)
+  return xor(hash(coefficients(v), hash(parent(v), h)), b)
 end
 
 ###############################################################################
@@ -303,7 +311,7 @@ function action(
 ) where {ElemT<:LieAlgebraModuleElem{C}} where {C<:RingElement}
   @req parent(x) == base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
-  cx = Generic._matrix(x)
+  cx = coefficients(x)
 
   return parent(v)(
     sum(

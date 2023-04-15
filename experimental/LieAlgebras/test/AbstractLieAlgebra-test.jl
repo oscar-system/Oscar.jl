@@ -1,5 +1,5 @@
 @testset "LieAlgebras.AbstractLieAlgebra" begin
-  function sl2_struct_consts(R::Oscar.Ring)
+  function sl2_struct_consts(R::Ring)
     sc = zeros(R, 3, 3, 3)
     sc[1, 2, 3] = R(1)
     sc[2, 1, 3] = R(-1)

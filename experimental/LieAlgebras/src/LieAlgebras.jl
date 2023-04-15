@@ -14,6 +14,8 @@ import ..Oscar:
   action,
   base_ring,
   basis,
+  coeff,
+  coefficients,
   dim,
   elem_type,
   expressify,
