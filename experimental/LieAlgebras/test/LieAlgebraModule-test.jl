@@ -190,10 +190,19 @@ end
     end
   end
 
+  module_type_bools(V) =
+    (is_standard_module(V), is_exterior_power(V), is_symmetric_power(V), is_tensor_power(V))
+
   @testset "standard_module" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V = standard_module(L)
     @test dim(V) == 4
+    @test length(repr(V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+    @test is_standard_module(V)
+    @test !is_exterior_power(V)
+    @test !is_symmetric_power(V)
+    @test !is_tensor_power(V)
 
     x = L(rand(-10:10, dim(L)))
     v = V(rand(-10:10, dim(V)))
@@ -203,43 +212,94 @@ end
   @testset "exterior_power" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V = symmetric_power(standard_module(L), 2)
-    pow_V = exterior_power(V, 2)
+    type_V = module_type_bools(V)
 
-    @test dim(pow_V) == binomial(dim(V), 2)
-    a = gen(V, 1)
-    b = gen(V, 2)
-    @test !iszero(pow_V([a, b]))
-    @test iszero(pow_V([a, b]) + pow_V([b, a]))
-    @test !iszero(pow_V([a, b]) - pow_V([b, a]))
-    @test iszero(pow_V([a, a]))
+    for k in 1:3
+      pow_V = exterior_power(V, k)
+      @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test dim(pow_V) == binomial(dim(V), k)
+      @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+      @test !is_standard_module(pow_V)
+      @test is_exterior_power(pow_V)
+      @test !is_symmetric_power(pow_V)
+      @test !is_tensor_power(pow_V)
+
+      if k == 1
+        x = L(rand(-10:10, dim(L)))
+        a = V(rand(-10:10, dim(V)))
+        @test pow_V([x * a]) == x * pow_V([a])
+      elseif k == 2
+        a = V(rand(-10:10, dim(V)))
+        b = V(rand(-10:10, dim(V)))
+        @test !iszero(pow_V([a, b]))
+        @test iszero(pow_V([a, b]) + pow_V([b, a]))
+        @test !iszero(pow_V([a, b]) - pow_V([b, a]))
+        @test iszero(pow_V([a, a]))
+      end
+    end
   end
 
   @testset "symmetric_power" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V = exterior_power(standard_module(L), 2)
-    pow_V = symmetric_power(V, 2)
+    type_V = module_type_bools(V)
 
-    @test dim(pow_V) == binomial(dim(V) + 2 - 1, 2)
-    a = gen(V, 1)
-    b = gen(V, 2)
-    @test !iszero(pow_V([a, b]))
-    @test !iszero(pow_V([a, b]) + pow_V([b, a]))
-    @test iszero(pow_V([a, b]) - pow_V([b, a]))
-    @test !iszero(pow_V([a, a]))
+    for k in 1:3
+      pow_V = symmetric_power(V, k)
+      @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test dim(pow_V) == binomial(dim(V) + k - 1, k)
+      @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+      @test !is_standard_module(pow_V)
+      @test !is_exterior_power(pow_V)
+      @test is_symmetric_power(pow_V)
+      @test !is_tensor_power(pow_V)
+
+      if k == 1
+        x = L(rand(-10:10, dim(L)))
+        a = V(rand(-10:10, dim(V)))
+        @test pow_V([x * a]) == x * pow_V([a])
+      elseif k == 2
+        a = V(rand(-10:10, dim(V)))
+        b = V(rand(-10:10, dim(V)))
+        @test !iszero(pow_V([a, b]))
+        @test !iszero(pow_V([a, b]) + pow_V([b, a]))
+        @test iszero(pow_V([a, b]) - pow_V([b, a]))
+        @test !iszero(pow_V([a, a]))
+      end
+    end
   end
 
   @testset "tensor_power" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V = standard_module(L)
-    pow_V = tensor_power(V, 2)
+    type_V = module_type_bools(V)
 
-    @test dim(pow_V) == dim(V)^2
-    a = gen(V, 1)
-    b = gen(V, 2)
-    @test !iszero(pow_V([a, b]))
-    @test !iszero(pow_V([a, b]) + pow_V([b, a]))
-    @test !iszero(pow_V([a, b]) - pow_V([b, a]))
-    @test !iszero(pow_V([a, a]))
+    for k in 1:3
+      pow_V = tensor_power(V, k)
+      @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test dim(pow_V) == dim(V)^k
+      @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+      @test !is_standard_module(pow_V)
+      @test !is_exterior_power(pow_V)
+      @test !is_symmetric_power(pow_V)
+      @test is_tensor_power(pow_V)
+
+      if k == 1
+        x = L(rand(-10:10, dim(L)))
+        a = V(rand(-10:10, dim(V)))
+        @test pow_V([x * a]) == x * pow_V([a])
+      elseif k == 2
+        a = V(rand(-10:10, dim(V)))
+        b = V(rand(-10:10, dim(V)))
+        @test !iszero(pow_V([a, b]))
+        @test !iszero(pow_V([a, b]) + pow_V([b, a]))
+        @test !iszero(pow_V([a, b]) - pow_V([b, a]))
+        @test !iszero(pow_V([a, a]))
+      end
+    end
   end
 
   @testset "so_n correctness regression" begin
