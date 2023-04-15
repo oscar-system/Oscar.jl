@@ -277,13 +277,12 @@ end
 @doc raw"""
     is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor) -> Bool
 
-Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic module
-`S` in a torsion quadratic module `T`, and an abelian group endomorphism `f`
-of `T`, return whether `f` fixes `S`, i.e. whether $f(i(s)) \in i(S)$ for all
-$s \in S$.
+Given an abelian group morphism $i\colon S \to T$ form a torsion quadratic module
+`S` to a torsion quadratic module `T`, and an abelian group endomorphism `f`
+of `T`, return whether `f` preserves the image of `i` in `T`, i.e. whether
+$f(i(s)) \in i(S)$ for all $s \in S$.
 """
-function is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor; check::Bool = true)
-  @req !check || is_invariant(i) "i must be an injection"
+function is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor)
   @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
   U = domain(i)
   for a in gens(U)
@@ -297,29 +296,28 @@ end
     is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor)
                                                                         -> Bool
 
-Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic module
-`S` in a torsion quadratic module `T`, and an automorphism `f` of `T`, return
-whether `f` fixes `S`, i.e. whether $f(i(s)) \in i(S)$ for all $s \in S$.
+Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic module
+`S` to a torsion quadratic module `T`, and an automorphism `f` of `T`, return
+whether `f` preserves the image of `i` in `T`, i.e. whether
+$f(i(s)) \in i(S)$ for all $s \in S$.
 """
-function is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
-  @req !check || is_injective(i) "i must be an injection"
+function is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor)
   @req domain(parent(f)) === codomain(i) "f must be an automorphism of the target of i"
-  return is_invariant(hom(f), i, check = false)
+  return is_invariant(hom(f), i)
 end
 
 @doc raw"""
     is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
                                                                         -> Bool
 
-Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic module
-`S` in a torsion quadratic module `T`, and a group `G` of automorphisms of `T`,
-return whether `S` is fixed by every elements in `G`, i.e. whether
-$f(i(s)) \in i(S)$ for all $s \in S$ and all $f \in G$
+Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic module
+`S` to a torsion quadratic module `T`, and a group `G` of automorphisms of `T`,
+return whether the image of `i` in `T` is preserved by every element in
+`G`, i.e. whether $f(i(s)) \in i(S)$ for all $s \in S$ and all $f \in G$
 """
-function is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool = true)
-  @req !check || is_injective(i) "i must be an injection"
+function is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
   @req domain(G) === codomain(i) "G must consist of automorphisms of the target of i"
-  return all(f -> is_invariant(f, i, check = false), gens(G))
+  return all(f -> is_invariant(f, i), gens(G))
 end
 
 @doc raw"""
@@ -359,7 +357,7 @@ If `S` is not invariant under the action of `f`, then an error is thrown.
 function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
   @req !check || is_injective(i) "i must be an injection"
   @req domain(parent(f)) === codomain(i) "f must be an automorphism of the target of i"
-  return restrict_endomorphism(hom(f), i)
+  return restrict_endomorphism(hom(f), i, check = false)
 end
 
 @doc raw"""
