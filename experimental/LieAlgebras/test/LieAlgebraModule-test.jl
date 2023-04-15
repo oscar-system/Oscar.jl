@@ -217,6 +217,7 @@ end
     for k in 1:3
       pow_V = exterior_power(V, k)
       @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test base_module(pow_V) === V
       @test dim(pow_V) == binomial(dim(V), k)
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -248,6 +249,7 @@ end
     for k in 1:3
       pow_V = symmetric_power(V, k)
       @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test base_module(pow_V) === V
       @test dim(pow_V) == binomial(dim(V) + k - 1, k)
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -279,6 +281,7 @@ end
     for k in 1:3
       pow_V = tensor_power(V, k)
       @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test base_module(pow_V) === V
       @test dim(pow_V) == dim(V)^k
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 

@@ -120,17 +120,17 @@ end
 
 function show_exterior_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "$(get_attribute(V, :power))-th exterior power of ")
-  print(IOContext(io, :compact => true), get_attribute(V, :inner_module))
+  print(IOContext(io, :compact => true), base_module(V))
 end
 
 function show_symmetric_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "$(get_attribute(V, :power))-th symmetric power of ")
-  print(IOContext(io, :compact => true), get_attribute(V, :inner_module))
+  print(IOContext(io, :compact => true), base_module(V))
 end
 
 function show_tensor_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "$(get_attribute(V, :power))-th tensor power of ")
-  print(IOContext(io, :compact => true), get_attribute(V, :inner_module))
+  print(IOContext(io, :compact => true), base_module(V))
 end
 
 function symbols(V::LieAlgebraModule{C}) where {C<:RingElement}
@@ -190,7 +190,7 @@ function (V::LieAlgebraModule{C})(
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
   @req is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Only implemented for power modules."
   @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
-  @req all(x -> parent(x) == get_attribute(V, :inner_module), a) "Incompatible modules."
+  @req all(x -> parent(x) == base_module(V), a) "Incompatible modules."
   mat = zero_matrix(base_ring(V), 1, dim(V))
   if is_exterior_power(V)
     for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
@@ -340,6 +340,11 @@ function is_tensor_power(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback) == :tensor_power
 end
 
+function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
+  @req is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
+  return get_attribute(V, :base_module)
+end
+
 ###############################################################################
 #
 #   Constructor
@@ -428,7 +433,7 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     pow_V,
     :type => :exterior_power,
     :power => k,
-    :inner_module => V,
+    :base_module => V,
     :ind_map => ind_map,
     :show => show_exterior_power,
   )
@@ -485,7 +490,7 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     pow_V,
     :type => :symmetric_power,
     :power => k,
-    :inner_module => V,
+    :base_module => V,
     :ind_map => ind_map,
     :show => show_symmetric_power,
   )
@@ -520,7 +525,7 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     pow_V,
     :type => :tensor_power,
     :power => k,
-    :inner_module => V,
+    :base_module => V,
     :ind_map => ind_map,
     :show => show_tensor_power,
   )
