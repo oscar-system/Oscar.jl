@@ -9,30 +9,21 @@
     dimV::Int,
     transformation_matrices::Vector{<:MatElem{C}},
     s::Vector{Symbol};
-    cached::Bool=true,
     check::Bool=true,
   ) where {C<:RingElement}
-    return get_cached!(
-      LieAlgebraModuleDict, (L, dimV, transformation_matrices, s), cached
-    ) do
-      @req dimV == length(s) "Invalid number of basis element names."
-      @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
-      @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
+    @req dimV == length(s) "Invalid number of basis element names."
+    @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
+    @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
 
-      V = new{C}(L, dimV, transformation_matrices, s)
-      if check
-        for xi in basis(L), xj in basis(L), v in basis(V)
-          @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
-        end
+    V = new{C}(L, dimV, transformation_matrices, s)
+    if check
+      for xi in basis(L), xj in basis(L), v in basis(V)
+        @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
       end
-      V
-    end::LieAlgebraModule{C}
+    end
+    return V
   end
 end
-
-const LieAlgebraModuleDict = CacheDictType{
-  Tuple{LieAlgebra,Int,Vector{MatElem},Vector{Symbol}},LieAlgebraModule
-}()
 
 struct LieAlgebraModuleElem{C<:RingElement}
   parent::LieAlgebraModule{C}
@@ -273,6 +264,18 @@ end
 #
 ###############################################################################
 
+function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
+  return V1.L == V2.L &&
+         V1.dim == V2.dim &&
+         V1.transformation_matrices == V2.transformation_matrices &&
+         V1.s == V2.s
+end
+
+function Base.hash(V::LieAlgebraModule{C}, h::UInt) where {C<:RingElement}
+  b = 0x28b0c111e3ff8526 % UInt
+  return xor(hash(V.L, hash(V.dim, hash(V.transformation_matrices, hash(V.s, h)))), b)
+end
+
 function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
@@ -348,12 +351,9 @@ function abstract_module(
   dimV::Int,
   transformation_matrices::Vector{<:MatElem{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
-  cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
-  return LieAlgebraModule{C}(
-    L, dimV, transformation_matrices, Symbol.(s); cached, check=check
-  )
+  return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
 function abstract_module(
@@ -361,7 +361,6 @@ function abstract_module(
   dimV::Int,
   struct_consts::Matrix{SRow{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
-  cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
   @req dim(L) == size(struct_consts, 1) "Invalid structure constants dimensions."
@@ -373,35 +372,29 @@ function abstract_module(
     transformation_matrices[i][:, j] = transpose(dense_row(struct_consts[i, j], dimV))
   end
 
-  return LieAlgebraModule{C}(
-    L, dimV, transformation_matrices, Symbol.(s); cached, check=check
-  )
+  return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
-function highest_weight_module(
-  L::LieAlgebra{C}, weight::Vector{Int}; cached::Bool=true
-) where {C<:RingElement}
+function highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) where {C<:RingElement}
   struct_consts = lie_algebra_highest_weight_module_struct_consts_gap(L, weight)
   dimV = size(struct_consts, 2)
-  V = abstract_module(L, dimV, struct_consts; cached, check=false)
+  V = abstract_module(L, dimV, struct_consts; check=false)
   set_attribute!(V, :highest_weight => weight)
   return V
 end
 
-function standard_module(L::LinearLieAlgebra{C}; cached::Bool=true) where {C<:RingElement}
+function standard_module(L::LinearLieAlgebra{C}) where {C<:RingElement}
   dim_std_V = L.n
   transformation_matrices = matrix_repr_basis(L)
   s = [Symbol("v_$(i)") for i in 1:dim_std_V]
   std_V = LieAlgebraModule{elem_type(base_ring(L))}(
-    L, dim_std_V, transformation_matrices, s; cached, check=false
+    L, dim_std_V, transformation_matrices, s; check=false
   )
   set_attribute!(std_V, :type => :standard_module, :show => show_standard_module)
   return std_V
 end
 
-function exterior_power(
-  V::LieAlgebraModule{C}, k::Int; cached::Bool=true
-) where {C<:RingElement}
+function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V), k)
   ind_map = collect(combinations(1:dim(V), k))
@@ -430,7 +423,7 @@ function exterior_power(
     s = [Symbol(join(parentheses.(s), " ∧ ")) for s in combinations(symbols(V), k)]
   end
 
-  pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; cached, check=false)
+  pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
   set_attribute!(
     pow_V,
     :type => :exterior_power,
@@ -442,9 +435,7 @@ function exterior_power(
   return pow_V
 end
 
-function symmetric_power(
-  V::LieAlgebraModule{C}, k::Int; cached::Bool=true
-) where {C<:RingElement}
+function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V) + k - 1, k)
   ind_map = collect(multicombinations(1:dim(V), k))
@@ -489,7 +480,7 @@ function symmetric_power(
     ]
   end
 
-  pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; cached, check=false)
+  pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
   set_attribute!(
     pow_V,
     :type => :symmetric_power,
@@ -501,9 +492,7 @@ function symmetric_power(
   return pow_V
 end
 
-function tensor_power(
-  V::LieAlgebraModule{C}, k::Int; cached::Bool=true
-) where {C<:RingElement}
+function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = dim(V)^k
   ind_map = reverse.(collect(ProductIterator(1:dim(V), k)))
@@ -526,7 +515,7 @@ function tensor_power(
     ]
   end
 
-  pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; cached, check=false)
+  pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
   set_attribute!(
     pow_V,
     :type => :tensor_power,
