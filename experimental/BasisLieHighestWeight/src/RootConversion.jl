@@ -4,27 +4,34 @@ using Oscar
 fromGap = Oscar.GAP.gap_to_julia
 
 function w_to_eps(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
-    if type == "A"
-        return w_to_eps_A(rank, weight)
-    elseif type in ["B", "C", "D", "E", "F", "G"]
+    """
+    converts weight in rootsystem w_i to eps_i
+    """
+    if type in ["A", "B", "C", "D", "E", "F", "G"]
         return alpha_to_eps(type, rank, w_to_alpha(type, rank, weight))
     else
-        println("This type of lie algebra is not supported.")
+        println("Type needs to be one of A-D")
     end
 end
 
 function eps_to_w(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
-    if type == "A"
-        return eps_to_w_A(rank, weight)
-    elseif type in ["B", "C", "D", "E", "F", "G"]
+    """
+    converts weight in rootsystem eps_i to w_i
+    """
+    if type in ["A", "B", "C", "D", "E", "F", "G"]
         return round.(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight)))
     else
-        println("This type of lie algebra is not supported.")
+        println("Type needs to be one of A-D")
     end
 end
 
 function alpha_to_eps(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
-    if type in ["B", "C", "D"]
+    """
+    converts weight in rootsystem alpha_i to eps_i
+    """
+    if type == "A"
+        return alpha_to_eps_A(rank, weight)
+    elseif type in ["B", "C", "D"]
         return alpha_to_eps_BCD(type, rank, weight)
     elseif type == "E" && rank in [6, 7, 8]
         return alpha_to_eps_E(rank, weight)
@@ -38,7 +45,12 @@ function alpha_to_eps(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
 end
 
 function eps_to_alpha(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
-    if type in ["B", "C", "D"]
+    """
+    converts weight in rootsystem eps_i to alpha_i
+    """
+    if type == "A"
+        return eps_to_alpha_A(rank, weight)
+    elseif type in ["B", "C", "D"]
         return eps_to_alpha_BCD(type, rank, weight)
     elseif type == "E" && rank in [6, 7, 8]
         return eps_to_alpha_E(rank, weight)
@@ -77,8 +89,6 @@ end
 function get_inverse_CartanMatrix(type::String, rank::Int)
     return inv(get_CartanMatrix(type, rank))
 end
-
-
 
 function alpha_to_eps_BCD(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
     """
@@ -314,23 +324,6 @@ function eps_to_alpha_G(weight::Vector{Int})::Vector{Int}
     return alpha
 end
 
-function w_to_eps_A(rank::Int, weight::Vector{Int})::Vector{Int}
-    """
-    input: weight in w_i
-    output: weight in eps_i
-    inverse to eps_to_w
-    # TODO (right now only for t=A)
-    """
-    res = [0 for i in 1:(rank+1)]
-    for i in 1:rank
-        for l in 1:i
-            res[l] += weight[i]
-        end
-    end
-    choose_representant_eps(res)
-    return res
-end
-
 function choose_representant_eps(weight::Vector{Int})
     # choose representant eps_1 + ... + eps_m = 0
     if any(<(0), weight) # non negative
@@ -338,24 +331,36 @@ function choose_representant_eps(weight::Vector{Int})
     end
 end
 
-function eps_to_w_A(rank::Int, weight::Vector{Int})::Vector{Int}
+function alpha_to_eps_A(rank::Int, weight::Vector{Int})::Vector{Int}
     """
-    input: weight in eps_i
-    output: weight in w_i
-    inverse to w_to_eps
+    for A
     """
-    m = length(weight)
-    choose_representant_eps(weight)
-    if weight[rank + 1] != 0 # eps_n+1 = 0
-        weight .-= weight[rank + 1]
-        weight[rank + 1] = 0
+    eps = [0 for i in 1:(rank + 1)]
+    for i in 1:rank
+        eps[i] += weight[i]
+        eps[i + 1] -= weight[i]
     end
-    res = [0 for i in 1:rank]
-    for i in rank:-1:1
-        res[i] = weight[i]
-        for l in 1:i
-            weight[l] -= weight[i]
+    choose_representant_eps(eps)
+    return eps
+end
+
+function eps_to_alpha_A(rank::Int, weight::Vector{Int})::Vector{Int}
+    """
+    for A
+    """
+    if length(weight) == rank
+        append!(weight, 0)
+    end
+    alpha = [0.0 for i in 1:(rank + 1)]
+    for i in 1:(rank + 1)
+        for j in 1:i
+            alpha[i] += weight[j]
         end
     end
-    return res
+    m = alpha[rank + 1] / (rank + 1)
+    for i in 1:rank
+        alpha[i] -= i*m
+    end
+    pop!(alpha)
+    return alpha
 end
