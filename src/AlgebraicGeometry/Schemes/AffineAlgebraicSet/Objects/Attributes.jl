@@ -1,5 +1,3 @@
-export vanishing_ideal
-
 ########################################################################
 #
 # (1) AbsSpec interface
@@ -16,8 +14,11 @@ Return the ideal of all polynomials vanishing in ``X``.
 vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
 
 @doc raw"""
-    ideal(X::AbsAffineAlgebraicSet{}) -> Ideal
+    ideal(X::AbsAffineAlgebraicSet) -> Ideal
 
 Return the ideal of all polynomials vanishing in ``X``.
 """
 ideal(X::AbsAffineAlgebraicSet) = vanishing_ideal(X)
+
+
+

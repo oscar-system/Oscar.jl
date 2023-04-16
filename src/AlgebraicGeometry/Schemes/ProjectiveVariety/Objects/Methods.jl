@@ -16,14 +16,14 @@ function Base.show(io::IO, X::AbsProjectiveVariety)
     if get(io, :supercompact, false)
       print(io, "Projective variety")
     else
-      print(io, "Projective variety in ")
-      print(io, ambient_space(X))
+      print(io, "Projective variety defined by ")
+      print(io, vanishing_ideal(X))
     end
 end
 
 function Base.show(io::IO, X::AbsProjectiveVariety{<:Field,<:MPolyRing})
     if get(io, :supercompact, false)
-      print(io, "Projective space")
+      print(io, "PP^$(dim(X))")
     else
       print(io, "Projective $(dim(X))-space over ")
       print(IOContext(io, :supercompact => true), base_ring(X))

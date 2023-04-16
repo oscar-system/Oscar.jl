@@ -4,7 +4,7 @@
 @doc raw"""
     projective_variety(X::AbsProjectiveScheme; check::Bool=true) -> ProjectiveVariety
 
-Convert ``X`` to an projective variety.
+Convert ``X`` to a projective variety.
 
 If `check` is set, compute the reduced scheme of `X` first.
 """
@@ -14,6 +14,7 @@ function projective_variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
   return ProjectiveVariety(Xred, check=check)
 end
 
+# documented above
 function projective_variety(X::AbsProjectiveAlgebraicSet{<:Field}; check::Bool=true)
   check  ||  return ProjectiveVariety(X, check=check)
   Xred = X # already geometrically reduced
@@ -21,12 +22,13 @@ function projective_variety(X::AbsProjectiveAlgebraicSet{<:Field}; check::Bool=t
 end
 
 @doc raw"""
-    projective_variety(I::MPolyIdeal; check::Bool=true) -> ProjectiveVariety
+    projective_variety([R::MPolyDecRing,] I::MPolyIdeal; check::Bool=true) -> ProjectiveVariety
 
 Return the projective variety defined by the homogeneous prime ideal ``I``.
 
-Since our varieties are irreducible, we check that ``I`` stays prime when
-viewed over the algebraic closure. This is an expensive check that can be disabled.
+Since in our terminology varieties are irreducible over the algebraic closure,
+we check that ``I`` stays prime when viewed over the algebraic closure.
+This is an expensive check that can be disabled.
 
 ```jldoctest
 julia> P3 = projective_space(QQ,3)
@@ -73,6 +75,14 @@ projective_variety(R::Ring; check::Bool=true) = ProjectiveVariety(ProjectiveSche
 
 projective_variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
 
+
+@doc raw"""
+    projective_variety(f::MPolyDecRingElem; check=true)
+
+Return the projective variety defined by the homogeneous polynomial `f`.
+
+This checks that `f` is absolutely irreducible.
+"""
 function projective_variety(f::MPolyDecRingElem; check=true)
   if check
     is_irreducible(f) || error("polynomial is reducible")
@@ -91,23 +101,20 @@ end
 # (1) projective space
 ########################################################
 
-function projective_space(A::Field, var_symb::Vector{Symbol})
+function projective_space(A::Field, var_symb::Vector{VarName})
   n = length(var_symb)
   R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
   return projective_variety(projective_scheme(S), check=false)
 end
 
-projective_space(A::Field, var_names::Vector{String}
-  ) = projective_space(A, Symbol.(var_names))
-
 
 function projective_space(
     A::CoeffRingType,
     r::Int;
-    var_name::String="s"
+    var_name::VarName=:s
   ) where {CoeffRingType<:Field}
-  R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
+  R, _ = polynomial_ring(A, [Symbol(var_name,i) for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
   return projective_variety(projective_scheme(S), check=false)
 end

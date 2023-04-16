@@ -37,7 +37,8 @@ end
 @doc raw"""
     vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
 
-Return the vanishing locus of ``I`` as an algebraic set in projective space.
+Return the vanishing locus of the homogeneous ideal ``I`` as an algebraic set
+in projective space.
 
 This computes the radical of ``I`` if `check=true`
 otherwise take on faith that ``I`` is radical.
@@ -65,6 +66,15 @@ function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
   return ProjectiveAlgebraicSet(X, check=check)
 end
 
+@doc raw"""
+    vanishing_locus(p::MPolyDecRingElem; check::Bool=true)
+
+Return the vanishing locus of the homogeneous polynomial `p` as an algebraic set
+in projective space.
+
+This computes the radical of ``I`` if `check=true`
+otherwise take on faith that ``I`` is radical.
+"""
 vanishing_locus(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
 ########################################################
 # (2) Intersections of algebraic sets
@@ -73,7 +83,8 @@ vanishing_locus(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(ideal(p
 @doc raw"""
     set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet) -> AbsProjectiveAlgebraicSet
 
-Return the set theoretic intersection of `X` and `Y` as a `ProjectiveAlgebraicSet`.
+Return the set theoretic intersection of `X` and `Y` as as algebraic sets
+in projective space.
 
 This is the reduced subscheme of the scheme theoretic intersection.
 """
