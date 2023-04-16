@@ -1134,8 +1134,10 @@ export representative_action
 export represents_element
 export restrict
 export restrict_automorphism
+export restrict_automorphism_group
 export restrict_codomain
 export restrict_domain
+export restrict_endomorphism
 export restrict_homomorphism
 export restricted_map
 export restricted_map_type
