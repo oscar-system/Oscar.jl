@@ -128,7 +128,12 @@ end
 
 function show_dual(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "Dual of ")
-  print(IOContext(io, :compact => true), get_attribute(V, :base_module))
+  print(IOContext(io, :compact => true), base_module(V))
+end
+
+function show_direct_sum(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
+  print(io, "Direct sum of ")
+  print(IOContext(io, :compact => true), base_modules(V))
 end
 
 function show_exterior_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
@@ -204,28 +209,35 @@ end
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  @req is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Only implemented for power modules."
-  @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
-  @req all(x -> parent(x) == base_module(V), a) "Incompatible modules."
-  mat = zero_matrix(base_ring(V), 1, dim(V))
-  if is_exterior_power(V)
-    for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
-      (inds, sgn) in permutations_with_sign(_inds)
+  if is_direct_sum(V)
+    @req length(a) == length(base_modules(V)) "Length of vector does not match."
+    @req all(i -> parent(a[i]) == base_modules(V)[i], 1:length(a)) "Incompatible modules."
+    return V(vcat([coefficients(x) for x in a]...))
+  elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
+    @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
+    @req all(x -> parent(x) == base_module(V), a) "Incompatible modules."
+    mat = zero_matrix(base_ring(V), 1, dim(V))
+    if is_exterior_power(V)
+      for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
+        (inds, sgn) in permutations_with_sign(_inds)
 
-      mat[1, i] += sgn * prod(a[j].mat[k] for (j, k) in enumerate(inds))
-    end
-  elseif is_symmetric_power(V)
-    for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
-      inds in unique(permutations(_inds))
+        mat[1, i] += sgn * prod(a[j].mat[k] for (j, k) in enumerate(inds))
+      end
+    elseif is_symmetric_power(V)
+      for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
+        inds in unique(permutations(_inds))
 
-      mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
+        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
+      end
+    elseif is_tensor_power(V)
+      for (i, inds) in enumerate(get_attribute(V, :ind_map))
+        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
+      end
     end
-  elseif is_tensor_power(V)
-    for (i, inds) in enumerate(get_attribute(V, :ind_map))
-      mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
-    end
+    return LieAlgebraModuleElem{C}(V, mat)
+  else
+    throw(ArgumentError("Invalid input."))
   end
-  return LieAlgebraModuleElem{C}(V, mat)
 end
 
 ###############################################################################
@@ -348,6 +360,10 @@ function is_dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback) == :dual
 end
 
+function is_direct_sum(V::LieAlgebraModule{C}) where {C<:RingElement}
+  return get_attribute(V, :type, :fallback) == :direct_sum
+end
+
 function is_exterior_power(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback) == :exterior_power
 end
@@ -363,6 +379,11 @@ end
 function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
   return get_attribute(V, :base_module)
+end
+
+function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
+  @req is_direct_sum(V) "Not a direct sum module."
+  return get_attribute(V, :base_modules)
 end
 
 ###############################################################################
@@ -437,6 +458,27 @@ function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   pow_V = LieAlgebraModule{C}(L, dim_dual_V, transformation_matrices, s; check=false)
   set_attribute!(pow_V, :type => :dual, :base_module => V, :show => show_dual)
   return pow_V
+end
+
+⊕(V::LieAlgebraModule{C}...) where {C<:RingElement} = direct_sum(V...)
+
+function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
+  @req length(V) >= 1 "At least one module must be given."
+  L = base_lie_algebra(V[1])
+  @req all(x -> base_lie_algebra(x) == L, V) "All modules must have the same base Lie algebra."
+
+  dim_direct_sum_V = sum(dim, V)
+  transformation_matrices = map(1:dim(L)) do i
+    block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in V])
+  end
+  s = vcat(map(symbols, V)...)
+  direct_sum_V = LieAlgebraModule{C}(
+    L, dim_direct_sum_V, transformation_matrices, s; check=false
+  )
+  set_attribute!(
+    direct_sum_V, :type => :direct_sum, :base_modules => V, :show => show_direct_sum
+  )
+  return direct_sum_V
 end
 
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}

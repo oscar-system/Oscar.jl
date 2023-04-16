@@ -205,6 +205,7 @@ end
 
     @test is_standard_module(V)
     @test !is_dual(V)
+    @test !is_direct_sum(V)
     @test !is_exterior_power(V)
     @test !is_symmetric_power(V)
     @test !is_tensor_power(V)
@@ -227,6 +228,7 @@ end
 
     @test !is_standard_module(dual_V)
     @test is_dual(dual_V)
+    @test !is_direct_sum(V)
     @test !is_exterior_power(dual_V)
     @test !is_symmetric_power(dual_V)
     @test !is_tensor_power(dual_V)
@@ -239,6 +241,31 @@ end
         Oscar.LieAlgebras.transformation_matrix(V, i),
       1:dim(L),
     )
+  end
+
+  @testset "direct_sum" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    V = symmetric_power(standard_module(L), 2)
+    type_V = module_type_bools(V)
+
+    for k in 1:3
+      ds_V = direct_sum([V for _ in 1:k]...)
+      @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
+      @test collect(base_modules(ds_V)) == [V for _ in 1:k]
+      @test dim(ds_V) == k * dim(V)
+      @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+      @test !is_standard_module(ds_V)
+      @test !is_dual(ds_V)
+      @test is_direct_sum(ds_V)
+      @test !is_exterior_power(ds_V)
+      @test !is_symmetric_power(ds_V)
+      @test !is_tensor_power(ds_V)
+
+      x = L(rand(-10:10, dim(L)))
+      a = [V(rand(-10:10, dim(V))) for _ in 1:k]
+      @test ds_V([x * v for v in a]) == x * ds_V(a)
+    end
   end
 
   @testset "exterior_power" begin
@@ -255,6 +282,7 @@ end
 
       @test !is_standard_module(pow_V)
       @test !is_dual(V)
+      @test !is_direct_sum(V)
       @test is_exterior_power(pow_V)
       @test !is_symmetric_power(pow_V)
       @test !is_tensor_power(pow_V)
@@ -288,6 +316,7 @@ end
 
       @test !is_standard_module(pow_V)
       @test !is_dual(V)
+      @test !is_direct_sum(V)
       @test !is_exterior_power(pow_V)
       @test is_symmetric_power(pow_V)
       @test !is_tensor_power(pow_V)
@@ -321,6 +350,7 @@ end
 
       @test !is_standard_module(pow_V)
       @test !is_dual(V)
+      @test !is_direct_sum(V)
       @test !is_exterior_power(pow_V)
       @test !is_symmetric_power(pow_V)
       @test is_tensor_power(pow_V)
