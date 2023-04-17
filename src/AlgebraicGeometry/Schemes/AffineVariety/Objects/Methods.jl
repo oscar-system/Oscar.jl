@@ -40,18 +40,39 @@ end
 
 # For affine space
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyRing})
-  println(io, "Affine $(dim(X))-space")
+  println(io, "Affine space of dimension $(dim(X))")
+  print(io, "  with coordinates ")
+  for x in coordinates(X)
+    print(io, x, " ")
+  end
+  println(io, "")
   print(io, "  over ")
-  println(io, base_ring(X))
-  println(io, "with coordinates")
-  show(io, "text/plain", coordinates(X))
+  print(io, base_ring(X))
 end
 
-function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyRing})
-  if get(io, :supercompact, false)
-    print(io, "AA^$(dim(X))")
+
+function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
+  if get(io, :supercompact, false) # no nested printing
+    if is_unicode_allowed()
+      ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
+      print(io, "𝔸$(ltx["\\^$(dim(X))"])")
+    else
+      print(io, "AA^$(dim(X))")
+    end
   else
-    print(io, "Affine $(dim(X))-space over ")
-    print(IOContext(io, :supercompact => true), base_ring(X))
+    if is_unicode_allowed()
+      ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
+      print(io, "𝔸")
+      n = dim(X)
+      for d in reverse(digits(n))
+        print(io, ltx["\\^$d"])
+      end
+      print(io, " over ")
+      print(IOContext(io, :supercompact => true), base_ring(X))
+    else
+      # nested printing allowed, preferably supercompact
+      print(io, "Affine $(dim(X))-space over ")
+      print(IOContext(io, :supercompact => true), base_ring(X))
+    end
   end
 end

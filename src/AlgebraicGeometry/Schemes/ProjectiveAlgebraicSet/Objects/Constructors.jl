@@ -19,7 +19,7 @@ Projective scheme
 
 julia> Y = projective_algebraic_set(X)
 Vanishing locus
-  in IP^2 over Rational Field
+  in Projective 2-space over Rational Field
   of ideal(x2, x0*x1)
 
 ```
@@ -47,7 +47,7 @@ julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 
 julia> vanishing_locus(ideal([x0,x1]))
 Vanishing locus
-  in IP^1 over Rational Field
+  in Projective 1-space over Rational Field
   of ideal(x1, x0)
 
 ```
@@ -109,23 +109,24 @@ Note that even if `X` is irreducible, there may be several geometric irreducible
 ```jldoctest
 julia> P1 = projective_space(QQ,1)
 Projective space of dimension 1
+  with homogeneous coordinates s0 s1
   over Rational Field
 
 julia> (s0,s1) = homogeneous_coordinates(P1);
 
 julia> X = vanishing_locus((s0^2+s1^2)*s1)
 Vanishing locus
-  in IP^1 over Rational Field
+  in Projective 1-space over Rational Field
   of ideal(s0^2*s1 + s1^3)
 
 julia> (X1,X2) = irreducible_components(X)
 2-element Vector{ProjectiveAlgebraicSet{QQField, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
- Projective algebraic set in IP^1 over Rational Field
- Projective algebraic set in IP^1 over Rational Field
+ Vanishing locus in IP^1 of ideal(s0^2 + s1^2)
+ Vanishing locus in IP^1 of ideal(s1)
 
 julia> X1  # irreducible but not geometrically irreducible
 Vanishing locus
-  in IP^1 over Rational Field
+  in Projective 1-space over Rational Field
   of ideal(s0^2 + s1^2)
 
 ```

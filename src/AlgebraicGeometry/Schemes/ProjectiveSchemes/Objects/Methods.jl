@@ -1,9 +1,6 @@
 ################################################################################
 # Printing and IO
 ################################################################################
-function Base.show(io::IO, )
-  print(io, "subscheme of ℙ^$(relative_ambient_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
-end
 
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   println(io, "Projective scheme")  # at least one new line is needed
@@ -26,6 +23,11 @@ end
 # Projective space
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   println(io, "Projective space of dimension $(relative_ambient_dimension(P))")  # at least one new line is needed
+  print(io, "  with homogeneous coordinates ")
+  for x in homogeneous_coordinates(P)
+    print(io, x, " ")
+  end
+  println(io, "")
   print(io, "  over ")
   print(io, base_ring(P)) # the last print statement must not add a new line
 end
@@ -41,11 +43,16 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"]) over ")
+      print(io, "ℙ")
+      n = relative_ambient_dimension(P)
+      for d in reverse(digits(n))
+        print(io, ltx["\\^$d"])
+      end
+      print(io, " over ")
       print(IOContext(io, :supercompact => true), base_ring(P))
     else
       # nested printing allowed, preferably supercompact
-      print(io, "IP^$(relative_ambient_dimension(P)) over ")
+      print(io, "Projective $(relative_ambient_dimension(P))-space over ")
       print(IOContext(io, :supercompact => true), base_ring(P))
     end
   end
@@ -61,6 +68,7 @@ Return the restriction morphism from the graded coordinate ring of ``X`` to `�
 ```jldoctest
 julia> P = projective_space(QQ, ["x0", "x1", "x2"])
 Projective space of dimension 2
+  with homogeneous coordinates x0 x1 x2
   over Rational Field
 
 julia> X = covered_scheme(P);
@@ -171,6 +179,7 @@ julia> A, _ = QQ["u", "v"];
 
 julia> P = projective_space(A, ["x0", "x1", "x2"])
 Projective space of dimension 2
+  with homogeneous coordinates x0 x1 x2
   over Multivariate Polynomial Ring in u, v over Rational Field
 
 julia> X = covered_scheme(P);

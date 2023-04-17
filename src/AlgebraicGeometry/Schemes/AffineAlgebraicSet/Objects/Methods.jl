@@ -3,9 +3,9 @@
 ########################################################
 
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
-  println(io, "Affine algebraic set")  # at least one new line is needed
+  println(io, "Vanishing locus")  # at least one new line is needed
   println(io, "  in $(ambient_space(X))")
-  print(io, "defined as vanishing locus of $(vanishing_ideal(X))")
+  print(io, "  of $(vanishing_ideal(X))")
   # the last print statement must not add a new line
 end
 

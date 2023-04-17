@@ -33,13 +33,14 @@ This is an expensive check that can be disabled.
 ```jldoctest
 julia> P3 = projective_space(QQ,3)
 Projective space of dimension 3
+  with homogeneous coordinates s0 s1 s2 s3
   over Rational Field
 
 julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
 
 julia> X = projective_variety(s0^3 + s1^3 + s2^3 + s3^3)
 Projective variety
-  in IP^3 over Rational Field
+  in Projective 3-space over Rational Field
   defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
 
 julia> dim(X)
@@ -47,7 +48,7 @@ julia> dim(X)
 
 julia> Y = projective_variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
-  in IP^3 over Rational Field
+  in Projective 3-space over Rational Field
   defined by ideal(s0^3 + s1^3 + s2^3 + s3^3, s0)
 
 julia> dim(Y)

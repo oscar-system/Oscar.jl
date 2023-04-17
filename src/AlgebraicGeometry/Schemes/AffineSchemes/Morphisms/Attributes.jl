@@ -20,13 +20,9 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 # Examples
 ```jldoctest
 julia> Y = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -57,13 +53,9 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 # Examples
 ```jldoctest
 julia> Y = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -80,13 +72,9 @@ Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Fie
 julia> f = inclusion_morphism(X, Y);
 
 julia> codomain(f)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 ```
 """
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
@@ -101,13 +89,9 @@ On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 # Examples
 ```jldoctest
 julia> Y = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -211,13 +195,9 @@ Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the tw
 # Examples
 ```jldoctest
 julia> Y = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
