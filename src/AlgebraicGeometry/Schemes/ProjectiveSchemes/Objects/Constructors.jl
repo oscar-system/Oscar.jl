@@ -79,7 +79,7 @@ Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by
 
 ```
 """
-function projective_space(A::Ring, var_symb::Vector{Symbol})
+function projective_space(A::Ring, var_symb::Vector{VarName})
   n = length(var_symb)
   R, _ = polynomial_ring(A, var_symb)
   S, _ = grade(R, [1 for i in 1:n ])
