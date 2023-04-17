@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
 ```@contents
 Pages = ["K3Surfaces.md"]
 ```

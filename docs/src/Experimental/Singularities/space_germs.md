@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
 ```@contents
 Pages = ["space_germs.md"]
 ```
