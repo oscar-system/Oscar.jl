@@ -14,7 +14,7 @@ On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine 3-space
- over Rational Field
+  over Rational Field
 with coordinates
 3-element Vector{QQMPolyRingElem}:
  x1
@@ -211,7 +211,7 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
 Affine 2-space
- over Rational Field
+  over Rational Field
 with coordinates
 2-element Vector{QQMPolyRingElem}:
  x
@@ -241,7 +241,7 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
 Affine 2-space
- over Rational Field
+  over Rational Field
 with coordinates
 2-element Vector{QQMPolyRingElem}:
  x
@@ -274,7 +274,7 @@ by the ambient affine space.
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
 Affine 2-space
- over Rational Field
+  over Rational Field
 with coordinates
 2-element Vector{QQMPolyRingElem}:
  x
@@ -339,7 +339,7 @@ By definition, this is the Krull dimension of ``R``.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine 3-space
- over Rational Field
+  over Rational Field
 with coordinates
 3-element Vector{QQMPolyRingElem}:
  x1
@@ -795,7 +795,7 @@ Return the defining ideal of the closure of ``X`` in its ambient affine space.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine 3-space
- over Rational Field
+  over Rational Field
 with coordinates
 3-element Vector{QQMPolyRingElem}:
  x1

@@ -89,8 +89,7 @@ julia> (x,y) = coordinates(A2);
 julia> affine_variety(y^2-x^3-1)
 Affine variety
  in Affine 2-space over Rational Field
-defined by
-ideal(-x^3 + y^2 - 1)
+defined by ideal(-x^3 + y^2 - 1)
 
 ```
 """
