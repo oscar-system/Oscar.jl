@@ -72,7 +72,7 @@ defined by ideal(x, y)
 affine_variety(R::MPolyAnyRing; check=true) = AffineVariety(Spec(R), check=check)
 
 @doc raw"""
-    function affine_variety(f::MPolyRingElem{<:Field}; check=true)
+    function affine_variety(f::MPolyRingElem{<:Field}; check::Bool=true)
 
 Return the affine variety defined as the vanishing locus of the multivariate polynomial `f`.
 
@@ -90,7 +90,7 @@ defined by ideal(-x^3 + y^2 - 1)
 
 ```
 """
-function affine_variety(f::MPolyRingElem{<:FieldElem}; check=true)
+function affine_variety(f::MPolyRingElem{<:FieldElem}; check::Bool=true)
   if check
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(f)[2]
