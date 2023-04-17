@@ -1,4 +1,5 @@
-mutable struct PBWAlgRing{T, S} <: NCRing
+# Use attribute :is_weyl_algebra to permit better printing (see expressify, below)
+@attributes mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations::Singular.smatrix{Singular.spoly{S}}
   coeff_ring
@@ -91,6 +92,13 @@ end
 function expressify(a::PBWAlgRing; context = nothing)
   x = symbols(a)
   n = length(x)
+  # Next if stmt handles special printing for Weyl algebras
+  if get_attribute(a, :is_weyl_algebra) === :true
+      return Expr(:sequence, Expr(:text, "Weyl-algebra over "),
+                             expressify(coefficient_ring(a); context=context),
+                             Expr(:text, " in "),
+                             Expr(:series, first(x,div(n,2))...))
+  end
   rel = [Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j]))
          for i in 1:n-1 for j in i+1:n]
   return Expr(:sequence, Expr(:text, "PBW-algebra over "),
@@ -476,7 +484,9 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   n == length(dxs) || error("number of differentials should match number of variables")
   r, v = polynomial_ring(K, vcat(xs, dxs))
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
-  return pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
+  R,vars = pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
+  set_attribute!(R, :is_weyl_algebra, :true)  # to activate special printing for Weyl algebras
+  return (R,vars)
 end
 
 function weyl_algebra(

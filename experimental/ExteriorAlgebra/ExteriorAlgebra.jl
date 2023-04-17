@@ -136,6 +136,7 @@ function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:Abstr
     # ***END OF WORKAROUND***
     # Create Quotient ring with special implementation:
     ExtAlg,_ = quo(PBW, I;  SpecialImpl = ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
+######    set_attribute!(ExtAlg, :is_exterior_algebra, :true)  ### DID NOT WORK (see PBWAlgebraQuo.jl)  Anyway, the have_special_impl function suffices.
     return ExtAlg, gens(ExtAlg)
 end
 
