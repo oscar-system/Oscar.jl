@@ -162,6 +162,8 @@
         "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
         "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
+        "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
+        "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",
@@ -178,8 +180,8 @@
      ],
      "Toric Schemes" => [
          "Experimental/ToricSchemes/intro.md",
-         "Experimental/ToricSchemes/AffineToricSchemes.md",
          "Experimental/ToricSchemes/NormalToricSchemes.md",
+         "Experimental/ToricSchemes/AffineToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",

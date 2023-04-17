@@ -44,6 +44,8 @@ _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{QQFieldElem}, t
 
 linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
+linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) = assure_matrix_polymake(stack(x...))
+
 matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
 nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)

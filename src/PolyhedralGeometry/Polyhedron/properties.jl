@@ -199,6 +199,17 @@ _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
 _vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
 
+_facet_indices(::Val{_vertex_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_VERTICES[_vertex_indices(P),_facet_indices(P)]
+
+function _facet_indices(P::Polymake.BigObject)
+    vi = Polymake.get_attachment(P, "_facet_indices")
+    if isnothing(vi)
+        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}([collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))])
+        Polymake.attach(P, "_facet_indices", vi);
+    end
+    return vi;
+end
+
 @doc raw"""
     vertices(P::Polyhedron)
 
@@ -292,6 +303,8 @@ rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_di
 _rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
 _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
+
+_facet_indices(::Val{_ray_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_RAYS[_ray_indices(P),_facet_indices(P)]
 
 _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
@@ -936,23 +949,46 @@ is_feasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
 
 
 @doc raw"""
-    contains(P::Polyhedron, v::AbstractVector)
+    issubset(P::Polyhedron, Q::Polyhedron)
 
-Check whether `P` contains `v`.
+Check whether `P` is a subset of the polyhedron `Q`.
+
+# Examples
+```jldoctest
+julia> P = cube(3,0,1)
+Polyhedron in ambient dimension 3
+
+julia> Q = cube(3,-1,2)
+Polyhedron in ambient dimension 3
+
+julia> issubset(P, Q)
+true
+
+julia> issubset(Q, P)
+false
+```
+"""
+Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(P), pm_object(Q))::Bool
+
+
+@doc raw"""
+    in(v::AbstractVector, P::Polyhedron)
+
+Check whether the vector `v` is contained in the polyhedron `P`.
 
 # Examples
 The positive orthant only contains vectors with non-negative entries:
 ```jldoctest
 julia> PO = Polyhedron([-1 0; 0 -1], [0, 0]);
 
-julia> contains(PO, [1, 2])
+julia> [1, 2] in PO
 true
 
-julia> contains(PO, [1, -2])
+julia> [1, -2] in PO
 false
 ```
 """
-contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
+Base.in(v::AbstractVector, P::Polyhedron) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
 
 
 @doc raw"""

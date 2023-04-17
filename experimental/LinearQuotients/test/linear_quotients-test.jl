@@ -1,6 +1,6 @@
 @testset "Linear quotients" begin
   G = matrix_group(matrix(QQ, 1, 1, [ 2 ] ))
-  @test_throws AssertionError linear_quotient(G)
+  @test_throws ArgumentError linear_quotient(G)
 
   K, a = cyclotomic_field(4, "a")
   r = matrix(K, 2, 2, [ -1, 0, 0, 1 ])

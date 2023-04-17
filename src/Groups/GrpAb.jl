@@ -40,6 +40,8 @@ end
 # Base.inv(x::GrpAbFinGenElem) = -x
 # x^n for GrpAbFinGenElem -> n*x
 
+Base.:^(g::GrpAbFinGenElem, x::GrpAbFinGenElem) = g
+
 function comm(x::GrpAbFinGenElem, y::GrpAbFinGenElem)
   @req (x.parent == y.parent) "elements must belong to the same group"
   return zero(parent(x))
@@ -51,6 +53,13 @@ function small_generating_set(G::GrpAbFinGen)
    is_snf(G) && return gens(G)
    S, mp = snf(G)
    return [mp(x) for x in gens(S)]
+end
+
+function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GrpAbFinGen
+   @req is_subgroup(H, G)[1] "H must be a subgroup of G"
+   f = count(x -> x == 0, snf(G)[1].snf) - count(x -> x == 0, snf(H)[1].snf)
+   @req f == 0 "index is supported only for subgroups of finite index"
+   return I(divexact(order(torsion_subgroup(G)[1]), order(torsion_subgroup(H)[1]), check = false))
 end
 
 
@@ -256,6 +265,8 @@ function socle(G::GrpAbFinGen)
    end
    return sub(G, subgens)
 end
+
+trivial_subgroup(G::GrpAbFinGen) = sub(G, GrpAbFinGenElem[])
 
 solvable_radical(G::GrpAbFinGen) = (G, identity_map(G))
 

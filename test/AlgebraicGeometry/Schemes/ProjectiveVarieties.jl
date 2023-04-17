@@ -6,4 +6,10 @@
   @test_throws ErrorException projective_variety(p^2)
   Y = projective_scheme(G, ideal([p^2]))
   @test X != Y
+  Y1 = projective_variety(G, ideal([p]),check=false)
+  Y1 = projective_variety(G, ideal([p]),check=true)
+  @inferred is_irreducible(Y1)
+  projective_variety(G)
+  Q,_ = quo(G, ideal([p]))
+  projective_variety(Q)
 end

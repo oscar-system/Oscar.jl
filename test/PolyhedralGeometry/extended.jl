@@ -181,6 +181,9 @@
             
             @test cone_from_inequalities(facets(x), collect(affine_hull(y))) == x
             @test cone_from_inequalities(facets(y), collect(linear_span(x))) == x
+
+            @test cone_from_inequalities([[-1, 0, 0], [0, -1, 0]], [0 0 1]) == x
+            @test cone_from_inequalities([-1 0 0; 0 -1 0], [[0, 0, 1]]) == x
         end
         
         # Here the content of the SubObjectIterator does not fit the idea of the

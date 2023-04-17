@@ -49,7 +49,12 @@ Return `true` if `R` is graded, `false` otherwise.
 function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
+
+is_graded(::MPolyRing) = false
+
 is_filtered(R::MPolyDecRing) = isdefined(R, :lt)
+is_filtered(::MPolyRing) = false
+
 
 function show(io::IO, W::MPolyDecRing)
   Hecke.@show_name(io, W)
@@ -212,6 +217,8 @@ function is_standard_graded(R::MPolyDecRing)
   return true
 end
 
+is_standard_graded(::MPolyRing) = false
+
 @doc raw"""
     is_z_graded(R::MPolyDecRing)
 
@@ -242,6 +249,8 @@ function is_z_graded(R::MPolyDecRing)
   A = grading_group(R)
   return ngens(A) == 1 && rank(A) == 1 && is_free(A)
 end
+
+is_z_graded(::MPolyRing) = false
 
 @doc raw"""
     is_zm_graded(R::MPolyDecRing)
@@ -299,6 +308,8 @@ function is_zm_graded(R::MPolyDecRing)
   A = grading_group(R)
   return is_free(A) && ngens(A) == rank(A)
 end
+
+is_zm_graded(::MPolyRing) = false
 
 @doc raw"""
     is_positively_graded(R::MPolyDecRing)
@@ -368,6 +379,8 @@ function is_positively_graded(R::MPolyDecRing)
   end
   return true
 end
+
+is_positively_graded(::MPolyRing) = false
 
 @doc raw"""
     graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
@@ -806,19 +819,6 @@ function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   f = sort_terms!(M.poly.f)
   f = combine_like_terms!(M.poly.f)
   return parent(M.poly)(f)
-end
-
-# constructor for ideals#######################################################
-
-function ideal(g::Vector{T}) where {T <: MPolyDecRingElem}
-  @assert length(g) > 0
-  @assert all(x->parent(x) == parent(g[1]), g)
-  if is_graded(parent(g[1]))
-     if !(all(is_homogeneous, g))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-     end
-  end
-  return MPolyIdeal(parent(g[1]), g)
 end
 
 function jacobi_matrix(f::MPolyDecRingElem)
@@ -1493,9 +1493,7 @@ mutable struct HilbertData
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
     R = base_ring(I)
-    if !((R isa Oscar.MPolyDecRing) && is_graded(R))
-      throw(ArgumentError("The base ring must be graded."))
-    end
+    @req is_graded(R) "The base ring must be graded"
 
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
@@ -2122,7 +2120,7 @@ the extra variables print as `var[`$i$`]`, for $i = 1 \dots m$.
 Given a vector `V` of elements in a common polynomial ring, create an extended ring with $\mathbb Z^m$-grading as above.
 Homogenize the elements of `V` correspondingly,  and return the vector of homogenized elements.
 
-    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
+    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
 
 Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading as above.
 

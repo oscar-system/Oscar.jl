@@ -39,7 +39,6 @@ const oldexppkgs = [
   "GITFans",
   "GModule",
   "JuLie",
-  "LinearQuotients",
   "Matrix",
   "ModStd",
   "MPolyRingSparse",
@@ -249,10 +248,11 @@ function __init__()
 
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
-    
+
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:GlobalWeierstrassModel)
-    
+
+    add_verbosity_scope(:LinearQuotients)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -425,16 +425,9 @@ function test_module(file::AbstractString; new::Bool=true)
     @info("spawning ", `$julia_exe -e \"$cmd\"`)
     run(`$julia_exe -e $cmd`)
   else
+    @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
     @info("Running tests for $rel_test_file in same session")
-    try
-      include(test_file)
-    catch e
-      if isa(e, LoadError)
-        println("You need to do \"using Test\"")
-      else
-        rethrow(e)
-      end
-    end
+    Base.include(Base.Main, test_file)
   end
 end
 
@@ -453,7 +446,7 @@ function test_experimental_module(
   project::AbstractString; file::AbstractString="runtests", new::Bool=true
 )
   test_file = "../experimental/$project/test/$file"
-  test_module(;file=test_file, new)
+  test_module(test_file; new)
 end
 
 include("Exports.jl")

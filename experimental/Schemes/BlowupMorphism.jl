@@ -34,6 +34,7 @@ end
 function domain(p::BlowupMorphism)
   if !isdefined(p, :domain)
     p.domain = covered_scheme(p.projective_bundle)
+    simplify!(p.domain)        # if simplify hangs, no other computation would go through anyway
   end
   return p.domain
 end
@@ -96,108 +97,191 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   return Z_trans, inc_Z_trans, pr_res
 end
 
+#@attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
+#  return is_one(saturated_ideal(I))
+#end
+
+@doc """
+    strict_transform(p::BlowupMorphism, I::IdealSheaf)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+strict transform of ``I`` on ``Y``.
+"""
 function strict_transform(p::BlowupMorphism, I::IdealSheaf)
+  Istrict,_ =_do_transform(p,I,-1)
+  return Istrict
+end
+
+@doc """
+    weak_transform(p::BlowupMorphism, I::IdealSheaf)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+weak transform ``J`` of ``I`` on ``Y``, i.e. an `IdealSheaf` satisfying ``E^m J = p^*I`` with ``m``
+maximal and ``E`` the 'IdealSheaf' of the exceptional divisor of ``p``.
+"""
+function weak_transform(p::BlowupMorphism, I::IdealSheaf)
+  Iweak,_ =_do_transform(p,I,0)
+  return Iweak
+end
+
+@doc """
+    weak_transform_with_multiplicity((p::BlowupMorphism, I::IdealSheaf)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+weak transform ``J`` of ``I`` on ``Y`` and the multiplicity ``m`` of the exceptional divisor, i.e. 
+the maximal ``m`` such that ``E^m J = p^*I``, where ``E`` denotes the `IdealSheaf` of the exceptional
+divisor of ``p``.
+"""
+function weak_transform_with_multiplicity(p::BlowupMorphism, I::IdealSheaf)
+  Iweak, multi = _do_transform(p,I,0)
+  return Iweak,multi
+end
+
+@doc """
+    controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `IdealSheaf` ``I`` on ``X`` return the
+controlled transform of ``I`` on ``Y`` with control ``b``,i.e. an `IdealSheaf` ``J`` such that
+``E^b J = p^*I`` where ``E``denotes the `IdealSheaf` of the exceptional divisor.
+"""
+function controlled_transform(p::BlowupMorphism, I::IdealSheaf, b::Int)
+  Icontrol,_ = _do_transform(p,I,b)
+  return Icontrol
+end
+
+##########################################################################################################
+## central internal method for strict, weak and controlled transforms of IdealSheafs and subschemes
+##########################################################################################################
+function _do_transform(p::BlowupMorphism, I::IdealSheaf, method::Int=-1)
+## method: -1  strict transform
+##          0  weak transform
+##         b>0  controlled transform with control b>0
+##         < -1 error
+  method > -2  || error("unknown method of transform", method)
+
+  ## initializations and sanity checks for p
   X = scheme(I)
   Y = domain(p) 
   X === codomain(p) || error("ideal sheaf is not defined on the codomain of the morphism")
-
+  IE = ideal_sheaf(exceptional_divisor(p))
   ID = IdDict{AbsSpec, Ideal}()
-  pr = projection(p)
-  p_cov = covering_morphism(pr)
-  CY = domain(p_cov)
-  # We first apply elim_part to all the charts.
-# CY_simp, phi, psi = simplify(CY)
-# # register the simplification in Y
-# push!(coverings(Y), CY_simp)
-# refinements(Y)[(CY_simp, CY)] = phi
-# refinements(Y)[(CY, CY_simp)] = psi
-# CY === default_covering(Y) && set_attribute!(Y, :simplified_covering, CY_simp)
-  CY_simp = (CY === default_covering(Y) ? simplified_covering(Y) : CY)
-  phi = (CY === default_covering(Y) ? Y[CY_simp, CY] : identity_map(CY_simp))
 
-  # compose the covering morphisms
-  p_cov_simp = compose(phi, p_cov)
-  CX = codomain(p_cov)
-  E = exceptional_divisor(p)
+  ## get our hands on the coverings -- using simplified covering for CY
+  pr = projection(p)
+  p_cov_temp = covering_morphism(pr)
+  CX = codomain(p_cov_temp)
+  CY = domain(p_cov_temp)
+  CY_simp = (CY === default_covering(Y) ? simplified_covering(Y) : CY)
+  phi = (CY === default_covering(Y) ? Y[CY_simp,CY] : identity_map(CY_simp))
+  p_cov = compose(phi,p_cov_temp)    # blow up using simplified covering
+
+  ## do the transform on the charts
+  b = -2                               # safe initialization of multiplicity return value
+  bmin = -2                            # safe initialization of minimal multiplicity for weak transform in different charts
   for U in patches(CY_simp)
-    p_res = p_cov_simp[U]
-    V = codomain(p_res)
-    J = I(V)
-    #g = maps_with_given_codomain(inc, V)
-    pbJ = ideal(OO(U), pullback(p_res).(gens(J)))
-    pbJ_sat = saturated_ideal(pbJ)
-    pbJ_sat = saturation(pbJ_sat, ideal(base_ring(pbJ_sat), lifted_numerator.(E(U))))
-    pbJ = ideal(OO(U), [g for g in OO(U).(gens(pbJ_sat)) if !iszero(g)])
-    if length(gens(pbJ))==0 
-        error("output of saturation invalid; faulty exceptional divisor?")
+    V = codomain(p_cov[U])             # affine patch on X
+    Iorig_chart = I(V)                 # I on this patch
+    Itotal_chart = ideal(OO(U), pullback(p_cov[U]).(gens(Iorig_chart)))
+                                       # total transform on Chart
+
+    ## don't try saturating with respect to an empty set
+    ## not expensive for Cartier divisor, GB is cached (?) after first computation
+    if is_one(IE(U))
+      ID[U] = Itotal_chart
+      continue
     end
-    ID[U] = pbJ
+
+    IE_chart = IE(U)
+
+    ## do different methods according to integer argument method
+    if method == -1
+      Itrans_chart,btemp = saturation_with_index(Itotal_chart, IE_chart)                      # strict
+      b = max(b,btemp)
+    elseif method == 0
+      Itrans_chart,btemp = iterated_quotients(Itotal_chart,IE_chart, method)             # weak
+      if b == -2
+         b = btemp
+      end
+      bmin = min(b,btemp)
+    else
+      Itrans_chart,b = iterated_quotients(Itotal_chart,IE_chart, method)                 # controlled
+    end
+    ID[U] = Itrans_chart
   end
 
-  I_trans = IdealSheaf(Y, ID, check=false) 
-  return I_trans
+  bmin == -2 || bmin==b || error("different multiplicities in different charts, use controlled transform with control ",bmin)
+  b > -2 || error("no patches in CY_simp!!!")
+  I_trans = IdealSheaf(Y,ID,check=false)
+  return I_trans,b
 end
 
+##########################################################################################################
+## Handle Cartier divisors separately, as ideal quotients are quotients of ring elements in this case
+##########################################################################################################
+@doc """
+  strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
+
+For a `BlowupMorphism`  ``p : Y → X`` and an `EffectiveCartierDivisor` ``C`` on ``X`` return the
+strict transform of ``C`` on ``Y``.
+"""
 function strict_transform(p::BlowupMorphism, C::EffectiveCartierDivisor)
   X = scheme(C)
   Y = domain(p) 
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
-
-  ID = IdDict{AbsSpec, RingElem}()
-  pr = projection(p)
-  p_cov = covering_morphism(pr)
-  CY = domain(p_cov)
-  CX = trivializing_covering(C)
-  p_cov_ref = restrict(pr, CX)::CoveringMorphism
-  CY_ref = domain(p_cov_ref)
-#  # We first apply elim_part to all the charts.
-#  CY_simp, phi, psi = simplify(CY_ref)
-#  # register the simplification in Y
-#  push!(coverings(Y), CY_simp)
-#  refinements(Y)[(CY_simp, CY)] = phi
-#  refinements(Y)[(CY, CY_simp)] = psi
-
-  # compose the covering morphisms
-#  p_cov_simp = compose(phi, p_cov_ref)
-  p_cov_simp = p_cov_ref
-  CY_simp = CY_ref
   E = exceptional_divisor(p)
-  multipl = -1
-  for U in patches(CY_simp)
-    p_res = p_cov_simp[U]
-    V = codomain(p_res)
-    length(C(V))==1 || error("ideal for divisor is not principal")
-    h = C(V)[1]
-    pbh = pullback(p_res)(h)
-    if isunit(pbh) 
+  ID = IdDict{AbsSpec, RingElem}()
+
+  ## get our hands on the coverings -- trivializing covering for C leading the way
+  CX = trivializing_covering(C)
+  pr = projection(p)
+  pr_refined = restrict(pr,CX)::CoveringMorphism
+  CY = domain(pr_refined)
+
+  ## do the transform on the charts
+  multEInC = -1
+  for U in patches(CY)
+    V = codomain(pr_refined[U])        # affine patch on X
+
+    ## determine single generator of Cartier divisor C on V
+    length(C(V)) == 1 || error("ideal of divisor is not principal")
+                       # sanity check -- we are on a trivializing covering after all!
+    h_orig = C(V)[1]
+    h_total = pullback(pr_refined[U]).(h_orig)
+    if isunit(h_total)
       ID[U] = one(OO(U))
       continue
     end
-    k = 0
-    e = first(E(U))
+
+    ## determine single generator of Cartier divisor E on U
+    length(E(U)) == 1 || error("exceptional divisor is not principal")
+                       # sanity check -- default covering of Y is already trivializing for E!
+    e = E(U)[1]
     if isunit(e)
-      ID[U] = pbh
+      ID[U] = h_total
       continue
     end
-    # Warning! Successive division by e only gives the correct result in this 
-    # particular situation! The equation for e must be irreducible, etc.
-    success, b = divides(pbh, e)
-    while success
-      k = k + 1
-      pbh = b
-      success, b = divides(b, e)
+
+    ## find correct multiplicity for sanity check on result of iterated division
+    ## iterated division only reliable, if multiplicity has expected value
+    ## philosophy: if sanity check holds, iterated division ensures principality
+    ##             if not, we throw an error with a good explanation (for now)
+    if multEInC == -1
+      _,multEInC = saturation_with_index(ideal(OO(U),[h_total]),ideal(OO(U),[e]))
     end
-    ID[U] = pbh
-    if multipl != -1
-      k == multipl || error("multiplicities differ in different charts")
-    end
-    multipl = k
+
+    ## now it is just division of ring elements
+    epower = e^multEInC
+    good, h_strict = divides(h_total,epower)
+    bad,_ = divides(h_total, e*epower)
+    (good && !bad) ||error("setting not suitable for iterated division -- use strict transform on IdealSheaf instead")
+
+    ## fill in data of C_strict
+    ID[U] = h_strict
   end
 
-  multipl = (multipl == -1 ? 0 : multipl)
-
-  C_trans = EffectiveCartierDivisor(Y, ID, check=false) # TODO: Set to false
-  return C_trans # TODO: Do we want to also return the exceptional component multipl*E ?
+  ## we are good to go now
+  C_strict = EffectiveCartierDivisor(Y, ID, check=false)
+  return C_strict
 end
 
 function strict_transform(p::BlowupMorphism, C::CartierDivisor)
@@ -324,11 +408,11 @@ Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
 
 =====================================
 Affine charts of the blown up scheme:
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0), x, y, z over Rational Field by ideal(-(s1//s0)*z + (s2//s0)*y, (s2//s0)*x - z, (s1//s0)*x - y) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0), x over Rational Field by ideal(0, 0, 0) at the multiplicative set powers of QQMPolyRingElem[1]
 
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1), x, y, z over Rational Field by ideal((s2//s1)*y - z, -(s0//s1)*z + (s2//s1)*x, -(s0//s1)*y + x) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1), y over Rational Field by ideal(0, 0, 0) at the multiplicative set powers of QQMPolyRingElem[1]
 
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2), x, y, z over Rational Field by ideal(-(s1//s2)*z + y, -(s0//s2)*z + x, -(s0//s2)*y + (s1//s2)*x) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2), z over Rational Field by ideal(0, 0, 0) at the multiplicative set powers of QQMPolyRingElem[1]
 
 =====================================
 Data of center:
