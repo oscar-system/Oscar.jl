@@ -10,6 +10,9 @@ deviate from them in some cases; in that case just do so.
 
 - Use Julia conventions where applicable and when they don't contradict our
   own rules above.
+- Unless really really necessary, don't add new dependencies. Every new
+  dependency complicates the development workflow, in that we will need to stay
+  compatible with this package. 
 - If already existing types in OSCAR are almost what you need, consider
   improving them instead of writing your own. While it might be tempting to
   create a new polynomial ring type for the new application because some
