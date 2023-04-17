@@ -79,18 +79,12 @@ Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by
 
 ```
 """
-function projective_space(A::Ring, var_symb::Vector{VarName})
+function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
-  R, _ = polynomial_ring(A, var_symb)
+  R, _ = polynomial_ring(A, Symbol.(var_symb))
   S, _ = grade(R, [1 for i in 1:n ])
   return projective_scheme(S)
 end
-
-projective_space(
-                 A::CoeffRingType, 
-                 var_names::Vector{String}
-                ) where {CoeffRingType<:Ring} = projective_space(A, Symbol.(var_names))
-
 
 @doc raw"""
     projective_space(A::Ring, r::Int; var_name::VarName="s")
@@ -116,7 +110,7 @@ end
 
 function projective_space(
     W::Union{<:SpecOpen, <:AbsSpec}, 
-    var_names::Vector{VarName}
+    var_names::Vector{<:VarName}
   ) 
   P = projective_space(OO(W), var_names)
   set_base_scheme!(P, W)

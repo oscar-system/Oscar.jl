@@ -29,8 +29,7 @@ julia> Q, _ = quo(Sgr, I);
 julia> C = ProjectiveScheme(Q)
 Projective scheme
   over Rational Field
-  defined by
-ideal(x^3 + y^3 + z^3)
+  defined by ideal(x^3 + y^3 + z^3)
 ```
 """
 @attributes mutable struct ProjectiveScheme{CoeffRingType, RingType} <: AbsProjectiveScheme{CoeffRingType, RingType}

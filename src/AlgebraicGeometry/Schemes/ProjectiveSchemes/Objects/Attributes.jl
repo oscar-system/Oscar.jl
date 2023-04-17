@@ -35,11 +35,13 @@ julia> I = ideal(S, S[1] + S[2]);
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
   over Rational Field
-  defined by
-ideal(x + y)
+  defined by ideal(x + y)
 
-julia> homogeneous_coordinate_ring(X) === S
-true
+julia> homogeneous_coordinate_ring(X)
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(x + y)
 
 ```
 """
@@ -61,8 +63,7 @@ ideal(x + y)
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
   over Rational Field
-  defined by
-ideal(x + y)
+  defined by ideal(x + y)
 
 julia> relative_ambient_dimension(X)
 2
@@ -103,8 +104,7 @@ ideal(x + y)
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
   over Rational Field
-  defined by
-ideal(x + y)
+  defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
@@ -216,6 +216,10 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
@@ -250,6 +254,10 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
@@ -257,7 +265,7 @@ julia> affine_cone(P)
 (Spec of Quotient of Multivariate Polynomial Ring in x, y, z, u, v over Rational Field by ideal(u^2 + v^2), Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y, z over Q graded by 
+Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1]
@@ -380,6 +388,10 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
