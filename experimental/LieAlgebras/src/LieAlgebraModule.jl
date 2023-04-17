@@ -136,6 +136,11 @@ function show_direct_sum(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(IOContext(io, :compact => true), base_modules(V))
 end
 
+function show_tensor_product(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
+  print(io, "Tensor product of ")
+  print(IOContext(io, :compact => true), base_modules(V))
+end
+
 function show_exterior_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement}
   print(io, "$(get_attribute(V, :power))-th exterior power of ")
   print(IOContext(io, :compact => true), base_module(V))
@@ -209,10 +214,18 @@ end
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  if is_direct_sum(V)
+  if is_direct_sum(V) || is_tensor_product(V)
     @req length(a) == length(base_modules(V)) "Length of vector does not match."
     @req all(i -> parent(a[i]) == base_modules(V)[i], 1:length(a)) "Incompatible modules."
-    return V(vcat([coefficients(x) for x in a]...))
+    if is_direct_sum(V)
+      return V(vcat([coefficients(x) for x in a]...))
+    elseif is_tensor_product(V)
+      mat = zero_matrix(base_ring(V), 1, dim(V))
+      for (i, inds) in enumerate(get_attribute(V, :ind_map))
+        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
+      end
+      return LieAlgebraModuleElem{C}(V, mat)
+    end
   elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
     @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
     @req all(x -> parent(x) == base_module(V), a) "Incompatible modules."
@@ -360,6 +373,10 @@ function is_dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :dual
 end
 
+function is_tensor_product(V::LieAlgebraModule{C}) where {C<:RingElement}
+  return get_attribute(V, :type, :fallback)::Symbol == :tensor_product
+end
+
 function is_direct_sum(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :direct_sum
 end
@@ -382,7 +399,7 @@ function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
 end
 
 function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
-  @req is_direct_sum(V) "Not a direct sum module."
+  @req is_direct_sum(V) || is_tensor_product(V) "Not a direct sum or tensor product module."
   return get_attribute(V, :base_modules)::Vector{LieAlgebraModule{C}}
 end
 
@@ -482,6 +499,52 @@ function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
     :show => show_direct_sum,
   )
   return direct_sum_V
+end
+
+⊕(V::LieAlgebraModule{C}...) where {C<:RingElement} = tensor_product(V...)
+
+function tensor_product(V::LieAlgebraModule{C}...) where {C<:RingElement}
+  @req length(V) >= 1 "At least one module must be given."
+  L = base_lie_algebra(V[1])
+  @req all(x -> base_lie_algebra(x) == L, V) "All modules must have the same base Lie algebra."
+
+  dim_tensor_product_V = prod(dim, V)
+  ind_map = collect(reverse.(ProductIterator([1:dim(Vi) for Vi in reverse(V)])))
+
+  transformation_matrices = map(1:dim(L)) do i
+    ys = [transformation_matrix(Vj, i) for Vj in V]
+    sum(
+      reduce(kronecker_product, (j == i ? ys[j] : one(ys[j]) for j in 1:length(V))) for
+      i in 1:length(V)
+    )
+  end
+
+  if length(V) == 1
+    s = symbols(V[1])
+  else
+    parentheses = x -> "($x)"
+    s = [
+      Symbol(join(s, " ⊗ ")) for s in
+      reverse.(
+        ProductIterator([
+          is_standard_module(Vi) ? symbols(Vi) : parentheses.(symbols(Vi)) for
+          Vi in reverse(V)
+        ])
+      )
+    ]
+  end
+
+  tensor_product_V = LieAlgebraModule{C}(
+    L, dim_tensor_product_V, transformation_matrices, s; check=false
+  )
+  set_attribute!(
+    tensor_product_V,
+    :type => :tensor_product,
+    :base_modules => collect(V),
+    :ind_map => ind_map,
+    :show => show_tensor_product,
+  )
+  return tensor_product_V
 end
 
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}

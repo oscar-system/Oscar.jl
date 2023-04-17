@@ -194,8 +194,15 @@ end
     end
   end
 
-  module_type_bools(V) =
-    (is_standard_module(V), is_exterior_power(V), is_symmetric_power(V), is_tensor_power(V))
+  module_type_bools(V) = (
+    is_standard_module(V),
+    is_dual(V),
+    is_direct_sum(V),
+    is_tensor_product(V),
+    is_exterior_power(V),
+    is_symmetric_power(V),
+    is_tensor_power(V),
+  )
 
   @testset "standard_module" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
@@ -203,12 +210,7 @@ end
     @test dim(V) == 4
     @test length(repr(V)) < 10^4 # outputs tend to be excessively long due to recursion
 
-    @test is_standard_module(V)
-    @test !is_dual(V)
-    @test !is_direct_sum(V)
-    @test !is_exterior_power(V)
-    @test !is_symmetric_power(V)
-    @test !is_tensor_power(V)
+    @test module_type_bools(V) == (true, false, false, false, false, false, false) # standard_module
 
     x = L(rand(-10:10, dim(L)))
     v = V(rand(-10:10, dim(V)))
@@ -226,12 +228,7 @@ end
     @test dim(dual_V) == dim(V)
     @test length(repr(dual_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
-    @test !is_standard_module(dual_V)
-    @test is_dual(dual_V)
-    @test !is_direct_sum(V)
-    @test !is_exterior_power(dual_V)
-    @test !is_symmetric_power(dual_V)
-    @test !is_tensor_power(dual_V)
+    @test module_type_bools(dual_V) == (false, true, false, false, false, false, false) # dual
 
     dual_dual_V = dual(dual_V)
     @test dim(dual_dual_V) == dim(V)
@@ -255,17 +252,70 @@ end
       @test dim(ds_V) == k * dim(V)
       @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
-      @test !is_standard_module(ds_V)
-      @test !is_dual(ds_V)
-      @test is_direct_sum(ds_V)
-      @test !is_exterior_power(ds_V)
-      @test !is_symmetric_power(ds_V)
-      @test !is_tensor_power(ds_V)
+      @test module_type_bools(ds_V) == (false, false, true, false, false, false, false) # direct_sum
 
       x = L(rand(-10:10, dim(L)))
       a = [V(rand(-10:10, dim(V))) for _ in 1:k]
       @test ds_V([x * v for v in a]) == x * ds_V(a)
     end
+
+    V1 = symmetric_power(standard_module(L), 2)
+    V2 = exterior_power(standard_module(L), 2)
+    type_V1 = module_type_bools(V1)
+    type_V2 = module_type_bools(V2)
+
+    ds_V = direct_sum(V1, V2)
+    @test type_V1 == module_type_bools(V1) # construction of ds_V should not change type of V1
+    @test type_V2 == module_type_bools(V2) # construction of ds_V should not change type of V2
+    @test base_modules(ds_V) == [V1, V2]
+    @test dim(ds_V) == dim(V1) + dim(V2)
+    @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+    @test module_type_bools(ds_V) == (false, false, true, false, false, false, false) # direct_sum
+
+    x = L(rand(-10:10, dim(L)))
+    a = [Vi(rand(-10:10, dim(Vi))) for Vi in [V1, V2]]
+    @test ds_V([x * v for v in a]) == x * ds_V(a)
+  end
+
+  @testset "tensor_product" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    V = symmetric_power(standard_module(L), 2)
+    type_V = module_type_bools(V)
+
+    for k in 1:3
+      tp_V = tensor_product([V for _ in 1:k]...)
+      @test type_V == module_type_bools(V) # construction of tp_V should not change type of V
+      @test base_modules(tp_V) == [V for _ in 1:k]
+      @test dim(tp_V) == dim(V)^k
+      @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+      @test module_type_bools(tp_V) == (false, false, false, true, false, false, false) # tensor_product
+
+      x = L(rand(-10:10, dim(L)))
+      a = [V(rand(-10:10, dim(V))) for _ in 1:k]
+      @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:k) == x * tp_V(a)
+
+      @test tp_V == tensor_power(V, k)
+    end
+
+    V1 = symmetric_power(standard_module(L), 2)
+    V2 = exterior_power(standard_module(L), 2)
+    type_V1 = module_type_bools(V1)
+    type_V2 = module_type_bools(V2)
+
+    tp_V = tensor_product(V1, V2)
+    @test type_V1 == module_type_bools(V1) # construction of tp_V should not change type of V1
+    @test type_V2 == module_type_bools(V2) # construction of tp_V should not change type of V2
+    @test base_modules(tp_V) == [V1, V2]
+    @test dim(tp_V) == dim(V1) * dim(V2)
+    @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
+
+    @test module_type_bools(tp_V) == (false, false, false, true, false, false, false) # tensor_product
+
+    x = L(rand(-10:10, dim(L)))
+    a = [Vi(rand(-10:10, dim(Vi))) for Vi in [V1, V2]]
+    @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:2) == x * tp_V(a)
   end
 
   @testset "exterior_power" begin
@@ -280,12 +330,7 @@ end
       @test dim(pow_V) == binomial(dim(V), k)
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
-      @test !is_standard_module(pow_V)
-      @test !is_dual(V)
-      @test !is_direct_sum(V)
-      @test is_exterior_power(pow_V)
-      @test !is_symmetric_power(pow_V)
-      @test !is_tensor_power(pow_V)
+      @test module_type_bools(pow_V) == (false, false, false, false, true, false, false) # exterior_power
 
       if k == 1
         x = L(rand(-10:10, dim(L)))
@@ -314,12 +359,7 @@ end
       @test dim(pow_V) == binomial(dim(V) + k - 1, k)
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
-      @test !is_standard_module(pow_V)
-      @test !is_dual(V)
-      @test !is_direct_sum(V)
-      @test !is_exterior_power(pow_V)
-      @test is_symmetric_power(pow_V)
-      @test !is_tensor_power(pow_V)
+      @test module_type_bools(pow_V) == (false, false, false, false, false, true, false) # symmetric_power
 
       if k == 1
         x = L(rand(-10:10, dim(L)))
@@ -348,12 +388,7 @@ end
       @test dim(pow_V) == dim(V)^k
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
-      @test !is_standard_module(pow_V)
-      @test !is_dual(V)
-      @test !is_direct_sum(V)
-      @test !is_exterior_power(pow_V)
-      @test !is_symmetric_power(pow_V)
-      @test is_tensor_power(pow_V)
+      @test module_type_bools(pow_V) == (false, false, false, false, false, false, true) # tensor_power
 
       if k == 1
         x = L(rand(-10:10, dim(L)))

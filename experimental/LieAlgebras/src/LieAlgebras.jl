@@ -28,7 +28,9 @@ import ..Oscar:
   parent_type,
   symbols,
   symmetric_power,
-  ⊕
+  tensor_product,
+  ⊕,
+  ⊗
 
 import Base: getindex, iszero, parent, zero
 
@@ -53,6 +55,7 @@ export is_exterior_power
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
+export is_tensor_product
 export lie_algebra
 export matrix_repr_basis
 export multicombinations
@@ -95,6 +98,7 @@ export is_exterior_power
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
+export is_tensor_product
 export lie_algebra
 export matrix_repr_basis
 export special_linear_lie_algebra
