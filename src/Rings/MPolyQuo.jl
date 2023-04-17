@@ -334,6 +334,7 @@ end
 
 @doc raw"""
     intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
+    intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 
 Return the intersection of two or more ideals.
 
@@ -351,6 +352,9 @@ ideal(x)
 
 julia> intersect(a,b)
 ideal(x*y)
+
+julia> intersect([a,b])
+ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
@@ -359,10 +363,16 @@ function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
   for g in b
     base_ring(g) == base_ring(a) || error("base rings must match")
     singular_assure(g)
-    gs = g.gens.S
-    as = Singular.intersection(as, gs)
   end
+  as = Singular.intersection(as, [g.gens.S for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
+end
+
+function intersect(V::Vector{MPolyQuoIdeal{T}}) where T
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return intersect(V[1], V[2:end]...)
 end
 
 #######################################################
