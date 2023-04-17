@@ -251,7 +251,7 @@ end
     for k in 1:3
       ds_V = direct_sum([V for _ in 1:k]...)
       @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
-      @test collect(base_modules(ds_V)) == [V for _ in 1:k]
+      @test base_modules(ds_V) == [V for _ in 1:k]
       @test dim(ds_V) == k * dim(V)
       @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 

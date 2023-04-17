@@ -293,10 +293,10 @@ end
 ###############################################################################
 
 function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
-  return V1.L == V2.L &&
-         V1.dim == V2.dim &&
-         V1.transformation_matrices == V2.transformation_matrices &&
-         V1.s == V2.s
+  return V1.dim == V2.dim &&
+         V1.s == V2.s &&
+         V1.L == V2.L &&
+         V1.transformation_matrices == V2.transformation_matrices
 end
 
 function Base.hash(V::LieAlgebraModule{C}, h::UInt) where {C<:RingElement}
@@ -353,37 +353,37 @@ end
 ###############################################################################
 
 function is_standard_module(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback) == :standard_module
+  return get_attribute(V, :type, :fallback)::Symbol == :standard_module
 end
 
 function is_dual(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback) == :dual
+  return get_attribute(V, :type, :fallback)::Symbol == :dual
 end
 
 function is_direct_sum(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback) == :direct_sum
+  return get_attribute(V, :type, :fallback)::Symbol == :direct_sum
 end
 
 function is_exterior_power(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback) == :exterior_power
+  return get_attribute(V, :type, :fallback)::Symbol == :exterior_power
 end
 
 function is_symmetric_power(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback) == :symmetric_power
+  return get_attribute(V, :type, :fallback)::Symbol == :symmetric_power
 end
 
 function is_tensor_power(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback) == :tensor_power
+  return get_attribute(V, :type, :fallback)::Symbol == :tensor_power
 end
 
 function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
-  return get_attribute(V, :base_module)
+  return get_attribute(V, :base_module)::LieAlgebraModule{C}
 end
 
 function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_direct_sum(V) "Not a direct sum module."
-  return get_attribute(V, :base_modules)
+  return get_attribute(V, :base_modules)::Vector{LieAlgebraModule{C}}
 end
 
 ###############################################################################
@@ -476,7 +476,10 @@ function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
     L, dim_direct_sum_V, transformation_matrices, s; check=false
   )
   set_attribute!(
-    direct_sum_V, :type => :direct_sum, :base_modules => V, :show => show_direct_sum
+    direct_sum_V,
+    :type => :direct_sum,
+    :base_modules => collect(V),
+    :show => show_direct_sum,
   )
   return direct_sum_V
 end
