@@ -8,7 +8,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   println(io, "Projective scheme")  # at least one new line is needed
   println(io, "  over ", base_ring(P))
-  println(io, "  defined by")
+  print(io, "  defined by ")
   print(io, defining_ideal(P)) # the last print statement must not add a new line
 end
 
@@ -60,16 +60,21 @@ Return the restriction morphism from the graded coordinate ring of ``X`` to `�
 # Examples
 ```jldoctest
 julia> P = projective_space(QQ, ["x0", "x1", "x2"])
+Projective space of dimension 2
+  over Rational Field
 
 julia> X = covered_scheme(P);
 
 julia> U = first(affine_charts(X))
+Spec of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0) over Rational Field by ideal()
 
-julia> phi = dehomogenization_map(X, U);
+julia> phi = dehomogenization_map(P, U);
 
 julia> S = homogeneous_coordinate_ring(P);
 
 julia> phi(S[2])
+(x1//x0)
+
 ```
 """
 function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
@@ -86,16 +91,6 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   phi = hom(S, OO(U), s)
   cache[U] = phi
   return phi
-end
-
-@doc raw"""
-    dehomogenization_map(X::AbsProjectiveScheme, i::Int)
-
-Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
-Where `Uᵢ` is the `i`-th affine chart of `X`.
-"""
-function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
-  error("method not implemented for this type of input")
 end
 
 function dehomogenization_map(
@@ -129,6 +124,12 @@ function dehomogenization_map(
   return dehomogenization_map(X, X[U][2]-1)
 end
 
+@doc raw"""
+    dehomogenization_map(X::AbsProjectiveScheme, i::Int)
+
+Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
+Where `Uᵢ` is the `i`-th affine chart of `X`.
+"""
 function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)

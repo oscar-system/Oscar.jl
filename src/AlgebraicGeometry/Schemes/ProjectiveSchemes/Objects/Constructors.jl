@@ -60,10 +60,10 @@ end
 ################################################################################
 
 @doc raw"""
-    projective_space(A::Ring, var_symb::Vector{Symbol})
+    projective_space(A::Ring, var_symb::Vector{VarName})
 
 Create the (relative) projective space `Proj(A[x₀,…,xₙ])` over `A` 
-where `x₀,…,xₙ` is a list of `Symbol`s for the variable names.  
+where `x₀,…,xₙ` is a list of variable names.
 
 # Examples
 ```jldoctest
@@ -93,7 +93,7 @@ projective_space(
 
 
 @doc raw"""
-    projective_space(A::Ring, r::Int; var_name::String="s")
+    projective_space(A::Ring, r::Int; var_name::VarName="s")
 
 Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A` 
 where `s` is a string for the variable names.  
@@ -107,7 +107,7 @@ end
 function projective_space(
     W::Union{<:SpecOpen, <:AbsSpec}, 
     r::Int; 
-    var_name::String="s"
+    var_name::VarName="s"
   ) 
   P = projective_space(OO(W), r, var_name=var_name)
   set_base_scheme!(P, W)
@@ -116,16 +116,7 @@ end
 
 function projective_space(
     W::Union{<:SpecOpen, <:AbsSpec}, 
-    var_names::Vector{Symbol}
-  ) 
-  P = projective_space(OO(W), var_names)
-  set_base_scheme!(P, W)
-  return P
-end
-
-function projective_space(
-    W::Union{<:SpecOpen, <:AbsSpec}, 
-    var_names::Vector{String}
+    var_names::Vector{VarName}
   ) 
   P = projective_space(OO(W), var_names)
   set_base_scheme!(P, W)

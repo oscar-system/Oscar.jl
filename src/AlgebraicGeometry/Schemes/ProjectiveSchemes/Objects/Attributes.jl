@@ -28,14 +28,9 @@ graded finitely generated algebra ``S`` this returns ``S``.
 
 # Example
 ```jldoctest
-julia> S, _ = grade(QQ["x", "y", "z"][1])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> S, _ = grade(QQ["x", "y", "z"][1]);
 
-julia> I = ideal(S, S[1] + S[2])
-ideal(x + y)
+julia> I = ideal(S, S[1] + S[2]);
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
@@ -43,11 +38,8 @@ Projective scheme
   defined by
 ideal(x + y)
 
-julia> homogeneous_coordinate_ring(X)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x + y)
+julia> homogeneous_coordinate_ring(X) === S
+true
 
 ```
 """
@@ -61,11 +53,7 @@ On ``X ⊂ ℙʳ_A`` this returns ``r``.
 
 # Example 
 ```jldoctest
-julia> S, _ = grade(QQ["x", "y", "z"][1])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> S, _ = grade(QQ["x", "y", "z"][1]);
 
 julia> I = ideal(S, S[1] + S[2])
 ideal(x + y)
