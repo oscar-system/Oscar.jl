@@ -593,7 +593,9 @@ export homogeneity_space
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
+export homogeneous_coordinates_on_affine_cone
 export homogenization
+export homogenization_map
 export homogenize
 export homology
 export homomorphism_of_semidirect_product
@@ -916,6 +918,7 @@ export monomial_ordering
 export monomials
 export mori_cone
 export morphism_from_cox_variety
+export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
