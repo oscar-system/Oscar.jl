@@ -17,7 +17,7 @@ For instance Hilbert's Nullstellensatz states that $V$ is empty if and only if
 $I\supseteq (x_0,\dots, x_n)$.
 
 In Oscar we work with projective algebraic sets over non-closed fields,
-by viewing them as reduced schemes.
+by viewing them as reduced schemes. See [Projective schemes](@ref).
 
 More formally they are defined as follows:
 ```@docs

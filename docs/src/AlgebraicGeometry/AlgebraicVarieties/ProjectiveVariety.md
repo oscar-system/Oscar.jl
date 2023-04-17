@@ -8,7 +8,7 @@ using Oscar
 
 # Projective Varieties
 A projective variety over an algebraically closed field
-is an irreducible projective algebraic set. See [Projecitve Algebraic Sets](@ref).
+is an irreducible projective algebraic set. See [Projective Algebraic Sets](@ref).
 
 In practice we work over non-closed fields. To be called a variety
 an algebraic set $V$ must stay irreducible when viewed over the algebraic closure.
