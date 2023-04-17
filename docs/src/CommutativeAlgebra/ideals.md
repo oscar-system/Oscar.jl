@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["ideals.md"]
-```
-
 # Ideals in Multivariate Rings
 
 ## Types

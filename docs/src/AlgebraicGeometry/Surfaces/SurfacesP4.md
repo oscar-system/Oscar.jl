@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["SurfacesP4.md"]
-```
-
 # Nongeneral Type Surfaces in $\mathbb P^4$
 
 Every smooth, projective surface can be embedded in $\mathbb P^5$, but there are constraints

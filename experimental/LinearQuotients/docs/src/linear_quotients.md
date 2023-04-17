@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["linear_quotients.md"]
-```
-
 # Construction and basic functionality
 
 ## Constructor

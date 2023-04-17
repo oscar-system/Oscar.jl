@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["basics.md"]
-```
-
 # Basics
 
 ## [Elements of groups](@id elements_of_groups)

@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["introduction.md"]
-```
-
 # Welcome to FTheoryTools
 
 ## Goal

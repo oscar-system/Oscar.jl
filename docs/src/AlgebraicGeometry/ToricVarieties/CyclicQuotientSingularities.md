@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["CyclicQuotientSingularities.md"]
-```
-
 # Cyclic Quotient Singularities
 
 ## Introduction

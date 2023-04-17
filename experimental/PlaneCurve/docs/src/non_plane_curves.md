@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["plane_curves.md"]
-```
-
 
 # Projective Curves
 

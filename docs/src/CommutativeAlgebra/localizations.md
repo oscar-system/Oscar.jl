@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["localizations.md"]
-```
-
 # Localized Rings and Their Ideals
 
 We recall the definition of localization. All rings considered are commutative,  with multiplicative identity 1.

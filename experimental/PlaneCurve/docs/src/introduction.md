@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["introduction.md"]
-```
-
 # Introduction
 
 The Plane Curves module of OSCAR provides functionality for handling

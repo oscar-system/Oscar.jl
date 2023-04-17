@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["pcgroup.md"]
-```
-
 # Polycyclic groups
 
 ```@docs

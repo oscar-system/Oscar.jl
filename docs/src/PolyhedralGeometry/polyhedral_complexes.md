@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["polyhedral_complexes.md"]
-```
-
 # Polyhedral Complexes
 
 ## Introduction

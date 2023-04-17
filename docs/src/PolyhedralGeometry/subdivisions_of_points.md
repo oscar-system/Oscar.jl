@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["subdivisions_of_points.md"]
-```
-
 # Subdivisions of Points
 
 ## Introduction

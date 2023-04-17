@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["rational.md"]
-```
-
 # Rationals
 
 Fractions are created in Julia with the double slash operator `//`. If a

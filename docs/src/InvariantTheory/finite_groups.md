@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["finite_groups.md"]
-```
-
 # Invariants of Finite Groups
 
 In this section, with notation as in the introduction to this chapter, $G$ will be a *finite* group.

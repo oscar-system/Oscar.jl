@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["fpgroup.md"]
-```
-
 # Finitely presented groups
 
 ```@docs

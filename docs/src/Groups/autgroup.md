@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["autgroup.md"]
-```
-
 # Groups of automorphisms
 
 ```@docs

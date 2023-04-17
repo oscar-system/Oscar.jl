@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["Weierstrass.md"]
-```
-
 # Global Weierstrass models
 
 A global Weierstrass model describes a particular form of an elliptic fibration.

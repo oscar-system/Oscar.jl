@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["action.md"]
-```
-
 # Group Actions
 
 A *group action* of a group G on a set Ω (from the right) is defined by

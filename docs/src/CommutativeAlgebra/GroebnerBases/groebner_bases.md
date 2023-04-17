@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["groebner_bases.md"]
-```
-
 # Gröbner/Standard Bases Over Fields
 
 We fix our notation in the context of standard (Gröbner) bases and present relevant OSCAR functions.
