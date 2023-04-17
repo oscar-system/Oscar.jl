@@ -6,6 +6,32 @@ but there are some exceptions due to our specific needs and a different backgrou
 The content of this page are merely *guidelines*. There may be good reasons to
 deviate from them in some cases; in that case just do so.
 
+## General styleguide
+
+- Use Julia conventions where applicable and when they don't contradict our
+  own rules above.
+- If already existing types in OSCAR are almost what you need, consider
+  improving them instead of writing your own. While it might be tempting to
+  create a new polynomial ring type for the new application because some
+  feature is missing, it causes a lot of work and compatibility issues: Will
+  the new type support
+  - normal functions (gcd, factor),
+  - quotient fields,
+  - modules and residue rings,
+  - conversion to and from other already existing types?
+- Whenever functions return the same mathematical object, but in different
+  mathematical categories, the first argument should be the desired return
+  type. One example is `projective_space(NormalToricVariety, *)` vs
+  `projective_space(ProjectiveScheme, *)`. However, if the return type is
+  different, even if the result describes the same mathematical object, it
+  should be indicated in the function name, for example `automorphism_group` vs
+  `automorphism_group_generators` vs `automorphism_list`.
+- Follow the mathematics. If your function needs a list of points, you should
+  create a point-type (or use the one already there) and then use this.
+  For user-facing functions, please do not use re-purposed lists, arrays,
+  matrices...
+
+
 ## Naming conventions
 
 The usual [Julia naming conventions](https://docs.julialang.org/en/v1/manual/style-guide/#Use-naming-conventions-consistent-with-Julia-base/)
@@ -29,8 +55,6 @@ Here is a summary of the naming convention followed in OSCAR:
   Julia functions, e.g. `is_one` as alias for `isone`
 - For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
-- Use Julia conventions where applicable and when they don't contradict our
-  own rules above.
 - **Avoid direct access to members of our objects.** This means, do not use
   something like `A.foo`, instead use a suitable getter `get_foo(A)`, and if
   there is none, please write one or request that one be written. Internal
@@ -41,26 +65,7 @@ Here is a summary of the naming convention followed in OSCAR:
   It should be called `points(T::Matrix)` in some variation.
   Similarly for `matrix_to_points`. Of course it is fine to use them
   internally, where useful.
-- Follow the mathematics. If your function needs a list of points, you should
-  create a point-type (or use the one already there) and then use this.
-  For user-facing functions, please do not use re-purposed lists, arrays,
-  matrices...
-- If already existing types in OSCAR are almost what you need, consider
-  improving them instead of writing your own. While it might be tempting to
-  create a new polynomial ring type for the new application because some
-  feature is missing, it causes a lot of work and compatibility issues: Will
-  the new type support
-  - normal functions (gcd, factor),
-  - quotient fields,
-  - modules and residue rings,
-  - conversion to and from other already existing types?
-- Whenever functions return the same mathematical object, but in different
-  mathematical categories, the first argument should be the desired return
-  type. One example is `projective_space(NormalToricVariety, *)` vs
-  `projective_space(ProjectiveScheme, *)`. However, if the return type is
-  different, even if the result describes the same mathematical object, it
-  should be indicated in the function name, for example `automorphism_group` vs
-  `automorphism_group_generators` vs `automorphism_list`.
+
 
 ## Code formatting
 
