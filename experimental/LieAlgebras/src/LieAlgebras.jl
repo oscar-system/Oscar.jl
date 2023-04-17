@@ -84,10 +84,13 @@ export LinearLieAlgebra, LinearLieAlgebraElem
 export abstract_module
 export base_lie_algebra
 export base_module
+export base_modules
 export bracket
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export is_direct_sum
+export is_dual
 export is_exterior_power
 export is_standard_module
 export is_symmetric_power

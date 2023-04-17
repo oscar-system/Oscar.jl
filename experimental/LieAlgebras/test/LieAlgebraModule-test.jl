@@ -17,9 +17,9 @@ function lie_algebra_module_conformance_test(
     @test parent_type(elemT) == parentT
     @test elem_type(parentT) == elemT
 
-    @test parent(v) == V
+    @test parent(v) === V
 
-    @test base_ring(v) == base_ring(V)
+    @test base_ring(v) === base_ring(V)
     @test elem_type(base_ring(V)) == C
 
     @test base_lie_algebra(V) === L
@@ -87,7 +87,7 @@ function lie_algebra_module_conformance_test(
     end
   end
 
-  @testset "lie algebra action axioms" begin
+  @testset "Lie algebra action axioms" begin
     for _ in 1:num_random_tests
       x = L(rand(-10:10, dim(L)))
       y = L(rand(-10:10, dim(L)))
