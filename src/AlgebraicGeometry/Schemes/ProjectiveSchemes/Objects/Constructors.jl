@@ -98,8 +98,8 @@ projective_space(
 Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A` 
 where `s` is a string for the variable names.  
 """
-function projective_space(A::Ring, r::Int; var_name::String="s")
-  R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
+function projective_space(A::Ring, r::Int; var_name::VarName=:s)
+  R, _ = polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
   return projective_scheme(S)
 end
