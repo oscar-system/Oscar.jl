@@ -18,6 +18,7 @@ Here is a summary of the naming convention followed in OSCAR:
   tend to be in `CamelCase`. However, please *also* provide the constructor (or a
   constructor) in `snake_case`. As a user one usually does not know if something
   is a constructor or a function.
+- For filenames we recommend using `snake_case.jl`.
 - Noteworthy difference to Julia base is that we do not have exceptions for
   `is*` or `has*` as prefix.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
