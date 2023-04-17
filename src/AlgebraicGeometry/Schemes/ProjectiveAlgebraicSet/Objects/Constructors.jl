@@ -15,8 +15,7 @@ julia> P,(x0,x1,x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
 julia> X = projective_scheme(ideal([x0*x1^2, x2]))
 Projective scheme
   over Rational Field
-  defined by
-ideal(x0*x1^2, x2)
+  defined by ideal(x0*x1^2, x2)
 
 julia> Y = projective_algebraic_set(X)
 Vanishing locus
