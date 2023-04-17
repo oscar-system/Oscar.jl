@@ -425,16 +425,9 @@ function test_module(file::AbstractString; new::Bool=true)
     @info("spawning ", `$julia_exe -e \"$cmd\"`)
     run(`$julia_exe -e $cmd`)
   else
+    @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
     @info("Running tests for $rel_test_file in same session")
-    try
-      include(test_file)
-    catch e
-      if isa(e, LoadError)
-        println("You need to do \"using Test\"")
-      else
-        rethrow(e)
-      end
-    end
+    Base.include(Base.Main, test_file)
   end
 end
 

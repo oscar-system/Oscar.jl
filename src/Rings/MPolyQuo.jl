@@ -438,7 +438,7 @@ julia> is_zero(b)
 true
 ```
 """
-function is_zero(a::MPolyQuoIdeal)
+@attr Bool function is_zero(a::MPolyQuoIdeal)
   R = base_ring(a)
   singular_assure(a)
   return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))

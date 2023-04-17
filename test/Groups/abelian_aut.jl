@@ -143,3 +143,23 @@ end
   @test_throws ArgumentError embedding_orthogonal_group(qqinq)
 end
 
+@testset "Action on injections" begin
+  L = root_lattice(:A, 11)
+  T = discriminant_group(L)
+  T2, T2inT = primary_part(T, 2)
+  _, j = has_complement(T2inT)
+  OT = orthogonal_group(T)
+  @test is_invariant(OT, T2inT)
+  G, res = @inferred restrict_automorphism_group(OT, T2inT)
+  H, _ = kernel(res)
+  @test is_invariant(H, j)
+  I, res2 = restrict_automorphism_group(H, j)
+  K, _ = kernel(res2)
+  @test order(K) == 1
+
+  T = discriminant_group(hyperbolic_plane_lattice(2))
+  OT = orthogonal_group(T)
+  _, i = sub(T, [T[1]])
+  @test_throws ArgumentError restrict_automorphism_group(OT, i)
+end
+

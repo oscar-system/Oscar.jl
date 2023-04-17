@@ -109,6 +109,7 @@ ideal_sheaf(X::AbsProjectiveScheme, g::Vector{RingElemType}) where {RingElemType
 ideal_sheaf(X::AbsProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyQuoRingElem} = IdealSheaf(X, g)
 
 
+
 # this constructs the zero ideal sheaf
 function IdealSheaf(X::CoveredScheme) 
   C = default_covering(X)
@@ -268,7 +269,7 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
-@doc raw"""
+@doc """
     subscheme(I::IdealSheaf) 
 
 For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
@@ -568,6 +569,7 @@ end
 # primary decomposition
 ########################################################################
 
+## this should go to src/Ring/mpolyquo-localization.jl
 function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
   Q = base_ring(I)
   R = base_ring(Q)
@@ -576,6 +578,164 @@ function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdea
   return result
 end
 
+## this should go to src/Rings/mpolyquo-localization.jl
+function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+  Q = base_ring(I)
+  R = base_ring(Q)
+  decomp = minimal_primes(saturated_ideal(I))
+  result = [ideal(Q, Q.(gens(b))) for b in decomp]
+  return result
+end
+
+
+function minimal_associated_points(I::IdealSheaf)
+  X = scheme(I)
+  OOX = OO(X)
+
+  charts_todo = copy(affine_charts(X))            ## todo-list of charts
+
+  associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
+                                                  ## may not yet contain all relevant charts. but
+                                                  ## at least one for each identified component
+
+# run through all charts and try to match the components
+  while length(charts_todo) > 0
+    U = pop!(charts_todo)
+    !is_one(I(U)) || continue                        ## supp(I) might not meet all components
+    components_here = minimal_primes(I(U))
+
+## run through all primes in MinAss(I(U)) and try to match them with previously found ones
+    for comp in components_here
+      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
+      nmatches = length(matches)
+
+      if nmatches == 0                             ## not found
+        add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+        add_dict[U] = comp                         ## and fill it
+        push!(associated_primes_temp, add_dict)
+      elseif nmatches == 1                         ## unique match, update it
+        component_index = matches[1]
+        associated_primes_temp[component_index][U] = comp
+      else                                                ## more than one match, form union
+        target_comp = pop!(matches)
+        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
+        deleteat!(associated_primes_temp,matches)
+        associated_primes_temp[target_comp][U] = comp
+      end
+    end
+  end
+
+# fill the gaps arising from a support not meeting a patch
+  for U in affine_charts(X)
+    I_one = ideal(OOX(U),one(OOX(U)))
+    for i in 1:length(associated_primes_temp)
+      !haskey(associated_primes_temp[i],U) || continue
+      associated_primes_temp[i][U] = I_one
+    end
+  end
+
+# make sure to return ideal sheaves, not dicts
+  associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
+  return associated_primes_result
+end
+
+function associated_points(I::IdealSheaf)
+  X = scheme(I)
+  OOX = OO(X)
+  charts_todo = copy(affine_charts(X))            ## todo-list of charts
+
+  associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
+                                                  ## may not yet contain all relevant charts. but
+                                                  ## at least one for each identified component
+
+# run through all charts and try to match the components
+  while !iszero(length(charts_todo))
+    U = pop!(charts_todo)
+    !is_one(I(U)) || continue                        ## supp(I) might not meet all components
+    components_here = [ a for (_,a) in primary_decomposition(I(U))]
+
+## run through all primes in Ass(I(U)) and try to match them with previously found ones
+    for comp in components_here
+      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
+      nmatches = length(matches)
+
+      if nmatches == 0                             ## not found
+        add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+        add_dict[U] = comp                         ## and fill it
+        push!(associated_primes_temp, add_dict)
+      elseif nmatches == 1                         ## unique match, update it
+        component_index = matches[1]
+        associated_primes_temp[component_index][U] = comp
+      else                                                ## more than one match, form union
+        target_comp = pop!(matches)
+        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
+        deleteat!(associated_primes_temp,matches)
+        associated_primes_temp[target_comp][U] = comp
+      end
+    end
+  end
+
+# fill the gaps arising from a support not meeting a patch
+  for U in affine_charts(X)
+    I_one = ideal(OOX(U),one(OOX(U)))
+    for i in 1:length(associated_primes_temp)
+      !haskey(associated_primes_temp[i],U) || continue
+      associated_primes_temp[i][U] = I_one
+    end
+  end
+
+# make sure to return ideal sheaves, not dicts
+  associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
+  return associated_primes_result
+end
+
+function match_on_intersections(
+      X::AbsCoveredScheme,
+      U::AbsSpec,
+      I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
+      associated_list::Vector{IdDict{AbsSpec,Ideal}},
+      check::Bool=true)
+
+  matches = Int[]
+  OOX = OO(X)
+
+# run through all components in associated_list and try to match up I
+  for i in 1:length(associated_list)
+    match_found = false
+    match_contradicted = false
+
+## run through all known patches of the component
+    for (V,IV) in associated_list[i]
+      G = default_covering(X)[V,U]
+      VU, UV = glueing_domains(G)
+      I_res = OOX(U,UV)(I)
+      IV_res = OOX(V,UV)(IV)
+      if (I_res == IV_res)
+        match_found = !is_one(I_res)                               ## count only non-trivial matches
+        check || break
+      else
+        match_contradicted = true
+        check || break
+      end
+    end
+
+## make sure we are working on consistent data
+    if check
+      if match_found && match_contradicted
+        error("contradictory matching result!!")                     ## this should not be reached for ass. points
+      end
+    end
+
+## update list of matches
+    if match_found
+      push!(matches, i)
+    end
+  end
+
+  return matches
+end
+
+## TODO: this should go away, once associated_points is finished
 function primary_decomposition(I::IdealSheaf)
   X = scheme(I)
   OOX = OO(X)
@@ -592,16 +752,16 @@ function primary_decomposition(I::IdealSheaf)
   prime_parts = Vector{IdDict{AbsSpec, Ideal}}()
   primary_parts = Vector{IdDict{AbsSpec, Ideal}}()
 
-  #@show "starting iteration"
   while !iszero(length(dirty_charts))
     #@show "new chart: ##############################################################"
     U = pop!(dirty_charts)
     new_prime_parts = Vector{IdDict{AbsSpec, Ideal}}()
     new_primary_parts = Vector{IdDict{AbsSpec, Ideal}}()
     #@show U
+    #@show "starting new patch"
     new_components = decomp_dict[U]
     for (Q, P) in new_components
-      isone(P) && continue
+      is_one(P) && continue
       #@show "looking at component"
       #@show gens(Q)
       #@show gens(P)
@@ -624,7 +784,7 @@ function primary_decomposition(I::IdealSheaf)
           #@show gens(QV_res)
           if QU_res == QV_res
             #@show "possible match"
-            if !isone(QV_res)
+            if !is_one(QV_res)
               all_intersections_trivial = false
             end
           else 
@@ -640,9 +800,8 @@ function primary_decomposition(I::IdealSheaf)
           end
         end
       end
-      #@show possible_matches
       if iszero(length(possible_matches))
-        #@show "adding new component"
+      #@show "adding new component"
         new_prime_part = IdDict{AbsSpec, Ideal}()
         new_primary_part = IdDict{AbsSpec, Ideal}()
         for V in clean_charts
@@ -679,16 +838,16 @@ function primary_decomposition(I::IdealSheaf)
     #@show length(prime_parts)
   end
 
-  prime_components = [IdealSheaf(X, P, check=true) for P in prime_parts] # TODO: Set to false!
-  primary_components = [IdealSheaf(X, Q, check=true) for Q in primary_parts]
+  prime_components = [IdealSheaf(X, P, check= false) for P in prime_parts] # TODO: Set to false!
+  primary_components = [IdealSheaf(X, Q, check= false) for Q in primary_parts]
 
   return collect(zip(primary_components, prime_components))
 end
 
 # further required functionality
-function isone(I::Ideal)
-  return one(base_ring(I)) in I
-end
+#function isone(I::Ideal)
+#  return one(base_ring(I)) in I
+#end
 
 function (phi::Hecke.Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
