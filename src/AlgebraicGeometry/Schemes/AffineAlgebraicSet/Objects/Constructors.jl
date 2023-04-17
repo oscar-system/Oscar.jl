@@ -132,10 +132,10 @@ Return the geometric irreducible components of ``X``.
 
 They are the irreducible components ``V_{ij}`` of ``X`` seen over an algebraically
 closed field and given as a vector of tuples ``(A_i, V_{ij}, d_{ij})``, say,
-where ``A_i`` is an algebraic set which is irreducible over the base field of `X`
-and ``V_{ij}` represents a corresponding class of galois conjugated geometric irreducible
-components of ``A_i`` defined over a number field of degree
-d_{ij} whose generator prints as _a.
+where ``A_i`` is an algebraic set which is irreducible over the base field of ``X``
+and ``V_{ij}`` represents a corresponding class of galois conjugated geometric
+irreducible components of ``A_i`` defined over a number field of degree
+``d_{ij}`` whose generator prints as `_a`.
 
 This is expensive and involves taking field extensions.
 """
