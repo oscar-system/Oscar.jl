@@ -291,3 +291,30 @@ existing block.
     make sure, you can start Julia with `--depwarn=yes` or even
     `--depwarn=error` and then run the tests.
 
+## Approved abbreviations
+
+- Types for rings/groups/ideals/modules/... end with `Ring`/`Group`/`Ideal`/`Module`/...
+- Types for elements should have the same name as the type of the parent with
+  `Elem` added;
+   - Exception: `MatrixSpace` elements end with `Matrix`.
+- We abbreviate certain parts of type names, according to a fixed set of
+  substitutions; further abbreviations should be carefully decided upon.
+- Every abbreviation must be unique; e.g. `Abs` stands for `Absolute`, and so
+  must not be used for e.g. `Abstract`.
+- **List of approved abbreviations**
+    - absolute -> `Abs`
+        - abstract -> `Abstract`
+    - decorated -> `Dec`
+    - group -> `Group`
+    - ideal -> `Ideal`
+    - localized -> `Loc`
+    - matrix -> `Matrix` or `Mat` ??
+    - module -> `Module`
+    - multivariate polynomial -> `MPoly`
+    - polynomial -> `Poly`
+    - quotient -> `Quo`
+    - relative -> `Rel`
+    - ring ->`Ring`
+    - subquotient -> `Subquo`
+- If a type comes in sparse and dense variants, then call the dense type `T`
+  and the sparse one `SparseT`.
