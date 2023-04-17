@@ -488,7 +488,17 @@ function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
   transformation_matrices = map(1:dim(L)) do i
     block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in V])
   end
-  s = vcat(map(symbols, V)...)
+  parentheses = x -> "($x)"
+
+  if length(V) == 1
+    s = symbols(V[1])
+  else
+    s = [
+      Symbol("$s^($j)") for (j, Vj) in enumerate(V) for
+      s in (is_standard_module(Vj) ? symbols(Vj) : parentheses.(symbols(Vj)))
+    ]
+  end
+
   direct_sum_V = LieAlgebraModule{C}(
     L, dim_direct_sum_V, transformation_matrices, s; check=false
   )
@@ -501,7 +511,7 @@ function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
   return direct_sum_V
 end
 
-⊕(V::LieAlgebraModule{C}...) where {C<:RingElement} = tensor_product(V...)
+⊗(V::LieAlgebraModule{C}...) where {C<:RingElement} = tensor_product(V...)
 
 function tensor_product(V::LieAlgebraModule{C}...) where {C<:RingElement}
   @req length(V) >= 1 "At least one module must be given."
