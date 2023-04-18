@@ -20,17 +20,17 @@ julia> v2 = blow_up(v,I)
 Normal toric variety
 
 julia> cox_ring(v2)
-Multivariate Polynomial Ring in 10 variables a10, a21, a32, x, ..., e over Rational Field graded by 
+Multivariate Polynomial Ring in 10 variables a10, a21, a32, a43, ..., e over Rational Field graded by
   a10 -> [0 0]
   a21 -> [0 0]
   a32 -> [0 0]
-  x -> [1 0]
-  y -> [0 1]
-  z -> [-1 1]
   a43 -> [0 0]
   a65 -> [0 0]
-  w -> [3 -2]
-  e -> [-3 2]
+  w -> [1 0]
+  x -> [1 2]
+  y -> [1 3]
+  z -> [0 1]
+  e -> [-1 0]
 ```
 """
 function su5_tate_model_over_arbitrary_3d_base()
