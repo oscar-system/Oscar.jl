@@ -582,8 +582,8 @@ function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
     cone_list = cones(v)
-    cone_indices = [filter(l -> cone_list[k,l], 1:ncols(cone_list)) for k in 1:n_cones(v)]
-    cone_index = findfirst(x -> x == indices, cone_indices)
+    indexset = Set{Int}(indices)
+    cone_index = findfirst(i -> Polymake.row(cone_list, i) == indexset, 1:nrows(cone_list))
     @req cone_index !== nothing "There is no corresponding cone that could be subdivided"
     return blow_up(v, cone_index; coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
