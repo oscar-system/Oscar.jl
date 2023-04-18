@@ -268,8 +268,6 @@ nothing
 ```
 """
 function character_table(id::String, p::Int = 0)
-    @req hasproperty(GAP.Globals, :CTblLib) "no character table library available"
-
     if p == 0
       modid = id
     else
@@ -324,7 +322,6 @@ Currently the following series are supported.
 | `:ExtraspecialPlusOdd` | odd power of odd prime |
 """
 function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
-    @req hasproperty(GAP.Globals, :CTblLib) "no character table library available"
     args = GAP.Obj([string(series), parameter], recursive = true)
     tbl = GAP.Globals.CallFuncList(GAP.Globals.CharacterTable, args)::GapObj
     tbl === GAP.Globals.fail && return nothing
