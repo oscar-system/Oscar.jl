@@ -160,3 +160,62 @@ end
   @test L(y)/L(x) == L(y//x)
   @test_throws ErrorException L(y)/L(x-1)
 end
+
+@testset "associated primes (quo and localized)" begin
+  # define the rings
+  R,(x,y,z,w) = QQ["x","y","z","w"]
+  Q1 = ideal(R,[x^2+y^2-1])
+  Q2 = ideal(R,[x*y-z*w])
+  RQ1,phiQ1 = quo(R,Q1)
+  RQ2,phiQ2 = quo(R,Q2)
+  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0,0])
+  f = x+y+z+w-1
+  T2 = MPolyPowersOfElement(f)
+  RL1,phiL1 = Localization(R,T1)
+  RL2,phiL2 = Localization(R,T2)
+  RQ1L1, phiQ1L1 = Localization(RQ1,T1)
+  RQ1L2, phiQ1L2 = Localization(RQ1,T2)
+  RQ2L1, phiQ2L1 = Localization(RQ2,T1)
+  RQ2L2, phiQ2L2 = Localization(RQ2,T2)
+
+  # tests for MPolyQuoRing
+  I1 = ideal(R,[x*z*(w-1),y*z*(w-1)])
+  I2 = ideal(R,[y^2*x*(x+y+w-1),z])
+  LM = minimal_primes(phiQ1(I1))
+  LP = primary_decomposition(phiQ1(I1))  ## coincides with min. ass. primes here
+  @test length(LM) == 2
+  @test length(LP) == 2
+  @test intersect(LM[1],LM[2]) == phiQ1(radical(I1+Q1))
+  @test intersect(LP[1][1],LP[2][1]) == intersect(LM[1],LM[2])
+  LM = minimal_primes(phiQ2(I1))
+  LP = primary_decomposition(phiQ2(I1)) 
+  @test length(LM) == 4
+  @test intersect(LM[1],LM[2],LM[3],LM[4]) == phiQ2(radical(I1+Q2))
+  @test length(LP) == 5
+  @test intersect(LP[1][1],LP[2][1],LP[3][1],LP[4][1],LP[5][1]) == phiQ2(I1+Q2)
+
+  # tests for MPolyLocRing
+  LM = minimal_primes(phiL1(I1))   
+  LP = primary_decomposition(phiL1(I1)) ## coincides with min. ass. primes here
+  @test length(LM) == 2
+  @test length(LP) == 2
+  @test intersect(LM[1],LM[2]) == phiL1(I1)
+  @test intersect(LP[1][1],LP[1][2]) == phiL1(I1)
+  LM = minimal_primes(phiL2(I2))
+  LP = primary_decomposition(phiL2(I2))
+  @test intersect(LM[1],LM[2]) == ideal(RL2,RL2.([z,x*y]))
+  @test intersect(LP[1][1],LP[2][1]) == ideal(RL2,RL2.([z,x*y^2]))
+
+  # tests for MPolyLocQuoRing
+  LM = minimal_primes(phiQ1L1(phiQ1(I1))) 
+  @test is_one(LM[1])
+  LM = minimal_primes(phiQ2L1(phiQ2(I1)))
+  LP = primary_decomposition(phiQ2L1(phiQ2(I1)))
+  @test length(LM) == 3
+  @test length(LP) == 4
+  @test intersect(intersect(LM[1],LM[2]),LM[3]) == phiQ2L1(phiQ2(radical(I1+Q2)))
+  @test intersect(intersect(LP[1][1],LP[2][1]),intersect(LP[3][1],LP[4][1])) == phiQ2L1(phiQ2(I1+Q2))
+  @test length(minimal_primes(phiQ2L1(phiQ2(I2))) == 2
+  @test length(minimal_primes(phiQ2L2(phiQ2(I2))) == 2
+end
+
