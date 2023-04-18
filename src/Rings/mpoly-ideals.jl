@@ -171,10 +171,13 @@ Return the intersection of two or more ideals.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
-julia> I = ideal(R, [x, y])^2
-julia> J = ideal(R, [y^2-x^3+x])
+julia> I = ideal(R, [x, y])^2;
+
+julia> J = ideal(R, [y^2-x^3+x]);
+
 julia> intersect(I, J)
 ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
 julia> intersect([I, J])
 ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
 ```
