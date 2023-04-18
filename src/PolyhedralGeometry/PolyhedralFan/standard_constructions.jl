@@ -76,19 +76,19 @@ Polyhedral fan in ambient dimension 3
 julia> rays(star)
 5-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0, 0]
- [0, 0, 1]
- [1, 1, 1]
  [0, 1, 0]
+ [0, 0, 1]
  [-1, -1, -1]
+ [1, 1, 1]
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[1, 2, 3]
+[1, 3, 5]
+[2, 3, 5]
+[1, 2, 5]
 [2, 3, 4]
 [1, 3, 4]
-[2, 4, 5]
-[1, 2, 5]
-[1, 4, 5]
+[1, 2, 4]
 ```
 """
 function star_subdivision(Sigma::_FanLikeType{T}, n::Int) where T<:scalar_types

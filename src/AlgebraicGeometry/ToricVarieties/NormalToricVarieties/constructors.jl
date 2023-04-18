@@ -569,12 +569,12 @@ julia> bP3 = blow_up(P3, I)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by 
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
   x2 -> [0 1]
-  e -> [1 -1]
   x3 -> [0 1]
   x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
@@ -625,12 +625,12 @@ julia> bP3 = blow_up(P3, 5)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by 
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
   x2 -> [0 1]
-  e -> [1 -1]
   x3 -> [0 1]
   x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
