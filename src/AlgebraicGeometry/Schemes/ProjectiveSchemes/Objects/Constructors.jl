@@ -59,28 +59,41 @@ end
 # Projective space
 ################################################################################
 
-function projective_space(
-    A::CoeffRingType, 
-    var_symb::Vector{Symbol}
-  ) where {CoeffRingType<:Ring}
+@doc raw"""
+    projective_space(A::Ring, var_symb::Vector{VarName})
+
+Create the (relative) projective space `Proj(A[x₀,…,xₙ])` over `A` 
+where `x₀,…,xₙ` is a list of variable names.
+
+# Examples
+```jldoctest
+julia> projective_space(QQ, [:x, :PPP, :?])
+Projective space of dimension 2
+  over Rational Field
+
+julia> homogeneous_coordinate_ring(ans)
+Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by 
+  x -> [1]
+  PPP -> [1]
+  ? -> [1]
+
+```
+"""
+function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
-  R, _ = polynomial_ring(A, var_symb)
+  R, _ = polynomial_ring(A, Symbol.(var_symb))
   S, _ = grade(R, [1 for i in 1:n ])
   return projective_scheme(S)
 end
 
-projective_space(
-                 A::CoeffRingType, 
-                 var_names::Vector{String}
-                ) where {CoeffRingType<:Ring} = projective_space(A, Symbol.(var_names))
+@doc raw"""
+    projective_space(A::Ring, r::Int; var_name::VarName="s")
 
-
-function projective_space(
-    A::CoeffRingType, 
-    r::Int; 
-    var_name::String="s"
-  ) where {CoeffRingType<:Ring}
-  R, _ = polynomial_ring(A, [var_name*"$i" for i in 0:r])
+Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A` 
+where `s` is a string for the variable names.  
+"""
+function projective_space(A::Ring, r::Int; var_name::VarName=:s)
+  R, _ = polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
   S, _ = grade(R, [1 for i in 0:r ])
   return projective_scheme(S)
 end
@@ -88,7 +101,7 @@ end
 function projective_space(
     W::Union{<:SpecOpen, <:AbsSpec}, 
     r::Int; 
-    var_name::String="s"
+    var_name::VarName="s"
   ) 
   P = projective_space(OO(W), r, var_name=var_name)
   set_base_scheme!(P, W)
@@ -97,16 +110,7 @@ end
 
 function projective_space(
     W::Union{<:SpecOpen, <:AbsSpec}, 
-    var_names::Vector{Symbol}
-  ) 
-  P = projective_space(OO(W), var_names)
-  set_base_scheme!(P, W)
-  return P
-end
-
-function projective_space(
-    W::Union{<:SpecOpen, <:AbsSpec}, 
-    var_names::Vector{String}
+    var_names::Vector{<:VarName}
   ) 
   P = projective_space(OO(W), var_names)
   set_base_scheme!(P, W)

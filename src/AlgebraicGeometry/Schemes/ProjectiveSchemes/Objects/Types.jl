@@ -9,6 +9,28 @@ over a ring of coefficients ``A`` of type `CoeffRingType`.
 The subscheme ``X`` is given by means of a homogeneous
 ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
 `RingType`.
+
+# Examples
+```jldoctest
+julia> S, _ = QQ["x", "y", "z"];
+
+julia> Sgr, _ = grade(S);
+
+julia> P = ProjectiveScheme(Sgr)
+Projective space of dimension 2
+  over Rational Field
+
+julia> (x, y, z) = gens(Sgr);
+
+julia> I = ideal(Sgr, x^3 + y^3 + z^3); # a hyperplane section
+
+julia> Q, _ = quo(Sgr, I);
+
+julia> C = ProjectiveScheme(Q)
+Projective scheme
+  over Rational Field
+  defined by ideal(x^3 + y^3 + z^3)
+```
 """
 @attributes mutable struct ProjectiveScheme{CoeffRingType, RingType} <: AbsProjectiveScheme{CoeffRingType, RingType}
   A::CoeffRingType	# the base ring

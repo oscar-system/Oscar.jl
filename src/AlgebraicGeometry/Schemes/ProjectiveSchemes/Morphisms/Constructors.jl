@@ -1,3 +1,36 @@
+@doc raw"""
+    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+
+Given a morphism ``f : T → S`` of the `homogeneous_coordinate_ring`s of `Q` and `P`, respectively, 
+construct the associated morphism of projective schemes.
+"""
+function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+  return ProjectiveSchemeMor(P, Q, f, check=check)
+end
+
+@doc raw"""
+    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+
+Suppose ``P ⊂ ℙʳ_A`` and ``Q ⊂ ℙˢ_B`` are projective schemes, ``h : Spec(A) → Spec(B)`` is a 
+morphism of their `base_scheme`s, and ``f : T → S`` a morphism of the 
+`homogeneous_coordinate_ring`s of `Q` and `P` over ``h^* : B → A``.
+This constructs the associated morphism of projective schemes.
+"""
+function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+  return ProjectiveSchemeMor(P, Q, f, h, check=check)
+end
+
+@doc raw"""
+    morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+
+Suppose ``X ⊂ ℙʳ`` and ``Y ⊂ ℙˢ`` are projective schemes over the same `base_scheme`.
+Construct the morphism of projective schemes associated to the morphism of graded rings 
+which takes the generators of the `homogeneous_coordinate_ring` of ``Y`` to the elements 
+in `a` of the `homogeneous_coordinate_ring` of ``X``.
+"""
+function morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+  return ProjectiveSchemeMor(X, Y, a)
+end
 
 function ProjectiveSchemeMor(
     X::AbsProjectiveScheme, 

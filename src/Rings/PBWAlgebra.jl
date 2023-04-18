@@ -917,6 +917,7 @@ end
 
 @doc raw"""
     intersect(I::PBWAlgIdeal{D, T, S}, Js::PBWAlgIdeal{D, T, S}...) where {D, T, S}
+    intersect(V::Vector{PBWAlgIdeal{D, T, S}}) where {D, T, S}
 
 Return the intersection of two or more ideals.
 
@@ -936,26 +937,30 @@ function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) whe
   end
   if D < 0
     res = a.sdata
-    for bi in b
-      res = Singular.intersection(res, bi.sdata)
-    end
+    res = Singular.intersection(res, [bi.sdata for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   elseif D > 0
     _sopdata_assure!(a)
     res = a.sopdata
     for bi in b
       _sopdata_assure!(bi)
-      res = Singular.intersection(res, bi.sopdata)
     end
+    res = Singular.intersection(res, [bi.sopdata for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, _opmap(R, res, _opposite(R)), res)
   else
     res = _as_left_ideal(a)
-    for bi in b
-      res = Singular.intersection(res, _as_left_ideal(bi))
-    end
+    res = Singular.intersection(res, [_as_left_ideal(bi) for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   end
 end
+
+function Base.intersect(V::Vector{PBWAlgIdeal{D, T, S}}) where {D, T, S}
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return Base.intersect(V[1], V[2:end]...)
+end
+
 
 @doc raw"""
     ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D, T, S}

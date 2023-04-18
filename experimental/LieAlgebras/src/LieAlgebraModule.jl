@@ -273,10 +273,6 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
-  return V1 === V2
-end
-
 function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}

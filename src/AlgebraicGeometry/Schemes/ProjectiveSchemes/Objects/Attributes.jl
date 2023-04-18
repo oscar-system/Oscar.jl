@@ -25,6 +25,25 @@ base_scheme(P::AbsProjectiveScheme) =base_scheme(underlying_scheme(P))
 
 On a projective scheme ``P = Proj(S)`` for a standard
 graded finitely generated algebra ``S`` this returns ``S``.
+
+# Example
+```jldoctest
+julia> S, _ = grade(QQ["x", "y", "z"][1]);
+
+julia> I = ideal(S, S[1] + S[2]);
+
+julia> X = ProjectiveScheme(S, I)
+Projective scheme
+  over Rational Field
+  defined by ideal(x + y)
+
+julia> homogeneous_coordinate_ring(X)
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(x + y)
+
+```
 """
 homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_ring(underlying_scheme(P))
 
@@ -33,6 +52,26 @@ homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_rin
     relative_ambient_dimension(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``r``.
+
+# Example 
+```jldoctest
+julia> S, _ = grade(QQ["x", "y", "z"][1]);
+
+julia> I = ideal(S, S[1] + S[2])
+ideal(x + y)
+
+julia> X = ProjectiveScheme(S, I)
+Projective scheme
+  over Rational Field
+  defined by ideal(x + y)
+
+julia> relative_ambient_dimension(X)
+2
+
+julia> dim(X)
+1
+
+```
 """
 relative_ambient_dimension(P::AbsProjectiveScheme) = relative_ambient_dimension(underlying_scheme(P))
 
@@ -50,6 +89,36 @@ _homogenization_cache(X::AbsProjectiveScheme) = _homogenization_cache(underlying
 On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
 for a standard graded polynomial ring ``P`` and a 
 homogeneous ideal ``I`` this returns ``P``.
+
+# Example
+```jldoctest
+julia> S, _ = grade(QQ["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> I = ideal(S, S[1] + S[2])
+ideal(x + y)
+
+julia> X = ProjectiveScheme(S, I)
+Projective scheme
+  over Rational Field
+  defined by ideal(x + y)
+
+julia> homogeneous_coordinate_ring(X)
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(x + y)
+
+julia> ambient_coordinate_ring(X) === S
+true
+
+julia> ambient_coordinate_ring(X) === homogeneous_coordinate_ring(X)
+false
+
+```
 """
 ambient_coordinate_ring(P::AbsProjectiveScheme)
 
@@ -61,6 +130,28 @@ function ambient_space(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   return P
 end
 
+@doc raw"""
+    ambient_space(P::AbsProjectiveScheme)
+
+On ``X ⊂ ℙʳ_A`` this returns ``ℙʳ_A``.
+
+# Example
+```jldoctest
+julia> S, _ = grade(QQ["x", "y", "z"][1]);
+
+julia> I = ideal(S, S[1] + S[2]);
+
+julia> X = ProjectiveScheme(S, I)
+Projective scheme
+  over Rational Field
+  defined by
+ideal(x + y)
+
+julia> P = ambient_space(X)
+Projective space of dimension 2
+  over Rational Field
+
+"""
 @attr function ambient_space(P::AbsProjectiveScheme)
   return projective_scheme(ambient_coordinate_ring(P))
 end
@@ -117,6 +208,25 @@ end
 
 On ``X ⊂ ℙʳ_A`` this returns the homogeneous
 ideal ``I ⊂ A[s₀,…,sᵣ]`` defining ``X``.
+
+# Example
+```jldoctest
+julia> R, (u, v) = QQ["u", "v"];
+
+julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
+
+julia> S, _ = grade(Q["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+
+julia> P = projective_scheme(S);
+
+julia> defining_ideal(P)
+ideal()
+
+```
 """
 defining_ideal(X::AbsProjectiveScheme)
 
@@ -137,6 +247,33 @@ from the `homogeneous_coordinate_ring` to the `coordinate_ring` of the affine co
 
 
 Note that if the base scheme is not affine, then the affine cone is not affine.
+# Example
+```jldoctest
+julia> R, (u, v) = QQ["u", "v"];
+
+julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
+
+julia> S, _ = grade(Q["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+
+julia> P = projective_scheme(S);
+
+julia> affine_cone(P)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z, u, v over Rational Field by ideal(u^2 + v^2), Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z, u, v over Rational Field by ideal(u^2 + v^2))
+
+```
 """
 affine_cone(P::AbsProjectiveScheme)
 
@@ -243,6 +380,36 @@ end
 On ``X ⊂ ℙʳ_A`` this returns a vector with the homogeneous
 coordinates ``[s₀,…,sᵣ]`` as entries where each one of the
 ``sᵢ`` is a function on the `affine cone` of ``X``.
+
+# Example
+```jldoctest
+julia> R, (u, v) = QQ["u", "v"];
+
+julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
+
+julia> S, _ = grade(Q["x", "y", "z"][1])
+(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+
+julia> P = projective_scheme(S);
+
+julia> homogeneous_coordinates_on_affine_cone(P)
+3-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ x
+ y
+ z
+
+julia> gens(OO(affine_cone(P)[1])) # all coordinates on the affine cone
+5-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ x
+ y
+ z
+ u
+ v
+
+```
 """
 function homogeneous_coordinates_on_affine_cone(P::AbsProjectiveScheme)
   if !isdefined(P, :homog_coord)
@@ -324,3 +491,26 @@ ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = T
 # the type of a relative projective scheme over a given base scheme
 projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
+
+
+########################################################################
+# Attributes for projective schemes over a field                       #
+########################################################################
+
+@attr Int function dim(P::AbsProjectiveScheme{<:Field})
+  return dim(defining_ideal(P))-1
+end
+
+@attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
+  return hilbert_polynomial(homogeneous_coordinate_ring(P))
+end
+
+@attr ZZRingElem function degree(P::AbsProjectiveScheme{<:Field})
+  return degree(homogeneous_coordinate_ring(P))
+end
+
+@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+  h = hilbert_polynomial(P)
+  return (-1)^dim(P) * (first(coefficients(h)) - 1)
+end
+

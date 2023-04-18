@@ -100,7 +100,8 @@ Abelian group with structure: Z^4
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
     mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(d)), 0))
     for i in 1:nrows(images)
-      j = findfirst(x -> x == true, [contains(maximal_cones(cod)[j], [images[i,k] for k in 1:ncols(images)]) for j in 1:n_maximal_cones(cod)])
+      v = [images[i,k] for k in 1:ncols(images)]
+      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
       m = vcat([Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
     end

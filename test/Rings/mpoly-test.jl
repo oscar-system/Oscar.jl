@@ -82,6 +82,9 @@ end
   @test Oscar.check_base_rings(I, J) === nothing
   @test I+J == I-J == S
   @test I*J == P
+  @test intersect(I,J,P) == ideal(R,[x^2*y^2, x^4, x*y^4])
+  @test intersect(I,J,P) == intersect([I,J,P])
+
   f = x^2 + y^2
   g = x^4*y - x*y^3
   I = [f, g]
