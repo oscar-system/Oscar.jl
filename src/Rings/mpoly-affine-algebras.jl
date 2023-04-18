@@ -412,11 +412,10 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
    R = base_ring(A)
    I = A.I
    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   if !(R isa MPolyDecRing && is_graded(R) && is_positively_graded(R))
-       throw(ArgumentError("The base ring must be positively graded."))
-   end
+   @req is_positively_graded(R) "The base ring must be positively graded"
+
    G = grading_group(R)
-   if !(is_zm_graded(R))
+   if !is_zm_graded(R)
       H, iso = snf(G)
       V = [preimage(iso, x) for x in gens(G)]
       isoinv = hom(G, H, V)
@@ -466,9 +465,7 @@ end
 #   R = base_ring(A)
 #   I = A.I
 #   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-#   if !(R isa MPolyDecRing && is_graded(R) && is_positively_graded(R))
-#       throw(ArgumentError("The base ring must be positively graded."))
-#   end
+#   @req is_positively_graded(R) "The base ring must be positively graded"
 #   if !(is_zm_graded(R))
 #      G = grading_group(R)
 #      H, iso = snf(G)
@@ -1023,9 +1020,9 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingE
   @assert all(x->parent(x) == p, V)
   @req coefficient_ring(p) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if p isa MPolyRing
-      @req p isa MPolyDecRing && is_positively_graded(p) "The base ring must be positively graded"
+      @req is_positively_graded(p) "The base ring must be positively graded"
   else
-      @req base_ring(p) isa MPolyDecRing && is_graded(p) "The base ring must be graded"
+      @req is_graded(p) "The base ring must be graded"
   end
   @req all(is_homogeneous, V) "The input data is not homogeneous"
   # iterate over the generators, starting with those in lowest degree, then work up

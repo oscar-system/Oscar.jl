@@ -1682,6 +1682,79 @@ end
   return dim(pre_image_ideal(I))
 end
 
+#############################################################################
+## compatibility functions to allow user to not care about which type of
+## MPolyAnyIdeal they are handling
+############################################################################# 
+
+@doc raw"""
+    saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+
+Return ``I:J^\infty``.
+"""
+function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}}
+  A = base_ring(I)
+  A === base_ring(J) || error("ideals must lie in the same ring")
+  R = base_ring(A)
+
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+  K = saturation(I_sat, J_sat)
+  return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
+end
+
+@doc raw"""
+    saturation_with_index(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+
+Return ``I:J^{\infty}`` together with the smallest integer ``m`` such that ``I:J^m = I:J^{\infty}``.
+"""
+function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do not live in the same ring.")
+
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+
+  I_result,k = saturation_with_index(I_sat,J_sat)
+  return (ideal(R,gens(I_result)),k)
+end
+
+@doc raw"""
+    iterated_quotients(I::T, J::T) where T <: MPolyAnyIdeal
+    iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
+
+Return ``I:J^m`` and maximal ``m`` such that ``J(I:J^m)== (I:J^(m-1))``, if no ``b`` has been specified
+Return ``I:J^b`` and ``b``, for the given natural number ``b``.
+
+Internal function for weak and controlled transform.
+"""
+function iterated_quotients(I::T, J::T, b::Int=0) where T <: MPolyAnyIdeal
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do not live in the same ring.")
+  b > -1 || error("negative multiplicity not allowed")
+
+  Itemp = I
+  k = 0
+
+  ## iterate ideal quotients b times -- 
+  ## or by default (i.e. for b=0) a maximal number of times
+  while (b == 0 || k < b)
+    Itemp2 = quotient(Itemp, J)
+    if !issubset(Itemp, Itemp2 * J)
+       b == 0 || error("cannot extract J from I with multiplicity b")
+       break
+    end
+    Itemp = Itemp2
+    k = k+1
+  end
+
+  return Itemp,k
+end
+
+@attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
+  return is_one(saturated_ideal(I))
+end
+
 ### Hack for a detour to speed up mapping of elements 
 # This is terribly slow in all kinds of quotient rings 
 # because of massive checks for `iszero` due to memory 
@@ -1709,4 +1782,3 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
 end
-

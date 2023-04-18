@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
 ```@contents
 Pages = ["fans.md"]
 ```
@@ -64,6 +60,6 @@ nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan{T}) where T<:scalar_types
 rays_modulo_lineality(PF::PolyhedralFan{T}) where T<:scalar_types
 primitive_collections(PF::PolyhedralFan)
-starsubdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
+star_subdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
 *(PF1::PolyhedralFan, PF2::PolyhedralFan)
 ```

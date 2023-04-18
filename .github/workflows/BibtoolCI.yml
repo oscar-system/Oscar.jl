@@ -20,7 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install bibtool
-        run: sudo apt-get install -y bibtool
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y bibtool
       - name: Execute bibtool and check for changes
         run: |
           bibtool docs/oscar_references.bib -o docs/oscar_references.bib

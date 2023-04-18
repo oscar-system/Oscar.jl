@@ -8,7 +8,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   println(io, "Projective scheme")  # at least one new line is needed
   println(io, "  over ", base_ring(P))
-  println(io, "  defined by")
+  print(io, "  defined by ")
   print(io, defining_ideal(P)) # the last print statement must not add a new line
 end
 
@@ -56,11 +56,28 @@ end
     dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
 
 Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(U)`.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ, ["x0", "x1", "x2"])
+Projective space of dimension 2
+  over Rational Field
+
+julia> X = covered_scheme(P);
+
+julia> U = first(affine_charts(X))
+Spec of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0) over Rational Field by ideal()
+
+julia> phi = dehomogenization_map(P, U);
+
+julia> S = homogeneous_coordinate_ring(P);
+
+julia> phi(S[2])
+(x1//x0)
+
+```
 """
-function dehomogenization_map(
-    X::AbsProjectiveScheme{<:Ring}, 
-    U::AbsSpec
-  )
+function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
@@ -76,12 +93,6 @@ function dehomogenization_map(
   return phi
 end
 
-@doc raw"""
-    dehomogenization_map(X::AbsProjectiveScheme, i::AbsSpec)
-
-Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
-Where `Uᵢ` is the `i`-th affine chart of `X`.
-"""
 function dehomogenization_map(
     X::AbsProjectiveScheme{CRT}, 
     i::Int
@@ -113,12 +124,13 @@ function dehomogenization_map(
   return dehomogenization_map(X, X[U][2]-1)
 end
 
-function dehomogenization_map(
-    X::AbsProjectiveScheme{CRT},
-    i::Int
-  ) where {
-    CRT<:AbstractAlgebra.Ring
-  }
+@doc raw"""
+    dehomogenization_map(X::AbsProjectiveScheme, i::Int)
+
+Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(Uᵢ)`.
+Where `Uᵢ` is the `i`-th affine chart of `X`.
+"""
+function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
   i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
@@ -135,7 +147,7 @@ end
 
 
 @doc raw"""
-    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec) -> function
+    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
 
 Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 
 ``P``, return a method ``h`` for the homogenization of elements 
@@ -152,7 +164,43 @@ one of the homogeneous coordinates of ``P``.
 **Note:** Since this map returns representatives only, it 
 is not a mathematical morphism and, hence, in particular 
 not an instance of `Hecke.Map`.
+
+# Examples
+```jldoctest
+julia> A, _ = QQ["u", "v"];
+
+julia> P = projective_space(A, ["x0", "x1", "x2"])
+Projective space of dimension 2
+  over Multivariate Polynomial Ring in u, v over Rational Field
+
+julia> X = covered_scheme(P);
+
+
+julia> U = first(affine_charts(X))
+Spec of Localization of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0), u, v over Rational Field by ideal() at the multiplicative set powers of QQMPolyRingElem[1]
+
+julia> phi = homogenization_map(P, U);
+
+
+julia> R = OO(U);
+
+
+julia> phi.(gens(R))
+4-element Vector{Tuple{MPolyDecRingElem{QQMPolyRingElem, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}}, MPolyDecRingElem{QQMPolyRingElem, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}}}}:
+ (x1, x0)
+ (x2, x0)
+ (u, 1)
+ (v, 1)
+```
 """
+function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+  error("method not implemented for this type of input")
+end
+
+function homogenization_map(P::AbsProjectiveScheme{<:Field}, U::AbsSpec)
+  error("method not implemented for projective schemes over fields")
+end
+
 function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
   cache = _homogenization_cache(P)
   if haskey(cache, U)

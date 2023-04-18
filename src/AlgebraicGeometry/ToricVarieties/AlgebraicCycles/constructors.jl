@@ -296,7 +296,7 @@ function Base.show(io::IO, ac::RationalEquivalenceClass)
       # otherwise, extract properties to represent the rational equivalence class
       r = representative(ac)
       coeffs = [c for c in AbstractAlgebra.coefficients(r)]
-      expos = [matrix(ZZ, [k for k in exponent_vectors(m)]) for m in AbstractAlgebra.monomials(r)]
+      expos = [matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(m)]) for m in AbstractAlgebra.monomials(r)]
       indets = gens(chow_ring(toric_variety(ac)))
 
       # form string to be printed

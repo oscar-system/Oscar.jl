@@ -55,26 +55,25 @@
 
   # Now the singular locus consists of two points. 
   # We blow them up successively rather than at once. 
-  # println("starting primary decomposition of singular locus")
-  decomp = primary_decomposition(I_sing_X3)
-  # println("finished primary decomposition of singular locus")
-  l = radical.([a for (_, a) in decomp])
+  #println("starting primary decomposition of singular locus")
+  decomp = Oscar.minimal_associated_points(I_sing_X3)
+  #println("finished primary decomposition of singular locus")
+  l = radical.([a for a in decomp])
 
-  # @show "blowing up first center"
-  # @show gens.(l[1].(patches(oscar.simplified_covering(X3))))
+  #@show "blowing up first center"
+  #@show gens.(l[1].(patches(oscar.simplified_covering(X3))))
   prX41 = blow_up(l[1], covering=oscar.simplified_covering(X3),
                 var_name="v")
-  # @show "done blowing up"
+  #@show "done blowing up"
   X41 = domain(prX41)
   E41 = exceptional_divisor(prX41)
-  X41 = domain(prX41)
   Y41, inc_Y41, pr_Y41 = strict_transform(prX41, inc_Y3)
 
   l2 = radical(strict_transform(prX41, l[2]))
   simplify!(X41)
-  # @show scheme(l2) === X41
-  # @show "blowing up second center"
-  # @show gens.(l2.(patches(oscar.simplified_covering(X41))))
+  #@show scheme(l2) === X41
+  #@show "blowing up second center"
+  #@show gens.(l2.(patches(oscar.simplified_covering(X41))))
   prX42 = blow_up(l2, var_name="vv")
  # prX42 = blow_up(l2, covering=oscar.simplified_covering(X41),
  #               var_name="vv")
@@ -87,28 +86,29 @@
 
   # Now the singular locus consists of three points. 
   # We blow them up successively rather than at once. 
-  # println("starting primary decomposition of singular locus")
-  decomp = primary_decomposition(I_sing_X42)
-  # println("finished primary decomposition of singular locus")
+  #println("starting primary decomposition of singular locus")
+  centers = Oscar.minimal_associated_points(I_sing_X42)
+  #println("finished primary decomposition of singular locus")
 
-  centers = [a for (_, a) in decomp]
-
-  prX51 = blow_up(first(centers))
+  prX51 = blow_up(radical(first(centers)))
 
   E51 = exceptional_divisor(prX51)
 
+  #@show E51
   Y51, inc_Y51, prY51 = strict_transform(prX51, inc_Y42)
   centers = (x->strict_transform(prX51, x)).(centers[2:3])
 
-  prX52 = blow_up(first(centers))
+  prX52 = blow_up(radical(first(centers)))
   E52 = exceptional_divisor(prX52)
 
+  #@show E52
   Y52, inc_Y52, prY52 = strict_transform(prX52, inc_Y51)
   centers = (x->strict_transform(prX52, x)).(centers[2:2])
 
-  prX53 = blow_up(first(centers))
+  prX53 = blow_up(radical(first(centers)))
   E53 = exceptional_divisor(prX53)
 
+  #@show E53
   Y53, inc_Y53, prY53 = strict_transform(prX53, inc_Y52)
 
 # error()

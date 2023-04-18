@@ -271,7 +271,6 @@ export binomial_primary_decomposition
 export bipyramid
 export birkhoff_polytope
 export blocks
-export blowup_on_ith_minimal_torus_orbit
 export bond_matroid
 export borcherds_method
 export boundary_lattice_points
@@ -594,7 +593,9 @@ export homogeneity_space
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
+export homogeneous_coordinates_on_affine_cone
 export homogenization
+export homogenization_map
 export homogenize
 export homology
 export homomorphism_of_semidirect_product
@@ -747,6 +748,7 @@ export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
 export is_normalized_by
+export is_one
 export is_open_embedding
 export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
@@ -801,6 +803,7 @@ export is_vertical_k_separation
 export is_very_ample
 export is_weakly_connected
 export is_welldefined
+export is_zero
 export is_z_graded
 export is_zm_graded
 export isfinite
@@ -915,6 +918,7 @@ export monomial_ordering
 export monomials
 export mori_cone
 export morphism_from_cox_variety
+export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
@@ -1133,8 +1137,10 @@ export representative_action
 export represents_element
 export restrict
 export restrict_automorphism
+export restrict_automorphism_group
 export restrict_codomain
 export restrict_domain
+export restrict_endomorphism
 export restrict_homomorphism
 export restricted_map
 export restricted_map_type
@@ -1228,8 +1234,8 @@ export standard_spec
 export stanley_reisner_ideal
 export stanley_reisner_ring
 export star_subcomplex
+export star_subdivision
 export star_triangulations
-export starsubdivision
 export strongly_connected_components
 export structure_sheaf
 export structure_tropical_jacobian

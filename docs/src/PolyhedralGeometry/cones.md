@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
 ```@contents
 Pages = ["cones.md"]
 ```
