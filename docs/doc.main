@@ -178,11 +178,6 @@
         "AlgebraicGeometry/ToricVarieties/AlgebraicCycles.md",
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
      ],
-     "Toric Schemes" => [
-         "Experimental/ToricSchemes/intro.md",
-         "Experimental/ToricSchemes/NormalToricSchemes.md",
-         "Experimental/ToricSchemes/AffineToricSchemes.md",
-     ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",
         "AlgebraicGeometry/TropicalGeometry/curve.md",
