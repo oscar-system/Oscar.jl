@@ -656,6 +656,31 @@ end
   @test character_table(alternating_group(5), 2) === nothing
 end
 
+@testset "access fields in character tables" begin
+  # table without group
+  t = character_table("A5")
+  @test Oscar.GAPTable(t) === t.GAPTable
+  @test characteristic(t) == t.characteristic
+  @test_throws UndefRefError t.group
+  @test_throws UndefRefError t.isomorphism
+
+  # table with `GAPGroup` group
+  g = symmetric_group(4)
+  t = character_table(g)
+  @test Oscar.GAPTable(t) === t.GAPTable
+  @test characteristic(t) == t.characteristic
+  @test group(t) === t.group === g
+  @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
+
+  # table with `GrpAbFinGen` group
+  g = abelian_group([2, 4])
+  t = character_table(g)
+  @test Oscar.GAPTable(t) === t.GAPTable
+  @test characteristic(t) == t.characteristic
+  @test group(t) === t.group === g
+  @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
+end
+
 @testset "characters" begin
   g = symmetric_group(4)
   t = character_table(g)
@@ -684,6 +709,8 @@ end
   chi = filter(x -> x[1] == 2, collect(t))[1]
   @test [chi(representative(c)) for c in conjugacy_classes(g)] == values(chi)
   @test all(is_irreducible, t)
+  @test sort!([order(kernel(chi)[1]) for chi in t]) == [1, 1, 4, 12, 24]
+  @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
 
   scp = scalar_product(t[1], t[1])
   @test scp == 1
@@ -745,17 +772,35 @@ end
   @test all(x -> x == QQAbAutomorphism(4)(x), t)
 end
 
-@testset "induction of characters" begin
+@testset "induction and restriction of characters" begin
   g = symmetric_group(4)
+  h = derived_subgroup(g)[1]
   t = character_table(g)
+
+  # `induced_cyclic`: no group is needed
   indcyc = induced_cyclic(t)
   @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
   @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
 
-  h = derived_subgroup(g)[1]
+  # `induce` for character tables with groups
   ind = [chi^t for chi in character_table(h)]
   @test sort!([degree(chi) for chi in ind]) == [2, 2, 2, 6]
   @test [scalar_product(trivial_character(t), x) for x in ind] == [1, 0, 0, 0]
+
+  # `induce` for character tables without groups (may fail)
+  ta5 = character_table("A5")
+  ta6 = character_table("A6")
+  ta7 = character_table("A7")
+  ind = [chi^ta7 for chi in ta6]
+  @test_throws ArgumentError trivial_character(ta5)^ta7
+
+  # `restrict` for character tables with groups
+  rest = [restrict(chi, character_table(h)) for chi in t]
+  @test [degree(chi) for chi in rest] == [degree(chi) for chi in t]
+
+  # `restrict` for character tables without groups (may fail)
+  rest = [restrict(chi, ta6) for chi in ta7]
+  @test_throws ArgumentError restrict(ta7[2], ta5)
 end
 
 @testset "natural characters" begin
@@ -767,14 +812,17 @@ end
   @test scalar_product(chi, chi) == 2
   @test scalar_product(chi, trivial_character(G)) == 1
 
-  K, a = CyclotomicField(5, "a")
-  L, b = CyclotomicField(3, "b")
+  K, a = cyclotomic_field(5, "a")
+  L, b = cyclotomic_field(3, "b")
+  F, sqrt3 = quadratic_field(3)
 
   inputs = [
-    #[ matrix(ZZ, [0 1 0; -1 0 0; 0 0 -1]) ],
+    [ matrix(ZZ, [0 1 0; -1 0 0; 0 0 -1]) ],
     [ matrix(QQ, [0 1 0; -1 0 0; 0 0 -1]) ],
     [ matrix(K, [a 0; 0 a]) ],
     [ matrix(L, 2, 2, [b, 0, -b - 1, 1]), matrix(L, 2, 2, [1, b + 1, 0, b]) ],
+    [ matrix(F, [1 0 0 ; 0 -1 0 ; 0 0 -1]),
+      matrix(F, [1//2 -sqrt3//2 0 ; sqrt3//2 1//2 0 ; 0 0 1]) ],
   ]
 
   @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
@@ -880,4 +928,99 @@ end
     @test anti_symmetric_parts(empty, 2) == empty
     @test orthogonal_components(empty, 2) == empty
     @test symplectic_components(empty, 2) == empty
+end
+
+@testset "character functions for GrpAbFinGen" begin
+  @testset for para in [ Int[], [2, 3, 4], [2, 4] ]
+    G1 = abelian_group(GrpAbFinGen, para)
+    iso = isomorphism(PcGroup, G1)
+    G2 = codomain(iso)
+    n = Int(order(G1))
+
+    # create character tables
+    tbl1 = character_table(G1)
+    tbl2 = character_table(G2)
+    @test length(tbl1) == length(tbl2) == n
+
+    # characters
+    tr1 = trivial_character(tbl1)
+    tr2 = trivial_character(tbl2)
+    @test values(tr1) == values(tr2)
+    @test tr1 in tbl1
+    chi = tbl1[n]
+    @test chi[n] == tbl1[n,n]
+    @test [chi[i] for i in 1:n] == values(chi)
+    @test [2*chi[i] for i in 1:n] == values(chi + chi)
+    @test [chi[i]^2 for i in 1:n] == values(chi * chi)
+    @test [chi[i]^2 for i in 1:n] == values(chi^2)
+    @test [-chi[i] for i in 1:n] == values(-chi)
+    @test [0*chi[i] for i in 1:n] == values(chi-chi)
+    @test [1 for i in 1:n] == values(one(chi))
+    @test [0 for i in 1:n] == values(zero(chi))
+    @test degree(chi) == chi[1]
+    @test length(chi) == n
+    @test 1 in chi
+    @test [chi(representative(c)) for c in conjugacy_classes(tbl1)] == values(chi)
+    @test all(is_irreducible, tbl1)
+    @test all(chi -> order(center(chi)[1]) == n, tbl1)
+    @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
+
+    scp = scalar_product(tbl1[1], tbl1[1])
+    @test scp == 1
+    @test scp isa QQFieldElem
+    for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+      scpT = scalar_product(T, tbl1[1],tbl1[1])
+      @test scpT == scp
+      @test scpT isa T
+    end
+    if n > 1
+      scp = scalar_product(tbl1[1], tbl1[2])
+      @test scp == 0
+      @test scp isa QQFieldElem
+    end
+
+    # induced characters
+    H = sylow_subgroup(G1, 3)[1]
+    subtbl = character_table(H)
+    ind = [chi^tbl1 for chi in subtbl]
+    @test all(chi -> degree(chi) == index(G1, H), ind)
+
+    # restricted characters
+    rest = [restrict(psi, subtbl) for psi in ind]
+    @test all(chi -> degree(chi) == index(G1, H), rest)
+
+    # conjugate characters
+    H, _ = pcore(G1, 2)
+    th = character_table(H)
+    chi = th[1]
+    for x in gens(G1)
+      psi = chi^x
+      @test psi == chi
+    end
+
+    # a corresponding Brauer table
+    tmod2 = mod(tbl1, 2);
+    @test tmod2 isa Oscar.GAPGroupCharacterTable
+    n = ncols(tmod2)
+    chi = tmod2[1]
+    @test degree(chi) == chi[1]
+    @test length(chi) == n
+    @test chi[n] == tmod2[1,n]
+    tr = trivial_character(tmod2)
+    @test ! (-1 in tr)
+
+    mat = decomposition_matrix(tmod2)
+    @test nrows(mat) == nrows(tbl1)
+    @test ncols(mat) == nrows(tmod2)
+
+    # character fields
+    for chi in tbl1
+      F, phi = character_field(chi)
+      for x in chi
+        xF = preimage(phi, x)
+        @test parent(xF) == F
+        @test phi(xF) == x
+      end
+    end
+  end
 end

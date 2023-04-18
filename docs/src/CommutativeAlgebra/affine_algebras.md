@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
 ```@contents
 Pages = ["affine_algebras.md"]
 ```
@@ -103,6 +99,10 @@ In the graded case, we additionally have:
 
 ```@docs
 grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
+```
+
+```@docs
+homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 ```
 
 ### Dimension
@@ -276,6 +276,7 @@ minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
+intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 ```
 
 #### Ideal Quotients

@@ -109,6 +109,9 @@ end
   @test (I == J) == false
   @test dim(J)  == 1
   @test dim(J)  == J.dim  # test case if dim(J) is already set
+  K = ideal(Q, [ x*y+1 ])
+  @test intersect(I,J,K) == ideal(Q, [y+1, x])
+  @test intersect(I,J,K) == intersect([I,J,K])
 
   R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
   I = ideal(R, [ x*y ])

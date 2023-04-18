@@ -561,7 +561,7 @@ may still be regular at some points of the returned subscheme.
 See also [`is_smooth`](@ref).
 
 # Examples
-``` jldoctest
+```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
 (Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 
@@ -661,7 +661,7 @@ Over non-perfect fields, this command returns the non-smooth locus and
 See also [`is_smooth`](@ref).
 
 # Examples
-``` jldoctest
+```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
 (Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
 

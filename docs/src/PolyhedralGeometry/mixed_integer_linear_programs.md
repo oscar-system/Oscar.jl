@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
 ```@contents
 Pages = ["mixed_integer_linear_programs.md"]
 ```

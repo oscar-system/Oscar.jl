@@ -580,6 +580,23 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      # we let `hom` compute elements in `A2` that correspond to
      # `GAP.Globals.IndependentGenerators(G.X)`.
      Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(G.X)::GapObj)
+     if length(Ggens) < length(exponents)
+       # It may happen that GAP omits the generators of order 1. Insert them.
+       @assert length(Ggens) + length(filter(x -> x == 1, exponents)) ==
+               length(exponents)
+       o = one(G).X
+       newGgens = []
+       pos = 1
+       for i in 1:length(exponents)
+         if exponents[i] == 1
+           push!(newGgens, o)
+         else
+           push!(newGgens, Ggens[pos])
+           pos = pos+1
+         end
+       end
+       Ggens = newGgens
+     end
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
      Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
 

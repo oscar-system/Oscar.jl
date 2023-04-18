@@ -27,3 +27,6 @@ function tail(a...)
   return AbstractAlgebra.tail(a...)
 end
 
+function exponents(a...)
+  return AbstractAlgebra.exponent_vectors(a...)
+end

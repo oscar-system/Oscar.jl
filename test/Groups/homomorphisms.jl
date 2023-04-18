@@ -234,7 +234,10 @@ end
    end
 
    @testset "Finite GrpAbFinGen to GAPGroup" begin
-      @testset for Agens in [[2, 4, 8], [2, 3, 4], [ 2, 12 ],
+#     @testset for Agens in [Int[], [2, 4, 8], [2, 3, 4], [2, 12],
+#T problem with GAP's `AbelianGroup`;
+#T see https://github.com/gap-system/gap/issues/5430
+      @testset for Agens in [[2, 4, 8], [2, 3, 4], [2, 12],
                              [1, 6], matrix(ZZ, 2, 2, [2, 3, 2, 6])]
          A = abelian_group(Agens)
          for T in [FPGroup, PcGroup, PermGroup]

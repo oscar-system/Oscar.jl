@@ -68,10 +68,10 @@ covered scheme with 3 affine patches in its default covering
       CXdual = dual_cone(X)
       CYdual = dual_cone(Y)
       candidates = polarize(facet).pm_cone.HILBERT_BASIS_GENERATORS[2]
-      pos = findfirst(j -> (contains(CXdual, candidates[j,:]) && contains(CYdual, -candidates[j,:])), 1:nrows(candidates))
+      pos = findfirst(j -> ((candidates[j,:] in CXdual) && ((-candidates[j,:]) in CYdual)), 1:nrows(candidates))
       sign = 1
       if pos === nothing
-        pos = findfirst(j -> (contains(CXdual, -candidates[j,:]) && contains(CYdual, candidates[j,:])), 1:nrows(candidates))
+        pos = findfirst(j -> (((-candidates[j,:]) in CXdual) && (candidates[j,:] in CYdual)), 1:nrows(candidates))
         sign = -1
       end
       @req pos !== nothing "no element found for localization"

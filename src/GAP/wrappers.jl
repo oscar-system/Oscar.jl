@@ -181,6 +181,7 @@ GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
+GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap Size(x::Any)::GapInt
