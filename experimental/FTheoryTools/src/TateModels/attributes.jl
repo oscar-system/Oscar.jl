@@ -146,7 +146,7 @@ end
 #####################################################
 
 @doc raw"""
-    cy_hypersurface(t::GlobalTateModel)
+    calabi_yau_hypersurface(t::GlobalTateModel)
 
 Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Tate model.
@@ -155,13 +155,13 @@ which defines the global Tate model.
 julia> t = su5_tate_model_over_arbitrary_3d_base()
 Global Tate model over a not fully specified base
 
-julia> cy_hypersurface(t)
+julia> calabi_yau_hypersurface(t)
 Closed subvariety of a normal toric variety
 ```
 """
-@attr ClosedSubvarietyOfToricVariety function cy_hypersurface(t::GlobalTateModel)
+@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
     base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-    return t.Y4
+    return t.calabi_yau_hypersurface
 end
 
 
@@ -192,8 +192,8 @@ Global Weierstrass model over a not fully specified base
     x, y, z = gens(S)[ngens(S)-2:ngens(S)]
     ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
     pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-    Y4 = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
-    model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), Y4)
+    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
+    model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), calabi_yau_hypersurface)
     set_attribute!(model, :base_fully_specified, base_fully_specified(t))
     return model
 end

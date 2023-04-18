@@ -105,7 +105,7 @@ global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingEl
 weierstrass_section_f(w::GlobalWeierstrassModel)
 weierstrass_section_g(w::GlobalWeierstrassModel)
 weierstrass_polynomial(w::GlobalWeierstrassModel)
-cy_hypersurface(w::GlobalWeierstrassModel)
+calabi_yau_hypersurface(w::GlobalWeierstrassModel)
 discriminant(w::GlobalWeierstrassModel)
 ```
 In case the Weierstrass model is constructed over a not fully specified base,
