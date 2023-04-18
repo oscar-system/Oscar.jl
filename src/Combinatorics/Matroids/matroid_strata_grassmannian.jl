@@ -5,16 +5,16 @@ Return the data of the coordinate ring of the matroid stratum of M in the Grassm
 
 # Examples
 ```jldoctest
-julia> M = fano_matroid();
+julia> M = fano_matroid()
 
-julia> (A, W) = matroid_stratum_matrix_coordinates(M, [1,2,4], GF(2));
+julia> (A, W) = matroid_stratum_matrix_coordinates(M, [1,2,4], GF(2))
 
 julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 [1   0   x[1, 1]   0   x[1, 2]         0   x[1, 4]]
 [0   1   x[2, 1]   0         0   x[2, 3]   x[2, 4]]
 [0   0         0   1   x[3, 2]   x[3, 3]   x[3, 4]]
 
-julia> W # The coordinate ring of the stratum; in general a localized quotient ring `(R/I)[S⁻¹]`.
+julia> W # The coordinate ring of the stratum in general a localized quotient ring `(R/I)[S⁻¹]`.
 Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of fpMPolyRingElem[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
 ```
 """
@@ -52,9 +52,9 @@ the matroid realization space is `W`.
 
 # Examples
 ```jldoctest
-julia> M = fano_matroid();
+julia> M = fano_matroid()
 
-julia> (X, W) = matroid_realization_space(M, [1,2,4,7], GF(2));
+julia> (X, W) = matroid_realization_space(M, [1,2,4,7], GF(2))
 
 julia> X # The coordinate matrix.
 [1   0   x[1, 1]   0   x[1, 2]         0   1]
@@ -399,7 +399,7 @@ function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
     basesX = realization_bases_determinants(X, Bs)
     
     S = MPolyPowersOfElement(R , basesX)
-    #S = realization_localizing_semigroup(basesX); 
+    #S = realization_localizing_semigroup(basesX) 
     SinvR , iota = Localization(R, S)
     
 
@@ -413,4 +413,118 @@ function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
     end
 end
 
+function new_realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring)
+    # prepare the combinatorial data
+    
+    circs = fundamental_circuits_of_basis(M,B)
+    
+    nonIdCols = setdiff(matroid_groundset(M),B)
+    circs = [setdiff( c, nonIdCols ) for c in circs]
 
+    rk = rank(M)
+    n = length(M)
+
+    # we start by computing the number of variables:
+    numVars = sum([length(intersect(c,B))-1 for c in circs])-(rk-1)
+    
+    R, x = polynomial_ring(F, numVars)
+
+    unUsedRowsForOnes = collect(2:rk)
+    
+    # create the matrix and fill it with entries
+    
+    mat = zero_matrix(R,rk,n)
+    
+    for i in 1:rk
+        mat[i,B[i]]=R(1)
+    end   
+    
+    varCounter = 1
+    
+    for col in 1:(n-rk)
+        for row in 1:rk
+            circ = circs[col]
+            c = nonIdCols[col]
+            
+            if B[row] == minimum(circ)
+                mat[row,c] = R(1)
+            elseif B[row] in circ 
+                if row in unUsedRowsForOnes
+                    mat[row,c] = R(1)
+                    unUsedRowsForOnes = setdiff(unUsedRowsForOnes,[row])
+                else
+                    mat[row,c] = x[varCounter]
+                    varCounter = varCounter+1
+                end
+            else
+                mat[row, c] = R(0)
+            end
+        end
+    end
+    
+    return (R, x, mat)
+end
+
+
+# Given a matroid M with a basis B, this functions computes for a i in groundset(M)\B a circuit in B \cup i.
+# This is a function used in the construction of the matrix underlying the representation space computation. 
+function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
+
+    remaining_elts = setdiff(matroid_groundset(M),B)
+    all_circs = circuits(M)
+    fund_circs = Vector{Vector{Int}}()
+    for i in remaining_elts
+         push!(fund_circs,all_circs[findfirst(c->issubset(c,union(B,i)),all_circs)])
+     end
+     return fund_circs
+ end
+
+ function new_realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, F::AbstractAlgebra.Ring = ZZ)
+
+    rk = rank(M)
+    n = length(M)
+
+    goodM = isomorphic_matroid(M, [i for i in 1:n])
+
+    Bs = bases(goodM)
+    if B!=nothing
+        goodB = sort!(Int.([M.gs2num[j] for j in B]))
+    else
+        goodB = Bs[length(Bs)]
+    end
+
+    polyR, x, mat = new_realization_space_matrix(goodM, goodB, F)
+    
+    eqs = Vector{RingElem}()
+    ineqs = Vector{RingElem}()
+    
+    for col in subsets(Vector(1:n),rk)
+        
+        col_det = det(mat[:,col])
+        
+        if total_degree( col_det ) <= 0 
+            
+            if col_det != 0 && col in Bs 
+                if isunit( col_det ) 
+                    continue
+                end
+            elseif col_det != 0 # and col is not a basis
+                erorr("determinant nonzero but set not a basis")
+            elseif col in Bs 
+                error( "determinant zero but set is a basis" )
+            else
+                continue
+            end
+            
+        end
+        
+        if  col in Bs
+            push!( ineqs, col_det )
+        else
+            push!( eqs, col_det )
+        end
+        
+    end
+    
+    return (eqs, ineqs, polyR, mat)
+end
