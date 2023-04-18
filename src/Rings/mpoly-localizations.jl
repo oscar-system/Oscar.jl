@@ -1476,10 +1476,27 @@ function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
   L == base_ring(J) || error("ideals must be defined in the same ring")
   preI = Oscar.pre_saturated_ideal(I)
   preJ = Oscar.pre_saturated_ideal(J) 
-  R = base_ring(L)
   K = intersect(I, J)
   return L(K)
 end
+
+function intersect(I::MPolyLocalizedIdeal,J::MPolyLocalizedIdeal...) 
+  L = base_ring(I)
+  erg = Oscar.pre_saturated_ideal(I)
+  for K in J
+    base_ring(K) == L || error("base rings must match")
+    erg = intersect(erg,Oscar.pre_saturated_ideal(K))
+  end
+  return L(erg)
+end
+
+#function intersect(VI::Vector{MPolyLocalizedIdeal})
+#  L = base_ring(VI[1])
+#  all(J -> base_ring(J) == L,VI) || error("base rings must match")
+#  VIpre = [Oscar.pre_saturated_ideal(J) for J in VI]
+#  erg = intersect(VIpre)
+#  return L(erg)
+#end  
 
 ### Further functionality
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
