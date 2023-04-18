@@ -104,8 +104,9 @@ function expressify(Q::PBWAlgQuo; context = nothing)  # what about new sring dat
         n = length(x)
         return Expr(:sequence, Expr(:text, "Exterior algebra over "),
                                expressify(coefficient_ring(a);  context=context),
-                               Expr(:text, " in "),
-                               Expr(:series, x...))
+                               Expr(:text, " in ("),
+                               Expr(:series, x...),
+                               Expr(:text, ")"))
 
     end
     # General case (not exterior algebra)
