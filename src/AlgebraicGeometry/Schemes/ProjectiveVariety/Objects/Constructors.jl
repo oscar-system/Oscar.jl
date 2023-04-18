@@ -29,6 +29,7 @@ Return the projective variety defined by the homogeneous prime ideal ``I``.
 Since in our terminology varieties are irreducible over the algebraic closure,
 we check that ``I`` stays prime when viewed over the algebraic closure.
 This is an expensive check that can be disabled.
+Note that the ideal ``I`` must live in a standard graded ring.
 
 ```jldoctest
 julia> P3 = projective_space(QQ,3)
