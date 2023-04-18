@@ -276,6 +276,7 @@ minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
+intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 ```
 
 #### Ideal Quotients

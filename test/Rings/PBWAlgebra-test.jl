@@ -115,6 +115,7 @@ end
   I = intersect(left_ideal(R, [dy]), left_ideal(R, [dx]))
   @test x*dy*dx in I
   @test !(dy*dx*x in I)
+  @test intersect(left_ideal(R, [dy]), left_ideal(R, [dx])) == intersect([left_ideal(R, [dy]), left_ideal(R, [dx])])
 
   I = intersect(right_ideal(R, [dy]), right_ideal(R, [dx]))
   @test dy*dx*x in I

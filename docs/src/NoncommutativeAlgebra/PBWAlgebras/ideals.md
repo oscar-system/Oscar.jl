@@ -88,6 +88,7 @@ dx
 
 ```@docs
 intersect(I::PBWAlgIdeal{D, T, S}, Js::PBWAlgIdeal{D, T, S}...) where {D, T, S}
+intersect(V::Vector{PBWAlgIdeal{D, T, S}}) where {D, T, S}
 ```
 
 ### Elimination

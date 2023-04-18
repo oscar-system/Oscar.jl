@@ -162,6 +162,7 @@ end
 # ideal intersection #######################################################
 @doc raw"""
     intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
+    intersect(V::Vector{MPolyIdeal{T}}) where T
 
 Return the intersection of two or more ideals.
 
@@ -170,7 +171,14 @@ Return the intersection of two or more ideals.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
-julia> I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+julia> I = ideal(R, [x, y])^2;
+
+julia> J = ideal(R, [y^2-x^3+x]);
+
+julia> intersect(I, J)
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia> intersect([I, J])
 ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
 ```
 """
@@ -179,10 +187,18 @@ function Base.intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
   si = I.gens.S
   for J in Js
     singular_assure(J)
-    si = Singular.intersection(si, J.gens.S)
   end
+  si = Singular.intersection(si, [J.gens.S for J in Js]...)
   return MPolyIdeal(base_ring(I), si)
 end
+
+function Base.intersect(V::Vector{MPolyIdeal{T}}) where T
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return Base.intersect(V[1], V[2:end]...)
+end
+
 
 #######################################################
 
