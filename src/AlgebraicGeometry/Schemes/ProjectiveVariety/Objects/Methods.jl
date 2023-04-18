@@ -12,23 +12,15 @@ function Base.show(io::IO, ::MIME"text/plain", X::AbsProjectiveVariety{<:Field,<
 end
 
 # one line printing
-function Base.show(io::IO, X::AbsProjectiveVariety)
+function Base.show(io::IO, X::AbsProjectiveVariety{<:Field,<:MPolyQuoRing})
     if get(io, :supercompact, false)
       print(io, "Projective variety")
     else
-      print(io, "Projective variety in ")
-      print(io, ambient_space(X))
+      print(io, "Projective variety defined by ")
+      print(io, vanishing_ideal(X))
     end
 end
 
-function Base.show(io::IO, X::AbsProjectiveVariety{<:Field,<:MPolyRing})
-    if get(io, :supercompact, false)
-      print(io, "Projective space")
-    else
-      print(io, "Projective $(dim(X))-space over ")
-      print(IOContext(io, :supercompact => true), base_ring(X))
-    end
-end
 
 # Projective space
 Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveVariety{<:Field, <:MPolyDecRing}) = Base.show(io, MIME("text/plain"),underlying_scheme(P))

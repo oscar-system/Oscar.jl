@@ -131,7 +131,7 @@ function ambient_space(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
 end
 
 @doc raw"""
-    ambient_space(P::AbsProjectiveScheme)
+    ambient_space(X::AbsProjectiveScheme)
 
 On ``X ⊂ ℙʳ_A`` this returns ``ℙʳ_A``.
 
@@ -152,8 +152,8 @@ Projective space of dimension 2
   over Rational Field
 
 """
-@attr function ambient_space(P::AbsProjectiveScheme)
-  return projective_scheme(ambient_coordinate_ring(P))
+@attr function ambient_space(X::AbsProjectiveScheme)
+  return projective_scheme(ambient_coordinate_ring(X))
 end
 
 
