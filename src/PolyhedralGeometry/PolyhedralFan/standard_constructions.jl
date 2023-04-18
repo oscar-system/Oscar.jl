@@ -133,7 +133,7 @@ function star_subdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
   newmaxcones = IncidenceMatrix(newmaxcones)
   
   # return the new fan
-  return PolyhedralFan{T}(newrays, newmaxcones)
+  return PolyhedralFan{T}(newrays, newmaxcones; non_redundant=true)
   
 end
 
