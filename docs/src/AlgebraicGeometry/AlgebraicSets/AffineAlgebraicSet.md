@@ -9,9 +9,9 @@ using Oscar
 # Affine Algebraic Sets
 An affine algebraic set over an algebraically closed
 field $\overline{k}$ is the common vanishing locus $V$ of
-finitely many polynomials $f_1,\dots f_l \in \overline{k}[x_1,\dots x_n]$,
+finitely many polynomials $f_1,\dots f_r \in \overline{k}[x_1,\dots x_n]$,
 or equivalently of the ideal $I \subseteq \overline{k}[x_1,\dots x_n]$ they generate.
-Structural questions about varieties can be answered by considering the associated ideal.
+Structural questions about varieties can be answered by considering the corresponding ideal of vanishing.
 For instance Hilbert's Nullstellensatz states that $V$ is empty if and only if
 $I=(1)$.
 

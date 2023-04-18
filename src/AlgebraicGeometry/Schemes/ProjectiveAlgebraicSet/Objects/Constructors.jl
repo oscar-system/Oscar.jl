@@ -39,8 +39,8 @@ end
 Return the vanishing locus of the homogeneous ideal ``I`` as an algebraic set
 in projective space.
 
-This computes the radical of ``I`` if `check=true`
-otherwise take on faith that ``I`` is radical.
+This computes the radical of ``I`` if `check=true`.
+Otherwise Oscar takes on faith that ``I`` is radical.
 
 ```jldoctest
 julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
@@ -65,6 +65,8 @@ function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
   return ProjectiveAlgebraicSet(X, check=check)
 end
 
+projective_algebraic_set(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true) = vanishing_locus(I, check=check)
+
 @doc raw"""
     vanishing_locus(p::MPolyDecRingElem; check::Bool=true)
 
@@ -75,6 +77,8 @@ This computes the radical of ``I`` if `check=true`
 otherwise take on faith that ``I`` is radical.
 """
 vanishing_locus(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
+
+projective_algebraic_set(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(p, check=check)
 ########################################################
 # (2) Intersections of algebraic sets
 ########################################################
@@ -102,9 +106,9 @@ end
 @doc raw"""
     irreducible_components(X::AbsProjectiveAlgebraicSet) -> Vector{ProjectiveVariety}
 
-Return the irreducible components of `X` defined over the same base field.
+Return the irreducible components of ``X`` defined over the base field of ``X``.
 
-Note that even if `X` is irreducible, there may be several geometric irreducible components.
+Note that even if ``X`` is irreducible, there may be several geometrically irreducible components.
 
 ```jldoctest
 julia> P1 = projective_space(QQ,1)
@@ -141,7 +145,7 @@ end
 @doc raw"""
     geometric_irreducible_components(X::AbsProjectiveAlgebraicSet) -> Vector{ProjectiveVariety}
 
-Return the geometric irreducible components of `X`.
+Return the geometrically irreducible components of `X`.
 
 They are the irreducible components of `X` seen over an algebraically closed field.
 
