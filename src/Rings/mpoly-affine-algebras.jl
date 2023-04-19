@@ -852,8 +852,8 @@ julia> subalgebra_membership(f, V)
 function subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
   R = parent(f)
   @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
-  @assert !isempty(v)
-  @assert all(x -> parent(x) === R, v)
+  @req !isempty(v) "Input vector must not be empty"
+  @req all(x -> parent(x) === R, v) "The polynomials must have the same parent"
 
   S, _ = polynomial_ring(coefficient_ring(R), length(v), "t")
   phi = hom(S, R, v)
@@ -883,8 +883,8 @@ end
 
 function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true) where PolyRingElemT <: MPolyDecRingElem
   R = parent(f)
-  @assert !isempty(v)
-  @assert all(g -> parent(g) == R, v)
+  @req !isempty(v) "Input vector must not be empty"
+  @req all(g -> parent(g) === R, v) "The polynomials must have the same parent"
   if check
     @req is_z_graded(R) "The base ring must be Z-graded"
     @req is_positively_graded(R) "The base ring must be positively graded"
@@ -965,27 +965,27 @@ julia> minimal_subalgebra_generators(V)
 ```
 """
 function minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
-  @assert !isempty(V)
+  @req !isempty(V) "Input vector must not be empty"
   I = ideal(parent(V[1]), [ zero(parent(V[1])) ])
   return _minimal_subalgebra_generators_with_relations(V, I, check = check)[1]
 end
 
 function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyDecRingElem}; check::Bool = true)
-  @assert !isempty(V)
+  @req !isempty(V) "Input vector must not be empty"
   I = ideal(parent(V[1]), [ zero(parent(V[1])) ])
   return _minimal_subalgebra_generators_with_relations(V, I, check = check)
 end
 
 function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyQuoRingElem{T}}; check::Bool = true) where T <: MPolyDecRingElem
-  @assert !isempty(V)
+  @req !isempty(V) "Input vector must not be empty"
   return _minimal_subalgebra_generators_with_relations([ lift(f) for f in V ], modulus(parent(V[1])), check = check)
 end
 
 function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true, start::Int = 0) where PolyRingElemT <: MPolyDecRingElem
-  @assert !isempty(V)
+  @req !isempty(V) "Input vector must not be empty"
   @assert start >= 0
   R = parent(V[1])
-  @assert all(g -> parent(g) == R, V)
+  @req all(g -> parent(g) === R, V) "The polynomials must have the same parent"
   if check
     @req is_z_graded(R) "The base ring must be Z-graded"
     @req is_positively_graded(R) "The base ring must be positively graded"
