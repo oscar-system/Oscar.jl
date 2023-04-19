@@ -224,5 +224,5 @@ end
   a = ideal(A, V)
   dim(a) # cashes a.gb
   gens(a.gb)
-  @test a.gb.gens.O == MPolyDecRingElm[y, z^2]
+  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
 end
