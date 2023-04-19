@@ -20,7 +20,11 @@ julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
   y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> graded_free_module(R,3)
-Graded free module R^3([0]) of rank 3 over R
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^3([0]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
 
 ```
 """
