@@ -1544,14 +1544,11 @@ return an array containing a minimal set of generators of `a`.
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
-
-julia> I = ideal(R, V)
-ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
-
 julia> A, p = quo(R, ideal(R, [x-y]));
 
-julia> a = ideal(A, [p(x) for x in V]);
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> a = ideal(A, V);
 
 julia> minimal_generating_set(a)
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
