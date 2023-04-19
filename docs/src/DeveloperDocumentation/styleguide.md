@@ -308,7 +308,7 @@ existing block.
     - group -> `Group`
     - ideal -> `Ideal`
     - localized -> `Loc`
-    - matrix -> `Matrix` or `Mat` ??
+    - matrix -> `Matrix`
     - module -> `Module`
     - multivariate polynomial -> `MPoly`
     - polynomial -> `Poly`
