@@ -1555,7 +1555,7 @@ julia> a = ideal(A, [p(x) for x in V]);
 
 julia> minimal_generating_set(a)
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- x
+ y
  z^2
 ```
 """
