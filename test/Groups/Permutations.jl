@@ -43,6 +43,21 @@
   @test order(G) == 645120
 end
 
+@testset "@permutation_group" begin
+  g = @permutation_group(2)
+  @test order(g) == 1
+  @test degree(g) == 2
+
+  g = @permutation_group(2, ())
+  @test order(g) == 1
+  @test degree(g) == 2
+
+  @test order(@permutation_group(3, (1,2,3))) == 3
+  @test order(@permutation_group(5, (1,2,3)(4,5), (1,2,3,4))) == 120
+
+  @test_throws ArgumentError @permutation_group(1, (1,2))
+  @test_throws ErrorException @permutation_group(1, (1,0))
+end
 
 @testset "CycleType" begin
   @testset "degree and order" begin

@@ -1,6 +1,7 @@
 export *
 export @pbw_relations
 export @perm
+export @permutation_group
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet

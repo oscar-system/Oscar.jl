@@ -617,7 +617,7 @@ end
     
 Input a list of permutations in cycle notation, created as elements of the
 symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
-[`cperm`](@ref) suitably..
+[`cperm`](@ref) suitably.
 
 # Examples
 ```jldoctest
@@ -658,6 +658,36 @@ macro perm(n,gens)
     return quote
        let g = symmetric_group($n)
            [ cperm(g, pi...) for pi in [$(ores...)] ]
+       end
+    end
+end
+
+
+@doc raw"""
+    @permutation_group(n, gens...)
+
+Input the permutation group of degree `n` with generators `gens...`,
+given by permutations in cycle notation.
+
+# Examples
+```jldoctest
+julia> g = @permutation_group(7, (1,2), (1,2,3)(4,5))
+Group([ (1,2), (1,2,3)(4,5) ])
+
+julia> degree(g)
+7
+```
+"""
+macro permutation_group(n, gens...)
+    ores = Expr[]
+    for ex in gens
+        res = _perm_helper(ex)
+        push!(ores, esc(:([$(res...)])))
+    end
+
+    return quote
+       let g = symmetric_group($n)
+           sub(g, [cperm(g, pi...) for pi in [$(ores...)]], check = false)[1]
        end
     end
 end
