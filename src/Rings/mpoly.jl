@@ -679,7 +679,12 @@ end
 
 function oscar_assure(B::BiPolyArray)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
-    B.O = [B.Ox(x) for x = gens(B.S)]
+    if typeof(B.Ox) <: MPolyQuoRing
+      R = oscar_origin_ring(B.Ox)
+    else
+      R = B.Ox
+    end
+    B.O = [R(x) for x = gens(B.S)]
   end
 end
 
