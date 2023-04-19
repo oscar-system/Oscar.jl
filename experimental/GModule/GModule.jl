@@ -204,44 +204,42 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minima
     return Z
   else
     res = GModule[]
-    for V in Z
-      k, m = _character_field(V)
-      chi = character(V)
-      d = schur_index(chi)
-      if d != 1
-        @vprint :MinField 1  "non-trivial Schur index $d found\n"
+    return map(_minimize, Z)
+  end
+end
+
+function _minimize(V::GModule{<:Oscar.GAPGroup, Generic.FreeModule{nf_elem}})
+  k, m = _character_field(V)
+  chi = character(V)
+  d = schur_index(chi)
+  if d != 1
+    @vprint :MinField 1  "non-trivial Schur index $d found\n"
+  end
+  if d !== nothing && d*degree(k) == degree(base_ring(V))
+    return V
+  elseif d == 1
+    @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
+    Vmin = gmodule_over(m, V)
+    return Vmin
+  else
+    if d === nothing
+      d = 1 # only a lower bound is known
+    end
+    s = subfields(base_ring(V))
+    s = [x for x = s if degree(x[1]) >= d*degree(k)]
+    sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
+    for (m, mm) = s
+      if m == base_ring(V)
+        @vprint :MinField 1 "no smaller field possible\n"
+        return V
       end
-      if d !== nothing && d*degree(k) == degree(base_ring(V))
-        push!(res, V)
-      elseif d == 1
-        @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
-        Vmin = gmodule_over(m, V)
-        push!(res, Vmin)
-      else
-        if d === nothing
-          d = 1 # only a lower bound is known
-        end
-        s = subfields(base_ring(V))
-        s = [x for x = s if degree(x[1]) >= d*degree(k)]
-        sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
-        for (m, mm) = s
-          if m == base_ring(V)
-            @vprint :MinField 1 "no smaller field possible\n"
-            push!(res, V)
-            break
-          end
-          @vprint :MinField 1 "trying descent to $m...\n"
-          Vmin = gmodule_over(mm, V, do_error = false)
-          if Vmin !== nothing
-            @vprint :MinField 1 "...success\n"
-            push!(res, Vmin)
-            break
-          end
-        end
+      @vprint :MinField 1 "trying descent to $m...\n"
+      Vmin = gmodule_over(mm, V, do_error = false)
+      if Vmin !== nothing
+        @vprint :MinField 1 "...success\n"
+        return Vmin
       end
     end
-    @assert length(res) == length(z)
-    return res
   end
 end
 
@@ -390,6 +388,10 @@ function gmodule_minimal_field(C::GModule{<:Any, <:Generic.FreeModule{<:FinField
   return C
 end
 
+function gmodule_minimal_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+  return _minimize(C) 
+end
+
 function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}; do_error::Bool = false)
   #mathematically, k needs to contain the character field
   #only works for irreducible modules
@@ -484,7 +486,7 @@ function gmodule_over(::QQField, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}
 end
 
 function Oscar.hom(M::MultGrp, N::MultGrp, h::Map)
-  return MapFromFunc(x->N(h(x.data)), y->M(preimage(h, N.data)), M, N)
+  return MapFromFunc(x->N(h(x.data)), y->M(preimage(h, y.data)), M, N)
 end
 
 function Oscar.content_ideal(M::MatElem{nf_elem})
@@ -504,7 +506,29 @@ function Oscar.content_ideal(M::MatElem{nf_elem})
   return C
 end
 
-function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = true)
+"""
+Compute the factor set or 2-cochain defined by `C` as a Galois
+module of the autmorphism group over the character field.
+If `mA` is given, it needs to map the automorphism group over the
+character field into the the automorphisms of the base ring.
+"""
+function factor_set(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}, mA::Union{Map, Nothing} = nothing)
+  K = base_ring(C)
+  if mA === nothing
+    k, mkK = _character_field(C)
+    A, mA = automorphism_group(PermGroup, K)
+    if degree(k) > 1
+      gk = mkK(gen(k))
+      s, ms = sub(A, [g for g = A if g(gk) == gk])
+      mA = ms*mA
+    end
+  end
+
+  c = _two_cocycle(mA, C, do_error = true, two_cycle = true)
+  return c
+end
+
+function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = true, two_cycle::Bool = false)
   G = domain(mA)
   K = base_ring(C)
 
@@ -568,6 +592,9 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
   Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
+  if two_cycle
+    return Sigma
+  end
   @vtime :MinField 2 fl, cb = Oscar.GrpCoh.is_coboundary(Sigma)
 
   cc = Dict(k => cb(k).data for k = G)
@@ -1169,6 +1196,7 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem)
   return true, c
 end
 
+export factor_set
 export indecomposition
 export irreducible_modules
 export is_decomposable
@@ -1217,6 +1245,7 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
+export factor_set
 export indecomposition
 export irreducible_modules
 export is_decomposable
