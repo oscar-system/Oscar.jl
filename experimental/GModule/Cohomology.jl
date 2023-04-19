@@ -52,7 +52,9 @@ end
 (M::MultGrp{T})(a::T) where {T}  = MultGrpElem{T}(a, M)
 
 Oscar.parent(a::MultGrpElem) = a.parent
-Oscar.elem_type(a::MultGrp{T}) where T = MultGrpElem{T}
+Oscar.elem_type(::MultGrp{T}) where T = MultGrpElem{T}
+Oscar.elem_type(::Type{MultGrp{T}}) where T = MultGrpElem{T}
+Oscar.zero(a::MultGrpElem) = parent(a)(one(a.data))
 
 import Base: ==, +, -, *
 
@@ -200,6 +202,15 @@ function action(C::GModule, g, v::Array)
   end
   return v
 end
+
+function Base.deepcopy_internal(C::GModule, ::IdDict)
+  return C
+end
+
+function Base.deepcopy_internal(G::GrpAbFinGen, ::IdDict)
+  return G
+end
+
 
 """
 The image of `v` under `g`
@@ -357,8 +368,8 @@ function Oscar.restrict(C::GModule, U::Oscar.GAPGroup)
   return gmodule(U, [action(C, m(g)) for g = gens(U)])
 end
 function Oscar.restrict(C::GModule, m::Map)
-  U, mU = image(m)
-  return gmodule(U, [action(C, mU(g)) for g = gens(U)])
+  U = domain(m)
+  return gmodule(U, [action(C, m(g)) for g = gens(U)])
 end
 
 function Oscar.inflate(C::GModule, h)
@@ -455,6 +466,15 @@ Oscar.Nemo.elem_type(::AllCoChains{N,G,M}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.parent_type(::CoChain{N,G,M})  where {N,G,M}= AllCoChains{N,G,M}
 Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
+
+function action(C::CoChain, g::PermGroupElem)
+  C = deepcopy(C)
+  for x = keys(C.d)
+    C.d[x] = action(C.C, g, C.d[x])
+  end
+  return C
+end
+
 
 """
 Evaluate a 0-cochain
@@ -724,13 +744,13 @@ function confluent_fp_group_pc(G::Oscar.GAPGroup)
     i += 1
     @assert length(r[2]) == 0
     if r[1][1] == r[1][2] #order relation!
-      j = 3
+      j = 2
       while j <= length(r[1]) && r[1][j] == r[1][1]
         j += 1
       end
       ru[i] = (r[1][1:j-1], -1 .* reverse(r[1][j:end]))
       r = ru[i]
-      push!(ex, ([-r[1][1]], [r[1][1] for i=2:length(r[1])]))
+      push!(ex, ([-r[1][1]], vcat([r[1][i] for i=2:length(r[1])], -r[2])))
     else #conjugator rel
       @assert r[1][1] < 0 && -r[1][1] == r[1][3]
       @assert r[1][2] < 0 && -r[1][2] == r[1][4]
