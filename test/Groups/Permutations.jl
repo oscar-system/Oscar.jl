@@ -43,6 +43,19 @@
   @test order(G) == 645120
 end
 
+@testset "permutation_group" begin
+  g = permutation_group(2, PermGroupElem[])
+  @test order(g) == 1
+  @test degree(g) == 2
+
+  g = permutation_group(2, [cperm()])
+  @test order(g) == 1
+  @test degree(g) == 2
+
+  @test order(permutation_group(3, [cperm(1:3)])) == 3
+  @test order(permutation_group(5, [cperm(1:3, 4:5), cperm(1:4)])) == 120
+end
+
 @testset "@permutation_group" begin
   g = @permutation_group(2)
   @test order(g) == 1
