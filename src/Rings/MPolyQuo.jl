@@ -1559,35 +1559,26 @@ julia> minimal_generating_set(a)
  z^2
 ```
 """
-function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
-
   Q = base_ring(I)
 
   @assert is_graded(Q)
 
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  QS = singular_poly_ring(Q)
-  singular_assure(I)
-
-  IS = I.gens.S
-  GC.@preserve IS QS begin
-    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
-    gensS = gens(typeof(IS)(QS, ptr))
+  if isdefined(I, :gb)
+    singular_assure(I.gb)
+    _, sing_min = Singular.mstd(I.gb.gens.S)
+    return (Q).(gens(sing_min))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
+    I.gb.gens.S.isGB = I.gb.isGB = true
+    return (Q).(gens(sing_min))
   end
-
-  i = 1
-  while i <= length(gensS)
-    if iszero(gensS[i])
-      deleteat!(gensS, i)
-    else
-      i += 1
-    end
-  end
-
-  return elem_type(Q)[ Q(f) for f in gensS ]
 end
 
 ################################################################################
