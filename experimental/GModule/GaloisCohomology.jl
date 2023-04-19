@@ -5,50 +5,26 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
                      Group
 import Base: parent
 import Oscar: direct_sum
-export is_coboundary, idel_class_gmodule
+export is_coboundary, idel_class_gmodule, relative_brauer_group
+export local_invariants
 
 
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
+#not type restricted: used for number fields as well as
+#LocalFields
+#could be extended to allow more group types
 function Oscar.automorphism_group(::Type{PermGroup}, k)
   G, mG = automorphism_group(k)
-  H = symmetric_group(degree(k))
-  gens(G) #to make sure gens are actually there...
-  H = sub(H, [H(G.mult_table[:, i]) for i=G.gens])[1]
-
-  function HtoG(p::PermGroupElem)
-    m = [i^p for i=1:degree(k)]
-    i = Base.findfirst(x->G.mult_table[:, x] == m, 1:degree(k))
-    return mG(GrpGenElem(G, i))
-  end
-
-  function GtoH(a::NfToNfMor)
-    g = preimage(mG, a)
-    return H(G.mult_table[:, g.i])
-  end
-
-  return H, MapFromFunc(HtoG, GtoH, H, codomain(mG))
+  mH = isomorphism(PermGroup, G)
+  return codomain(mH), inv(mH)*mG
 end
 
 function Oscar.automorphism_group(::Type{PermGroup}, K, k)
   G, mG = automorphism_group(K, k)
-  H = symmetric_group(length(G))
-  gens(G) #to make sure gens are actually there...
-  H = sub(H, [H(G.mult_table[:, i]) for i=G.gens])[1]
-
-  function HtoG(p::PermGroupElem)
-    m = [i^p for i=1:length(G)]
-    i = Base.findfirst(x->G.mult_table[:, x] == m, 1:length(G))
-    return mG(GrpGenElem(G, i))
-  end
-
-  function GtoH(a::NfToNfMor)
-    g = preimage(mG, a)
-    return H(G.mult_table[:, g.i])
-  end
-
-  return H, MapFromFunc(HtoG, GtoH, H, codomain(mG))
+  mH = isomorphism(PermGroup, G)
+  return codomain(mH), inv(mH)*mG
 end
 
 
@@ -95,7 +71,7 @@ end
 
 #TODO: think: this should probably all use MultGrpElem???
 #      NO, the "module" is the abstract abelian group
-function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}}, mG = automorphism_group(PermGroup, k)[2])
+function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, <:Union{AnticNumberField, FacElemMon{AnticNumberField}}}, mG = automorphism_group(PermGroup, k)[2])
   u = domain(mu)
   U = [mu(g) for g = gens(u)]
   G = domain(mG)
@@ -120,11 +96,17 @@ function Oscar.gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorph
   return gmodule(H, ac)
 end
 
-function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, AnticNumberField})
-  return _gmodule(codomain(mu), H, mu)
+function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, AnticNumberField}, mG =  automorphism_group(PermGroup, codomain(mu))[2])
+  return _gmodule(codomain(mu), H, mu, mG)
 end
 
+"""
+For a 2-cochain with values in the multiplicative group of a number field,
+decide if it is a coboundary (trivial in the Brauer group). If so also
+return a splitting 1-cochain.
+"""
 function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{nf_elem}})
+  #TODO/think: test locally. Does not need the normalisation
   @vprint :GaloisCohomology 1 "testing if 2-chain is a boundary\n"
 
   zk = maximal_order(parent(first(values(c.d)).data))
@@ -200,7 +182,7 @@ and the automorphism group Gp of Kp, given via
 Find the embedding of Gp -> G, realizing the local automorphism group
 as a subgroup of the global one.
 """
-function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))))
+function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))); _sub::Bool = false)
   Kp = codomain(mK)
   @assert domain(mK) == K
 
@@ -208,18 +190,31 @@ function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = autom
   G = domain(mG)
 
   im = elem_type(G)[]
+  pm = elem_type(Gp)[]
   elG = [g for g = G]
   imK = [mK(mG(g)(gen(K))) for g = elG]
-  for s = gens(Gp)
+  if _sub
+    gn = Gp
+  else
+    gn = gens(Gp)
+  end
+  for s = gn
     h = mGp(s)(mK(gen(K)))
     z = findall(isequal(h), imK)
     if length(z) == 0
+      _sub && continue
       z = argmax([valuation(h-x) for x = imK], dims = 1)
     end
     @assert length(z) == 1
     push!(im, elG[z[1]])
+    push!(pm, s)
   end
-  return hom(Gp, G, im)
+  if _sub 
+    Gp, _mG = sub(Gp, pm)
+    s = [preimage(_mG, x) for x = pm]
+    return hom(Gp, G, s, im), _mG
+  end
+  return hom(Gp, G, pm, im)
 end
 
 """
@@ -833,7 +828,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
 
   F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
   I.M = F[1].M
-  I.data = F[1]
 
   @hassert :GaloisCohomology 1 is_consistent(F[1])
 
@@ -844,30 +838,8 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @vtime :GaloisCohomology 2 mq = GrpAbFinGenMap(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
   I.mq = mq
-  function idel(a::GrpAbFinGenElem)
-    a = preimage(mq, a) # in F
-    u = F[2][1](a) #in iEt need to get to the S-Unit somehow, maybe
-    v = [m(a) for m = F[2][2:end]] #in the induced GModules
-    #= TODO
-     - the induced stuff is equivalent to doing all completions:
-       for infinite places, same as finite ones over the same prime
-       Galois operates transitive, and the :induce has coset reps
-       -> sort places against coset reps
-       -> sort primes against coset reps
-       return a dictionary where keys are the 
-         places, prime ideals
-       and values are
-         s.th. for the infinite places, for the reals we need the sign?
-         elements in the completion for the prime ideals
-         (think: nf_elem as the completions do not exist? only in 
-           spirit via the cosets?)
-
-     - we need also the inverse operation...
-     =#
-    return u, v
-  end
-
-  return q, idel, I
+  I.data = (q, F[1])
+  return I
 end
 
 function Oscar.components(A::GrpAbFinGen)
@@ -911,7 +883,547 @@ function Oscar.map_entries(mp::Map, C::GrpCoh.CoChain{N, G, M}; parent::GModule)
   return GrpCoh.CoChain{N, G, elem_type(codomain(mp))}(parent, d)
 end
 
-function serre(C::GModule, A::IdelParent, P::NfAbsOrdIdl)
+#=
+ Currently automorphism_group maps are not cached and thus will return
+ different groups each time. Thus to be consistent bewtween calls one 
+ should compute the group (map) once and pass it around.
+
+ Maybe we introduce the caching - however, there might be some data
+ dependency problems adding "random" fields into the attributes
+=#
+
+"""
+For a 2-cochain with with values in the multiplicative group of a number field,
+compute the local invariant of the algebra at the completion at the prime
+ideal or embeddings given.
+"""
+function local_index(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}}, P::NfOrdIdl, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; B = nothing, index_only::Bool = false)
+  return local_index([CC], P, mG, B = B, index_only = index_only)[1]
+end
+
+function local_index(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; index_only::Bool = false)
+  return local_index([C], emb, mG)[1]
+end
+
+function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; index_only::Bool = false)
+  if is_real(emb)
+    return [Hecke.QmodnZ()(0) for x = CC]
+  end
+  k = number_field(emb)
+  _m = decomposition_group(k, emb, mG)
+
+  Gp = domain(_m)
+#  @show [collect(values(x.d)) for x = CC]
+  g = _m(gens(Gp)[1])
+  @assert order(Gp) == 2 && order(g) == 2
+
+
+  Q = Hecke.QmodnZ()
+  r = elem_type(Q)[]
+  for C = CC
+    x = C(g, g)
+    y = emb(x.data)
+#    @assert is_real(y)
+    if is_positive(real(y))
+      push!(r, Q(0))
+    else
+      push!(r, Q(1//2))
+    end
+  end
+  return r
+end
+
+function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}}}, P::NfOrdIdl, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; B::Any = nothing, index_only::Bool = false)
+  k = nf(order(P))
+
+  if B !== nothing && haskey(B.lp, P)
+    data = B.lp[P]
+    mL = data[1]
+    L = domain(mL)
+    mU = data[2]
+    mGp = data[3]
+    emb, _m = data[4]
+    C = data[5]
+    c, mq = data[6]
+    q = domain(mq)
+    cn = data[7]
+  else
+    L, mL = completion(k, P)#, 40*ramification_index(P))
+    C, mGp, mU = gmodule(L, prime_field(L))
+
+    G = domain(mG)
+    emb, _m = decomposition_group(k, mL, mG, mGp, _sub = true)
+    # _m : domain(emb) -> Gp
+    #emb :             -> G 
+    @assert domain(emb) === domain(_m)
+    @assert codomain(emb) === G
+    @assert codomain(_m) === domain(mGp)
+
+    C = restrict(C, _m)
+
+    c = cohomology_group(C, 2)
+    q, mq = snf(c[1])
+    @assert order(q) == order(domain(emb))
+
+
+    if order(q) == 1
+      if B !== nothing
+        B.lp[P] = (mL, mU, mGp, (emb, _m), C, (c, mq), 1)
+      end
+      return [Hecke.QmodnZ()(0) for x = CC]
+    end
+
+    if index_only
+      @assert B === nothing
+      cn = ZZRingElem(1)
+    else
+      s = Hecke.Hecke.local_fundamental_class_serre(L, prime_field(L))
+      can = CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
+      @assert Oscar.GrpCoh.istwo_cocycle(can)
+
+      cn = preimage(mq, preimage(c[2], can))[1]
+    end
+
+    if B !== nothing
+      B.lp[P] = (mL, mU, mGp, (emb, _m), C, (c, mq), cn)
+    end
+  end
+
+
+  D = [GrpCoh.CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, 
+    Dict((g, h) => preimage(mU, mL(x(emb(g), emb(h)).data)) 
+       for g = domain(emb) 
+         for h = domain(emb))) for x = CC]
+
+  if !isone(cn)
+    cn = invmod(cn, order(q))
+  end
+  return [Hecke.QmodnZ()(preimage(mq, cn * preimage(c[2], x))[1]//order(q)) for x = D]
+end
+
+"""
+    RelativeBrauerGroup
+
+For `K/k` a number field, where `k` has to be Antic or QQField and `K` Antic
+return a container for the relative Brauer group parametrizing central
+simple algebras with center `k` that are split by `K` (thus can be realised
+as a 2-cochain with values in `K`)
+"""
+mutable struct RelativeBrauerGroup
+  K::AnticNumberField
+  k::Union{AnticNumberField, QQField}
+  mG::Map #PermGroup -> Aut(K/k)
+  lp::Dict{NfAbsOrdIdl, Any} #for each ideal: (in K)
+                             # completion map
+                             # mult. group map
+                             # aut map
+                             # decomposition group map
+                             # gmodule
+                             # cohomology_group, 2
+  li::Dict{<:Hecke.NumFieldEmb, Any} # for each infinite place in K
+                               # decomposition group map
+  map::Map         # Brauer -> CoCycle
+  mkK::Map         #embedding k -> K
+  function RelativeBrauerGroup(mkK::Map{<:Union{QQField, AnticNumberField}, AnticNumberField})
+    B = RelativeBrauerGroup(codomain(mkK), domain(mkK))
+    B.mkK = mkK
+    return B
+  end
+  function RelativeBrauerGroup(K::AnticNumberField, k)
+    B = new()
+    B.K = K
+    B.k = k
+    B.lp = Dict{NumFieldOrdIdl, Any}() #ideals in k
+    B.li = Dict{Hecke.NumFieldEmb, Any}()
+    return B
+  end
+end
+
+function Base.show(io::IO, B::RelativeBrauerGroup)
+  print(io, "Relative Brauer group for $(B.K) over $(B.k)\n")
+end
+
+"""
+    RelativeBrauerGroupElem
+
+Elements of the Brauer group can be in 2 forms:
+ - via their local invariants: for places in `k` associate
+   the invariant as an element in QQ/ZZ.
+ - as a 2-cochain with values in `K`
+"""
+mutable struct RelativeBrauerGroupElem
+  parent :: RelativeBrauerGroup
+  data :: Dict{Union{NumFieldOrdIdl, Hecke.NumFieldEmb}, Hecke.QmodnZElem}
+  chain:: Oscar.GrpCoh.CoChain{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{nf_elem}} # values in K
+  function RelativeBrauerGroupElem(B::RelativeBrauerGroup, d::Dict)
+    r = new()
+    r.parent = B
+    r.data = d
+    return r
+  end
+end
+
+Oscar.parent(a::RelativeBrauerGroupElem) = a.parent
+
+(B::RelativeBrauerGroup)(d::Dict{Union{NfAbsOrdIdl, Hecke.NumFieldEmb}, Hecke.QmodnZElem}) = RelativeBrauerGroupElem(B, d)
+
+function Base.:+(a::RelativeBrauerGroupElem, b::RelativeBrauerGroupElem)
+  @assert parent(a) == parent(b)
+  d = copy(a.data)
+  for (k,v) = b.data
+    if haskey(d, k)
+      d[k] += v
+    else
+      d[k] = v
+    end
+  end
+  return RelativeBrauerGroupElem(parent(a), d)
+end
+
+function Base.:-(a::RelativeBrauerGroupElem, b::RelativeBrauerGroupElem)
+  @assert parent(a) == parent(b)
+  d = copy(a.data)
+  for (k,v) = b.data
+    if haskey(d, k)
+      d[k] -= v
+    else
+      d[k] = -v
+    end
+  end
+  return RelativeBrauerGroupElem(parent(a), d)
+end
+
+function Base.:*(a::Union{Integer, ZZRingElem}, b::RelativeBrauerGroupElem)
+  d = copy(b.data)
+  for (k,v) = d
+    d[k] = a*v
+  end
+  return RelativeBrauerGroupElem(parent(b), d)
+end
+
+function Base.show(io::IO, a::RelativeBrauerGroupElem)
+  print(io, a.data)
+end
+
+function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
+  return B(CC).data
+end
+
+function Oscar.order(b::RelativeBrauerGroupElem)
+  return lcm([order(v) for v = values(b.data)]...)
+end
+
+function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem})
+  d = Dict{Union{NumFieldOrdIdl, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
+  return RelativeBrauerGroupElem(B, d)
+end
+
+"""
+Given a 2-cochain with values in `K`, represent the algebra by they local
+invariants in the relative Brauer group 
+    `Br(K/k) = H^2(Aut(K/k), K^*)`
+"""
+function (B::RelativeBrauerGroup)(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
+  k = CC.C.M.data
+  @assert k == B.K
+  zk = maximal_order(k)
+  S = [discriminant(zk)]
+  mG = B.mG
+  for v = values(CC.d)
+    n = norm(v.data)
+    if !isone(denominator(n))
+      push!(S, denominator(n))
+    end
+    if !isone(numerator(n))
+      push!(S, numerator(n))
+    end
+  end
+  S = coprime_base(S)
+  T = []
+  for s = S
+    isone(s) && continue
+    lp = collect(keys(factor(s*zk)))
+    append!(T, lp)
+  end
+  #=
+    G = the group involved in CC
+    Then we're talking about Br(k/k^G) and need invariants only
+    for places over k^G (the field fixed by G)
+    Hence, we need to sort into G-orbits and take one/orbit only
+
+    Same for the infinite places
+  =#
+  O = []
+  G = domain(mG)
+  while length(T) > 0
+    I = pop!(T)
+    push!(O, I)
+    for g = G
+      gI = mG(g)(I)
+      p = findfirst(isequal(gI), T)
+      if p !== nothing
+        deleteat!(T, p)
+      end
+    end
+  end
+  d = Dict{Any, Hecke.QmodnZElem}()
+  for p = O
+    d[minimum(B.mkK, p)] = local_index(CC, p, mG, B = B)
+  end
+
+  T = copy(complex_embeddings(k))
+  O = []
+  while length(T) > 0
+    I = pop!(T)
+    push!(O, I)
+    for g = G
+      gI = compose(mG(g), I)
+      p = findfirst(isequal(gI), T)
+      if p !== nothing
+        deleteat!(T, p)
+      end
+    end
+  end
+
+  for p = O
+    d[restrict(p, B.mkK)] = local_index(CC, p, mG)
+  end
+  b = RelativeBrauerGroupElem(B, d)
+  b.chain = CC
+  return b
+end
+
+
+Base.minimum(::Map{QQField, AnticNumberField}, I::Union{Hecke.NfAbsOrdIdl, Hecke.NfAbsOrdFracIdl}) = minimum(I)*ZZ
+
+Hecke.extend(::Hecke.QQEmb, mp::MapFromFunc{QQField, AnticNumberField}) = complex_embeddings(codomain(mp))
+
+Hecke.restrict(::Hecke.NumFieldEmb, ::Map{QQField, AnticNumberField}) = complex_embeddings(QQ)[1]
+
+"""
+    relative_brauer_group(K::AnticNumberField, k)
+
+For `k` a subfield or `QQ`, create the relative Brauer group as
+an infinite direct sum of the local Brauer groups.
+
+The second return value is a map translating between the local data
+and explicit 2-cochains.
+"""
+function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumberField} = QQ)
+  G, mG = automorphism_group(PermGroup, K)
+  if k != QQ 
+    fl, mp = issubfield(k, K)
+    p = mp(gen(k))
+    @assert fl
+    s, ms = sub(G, [x for x = G if mG(x)(p) == p])
+    G = s
+    mG = ms*mG
+  else
+    mp = MapFromFunc(x -> K(x), y-> QQ(y), QQ, K)
+  end
+  B = RelativeBrauerGroup(mp)
+  B.mG = mG
+
+  function elem_to_cocycle(b::RelativeBrauerGroupElem)
+    B = parent(b)
+    lp = Set([minimum(p) for p = keys(b.data) if isa(p, NumFieldOrdIdl)])
+    K = B.K
+    ZK = maximal_order(K)
+    C, mC = class_group(ZK)
+    lP = vcat([collect(keys(factor(p*ZK))) for p = lp]...)
+    q, mq = quo(C, [preimage(mC, x) for x = lP])
+    p = 2
+    while order(q) > 1
+      while p in lp
+        p = next_prime(p)
+      end
+      P = collect(keys(factor(p*ZK)))
+      cP = [preimage(mq, preimage(mC, x)) for x = P]
+      if all(iszero, cP)
+        continue
+      end
+      push!(lp, p)
+      append!(lP, P)
+      q, _mq = quo(q, cP)
+      mq = _mq * mq
+    end
+
+    S, mS = sunit_group(lP)
+
+    MC = Oscar.GrpCoh.MultGrp(K)
+    mMC = MapFromFunc(x->MC(x), y->y.data, K, MC)
+
+    mG = B.mG
+    G = domain(mG)
+    mu = gmodule(MC, G, [hom(MC, MC, mG(g)) for g = gens(G)])
+    M = gmodule(G, mS, mG)
+    @assert Oscar.GrpCoh.is_consistent(M)
+    z = cohomology_group(M, 2);
+
+    for x = gens(z[1])
+      @assert Oscar.GrpCoh.istwo_cocycle(z[2](x))
+    end
+    q, mq = snf(z[1])
+
+
+    p = []
+    for x = lp
+      push!(p, prime_decomposition(ZK, x)[1][1])
+    end
+
+    zz = [map_entries(mS*mMC, z[2](image(mq, x)), parent = mu) for x = gens(q)]
+    k = collect(keys(zz[1].d))
+
+    @assert all(Oscar.GrpCoh.istwo_cocycle, zz)
+
+    em = complex_embeddings(B.k)
+    EM = [extend(x, mp)[1] for x = em]
+    lb = RelativeBrauerGroupElem[]
+    for x = zz
+      d = Dict{Union{NumFieldOrdIdl, Hecke.NumFieldEmb}, Hecke.QmodnZElem}()
+      for P = lP
+        d[minimum(mp, P)] = local_index(x, P, mG, B = B)
+      end
+      for i = length(em)
+        d[em[i]] = local_index(x, EM[i], mG)
+      end
+      push!(lb, RelativeBrauerGroupElem(B, d))
+    end
+  
+    fl, x = solve(lb, b)
+    @assert fl
+ 
+    return map_entries(mS*mMC, z[2](image(mq, q(x.coeff))), parent = mu)
+  end
+
+  function cocycle_to_elem(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
+    b = B(C)
+    return b
+  end
+
+  B.map =  MapFromFunc(x->elem_to_cocycle(x), 
+                       y->cocycle_to_elem(y),
+                       B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{nf_elem}}())
+  return B, B.map
+end
+
+function (B::RelativeBrauerGroup)(M::GModule{PermGroup, AbstractAlgebra.Generic.FreeModule{nf_elem}})
+  @assert B.K == base_ring(M)
+  c = factor_set(M, B.mG)
+  return preimage(B.map, c)
+end
+
+"""
+Return the local component at `p`.
+"""
+function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrdIdl, Hecke.NumFieldEmb})
+  if haskey(a.data, p)
+    return a.data[p]
+  else
+    return Hecke.QmodnZ()(1)
+  end
+end
+
+#write (or try to write) `b` as a ZZ-lienar combination of the elements in `A`
+function Oscar.solve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+  @assert all(x->parent(x) == parent(b), A)
+  lp = Set(collect(keys(b.data)))
+  for a = A
+    for p = keys(a.data)
+      push!(lp, p)
+    end
+  end
+  lp = collect(lp)
+  push!(A, b)
+
+  li = [x for x = lp if isa(x, Hecke.NumFieldEmb)]
+  lp = [x for x = lp if isa(x, NumFieldOrdIdl)]
+
+  d = [lcm([order(x(k)) for x = A]...) for k = vcat(lp, li)]
+  F = free_abelian_group(length(A)-1)         
+  G = abelian_group(d)
+  function q_to_a(x, d)
+    return divexact(d, denominator(x.elt)) * numerator(x.elt)
+  end
+  
+  a = [G(vcat([q_to_a(x(lp[i]), d[i]) for i = 1:length(lp)],
+               [x(li[i]) == 0 ? 0 : 1 for i = 1:length(li)])) for x = A] 
+ 
+  h = hom(F, G, a[1:end-1])
+  pop!(A)
+  return haspreimage(h, a[end])
+end  
+
+"""
+Compute an explicit matrix algebra with the local invariants given
+by the element
+"""
+function Hecke.AlgAss(a::RelativeBrauerGroupElem)
+  return A = AlgAss(parent(a).map(a), parent(a).mG, parent(a).mkK)
+end
+
+function local_index(C::GModule{<:Oscar.GAPGroup, Generic.FreeModule{nf_elem}}, p::Union{Integer, ZZRingElem})
+  K = base_ring(C)
+  k, mkK = Oscar.GModuleFromGap._character_field(C)
+  A, mA = automorphism_group(PermGroup, K)
+  gl = mkK(gen(k))
+  s, ms = sub(A, [a for a = A if mA(a)(gl) == gl])
+  lp = factor(p*maximal_order(K))
+  r = []
+  mp = ms*mA
+  c = Oscar.GModuleFromGap._two_cocycle(mp, C, two_cycle = true)
+  for P = keys(lp)
+    push!(r, P => local_index(c, P, mp))
+  end
+  return Dict(r)
+end
+
+"""
+Return the cross-product algebra defined by the factor system given
+as a 2-cochain.
+"""
+function Hecke.AlgAss(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}}, mG::Map = automorphism_group(PermGroup, CC.C.M.data), mkK::Union{<:Map, Nothing} = nothing)
+
+  k = CC.C.M.data
+  G = domain(mG)
+  all_G = collect(G)
+  n = order(Int, G)
+  if mkK !== nothing && domain(mkK) != QQ
+    k, mp = relative_simple_extension(mkK)
+  else
+    mp = id_hom(k)
+  end
+  M = zeros(base_field(k), n*n, n*n, n*n)
+  #basis is prod. basis of basis(k) and e_sigma sigma in G
+  # e_sigma * e_tau is via cocycle
+  # bas * bas is direct
+  # e_sigma * bas = bas^sigma * e_sigma
+  # bas * e_sigma = bas * e_sigma
+  B = [(b, s) for b = basis(k) for s = all_G]
+  function mul(a::Tuple, b::Tuple)
+    # a*A * b * B
+    # -> a* b^A * A*B
+    # -> a*b^A * (sigma(A, B)*AB)
+    c = a[1] * preimage(mp, mG(a[2])(mp(b[1]))) * preimage(mp, CC(a[2], b[2]).data)
+    C = a[2]*b[2]
+    z = zeros(base_field(k), n*n)
+    bk = basis(k)
+    for i=1:length(bk)
+      p = findfirst(isequal((bk[i], C)), B)
+      z[p] = coeff(c, i-1)
+    end
+    return z
+  end
+  for i = 1:n*n
+    for j = 1:n*n
+      M[i, j, : ] = mul(B[i], B[j])
+    end
+  end
+  return Hecke.AlgAss(base_field(k), M)
+end
+
+function serre(A::IdelParent, P::NfAbsOrdIdl)
+  C = A.data[1]
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
   qr = restrict(C, mp)
@@ -927,7 +1439,8 @@ function serre(C::GModule, A::IdelParent, P::NfAbsOrdIdl)
   return c
 end
 
-function serre(C::GModule, A::IdelParent, P::Union{Integer, ZZRingElem})
+function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
+  C = A.data[1]
   t = findfirst(isequal(ZZ(P)), [minimum(x) for x = A.S])
   Inj = Hecke.canonical_injection(A.M, t+1)
   Pro = Hecke.canonical_projection(A.M, t+1)
@@ -939,27 +1452,41 @@ function serre(C::GModule, A::IdelParent, P::Union{Integer, ZZRingElem})
   @assert domain(inj) == domain(mUp) 
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
  
-  tt = serre(C, A, A.S[t])
+  tt = serre(A, A.S[t])
   @assert tt.C.G == domain(mGp)
 
   I = domain(Inj)    
-  zz = gmodule(C.G, [Inj * action(A.data, g) * Pro for g = gens(C.G)])
+  zz = gmodule(C.G, [Inj * action(A.data[2], g) * Pro for g = gens(C.G)])
+  #the induced module
   mu = cohomology_group(zz, 2)
   q, mq = snf(mu[1])
   g = mu[2](mq(q[1]))
+  #g is the (non-canonical) generator of H^2 of the induced module
   hg = map_entries(Inj*A.mq, g, parent = C)
+  #hg is the (non-canonical) generator of H^2 of the induced module
+  #in the global idel-class cohomology
+  #             
+  #Z[G_p] K_p   <-> Ind_G_p^G K_p = Z[G] prod K_p over all conjugate primes
+  #              -> Z[G] C the idel-class group
+  #the image should be the restriction I think
   gg = map_entries(pro, g, parent = tt.C)
+  #gg is the non-canomical generator in Z[G_p] K_p
   gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, GrpAbFinGenElem}(tt.C, Dict( (g, h) => gg.d[mp(g), mp(h)] for g = tt.C.G for h = tt.C.G))
 
   nu = cohomology_group(tt.C, 2)
   ga = preimage(nu[2], gg)
   ta = preimage(nu[2], tt)
+  #here we can compare: tt is canonical, gg is non-canonical
+  #we return the multiple that makes gg canonical.
+  #and the non-canonical gg in Z[G] C, which should be the
+  #restriction, hence a multiple of the global generator
   return findfirst(x->x*ga == ta, 1:order(tt.C.G)), hg
   #so i*hg should restrict to the local fund class...
 end
 
 
-function global_fundamental_class(C::GModule, A::IdelParent)
+function global_fundamental_class(A::IdelParent)
+  C = A.data[1]
   d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
   G = C.G
   if d != order(G)
@@ -971,16 +1498,43 @@ function global_fundamental_class(C::GModule, A::IdelParent)
   q, mq = snf(z[1])
   @assert ngens(q) == 1
   g = z[2](mq(gen(q, 1))) # to get a 2-CoCycle
+  #g is the non-canonical generator
   @assert Oscar.GrpCoh.istwo_cocycle(g)
+  n = order(q)
+  g = mq(gen(q, 1))
 
   scale = []
 
   for P = A.S
-    s = serre(C, A, minimum(P))
-    push!(scale, s)
+    s = serre(A, minimum(P))
+    d = inertia_degree(P) * ramification_index(P) #local degree
+    #s[1] = j s.th. canonical at P = j * actual gen at P
+    #s[2] should be the restriction to the local component
+    #     hence a factor times the global gen
+    # we need:
+    #  mu sth 
+    #   o_p (mu H^2(C)[1]) = j_P* s_P[2] for all P
+    #  where o_p = deg(K)/order(s_p[2) = deg(K)/deg(K_p)
+
+    k = findfirst(k->k * preimage(z[2], s[2]) == divexact(n, d)*g, 1:d)
+    #so (n/d) * k * g = res(g, G_p) = s[2]
+    #   s[1] * k * (n/d) * g = canonical at P
+    push!(scale, ((s[1]*k) % d, d))
   end
-  #put to gether..
-  return scale, z, mq 
+  #put together..
+  #want x s.th. (n/d[2]) * x = d[1] mod d[2]
+  #cannot use CRT as the d[2] are not necc. coprime
+  a = abelian_group([x[2] for x = scale])
+  b = abelian_group([n])
+  h = hom(b, a, [sum(a[i] * divexact(n, scale[i][2]) for i=1:length(scale))])
+  p = preimage(h, sum(a[i] * scale[i][1] for i=1:length(scale)))
+  @assert gcd(p[1], n) == 1  
+  #so p[1]* g is canonical!!!
+  return p[1]
+end
+
+function Oscar.cohomology_group(A::IdelParent, i::Int)
+  return Oscar.cohomology_group(A.data[1], i)
 end
 
 function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
@@ -1070,7 +1624,7 @@ end
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
-export is_coboundary, idel_class_gmodule
+export is_coboundary, idel_class_gmodule, relative_brauer_group
 
 
 #=
