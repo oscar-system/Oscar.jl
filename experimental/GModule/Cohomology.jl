@@ -369,9 +369,7 @@ function Oscar.inflate(C::GModule, h)
 end
 
 export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
-       action, cohomology_group, extension, pc_group,
-       induce
-
+       action, cohomology_group, extension, pc_group
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)

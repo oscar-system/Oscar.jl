@@ -11,6 +11,7 @@ export canonical_matrix
 export deglex
 export degrevlex
 export index_of_leading_term
+export induce
 export induced_ring_ordering
 export is_elimination_ordering
 export is_global
@@ -1582,6 +1583,52 @@ function is_elimination_ordering(o::MonomialOrdering, sigmaC::Vector{Int})
   return true
 end
 
+function induce(vars::Vector{Int}, o::SymbOrdering{S}) where S
+  return SymbOrdering(S, vars)
+end
+
+function induce(vars::Vector{Int}, o::WSymbOrdering{S}) where S
+  @req length(vars) == length(o.vars) "Number of variables must coincide"
+  return WSymbOrdering(S, vars, o.weights)
+end
+
+function induce(vars::Vector{Int}, o::MatrixOrdering)
+  @req length(vars) == length(o.vars) "Number of variables must coincide"
+  return MatrixOrdering(vars, o.matrix, o.fullrank)
+end
+
+function induce(vars::Vector{Int}, o::ProdOrdering)
+  m = length(_support_indices(o.a))
+  n = length(_support_indices(o.b))
+  @req m + n == length(vars) "Number of variables must coincide"
+  return induce(vars[1:m], o.a)*induce(vars[m + 1:end], o.b)
+end
+
+@doc raw"""
+    induce(vars::AbstractVector{<:MPolyRingElem}, ord::ModuleOrdering)
+
+Return the monomial ordering on the variables `vars` induced by transfering
+the ordering `ord`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> S, (a, b, c) = polynomial_ring(GF(5), ["a", "b", "c"]);
+
+julia> ord = degrevlex([x, y])*neglex([z]);
+
+julia> induce([a, b, c], ord)
+degrevlex([a, b])*neglex([c])
+```
+"""
+function induce(vars::AbstractVector{<: MPolyRingElem}, o::MonomialOrdering)
+  @assert !isempty(vars)
+  v = _unique_var_indices(vars)
+  o2 = induce(v, o.o)
+  return MonomialOrdering(parent(vars[1]), o2, false, false)
+end
+
 ###################################################
 
 # Module orderings (not module Orderings)
@@ -2009,3 +2056,5 @@ function monomial_ordering(R::MPolyRing, ord::Singular.sordering)
 end
 
 end  # module Orderings
+
+import Oscar.Orderings: induce # needed at least for group characters
