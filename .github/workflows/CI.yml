@@ -32,14 +32,19 @@ jobs:
           - x64
         os:
           - ubuntu-latest
+        doctest:
+          - 'no'
+          - 'only'
         include:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.8'
             julia-arch: x64
             os: macOS-latest
+            doctest: 'yes'
           - julia-version: 'nightly'
             julia-arch: x64
             os: macOS-latest
+            doctest: 'yes'
 
     steps:
       - uses: actions/checkout@v3
@@ -59,10 +64,23 @@ jobs:
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Run tests"
+        if: matrix.doctest != 'only'
         uses: julia-actions/julia-runtest@latest
         with:
+          annotate: ${{ matrix.julia-version == '1.8' }}
           coverage: ${{ matrix.julia-version == '1.8' }}
           depwarn: error
+      - name: "Run doctests"
+        if: matrix.doctest != 'no'
+        run: |
+          julia --project=docs --color=yes -e '
+            using Pkg
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.instantiate()
+            using Documenter
+            using Oscar
+            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
+            doctest(Oscar)'
       - name: "Process code coverage"
         if: matrix.julia-version == '1.8'
         uses: julia-actions/julia-processcoverage@v1
