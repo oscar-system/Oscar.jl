@@ -47,11 +47,6 @@ function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e"
   return graded_free_module(R, length(W), name, d)
 end
 
-# TODO: move
-function is_graded(R::MPolyRing)
-  return false
-end
-
 function grade(M::FreeMod, d::Vector{GrpAbFinGenElem})
   @assert length(d) == ngens(M)
   @assert is_graded(base_ring(M))
