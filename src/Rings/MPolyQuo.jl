@@ -1538,7 +1538,8 @@ end
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `a` of a graded affine algebra over a field,
-return an array containing a minimal set of generators of `a`.
+return an array containing a minimal set of generators of `a`. If `I`
+is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest

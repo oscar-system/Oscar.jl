@@ -1308,7 +1308,8 @@ end
     minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `I` in a graded multivariate polynomial ring
-over a field, return an array containing a minimal set of generators of `I`.
+over a field, return an array containing a minimal set of generators
+of `I`. If `I` is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest
