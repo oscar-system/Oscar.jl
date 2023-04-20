@@ -425,6 +425,12 @@ Relevant test calls on an element `f` of `R` are  `iszero(f)` and `isone(f)`.
 Given an element `f` of a multivariate polynomial ring `R` or a graded version of such a ring, 
 - `parent(f)` refers to `R`, and
 - `total_degree(f)` to the total degree of `f`.
+
+!!! note
+    Given a set of variables $x = \{x_1, \ldots, x_n\}$, the *total degree* of a monomial $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)$
+    is the sum of the $\alpha_i$. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials. In particular,
+	the notion of total degree ignores the weights given to the variables in the graded case.
+
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
 subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
 
