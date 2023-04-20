@@ -24,8 +24,8 @@ jobs:
       matrix:
         julia-version:
           - '1.6'
-          - '~1.7.0-0'
-          - '~1.8.0-0'
+          - '1.7'
+          - '1.8'
           - '~1.9.0-0'
           - 'nightly'
         julia-arch:
@@ -34,7 +34,7 @@ jobs:
           - ubuntu-latest
         include:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
-          - julia-version: '1.6'
+          - julia-version: '1.8'
             julia-arch: x64
             os: macOS-latest
           - julia-version: 'nightly'
@@ -61,12 +61,14 @@ jobs:
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
-          coverage: ${{ matrix.julia-version == '1.6' }}
+          coverage: ${{ matrix.julia-version == '1.8' }}
           depwarn: error
       - name: "Process code coverage"
+        if: matrix.julia-version == '1.8'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.8'
         continue-on-error: true
         uses: codecov/codecov-action@v3

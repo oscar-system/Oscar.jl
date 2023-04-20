@@ -41,7 +41,7 @@ julia> Q = Oscar.Point([QQ(0), QQ(-1)])
 Point with coordinates QQFieldElem[0, -1]
 
 julia> Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
-3*QQFieldElem[0, 0] - 2*QQFieldElem[0, -1]
+-2*QQFieldElem[0, -1] + 3*QQFieldElem[0, 0]
 ```
 """
 struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
@@ -103,7 +103,7 @@ julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
 (0 : -1 : 1)
 
 julia> D = Oscar.ProjCurveDivisor(C, Dict(P => 3, Q => -2))
-3*(0 : 0 : 1) - 2*(0 : 1 : -1)
+-2*(0 : 1 : -1) + 3*(0 : 0 : 1)
 ```
 """
 mutable struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
@@ -274,7 +274,7 @@ julia> Q = Oscar.Point([QQ(0), QQ(-1)])
 Point with coordinates QQFieldElem[0, -1]
 
 julia> D = Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
-3*QQFieldElem[0, 0] - 2*QQFieldElem[0, -1]
+-2*QQFieldElem[0, -1] + 3*QQFieldElem[0, 0]
 
 julia> Oscar.is_effective(D)
 false
@@ -468,7 +468,7 @@ julia> phi = T(x)//T(y)
 x//y
 
 julia> Oscar.divisor(PP[1], C, phi)
--(0 : 0 : 1) + (0 : 1 : -1)
+(0 : 1 : -1) - (0 : 0 : 1)
 ```
 """
 function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
@@ -811,7 +811,7 @@ julia> F = Oscar.ProjCurveDivisor(C, R, 2)
 2*(0 : 0 : 1)
 
 julia> G = 2*E - 2*F
--4*(0 : 0 : 1) + 4*(0 : 1 : 0)
+4*(0 : 1 : 0) - 4*(0 : 0 : 1)
 
 julia> Oscar.principal_divisor(G)
 x^2//z^2
