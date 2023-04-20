@@ -629,7 +629,8 @@ end
 Check if `M` is zero.
 """
 function iszero(M::ModuleGens)
-  return iszero(singular_generators(M))
+  oscar_assure(M)
+  return all(iszero, M.O)
 end
 
 function show(io::IO, F::ModuleGens)
