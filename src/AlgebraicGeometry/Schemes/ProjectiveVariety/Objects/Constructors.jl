@@ -85,7 +85,7 @@ Return the projective variety defined by the homogeneous polynomial `f`.
 
 This checks that `f` is absolutely irreducible.
 """
-function projective_variety(f::MPolyDecRingElem; check=true)
+function projective_variety(f::MPolyDecRingElem; check::Bool=true)
   if check
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(forget_decoration(f))[2]

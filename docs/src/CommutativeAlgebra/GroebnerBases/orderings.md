@@ -124,7 +124,7 @@ m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
     For orderings such as `lex` and `degrevlex` which are  predefined in OSCAR, using the predefined version is much faster than using a representation as a matrix ordering.
 
 ```@docs
-matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
 ```
 
 As already shown above, OSCAR provides functions to recover defining matrices from given monomial orderings:

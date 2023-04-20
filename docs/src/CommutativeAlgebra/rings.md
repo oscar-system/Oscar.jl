@@ -25,7 +25,7 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached = true)
+polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached::Bool = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .

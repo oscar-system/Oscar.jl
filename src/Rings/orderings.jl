@@ -1085,12 +1085,12 @@ function _support_indices(o::MatrixOrdering)
 end
 
 @doc raw"""
-    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T -> MonomialOrdering
+    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T -> MonomialOrdering
 
 Given an integer matrix `M` such that `nvars(R) = ncols(M) = rank(M)`, 
 return the matrix ordering on the set of variables of `R` which is defined by `M`.
 
-    matrix_ordering(V::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T -> MonomialOrdering
+    matrix_ordering(V::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T -> MonomialOrdering
 
 Given a vector `V` of variables and an integer matrix `M` such that `length(V) = ncols(M) = rank(M)`, 
 return the matrix ordering on the set of monomials in the given variables which is defined by `M`.
@@ -1139,11 +1139,11 @@ julia> canonical_matrix(o3)
 [0   0   0   -1]
 ```
 """
-function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
   return MonomialOrdering(R, MatrixOrdering(1:nvars(R), ZZMatrix(M), check))
 end
 
-function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, ZZMatrix(M), check))
 end

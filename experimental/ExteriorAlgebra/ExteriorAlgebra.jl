@@ -53,9 +53,7 @@ export exterior_algebra  # MAIN EXPORT!
 
 @doc raw"""
     exterior_algebra(K::Field, numVars::Int)
-    exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
-                                                     AbstractVector{Symbol},
-                                                     AbstractVector{Char}})
+    exterior_algebra(K::Field, listOfVarNames::AbstractVector{<:VarName})
 
 The *first form* returns an exterior algebra with coefficient field `K` and
 `numVars` variables: `numVars` must be positive, and the variables are
@@ -100,9 +98,7 @@ end
 #---------------------------------
 # Method where caller specifies name of variables.
 
-function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
-                                                          AbstractVector{Symbol},
-                                                          AbstractVector{Char}})
+function exterior_algebra(K::Field, listOfVarNames::AbstractVector{<:VarName})
     numVars = length(listOfVarNames)
     if numVars == 0
         throw(ArgumentError("no variables/indeterminates given"))
@@ -180,7 +176,7 @@ end
 #     return exterior_algebra_PBWAlgQuo(K,  (1:numVars) .|> (k -> "e$k"))
 # end
 
-# function exterior_algebra_PBWAlgQuo(K::Ring, listOfVarNames::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+# function exterior_algebra_PBWAlgQuo(K::Ring, listOfVarNames::AbstractVector{<:VarName})
 #     numVars = length(listOfVarNames)
 #     if (numVars == 0)
 #         throw(ArgumentError("no variables/indeterminates given"))

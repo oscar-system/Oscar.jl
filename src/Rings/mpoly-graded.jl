@@ -384,7 +384,7 @@ is_positively_graded(::MPolyRing) = false
 
 @doc raw"""
     graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
-    graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:Union{Symbol, AbstractString, Char}
+    graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:VarName
 
 Create a multivariate [`polynomial_ring`](@ref polynomial_ring(R, [:x])) with
 coefficient ring `C` and variables which print according to the variable names
@@ -427,11 +427,11 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 """
 function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
       W=ones(Int, length(V)); ordering=:lex) where
-      T<:Union{Symbol, AbstractString, Char}
+      T<:VarName
    return grade(polynomial_ring(C, V; ordering)[1], W)
 end
 
-function graded_polynomial_ring(C::Ring, n::Int, s::Union{Symbol, AbstractString, Char},
+function graded_polynomial_ring(C::Ring, n::Int, s::VarName,
       W=ones(Int, n); ordering=:lex)
    return grade(polynomial_ring(C, n, s; ordering)[1], W)
 end

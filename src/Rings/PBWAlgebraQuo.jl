@@ -312,8 +312,7 @@ end
 # 2023-03-09 JAA  commented out placeholder code below -- should be replaced by code from ExteriorAlgebra.jl
 
 # @doc raw"""
-#     exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+#     exterior_algebra(K::Ring, xs::AbstractVector{<:VarName})
 
 # Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th exterior algebra over `K`.
 
@@ -321,7 +320,6 @@ end
 
 # # Examples
 # """
-# function exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+# function exterior_algebra(K::Ring, xs::AbstractVector{<:VarName})
 #   throw(NotImplementedError(:exterior_algebra, K, xs))
 # end

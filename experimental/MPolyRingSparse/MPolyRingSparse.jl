@@ -789,7 +789,7 @@ end
 #
 ###############################################################################
 
-function map_coefficients(f, p::MPolySparse; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(parent(f(zero(base_ring(p)))), parent(p), cached))
+function map_coefficients(f, p::MPolySparse; cached::Bool = true, parent::MPolyRingSparse = _change_mpoly_ring(parent(f(zero(base_ring(p)))), parent(p), cached))
     return _map(f, p, parent)
 end
 
@@ -808,12 +808,12 @@ function _change_mpoly_ring(R, Rx, cached)
     return P
  end
 
-function change_base_ring(R::Ring, p::MPolySparse{T}; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
+function change_base_ring(R::Ring, p::MPolySparse{T}; cached::Bool = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
     base_ring(parent) != R && error("Base rings do not match.")
     return _map(R, p, parent)
 end
 
-function change_coefficient_ring(R::Ring, p::MPolySparse{T}; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
+function change_coefficient_ring(R::Ring, p::MPolySparse{T}; cached::Bool = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
    return change_base_ring(R, p, cached = cached, parent = parent)
 end
 
@@ -1007,22 +1007,10 @@ function PolynomialRingSparse(R::Ring, s::Vector{Symbol}; cached::Bool = true, o
     return parent_obj, gens(parent_obj)
 end
 
-function PolynomialRingSparse(R::Ring, s::Vector{String}; cached::Bool = true, ordering::Symbol = :lex)
+function PolynomialRingSparse(R::Ring, s::AbstractVector{<:VarName}; cached::Bool = true, ordering::Symbol = :lex)
     return PolynomialRingSparse(R, [Symbol(v) for v in s]; cached=cached, ordering=ordering)
 end
 
-function PolynomialRingSparse(R::Ring, s::Vector{Char}; cached::Bool = true, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, [Symbol(v) for v in s]; cached=cached, ordering=ordering)
-end
-
-function PolynomialRingSparse(R::Ring, n::Int, s::Symbol=:x; cached::Bool = false, ordering::Symbol = :lex)
+function PolynomialRingSparse(R::Ring, n::Int, s::VarName=:x; cached::Bool = false, ordering::Symbol = :lex)
     return PolynomialRingSparse(R, [Symbol(s, i) for i=1:n], cached = cached, ordering = ordering)
-end
-
-function PolynomialRingSparse(R::Ring, n::Int, s::String; cached::Bool = false, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, n, Symbol(s); cached=cached, ordering=ordering)
-end
-
-function PolynomialRingSparse(R::Ring, n::Int, s::Char; cached::Bool = false, ordering::Symbol = :lex)
-    return PolynomialRingSparse(R, n, Symbol(s); cached=cached, ordering=ordering)
 end

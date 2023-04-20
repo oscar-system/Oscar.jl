@@ -402,7 +402,7 @@ end
 
 
 @doc raw"""
-    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
+    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
 
 Given a multivariate polynomial ring `R` over a field, say ``R=K[x_1, \dots, x_n]``, given
 a strictly upper triangular matrix `rel` with entries in `R` of type ``c_{ij} \cdot x_ix_j+d_{ij}``,
@@ -435,7 +435,7 @@ julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
 ```
 """
-function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
+function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
   n = nvars(r)
   nrows(rel) == n && ncols(rel) == n || error("oops")
   scr = singular_coeff_ring(coefficient_ring(r))
@@ -450,7 +450,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   return R, [PBWAlgElem(R, x) for x in gs]
 end
 
-function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyRingElem{T}}
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check::Bool = true) where {T, U <: MPolyRingElem{T}}
   n = nvars(r)
   gs = gens(r)
   relm = strictly_upper_triangular_matrix([gs[i]*gs[j] for i in 1:n-1 for j in i+1:n])
@@ -461,7 +461,7 @@ function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::Mono
   return pbw_algebra(r, relm, ord)
 end
 
-function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyRingElem{T}}
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check::Bool = true) where {T, U <: MPolyRingElem{T}}
   rel2 = Tuple{Int, Int, U}[(var_index(i[1]), var_index(i[2]), i[3]) for i in rel]
   return pbw_algebra(r, rel2, ord)
 end
@@ -492,15 +492,14 @@ end
 
 function weyl_algebra(
   K::Ring,
-  xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}},
-  dxs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
+  xs::AbstractVector{<:VarName},
+  dxs::AbstractVector{<:VarName}
 )
   return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol(i) for i in dxs])
 end
 
 @doc raw"""
-    weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+    weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
 
 Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th Weyl algebra over `K`.
 
@@ -517,7 +516,7 @@ x*dx + 1
 """
 function weyl_algebra(
   K::Ring,
-  xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
+  xs::AbstractVector{<:VarName}
 )
   return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol("d", i) for i in xs])
 end
