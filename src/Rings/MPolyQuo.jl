@@ -1574,7 +1574,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
     sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
-    return filer(!iszero, (Q).(gens(sing_min)))
+    return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
 
