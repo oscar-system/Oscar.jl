@@ -219,3 +219,70 @@ end
   @test length(minimal_primes(phiQ2L2(phiQ2(I2)))) == 2
 end
 
+@testset "saturation (quo and localization)" begin
+  # define the rings
+  R,(x,y,z) = QQ["x","y","z"]
+  Q1 = ideal(R,[x])
+  Q2 = ideal(R,[z,x^2-y^2])
+  RQ1,phiQ1 = quo(R,Q1)
+  RQ2,phiQ2 = quo(R,Q2)
+  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  f = x-y
+  T2 = MPolyPowersOfElement(f)
+  RL1,phiL1 = Localization(R,T1)
+  RL2,phiL2 = Localization(R,T2)
+  RQ1L1, phiQ1L1 = Localization(RQ1,T1)
+  RQ1L2, phiQ1L2 = Localization(RQ1,T2)
+  RQ2L1, phiQ2L1 = Localization(RQ2,T1)
+  RQ2L2, phiQ2L2 = Localization(RQ2,T2)
+
+  # the ideals
+  I1 = ideal(R,[x^2*y+y^2*z+z^2*x])
+  I2 = ideal(R,[x-y])
+  I3 = ideal(R,[x,y,z])
+  I4 = ideal(R,[x-1,y-1,z])
+  I5 = ideal(R,[x,y+1,z-1])
+  I6 = ideal(R,[y])
+
+  # quotient ring tests
+  I = phiQ1(I1)
+  J = phiQ1(I6)
+  @test saturation_with_index(I,J)[2] == 2
+  K = phiQ1(I2*I3*I4*I5)
+  @test saturation(K,J) == phiQ1(I5)
+  I = phiQ2(I1)
+  J = phiQ2(I6)
+  @test saturation_with_index(I,J)[2] == 3
+  K = phiQ2(I2*I3*I4*I5)
+  @test saturation(K,J) == phiQ2(I2*I4)
+
+  # localized ring tests
+  I = phiL1(I1)
+  J = phiL1(I6)
+  @test saturation_with_index(I,J)[2] == 0
+  K = phiL1(I2*I3*I4*I5)
+  @test saturation(K,J) == phiL1(I2)
+  I = phiL2(I1*I6^2)
+  J = phiL2(I6)
+  @test saturation_with_index(I,J)[2] == 2
+  K = phiL2(I2*I3*I4*I5)
+  @test saturation(K,J) == phiL2(I5)
+
+  # localized quo ring tests
+  I = phiQ1L1(phiQ1(I1))
+  J = phiQ1L1(phiQ1(I6))
+  @test saturation_with_index(I,J)[2] == 2
+  K = phiQ1L1(phiQ1(I2*I3*I4*I5))
+  @test saturation(K,J) == ideal(RQ1L1,one(RQ1L1))
+  @test saturation_with_index(K,J)[2] == 2
+  I = phiQ1L2(phiQ1(I1))
+  J = phiQ1L2(phiQ1(I6))
+  @test saturation(I,J) == phiQ1L2(phiQ1(ideal(R,[x,z])))
+  K = phiQ1L2(phiQ1(I2*I3*I4*I5))
+  @test saturation(K,J) == phiQ1L2(phiQ1(ideal(R,[z - 1, y + 1])))
+  I = phiQ2L1(phiQ2(I1))
+  J = phiQ2L1(phiQ2(I6))
+  @test saturation_with_index(I,J)[2] == 3
+  K = phiQ2L1(phiQ2(I2*I3*I4*I5))
+  @test saturation(K,J) == phiQ2L1(phiQ2(ideal(R,[x-y])))
+end
