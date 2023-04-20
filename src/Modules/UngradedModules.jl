@@ -5325,9 +5325,9 @@ julia> relations(H)
  y^2*(e[2] -> e[2])
 ```
 """
-function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  if alg == :matrices && M isa SubquoModule && N isa SubquoModule
+  if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
     if is_graded(M) && is_graded(N)
       error("This algorithm is not implemented for graded modules.")
     end

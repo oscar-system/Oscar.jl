@@ -338,14 +338,14 @@ end
 ################################################################################
 
 @doc raw"""
-     basis(IR::InvRing, d::Int, algo::Symbol = :default)
+     basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
-Setting `algo = :linear_algebra` means that plain linear algebra is used.
-The default option `algo = :default` asks to select the heuristically best algorithm.
+The optional argument `algorithm` specifies the algorithm to be used.
+If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 See also [`iterate_basis`](@ref).
 
@@ -405,7 +405,7 @@ julia> basis(IR, 3)
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
-basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
+basis(IR::InvRing, d::Int, algorithm::Symbol = :default) = collect(iterate_basis(IR, d, algorithm))
 
 @doc raw"""
     basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)

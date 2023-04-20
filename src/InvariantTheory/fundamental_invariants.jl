@@ -159,7 +159,7 @@ end
 ################################################################################
 
 @doc raw"""
-    fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
+    fundamental_invariants(IR::InvRing, algorithm::Symbol = :default; beta::Int = 0)
 
 Return a system of fundamental invariants for `IR`.
 
@@ -176,7 +176,7 @@ supplied by the keyword argument `beta` and might result in an earlier terminati
 of the algorithm. By default, the algorithm uses the bounds from [DH00](@cite)
 and [Sez02](@cite).
 
-Alternatively, if specified by `algo = :primary_and_secondary`, the function computes
+Alternatively, if specified by `algorithm = :primary_and_secondary`, the function computes
 fundamental invariants from a collection of primary and irreducible secondary
 invariants.
 The optional keyword argument `beta` is ignored for this algorithm.
@@ -215,18 +215,18 @@ julia> fundamental_invariants(IR)
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
 """
-function fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
+function fundamental_invariants(IR::InvRing, algorithm::Symbol = :default; beta::Int = 0)
   if !isdefined(IR, :fundamental)
-    if algo == :default
-      algo = is_modular(IR) ? :primary_and_secondary : :king
+    if algorithm == :default
+      algorithm = is_modular(IR) ? :primary_and_secondary : :king
     end
 
-    if algo == :king
+    if algorithm == :king
       IR.fundamental = fundamental_invariants_via_king(IR, beta)
-    elseif algo == :primary_and_secondary
+    elseif algorithm == :primary_and_secondary
       IR.fundamental = fundamental_invariants_via_primary_and_secondary(IR)
     else
-      error("Unsupported argument :$(algo) for algo")
+      error("Unsupported argument :$(algorithm) for algorithm")
     end
   end
   return copy(IR.fundamental.invars)

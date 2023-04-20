@@ -1749,12 +1749,12 @@ function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}},
     weight_matrix::Matrix{Int},
     return_ring::Ring,
-    #alg=:generator
-    #alg=:custom
-    #alg=:gcd
-    #alg=:indeterminate
-    #alg=:cocoa
-    alg::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
+    #algorithm=:generator
+    #algorithm=:custom
+    #algorithm=:gcd
+    #algorithm=:indeterminate
+    #algorithm=:cocoa
+    algorithm::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
@@ -1762,17 +1762,17 @@ function _hilbert_numerator_from_leading_exponents(
   ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
   ret !== nothing && return ret
 
-  if alg == :BayerStillmanA
+  if algorithm == :BayerStillmanA
     return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
-  elseif alg == :custom
+  elseif algorithm == :custom
     return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
-  elseif alg == :gcd # see Remark 5.3.11
+  elseif algorithm == :gcd # see Remark 5.3.11
     return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
-  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
+  elseif algorithm == :generator # just choosing on random generator, cf. Remark 5.3.8
     return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
-  elseif alg == :indeterminate # see Remark 5.3.8
+  elseif algorithm == :indeterminate # see Remark 5.3.8
     return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
-  elseif alg == :cocoa # see Remark 5.3.14
+  elseif algorithm == :cocoa # see Remark 5.3.14
     return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
   end
   error("invalid algorithm")
