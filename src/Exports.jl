@@ -1,6 +1,7 @@
 export *
 export @pbw_relations
 export @perm
+export @permutation_group
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet
@@ -1038,6 +1039,7 @@ export perfect_group
 export perfect_group_identification, has_perfect_group_identification
 export perm
 export permutation
+export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
