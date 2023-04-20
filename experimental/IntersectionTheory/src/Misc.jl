@@ -7,7 +7,7 @@
 # it will remove all the higher degree / codimension stuff
 function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
-  n = get_attribute(R, :variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)
   n === nothing && return x
   return sum(x[0:n])
 end

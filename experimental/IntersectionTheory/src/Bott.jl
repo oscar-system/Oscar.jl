@@ -2,7 +2,7 @@
 #
 # TnRep - n-dim representation of a torus, specified by its weights
 #
-@doc Markdown.doc"""
+@doc raw"""
     TnRep(w::Vector)
 
 The type of a representation of a torus, specified by its weights.
@@ -20,8 +20,8 @@ dual(F::TnRep) = TnRep(-F.w)
 +(F::TnRep, G::TnRep) = TnRep(vcat(F.w, G.w))
 *(F::TnRep, G::TnRep) = TnRep([a+b for a in F.w for b in G.w])
 det(F::TnRep) = TnRep([sum(F.w)])
-ctop(F::TnRep) = prod(F.w)
-function chern(n::Int, F::TnRep)
+top_chern_class(F::TnRep) = prod(F.w)
+function chern_class(F::TnRep, n::Int)
   sum(prod(F.w[i] for i in c) for c in combinations(F.n, n))
 end
 function _sym(k::Int, n::Int)
@@ -33,7 +33,7 @@ end
 #
 # TnBundle, TnVariety - varieties with a torus action and equivariant bundles
 #
-# A Tⁿ-variety X is represented as the set of fixed points X.points, each
+# A Tⁿ-abstract_variety X is represented as the set of fixed points X.points, each
 # labelled using some value of type P (e.g. an array), and has a multiplicty e
 # (orbifold multiplicty);
 # 
@@ -43,11 +43,11 @@ end
 # large examples, since otherwise we may run into memory problems.
 abstract type TnVarietyT{P} <: Variety end
 
-@doc Markdown.doc"""
+@doc raw"""
     TnBundle(X::TnVariety, r::Int, f::Function)
 
 The type of a torus-equivariant bundle, represented by its localizations to the
-fixed points of the base variety.
+fixed points of the base abstract_variety.
 """
 @attributes mutable struct TnBundle{P, V <: TnVarietyT{P}} <: Bundle
   parent::V
@@ -64,10 +64,10 @@ fixed points of the base variety.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     TnVariety(n::Int, points)
 
-The type of a variety with a torus action, represented by the fixed points.
+The type of a abstract_variety with a torus action, represented by the fixed points.
 """
 @attributes mutable struct TnVariety{P} <: TnVarietyT{P}
   dim::Int
@@ -84,7 +84,7 @@ euler(X::TnVariety) = sum(1//ZZ(e) for (p,e) in X.points) # special case of Bott
 tangent_bundle(X::TnVariety) = X.T
 cotangent_bundle(X::TnVariety) = dual(X.T)
 bundles(X::TnVariety) = X.bundles
-OO(X::TnVariety) = TnBundle(X, 1, p -> TnRep([0]))
+trivial_line_bundle(X::TnVariety) = TnBundle(X, 1, p -> TnRep([0]))
 
 dual(F::TnBundle) = TnBundle(F.parent, F.rank, p -> dual(F.loc(p)))
 +(F::TnBundle, G::TnBundle) = TnBundle(F.parent, F.rank + G.rank, p -> F.loc(p) + G.loc(p))
@@ -92,20 +92,20 @@ dual(F::TnBundle) = TnBundle(F.parent, F.rank, p -> dual(F.loc(p)))
 det(F::TnBundle) = TnBundle(F.parent, 1, p -> det(F.loc(p)))
 
 # avoid computing `_sym` for each F.loc(p)
-function symmetric_power(k::Int, F::TnBundle)
+function symmetric_power(F::TnBundle, k::Int)
   l = _sym(k, F.rank)
   TnBundle(F.parent, binomial(F.rank+k-1, k), p -> (
     Fp = F.loc(p);
     TnRep([sum(Fp.w[i] for i in c) for c in l])))
 end
-function exterior_power(k::Int, F::TnBundle)
+function exterior_power(F::TnBundle, k::Int)
   l = combinations(F.rank, k)
   TnBundle(F.parent, binomial(F.rank, k), p -> (
     Fp = F.loc(p);
     TnRep([sum(Fp.w[i] for i in c) for c in l])))
 end
 
-# we want the same syntax `integral(chern(F))` as in Schubert calculus
+# we want the same syntax `integral(total_chern_class(F))` as in Schubert calculus
 # the following ad hoc type represents a formal expression in chern classes of a bundle F
 struct TnBundleChern
   F::TnBundle
@@ -126,18 +126,18 @@ function _get_ring(F::TnBundle)
   if get_attribute(F, :R) === nothing
     r = min(F.parent.dim, F.rank)
     R, _ = grade(PolynomialRing(QQ, _parse_symbol("c", 1:r))[1], collect(1:r))
-    set_attribute!(R, :variety_dim => F.parent.dim)
+    set_attribute!(R, :abstract_variety_dim => F.parent.dim)
     set_attribute!(F, :R => R)
   end
   get_attribute(F, :R)
 end
 
-chern(F::TnBundle) = TnBundleChern(F, 1+sum(gens(_get_ring(F))))
-chern(X::TnVariety) = chern(X.T)
-chern(k::Int, F::TnBundle) = TnBundleChern(F, chern(F).c[k])
-chern(k::Int, X::TnVariety) = chern(k, X.T)
-ctop(F::TnBundle) = chern(F.rank, F)
-chern(F::TnBundle, x::RingElem) = begin
+total_chern_class(F::TnBundle) = TnBundleChern(F, 1+sum(gens(_get_ring(F))))
+total_chern_class(X::TnVariety) = total_chern_class(X.T)
+chern_class(F::TnBundle, k::Int) = TnBundleChern(F, total_chern_class(F).c[k])
+chern_class(X::TnVariety, k::Int) = chern_class(X.T, k)
+top_chern_class(F::TnBundle) = chern_class(F, F.rank)
+chern_class(F::TnBundle, x::RingElem) = begin
   R = _get_ring(F)
   @assert length(gens(R)) == length(gens(parent(x)))
   TnBundleChern(F, evaluate(x, gens(R)))
@@ -149,14 +149,14 @@ function integral(c::TnBundleChern)
   n, r = X.dim, length(gens(R))
   top = c.c[n].f
   top == 0 && return QQ()
-  exp_vec = sum(exponent_vectors(top))
+  exp_vec = sum(AbstractAlgebra.exponent_vectors(top))
   idx = filter(i -> exp_vec[i] > 0, 1:r)
   ans = 0
   for (p,e) in X.points # Bott's formula
     Fp = F.loc(p)
     # this avoids the computations of Chern classes that are not needed
-    cherns = [i in idx ? chern(i, Fp) : QQ() for i in 1:r]
-    ans += top(cherns...) * (1 // (e * ctop(X.T.loc(p))))
+    cherns = [i in idx ? chern_class(Fp, i) : QQ() for i in 1:r]
+    ans += top(cherns...) * (1 // (e * top_chern_class(X.T.loc(p))))
   end
   ans
 end
@@ -202,11 +202,11 @@ function tn_flag(dims::Vector{Int}; weights=:int)
   w = _parse_weight(n, weights)
   Fl.bundles = [TnBundle(Fl, r, p -> TnRep([w[j] for j in p[i]])) for (i, r) in enumerate(ranks)]
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
-  set_attribute!(Fl, :description => "Flag variety Flag$(tuple(dims...))")
+  set_attribute!(Fl, :description => "Flag abstract_variety Flag$(tuple(dims...))")
   return Fl
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_subspaces_on_hypersurface(k::Int, d::Int)
 
 Compute the number of $k$-dimensional subspaces on a generic degree-$d$
@@ -217,7 +217,7 @@ to switch to Schubert calculus.
 """
 function linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool=true)
   n = Int(binomial(d+k, d) // (k+1)) + k
-  G = grassmannian(k+1, n+1, bott=bott)
+  G = abstract_grassmannian_variety(k+1, n+1, bott=bott)
   S, Q = G.bundles
-  integral(ctop(symmetric_power(d, dual(S))))
+  integral(top_chern_class(symmetric_power(dual(S), d)))
 end

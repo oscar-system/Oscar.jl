@@ -17,19 +17,19 @@ Base.show(io::IO, F::Bundle) = print(io, "$(typeof(F).name.name) of rank $(F.ran
 Base.show(io::IO, X::Variety) = print(io, "$(typeof(X).name.name) of dim $(X.dim)")
 Base.show(io::IO, f::VarietyHom) = print(io, "$(typeof(f).name.name) from $(f.domain) to $(f.codomain)")
 
-abstract type AbsVarietyT <: Variety end
+abstract type AbstractVarietyT <: Variety end
 
-@doc Markdown.doc"""
-    AbsBundle(X::AbsVariety, ch::MPolyDecRingElem)
-    AbsBundle(X::AbsVariety, r, c::MPolyDecRingElem)
+@doc raw"""
+    AbstractBundle(X::AbstractVariety, ch::MPolyDecRingElem)
+    AbstractBundle(X::AbstractVariety, r, c::MPolyDecRingElem)
 The type of an abstract bundle.
 """
-mutable struct AbsBundle{V <: AbsVarietyT} <: Bundle
+mutable struct AbstractBundle{V <: AbstractVarietyT} <: Bundle
   parent::V
   rank::RingElement
   ch::MPolyDecRingOrQuoElem
   chern::MPolyDecRingOrQuoElem
-  function AbsBundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbsVarietyT
+  function AbstractBundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT
     ch = simplify(ch)
     r = constant_coefficient(ch.f)
     try r = Int(ZZ(QQ(r)))
@@ -37,27 +37,27 @@ mutable struct AbsBundle{V <: AbsVarietyT} <: Bundle
     end
     new{V}(X, r, ch)
   end
-  function AbsBundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbsVarietyT
+  function AbstractBundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT
     F = new{V}(X, r)
     F.chern = c
     return F
   end
 end
 
-@doc Markdown.doc"""
-    AbsVarietyHom(X::AbsVariety, Y::AbsVariety, fˣ::AffAlgHom, fₓ)
-    AbsVarietyHom(X::AbsVariety, Y::AbsVariety, fˣ::Vector, fₓ)
-The type of an abstract variety morphism.
+@doc raw"""
+    AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, fˣ::AffAlgHom, fₓ)
+    AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ)
+The type of an abstract abstract_variety morphism.
 """
-mutable struct AbsVarietyHom{V1 <: AbsVarietyT, V2 <: AbsVarietyT} <: VarietyHom
+mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT} <: VarietyHom
   domain::V1
   codomain::V2
   dim::Int
   pullback::AffAlgHom
   pushforward::FunctionalMap
   O1::MPolyDecRingOrQuoElem
-  T::AbsBundle{V1}
-  function AbsVarietyHom(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbsVarietyT, V2 <: AbsVarietyT}
+  T::AbstractBundle{V1}
+  function AbstractVarietyMap(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     if !(fₓ isa FunctionalMap) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
@@ -70,7 +70,7 @@ mutable struct AbsVarietyHom{V1 <: AbsVarietyT, V2 <: AbsVarietyT} <: VarietyHom
 	  @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
 	end;
 	sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
-	    if xi !=0 for (yi, di) in zip(basis(i, Y), dual_basis(i, Y))))
+	    if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
       fₓ = map_from_func(fₓ, X.ring, Y.ring)
     end
     f = new{V1, V2}(X, Y, X.dim-Y.dim, fˣ)
@@ -79,33 +79,33 @@ mutable struct AbsVarietyHom{V1 <: AbsVarietyT, V2 <: AbsVarietyT} <: VarietyHom
     catch
     end
     if isdefined(X, :T) && isdefined(Y, :T)
-      f.T = AbsBundle(X, ch(X.T) - fˣ(ch(Y.T)))
+      f.T = AbstractBundle(X, chern_character(X.T) - fˣ(chern_character(Y.T)))
     end
     return f
   end
-  function AbsVarietyHom(X::V1, Y::V2, l::Vector, fₓ=nothing) where {V1 <: AbsVarietyT, V2 <: AbsVarietyT}
+  function AbstractVarietyMap(X::V1, Y::V2, l::Vector, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     # TODO: this fails with check = false
     fˣ = hom(Y.ring, X.ring, l, check = false)
-    AbsVarietyHom(X, Y, fˣ, fₓ)
+    AbstractVarietyMap(X, Y, fˣ, fₓ)
   end
 end
 
 
-@attributes mutable struct AbsVariety <: AbsVarietyT
+@attributes mutable struct AbstractVariety <: AbstractVarietyT
   dim::Int
   ring::MPolyDecRingOrQuo
   base::Ring
   point::MPolyDecRingOrQuoElem
   O1::MPolyDecRingOrQuoElem
-  T::AbsBundle
-  bundles::Vector{AbsBundle}
-  struct_map::AbsVarietyHom
+  T::AbstractBundle
+  bundles::Vector{AbstractBundle}
+  struct_map::AbstractVarietyMap
 
-  function AbsVariety(n::Int, R::MPolyDecRingOrQuo)
+  function AbstractVariety(n::Int, R::MPolyDecRingOrQuo)
     base = R isa MPolyQuoRing ? base_ring(base_ring(R)) : base_ring(R)
     X = new(n, R, base)
-    set_attribute!(R, :variety, X)
-    set_attribute!(R, :variety_dim, n)
+    set_attribute!(R, :abstract_variety, X)
+    set_attribute!(R, :abstract_variety_dim, n)
     return X
   end
 end
