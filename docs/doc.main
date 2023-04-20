@@ -234,10 +234,11 @@
   "Developer Documentation" => [
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
-    "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
+    "DeveloperDocumentation/design_decisions.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
