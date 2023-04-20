@@ -241,9 +241,7 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
     # Various sanity checks
     @req (!is_zero(center)) "The blowup center must be non-empty"
     
-    # if !is_subset(id, center)
-    #     throw(ArgumentError("The ideal of the blowup center must contain the ideal to be blown up"))
-    # end
+    # @req is_subset(id, center) "The ideal of the blowup center must contain the ideal to be blown up"
     @req base_ring(irr) == R "The given irrelevant ideal must share the base ring of the ideal to be blown up"
     @req base_ring(sri) == R "The given Stanley–Reisner ideal must share the base ring of the ideal to be blown up"
     @req ngens(base_ring(lin)) == ngens(R) "The base ring of ideal of linear relations must have the same number of generators as the base ring of the ideal to be blown up"

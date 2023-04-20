@@ -360,8 +360,7 @@ end
 # retrieve a "computational" integer from an Arg
 function getint(x::Arg)
     y = x.x
-    iszero(y & ~payloadmask) ||
-        throw(ArgumentError("Arg does not contain an Int"))
+    @req iszero(y & ~payloadmask) "Arg does not contain an Int"
     if iszero(y & negbit)
         y % Int
     else
@@ -580,7 +579,7 @@ Base.literal_pow(::typeof(^), p::SLProgram, ::Val{e}) where {e} = p^e
 Base.:&(p::SLProgram, q::SLProgram) = testeq!(copy_jointype(p, q), q)
 
 function test!(p::SLProgram, x::Integer)
-    hasdecision(p) && throw(ArgumentError("SLProgram is already a decision"))
+    @req !hasdecision(p) "SLProgram is already a decision"
     i = pushinit!(p)
     j = pushint!(p, x)
     pushfinalize!(p, pushop!(p, decision, i, j))

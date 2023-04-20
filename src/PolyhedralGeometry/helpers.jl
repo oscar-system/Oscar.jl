@@ -71,9 +71,7 @@ nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
 
 function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
     isq = Hecke.is_quadratic_type(parent(x))
-    if !isq[1] || isq[2] < 0
-        throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'."))
-    end
+    @req isq[1] && isq[2] >= 0 "Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'"
     r = convert(Polymake.Rational, isq[2])
     c = coordinates(x)
     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)

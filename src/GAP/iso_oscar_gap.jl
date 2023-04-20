@@ -268,7 +268,7 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.
    finv = function(x::GAP.Obj)
       GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
       coeffs = GAPWrap.Coefficients(B, x)
-      coeffs === GAP.Globals.fail && throw(ArgumentError("$x is not an element oof $FG"))
+      @req coeffs !== GAP.Globals.fail "$x is not an element oof $FG"
       return QQFieldElem(coeffs[1]) * oO + QQFieldElem(coeffs[2]) * zO
    end
 

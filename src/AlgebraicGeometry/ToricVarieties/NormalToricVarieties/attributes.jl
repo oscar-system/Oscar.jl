@@ -125,9 +125,7 @@ function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::V
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
-    if length(coordinate_names) != nrays(v)
-        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan"))
-    end
+    @req length(coordinate_names) == nrays(v) "The provided list of coordinate names must match the number of rays in the fan"
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
 
@@ -153,9 +151,7 @@ function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate
     if is_finalized(v)
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
-    if length(coordinate_names) != ambient_dim(v)
-        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan"))
-    end
+    @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
     set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
 end
 
@@ -394,12 +390,9 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !is_simplicial(v)
-        throw(ArgumentError("The ideal of linear relations is only supported for simplicial toric varieties"))
-    end
-    if ngens(R) != nrays(v)
-        throw(ArgumentError("The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"))
-    end
+    @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
+    @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
+
     indeterminates = gens(R)
     d = rank(character_lattice(v))
     generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
@@ -522,10 +515,8 @@ in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
     n = length(coordinate_names_of_torus(v))
-    if length(gens(R)) < 2 * n
-        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates"))
-    end
-    relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
+    @req length(gens(R)) >= 2 * n "The given ring must have at least $n indeterminates"
+    relations = [gens(R)[i] * gens(R)[i+n] - one(coefficient_ring(R)) for i in 1:n]
     return quo(R, ideal(relations))[1]
 end
 
