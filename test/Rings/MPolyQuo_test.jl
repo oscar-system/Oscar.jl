@@ -216,3 +216,13 @@ end
   @test iszero(A(u) * A(u))
   @test iszero(A(x)*u)
 end
+
+@testset "issue #2292" begin
+  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+  A, p = quo(R, ideal(R, [x-y]))
+  V = [x, z^2, x^3+y^3, y^4, y*z^5]
+  a = ideal(A, V)
+  dim(a) # cashes a.gb
+  gens(a.gb)
+  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
+end
