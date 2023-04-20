@@ -1349,7 +1349,7 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
     ring = I.gens.Ox
     computed_gb = IdealGens(ring, sing_gb, true)
-    I.gb[eval(ordering(ring))(ring)] = computed_gb
+    I.gb[computed_gb.ord] = computed_gb
     return filter(!iszero, (R).(gens(sing_min)))
   end
 end
