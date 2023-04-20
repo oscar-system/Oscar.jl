@@ -4,9 +4,9 @@
 
 ######## CONSTRUCTOR TESTs
 @test_throws  ArgumentError  exterior_algebra(QQ, 0);
-@test_broken  exterior_algebra(QQ, 1);  # --> special case (is commutative)
-exterior_algebra(QQ, 2);  # --> first general case
-exterior_algebra(QQ, 99);  # -->  with 999 indets takes a long time [~19s]
+exterior_algebra(QQ, 1);   # --> special case (is commutative)
+exterior_algebra(QQ, 2);   # --> first general case
+exterior_algebra(QQ, 99);  # --> Also tried with 999 indets, but takes a long time [~19s]
 
 
 exterior_algebra(GF(2), 2);  # BUG??  not recognized as commutative!!
