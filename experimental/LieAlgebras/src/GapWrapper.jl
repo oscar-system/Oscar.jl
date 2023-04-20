@@ -32,7 +32,7 @@ function gap_lie_algebra_by_struct_consts(L::LieAlgebra{C}) where {C<:RingElemen
       [
         begin
           pairs = filter(
-            pair -> !iszero(last(pair)), collect(enumerate(Generic._matrix(xi * xj)))
+            pair -> !iszero(last(pair)), collect(enumerate(coefficients(xi * xj)))
           )
           (map(first, pairs), GAP.Obj[isoR(c) for c in map(last, pairs)])
         end for xj in basis(L)
