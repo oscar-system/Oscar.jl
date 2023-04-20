@@ -32,10 +32,12 @@ export PBWAlgQuo, PBWAlgQuoElem
 
 
 
+###### @attributes    ### DID NOT WORK -- alternative solution found (via have_special_impl, see ExteriorAlgebra.jl)
 mutable struct PBWAlgQuo{T, S} <: NCRing
     I::PBWAlgIdeal{0, T, S}
     sring::Singular.PluralRing{S}  # For ExtAlg this is the Singular impl; o/w same as I.basering.sring
 end
+
 
 # For backward compatibility: ctor with 1 arg:
 #    uses "default" arith impl -- namely that from basering!
@@ -94,8 +96,22 @@ end
 @enable_all_show_via_expressify PBWAlgQuoElem
 
 function expressify(Q::PBWAlgQuo; context = nothing)  # what about new sring data-field ???
-  return Expr(:call, :/, expressify(Q.I.basering; context = nothing),
-                         expressify(Q.I; context = nothing))
+    ## special printing if Q is an exterior algebra
+######    if get_attribute(Q, :is_exterior_algebra) === :true
+    if have_special_impl(Q)
+        a = Q.I.basering
+        x = symbols(a)
+        n = length(x)
+        return Expr(:sequence, Expr(:text, "Exterior algebra over "),
+                               expressify(coefficient_ring(a);  context=context),
+                               Expr(:text, " in ("),
+                               Expr(:series, x...),
+                               Expr(:text, ")"))
+
+    end
+    # General case (not exterior algebra)
+    return Expr(:call, :/, expressify(Q.I.basering; context = nothing),
+                           expressify(Q.I; context = nothing))
 end
 
 @enable_all_show_via_expressify PBWAlgQuo
