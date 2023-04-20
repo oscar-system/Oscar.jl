@@ -185,26 +185,26 @@ end
   LP = primary_decomposition(phiQ1(I1))  ## coincides with min. ass. primes here
   @test length(LM) == 2
   @test length(LP) == 2
-  @test intersect(LM[1],LM[2]) == phiQ1(radical(I1+Q1))
-  @test intersect(LP[1][1],LP[2][1]) == intersect(LM[1],LM[2])
+  @test intersect(LM) == phiQ1(radical(I1+Q1))
+  @test intersect([a for (a,_) in LP]) == intersect(LM)
   LM = minimal_primes(phiQ2(I1))
   LP = primary_decomposition(phiQ2(I1)) 
   @test length(LM) == 4
-  @test intersect(LM[1],LM[2],LM[3],LM[4]) == phiQ2(radical(I1+Q2))
+  @test intersect(LM) == phiQ2(radical(I1+Q2))
   @test length(LP) == 5
-  @test intersect(LP[1][1],LP[2][1],LP[3][1],LP[4][1],LP[5][1]) == phiQ2(I1+Q2)
+  @test intersect([a for (a,_) in LP]) == phiQ2(I1+Q2)
 
   # tests for MPolyLocRing
   LM = minimal_primes(phiL1(I1))   
   LP = primary_decomposition(phiL1(I1)) ## coincides with min. ass. primes here
   @test length(LM) == 2
   @test length(LP) == 2
-  @test intersect(LM[1],LM[2]) == phiL1(I1)
-  @test intersect(LP[1][1],LP[1][2]) == phiL1(I1)
+  @test intersect(LM) == phiL1(I1)
+  @test intersect([a for (a,_) in LP]) == phiL1(I1)
   LM = minimal_primes(phiL2(I2))
   LP = primary_decomposition(phiL2(I2))
-  @test intersect(LM[1],LM[2]) == ideal(RL2,RL2.([z,x*y]))
-  @test intersect(LP[1][1],LP[2][1]) == ideal(RL2,RL2.([z,x*y^2]))
+  @test intersect(LM) == ideal(RL2,RL2.([z,x*y]))
+  @test intersect([a for (a,_) in LP]) == ideal(RL2,RL2.([z,x*y^2]))
 
   # tests for MPolyLocQuoRing
   LM = minimal_primes(phiQ1L1(phiQ1(I1))) 
@@ -213,9 +213,9 @@ end
   LP = primary_decomposition(phiQ2L1(phiQ2(I1)))
   @test length(LM) == 3
   @test length(LP) == 4
-  @test intersect(intersect(LM[1],LM[2]),LM[3]) == phiQ2L1(phiQ2(radical(I1+Q2)))
-  @test intersect(intersect(LP[1][1],LP[2][1]),intersect(LP[3][1],LP[4][1])) == phiQ2L1(phiQ2(I1+Q2))
-  @test length(minimal_primes(phiQ2L1(phiQ2(I2))) == 2
-  @test length(minimal_primes(phiQ2L2(phiQ2(I2))) == 2
+  @test intersect(LM) == phiQ2L1(phiQ2(radical(I1+Q2)))
+  @test intersect([a for (a,_) in LP]) == phiQ2L1(phiQ2(I1+Q2))
+  @test length(minimal_primes(phiQ2L1(phiQ2(I2)))) == 2
+  @test length(minimal_primes(phiQ2L2(phiQ2(I2)))) == 2
 end
 

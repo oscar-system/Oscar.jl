@@ -1491,13 +1491,14 @@ function intersect(I::MPolyLocalizedIdeal,J::MPolyLocalizedIdeal...)
   return L(erg)
 end
 
-#function intersect(VI::Vector{MPolyLocalizedIdeal})
-#  L = base_ring(VI[1])
-#  all(J -> base_ring(J) == L,VI) || error("base rings must match")
-#  VIpre = [Oscar.pre_saturated_ideal(J) for J in VI]
-#  erg = intersect(VIpre)
-#  return L(erg)
-#end  
+function intersect(VI::Vector{<:MPolyLocalizedIdeal{T}}) where T
+  @assert length(VI)!=0
+  L = base_ring(VI[1])
+  all(J -> base_ring(J) == L,VI) || error("base rings must match")
+  VIpre = [Oscar.pre_saturated_ideal(J) for J in VI]
+  erg = Base.intersect(VIpre)
+  return L(erg)
+end
 
 ### Further functionality
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)

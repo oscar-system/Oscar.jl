@@ -1526,6 +1526,25 @@ function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
   return L(K)
 end
 
+function intersect(I::MPolyQuoLocalizedIdeal,J::MPolyQuoLocalizedIdeal...)
+  L = base_ring(I)
+  erg = Oscar.pre_image_ideal(I)
+  for K in J
+    base_ring(K) == L || error("base rings must match")
+    erg = intersect(erg,Oscar.pre_image_ideal(K))
+  end
+  return L(erg)
+end
+
+function intersect(VI::Vector{<:MPolyQuoLocalizedIdeal{T}}) where T
+  @assert length(VI) != 0
+  L = base_ring(VI[1])
+  all(J -> base_ring(J) == L,VI) || error("base rings must match")
+  VIpre = [Oscar.pre_image_ideal(J) for J in VI]
+  erg = intersect(VIpre)
+  return L(erg)
+end
+
 ### Basic functionality
 function ideal_membership(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
