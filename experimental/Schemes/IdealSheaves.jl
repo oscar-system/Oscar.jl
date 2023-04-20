@@ -569,25 +569,6 @@ end
 # primary decomposition
 ########################################################################
 
-## this should go to src/Ring/mpolyquo-localization.jl
-function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
-  Q = base_ring(I)
-  R = base_ring(Q)
-  decomp = primary_decomposition(saturated_ideal(I))
-  result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
-  return result
-end
-
-## this should go to src/Rings/mpolyquo-localization.jl
-function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
-  Q = base_ring(I)
-  R = base_ring(Q)
-  decomp = minimal_primes(saturated_ideal(I))
-  result = [ideal(Q, Q.(gens(b))) for b in decomp]
-  return result
-end
-
-
 function minimal_associated_points(I::IdealSheaf)
   X = scheme(I)
   OOX = OO(X)

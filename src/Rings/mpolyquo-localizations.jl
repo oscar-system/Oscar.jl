@@ -1707,6 +1707,32 @@ end
 ############################################################################# 
 
 @doc raw"""
+     primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return primary decomposition of ``I``
+"""
+function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+  Q = base_ring(I)
+  R = base_ring(Q)
+  decomp = primary_decomposition(saturated_ideal(I))
+  result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
+  return result
+end
+
+@doc raw"""
+    minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return minimal associated primes of I
+"""
+function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+  Q = base_ring(I)
+  R = base_ring(Q)
+  decomp = minimal_primes(saturated_ideal(I))
+  result = [ideal(Q, Q.(gens(b))) for b in decomp]
+  return result
+end
+
+@doc raw"""
     saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
 
 Return ``I:J^\infty``.
