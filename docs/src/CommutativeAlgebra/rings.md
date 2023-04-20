@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["rings.md"]
-```
-
 # Creating Multivariate Rings
 
 In this section, for the convenience of the reader, we recall from the chapters on rings and fields

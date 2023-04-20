@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["faq.md"]
-```
-
 # Frequently Asked Questions
 
 

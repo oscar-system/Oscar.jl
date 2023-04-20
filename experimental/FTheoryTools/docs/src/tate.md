@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["Tate.md"]
-```
-
 # Global Tate models
 
 A global Tate model describes a particular form of an elliptic fibration.

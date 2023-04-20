@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["orderings.md"]
-```
-
 # Monomial Orderings
 
 Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$

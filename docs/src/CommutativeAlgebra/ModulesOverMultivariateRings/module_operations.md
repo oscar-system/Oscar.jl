@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["module_operations.md"]
-```
-
 # Operations on Modules
 
 ## Subquotients Related to Homomorphisms

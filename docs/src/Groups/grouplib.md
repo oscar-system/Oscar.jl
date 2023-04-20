@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["grouplib.md"]
-```
-
 # Group libraries
 
 ## Transitive permutation groups of small degree

@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["ToricLineBundles.md"]
-```
-
 
 # Toric Line Bundles
 

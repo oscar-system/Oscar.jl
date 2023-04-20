@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 Let $\mathbb{F}$ be an ordered field; the default is that

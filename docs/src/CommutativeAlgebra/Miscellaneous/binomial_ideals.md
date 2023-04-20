@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["binomial_ideals.md"]
-```
-
 # Binomial Primary Decomposition
 
 ## Introduction

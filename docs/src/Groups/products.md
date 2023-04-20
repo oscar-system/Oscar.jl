@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["products.md"]
-```
-
 # Products of groups
 
 ## Direct products

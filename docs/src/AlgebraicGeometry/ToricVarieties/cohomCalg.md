@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["CohomCalg.md"]
-```
-
 
 # Line bundle cohomology with cohomCalg
 

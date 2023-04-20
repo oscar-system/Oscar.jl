@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["K3Surfaces.md"]
-```
-
 # Automorphism Groups of  K3 surfaces
 
 A complex K3 surface is a compact complex surface $X$

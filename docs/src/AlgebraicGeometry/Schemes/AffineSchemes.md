@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["AffineSchemes.md"]
-```
-
 
 # Affine schemes
 

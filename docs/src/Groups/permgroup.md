@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["permgroup.md"]
-```
-
 # Permutation groups
 
 Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.

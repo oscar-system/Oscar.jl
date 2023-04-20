@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["linear_programs.md"]
-```
-
 # Linear Programs
 
 

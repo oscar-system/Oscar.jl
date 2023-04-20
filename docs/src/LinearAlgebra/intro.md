@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 The linear algebra part of OSCAR provides functionality for handling

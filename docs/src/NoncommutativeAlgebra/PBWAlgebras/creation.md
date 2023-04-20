@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["creation.md"]
-```
-
 # Creating PBW-Algebras
 
 ## Types

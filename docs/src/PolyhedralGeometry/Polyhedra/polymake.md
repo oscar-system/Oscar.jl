@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["polymake.md"]
-```
-
 
 # `Polyhedron` and `polymake`'s `Polytope`
 

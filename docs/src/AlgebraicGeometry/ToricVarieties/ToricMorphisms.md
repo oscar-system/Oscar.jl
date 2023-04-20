@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["ToricMorphisms.md"]
-```
-
 # ToricMorphisms
 
 A class of morphisms among toric varieties are described by certain lattice morphisms.

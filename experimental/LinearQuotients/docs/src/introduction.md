@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["introduction.md"]
-```
-
 # Introduction
 
 Linear quotients are orbit spaces of the action of a finite group $G$ on a finite-dimensional vector space $V$ over $\mathbb C$.

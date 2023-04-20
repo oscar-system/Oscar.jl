@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["complexes.md"]
-```
-
 # Chain and Cochain Complexes
 
 The general OSCAR type `ComplexOfMorphisms{T}` allows one to model both chain complexes and cochain complexes

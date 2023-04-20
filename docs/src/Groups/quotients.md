@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["quotients.md"]
-```
-
 # [Quotients](@id quotient)
 
 Quotient groups in OSCAR can be defined using the instruction `quo` in two ways.

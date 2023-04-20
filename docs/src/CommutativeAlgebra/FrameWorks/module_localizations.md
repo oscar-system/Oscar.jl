@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["module_localizations.md"]
-```
-
 # Localizations of modules over computable rings
 
 For localizations of modules, there exists a generic implementation of 

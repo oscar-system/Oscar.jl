@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["groebner_bases_integers.md"]
-```
-
 # Gröbner/Standard Bases Over $\mathbb Z$
 
 In this section, we consider a polynomial ring

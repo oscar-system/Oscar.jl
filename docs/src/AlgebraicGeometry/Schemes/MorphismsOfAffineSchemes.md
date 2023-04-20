@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["MorphismsOfAffineSchemes.md"]
-```
-
 
 # Morphisms of affine schemes
 

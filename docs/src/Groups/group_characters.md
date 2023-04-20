@@ -5,10 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@contents
-Pages = ["group_characters.md"]
-```
-
 # Group characters
 
 Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``
