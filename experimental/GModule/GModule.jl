@@ -3,6 +3,9 @@ using Oscar
 using Hecke
 import Hecke: data
 
+function(x::Partition)
+  return x
+end
 
 """
     restriction_of_scalars(M::GModule, phi::Map)
