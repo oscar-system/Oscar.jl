@@ -78,7 +78,6 @@ end
 # SimpleNumField
 
 @registerSerializationType(Hecke.NfRel, true)
-
 @registerSerializationType(AnticNumberField, true)
 
 function save_internal(s::SerializerState, K::SimpleNumField)
@@ -105,7 +104,9 @@ function save_internal(s::SerializerState, K::fqPolyRepField)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{fqPolyRepField}, dict::Dict)
+function load_internal(s::DeserializerState,
+                       ::Type{<: fqPolyRepField},
+                       dict::Dict)
     def_pol = load_unknown_type(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
     return K
@@ -114,16 +115,14 @@ end
 #elements
 @registerSerializationType(fqPolyRepFieldElem)
 @registerSerializationType(nf_elem)
-
 @registerSerializationType(Hecke.NfRelElem)
 
 function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
-
     return Dict(
-        :parent => save_type_dispatch(s, K),
-        :polynomial => save_type_dispatch(s, polynomial)
+        :parent => save_as_ref(s, K),
+        :terms => save_type_dispatch(s, polynomial)[:data][:terms]
     )
 end
 
@@ -145,6 +144,73 @@ function load_internal_with_parent(s::DeserializerState,
     return parent_field(polynomial)
 end
 
+################################################################################
+# FqField
+@registerSerializationType(FqField, true)
+@registerSerializationType(FqFieldElem)
+
+function save_internal(s::SerializerState, K::FqField)
+    if absolute_degree(K) == 1
+        return Dict(
+            :order => save_type_dispatch(s, order(K))
+        )
+    end
+    return Dict(
+        :def_pol => save_type_dispatch(s, defining_polynomial(K))
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: FqField},
+                       dict::Dict)
+    if haskey(dict, :order)
+        order = load_type_dispatch(s, ZZRingElem, dict[:order])
+        return Hecke.Nemo._FiniteField(order)[1]
+    end
+    def_pol = load_unknown_type(s, dict[:def_pol])
+    Hecke.Nemo._FiniteField(def_pol, cached=false)[1]
+end
+
+# elements
+function save_internal(s::SerializerState, k::FqFieldElem)
+    K = parent(k)
+    if absolute_degree(K) == 1
+        return string(lift(ZZ, k))
+    end
+
+    polynomial = lift(ZZ["x"][1], k)
+    return Dict(
+        :parent => save_as_ref(s, K),
+        :terms => save_type_dispatch(s, polynomial)[:data][:terms]
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: FqFieldElem},
+                       dict::Dict)
+    K = load_type_dispatch(s, FqField, dict[:parent])
+    if absolute_degree(K) == 1
+        polynomial = load_type_dispatch(s, ZZRingElem, dict[:polynomial])
+    else
+        polynomial = load_type_dispatch(s, PolyRingElem, dict[:polynomial])
+    end
+    return K(polynomial)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: FqFieldElem},
+                                   dict::Dict,
+                                   parent_field::FqField)
+    if absolute_degree(parent_field) == 1
+        polynomial = load_type_dispatch(s, ZZRingElem, dict[:polynomial])
+    else
+        polynomial_parent = parent(defining_polynomial(parent_field))
+        polynomial = load_type_dispatch(s, PolyRingElem, dict[:polynomial];
+                                        parent=polynomial_parent)
+        println(polynomial)
+    end
+    return parent_field(polynomial)
+end
 
 
 ################################################################################

@@ -3,29 +3,6 @@
 
 @registerSerializationType(Vector)
 
-@doc Markdown.doc"""
-    is_basic_serialization_type(::Type)
-
-During the serialization of types of the form `Vector{T}`, entries
-of type `T` will either be serialized as strings if `is_basic_serialization_type`
-returns `true`, or serialized as a dict provided the serialization for such a `T`
-exists. If `Vector{T}` is serialized with `is_basic_serialization_type(T) = true`
-then the `entry_type` keyword is used to store the type `T` as a property of
-the vector.
-
-# Examples
-
-```jldoctest
-julia> is_basic_serialization_type(ZZRingElem)
-true
-```
-"""
-is_basic_serialization_type(::Type) = false
-is_basic_serialization_type(::Type{ZZRingElem}) = true
-is_basic_serialization_type(::Type{QQFieldElem}) = true
-is_basic_serialization_type(::Type{Bool}) = true
-is_basic_serialization_type(::Type{Symbol}) = true
-is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 
 function save_internal(s::SerializerState, vec::Vector{T}) where T
     d = Dict{Symbol, Any}(
@@ -33,6 +10,22 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
     )
     if is_basic_serialization_type(T)
         d[:entry_type] = encodeType(T)
+    end
+    return d
+end
+
+function save_internal(s::SerializerState, vec::Vector{T}) where T <: Tuple
+    println("hello")
+    d = Dict{Symbol, Any}(
+        :vector => [],
+        :entry_type => encodeType(T)
+    )
+    
+    for tup in vec
+        encoded_tup = save_type_dispatch(s, tup)[:data]
+        println(encoded_tup)
+        d[:field_types] = encoded_tup[:field_types]
+        push!(d[:vector], encoded_tup[:content])
     end
     return d
 end

@@ -12,6 +12,9 @@ Fin, d = FiniteField(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = TropicalSemiring()
+F, o  = Hecke.Nemo._FiniteField(4)
+Fs, s = F["s"]
+FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1)
 
 cases = [
     (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
@@ -25,7 +28,8 @@ cases = [
     (Qu, u, 1 // u, "RationalFunctionField"),
     (Frac, 1 // x, x^2, "Fraction Field"),
     (P7, 7 + 3*7^2, 7^5, "Padic Field"),
-    (T, T(1), T(3)^2, "Tropical Semiring")
+    (T, T(1), T(3)^2, "Tropical Semiring"),
+    (FF, FF(1), r, "Default Finite Field")
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{
@@ -288,6 +292,26 @@ end
                             h = hom(R, S, gens(S))
                             @test h(i) == loaded_i
                         end
+
+                        S = parent(i[1])
+                        test_save_load_roundtrip(path, i; parent=S) do loaded_i
+                            @test i == loaded_i
+                        end
+                    end
+                end
+            end
+
+            @testset "Universal Polynomial over $(case[4])" begin
+                R = UniversalPolynomialRing(case[1])
+                z, w = gens(R, ["z", "w"])
+                p = z^2 + case[2] * z * w + case[3] * w^3
+                test_save_load_roundtrip(path, p) do loaded
+                  @test test_equality(p.p, loaded.p)
+                end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
                     end
                 end
             end

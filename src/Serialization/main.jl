@@ -7,17 +7,18 @@ mutable struct SerializerState
     # dict to track already serialized objects
     objmap::IdDict{Any, UUID}
     depth::Int
-
+    refs::Dict{Symbol, Any}
     # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
     # io::IO
 end
 
 function SerializerState()
-    return SerializerState(IdDict{Any, UUID}(), 0)
+    return SerializerState(IdDict{Any, UUID}(), 0, Dict())
 end
 
 struct DeserializerState
     objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+
 end
 
 function DeserializerState()
@@ -99,10 +100,78 @@ function decodeType(input::String)
     end
 end
 
+################################################################################
+# Encoding helper functions
 
+@doc Markdown.doc"""
+    is_basic_serialization_type(::Type)
+
+During the serialization of types of the form `Vector{T}`, entries
+of type `T` will either be serialized as strings if `is_basic_serialization_type`
+returns `true`, or serialized as a dict provided the serialization for such a `T`
+exists. If `Vector{T}` is serialized with `is_basic_serialization_type(T) = true`
+then the `entry_type` keyword is used to store the type `T` as a property of
+the vector.
+
+# Examples
+
+```jldoctest
+julia> is_basic_serialization_type(ZZRingElem)
+true
+```
+"""
+is_basic_serialization_type(::Type) = false
+is_basic_serialization_type(::Type{ZZRingElem}) = true
+is_basic_serialization_type(::Type{QQFieldElem}) = true
+is_basic_serialization_type(::Type{Bool}) = true
+is_basic_serialization_type(::Type{Symbol}) = true
+is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
+
+
+function has_elem_basic_encoding(obj::T) where T <: Ring
+    if obj isa FqField
+        return absolute_degree(obj) == 1
+    elseif obj isa Nemo.zzModRing
+        return true
+    end
+    return is_basic_serialization_type(elem_type(obj))
+end
 
 ################################################################################
 # High level
+function save_as_ref(s::SerializerState, obj::T) where T
+    if is_basic_serialization_type(T) && s.depth != 0
+        return save_internal(s, obj)
+    end
+
+    # find ref or create one
+    ref = get(s.objmap, obj, nothing)
+    if ref  !== nothing
+        return Dict{Symbol, Any}(
+            :type => backref_sym,
+            :id => string(ref),
+            :version => 1, # ???
+        )
+    end
+    
+    ref = s.objmap[obj] = uuid4()
+    result = Dict{Symbol, Any}(:type => encodeType(T))
+
+    if Base.issingletontype(T)
+        return result
+    end
+    
+    # invoke the actual serializer
+    result[:data] = save_internal(s, obj)
+    s.refs[Symbol(ref)] = result
+
+    return Dict{Symbol, Any}(
+        :type => backref_sym,
+        :id => string(ref),
+        :version => 1, # ???
+    )
+end
+
 function save_type_dispatch(s::SerializerState, obj::T) where T
     if is_basic_serialization_type(T) && s.depth != 0
         return save_internal(s, obj)
@@ -137,13 +206,17 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     end
     if s.depth == 0
         result[:_ns] = oscarSerializationVersion
+
+        if !isempty(s.refs)
+            result[:data] = merge(result[:data], s.refs)
+        end
     end
     return result
 end
 
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
-    @assert is_basic_serialization_type(T)
+    @assert is_basic_serialization_type(T) 
     if parent !== nothing
         load_internal_with_parent(s, T, str, parent)
     end
@@ -338,6 +411,7 @@ true
 """
 function load(io::IO; parent::Any = nothing, type::Any = nothing)
     state = DeserializerState()
+
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
