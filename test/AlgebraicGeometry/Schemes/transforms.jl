@@ -68,7 +68,7 @@ end
 
   # decompose and check that we obtain the expected results
   L1 = Oscar.associated_points(ISheaf)
-  L2 = Oscar.minimal_associated_points(ISheaf)
+  L2 = Oscar.maximal_associated_points(ISheaf)
   dimsL1 = [dim(a) for a in L1]
   dimsL2 = [dim(a) for a in L2]
   @test length(L1) == 3
