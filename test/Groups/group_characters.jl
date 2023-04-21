@@ -691,7 +691,9 @@ end
   @test tr in t
   @test tr != t[1]
   @test tr == t[5]
+  @test tr == t[end]
   @test tr == trivial_character(g)
+  @test !is_faithful(tr)
   chi = t[2]
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]
@@ -711,6 +713,7 @@ end
   @test all(is_irreducible, t)
   @test sort!([order(kernel(chi)[1]) for chi in t]) == [1, 1, 4, 12, 24]
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
+  @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
 
   scp = scalar_product(t[1], t[1])
   @test scp == 1

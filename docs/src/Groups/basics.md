@@ -68,6 +68,7 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 ```@docs
 is_finite(G::GAPGroup)
 is_trivial(G::GAPGroup)
+is_cyclic(G::GAPGroup)
 is_abelian(G::GAPGroup)
 is_elementary_abelian
 is_pgroup
@@ -88,6 +89,7 @@ is_finitelygenerated
 
 ```@docs
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
+cyclic_generator(G::GAPGroup)
 exponent(G::GAPGroup)
 describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)

@@ -395,6 +395,7 @@ export cube
 export cycle_matroid
 export cycle_structure
 export cyclic_flats
+export cyclic_generator
 export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
@@ -697,6 +698,7 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
+export is_faithful
 export is_fano
 export is_feasible
 export is_finalized
