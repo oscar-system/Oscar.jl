@@ -1709,7 +1709,7 @@ end
 @doc raw"""
      primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
 
-Return primary decomposition of ``I``
+Return the primary decomposition of ``I``
 """
 function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
   Q = base_ring(I)
