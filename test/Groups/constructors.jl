@@ -76,9 +76,12 @@ end
   @test_throws ArgumentError cyclic_group(-1)
   @test_throws ArgumentError cyclic_group(PermGroup, -1)
 
+  @test_throws ArgumentError cyclic_generator(symmetric_group(3))
+
   for p in [next_prime(2^62), next_prime(ZZRingElem(2)^66)]
     g = cyclic_group(p)
     @test is_cyclic(g)
+    @test order(cyclic_generator(g)) == order(g)
     @test !is_dihedral_group(g)
     @test is_finite(g)
     @test order(g) == p
