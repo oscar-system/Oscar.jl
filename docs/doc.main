@@ -220,6 +220,7 @@
       "Combinatorics/partitions.md",
       "Combinatorics/tableaux.md",
       "Combinatorics/schur_polynomials.md",
+      "Combinatorics/quantum_analogs.md",
   ],
 
   "Straight Line Programs" => [
