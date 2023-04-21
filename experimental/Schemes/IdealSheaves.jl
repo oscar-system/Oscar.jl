@@ -579,7 +579,7 @@ For usability reasons these associated points are not encoded as a subscheme, bu
 
 Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
-Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes corresponding ideal in ``A``.
+Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
 function maximal_associated_points(I::IdealSheaf)
   X = scheme(I)
