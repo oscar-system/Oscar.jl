@@ -7,14 +7,14 @@ using Oscar
 ```
 
 # Projective Algebraic Sets
-An projective algebraic set over an algebraically closed
+A projective algebraic set over an algebraically closed
 field $\overline{k}$ is the common vanishing locus
 $V\subseteq \mathbb{P}^n_{\overline{k}}$ of
 finitely many homogeneous polynomials $f_1,\dots f_r \in \overline{k}[x_0,\dots x_n]$,
-or equivalently of a homogeneous ideal $I \subseteq \overline{k}[x_0,\dots x_n]$ they generate.
-Structural questions about varieties can be answered by considering the corresponding homogeneous ideal of vanishing.
+or equivalently of the homogeneous ideal $I \subseteq \overline{k}[x_0,\dots x_n]$ they generate.
+Properties of $V$ correspond to properties of $I$ and vice versa.
 For instance the projective Nullstellensatz states that $V$ is empty if and only if
-$I\supseteq (x_0,\dots, x_n)$.
+$\sqrt{I}\supseteq (x_0,\dots, x_n)$.
 
 In Oscar we work with projective algebraic sets over non-closed fields,
 by viewing them as reduced schemes. See [Projective schemes](@ref).

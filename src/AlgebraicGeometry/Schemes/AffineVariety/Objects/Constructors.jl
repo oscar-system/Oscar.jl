@@ -6,14 +6,16 @@
 
 Convert ``X`` to an affine variety.
 
-If check is set, then compute the reduced scheme of `X` first.
+If `is_reduced` is set, assume that `X` is reduced.
 """
-function affine_variety(X::Spec{<:Field}; check::Bool=true)
-  check  ||  AffineVariety(X, check=check)
-  Xred,_ = reduced_scheme(X)
+function affine_variety(X::Spec{<:Field}; is_reduced=false, check::Bool=true)
+  Xred = affine_algebraic_set(X, is_reduced=is_reduced, check=check)
   return AffineVariety(Xred, check=check)
 end
 
+function affine_variety(X::AffineAlgebraicSet; check::Bool=true)
+  return AffineVariety(X, check=check)
+end
 
 @doc raw"""
     affine_variety(I::MPolyIdeal; check=true) -> AffineVariety
@@ -39,14 +41,18 @@ a variety, you can construct it by disabling the check.
 ```jldoctest
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> affine_variety(x^3+y+1,check=false)
+julia> affine_variety(x^3+y+1, check=false)
 Affine variety
  in Affine 2-space over Galois field with characteristic 2
 defined by ideal(x^3 + y + 1)
 
 ```
 """
-affine_variety(I::MPolyIdeal; check=true) = AffineVariety(Spec(quo(base_ring(I),I)[1]), check=check)
+function affine_variety(I::MPolyIdeal; is_radical=false, check=true)
+  X = affine_algebraic_set(I, is_radical=is_radical, check=check)
+  return AffineVariety(X ,check=check)
+end
+
 
 @doc raw"""
     affine_variety(R::Ring; check=true)

@@ -482,14 +482,18 @@ with coordinates
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
-  return domain(inc), inc
+  Xred, inc = domain(inc), inc
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred, inc
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
   J = radical(modulus(OO(X)))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
-  return domain(inc), inc
+  Xred, inc = domain(inc), inc
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred, inc
   return Spec(base_ring(J), J)
 end
 

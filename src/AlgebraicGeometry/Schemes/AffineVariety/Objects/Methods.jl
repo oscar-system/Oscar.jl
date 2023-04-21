@@ -8,7 +8,7 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyQ
   print(io, " in ")
   println(io, ambient_space(X))
   print(io, "defined by ")
-  print(io, vanishing_ideal(X))
+  print(io, ideal(X))
 end
 
 function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyQuoRing})
@@ -16,7 +16,7 @@ function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyQuoRing})
   if get(io, :supercompact, false)
     print(io, "Affine variety")
   else
-    print(io, "Affine variety defined by $(vanishing_ideal(X))")
+    print(io, "Affine variety defined by $(ideal(X))")
   end
 end
 
@@ -33,7 +33,7 @@ function Base.show(io::IO, X::AffineVariety)
   if get(io, :supercompact, false)
     print(io, "Affine variety")
   else
-    print(io, "Affine variety contained in the vanishing locus of $(vanishing_ideal(X))")
+    print(io, "Affine variety contained in the vanishing locus of $(ideal(X))")
   end
 end
 

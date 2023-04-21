@@ -1028,6 +1028,7 @@ export orthogonal_group
 export orthogonal_sign
 export oscar
 export outneighbors
+export overlying_scheme
 export pappus_matroid
 export parallel_extension
 export parent
