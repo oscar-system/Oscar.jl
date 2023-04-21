@@ -993,27 +993,33 @@ end
 function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
-  print(io_compact, domain(fmh))
-  print(io, " -> ")
-  print(io_compact, codomain(fmh))
-  if !compact
-    print(io,"\n")
-    for i in 1:ngens(domain(fmh))
-      print(io, domain(fmh)[i], " -> ")
-      print(io_compact, fmh(domain(fmh)[i]))
-      print(io,"\n")
-    end
-    if is_graded(fmh) 
+  if is_graded(fmh)  
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:ngens(domain(fmh))
+        print(io, domain(fmh)[i], " -> ")
+        print(io_compact, fmh(domain(fmh)[i]))
+        print(io, "\n")
+      end
       A = grading_group(fmh)
-      if degree(fmh)==A[0] 
+      if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
-        print(io_compact,"Graded module homomorphism of degree ", degree(fmh))
-        print(io,"\n")
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
       end
-    else
-      print(io, "Module homomorphism")
     end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    println(io, codomain(fmh))
   end
 end
 
@@ -2990,7 +2996,7 @@ Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-represented as subquotient with no relations
+represented as subquotient with no relations.
 
 julia> incl
 Map with following data
@@ -3000,7 +3006,7 @@ Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-represented as subquotient with no relations
+represented as subquotient with no relations.
 Codomain:
 =========
 Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -3637,28 +3643,34 @@ end
 function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
-  print(io_compact, domain(fmh))
-  print(io, " -> ")
-  print(io_compact, codomain(fmh))
   domain_gens = gens(domain(fmh))
-  if !compact
-    print(io,"\n")
-    for i in 1:length(domain_gens)
-      print(io, domain_gens[i], " -> ")
-      print(io_compact, fmh(domain_gens[i]))
-      print(io,"\n")
-    end
-    if is_graded(fmh) 
+  if is_graded(fmh)
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:length(domain_gens)
+        print(io, domain_gens[i], " -> ")
+        print(io_compact, fmh(domain_gens[i]))
+        print(io, "\n")
+      end
       A = grading_group(fmh)
-      if degree(fmh)==A[0] 
+      if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
-        print(io_compact,"Graded module homomorphism of degree ", degree(fmh))
-        print(io,"\n")
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
       end
-    else
-      print(io, "Module homomorphism")
     end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    println(io, codomain(fmh))
   end
 end
 
@@ -4565,7 +4577,7 @@ Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
-represented as subquotient with no relations
+represented as subquotient with no relations.
 
 julia> incl
 Map with following data
@@ -4575,7 +4587,7 @@ Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
-represented as subquotient with no relations
+represented as subquotient with no relations.
 Codomain:
 =========
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -4698,7 +4710,7 @@ julia> K, incl = kernel(a);
 julia> K
 Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations
+represented as subquotient with no relations.
 
 julia> incl
 Map with following data
@@ -4706,7 +4718,7 @@ Domain:
 =======
 Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations
+represented as subquotient with no relations.
 Codomain:
 =========
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -6231,7 +6243,7 @@ by Submodule with 3 generators
 
 julia> T2 =  tor(Q, M, 2)
 Submodule with 0 generators
-represented as subquotient with no relations
+represented as subquotient with no relations.
 ```
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
@@ -6591,7 +6603,7 @@ by Submodule with 3 generators
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
-represented as subquotient with no relations
+represented as subquotient with no relations.
 ```
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
