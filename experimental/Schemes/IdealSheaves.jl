@@ -638,7 +638,7 @@ end
 Returns a `Vector` of `IdealSheaf`s corresponding to the associated points of ``I`` on ``scheme(I)``.
 
 Note:
-For usability reasons an associated points are not encoded as a subscheme, but as the corresponding ideal sheaf defining the subscheme.
+For usability reasons an associated point is not encoded as subscheme, but as the corresponding ideal sheaf defining the subscheme.
 
 Background:
 More generally, a point ``x`` on a scheme ``X`` is associated to a quasi-coherent sheaf ``F``, if the maximal ideal ``m_x`` is associated to the ``O_{X,x}``-module ``F_x``.
