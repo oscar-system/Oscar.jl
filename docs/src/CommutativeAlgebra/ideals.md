@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["ideals.md"]
-```
-
 # Ideals in Multivariate Rings
 
 ## Types
@@ -107,6 +99,7 @@ minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
+intersect(V::Vector{MPolyIdeal{T}}) where T
 ```
 
 ### Ideal Quotients

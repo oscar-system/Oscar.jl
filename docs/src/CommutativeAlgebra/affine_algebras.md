@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["affine_algebras.md"]
-```
-
 # Affine Algebras and Their Ideals
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.
@@ -105,6 +97,10 @@ In the graded case, we additionally have:
 grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
+```@docs
+homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+```
+
 ### Dimension
 
 ```@docs
@@ -151,7 +147,7 @@ true
 ### Reducing Polynomial Representatives
 
 ```@docs
-simplify(f::MPolyQuoRingElem)
+simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
 ```
 
 ### Tests on Elements of Affine Algebras
@@ -276,6 +272,7 @@ minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
+intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 ```
 
 #### Ideal Quotients
@@ -498,7 +495,7 @@ subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQ
 ### Minimal Subalgebra Generators
 
 ```@docs
-minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
 ```
 
 ## Noether Normalization

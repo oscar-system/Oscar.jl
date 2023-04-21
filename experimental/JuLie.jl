@@ -2,7 +2,6 @@ module JuLie
 
 using ..Oscar
 import Oscar: IntegerUnion
-using Markdown
 
 include("JuLie/partitions.jl")
 include("JuLie/schur_polynomials.jl")

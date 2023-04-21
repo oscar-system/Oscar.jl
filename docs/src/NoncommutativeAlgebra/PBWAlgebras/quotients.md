@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["quotients.md"]
-```
-
 # GR-Algebras: Quotients of PBW-Algebras
 
 In analogy to the affine algebras section in the commutative algebra chapter, we describe OSCAR

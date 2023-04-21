@@ -5,7 +5,7 @@
 
 underlying_scheme(U::PrincipalOpenSubset) = U.U
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_scheme(U::PrincipalOpenSubset) -> Spec
 
 For ``U = D(f) ⊆ X`` a principal open subset of ``X`` this returns ``X``. 

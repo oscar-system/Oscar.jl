@@ -22,7 +22,7 @@ end
 ################################################################################
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     cyclic_quotient_singularity(n::ZZRingElem, q::ZZRingElem)
 
 Return the cyclic quotient singularity for the parameters $n$ and $q$, with
@@ -50,7 +50,7 @@ function cyclic_quotient_singularity(n::T, q::T) where {T <: IntegerUnion}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 
 Return the Hirzebruch-Jung continued fraction associated with the cyclic
@@ -82,7 +82,7 @@ julia> ecf = cf[1]-1//(cf[2]-QQFieldElem(1, cf[3]))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 
 Return the dual Hirzebruch-Jung continued fraction associated with the cyclic
@@ -113,7 +113,7 @@ julia> edcf = dcf[1] - QQFieldElem(1, dcf[2])
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     continued_fraction_hirzebruch_jung_to_rational(v::Vector{ZZRingElem})
 
 Return the rational number corresponding to a Hirzebruch-Jung continued
@@ -144,7 +144,7 @@ function continued_fraction_hirzebruch_jung_to_rational(v::Vector{ZZRingElem})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_to_continued_fraction_hirzebruch_jung(r::QQFieldElem)
 
 Encode a (positive) rational number as a Hirzebruch-Jung continued fraction,

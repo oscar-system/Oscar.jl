@@ -22,7 +22,7 @@ end
 # function that generates the dictionary which maps the groundset to integers
 create_gs2num(E::GroundsetType) = Dict{Any,IntegerUnion}(E[i] => i for i in 1:length(E))
 
-@doc Markdown.doc"""
+@doc raw"""
     Matroid(pm_matroid::Polymake.BigObjectAllocated, [E::GroundsetType])
 
 Construct a `matroid` from a `polymake` matroid `M` on the default ground set `{1,...,n}`.
@@ -31,7 +31,7 @@ function Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vecto
     return Matroid(pm_matroid, E, create_gs2num(E))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
 
 Construct a `matroid` from a revlex-basis-encoding-string `rvlx` of rank `r` and size `n`.
@@ -52,7 +52,7 @@ function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::In
     return Matroid(Polymake.matroid.Matroid(N_ELEMENTS=n, RANK=r, REVLEX_BASIS_ENCODING=rvlx))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_bases(B, [n, E])
 
 # Arguments
@@ -105,7 +105,7 @@ function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, grou
     return Matroid(M,groundset,gs2num)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_nonbases(N, [n, E])
 
 # Arguments
@@ -161,7 +161,7 @@ function matroid_from_nonbases(nonbases::Union{AbstractVector{T},AbstractSet{T}}
     return Matroid(M,groundset,gs2num)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_circuits(C, [n, E])
 
 # Arguments
@@ -215,7 +215,7 @@ function matroid_from_circuits(circuits::Union{AbstractVector{T},AbstractSet{T}}
     return Matroid(M,groundset,gs2num)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_hyperplanes(H, [n, E])
 
 # Arguments
@@ -264,7 +264,7 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractS
     return Matroid(M,groundset,gs2num)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_matrix_columns(A::MatrixElem)
 
 A matroid represented by the column vectors of a matrix `A`.
@@ -300,7 +300,7 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
     return matroid_from_bases(bases, ncols(A); check=check)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_from_matrix_columns(A::MatrixElem)
 
 A matroid represented by the row vectors of a matrix.
@@ -318,7 +318,7 @@ Matroid of rank 2 on 4 elements
 """
 matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
-@doc Markdown.doc"""
+@doc raw"""
     cycle_matroid(g::Graph)
 
 The cycle matroid of a graph `g`.
@@ -342,7 +342,7 @@ function cycle_matroid(g::Graph)
     return Matroid(M,1:n,gs2num)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     bond_matroid(g::Graph)
 
 The "bond matroid" or "cocycle matroid" of a graph which is the dual of a cycle matroid, i.e., cographic.
@@ -369,13 +369,13 @@ Matroid of rank 3 on 6 elements
 """
 bond_matroid(g::Graph) = dual_matroid(cycle_matroid(g))
 
-@doc Markdown.doc"""
+@doc raw"""
 See `bond_matroid`.
 """
 cocycle_matroid(g::Graph) = bond_matroid(g::Graph)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dual_matroid(M::Matroid)
 
 The `dual matroid` of a given matroid `M`.
@@ -399,7 +399,7 @@ function dual_matroid(M::Matroid)
   return dual
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matroid_groundset(M::Matroid)
 
 The ground set `E` of a matroid `M`.
@@ -420,7 +420,7 @@ julia> matroid_groundset(fano_matroid())
 """
 matroid_groundset(M::Matroid) = M.groundset
 
-@doc Markdown.doc"""
+@doc raw"""
     direct_sum(M::Matroid, N::Matroid)
 The `direct sum` of the matroids `M` and `N`.
 Optionally one can also pass a vector of matroids.
@@ -456,7 +456,7 @@ end
 
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
 
-@doc Markdown.doc"""
+@doc raw"""
     deletion(M, [S, e])
 
 # Arguments
@@ -513,7 +513,7 @@ end
 
 deletion(M::Matroid,elem::ElementType) = deletion(M,Vector([elem]))
 
-@doc Markdown.doc"""
+@doc raw"""
     restriction(M, S)
 
 # Arguments
@@ -542,7 +542,7 @@ function restriction(M::Matroid, set::GroundsetType)
     return deletion(M, deleted_elems)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     contraction(M, [S, e])
 
 # Arguments
@@ -582,7 +582,7 @@ end
 
 contraction(M::Matroid,elem::ElementType) = contraction(M,Vector([elem]))
 
-@doc Markdown.doc"""
+@doc raw"""
     minor(M::Matroid, set_del::GroundsetType, set_cont::GroundsetType)
 
 The `minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
@@ -608,7 +608,7 @@ function minor(M::Matroid, set_del::GroundsetType, set_cont::GroundsetType)
     return contraction(deletion(M, set_del), set_cont)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     principal_extension(M::Matroid, F::GroundsetType, e::ElementType)
 
 The `principal extension M +_F e` of a matroid `M` where the element `e` is freely added to the flat `F`.
@@ -634,7 +634,7 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
     return Matroid(Polymake.matroid.principal_extension(M.pm_matroid, pm_set),[M.groundset;elem],gs2num)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_extension(M::Matroid, e::ElementType)
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
@@ -651,7 +651,7 @@ Matroid of rank 3 on 5 elements
 """
 free_extension(M::Matroid, elem::ElementType) = principal_extension(M, M.groundset, elem)
 
-@doc Markdown.doc"""
+@doc raw"""
     series_extension(M::Matroid, f::ElementType, e::ElementType)
 
 The `series extension` of a matroid `M` where the element `e` is added in series to `f`.
@@ -677,7 +677,7 @@ function series_extension(M::Matroid, old::ElementType, new::ElementType)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     parallel_extension(M::Matroid, f::ElementType, e::ElementType)
 
 The `parallel extension M +_{cl(f)} e` of a matroid `M` where the element `e` is added parallel to (the closure of) `f`.
@@ -762,7 +762,7 @@ function all_subsets_matroid(r::Int)
     return matroid_from_matrix_columns(matrix(QQ, M); check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_plane(q::Int)
 
 The projective plane of order `q`.
@@ -785,7 +785,7 @@ function projective_plane(q::Int)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_geometry(r::Int, q::Int)
 
 The projective geometry of order `q` and rank `r+1`.
@@ -822,7 +822,7 @@ function projective_geometry(r::Int, q::Int; check::Bool=false)
     return matroid_from_matrix_columns(matrix(GF(q), M); check=check)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_geometry(r::Int, q::Int)
 
 The affine geometry of order `q` and rank `r+1`.
@@ -849,7 +849,7 @@ function affine_geometry(r::Int, q::Int; check::Bool=false)
     return restriction(PG, Vector(2:(length(PG.groundset)-q)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(m::Matroid)
 
 Given a matroid `m` return its automorphism group as a `PermGroup`.

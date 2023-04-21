@@ -162,6 +162,16 @@
         "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
         "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
+        "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
+        "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
+     ],
+     "Algebraic Sets" => [
+        "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
+        "AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet.md",
+     ],
+     "Algebraic Varieties" => [
+        "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
+        "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",
@@ -176,31 +186,16 @@
         "AlgebraicGeometry/ToricVarieties/AlgebraicCycles.md",
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
      ],
-     "Toric Schemes" => [
-         "Experimental/ToricSchemes/intro.md",
-         "Experimental/ToricSchemes/AffineToricSchemes.md",
-         "Experimental/ToricSchemes/NormalToricSchemes.md",
-     ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",
         "AlgebraicGeometry/TropicalGeometry/curve.md",
      ],
      "Curves" => [
-#        "Experimental/introduction.md",
-#        "Experimental/plane_curves.md",
-#        "Experimental/divisors.md",
-#        "Experimental/elliptic_curves.md",
-#        "Experimental/non_plane_curves.md",
          "AlgebraicGeometry/Curves/para_rational_curves.md",
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",
-     ],
-     "F-Theory Tools" => [
-         "Experimental/FTheoryTools/introduction.md",
-         "Experimental/FTheoryTools/weierstrass.md",
-         "Experimental/FTheoryTools/tate.md"
      ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
@@ -239,11 +234,11 @@
   "Developer Documentation" => [
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
-    "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
-    "DeveloperDocumentation/experimental.md",
+    "DeveloperDocumentation/design_decisions.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

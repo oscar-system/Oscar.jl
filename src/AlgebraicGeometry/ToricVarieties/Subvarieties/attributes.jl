@@ -2,7 +2,7 @@
 # Attributes
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(c::ClosedSubvarietyOfToricVariety)
 
 When constructing a closed subvariety, a toric variety
@@ -28,7 +28,7 @@ true
 @attr AbstractNormalToricVariety toric_variety(c::ClosedSubvarietyOfToricVariety) = c.toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     defining_ideal(c::ClosedSubvarietyOfToricVariety)
 
 When constructing a closed subvariety, an ideal in the
@@ -51,7 +51,7 @@ true
 @attr MPolyIdeal defining_ideal(c::ClosedSubvarietyOfToricVariety) = c.defining_ideal
 
 
-@doc Markdown.doc"""
+@doc raw"""
     radical(c::ClosedSubvarietyOfToricVariety)
 
 When constructing a closed subvariety, an ideal in the

@@ -6,44 +6,13 @@ but there are some exceptions due to our specific needs and a different backgrou
 The content of this page are merely *guidelines*. There may be good reasons to
 deviate from them in some cases; in that case just do so.
 
-## Naming conventions
+## General styleguide
 
-The usual [Julia naming conventions](https://docs.julialang.org/en/v1/manual/style-guide/#Use-naming-conventions-consistent-with-Julia-base/)
-apply to OSCAR, too (that said, for various reasons our code still violates
-quite some of them; but in general we strive to reduce these).
-Here is a summary of the naming convention followed in OSCAR:
-
-- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal
-  functions do not have to follow these rules.) Types (and their constructor)
-  tend to be in `CamelCase`. However, please *also* provide the constructor (or a
-  constructor) in `snake_case`. As a user one usually does not know if something
-  is a constructor or a function.
-- Noteworthy difference to Julia base is that we do not have exceptions for
-  `is*` or `has*` as prefix.
-  It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
-  The main reason is to avoid awkward constructions like `isvery_ample`, while
-  also being consistent.
-  For compatibility with standard Julia, while staying consistent internally,
-  we also provide aliases (using `AbstractAlgebra.@alias`) for various standard
-  Julia functions, e.g. `is_one` as alias for `isone`
-- For generic concepts choose generic names, based on general algebraic
-  concepts, preferably not special names from your area of speciality.
 - Use Julia conventions where applicable and when they don't contradict our
   own rules above.
-- **Avoid direct access to members of our objects.** This means, do not use
-  something like `A.foo`, instead use a suitable getter `get_foo(A)`, and if
-  there is none, please write one or request that one be written. Internal
-  member names are free to change at any time, but functions can be deprecated
-  properly.
-- In Julia we have multiple dispatch, so we do not need functions like
-  `point_from_matrix` as the "from" part is clear by the type of the argument.
-  It should be called `points(T::Matrix)` in some variation.
-  Similarly for `matrix_to_points`. Of course it is fine to use them
-  internally, where useful.
-- Follow the mathematics. If your function needs a list of points, you should
-  create a point-type (or use the one already there) and then use this.
-  For user-facing functions, please do not use re-purposed lists, arrays,
-  matrices...
+- Unless really really necessary, don't add new dependencies. Every new
+  dependency complicates the development workflow, in that we will need to stay
+  compatible with this package. 
 - If already existing types in OSCAR are almost what you need, consider
   improving them instead of writing your own. While it might be tempting to
   create a new polynomial ring type for the new application because some
@@ -60,6 +29,46 @@ Here is a summary of the naming convention followed in OSCAR:
   different, even if the result describes the same mathematical object, it
   should be indicated in the function name, for example `automorphism_group` vs
   `automorphism_group_generators` vs `automorphism_list`.
+- Follow the mathematics. If your function needs a list of points, you should
+  create a point-type (or use the one already there) and then use this.
+  For user-facing functions, please do not use re-purposed lists, arrays,
+  matrices...
+
+
+## Naming conventions
+
+The usual [Julia naming conventions](https://docs.julialang.org/en/v1/manual/style-guide/#Use-naming-conventions-consistent-with-Julia-base/)
+apply to OSCAR, too (that said, for various reasons our code still violates
+quite some of them; but in general we strive to reduce these).
+Here is a summary of the naming convention followed in OSCAR:
+
+- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal
+  functions do not have to follow these rules.) Types (and their constructor)
+  tend to be in `CamelCase`. However, please *also* provide the constructor (or a
+  constructor) in `snake_case`. As a user one usually does not know if something
+  is a constructor or a function.
+- For filenames we recommend using `snake_case.jl`.
+- Noteworthy difference to Julia base is that we do not have exceptions for
+  `is*` or `has*` as prefix.
+  It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
+  The main reason is to avoid awkward constructions like `isvery_ample`, while
+  also being consistent.
+  For compatibility with standard Julia, while staying consistent internally,
+  we also provide aliases (using `AbstractAlgebra.@alias`) for various standard
+  Julia functions, e.g. `is_one` as alias for `isone`
+- For generic concepts choose generic names, based on general algebraic
+  concepts, preferably not special names from your area of speciality.
+- **Avoid direct access to members of our objects.** This means, do not use
+  something like `A.foo`, instead use a suitable getter `get_foo(A)`, and if
+  there is none, please write one or request that one be written. Internal
+  member names are free to change at any time, but functions can be deprecated
+  properly.
+- In Julia we have multiple dispatch, so we do not need functions like
+  `point_from_matrix` as the "from" part is clear by the type of the argument.
+  It should be called `points(T::Matrix)` in some variation.
+  Similarly for `matrix_to_points`. Of course it is fine to use them
+  internally, where useful.
+
 
 ## Code formatting
 
@@ -78,30 +87,6 @@ to a minimum. Here is a general principle:
 > Do not use Unicode characters inside functions. See below for the exception
 > concerning printing.
 
-Per default output should be ANSI only (no Unicode). Implementors of
-`Base.show` and related functions can branch on the output of
-`Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
-This will then be used for users which enabled Unicode using
-`allow_unicode(true)`. Note that
-
-- there must be a default ANSI only output, since this is the default setting
-  for new users, and
-- OSCAR library code is not allowed to call `Oscar.allow_unicode`.
-
-Here is an example with and without output using Unicode:
-
-```julia
-  struct AtoB
-  end
-
-  function Base.show(io::IO, ::AtoB)
-    if Oscar.is_unicode_allowed()
-      print(io, "A→B")
-    else
-      print(io, "A->B")
-    end
-  end
-```
 
 ### Whitespace
 
@@ -202,6 +187,78 @@ end
 However, as always, rules sometimes should be broken.
 
 
+## Documentation
+
+ - In general we try to follow the list of recommendations in the
+   [Documentation section of the Julia manual](https://docs.julialang.org/en/v1/manual/documentation/).
+
+ - Via the MathJax integration it is possible to use LaTeX code, and this is the
+   preferred way to denote the mathematical symbols in the docstrings.
+
+
+## Printing in Oscar
+
+### The 2 + 1 print modes of Oscar
+Oscar has two user print modes `detailed` and `one line` and one internal
+print mode `:supercompact`. The latter is for use during recursion,
+e.g. to print the `base_ring(X)` when in `one line` mode.
+It exists to make sure that `one line` stays compact and human readable.
+
+Top-level REPL printing of an object will use `detailed` mode by default
+```julia
+julia> X
+detailed
+```
+Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
+```julia
+julia> [X,X]
+3-element Vector{TypeofX{T}}
+one line
+one line
+one line
+```
+
+##### An Example for the 2 + 1 print modes
+```
+# detailed
+General linear group of degree 24
+  over Finite field of degree 7 over GF(29)
+
+# one line
+General linear group of degree 24 over GF(29^7)
+
+# supercompact
+General linear group
+```
+
+The print modes are specified as follows
+#### Detailed printing
+- the output must make sense as a standalone without context to non-specialists
+- the number of output lines should fit in the terminal
+- if the object is simple enough use only one line
+- use indentation and (usually) `one line` to print substructures
+#### One line printing
+- the output must print in one line
+- should make sense as a standalone without context
+- variable names/generators/relations should not be printed only their number.
+- Only the first word is capitalized e.g. `Polynomial ring`
+- one should use `:supercompact` for nested printing in compact
+- nested calls to `one line` (if you think them really necessary) should be at the end,
+  so that one can read sequentially. Calls to `:supercompact` can be anywhere.
+- commas must be enclosed in brackets so that printing tuples stays unambiguous
+#### Super compact printing
+- a user readable version of the main (mathematical) type.
+- a single term or a symbol/letter mimicking mathematical notation
+- should usually only depend on the type and not of the type parameters or of
+  the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
+- no nested printing. In particular variable names and `base_ring` must not be displayed.
+  This ensures that `one line` and `:supercompact` stay compact even for complicated things.
+  If you want nested printing use `one line` or `detailed`.
+
+For further information and examples we refer you to our section [Details on
+printing in Oscar](@ref).
+
+
 ## Deprecating functions
 
 Sometimes it is necessary to rename a function or otherwise change it. To allow
@@ -234,10 +291,30 @@ existing block.
     make sure, you can start Julia with `--depwarn=yes` or even
     `--depwarn=error` and then run the tests.
 
-## Documentation
+## Approved abbreviations
 
- - In general we try to follow the list of recommendations in the
-   [Documentation section of the Julia manual](https://docs.julialang.org/en/v1/manual/documentation/).
-
- - Via the MathJax integration it is possible to use LaTeX code, and this is the
-   preferred way to denote the mathematical symbols in the docstrings.
+- Types for rings/groups/ideals/modules/... end with `Ring`/`Group`/`Ideal`/`Module`/...
+- Types for elements should have the same name as the type of the parent with
+  `Elem` added;
+   - Exception: `MatrixSpace` elements end with `Matrix`.
+- We abbreviate certain parts of type names, according to a fixed set of
+  substitutions; further abbreviations should be carefully decided upon.
+- Every abbreviation must be unique; e.g. `Abs` stands for `Absolute`, and so
+  must not be used for e.g. `Abstract`.
+- **List of approved abbreviations**
+    - absolute -> `Abs`
+        - abstract -> `Abstract`
+    - decorated -> `Dec`
+    - group -> `Group`
+    - ideal -> `Ideal`
+    - localized -> `Loc`
+    - matrix -> `Matrix`
+    - module -> `Module`
+    - multivariate polynomial -> `MPoly`
+    - polynomial -> `Poly`
+    - quotient -> `Quo`
+    - relative -> `Rel`
+    - ring ->`Ring`
+    - subquotient -> `Subquo`
+- If a type comes in sparse and dense variants, then call the dense type `T`
+  and the sparse one `SparseT`.

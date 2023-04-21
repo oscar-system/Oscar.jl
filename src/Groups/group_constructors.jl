@@ -138,7 +138,7 @@ function abelian_group(v::Vector{Int})
 end
 =#
 
-@doc Markdown.doc"""
+@doc raw"""
     abelian_group(::Type{T}, v::Vector{Int}) where T <: Group -> PcGroup
 
 Return the direct product of cyclic groups of the orders
@@ -165,7 +165,7 @@ function abelian_group(::Type{PcGroup}, v::Vector{T}) where T <: IntegerUnion
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_abelian(G::Group)
 
 Return `true` if `G` is abelian (commutative),
@@ -173,7 +173,7 @@ that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 """
 @gapattribute is_abelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_elementary_abelian(G::Group)
 
 Return `true` if `G` is a abelian (see [`is_abelian`](@ref))
@@ -319,7 +319,7 @@ function dihedral_group(::Type{PcGroup}, n::Union{IntegerUnion,PosInf})
   throw(ArgumentError("n must be a positive even integer or infinity"))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_dihedral_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic to a dihedral group,
@@ -379,7 +379,7 @@ function quaternion_group(::Type{PcGroup}, n::IntegerUnion)
   return PcGroup(GAP.Globals.QuaternionGroup(GAP.Globals.IsPcGroup, n)::GapObj)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_quaternion_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic to a (generalized) quaternion group

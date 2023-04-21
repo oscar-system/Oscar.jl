@@ -43,7 +43,7 @@ import Base: issubset
 # residue classes rather than residue classes of fractions. 
 #
 
-@doc Markdown.doc"""
+@doc raw"""
     MPolyQuoLocRing{
         BaseRingType,
         BaseRingElemType,
@@ -147,7 +147,7 @@ base_ring(L::MPolyQuoLocRing) = L.R
 inverted_set(L::MPolyQuoLocRing) = L.S
 
 ### additional getter functions
-@doc Markdown.doc"""
+@doc raw"""
     modulus(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
@@ -163,7 +163,7 @@ end
 modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_quotient(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
@@ -182,7 +182,7 @@ end
    return quo(P,ideal(P,[zero(P)]))[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     localized_ring(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
@@ -201,7 +201,7 @@ end
    return localization(L, units_of(L))[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     gens(L::MPolyQuoLocRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
@@ -249,7 +249,7 @@ function quo(
   return P, hom(L, P, gens(P))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     localization(RQ::MPolyQuoRing, U::AbsMPolyMultSet)
 
 Given a quotient `RQ` of a multivariate polynomial ring `R` with projection map
@@ -350,7 +350,7 @@ end
 # Elements of localizations of polynomial algebras                     #
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     MPolyQuoLocRingElem{
       BaseRingType, 
       BaseRingElemType,
@@ -426,7 +426,7 @@ localized_ring(a::MPolyQuoLocRingElem) = localized_ring(parent(a))
 base_ring(a::MPolyQuoLocRingElem) = base_ring(parent(a))
 is_reduced(a::MPolyQuoLocRingElem) = a.is_reduced
 
-@doc Markdown.doc"""
+@doc raw"""
     lifted_numerator(a::MPolyQuoLocRingElem)
 
 For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -434,7 +434,7 @@ For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative
 """
 lifted_numerator(a::MPolyQuoLocRingElem) = a.numerator
 
-@doc Markdown.doc"""
+@doc raw"""
     lifted_denominator(a::MPolyQuoLocRingElem)
 
 For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -442,7 +442,7 @@ For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative
 """
 lifted_denominator(a::MPolyQuoLocRingElem) = a.denominator
 
-@doc Markdown.doc"""
+@doc raw"""
     fraction(a::MPolyQuoLocRingElem)
 
 For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -510,7 +510,7 @@ function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoRingElem{RET};
 end
 
 ### additional functionality
-@doc Markdown.doc"""
+@doc raw"""
     lift(f::MPolyQuoLocRingElem)
 
 For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
@@ -519,7 +519,7 @@ For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representati
 lift(f::MPolyQuoLocRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_unit(f::MPolyQuoLocRingElem) 
 
 Return `true`, if `f` is a unit of `parent(f)`, `true` otherwise.
@@ -810,7 +810,7 @@ parent_type(T::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocRingElem}
 
 Given a vector of fractions ``[a₁//b₁,…,aₙ//bₙ]`` return a pair 
@@ -836,7 +836,7 @@ function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocRingElem
   return d, a
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocRingElem} 
 
 Write ``f = ∑ᵢ λᵢ⋅gᵢ`` for some ``λᵢ`` and return the vector ``[λ₁,…,λₙ]``.
@@ -907,7 +907,7 @@ write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear
 # The latter point c) will be useful for reducing to a homomorphism 
 # of finitely generated algebras.
 
-@doc Markdown.doc"""
+@doc raw"""
     MPolyQuoLocalizedRingHom{
       BaseRingType, 
       BaseRingElemType, 
@@ -982,7 +982,7 @@ morphism_type(R::MPolyRing, S::Ring) = morphism_type(typeof(R), typeof(S))
 domain(f::MPolyQuoLocalizedRingHom) = f.domain
 codomain(f::MPolyQuoLocalizedRingHom) = f.codomain
 
-@doc Markdown.doc"""
+@doc raw"""
     restricted_map(f::MPolyQuoLocalizedRingHom)
 
 For a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[U⁻¹] → S``this returns 
@@ -1336,7 +1336,7 @@ function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:M
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
 
 Use `elimpart` from the `Singular` library `Presolve.lib` to simplify the presentation 
@@ -1450,7 +1450,7 @@ function simplify(R::MPolyRing)
   return Rnew, f, finv
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     MPolyQuoLocalizedIdeal{
         LocRingType<:MPolyQuoLocRing, 
         LocRingElemType<:MPolyQuoLocRingElem
@@ -1610,7 +1610,7 @@ function quo(A::MPolyQuoRing, I::MPolyQuoIdeal)
   base_ring(I) == A || error("ideal does not belong to the correct ring")
   R = base_ring(A)
   Q, _ = quo(R, modulus(A) + ideal(R, lift.(gens(I))))
-  return Q, hom(A, Q, Q.(gens(R)))
+  return Q, hom(A, Q, Q.(gens(R)), check=false)
 end
 
 function divides(a::MPolyQuoLocRingElem, b::MPolyQuoLocRingElem)
@@ -1660,7 +1660,7 @@ end
   return is_prime(modulus(W))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_integral_domain(R::Ring)
 
 Return whether or not `R` is an integral domain.
@@ -1682,3 +1682,103 @@ end
   return dim(pre_image_ideal(I))
 end
 
+#############################################################################
+## compatibility functions to allow user to not care about which type of
+## MPolyAnyIdeal they are handling
+############################################################################# 
+
+@doc raw"""
+    saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+
+Return ``I:J^\infty``.
+"""
+function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}}
+  A = base_ring(I)
+  A === base_ring(J) || error("ideals must lie in the same ring")
+  R = base_ring(A)
+
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+  K = saturation(I_sat, J_sat)
+  return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
+end
+
+@doc raw"""
+    saturation_with_index(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+
+Return ``I:J^{\infty}`` together with the smallest integer ``m`` such that ``I:J^m = I:J^{\infty}``.
+"""
+function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do not live in the same ring.")
+
+  I_sat = saturated_ideal(I)
+  J_sat = saturated_ideal(J)
+
+  I_result,k = saturation_with_index(I_sat,J_sat)
+  return (ideal(R,gens(I_result)),k)
+end
+
+@doc raw"""
+    iterated_quotients(I::T, J::T) where T <: MPolyAnyIdeal
+    iterated_quotients(I::T, J::T, b::Int) where T <: MPolyAnyIdeal
+
+Return ``I:J^m`` and maximal ``m`` such that ``J(I:J^m)== (I:J^(m-1))``, if no ``b`` has been specified
+Return ``I:J^b`` and ``b``, for the given natural number ``b``.
+
+Internal function for weak and controlled transform.
+"""
+function iterated_quotients(I::T, J::T, b::Int=0) where T <: MPolyAnyIdeal
+  R = base_ring(I)
+  R == base_ring(J) || error("Ideals do not live in the same ring.")
+  b > -1 || error("negative multiplicity not allowed")
+
+  Itemp = I
+  k = 0
+
+  ## iterate ideal quotients b times -- 
+  ## or by default (i.e. for b=0) a maximal number of times
+  while (b == 0 || k < b)
+    Itemp2 = quotient(Itemp, J)
+    if !issubset(Itemp, Itemp2 * J)
+       b == 0 || error("cannot extract J from I with multiplicity b")
+       break
+    end
+    Itemp = Itemp2
+    k = k+1
+  end
+
+  return Itemp,k
+end
+
+@attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
+  return is_one(saturated_ideal(I))
+end
+
+### Hack for a detour to speed up mapping of elements 
+# This is terribly slow in all kinds of quotient rings 
+# because of massive checks for `iszero` due to memory 
+# management.
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:Nothing})(a::MPolyRingElem)
+  if !has_attribute(f, :lifted_map)
+    S = domain(f)
+    W = codomain(f)
+    L = localized_ring(W)
+    g = hom(S, L, lift.(f.img_gens))
+    set_attribute!(f, :lifted_map, g)
+  end
+  g = get_attribute(f, :lifted_map)
+  return codomain(f)(g(a), check=false)
+end
+
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocalizedRingHom})(a::MPolyRingElem)
+  if !has_attribute(f, :lifted_map)
+    S = domain(f)
+    W = codomain(f)
+    L = localized_ring(W)
+    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens))
+    set_attribute!(f, :lifted_map, g)
+  end
+  g = get_attribute(f, :lifted_map)
+  return codomain(f)(g(a), check=false)
+end

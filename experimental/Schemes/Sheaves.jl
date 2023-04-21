@@ -8,7 +8,7 @@ export underlying_presheaf
 ########################################################################
 # The AbsPreSheaf interface                                               #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     space(F::AbsPreSheaf) 
 
 For a sheaf ``ℱ`` on a space ``X`` return ``X``.
@@ -17,7 +17,7 @@ function space(F::AbsPreSheaf)
   return space(underlying_presheaf(F))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (F::AbsPreSheaf)(U; cached=true) 
 
 For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set 
@@ -27,7 +27,7 @@ function (F::AbsPreSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) 
   return (underlying_presheaf(F))(U, cached=cached)::OutputType
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     restriction_map(F::AbsPreSheaf, U, V)
 
 For a sheaf ``ℱ`` on a space ``X`` and an (admissible) pair of 
@@ -47,7 +47,7 @@ function (F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType})(
   return restriction_map(F, U, V)::RestrictionType
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_open_func(F::AbsPreSheaf)
 
 For a sheaf ``ℱ`` on a space ``X`` return a function `f` on two 
@@ -90,7 +90,7 @@ function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=t
 end
 
 ### Production and caching of the restriction maps
-@doc Markdown.doc"""
+@doc raw"""
     restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
         U::Type1, V::Type2
       ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
@@ -121,7 +121,7 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   return rho::RestrictionType
 end
 
-@doc Markdown.doc"""
+@doc raw"""
   add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
     U::OpenType,
     rho::RestrictionType
@@ -150,7 +150,7 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   return F
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     incoming_restrictions(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType, M::OutputType) 
 
 Supposing `M` is the value `M = F(U)` of some `AbsPreSheaf` `F` on an admissible open 
@@ -450,7 +450,7 @@ abstract type AbsPreSheafSection{SpaceType,
 ### The interface for sections in presheaves
 
 # Calling for a representative of the section on some open subset
-@doc Markdown.doc"""
+@doc raw"""
     (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
 
 For a section ``v`` in a presheaf ``ℱ`` on ``X`` and an admissible 

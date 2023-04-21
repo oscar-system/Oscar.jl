@@ -558,7 +558,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     mutable struct MPolyIdeal{S} <: Ideal{S}
 
 Ideal in a multivariate polynomial ring R with elements of type `S`.
@@ -589,6 +589,17 @@ Fields:
   end
 
   function MPolyIdeal(B::IdealGens{T}) where T
+    if length(B) >= 1
+      oscar_assure(B)
+      R = B.gens.Ox
+      if R isa MPolyDecRing
+         if is_graded(R)
+           if !(all(is_homogeneous, B.gens.O))
+              throw(ArgumentError("The generators of the ideal must be homogeneous."))
+           end 
+         end
+      end
+    end
     r = new{T}()
     r.gens = B
     r.dim = -1
@@ -650,7 +661,7 @@ function singular_assure(I::IdealGens, ordering::MonomialOrdering)
   else
       #= singular ideal exists, but the singular ring has the wrong ordering
        = attached, thus we have to create a new singular ring and map the ideal. =#
-      if !isdefined(I, :ord) || I.ord != ordering.o
+      if !isdefined(I, :ord) || I.ord != ordering
           I.ord = ordering
           SR    = singular_poly_ring(I.Ox, ordering)
           f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
@@ -658,7 +669,7 @@ function singular_assure(I::IdealGens, ordering::MonomialOrdering)
           I.gens.Sx  = SR
       end
   end
-end 
+end
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens.gens, :O)
@@ -668,7 +679,12 @@ end
 
 function oscar_assure(B::BiPolyArray)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
-    B.O = [B.Ox(x) for x = gens(B.S)]
+    if typeof(B.Ox) <: MPolyQuoRing
+      R = oscar_origin_ring(B.Ox)
+    else
+      R = B.Ox
+    end
+    B.O = [R(x) for x = gens(B.S)]
   end
 end
 
@@ -719,7 +735,7 @@ function (F::Generic.FreeModule)(s::Singular.svector)
   return e
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     jacobi_matrix(f::MPolyRingElem)
 
 Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
@@ -730,7 +746,7 @@ function jacobi_matrix(f::MPolyRingElem)
   return matrix(R, n, 1, [derivative(f, i) for i=1:n])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     jacobi_ideal(f::MPolyRingElem)
 
 Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
@@ -741,16 +757,21 @@ function jacobi_ideal(f::MPolyRingElem)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
-@doc Markdown.doc"""
-    jacobi_matrix(g::Vector{<:MPolyRingElem})
+@doc raw"""
+    jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
-Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
+Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
 this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Vector{<:MPolyRingElem})
+  @req length(g) > 0 "specify the common parent as first argument"
   R = parent(g[1])
+  return jacobi_matrix(R, g)
+end
+
+function jacobi_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
   n = nvars(R)
-  @assert all(x->parent(x) == R, g)
+  @req all(x->parent(x) === R, g) "polynomials must be elements of R"
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
@@ -834,7 +855,7 @@ function _lift(S::Singular.sideal, T::Singular.sideal)
 end
 
 #TODO: return a matrix??
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(a::Vector{<:MPolyRingElem}, b::Vector{<:MPolyRingElem})
 
 Tries to write the entries of `b` as linear combinations of `a`.
@@ -891,7 +912,7 @@ function expressify(a::OscarPair{<:MPolyRingElem, <:MonomialOrdering}; context =
 end
 @enable_all_show_via_expressify OscarPair{<:MPolyRingElem, <:MonomialOrdering}
 
-@doc Markdown.doc"""
+@doc raw"""
     GeneralPermutedIterator{S, T, P}
 
 Iterator for the `S` of `elem` in the order `perm`.
@@ -918,7 +939,7 @@ end
 @enable_all_show_via_expressify GeneralPermutedIterator
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the coefficients of `f` with respect to the order `ordering`.
@@ -937,7 +958,7 @@ function Base.eltype(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem{C
   return C
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients_and_exponents(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator whose elements are tuples of coefficients of `f` and exponent
@@ -974,7 +995,7 @@ function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:M
   return Tuple{C, Vector{Int}}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     exponents(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the exponent vectors (as `Vector{Int}`) of `f` with
@@ -994,7 +1015,7 @@ function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem})
   return Vector{Int}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     monomials(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the monomials of `f` with respect to the order `ordering`.
@@ -1013,7 +1034,7 @@ function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: MPoly
   return T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     terms(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the terms of `f` with respect to the order `ordering`.
@@ -1032,7 +1053,7 @@ function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: MPolyRing
   return T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_coefficient(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading coefficient of `f` with respect to the order `ordering`.
@@ -1041,7 +1062,7 @@ function leading_coefficient(f::MPolyRingElem; ordering::MonomialOrdering = defa
   return coeff(f, index_of_leading_term(f, ordering))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading exponent vector (as `Vector{Int}`) of `f` with
@@ -1051,7 +1072,7 @@ function leading_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default
   return AbstractAlgebra.exponent_vector(f, index_of_leading_term(f, ordering))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_coefficient_and_exponent(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading coefficient of `f` with respect to the order `ordering`.
@@ -1061,7 +1082,7 @@ function leading_coefficient_and_exponent(f::MPolyRingElem; ordering::MonomialOr
   return (coeff(f, i), AbstractAlgebra.exponent_vector(f, i))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_monomial(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading monomial of `f` with respect to the order `ordering`.
@@ -1070,7 +1091,7 @@ function leading_monomial(f::MPolyRingElem; ordering::MonomialOrdering = default
   return monomial(f, index_of_leading_term(f, ordering))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_term(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading term of `f` with respect to the order `ordering`.
@@ -1090,7 +1111,7 @@ function _delete_index(f::MPolyRingElem, i::Int)
   return finish(z)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     tail(f::MPolyRingElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the tail of `f` with respect to the order `ordering`.
@@ -1122,7 +1143,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyRingElem{S} where S <: RingElem
 Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
 for each polynomial in b, and a polynomial ri such that
@@ -1147,3 +1168,20 @@ end
 function _is_integral_domain(R::MPolyRing) 
   return true
 end
+
+@doc raw"""
+    total_degree(f::MPolyRingElem, w::Vector{Int})
+
+Given a multivariate polynomial `f` and a weight vector `w` 
+return the total degree of `f` with respect to the weights `w`.
+"""
+function weighted_degree(f::MPolyRingElem, w::Vector{Int})
+  x = gens(parent(f))
+  n = length(x)
+  n == length(w) || error("weight vector does not have the correct length")
+  vals = [sum([degree(m, j)*w[j] for j in 1:n]) for m in monomials(f)]
+  return maximum(vals)
+end
+
+# assure compatibility with generic code for MPolyQuos:
+lift(f::MPolyRingElem) = f

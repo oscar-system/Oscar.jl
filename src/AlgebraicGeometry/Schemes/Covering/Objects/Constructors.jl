@@ -4,7 +4,7 @@
 ### The default constructor
 # Returns a scheme in which every affine patch is only 
 # glued to itself via the identity.
-@doc Markdown.doc"""
+@doc raw"""
     Covering(patches::Vector{<:AbsSpec})
 
 Return a `Covering` with pairwise disjoint affine charts ``Uᵢ`` given by 
@@ -41,7 +41,7 @@ Covering(X::AbsSpec) = Covering([X])
 ### The empty covering of the empty scheme over kk
 empty_covering(kk::Ring) = Covering(kk)
 
-@doc Markdown.doc"""
+@doc raw"""
     disjoint_union(C1::Covering, C2::Covering)
 
 Return the `Covering` corresponding to the disjoint union of `C1` and `C2`. 

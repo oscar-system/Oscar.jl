@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["ToricDivisorClasses.md"]
-```
-
 
 # Toric Divisor Classes
 

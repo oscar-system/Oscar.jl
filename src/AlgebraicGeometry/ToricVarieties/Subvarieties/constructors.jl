@@ -21,7 +21,7 @@ end
 # 2: Generic constructor
 ##############################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
 
 Construct the closed subvariety of a simplicial normal toric variety.
@@ -45,7 +45,7 @@ Closed subvariety of a normal toric variety
 closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal)
 
 Construct the closed subvariety of a simplicial normal toric variety.

@@ -13,7 +13,7 @@ end
 # 2: Generic constructors
 ####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
@@ -43,7 +43,7 @@ function rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRi
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
@@ -53,13 +53,13 @@ Construct the rational equivalence class of algebraic cycles corresponding to a 
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> rational_equivalence_class(P2, [1, 2, 3, 4, 5, 6])
+julia> rational_equivalence_class(P2, [6, 5, 4, 3, 2, 1])
 Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
 ```
 """
 function rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
     @req (is_simplicial(v) && is_complete(v)) "Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"
-    @req length(coefficients) == length(cones(v)) "The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"
+    @req length(coefficients) == n_cones(v) "The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"
     mons = gens_of_rational_equivalence_classes(v)
     return RationalEquivalenceClass(v, sum(coefficients[i]*mons[i] for i in 1:length(coefficients)))
 end
@@ -69,7 +69,7 @@ end
 # 3: Special constructors
 ####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(d::ToricDivisor)
 
 Construct the rational equivalence class of algebraic cycles corresponding to the toric divisor `d`.
@@ -97,7 +97,7 @@ function rational_equivalence_class(d::ToricDivisor)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(c::ToricDivisorClass)
 
 Construct the algebraic cycle corresponding to the toric divisor class `c`.
@@ -117,7 +117,7 @@ Rational equivalence class on a normal toric variety represented by 2V(x3)
 rational_equivalence_class(c::ToricDivisorClass) = rational_equivalence_class(toric_divisor(c))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     RationalEquivalenceClass(l::ToricLineBundle)
 
 Construct the toric algebraic cycle corresponding to the toric line bundle `l`.
@@ -137,7 +137,7 @@ julia> polynomial(rational_equivalence_class(l))
 rational_equivalence_class(l::ToricLineBundle) = rational_equivalence_class(toric_divisor(l))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(cc::CohomologyClass)
 
 Construct the toric algebraic cycle corresponding to the cohomology class `cc`.
@@ -163,7 +163,7 @@ Rational equivalence class on a normal toric variety represented by 2V(x3)
 rational_equivalence_class(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(chow_ring(toric_variety(cc)), cc))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
 
 Construct the rational equivalence class of algebraic
@@ -296,7 +296,7 @@ function Base.show(io::IO, ac::RationalEquivalenceClass)
       # otherwise, extract properties to represent the rational equivalence class
       r = representative(ac)
       coeffs = [c for c in AbstractAlgebra.coefficients(r)]
-      expos = [matrix(ZZ, [k for k in exponent_vectors(m)]) for m in AbstractAlgebra.monomials(r)]
+      expos = [matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(m)]) for m in AbstractAlgebra.monomials(r)]
       indets = gens(chow_ring(toric_variety(ac)))
 
       # form string to be printed

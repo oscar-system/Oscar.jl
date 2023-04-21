@@ -228,7 +228,7 @@ end
 
 function removeSomeRedundancies(A::Vector{Any})
 	#input:Array of ideals
-	#output:Array of ideals consisting of some ideals less which give the same interseciton as
+	#output:Array of ideals consisting of some ideals less which give the same intersections as
 	#all ideals before
 
 	Result=A

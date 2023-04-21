@@ -1,11 +1,11 @@
-@doc Markdown.doc"""
+@doc raw"""
     AbsAffineAlgebraicSet <: AbsSpec
 
 An affine, geometrically reduced subscheme of an affine space over a field.
 """
 abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsProjectiveAlgebraicSet <: AbsProjectiveScheme
 
 A projective, geometrically reduced scheme of finite type over a field.
@@ -18,23 +18,21 @@ abstract type AbsProjectiveAlgebraicSet{BaseField<:Field, RingType} <:AbsProject
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsAffineVariety <: AbsAffineAlgebraicSet
 
 An affine, geometrically integral subscheme of an affine space over a field.
 """
 abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicSet{BaseField, RingType} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsProjectiveVariety <: AbsProjectiveAlgebraicSet
 
-A projective variety over a field.
-
-That is a geometrically integral subscheme of a projective space over a field.
+A geometrically integral subscheme of a projective space over a field.
 """
 abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseField, GradedRingType} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsCoveredVariety <: Scheme
 
 A separated, geometrically integral scheme of finite type over a field.
@@ -47,7 +45,7 @@ abstract type AbsCoveredVariety{BaseField<:Field} <: AbsCoveredScheme{BaseField}
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsAffineCurve <: AbsAffineVariety
 
 A curve in affine space.
@@ -56,14 +54,14 @@ An affine curve is an affine variety of dimension one.
 """
 abstract type AbsAffineCurve{BaseField<:Field, RingType<:Ring} <: AbsAffineVariety{BaseField, RingType} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsProjectiveCurve <: AbsProjectiveVariety
 
 A projective curve embedded in an ambient projective space.
 """
 abstract type AbsProjectiveCurve{BaseField<:Field, RingType<:Ring} <: AbsProjectiveVariety{BaseField, RingType} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsCoveredCurve
 
 A curve represented in terms of a covering.
