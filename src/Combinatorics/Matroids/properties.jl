@@ -830,7 +830,7 @@ end
     girth(M::Matroid, set::GroundsetType)
 
 Return the girth of `set` in the matroid `M`.
-This is the size of the smallest circuit contained in `set` and infintie otherwise.
+This is the size of the smallest circuit contained in `set` and infinite otherwise.
 See Section 8.6 in [Oxl11](@cite).
 
 # Examples

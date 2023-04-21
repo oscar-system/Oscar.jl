@@ -2,5 +2,6 @@
 /docs/src/AbstractAlgebra/
 /docs/src/Hecke/
 /docs/src/Nemo/
+/docs/src/experimental/
 Manifest.toml
 .DS_Store

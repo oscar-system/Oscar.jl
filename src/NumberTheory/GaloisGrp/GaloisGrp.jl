@@ -1030,7 +1030,7 @@ function invariant(G::PermGroup, H::PermGroup)
       end
       I = elementary_symmetric(d, m)
       if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G) #TODO: this can decided theroetically
+         any(p->!isprobably_invariant(I, p), G) #TODO: this can decided theoretically
         @vprint :GaloisInvariant 3 "using sm-invar for $BB\n"
         return I
       end

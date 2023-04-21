@@ -192,6 +192,4 @@ Return a pair `(m,v)` where the optimal value `m` of the objective
  is not attained, `m` may be `inf` or `-inf` in which case `v` is
  `nothing`.
 """
-function solve_lp(lp::LinearProgram)
-   return optimal_value(lp),optimal_vertex(lp)
-end
+solve_lp(lp::LinearProgram) = optimal_value(lp),optimal_vertex(lp)

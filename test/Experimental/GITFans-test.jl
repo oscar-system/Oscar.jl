@@ -4,20 +4,21 @@
     using Oscar.GITFans
 
     Q = [
-     1  1   0   0   0 ;
-     1  0   1   1   0 ;
-     1  0   1   0   1 ;
-     1  0   0   1   1 ;
-     0  1   0   0  -1 ;
-     0  1   0  -1   0 ;
-     0  1  -1   0   0 ;
-     0  0   1   0   0 ;
-     0  0   0   1   0 ;
-     0  0   0   0   1 ];
+     1  1   0   0   0
+     1  0   1   1   0
+     1  0   1   0   1
+     1  0   0   1   1
+     0  1   0   0  -1
+     0  1   0  -1   0
+     0  1  -1   0   0
+     0  0   1   0   0
+     0  0   0   1   0
+     0  0   0   0   1
+     ]
 
-    n = size(Q, 1)
-    Qt, T = Oscar.polynomial_ring(Oscar.QQ, :T => 1:n)
-    D = free_abelian_group(size(Q,2))
+    n = nrows(Q)
+    Qt, T = polynomial_ring(QQ, :T => 1:n)
+    D = free_abelian_group(ncols(Q))
     w = [D(Q[i, :]) for i = 1:n]
     R = grade(Qt, w)
     a = ideal([
@@ -29,11 +30,11 @@
     ])
 
     perms_list = [ [1,3,2,4,6,5,7,8,10,9], [5,7,1,6,9,2,8,4,10,3] ];
-    sym10 = symmetric_group(n);
-    G, emb = sub([sym10(x) for x in perms_list]...);
+    sym = symmetric_group(n);
+    G, emb = sub([sym(x) for x in perms_list]...);
 
     fanobj = GITFans.git_fan(a, Q, G)
-    @test fanobj.F_VECTOR == [20, 110, 240, 225, 76]
+    @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
     collector_cones = GITFans.orbit_cones(a, Q, G)
     matrix_action = GITFans.action_on_target(Q, G)
@@ -41,7 +42,7 @@
     @test map(length, orbit_list) == [10, 15, 10, 1]
 
     perm_actions = GITFans.action_on_orbit_cone_orbits(orbit_list, matrix_action)
-    q_cone = Polymake.polytope.Cone(INPUT_RAYS = Q)
+    q_cone = positive_hull(Q)
 
     (hash_list, edges) = GITFans.fan_traversal(orbit_list, q_cone, perm_actions)
     @test length(hash_list) == 6
@@ -64,13 +65,12 @@
     full_intergraph = Polymake.graph.graph_from_edges(collect(full_edges));
 
     fanobj = GITFans.hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
-    @test fanobj.F_VECTOR == [20, 110, 240, 225, 76]
+    @test f_vector(fanobj) == [20, 110, 240, 225, 76]
 
-#   # Now try the construction with trivial symmetry group.
+#   # Now try the construction with trivial symmetry group (takes longer).
 #   G2 = trivial_subgroup(G)[1]
 #   fanobj2 = GITFans.git_fan(a, Q, G2)
-#   @test fanobj2.F_VECTOR == [20, 110, 240, 225, 76]
-#T This call would fail with `Segmentation fault`.
+#   @test f_vector(fanobj2) == [20, 110, 240, 225, 76]
 
 end
 
@@ -81,9 +81,7 @@ end
     using Oscar
     using Oscar.GITFans
 
-    nr_variables = 4
-    vars_strings = map( i -> "x"*string(i), 1:nr_variables )
-    R, T = polynomial_ring(QQ,vars_strings)
+    R, T = polynomial_ring(QQ, 4)
     ideal_gens = [
         T[1]^2*T[2]*T[3]^2*T[4]^2+T[1]^2*T[2]^2*T[3],
         2*T[1]*T[2]^2*T[3]^2*T[4]+T[1]*T[3]^2*T[4]^2-T[1]^2,

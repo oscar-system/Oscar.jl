@@ -91,9 +91,9 @@
         
         for U in [QQFieldElem]
             @test T{U}(a, 0) isa T{U}
-            @test T{U}(a', 0) isa T{U}
+            @test T{U}(permutedims(a), 0) isa T{U}
 
-            @test T{U}(a, 0) == T{U}(a', 0) == T{U}(a) == T{U}(a')
+            @test T{U}(a, 0) == T{U}(permutedims(a), 0) == T{U}(a) == T{U}(permutedims(a))
 
             A = T{U}(a, 0)
             B = T{U}(b, 2)
@@ -118,9 +118,9 @@
         
         for U in [QQFieldElem]
             @test T{U}(a) isa T{U}
-            @test T{U}(a') isa T{U}
+            @test T{U}(permutedims(a)) isa T{U}
 
-            @test T{U}(a) == T{U}(a')
+            @test T{U}(a) == T{U}(permutedims(a))
 
             A = T{U}(a)
             B = T{U}(b)

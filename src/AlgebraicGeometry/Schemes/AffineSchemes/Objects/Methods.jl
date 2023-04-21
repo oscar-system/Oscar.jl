@@ -53,7 +53,13 @@ in the coordinate ring of an affine scheme.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:

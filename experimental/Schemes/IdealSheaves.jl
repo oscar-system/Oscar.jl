@@ -31,11 +31,25 @@ convert ``ℐ`` into a `CoherentSheaf` on ``Y``, first.
 """
 function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
-  S === ambient_coordinate_ring(X) || error("ideal does not live in the ambient coordinate ring of the scheme")
+  S === graded_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
+  I = IdDict{AbsSpec, Ideal}()
+  for i in 0:r
+    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenize(X, i).(g))
+  end
+  return IdealSheaf(X_covered, I, check=true)
+end
+
+function IdealSheaf(X::ProjectiveScheme, I::MPolyQuoIdeal) 
+  S = base_ring(I)
+  S === graded_coordinate_ring(X) || error("ideal does not live in the graded coordinate ring of the scheme")
+  g = gens(I)
+  X_covered = covered_scheme(X)
+  C = default_covering(X_covered)
+  r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
   for i in 0:r
     I[C[i+1]] = ideal(OO(C[i+1]), dehomogenize(X, i).(g))
@@ -44,6 +58,7 @@ function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal)
 end
 
 ideal_sheaf(X::ProjectiveScheme, I::MPolyIdeal) = IdealSheaf(X, I)
+ideal_sheaf(X::ProjectiveScheme, I::MPolyQuoIdeal) = IdealSheaf(X, I)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
@@ -52,14 +67,36 @@ function IdealSheaf(
   return IdealSheaf(X, [g])
 end
 
+function IdealSheaf(
+    X::ProjectiveScheme, 
+    g::MPolyQuoRingElem
+  )
+  return IdealSheaf(X, [g])
+end
+
 ideal_sheaf(X::ProjectiveScheme, g::MPolyDecRingElem) = IdealSheaf(X, g)
+ideal_sheaf(X::ProjectiveScheme, g::MPolyQuoRingElem) = IdealSheaf(X, g)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
     g::Vector{RingElemType}
   ) where {RingElemType<:MPolyDecRingElem}
   X_covered = covered_scheme(X)
-  r = fiber_dimension(X)
+  r = relative_ambient_dimension(X)
+  I = IdDict{AbsSpec, Ideal}()
+  U = basic_patches(default_covering(X_covered))
+  for i in 1:length(U)
+    I[U[i]] = ideal(OO(U[i]), dehomogenize(X, i-1).(g))
+  end
+  return IdealSheaf(X_covered, I, check=false)
+end
+
+function IdealSheaf(
+    X::ProjectiveScheme, 
+    g::Vector{RingElemType}
+  ) where {RingElemType<:MPolyQuoRingElem}
+  X_covered = covered_scheme(X)
+  r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
   U = basic_patches(default_covering(X_covered))
   for i in 1:length(U)
@@ -69,6 +106,7 @@ function IdealSheaf(
 end
 
 ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyDecRingElem} = IdealSheaf(X, g)
+ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyQuoRingElem} = IdealSheaf(X, g)
 
 
 # this constructs the zero ideal sheaf

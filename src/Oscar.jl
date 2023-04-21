@@ -28,6 +28,42 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
                         "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
 
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+# We don't want to interfere with existing stuff in experimental though.
+const expdir = joinpath(@__DIR__, "../experimental")
+const oldexppkgs = [
+  "ExteriorAlgebra",
+  "FTheoryTools",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "LinearQuotients",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
+]
+const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
+
+# force trigger recompile when folder changes
+include_dependency("../experimental")
+
+
 # When a specific branch is loaded via `]add Package#branch` julia will only
 # create a checkout and keep a bare git repo in a separate directory.
 # In a bare repo HEAD will not point to the correct commit so we use the git
@@ -278,7 +314,7 @@ end
 
 
 @doc Markdown.doc"""
-    build_doc(; doctest=false, strict=false)
+    build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -298,6 +334,9 @@ The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
 and if set to `true` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
 
+To prevent the opening of the browser at the end, set the optional parameter
+`open_browser` to `false`.
+
 When working on the manual the `Revise` package can significantly sped
 up running `build_doc`. First, install `Revise` in the following way:
 ```
@@ -310,7 +349,7 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
-function build_doc(; doctest=false, strict=false)
+function build_doc(; doctest=false, strict=false, open_browser=true)
   versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
   versionwarn = 
 "The Julia reference version for the doctests is 1.6, but you are using
@@ -324,7 +363,9 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
-  open_doc()
+  if open_browser
+    open_doc()
+  end
   if doctest != false && !versioncheck
     @warn versionwarn
   end
@@ -502,6 +543,7 @@ include("AlgebraicGeometry/Schemes/main.jl")
 include("AlgebraicGeometry/ToricVarieties/JToric.jl")
 include("AlgebraicGeometry/TropicalGeometry/main.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+include("AlgebraicGeometry/Surfaces/SurfacesP4.jl")
 include("AlgebraicGeometry/Miscellaneous/basics.jl")
 
 include("InvariantTheory/InvariantTheory.jl")

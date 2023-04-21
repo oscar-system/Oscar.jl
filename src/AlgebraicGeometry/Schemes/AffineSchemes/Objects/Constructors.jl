@@ -114,10 +114,26 @@ and so on. This choice can be overwritten with a third optional argument.
 # Examples
 ```jldoctest
 julia> affine_space(QQ, 5)
-Spec of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field
+Affine 5-space
+ over Rational Field
+with coordinates
+5-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
+ x4
+ x5
 
 julia> affine_space(QQ,5,variable_name="y")
-Spec of Multivariate Polynomial Ring in y1, y2, y3, y4, y5 over Rational Field
+Affine 5-space
+ over Rational Field
+with coordinates
+5-element Vector{QQMPolyRingElem}:
+ y1
+ y2
+ y3
+ y4
+ y5
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
@@ -136,14 +152,29 @@ The following example demonstrates this.
 # Examples
 ```jldoctest
 julia> affine_space(QQ,[:y1,:z2,:a])
-Spec of Multivariate Polynomial Ring in y1, z2, a over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ y1
+ z2
+ a
 ```
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = polynomial_ring(kk, var_symbols)
-  return Spec(R)
+  return affine_variety(Spec(R), check=false)
 end
 
+function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
+  return affine_variety(Spec(R), check=false)
+end
+
+function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
+  R, _ = polynomial_ring(kk, var_symbols)
+  return affine_variety(Spec(R), check=false)
+end
 
 ########################################################
 # (4) StdSpec (needed?)
@@ -261,7 +292,13 @@ the subscheme ``V(f_1, f_2, \dots)`` of ``X``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -296,7 +333,13 @@ this returns the closed subscheme defined by ``I``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -334,7 +377,13 @@ defined by the complement of the vanishing locus of ``f``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -402,7 +451,13 @@ defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -487,7 +542,13 @@ schemes that reside in the same ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -655,7 +716,13 @@ Returns the closure of ``X`` in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Affine 3-space
+ over Rational Field
+with coordinates
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field

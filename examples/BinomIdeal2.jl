@@ -230,7 +230,7 @@ end
 
 function removeSomeRedundancies(A::Vector{Any}, B::Vector{Any})
         #input:two Array of ideals, the first are primary ideals, the second the corresponding associated primes
-        #output:Arrays of ideals consisting of some ideals less which give the same interseciton as
+        #output:Arrays of ideals consisting of some ideals less which give the same intersections as
         #all ideals before
 
         Result1=A

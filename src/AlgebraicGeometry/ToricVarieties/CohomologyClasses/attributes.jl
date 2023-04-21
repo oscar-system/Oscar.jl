@@ -73,8 +73,14 @@ julia> exponents(cc)
 [0   0   0   0   1]
 ```
 """
-exponents(c::CohomologyClass) = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
+function exponents(c::CohomologyClass) 
+  simplify!(c)
+  matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
+end
 
+function simplify!(c::CohomologyClass)
+  c.p = simplify(c.p)
+end
 
 @doc Markdown.doc"""
     polynomial(c::CohomologyClass)
