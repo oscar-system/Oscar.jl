@@ -176,9 +176,9 @@ end
 @doc raw"""
     abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int})
 
-Construct a generic abstract_variety of dimension $n$ with some classes in given degrees.
+Construct a generic abstract variety of dimension $n$ with some classes in given degrees.
 
-Return the abstract_variety and the list of classes.
+Return the abstract variety and the list of classes.
 """
 function abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
   @assert length(symbols) > 0
@@ -207,11 +207,11 @@ function abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}; base::Ring=QQ) 
   return X, X.bundles
 end
 
-# generic abstract_variety with tangent bundle
+# generic abstract variety with tangent bundle
 @doc raw"""
     abstract_variety(n::Int)
 
-Construct a generic abstract_variety of dimension $n$ and define its tangent bundle.
+Construct a generic abstract variety of dimension $n$ and define its tangent bundle.
 
 Return the abstract_variety.
 """
@@ -1175,7 +1175,7 @@ end
 @doc raw"""
     schubert_classes(m::Int, G::AbstractVariety)
 Return all the Schubert classes in codimension $m$ on a (relative) Grassmannian $G$."""
-function schubert_classes(m::Int, G::AbstractVariety)
+function schubert_classes(G::AbstractVariety, m::Int)
   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
   S, Q = G.bundles
   [schubert_class(G, λ) for λ in partitions(m, rank(S), rank(Q))]
