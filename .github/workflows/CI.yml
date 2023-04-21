@@ -32,19 +32,14 @@ jobs:
           - x64
         os:
           - ubuntu-latest
-        doctest:
-          - 'no'
-          - 'only'
         include:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.8'
             julia-arch: x64
             os: macOS-latest
-            doctest: 'yes'
           - julia-version: 'nightly'
             julia-arch: x64
             os: macOS-latest
-            doctest: 'yes'
 
     steps:
       - uses: actions/checkout@v3
@@ -64,19 +59,57 @@ jobs:
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Run tests"
-        if: matrix.doctest != 'only'
         uses: julia-actions/julia-runtest@latest
         with:
           annotate: ${{ matrix.julia-version == '1.8' }}
           coverage: ${{ matrix.julia-version == '1.8' }}
           depwarn: error
-      - name: "Run doctests"
-        if: matrix.doctest != 'no'
+      - name: "Process code coverage"
+        if: matrix.julia-version == '1.8'
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src,experimental
+      - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.8'
+        continue-on-error: true
+        uses: codecov/codecov-action@v3
+
+  doctest:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 150
+    continue-on-error: ${{ matrix.julia-version == 'nightly' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.7'
+          - '1.8'
+          - '~1.9.0-0'
+          - 'nightly'
+        os:
+          - ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # For Codecov, we must also fetch the parent of the HEAD commit to
+          # be able to properly deal with PRs / merges
+          fetch-depth: 2
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.julia-version }}
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@latest
+      - name: "Setup package"
         run: |
           julia --project=docs --color=yes -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()
+            Pkg.instantiate()'
+      - name: "Run doctests"
+        run: |
+          julia --project=docs --color=yes -e '
             using Documenter
             using Oscar
             DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
