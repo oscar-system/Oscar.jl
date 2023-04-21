@@ -114,6 +114,20 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    lie_algebra(R::Ring, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+
+Construct the Lie algebra over the ring `R` with structure constants given by
+`struct_consts` and basis element names given by `s`.
+
+* `struct_consts`: The entry with indices `[i,j][k]` is the element $a_{i,j}^k$
+  such that $[x_i, x_j] = \sum_k a_{i,j}^k x_k$.
+* `s`: A vector of basis element names. This is 
+  `([Symbol("x_$i") for i in 1:size(struct_consts, 1)])` by default.
+* `cached`: If `true`, cache the result. This is `true` by default.
+* `check`: If `true`, check that the structure constants are anti-symmetric and
+  satisfy the Jacobi identity. This is `true` by default.
+"""
 function lie_algebra(
   R::Ring,
   struct_consts::Matrix{SRow{C}},
@@ -124,6 +138,38 @@ function lie_algebra(
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
 end
 
+@doc raw"""
+    lie_algebra(R::Ring, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+
+Construct the Lie algebra over the ring `R` with structure constants given by
+`struct_consts` and basis element names given by `s`.
+
+* `struct_consts`: The entry with indices `[i,j,k]` is the element $a_{i,j}^k$
+  such that $[x_i, x_j] = \sum_k a_{i,j}^k x_k$.
+* `s`: A vector of basis element names. This is
+  `([Symbol("x_$i") for i in 1:size(struct_consts, 1)])` by default.
+* `cached`: If `true`, cache the result. This is `true` by default.
+* `check`: If `true`, check that the structure constants are anti-symmetric and
+  satisfy the Jacobi identity. This is `true` by default.
+
+# Examples
+```jldoctest
+julia> struct_consts = zeros(QQ, 3, 3, 3);
+julia> struct_consts[1, 2, 3] = QQ(1);
+julia> struct_consts[2, 1, 3] = QQ(-1);
+julia> struct_consts[3, 1, 1] = QQ(2);
+julia> struct_consts[1, 3, 1] = QQ(-2);
+julia> struct_consts[3, 2, 2] = QQ(-2);
+julia> struct_consts[2, 3, 2] = QQ(2);
+julia> L = lie_algebra(QQ, struct_consts, ["e", "f", "h"])
+AbstractLieAlgebra over Rational Field
+julia> basis(L)
+3-element Vector{AbstractLieAlgebraElem{QQFieldElem}}:
+ e
+ f
+ h
+```
+"""
 function lie_algebra(
   R::Ring,
   struct_consts::Array{C,3},
