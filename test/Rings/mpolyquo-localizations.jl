@@ -208,7 +208,7 @@ end
 
   # tests for MPolyLocQuoRing
   LM = minimal_primes(phiQ1L1(phiQ1(I1))) 
-  @test is_one(LM[1])
+  @test length(LM)==0
   LM = minimal_primes(phiQ2L1(phiQ2(I1)))
   LP = primary_decomposition(phiQ2L1(phiQ2(I1)))
   @test length(LM) == 3

@@ -1716,6 +1716,13 @@ function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdea
   R = base_ring(Q)
   decomp = primary_decomposition(saturated_ideal(I))
   result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
+  erase = Int[]
+  for i in 1:length(result)
+    # if component is trivial, erase it
+    is_one(result[i][2]) || continue
+    push!(erase,i)
+  end
+  deleteat!(result, erase)
   return result
 end
 
@@ -1729,6 +1736,13 @@ function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MP
   R = base_ring(Q)
   decomp = minimal_primes(saturated_ideal(I))
   result = [ideal(Q, Q.(gens(b))) for b in decomp]
+  erase = Int[]
+  for i in 1:length(result)
+    # if a component is trivial, erase it
+    is_one(result[i]) || continue
+    push!(erase,i)
+  end
+  deleteat!(result, erase)
   return result
 end
 
