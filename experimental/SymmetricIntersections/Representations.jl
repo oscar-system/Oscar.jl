@@ -1,6 +1,6 @@
 const GG = GAP.Globals
 
-import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective
+import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective, is_faithful
 
 export action_on_submodule
 export affording_representation
@@ -27,7 +27,6 @@ export irreducible_characters_underlying_group
 export irreducible_affording_representation
 export is_character
 export is_constituent
-export is_faithful
 export is_isotypical
 export is_isotypical_component
 export is_similar
