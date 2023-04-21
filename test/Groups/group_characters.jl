@@ -691,6 +691,7 @@ end
   @test tr in t
   @test tr != t[1]
   @test tr == t[5]
+  @test tr == t[end]
   @test tr == trivial_character(g)
   @test !is_faithful(tr)
   chi = t[2]

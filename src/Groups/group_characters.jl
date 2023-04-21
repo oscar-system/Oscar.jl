@@ -865,6 +865,9 @@ function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
 end
 #TODO: cache the irreducibles in the table
 
+# in order to make `tbl[end]` work
+Base.lastindex(tbl::GAPGroupCharacterTable) = length(tbl)
+
 # in order to make `findfirst` and `findall` work
 function Base.keys(tbl::GAPGroupCharacterTable)
     return keys(1:length(tbl))
