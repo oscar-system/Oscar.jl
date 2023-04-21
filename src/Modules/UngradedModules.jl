@@ -4454,11 +4454,16 @@ julia> a = hom(F, G, V);
 julia> kernel(a)
 (Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations.,
+represented as subquotient with no relations., Map with following data
+Domain:
+=======
+Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations. -> R^3
-x*z*e[1] - y*z*e[2] + y^2*e[3] -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-Module homomorphism)
+represented as subquotient with no relations.
+Codomain:
+=========
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+)
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -4518,15 +4523,18 @@ julia> image(a)
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
-represented as subquotient with no relations.,
+represented as subquotient with no relations., Map with following data
+Domain:
+=======
+Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
-represented as subquotient with no relations. -> R^2
-y*e[1] -> y*e[1]
-x*e[1] + y*e[2] -> x*e[1] + y*e[2]
-z*e[2] -> z*e[2]
-Module homomorphism)
+represented as subquotient with no relations.
+Codomain:
+=========
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+)
 ```
 """
 function image(h::FreeModuleHom)
