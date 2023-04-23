@@ -1526,7 +1526,7 @@ function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
   return L(K)
 end
 
-function intersect(I::MPolyQuoLocalizedIdeal,J::MPolyQuoLocalizedIdeal...)
+function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal...)
   L = base_ring(I)
   erg = pre_image_ideal(I)
   for K in J
