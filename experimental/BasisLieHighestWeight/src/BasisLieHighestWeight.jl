@@ -3,14 +3,12 @@ export basis_lie_highest_weight
 export is_fundamental
 
 using Polymake
-# using Distributed
-using Markdown
 
 include("./NewMonomial.jl")
 
 fromGap = Oscar.GAP.gap_to_julia
 
-@doc Markdown.doc"""
+@doc """
     basisLieHighestWeight(type::String, rank::Int, highest_weight::Vector{Int}; 
     operators::Union{String, Vector{Int}} = "regular", 
     monomial_order::Union{String, Function} = "GRevLex", cache_size::Int = 0, 
@@ -288,7 +286,7 @@ function compute_monomials(type::String, rank::Int, lie_algebra::GAP.Obj, ZZx::Z
     end
 end
 
-@doc Markdown.doc"""
+@doc """
     is_fundamental(highest_weight::Vector{Int})::Bool
 
     returns true if ``highest_weight`` is fundamental, i.e. [0, ..., 1, ..., 0]

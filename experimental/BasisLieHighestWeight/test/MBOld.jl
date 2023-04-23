@@ -1,7 +1,8 @@
  # This file is an old version of the algorithm that can compute (not all cases) of 
- # BasisLieHighestWeight.basis_lie_highest_weight and is used in runtests.jl to check that the newer algorithm matches
+ # BasisLieHighestWeight.basis_lie_highest_weight and is used only in runtests.jl to check that the newer algorithm matches
  # There is code doubling, but I am not sure how the src part is going to change when its integrated with the other
- # lie algebra work.
+ # lie algebra work and would prefer to change this file after doing the integration to make sure that everything stays
+ # correct.
 
 
 module MBOld
@@ -193,11 +194,6 @@ function tensorMatricesForOperators(L, hw, ops)
     return mats
 end
 
-#### monomial basis
-
-
-# TODO: Demazure modules
-
 
 """
     basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; parallel::Bool = true) :: Tuple{Vector{Vector{Short}},Vector{TVec}}
@@ -219,7 +215,6 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = []) #
     wts = weightsForOperators(L, CH[3], ops)
     wts = (v->Int.(v)).(wts)
     
-    #--- mats speichert die Matrizen g_i für (g_1^a_1 * ... * g_k^a_k)*v0 ab.
     mats = tensorMatricesForOperators(L, hw, ops)
     hwv = sparse_row(ZZ, [(1,1)])
 
@@ -303,4 +298,4 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
     return monomials
 end
 
-end # module
+end
