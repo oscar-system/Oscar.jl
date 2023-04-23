@@ -436,12 +436,8 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 """
 function del_pezzo_surface(b::Int; set_attributes::Bool = true)
     # check for valid input
-    if b < 0
-        throw(ArgumentError("Number of blowups for construction of del Pezzo surfaces must be non-negative"))
-    end
-    if b > 3
-        throw(ArgumentError("Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
-    end
+    @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
+    @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
     
     # special case of projective space
     if b == 0

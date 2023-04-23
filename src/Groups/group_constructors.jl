@@ -325,9 +325,7 @@ ERROR: ArgumentError: n must be a positive even integer or infinity
 dihedral_group(n::Union{IntegerUnion,PosInf}) = dihedral_group(PcGroup, n)
 
 function dihedral_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: GAPGroup
-  if !is_infinite(n) && !(iseven(n) && n > 0)
-    throw(ArgumentError("n must be a positive even integer or infinity"))
-  end
+  @req is_infinite(n) || (iseven(n) && n > 0) "n must be a positive even integer or infinity"
   return T(GAP.Globals.DihedralGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 

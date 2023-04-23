@@ -520,11 +520,8 @@ julia> matrix(ZZ, hilbert_basis(C))
 ```
 """
 function hilbert_basis(C::Cone{QQFieldElem})
-   if is_pointed(C)
-      return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
-   else
-      throw(ArgumentError("Cone not pointed."))
-   end
+   @req is_pointed(C) "Cone not pointed"
+   return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
 end
 
 _hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(view(C.HILBERT_BASIS_GENERATORS[1], i, :))

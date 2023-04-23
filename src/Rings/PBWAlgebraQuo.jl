@@ -159,7 +159,7 @@ end
 
 function is_zero(a::PBWAlgQuoElem)
     if !have_special_impl(parent(a))  # must reduce if not exterior algebras
-        simplify(a); # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
+        simplify(a)  # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
     end
     return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
 end
@@ -294,10 +294,8 @@ function (Q::PBWAlgQuo)(c::IntegerUnion)
 end
 
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
-    if parent(a) != Q
-        throw(ArgumentError("coercion between different PBWAlg quotients not possible"));
-    end;
-  return a;
+  @req parent(a) == Q "coercion between different PBWAlg quotients not possible"
+  return a
 end
 
 #############################################

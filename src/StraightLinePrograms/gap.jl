@@ -65,14 +65,12 @@ function (::Type{SLP})(lines::Vector, ngens::Integer=-1) where {SLP<:AbstractGAP
             ngens >= 0 && ng > 0 && undef_slot()
             push!(have, maximum(have)+1)
         elseif isorderline(l)
-            SLP <: GAPSLDecision ||
-                throw(ArgumentError("\"Order\" line only allowed in GAPSLDecision"))
+            @req SLP <: GAPSLDecision "\"Order\" line only allowed in GAPSLDecision"
             # GAP doesn't seem to take an "Order" line into account for determining
             # the number of generators
         else
             @assert isreturnline(l) "unknown line"
-            SLP <: GAPSLProgram ||
-                throw(ArgumentError("return list only allowed in GAPSLProgram"))
+            @req SLP <: GAPSLProgram "return list only allowed in GAPSLProgram"
             for li in l
                 ng = max(ng, maxnohave(li))
                 ngens >= 0 && ng > 0 && undef_slot()

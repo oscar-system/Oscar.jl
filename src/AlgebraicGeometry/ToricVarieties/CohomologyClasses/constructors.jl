@@ -6,9 +6,7 @@
     v::AbstractNormalToricVariety
     p::MPolyQuoRingElem
     function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
-        if parent(p) != cohomology_ring(v)
-            throw(ArgumentError("The polynomial must reside in the cohomology ring of the toric variety"))
-        end
+        @req parent(p) == cohomology_ring(v) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
 end
@@ -111,9 +109,7 @@ cohomology_class(l::ToricLineBundle) = cohomology_class(toric_divisor(l))
 #################################
 
 function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
-    if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(ring, cc1) + polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
@@ -121,9 +117,7 @@ end
 
 
 function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
-    if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(ring, cc1) - polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
@@ -140,9 +134,7 @@ Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(t
 #################################
 
 function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
-    if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(ring, cc1) * polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)

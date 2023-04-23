@@ -53,8 +53,8 @@ over its prime subfield.
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert F isa FinField "At the moment, only finite fields are considered"
-   @assert iseven(degree(F)) "Base ring has no even degree"
+   @req F isa FinField "At the moment, only finite fields are considered"
+   @req iseven(degree(F)) "Base ring has no even degree"
    n = degree(G)
    M = T[]
    for mat in gens(G)
@@ -188,7 +188,7 @@ over its prime subfield.
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert F isa FinField "At the moment, only finite fields are considered"
+   @req F isa FinField "At the moment, only finite fields are considered"
    n = degree(G)
    M = T[]
 
@@ -433,7 +433,7 @@ of odd degree over the prime field.
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
-   isodd(degree(base_ring(G))) && throw(ArgumentError("group is defined over a field of odd degree"))
+   @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
    return preimage_matrix(G.ring_iso, B)

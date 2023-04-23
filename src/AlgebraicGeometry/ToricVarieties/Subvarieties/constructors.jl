@@ -6,12 +6,8 @@
     toric_variety::AbstractNormalToricVariety
     defining_ideal::MPolyIdeal
     function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal)
-      if !is_simplicial(toric_variety)
-        throw(ArgumentError("Currently, closed subvarieties are only supported for simplicial toric varieties"))
-      end
-      if parent(gens(defining_ideal)[1]) != cox_ring(toric_variety)
-        throw(ArgumentError("The defining ideal must be contained in the Cox ring of the toric supervariety"))
-      end
+      @req is_simplicial(toric_variety) "Currently, closed subvarieties are only supported for simplicial toric varieties"
+      @req parent(gens(defining_ideal)[1]) == cox_ring(toric_variety) "The defining ideal must be contained in the Cox ring of the toric supervariety"
       return new(toric_variety, defining_ideal)
     end
 end
