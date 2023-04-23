@@ -27,14 +27,11 @@ jobs:
           - '1.8'
           - '~1.9.0-0'
           - 'nightly'
-        julia-arch:
-          - x64
         os:
           - ubuntu-latest
         include:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: 'nightly'
-            julia-arch: x64
             os: macOS-latest
 
     steps:
@@ -47,7 +44,6 @@ jobs:
         uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
-          arch: ${{ matrix.julia-arch }}
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@latest
       - name: "limit OpenMP threads"
