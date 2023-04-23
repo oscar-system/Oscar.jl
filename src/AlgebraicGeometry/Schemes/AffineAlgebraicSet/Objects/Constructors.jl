@@ -79,7 +79,7 @@ affine_algebraic_set(p::MPolyElem, check::Bool) = vanishing_locus(p, check=check
 
 Return the set theoretic intersection of `X` and `Y` as an algebraic set.
 
-```jldoctest
+```jldoctest set_theoretic_intersection
 julia> A = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
@@ -105,7 +105,7 @@ Vanishing locus
 Note that the set theoretic intersection forgets the intersection multiplicities
 which the scheme theoretic intersection remembers. Therefore they are different.
 
-```jldoctest
+```jldoctest set_theoretic_intersection
 julia> vanishing_ideal(Zred); # computes a radical ideal
 
 julia> Zred # now that we know the vanishing ideal, it is used for printing
