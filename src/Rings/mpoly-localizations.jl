@@ -1484,6 +1484,8 @@ julia> R,(x,y,z,w) = QQ["x","y","z","w"];
 
 julia> f = x+y+z+w-1;
 
+julia> T = MPolyPowersOfElement(f);
+
 julia> RL,phiL = Localization(R,T);
 
 julia> I=ideal(RL,RL.([x+y+z,w-1]))
