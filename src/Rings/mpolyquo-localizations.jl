@@ -1729,7 +1729,7 @@ end
 @doc raw"""
     minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
 
-Return minimal associated primes of I
+Return the minimal associated primes of I.
 """
 function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
   Q = base_ring(I)
