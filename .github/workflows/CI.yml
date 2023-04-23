@@ -33,9 +33,6 @@ jobs:
           - ubuntu-latest
         include:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
-          - julia-version: '1.8'
-            julia-arch: x64
-            os: macOS-latest
           - julia-version: 'nightly'
             julia-arch: x64
             os: macOS-latest
@@ -86,6 +83,10 @@ jobs:
           - 'nightly'
         os:
           - ubuntu-latest
+        include:
+          # Add macOS jobs (not too many, the number we can run in parallel is limited)
+          - julia-version: '1.8'
+            os: macOS-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -99,6 +100,19 @@ jobs:
           version: ${{ matrix.julia-version }}
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@latest
+      - name: "limit OpenMP threads"
+        if: runner.os == 'macOS'
+        # restrict number of openMP threads on macOS due to oversubscription
+        run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
+      - name: "Run tests"
+        # HACK: since macOS runners are so expensive, we reuse this one to run
+        # both regular tests and doctests
+        if: runner.os == 'macOS'
+        uses: julia-actions/julia-runtest@latest
+        with:
+          annotate: ${{ matrix.julia-version == '1.8' }}
+          coverage: ${{ matrix.julia-version == '1.8' }}
+          depwarn: error
       - name: "Setup package"
         run: |
           julia --project=docs --color=yes -e '
