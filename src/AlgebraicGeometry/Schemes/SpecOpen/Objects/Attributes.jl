@@ -115,7 +115,7 @@ end
 
 function getindex(U::SpecOpen, i::Int, j::Int) 
   if !haskey(intersections(U), (i, j))
-    intersections(U)[(i, j)] = hypersurface_complement(U[i], gens(U)[j])
+    intersections(U)[(i, j)] = hypersurface_complement(U[i], gen(U, j))
     intersections(U)[(j, i)] = intersections(U)[(i, j)]
   end
   return intersections(U)[(i,j)]

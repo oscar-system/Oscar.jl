@@ -109,7 +109,7 @@ function homogenize_at_last_variable(I::MPolyIdeal, S::MPolyDecRing)
 
   R = base_ring(I)
   Rp = polynomial_ring(coefficient_ring(R), "t" => 1:ngens(R))[1]
-  RtoRp = hom(R, Rp, [ gens(Rp)[findfirst(isequal(i), p)] for i in 1:ngens(Rp) ])
+  RtoRp = hom(R, Rp, [ gen(Rp, findfirst(isequal(i), p)) for i in 1:ngens(Rp) ])
 
   Sp, _ = graded_polynomial_ring(coefficient_ring(S), ["t$i" for i in 1:ngens(S)], w_perm)
   SptoS = hom(Sp, S, [ gens(S)[p[i]] for i in 1:ngens(S) ])
@@ -141,7 +141,7 @@ function homogenize_at_last_variable(I::MPolyIdeal, S::MPolyDecRing)
   o = matrix_ordering(gens(Sp), M)
   gb = standard_basis(J, ordering = o)
 
-  t = gens(Sp)[nvars(Sp)]
+  t = gen(Sp, nvars(Sp))
   res = elem_type(Sp)[]
   for f in gb
     while iszero(mod(f, t))

@@ -283,11 +283,11 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     Y = covered_scheme(IPY)
     p = covered_projection_to_base(IPY)
     p_cov = covering_morphism(p)
-    for i in 1:length(gens(I))
+    for i in 1:ngens(I)
       U = affine_charts(Y)[i]
       p_res = p_cov[U]
       W === codomain(p_res) || error("codomain not correct")
-      ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+      ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
     E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
@@ -312,11 +312,11 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     Y = covered_scheme(IPY)
     p = covered_projection_to_base(IPY)
     p_cov = covering_morphism(p)
-    for i in 1:length(gens(I))
+    for i in 1:ngens(I)
       U = affine_charts(Y)[i]
       p_res = p_cov[U]
       W === codomain(p_res) || error("codomain not correct")
-      ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+      ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
     E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
     set_attribute!(Y, :exceptional_divisor, E)
@@ -344,11 +344,11 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   Y = covered_scheme(Bl_W)
   p = covered_projection_to_base(Bl_W)
   p_cov = covering_morphism(p)
-  for i in 1:length(gens(I))
+  for i in 1:ngens(I)
     U = affine_charts(Y)[i]
     p_res = p_cov[U]
     W === codomain(p_res) || error("codomain not correct")
-    ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+    ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
   end
   E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
@@ -401,9 +401,9 @@ end
 #  # some internal function
 #  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
 #    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v))
-#    n = length(gens(R))
+#    n = ngens(R)
 #    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
-#    return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
+#    return ext_R, phi, gens(ext_R)[(ngens(R)+1):ngens(ext_R)]
 #  end
 #
 #  A = OO(W)
@@ -693,8 +693,8 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   T = homogeneous_coordinate_ring(P[V])
   i = P[U][UW][2]
   j = P[V][VW][2]
-  s_i = gens(S)[i]
-  t_j = gens(T)[j]
+  s_i = gen(S, i)
+  t_j = gen(T, j)
   AW = affine_charts(Oscar.covered_scheme(UD))[i]
   BW = affine_charts(Oscar.covered_scheme(VD))[j]
 

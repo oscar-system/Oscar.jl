@@ -216,7 +216,7 @@ function gens(a::MPolyQuoIdeal)
   return map(a.gens.Ox, a.gens.O)
 end
 
-gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+gen(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""

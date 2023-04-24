@@ -176,7 +176,7 @@ end
   R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
-  @test parent(Q(gens(R.R)[1])) === Q
+  @test parent(Q(gen(R.R, 1))) === Q
 end
 
 @testset "Evaluation" begin

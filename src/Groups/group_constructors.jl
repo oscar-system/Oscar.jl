@@ -144,7 +144,7 @@ julia> cyclic_generator(g)
 """
 function cyclic_generator(G::GAPGroup)
   @req is_cyclic(G) "the group is not cyclic"
-  length(gens(G)) == 1 && return gen(G,1)
+  ngens(G) == 1 && return gen(G,1)
   is_finite(G) && order(G) == 1 && return one(G)
   return group_element(G, GAPWrap.MinimalGeneratingSet(G.X)[1])
 end

@@ -38,14 +38,14 @@ of ``X`` and ``Y``, respectively.
     U_i = U[i]
     dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
     for j in 1:ngens(SY)
-      y = gens(SY, j)
+      y = gen(SY, j)
       denom = dehom(pbf(y))
       V_j = affine_charts(Y)[j]
       U_ij = PrincipalOpenSubset(U_i, denom)
       u = inv(OO(U_ij)(denom))
       mor_dict[U_ij] = SpecMor(U_ij, V_j, 
                                hom(OO(V_j), OO(U_ij), 
-                                   [OO(U_ij)(dehom(pbf(gens(SY, k))))*u for k in 1:ngens(SY) if k != j]
+                                   [OO(U_ij)(dehom(pbf(gen(SY, k))))*u for k in 1:ngens(SY) if k != j]
                                   )
                               )
     end

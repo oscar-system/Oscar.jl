@@ -691,7 +691,7 @@ Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
 function is_pm1_on_discr(S::ZLat, g::ZZMatrix)
   D = discriminant_group(S)
   imgs = [D(vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
-  return all(imgs[i] == gens(D)[i] for i in 1:length(gens(D))) || all(imgs[i] == -gens(D)[i] for i in 1:length(gens(D)))
+  return all(imgs[i] == gen(D, i) for i in 1:ngens(D)) || all(imgs[i] == -gen(D, i) for i in 1:ngens(D))
   # OD = orthogonal_group(D)
   # g1 = hom(D,D,[D(lift(d)*g) for d in gens(D)])
   # gg = OD(g1)

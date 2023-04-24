@@ -543,9 +543,9 @@ end
 function _purify1(I::T, Q) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
    R = base_ring(I)
    Id = _remove_zeros(I)
-   gens(Id)[1] != R(0) || error("ideal assumed to be non-zero")
+   gen(Id, 1) != R(0) || error("ideal assumed to be non-zero")
    IdQ = ideal(Q, gens(Id))
-   f = ideal(Q, [gens(Id)[1]])
+   f = ideal(Q, [gen(Id, 1)])
    res = f:(f:IdQ)
    Oscar.oscar_assure(res)
    res_ideal = ideal(base_ring(res.qRing), res.gens.O)
@@ -566,7 +566,7 @@ function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, q::Os
    Ip = _purify1(I, Q)
    Jp = _purify1(J, Q)
    Is = _remove_zeros(Ip)
-   f = gens(Is)[1]
+   f = gen(Is, 1)
    fJ = ideal(Q, [f*g for g in gens(Jp)])
    q1 = fJ:Ip
    P = _purify1(q1, Q)
@@ -672,15 +672,15 @@ function _linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
     F = D - E
     T = parent(D.C.eq)
     L = _global_sections_ideals(F)
-    if length(gens(L[1])) !=1
+    if ngens(L[1]) !=1
         return T(0)//T(1)
-    elseif iszero(gens(L[1])[1])
+    elseif iszero(gen(L[1], 1))
         return T(0)//T(1)
     else
-        V = _section_ideal(gens(L[1])[1], L[2], F)
+        V = _section_ideal(gen(L[1], 1), L[2], F)
         Q = base_ring(V)
         if V == ideal(Q, [Q(1)])
-            return T(gens(L[1])[1])//T(L[2])
+            return T(gen(L[1], 1))//T(L[2])
         else
             return T(0)//T(1)
         end

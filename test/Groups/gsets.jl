@@ -71,7 +71,7 @@
   G = symmetric_group(4)
   omega = [1, 2]
   Omega = gset(G, Set([omega]))  # action on ordered pairs
-  g = gens(G)[1]
+  g = gen(G, 1)
   x = Omega(omega)
   @test x in Omega
   @test unwrap(x) == omega
@@ -81,7 +81,7 @@
 
   omega = [0,1,0,1]
   Omega = gset(G, permuted, Set([omega]))
-  g = gens(G)[1]
+  g = gen(G, 1)
   x = Omega(omega)
   @test x in Omega
   @test unwrap(x) == omega
@@ -110,7 +110,7 @@
   # permutation
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  g = gens(G)[1]
+  g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
@@ -249,7 +249,7 @@ end
 
   # permutation
   Omega = gset(G)
-  g = gens(G)[1]
+  g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)

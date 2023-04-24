@@ -5192,7 +5192,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
 end
 
 function Hecke.ring(I::MPolyIdeal)
-  return parent(gen(I, 1))
+  return base_ring(I)
 end
 
 # We can not use the signature with T because the MPolyQuoIdeals are 

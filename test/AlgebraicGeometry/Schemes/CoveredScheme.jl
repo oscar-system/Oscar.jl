@@ -3,7 +3,7 @@
   X = subscheme(Spec(R), [x^2+y^2])
   P = projective_space(X, 3)
   S = homogeneous_coordinate_ring(P)
-  (u, v) = gens(S)[1], gens(S)[2]
+  (u, v) = gen(S, 1), gen(S, 2)
   h = u^3 
   h = u^3 + u^2
   h = u^3 + (u^2)*v 
