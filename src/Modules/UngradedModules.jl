@@ -2470,7 +2470,8 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
+3 -> z^4*e[1]
+, Map with following data
 Domain:
 =======
 Subquotient of Submodule with 2 generators
@@ -2487,7 +2488,8 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1])
+3 -> z^4*e[1]
+)
 ```
 """
 function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
@@ -5301,15 +5303,15 @@ by Submodule with 2 generators
 2 -> y^2*e[2]
 
 julia> H = hom(M, M)[1]
-hom of (Subquotient of Submodule with 2 generators
+hom of (Subquotient of
 1 -> e[1]
 2 -> e[2]
-by Submodule with 2 generators
+by
 1 -> x*e[1]
-2 -> y^2*e[2], Subquotient of Submodule with 2 generators
+2 -> y^2*e[2], Subquotient of
 1 -> e[1]
 2 -> e[2]
-by Submodule with 2 generators
+by
 1 -> x*e[1]
 2 -> y^2*e[2])
 
