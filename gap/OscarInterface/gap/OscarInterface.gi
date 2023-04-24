@@ -27,11 +27,16 @@ end );
 
 # Install the methods for `IsoGapOscar`,
 # in order to make Oscar's `iso_gap_oscar` work.
-Perform( Oscar._iso_gap_oscar_methods,
-         function( pair )
+Perform( [ 1 .. Julia.length( Oscar._iso_gap_oscar_methods ) ],
+         function( i )
+           local pair;
+           pair:= Oscar._iso_gap_oscar_methods[i];
            InstallMethod( IsoGapOscar, [ JuliaToGAP( IsString, pair[1] ) ],
                Oscar.GAP.WrapJuliaFunc( pair[2] ) );
          end );
+#T TODO: Simplify the code as soon as
+#T https://github.com/oscar-system/GAP.jl/pull/861
+#T becomes available.
 
 ############################################################################
 
