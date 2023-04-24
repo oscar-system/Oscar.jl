@@ -770,7 +770,9 @@ function is_decomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}
 end
 
 """
-The composition factors of `C` with their frequency
+    composition_factors_with_multiplicity(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+
+Return the composition factors of `C` with their frequency.
 """
 function Oscar.composition_factors_with_multiplicity(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
@@ -789,7 +791,9 @@ function Oscar.composition_factors_with_multiplicity(C::GModule{<:Any, <:Generic
 end
 
 """
-A decomposition of the module into indecomposable summands. Returns a list
+    indecomposition(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+
+Return a decomposition of the module `C` into indecomposable summands as a list
 of pairs: 
  - a direct indecomposable summand
  - a homomorphism (embedding) of the underlying free modules

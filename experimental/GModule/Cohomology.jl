@@ -515,7 +515,7 @@ end
 """
   H^0(G, M)
 
-Returns a module (same type as M) that abstractly represent
+Return a module (same type as M) that abstractly represent
 the 0-cohomology group as well as a map realizing this via explicit
 co-chains
 """
@@ -674,7 +674,7 @@ end
 """
   H^1(G, M)
 
-Returns an abstract module (of the same type as M) describing the
+Return an abstract module (of the same type as M) describing the
 first co-homology group. Furthermore, the second return value
 is a map realising elements of H^1 as explicit co-cycles.
 """
@@ -747,7 +747,7 @@ end
 Computes an isomorphic fp-group and a confluent system of
 relations given as pairs of words.
 
-Returns the new group, the isomorphism and the confluent relations.
+Return the new group, the isomorphism and the confluent relations.
 """
 function confluent_fp_group(G::Oscar.GAPGroup)
   C = GAP.Globals.ConfluentMonoidPresentationForGroup(G.X)
@@ -2317,7 +2317,7 @@ Sort:
 
 """
 M has to be a torsion free Z module with a C_2 action by sigma.
-Returns data for the decomposition into indecomposables.
+Return data for the decomposition into indecomposables.
 They will be of type
  - Z with trivial and non-trivial action
  - Z[C_2]
@@ -2863,7 +2863,7 @@ end
     shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
 
 Tries to find cohomologically trivial submodules to factor out.
-Returns a cohomologically equivalent module with fewer generators and
+Return a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)

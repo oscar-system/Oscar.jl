@@ -164,7 +164,9 @@ end
 
 @doc raw"""
     coefficient_ring(v::AbstractNormalToricVariety)
-This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
+
+Return the coefficient_ring `QQ` of the normal toric variety `v`.
+
 # Examples
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
@@ -181,7 +183,7 @@ coefficient_ring(v::AbstractNormalToricVariety) = QQ
 @doc raw"""
     coordinate_names(v::AbstractNormalToricVariety)
 
-This method returns the names of the homogeneous coordinates of 
+Return the names of the homogeneous coordinates of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 
 # Examples
@@ -499,7 +501,8 @@ end
 
 @doc raw"""
     coordinate_names_of_torus(v::AbstractNormalToricVariety)
-This method returns the names of the coordinates of the torus of
+
+Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
 @attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)

@@ -98,7 +98,7 @@ end
 @doc raw"""
     rational_point_coordinates(I::MPolyIdeal)
 
-Returns the $k$-coordinates of the point corresponding to a maximal ideal 
+Return the $k$-coordinates of the point corresponding to a maximal ideal
 $I \in k[x_1,\dots,x_n]$, which describes a $k$-point. If $I$ is not maximal
 or does not describe a point with coordinates in the field $k$, an error 
 exception results.
