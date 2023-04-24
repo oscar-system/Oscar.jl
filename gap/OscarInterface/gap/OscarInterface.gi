@@ -25,9 +25,13 @@ end );
 
 ############################################################################
 
-# The following must be executed at runtime,
-# the function gets called in Oscar's `__init__`.
-InstallMethod(IsoGapOscar, [ IsDomain ], Oscar.GAP.WrapJuliaFunc(Oscar._iso_gap_oscar));
+# Install the methods for `IsoGapOscar`,
+# in order to make Oscar's `iso_gap_oscar` work.
+Perform( Oscar._iso_gap_oscar_methods,
+         function( pair )
+           InstallMethod( IsoGapOscar, [ JuliaToGAP( IsString, pair[1] ) ],
+               Oscar.GAP.WrapJuliaFunc( pair[2] ) );
+         end );
 
 ############################################################################
 
