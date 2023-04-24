@@ -120,7 +120,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      pol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals::GapObj, z)
      N = GAPWrap.DegreeOfLaurentPolynomial(pol)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
-     R, x = polynomial_ring(QQ, "x")
+     R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
      FO, _ = number_field(polFO, "z")
      powers = GapObj([z^i for i in 0:(N-1)])::GapObj
@@ -139,7 +139,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      # This is the analogon of `_iso_oscar_gap(FO::AnticNumberField)`.
      pol = GAPWrap.DefiningPolynomial(FG)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
-     R, x = polynomial_ring(QQ, "x")
+     R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
      FO, _ = number_field(polFO, "z")
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
@@ -161,9 +161,9 @@ function _iso_gap_oscar_number_field(FG::GapObj)
 
      # Construct the isomorphic number field in Oscar.
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
-     R, x = polynomial_ring(QQ, "x")
+     R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
-     FO, _ = number_field(polFO, "z")
+     FO, _ = number_field(polFO, "z", cached = false)
 
      # The canonical basis of `FG` does in general not consist of the
      # powers of `M`.
@@ -209,7 +209,7 @@ end
 
 function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
-   RO, x = polynomial_ring(codomain(coeffs_iso), "x")
+   RO, x = polynomial_ring(codomain(coeffs_iso), "x", cached = false)
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
 
    return MapFromFunc(f, finv, RG, RO)
@@ -218,7 +218,7 @@ end
 function _iso_gap_oscar_multivariate_polynomial_ring(RG::GAP.GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
    nams = [string(x) for x in GAPWrap.IndeterminatesOfPolynomialRing(RG)]
-   RO, x = polynomial_ring(codomain(coeffs_iso), nams)
+   RO, x = polynomial_ring(codomain(coeffs_iso), nams, cached = false)
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
 
    return MapFromFunc(f, finv, RG, RO)
