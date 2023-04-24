@@ -59,8 +59,8 @@ via the respective methods of the `subscheme(P::AbsProjectiveScheme, ...)` funct
 Special constructors are provided for projective space itself via the function 
 `projective_space` and its various methods.
 ```@docs
-    projective_space(A::Ring, var_symb::Vector{Symbol})
-    projective_space(A::Ring, r::Int; var_name::String="s")
+    projective_space(A::Ring, var_symb::Vector{VarName})
+    projective_space(A::Ring, r::Int; var_name::VarName=:s)
 ```
 
 ## Attributes

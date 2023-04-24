@@ -14,7 +14,7 @@
 # polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
 
-function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
+function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
   w = (v1, v...)
   str = _make_strings(w)
   strings = vcat(str...)
@@ -39,19 +39,19 @@ function _make_variable(a::String, i)
       aa = "$a[$ii]"
     end
   end
-  return aa
+  return Symbol(aa)
 end
 
 # Type stable recursive function to create strings from "a" => 1:2 or
 # "a" => (1:3, 1:3)
-function _make_strings(v::Pair{<:Union{String, Symbol}, <: Any})
+function _make_strings(v::Pair{<:VarName, <:Any})
   lv = last(v)
   if lv isa Tuple
     p = Iterators.product(lv...)
   else
     p = lv
   end
-  res = String[]
+  res = Symbol[]
   a = first(v)
   for i in p
     push!(res, _make_variable(a, i))
