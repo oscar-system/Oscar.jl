@@ -160,3 +160,129 @@ end
   @test L(y)/L(x) == L(y//x)
   @test_throws ErrorException L(y)/L(x-1)
 end
+
+@testset "associated primes (quo and localized)" begin
+  # define the rings
+  R,(x,y,z,w) = QQ["x","y","z","w"]
+  Q1 = ideal(R,[x^2+y^2-1])
+  Q2 = ideal(R,[x*y-z*w])
+  RQ1,phiQ1 = quo(R,Q1)
+  RQ2,phiQ2 = quo(R,Q2)
+  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0,0])
+  f = x+y+z+w-1
+  T2 = MPolyPowersOfElement(f)
+  RL1,phiL1 = Localization(R,T1)
+  RL2,phiL2 = Localization(R,T2)
+  RQ1L1, phiQ1L1 = Localization(RQ1,T1)
+  RQ1L2, phiQ1L2 = Localization(RQ1,T2)
+  RQ2L1, phiQ2L1 = Localization(RQ2,T1)
+  RQ2L2, phiQ2L2 = Localization(RQ2,T2)
+
+  # tests for MPolyQuoRing
+  I1 = ideal(R,[x*z*(w-1),y*z*(w-1)])
+  I2 = ideal(R,[y^2*x*(x+y+w-1),z])
+  LM = minimal_primes(phiQ1(I1))
+  LP = primary_decomposition(phiQ1(I1))  ## coincides with min. ass. primes here
+  @test length(LM) == 2
+  @test length(LP) == 2
+  @test intersect(LM) == phiQ1(radical(I1+Q1))
+  @test intersect([a for (a,_) in LP]) == intersect(LM)
+  LM = minimal_primes(phiQ2(I1))
+  LP = primary_decomposition(phiQ2(I1)) 
+  @test length(LM) == 4
+  @test intersect(LM) == phiQ2(radical(I1+Q2))
+  @test length(LP) == 5
+  @test intersect([a for (a,_) in LP]) == phiQ2(I1+Q2)
+
+  # tests for MPolyLocRing
+  LM = minimal_primes(phiL1(I1))   
+  LP = primary_decomposition(phiL1(I1)) ## coincides with min. ass. primes here
+  @test length(LM) == 2
+  @test length(LP) == 2
+  @test intersect(LM) == phiL1(I1)
+  @test intersect([a for (a,_) in LP]) == phiL1(I1)
+  LM = minimal_primes(phiL2(I2))
+  LP = primary_decomposition(phiL2(I2))
+  @test intersect(LM) == ideal(RL2,RL2.([z,x*y]))
+  @test intersect([a for (a,_) in LP]) == ideal(RL2,RL2.([z,x*y^2]))
+
+  # tests for MPolyLocQuoRing
+  LM = minimal_primes(phiQ1L1(phiQ1(I1))) 
+  @test length(LM)==0
+  LM = minimal_primes(phiQ2L1(phiQ2(I1)))
+  LP = primary_decomposition(phiQ2L1(phiQ2(I1)))
+  @test length(LM) == 3
+  @test length(LP) == 4
+  @test intersect(LM) == phiQ2L1(phiQ2(radical(I1+Q2)))
+  @test intersect([a for (a,_) in LP]) == phiQ2L1(phiQ2(I1+Q2))
+  @test length(minimal_primes(phiQ2L1(phiQ2(I2)))) == 2
+  @test length(minimal_primes(phiQ2L2(phiQ2(I2)))) == 2
+end
+
+@testset "saturation (quo and localization)" begin
+  # define the rings
+  R,(x,y,z) = QQ["x","y","z"]
+  Q1 = ideal(R,[x])
+  Q2 = ideal(R,[z,x^2-y^2])
+  RQ1,phiQ1 = quo(R,Q1)
+  RQ2,phiQ2 = quo(R,Q2)
+  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  f = x-y
+  T2 = MPolyPowersOfElement(f)
+  RL1,phiL1 = Localization(R,T1)
+  RL2,phiL2 = Localization(R,T2)
+  RQ1L1, phiQ1L1 = Localization(RQ1,T1)
+  RQ1L2, phiQ1L2 = Localization(RQ1,T2)
+  RQ2L1, phiQ2L1 = Localization(RQ2,T1)
+  RQ2L2, phiQ2L2 = Localization(RQ2,T2)
+
+  # the ideals
+  I1 = ideal(R,[x^2*y+y^2*z+z^2*x])
+  I2 = ideal(R,[x-y])
+  I3 = ideal(R,[x,y,z])
+  I4 = ideal(R,[x-1,y-1,z])
+  I5 = ideal(R,[x,y+1,z-1])
+  I6 = ideal(R,[y])
+
+  # quotient ring tests
+  I = phiQ1(I1)
+  J = phiQ1(I6)
+  @test saturation_with_index(I,J)[2] == 2
+  K = phiQ1(I2*I3*I4*I5)
+  @test saturation(K,J) == phiQ1(I5)
+  I = phiQ2(I1)
+  J = phiQ2(I6)
+  @test saturation_with_index(I,J)[2] == 3
+  K = phiQ2(I2*I3*I4*I5)
+  @test saturation(K,J) == phiQ2(I2*I4)
+
+  # localized ring tests
+  I = phiL1(I1)
+  J = phiL1(I6)
+  @test saturation_with_index(I,J)[2] == 0
+  K = phiL1(I2*I3*I4*I5)
+  @test saturation(K,J) == phiL1(I2)
+  I = phiL2(I1*I6^2)
+  J = phiL2(I6)
+  @test saturation_with_index(I,J)[2] == 2
+  K = phiL2(I2*I3*I4*I5)
+  @test saturation(K,J) == phiL2(I5)
+
+  # localized quo ring tests
+  I = phiQ1L1(phiQ1(I1))
+  J = phiQ1L1(phiQ1(I6))
+  @test saturation_with_index(I,J)[2] == 2
+  K = phiQ1L1(phiQ1(I2*I3*I4*I5))
+  @test saturation(K,J) == ideal(RQ1L1,one(RQ1L1))
+  @test saturation_with_index(K,J)[2] == 2
+  I = phiQ1L2(phiQ1(I1))
+  J = phiQ1L2(phiQ1(I6))
+  @test saturation(I,J) == phiQ1L2(phiQ1(ideal(R,[x,z])))
+  K = phiQ1L2(phiQ1(I2*I3*I4*I5))
+  @test saturation(K,J) == phiQ1L2(phiQ1(ideal(R,[z - 1, y + 1])))
+  I = phiQ2L1(phiQ2(I1))
+  J = phiQ2L1(phiQ2(I6))
+  @test saturation_with_index(I,J)[2] == 3
+  K = phiQ2L1(phiQ2(I2*I3*I4*I5))
+  @test saturation(K,J) == phiQ2L1(phiQ2(ideal(R,[x-y])))
+end

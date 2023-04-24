@@ -56,7 +56,7 @@
   # Now the singular locus consists of two points. 
   # We blow them up successively rather than at once. 
   #println("starting primary decomposition of singular locus")
-  decomp = Oscar.minimal_associated_points(I_sing_X3)
+  decomp = Oscar.maximal_associated_points(I_sing_X3)
   #println("finished primary decomposition of singular locus")
   l = radical.([a for a in decomp])
 
@@ -87,7 +87,7 @@
   # Now the singular locus consists of three points. 
   # We blow them up successively rather than at once. 
   #println("starting primary decomposition of singular locus")
-  centers = Oscar.minimal_associated_points(I_sing_X42)
+  centers = Oscar.maximal_associated_points(I_sing_X42)
   #println("finished primary decomposition of singular locus")
 
   prX51 = blow_up(radical(first(centers)))
