@@ -1557,7 +1557,7 @@ julia> minimal_generating_set(a)
  z^2
 
 julia> a = ideal(A, [x-y])
-ideal(x-y)
+ideal(x - y)
 
 julia> minimal_generating_set(a)
 MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}[]
