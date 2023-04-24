@@ -1,7 +1,8 @@
-coverage:
+codecov:
   notify:
     # Keep this in sync with the number of CI jobs uploading coverage.
     after_n_builds: 3
+coverage:
   status:
     project:
       default:
