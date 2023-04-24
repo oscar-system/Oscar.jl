@@ -1555,6 +1555,12 @@ julia> minimal_generating_set(a)
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  y
  z^2
+
+julia> a = ideal(A, [x-y])
+ideal(x-y)
+
+julia> minimal_generating_set(a)
+MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}[]
 ```
 """
 function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})

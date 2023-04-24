@@ -1325,6 +1325,12 @@ julia> minimal_generating_set(I)
  x
  z^2
  y^3
+
+julia> I = ideal(R, zero(R))
+ideal(0)
+
+julia> minimal_generating_set(I)
+MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
 ```
 """
 function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
