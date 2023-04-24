@@ -1,4 +1,7 @@
 coverage:
+  notify:
+    # Keep this in sync with the number of CI jobs uploading coverage.
+    after_n_builds: 3
   status:
     project:
       default:
