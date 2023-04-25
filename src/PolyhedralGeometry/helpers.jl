@@ -31,7 +31,7 @@ nrows(i::IncidenceMatrix) = Polymake.nrows(i)
 ncols(i::IncidenceMatrix) = Polymake.ncols(i)
 
 @doc raw"""
-     row_as_set(i::IncidenceMatrix, n::Int)
+     row(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
@@ -43,39 +43,17 @@ julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
 [4, 5, 6]
 
 
-julia> row_as_set(IM, 2)
+julia> row(IM, 2)
 Set{Int64} with 3 elements:
   5
   4
   6
 ```
 """
-row_as_set(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
+row(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
 
 @doc raw"""
-     row_as_vector(i::IncidenceMatrix, n::Int)
-
-Return the indices where the `n`-th row of `i` is `true`, as a `Vector{Int}`.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
-2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
-
-julia> row_as_vector(IM, 1)
-3-element Vector{Int64}:
- 1
- 2
- 3
-```
-"""
-row_as_vector(i::IncidenceMatrix, n::Int) = collect(Polymake.row(i, n))
-
-@doc raw"""
-     column_as_set(i::IncidenceMatrix, n::Int)
+     column(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 
@@ -87,32 +65,12 @@ julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
 [4, 5, 6]
 
 
-julia> column_as_set(IM, 5)
+julia> column(IM, 5)
 Set{Int64} with 1 element:
   2
 ```
 """
-column_as_set(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
-
-@doc raw"""
-     column_as_vector(i::IncidenceMatrix, n::Int)
-
-Return the indices where the `n`-th column of `i` is `true`, as a `Vector{Int}`.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
-2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
-
-julia> column_as_vector(IM, 5)
-1-element Vector{Int64}:
- 2
-```
-"""
-column_as_vector(i::IncidenceMatrix, n::Int) = collect(Polymake.col(i, n))
+column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
 const nf_scalar = Union{nf_elem, QQFieldElem}
 
