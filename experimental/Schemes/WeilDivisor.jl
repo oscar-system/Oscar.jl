@@ -257,6 +257,8 @@ function weil_divisor(L::LinearSystem)
 end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
+gen(L::LinearSystem,i::Int) = L.f[i]
+
 @doc raw"""
     variety(L::LinearSystem)
 
