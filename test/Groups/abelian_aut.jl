@@ -56,7 +56,7 @@ end
   L = Zlattice(gram=3*ZZ[2 1; 1 2])
   D = discriminant_group(L)
   G = orthogonal_group(D)
-  d = gen(D, 1)
+  d = D[1]
   f = gen(G, 1)
   f(d)
   @test G(matrix(f)) == f
