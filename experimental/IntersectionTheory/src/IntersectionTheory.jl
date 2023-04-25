@@ -2,35 +2,51 @@ module IntersectionTheory
 using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
-import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, graph, euler_characteristic, pullback
+import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 
-export betti, euler, graph
-export a_hat_genus, l_genus, pontryagin, chern_number, chern_numbers
-export intersection_matrix, dual_basis
-export bundles, tangent_bundle, cotangent_bundle, canonical_bundle, canonical_class
-export schur_functor
-export complete_intersection, zero_locus_section, degeneracy_locus
-export abstract_variety, bundle
-export schubert_class, schubert_classes
-export abstract_variety, abstract_bundle
-export abstract_projective_variety
-export abstract_projective_bundle
-export abstract_grassmannian
+export a_hat_genus
+export abstract_bundle
 export abstract_flag_variety
+export abstract_grassmannian
+export abstract_projective_bundle
+export abstract_projective_variety
+export abstract_variety
+export abstract_variety
+export betti
+export bundle
+export bundles
+export canonical_bundle
+export canonical_class
 export chern_character
-export total_chern_class
 export chern_class
-export top_chern_class
-export segre_class
-export pontryagin_class
-export total_pontryagin_class
-export todd_class
+export chern_number
+export chern_numbers
+export complete_intersection
+export cotangent_bundle
+export degeneracy_locus
+export dual_basis
+export euler
 export euler_pairing
+export graph
+export intersection_matrix
+export l_genus
 export line_bundle
+export pontryagin
+export pontryagin_class
+export schubert_class
+export schubert_classes
+export schur_functor
+export segre_class
+export tangent_bundle
+export todd_class
+export top_chern_class
+export total_chern_class
+export total_pontryagin_class
 export trivial_line_bundle
+export zero_locus_section
 
 include("Types.jl")
 include("Misc.jl")
@@ -42,4 +58,5 @@ include("Main.jl")   # basic constructions for Schubert calculus
 # include("Weyl.jl")   # weyl groups
 
 end # module
+
 using .IntersectionTheory
