@@ -143,7 +143,7 @@ let pushforward = IntersectionTheory.pushforward
     @test a_hat_genus(P2) == -1//8
     @test signature(P2) == 1
     @test chern_number(P2, 2) == 3
-    @test chern_numbers(P2) == [Nemo.Partition([2]) => 3, Nemo.Partition([1,1]) => 9]
+    @test chern_numbers(P2) == [Partition([2]) => 3, Partition([1,1]) => 9]
     @test euler_characteristic(trivial_line_bundle(P2)) == 1
     @test euler_characteristic(cotangent_bundle(P2)) == -1
     hilb = hilbert_polynomial(P2)
@@ -163,7 +163,7 @@ let pushforward = IntersectionTheory.pushforward
     @test integral(chern_class(G, 2)^2) == 98
     @test schubert_class(G, 2) == c1^2-c2
     @test schubert_class(G, [1, 1]) == c2
-    @test schubert_class(G, Nemo.Partition([2, 1])) == -c1^3 + c1 * c2
+    @test schubert_class(G, Partition([2, 1])) == -c1^3 + c1 * c2
     @test [length(schubert_classes(G, i)) for i in 0:4] == [1,1,2,1,1]
 
     # Grassmannian: TnVariety version

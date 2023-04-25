@@ -5,7 +5,7 @@ import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, OO, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
 import ..Oscar.AbstractAlgebra: combinations
-import ..Oscar.AbstractAlgebra.Generic: FunctionalMap, Partition, partitions
+import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 
 export betti, euler, graph
 export a_hat_genus, l_genus, pontryagin, chern_number, chern_numbers

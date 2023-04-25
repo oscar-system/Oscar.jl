@@ -330,7 +330,7 @@ c_{\lambda_k}(X)$, where $\lambda:=(\lambda_1,\dots,\lambda_k)$ is a partition
 of the dimension of $X$.
 """
 chern_number(X::AbstractVariety, λ::Int...) = chern_number(X, collect(λ))
-chern_number(X::AbstractVariety, λ::Partition) = chern_number(X, collect(λ))
+chern_number(X::AbstractVariety, λ::Partition) = chern_number(X, Vector(λ))
 function chern_number(X::AbstractVariety, λ::Vector{Int})
   @assert sum(λ) == X.dim
   c = total_chern_class(X)[1:X.dim]
@@ -595,7 +595,7 @@ Return the result of the Schur functor $\mathbf S^\lambda$.
 """
 function schur_functor(F::AbstractBundle, λ::Vector{Int}) schur_functor(F, Partition(λ)) end
 function schur_functor(F::AbstractBundle, λ::Partition)
-  λ = conj(λ)
+  λ = conjugate(λ)
   X = F.parent
   w = _wedge(sum(λ), chern_character(F))
   S, ei = PolynomialRing(QQ, ["e$i" for i in 1:length(w)])
@@ -1165,7 +1165,7 @@ end
 Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian $G$.
 """
 function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
-function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, collect(λ)) end
+function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, Vector(λ)) end
 function schubert_class(G::AbstractVariety, λ::Vector{Int})
   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
   (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
