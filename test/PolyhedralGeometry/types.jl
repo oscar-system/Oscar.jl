@@ -5,14 +5,10 @@
         im = IncidenceMatrix([[1,2,3],[4,5,6]])
         @test nrows(im) == 2
         @test ncols(im) == 6
-	@test row_as_set(im, 1) isa Set{Int}
-	@test row_as_set(im, 1) == Set{Int}([1, 2, 3])
-	@test row_as_vector(im, 2) isa Vector{Int}
-	@test row_as_vector(im, 2) == [4, 5, 6]
-	@test column_as_set(im, 2) isa Set{Int}
-	@test column_as_set(im, 2) == Set{Int}([1])
-	@test column_as_vector(im, 6) isa Vector{Int}
-	@test column_as_vector(im, 6) == [2]
+	@test row(im, 1) isa Set{Int}
+	@test row(im, 1) == Set{Int}([1, 2, 3])
+	@test column(im, 2) isa Set{Int}
+	@test column(im, 2) == Set{Int}([1])
         
     end
     
