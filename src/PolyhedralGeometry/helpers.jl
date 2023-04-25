@@ -1,6 +1,6 @@
 import Polymake: IncidenceMatrix
 
-@doc Markdown.doc"""
+@doc raw"""
      IncidenceMatrix
 
 A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
@@ -30,7 +30,7 @@ IncidenceMatrix
 nrows(i::IncidenceMatrix) = Polymake.nrows(i)
 ncols(i::IncidenceMatrix) = Polymake.ncols(i)
 
-@doc Markdown.doc"""
+@doc raw"""
      row_as_set(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
@@ -52,7 +52,7 @@ Set{Int64} with 3 elements:
 """
 row_as_set(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
 
-@doc Markdown.doc"""
+@doc raw"""
      row_as_vector(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th row of `i` is `true`, as a `Vector{Int}`.
@@ -74,7 +74,7 @@ julia> row_as_vector(IM, 1)
 """
 row_as_vector(i::IncidenceMatrix, n::Int) = collect(Polymake.row(i, n))
 
-@doc Markdown.doc"""
+@doc raw"""
      column_as_set(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
@@ -94,7 +94,7 @@ Set{Int64} with 1 element:
 """
 column_as_set(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
-@doc Markdown.doc"""
+@doc raw"""
      column_as_vector(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th column of `i` is `true`, as a `Vector{Int}`.
