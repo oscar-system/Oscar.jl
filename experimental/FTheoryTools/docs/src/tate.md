@@ -149,20 +149,30 @@ For constructions along these lines, we support the following constructor:
 global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
 ```
 
+
 ### Standard constructions
 
-Certain Tate models have been studied in the physics literature over and over again. Thereby,
-these constructions became famous and some were given special names. We aim to provide
-support for such standard constructions. Currently, we provide support for the following:
-```@docs
-su5_tate_model_over_arbitrary_3d_base()
-```
-In addition we should of course also provide convenient constructions of global Tate models
-over famous base spaces. Currently, we support the following:
+We provide convenient constructions of global Tate models over
+famous base spaces. Currently, we support the following:
 ```@docs
 global_tate_model_over_projective_space(d::Int)
 global_tate_model_over_hirzebruch_surface(r::Int)
 global_tate_model_over_del_pezzo_surface(b::Int)
+```
+
+
+## Literature constructions
+
+Certain Tate models have been studied in the physics literature over and over again.
+Thereby, these constructions became famous and some were given special names. We
+aim to provide support for such standard constructions. An example of such a model is
+the following:
+```@docs
+su5_tate_model_over_arbitrary_3d_base()
+```
+More generally, we support literature constructions.
+```@docs
+literature_tate_model(arxiv_id::String, equ_nr::String)
 ```
 
 
@@ -193,18 +203,18 @@ The following method allows to tell if the base/ambient space is auxiliary or no
 ```@docs
 base_fully_specified(t::GlobalTateModel)
 ```
-
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.
 To this end, one invokes `set_verbosity_level(:GlobalTateModel, 1)`.
 More background information is available
 [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
 
+
 ### Advanced attributes
 
 The following attributes are currently only supported in a toric setting:
 ```@docs
-calabi_yau_hypersurface(t::GlobalTateModel)
+calabi_yau_hypersurface(t::GlobalWeierstrassModel)
 global_weierstrass_model(t::GlobalTateModel)
 ```
 Note that for applications in F-theory, *singular* elliptic fibrations are key
@@ -212,14 +222,31 @@ Note that for applications in F-theory, *singular* elliptic fibrations are key
 locus as well as the singular loci of the fibration in question are of ample
 importance:
 ```@docs
-discriminant(t::GlobalTateModel)
-singular_loci(t::GlobalTateModel)
+discriminant(t::GlobalWeierstrassModel)
+singular_loci(t::GlobalWeierstrassModel)
 ```
+
+
+### Attributes for literature models
+
+For literature models, we provide the following attributes:
+```@docs
+description(t::GlobalTateModel)
+arxiv_id(t::GlobalTateModel)
+equ_nr(t::GlobalTateModel)
+```
+Certainly, one can add this information for a model that does
+not have it:
+```@docs
+set_description(t::GlobalTateModel, description::String)
+```
+Note however, that these changes will (currently) not be stored
+in our data base.
 
 
 ## Methods
 
-### Towards resolution of singularities
+### Fiber study
 
 In F-theory, it is standard to not work with the singular space directly.
 Rather, one resolves its singularities in order to obtain a smooth space
@@ -231,4 +258,24 @@ by working out the fiber components and their intersection pattern over a
 particular locus of the base.
 ```@docs
 analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
+```
+
+### Resolution(s) of a singular model
+
+A central task in F-theory is to resolve a singular global Tate model.
+For literature models, we have stored resolutions in our data base.
+Upon construction of a literature model, we load these known resolutions.
+The user can list all the resolutions in our database as follows:
+```@docs
+resolutions(t::GlobalTateModel)
+```
+In addition, some user might want to add a resolution. Or one might
+want to add a description for a particular model. This can be achieved with
+the following methods:
+```@docs
+add_resolution(t::GlobalTateModel, resolution::Vector{Vector{String}})
+```
+Provided that a resolution for a model is known, we can (attempt to) resolve the model.
+```@docs
+resolve(t::GlobalTateModel, index::Int)
 ```

@@ -7,12 +7,16 @@ export HypersurfaceModel
 export _blowup_global
 export _blowup_global_sequence
 export _is_nontrivial
+export add_resolution
 export ambient_space
 export analyze_fibers
+export arxiv_id
 export base_fully_specified
 export base_space
 export calabi_yau_hypersurface
+export description
 export discriminant
+export equ_nr
 export fiber_ambient_space
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
@@ -25,6 +29,10 @@ export global_weierstrass_model_over_projective_space
 export sample_toric_scheme
 export sample_toric_variety
 export singular_loci
+export literature_tate_model
+export resolutions
+export resolve
+export set_description
 export su5_tate_model_over_arbitrary_3d_base
 export su5_weierstrass_model_over_arbitrary_3d_base
 export tate_polynomial

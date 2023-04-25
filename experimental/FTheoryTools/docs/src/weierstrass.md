@@ -130,18 +130,22 @@ global_weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingE
 
 ### Standard constructions
 
+We provide convenient constructions of global Weierstrass models
+over famous base spaces. Currently, we support the following:
+```@docs
+global_weierstrass_model_over_projective_space(d::Int)
+global_weierstrass_model_over_hirzebruch_surface(r::Int)
+global_weierstrass_model_over_del_pezzo_surface(b::Int)
+```
+
+
+### Literature models
+
 Certain Weierstrass models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We aim
 to provide support for such standard constructions. Currently, we provide support for the following:
 ```@docs
 su5_weierstrass_model_over_arbitrary_3d_base()
-```
-In addition, we should of course also provide convenient constructions of global Weierstrass
-models over famous base spaces. Currently, we support the following:
-```@docs
-global_weierstrass_model_over_projective_space(d::Int)
-global_weierstrass_model_over_hirzebruch_surface(r::Int)
-global_weierstrass_model_over_del_pezzo_surface(b::Int)
 ```
 
 
@@ -179,15 +183,15 @@ More background information is available
 
 The following attributes are currently only supported in a toric setting:
 ```@docs
-calabi_yau_hypersurface(t::GlobalWeierstrassModel)
+calabi_yau_hypersurface(w::GlobalWeierstrassModel)
 ```
 Note that for applications in F-theory, *singular* elliptic fibrations are key
 (cf. [Wei18](@cite) and references therein). Consequently the discriminant
 locus as well as the singular loci of the fibration in question are of ample
 importance:
 ```@docs
-discriminant(t::GlobalWeierstrassModel)
-singular_loci(t::GlobalWeierstrassModel)
+discriminant(w::GlobalWeierstrassModel)
+singular_loci(w::GlobalWeierstrassModel)
 ```
 
 ## Methods

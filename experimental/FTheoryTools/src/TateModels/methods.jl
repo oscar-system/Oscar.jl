@@ -68,4 +68,126 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   end
   
   return loci_fiber_intersections
+
+end
+
+
+#####################################################
+# 2: Adjust the description for the global Tate model
+#####################################################
+
+@doc raw"""
+    set_description(t::GlobalTateModel, description::String)
+
+Set a description for a global Tate model.
+
+```jldoctest
+julia> t = literature_tate_model("1109.3454", "3.5")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+
+julia> set_description(t, "An SU(5)xU(1) GUT-model")
+
+julia> t
+Global Tate model over a not fully specified base -- An SU(5)xU(1) GUT-model based on arxiv paper 1109.3454 (equ. 3.5)
+```
+"""
+function set_description(t::GlobalTateModel, description::String)
+  set_attribute!(t, :description => description)
+end
+
+
+#####################################################
+# 3: Add a resolution
+#####################################################
+
+@doc raw"""
+    add_resolution(t::GlobalTateModel, resolution::Vector{Vector{String}})
+
+Set a description for a global Tate model.
+
+```jldoctest
+julia> t = literature_tate_model("1109.3454", "3.5")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+
+julia> add_resolution(t, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"], ["s", "w", "e3", "e1", "e2"]])
+
+julia> length(resolutions(t))
+2
+```
+"""
+function add_resolution(t::GlobalTateModel, resolution::Vector{Vector{String}})
+  if has_attribute(t, :resolutions)
+    known_resolutions = resolutions(t)
+    if (resolution in known_resolutions) == false
+      push!(known_resolutions, resolution)
+      set_attribute!(t, :resolutions => known_resolutions)
+    end
+  else
+    set_attribute!(t, :resolutions => [resolution])
+  end
+end
+
+
+#####################################################
+# 4: Resolve a model with a known resolution
+#####################################################
+
+@doc raw"""
+    resolve(t::GlobalTateModel, index::Int)
+
+Resolve a global Tate model with the index-th resolution that is known.
+
+Careful: Currently, this assumes that all blowups are toric blowups.
+We hope to remove this requirement in the near future.
+
+```jldoctest
+julia> t = literature_tate_model("1109.3454", "3.5")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+
+julia> v = resolve(t, 1)
+Normal toric variety
+
+julia> cox_ring(v)
+Multivariate Polynomial Ring in 14 variables a10, a21, a32, a43, ..., s over Rational Field graded by 
+  a10 -> [0 0 0 0 0 0]
+  a21 -> [0 0 0 0 0 0]
+  a32 -> [0 0 0 0 0 0]
+  a43 -> [0 0 0 0 0 0]
+  a65 -> [0 0 0 0 0 0]
+  w -> [1 0 0 0 0 0]
+  x -> [0 1 0 0 0 0]
+  y -> [0 0 1 0 0 0]
+  z -> [0 0 0 1 0 0]
+  e1 -> [0 0 0 0 1 0]
+  e4 -> [0 0 0 0 0 1]
+  e2 -> [-1 -1 1 -1 -1 0]
+  e3 -> [0 1 -1 1 0 -1]
+  s -> [2 -1 0 2 1 1]
+```
+"""
+function resolve(t::GlobalTateModel, index::Int)
+  @req has_attribute(t, :resolutions) "No resolutions known for this model"
+  @req index > 0 "The resolution must be specified by a non-negative integer"
+  @req index < length(resolutions(t)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
+  
+  # Gather information for resolution
+  resolution = resolutions(t)[index]
+  nr_blowups = length(resolution)-1
+  
+  # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
+  function string_to_poly(R, s::String)
+    evaluate(eval(Meta.parse("_, ($(join(symbols(R), ','))) = PolynomialRing(ZZ, $(ngens(R)), cached = false);"*s)), gens(R));
+  end
+  resolved_ambient_space = toric_ambient_space(t)
+  R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], resolution[nr_blowups+1]))
+  for k in 1:nr_blowups
+    @req all(x -> x in gR, [string_to_poly(R, p) for p in resolution[k]]) "Blowup currently not supported"
+  end
+  
+  # Perform resolution
+  for k in 1:nr_blowups
+    S = cox_ring(resolved_ambient_space)
+    resolved_ambient_space = blow_up(resolved_ambient_space, ideal([string_to_poly(S, g) for g in resolution[k]]); coordinate_name = resolution[nr_blowups + 1][k], set_attributes = true)
+  end
+  return resolved_ambient_space
 end
