@@ -124,6 +124,8 @@ maximal_cones(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{Con
 
 _ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
+_incidencematrix(::Val{_maximal_cone}) = _ray_indices
+
 @doc raw"""
     cones(PF::PolyhedralFan, cone_dim::Int)
 
