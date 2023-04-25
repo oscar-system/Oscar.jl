@@ -1,5 +1,5 @@
 @doc raw"""
-    base_fully_specified(t::GlobalWeierstrassModel)
+    base_fully_specified(w::GlobalWeierstrassModel)
 
 Return `true` is the Weierstrass model has a concrete base space and `false` otherwise.
 
