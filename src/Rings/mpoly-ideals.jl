@@ -56,7 +56,9 @@ function ideal(g::Vector{T}) where {T <: MPolyRingElem}
   return ideal(parent(g[1]), g)
 end
 
-
+function is_graded(I::MPolyIdeal)
+  return is_graded(Hecke.ring(I))
+end
 
 # elementary operations #######################################################
 @doc raw"""

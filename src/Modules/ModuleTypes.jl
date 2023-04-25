@@ -72,6 +72,7 @@ option is set in suitable functions.
   R::Ring
   n::Int
   S::Vector{Symbol}
+  d::Union{Vector{GrpAbFinGenElem}, Nothing}
 
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
@@ -81,6 +82,7 @@ option is set in suitable functions.
     r.n = n
     r.R = R
     r.S = S
+    r.d = nothing
 
     r.incoming_morphisms = Vector{ModuleFPHom}()
     r.outgoing_morphisms = Vector{ModuleFPHom}()
@@ -116,13 +118,14 @@ julia> f == g
 true
 ```
 """
-struct FreeModElem{T} <: AbstractFreeModElem{T}
+mutable struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
+  d::Union{GrpAbFinGenElem, Nothing}
 
   function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
-    r = new{T}(coords,parent)
-    return r
+      r = new{T}(coords, parent, nothing)
+      return r
   end
 end
 
@@ -195,6 +198,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   default_ordering::ModuleOrdering
   matrix::MatElem
+  is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
@@ -323,6 +327,7 @@ mutable struct SubQuoHom{
   im::Vector
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
+  d::GrpAbFinGenElem
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
@@ -334,7 +339,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{FreeModElem}(im)
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
@@ -346,7 +351,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{SubquoModuleElem}(im)
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
@@ -358,7 +363,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = im
-    return r
+    return set_grading(r)
   end
 
   # Constructors for maps with change of base ring
@@ -377,7 +382,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{FreeModElem}(im)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -395,7 +400,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{SubquoModuleElem}(im)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -413,7 +418,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = im
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
 end
@@ -494,6 +499,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
   header::MapHeader
   ring_map::RingMapType
+  d::GrpAbFinGenElem
   
   matrix::MatElem
   inverse_isomorphism::ModuleFPHom
@@ -519,7 +525,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
-    return r
+    return set_grading(r)
   end
 
   function FreeModuleHom(
@@ -544,7 +550,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
 end
@@ -676,4 +682,13 @@ function Base.show(io::IO, FR::FreeResolution)
             continue
         end
     end
+end
+
+mutable struct BettiTable
+  B::Dict{Tuple{Int, Any}, Int}
+  project::Union{GrpAbFinGenElem, Nothing}
+  reverse_direction::Bool
+  function BettiTable(B::Dict{Tuple{Int, Any}, Int}; project::Union{GrpAbFinGenElem, Nothing}=nothing, reverse_direction::Bool=false)
+      return new(B, project, reverse_direction)
+  end
 end

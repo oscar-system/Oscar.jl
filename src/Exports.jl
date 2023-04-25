@@ -35,6 +35,7 @@ export affine_algebraic_set
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BorcherdsCtx
+export BettiTable
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
@@ -265,8 +266,10 @@ export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
 export bell
+export betti
 export betti_number
 export betti_numbers
+export betti_table
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
@@ -295,6 +298,7 @@ export cellular_primary_decomposition
 export center, has_center, set_center
 export centralizer
 export chain_complex
+export chain_range
 export chamber
 export character_field
 export character_lattice
@@ -408,6 +412,7 @@ export default_ordering
 export defines_automorphism
 export deglex
 export degree
+export degrees_of_generators
 export degrevlex
 export dehomogenization
 export dehomogenization_map
@@ -425,6 +430,7 @@ export describe
 export desimulate_valuation
 export det
 export diameter
+export as_dictionary
 export dihedral_group
 export dim
 export dim_of_torusfactor
@@ -448,6 +454,7 @@ export domain_covering
 export domain_type
 export double_coset
 export double_cosets
+export double_dual
 export dst
 export dual_cone
 export dual_continued_fraction_hirzebruch_jung
@@ -545,6 +552,10 @@ export glueing_graph
 export glueing_morphisms
 export glueings
 export grade
+export graded_cokernel
+export graded_free_module
+export graded_image
+export graded_map
 export graded_polynomial_ring
 export grading
 export grading_group
@@ -629,6 +640,7 @@ export induced_automorphism
 export induce
 export induced_cyclic
 export induced_ring_ordering
+export induce_shift
 export initial
 export inneighbors
 export inner_automorphism
@@ -875,6 +887,7 @@ export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divi
 export map_from_torusinvariant_weil_divisor_group_to_class_group
 export map_gens_of_chow_ring_to_cox_ring
 export map_on_affine_cones
+export map_range
 export map_word
 export maps_on_patches
 export mat_elem_type
@@ -1152,6 +1165,7 @@ export restriction
 export restriction_map
 export restrictions
 export reverse
+export reverse_direction!
 export revlex
 export revlex_basis_encoding
 export reynolds_operator
@@ -1187,6 +1201,8 @@ export set_commutator!
 export set_conjugate!
 export set_coordinate_names
 export set_coordinate_names_of_torus
+export set_degrees
+export set_grading
 export set_name!
 export set_power!
 export set_relative_order!
