@@ -3,26 +3,26 @@
 ################################################
 
 @attributes mutable struct GlobalTateModel
-    a1::MPolyRingElem{QQFieldElem}
-    a2::MPolyRingElem{QQFieldElem}
-    a3::MPolyRingElem{QQFieldElem}
-    a4::MPolyRingElem{QQFieldElem}
-    a6::MPolyRingElem{QQFieldElem}
-    pt::MPolyRingElem{QQFieldElem}
-    toric_base_space::AbstractNormalToricVariety
-    toric_ambient_space::AbstractNormalToricVariety
-    calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
-    function GlobalTateModel(a1::MPolyRingElem{QQFieldElem},
-                            a2::MPolyRingElem{QQFieldElem},
-                            a3::MPolyRingElem{QQFieldElem},
-                            a4::MPolyRingElem{QQFieldElem},
-                            a6::MPolyRingElem{QQFieldElem},
-                            pt::MPolyRingElem{QQFieldElem},
-                            toric_base_space::AbstractNormalToricVariety,
-                            toric_ambient_space::AbstractNormalToricVariety,
-                            calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-        return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
-    end
+  a1::MPolyRingElem{QQFieldElem}
+  a2::MPolyRingElem{QQFieldElem}
+  a3::MPolyRingElem{QQFieldElem}
+  a4::MPolyRingElem{QQFieldElem}
+  a6::MPolyRingElem{QQFieldElem}
+  pt::MPolyRingElem{QQFieldElem}
+  toric_base_space::AbstractNormalToricVariety
+  toric_ambient_space::AbstractNormalToricVariety
+  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
+  function GlobalTateModel(a1::MPolyRingElem{QQFieldElem},
+                          a2::MPolyRingElem{QQFieldElem},
+                          a3::MPolyRingElem{QQFieldElem},
+                          a4::MPolyRingElem{QQFieldElem},
+                          a6::MPolyRingElem{QQFieldElem},
+                          pt::MPolyRingElem{QQFieldElem},
+                          toric_base_space::AbstractNormalToricVariety,
+                          toric_ambient_space::AbstractNormalToricVariety,
+                          calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
+    return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
+  end
 end
 
 
@@ -46,13 +46,13 @@ false
 ```
 """
 function global_tate_model(base::AbstractNormalToricVariety)
-    toric_ambient_space = _ambient_space_from_base(base)
-    (a1, a2, a3, a4, a6) = _tate_sections(base)
-    pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(toric_ambient_space))
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
-    model = GlobalTateModel(a1, a2, a3, a4, a6, pt, base, toric_ambient_space, calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, true)
-    return model
+  toric_ambient_space = _ambient_space_from_base(base)
+  (a1, a2, a3, a4, a6) = _tate_sections(base)
+  pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(toric_ambient_space))
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
+  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, base, toric_ambient_space, calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, true)
+  return model
 end
 
 
@@ -99,14 +99,14 @@ false
 ```
 """
 function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
-    @req length(ais) == 5 "We require exactly 5 Tate sections"
-    @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
-    toric_ambient_space = _ambient_space_from_base(base)
-    pt = _tate_polynomial(ais, cox_ring(toric_ambient_space))
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
-    model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, toric_ambient_space, calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, true)
-    return model
+  @req length(ais) == 5 "We require exactly 5 Tate sections"
+  @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
+  toric_ambient_space = _ambient_space_from_base(base)
+  pt = _tate_polynomial(ais, cox_ring(toric_ambient_space))
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
+  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, toric_ambient_space, calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, true)
+  return model
 end
 
 
@@ -153,24 +153,24 @@ julia> dim(toric_ambient_space(t))
 ```
 """
 function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
-    @req length(ais) == 5 "We expect exactly 5 Tate sections"
-    @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
-    @req d > 0 "The dimension of the base space must be positive"
-    @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
-
-    # convert Tate sections into polynomials of the auxiliary base
-    auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
-    S = cox_ring(auxiliary_base_space)
-    ring_map = hom(auxiliary_base_ring, S, gens(S))
-    (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
-
-    # construct model
-    auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
-    pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(auxiliary_ambient_space, [pt])
-    model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space, calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, false)
-    return model
+  @req length(ais) == 5 "We expect exactly 5 Tate sections"
+  @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
+  @req d > 0 "The dimension of the base space must be positive"
+  @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
+  
+  # convert Tate sections into polynomials of the auxiliary base
+  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
+  S = cox_ring(auxiliary_base_space)
+  ring_map = hom(auxiliary_base_ring, S, gens(S))
+  (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
+  
+  # construct model
+  auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
+  pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(auxiliary_ambient_space, [pt])
+  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space, calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, false)
+  return model
 end
 
 
@@ -179,9 +179,9 @@ end
 ################################################
 
 function Base.show(io::IO, t::GlobalTateModel)
-    if base_fully_specified(t)
-        print(io, "Global Tate model over a concrete base")
-    else
-        print(io, "Global Tate model over a not fully specified base")
-    end
+  if base_fully_specified(t)
+    print(io, "Global Tate model over a concrete base")
+  else
+    print(io, "Global Tate model over a not fully specified base")
+  end
 end
