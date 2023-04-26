@@ -1087,6 +1087,28 @@ end
 
 #######################################################
 @doc raw"""
+    coefficient_ring(I::MPolyIdeal)
+
+Return the coefficient ring of `I`, which is the coefficient ring of the
+polynomial ring containing the ideal.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+
+julia> I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia> coefficient_ring(I)
+Rational Field
+```
+"""
+coefficient_ring(I::MPolyIdeal) = coefficient_ring(base_ring(I))
+
+
+#######################################################
+@doc raw"""
     ngens(I::MPolyIdeal)
 
 Return the number of generators of `I`.
