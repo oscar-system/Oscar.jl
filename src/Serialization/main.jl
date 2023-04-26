@@ -133,6 +133,8 @@ function has_elem_basic_encoding(obj::T) where T <: Ring
         return absolute_degree(obj) == 1
     elseif obj isa Nemo.zzModRing
         return true
+    elseif obj isa Nemo.fpField
+        return true
     end
     return is_basic_serialization_type(elem_type(obj))
 end
