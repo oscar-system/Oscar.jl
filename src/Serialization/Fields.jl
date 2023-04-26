@@ -5,7 +5,7 @@
 ################################################################################
 # non-ZZRingElem variant
 @registerSerializationType(Nemo.fpFieldElem)
-@registerSerializationType(Nemo.fpField, true)
+@registerSerializationType(Nemo.fpField)
 
 function save_internal(s::SerializerState, F::Nemo.fpField)
     return Dict(
@@ -19,10 +19,7 @@ end
 
 # elements
 function save_internal(s::SerializerState, elem::fpFieldElem)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(elem)),
-        :data => Nemo.data(elem)
-    )
+    return string(elem)
 end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
@@ -120,9 +117,12 @@ end
 function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
+    poly_dict = save_type_dispatch(s, polynomial)[:data]
+    parents = poly_dict[:parents]
+    push!(parents, save_as_ref(s, K))
     return Dict(
-        :parent => save_as_ref(s, K),
-        :terms => save_type_dispatch(s, polynomial)[:data][:terms]
+        :parents => parents,
+        :terms => poly_dict[:terms]
     )
 end
 
@@ -168,7 +168,7 @@ function load_internal(s::DeserializerState,
         return Hecke.Nemo._FiniteField(order)[1]
     end
     def_pol = load_unknown_type(s, dict[:def_pol])
-    Hecke.Nemo._FiniteField(def_pol, cached=false)[1]
+    return Hecke.Nemo._FiniteField(def_pol, cached=false)[1]
 end
 
 # elements
@@ -178,10 +178,14 @@ function save_internal(s::SerializerState, k::FqFieldElem)
         return string(lift(ZZ, k))
     end
 
-    polynomial = lift(ZZ["x"][1], k)
+    polynomial = parent(defining_polynomial(K))(lift(ZZ["x"][1], k))
+    encoded_polynomial = save_type_dispatch(s, polynomial)[:data]
+    parents = encoded_polynomial[:parents]
+    push!(parents, save_as_ref(s, K))
+    
     return Dict(
-        :parent => save_as_ref(s, K),
-        :terms => save_type_dispatch(s, polynomial)[:data][:terms]
+        :parents => parents,
+        :terms => encoded_polynomial[:terms]
     )
 end
 
@@ -199,17 +203,10 @@ end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: FqFieldElem},
-                                   dict::Dict,
+                                   str::String,
                                    parent_field::FqField)
-    if absolute_degree(parent_field) == 1
-        polynomial = load_type_dispatch(s, ZZRingElem, dict[:polynomial])
-    else
-        polynomial_parent = parent(defining_polynomial(parent_field))
-        polynomial = load_type_dispatch(s, PolyRingElem, dict[:polynomial];
-                                        parent=polynomial_parent)
-        println(polynomial)
-    end
-    return parent_field(polynomial)
+    @assert absolute_degree(parent_field) == 1
+    return parent_field(ZZ(str))
 end
 
 
