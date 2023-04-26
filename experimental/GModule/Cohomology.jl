@@ -381,6 +381,7 @@ end
 
 export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
        action, cohomology_group, extension, pc_group
+       induce, permutation_group
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -403,6 +404,12 @@ function fp_group(g::Vector{<:Oscar.GAPGroupElem})
   X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
   F = FPGroup(GAPWrap.Range(X))
   return F, GAPGroupHomomorphism(F, G, GAP.Globals.InverseGeneralMapping(X))
+end
+
+function permutation_group(G::Oscar.GAPGroup)
+  X = GAP.Globals.IsomorphismPermGroup(G.X)
+  P = PermGroup(GAP.Globals.Range(X))
+  return P, GAPGroupHomomorphism(P, G, GAP.Globals.InverseGeneralMapping(X))
 end
 
 """
@@ -552,8 +559,11 @@ function H_zero(C::GModule)
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
   end
-  #this is fix, now it "should" be mod by norm?
-  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
+  fl, inj = is_subgroup(k, M)
+  @assert fl
+
+  #this is fix, now it "should" be mod by norm? Only for Tate, see below
+  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => inj(x))), y->preimage(inj, y()), k, AllCoChains{0,elem_type(G),elem_type(M)}())
   set_attribute!(C, :H_zero => z)
   return k, z
 end
@@ -578,8 +588,9 @@ function H_zero_tate(C::GModule)
   i = image(N)[1]
   fl, inj = is_subgroup(i, k)
   q, mq = quo(k, image(inj)[1])
+  fl, Inj = is_subgroup(k, M)
 
-  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), q, AllCoChains{0,elem_type(G),elem_type(M)}())
+  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => Inj(preimage(mq, x)))), y->mq(preimage(Inj, y())), q, AllCoChains{0,elem_type(G),elem_type(M)}())
   set_attribute!(C, :H_zero_tate => z)
 
   if isfinite(G) && isa(q, GrpAbFinGen)
@@ -1872,5 +1883,6 @@ end #module
 
 using .GrpCoh
 
-export gmodule, GModule, fp_group, pc_group, induce, cohomology_group
+export gmodule, GModule, fp_group, pc_group, induce, cohomology_group,
+       permutation_group
 
