@@ -110,7 +110,7 @@ end
 #####################################################
 
 @doc raw"""
-    cy_hypersurface(w::GlobalWeierstrassModel)
+    calabi_yau_hypersurface(w::GlobalWeierstrassModel)
 
 Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Weierstrass model.
@@ -121,13 +121,13 @@ julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 
-julia> cy_hypersurface(w)
+julia> calabi_yau_hypersurface(w)
 Closed subvariety of a normal toric variety
 ```
 """
-@attr ClosedSubvarietyOfToricVariety function cy_hypersurface(w::GlobalWeierstrassModel)
+@attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::GlobalWeierstrassModel)
     base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-    return w.Y4
+    return w.calabi_yau_hypersurface
 end
 
 

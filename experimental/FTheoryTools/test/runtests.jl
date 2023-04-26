@@ -71,7 +71,7 @@ Base.show(w)
     @test dim(toric_base_space(w)) == 3
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false
-    @test toric_variety(cy_hypersurface(w)) == toric_ambient_space(w)
+    @test toric_variety(calabi_yau_hypersurface(w)) == toric_ambient_space(w)
 end
 
 @testset "Error messages in global Weierstrass models over concrete base spaces" begin
@@ -94,7 +94,7 @@ w2 = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
     @test dim(toric_base_space(w2)) == 3
     @test dim(toric_ambient_space(w2)) == 5
     @test is_smooth(toric_ambient_space(w2)) == false
-    @test toric_variety(cy_hypersurface(w2)) == toric_ambient_space(w2)
+    @test toric_variety(calabi_yau_hypersurface(w2)) == toric_ambient_space(w2)
     @test length(singular_loci(w2)) == 1
 end
 
@@ -125,7 +125,7 @@ Base.show(t)
     @test base_fully_specified(t) == true
     @test base_fully_specified(t) == base_fully_specified(global_weierstrass_model(t))
     @test is_smooth(toric_ambient_space(t)) == false
-    @test toric_variety(cy_hypersurface(t)) == toric_ambient_space(t)
+    @test toric_variety(calabi_yau_hypersurface(t)) == toric_ambient_space(t)
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
@@ -151,7 +151,7 @@ end
     @test base_fully_specified(t_i5_s) == false
     @test base_fully_specified(t_i5_s) == base_fully_specified(global_weierstrass_model(t_i5_s))
     @test is_smooth(toric_ambient_space(t_i5_s)) == false
-    @test toric_variety(cy_hypersurface(t_i5_s)) == toric_ambient_space(t_i5_s)
+    @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == toric_ambient_space(t_i5_s)
 end
 
 @testset "Error messages in global Tate models over generic base space" begin
