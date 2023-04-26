@@ -221,14 +221,17 @@ end
   For a real or complex embedding `emb`, find the unique automorphism
   that acts on this embedding as complex conjugation.
 """
-function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(K)[2])
+function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, K)[2])
   G = domain(mG)
   if is_real(emb)
     return sub(G, [one(G)])[2]
   end
   g = gen(K)
   lG = [g for g  = G]
-  l = findall(x->overlaps(conj(emb(g)), emb(mG(x)(g))), lG)
+  @show l = findall(x->overlaps(conj(emb(g)), emb(mG(x)(g))), lG)
+  if length(l) == 0
+    return sub(G, [one(G)])[2]
+  end
   @assert length(l) == 1
   sigma = lG[l[1]]
   return sub(G, [sigma])[2]
@@ -912,13 +915,16 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
   k = number_field(emb)
   _m = decomposition_group(k, emb, mG)
 
+  Q = Hecke.QmodnZ()
   Gp = domain(_m)
+  if order(Gp) == 1
+    return [Q(0) for i = CC]
+  end
 #  @show [collect(values(x.d)) for x = CC]
   g = _m(gens(Gp)[1])
   @assert order(Gp) == 2 && order(g) == 2
 
 
-  Q = Hecke.QmodnZ()
   r = elem_type(Q)[]
   for C = CC
     x = C(g, g)
@@ -931,6 +937,34 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
     end
   end
   return r
+end
+
+function cyclic_generator(G::Oscar.GAPGroup)
+  while true
+    g = rand(G)
+    order(g) == order(G) && return g
+  end
+end
+
+function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NfToNfMor)
+  @assert domain(ml) == domain(mkK)
+  @assert domain(mL) == codomain(mkK)
+  l = codomain(ml)
+  L = codomain(mL)
+  im_data = mL(mkK(preimage(ml, gen(l))))
+  #CompletionMap is always Eisenstein/Unram
+  #so need embedding of the unram parts:
+  bl = base_field(l)
+  bL = base_field(L)
+  @assert isa(bl, FlintQadicField)
+  @assert isa(bL, FlintQadicField)
+  @assert degree(bL) % degree(bl) == 0
+  rL, mrL = residue_field(bL)
+  rl, mrl = residue_field(bl)
+  rt = coeff(mL(mkK(preimage(ml, l(preimage(mrl, gen(rl)))))), 0)
+  f = map_coefficients(x->preimage(mrL, rL(x)), defining_polynomial(rl))
+  rt = Hecke.refine_roots1(f, [rt])[1]
+  return hom(l, L, hom(bl, bL, rt), im_data)
 end
 
 function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}}}, P::NfOrdIdl, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; B::Any = nothing, index_only::Bool = false)
@@ -977,8 +1011,29 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
       @assert B === nothing
       cn = ZZRingElem(1)
     else
-      s = Hecke.Hecke.local_fundamental_class_serre(L, prime_field(L))
-      can = CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
+      pp = minimum(B.mkK, P)   
+      if is_cyclic(domain(_m)) &&
+         ramification_index(pp) == ramification_index(P)
+
+        Gp = domain(_m)
+        #need THE Frobenius
+        k, mk = residue_field(L)
+        gk = gen(k)
+        im_gk = gk^norm(pp)
+        fr = [x for x = Gp if mk(mGp(_m(x))(preimage(mk, gk))) == im_gk]
+        @assert length(fr) == 1
+        g = fr[1]
+        #and a uniformizer of the small field.
+        x = preimage(mU, mL(B.mkK(B.k(uniformizer(pp)))))
+        #should be a non-norm...
+        can = CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((g^i, g^j) => i+j<order(q) ? zero(parent(x)) : x for i=0:order(q)-1 for j=0:order(q)-1))
+      else
+        l, ml = completion(B.k, pp)
+        mlL = induce_hom(ml, mL, B.mkK)
+        @show :serre, minimum(P)
+        @time s = Hecke.Hecke.local_fundamental_class_serre(mlL)
+        can = CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
+      end
       @assert Oscar.GrpCoh.istwo_cocycle(can)
 
       cn = preimage(mq, preimage(c[2], can))[1]
