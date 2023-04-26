@@ -1,1 +1,0 @@
-include("IntersectionTheory/IntersectionTheory.jl")
