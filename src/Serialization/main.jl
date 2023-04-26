@@ -187,7 +187,6 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
             return Dict{Symbol, Any}(
               :type => backref_sym,
               :id => string(ref),
-              :version => 1, # ???
               )
         end
         # otherwise,
@@ -218,10 +217,10 @@ end
 
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
-    @assert is_basic_serialization_type(T) 
-    if parent !== nothing
+    if parent !== nothing && has_elem_basic_encoding(parent)
         load_internal_with_parent(s, T, str, parent)
     end
+    # re add assertion
     return load_internal(s, T, str)
 end
 

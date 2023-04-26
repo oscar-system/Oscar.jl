@@ -6,7 +6,6 @@
 ################################################################################
 #  non simpleton base rings
 @registerSerializationType(Nemo.zzModRing,
-                           true,
                            "Nemo.zzModRing")
 
 function save_internal(s::SerializerState, R::Nemo.zzModRing)
@@ -24,10 +23,7 @@ end
 @registerSerializationType(zzModRingElem)
 
 function save_internal(s::SerializerState, r::zzModRingElem)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :class_val => save_type_dispatch(s, ZZRingElem(r))
-    )
+    return string(r)
 end
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
@@ -38,10 +34,9 @@ end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{zzModRingElem},
-                                   dict::Dict,
+                                   str::String,
                                    parent_ring::Nemo.zzModRing)
-    class_val = load_type_dispatch(s, ZZRingElem, dict[:class_val])
-    return parent_ring(class_val)
+    return parent_ring(ZZRingElem(str))
 end
 
 
@@ -53,9 +48,16 @@ end
 @registerSerializationType(UniversalPolyRing, true)
 
 function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing})
+    base = base_ring(R)
+
+    if has_elem_basic_encoding(base)
+        base_dict = save_type_dispatch(s, base)
+    else
+        base_dict = save_as_ref(s, base)
+    end
     return Dict(
         :symbols => save_type_dispatch(s, symbols(R)),
-        :base_ring => save_as_ref(s, base_ring(R)),
+        :base_ring => base_dict,
     )
 end
 
@@ -184,8 +186,9 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector)
         exponent += 1
         if length(parents) == 1
             coeff_type = elem_type(base)
-            if is_basic_serialization_type(coeff_type)
-                loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff)
+            if has_elem_basic_encoding(base)
+                loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+                                                            parent=base)
             else
                 loaded_terms[exponent] = base(coeff)
             end
@@ -207,6 +210,7 @@ function load_internal(s::DeserializerState, ::Type{<: PolyRingElem}, dict::Dict
             parent_dict = dict[Symbol(id)]
             parent_dict[:id] = id
             loaded_parent = load_unknown_type(s, parent_dict)
+            println(id, s.objs[UUID(id)])
         end            
         push!(loaded_parents, loaded_parent)
     end
