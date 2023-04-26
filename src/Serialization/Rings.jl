@@ -173,8 +173,7 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector)
     degree = max(map(x->x[1] + 1, terms)...)
 
     if parent isa Field
-        
-        return load_terms(s, parents[1:end - 1], terms)
+        return parent(load_terms(s, parents[1:end - 1], terms))
     end
     base = base_ring(parent)
     loaded_terms = zeros(base, degree)
