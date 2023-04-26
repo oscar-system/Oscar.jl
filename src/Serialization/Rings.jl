@@ -171,6 +171,11 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector)
     parent = parents[end]
     # shift so constant starts at 1
     degree = max(map(x->x[1] + 1, terms)...)
+
+    if parent isa Field
+        
+        return load_terms(s, parents[1:end - 1], terms)
+    end
     base = base_ring(parent)
     loaded_terms = zeros(base, degree)
 
@@ -197,9 +202,14 @@ function load_internal(s::DeserializerState, ::Type{<: PolyRingElem}, dict::Dict
     loaded_parents = []
     
     for id in parent_ids
-        parent_dict = dict[Symbol(id)]
-        parent_dict[:id] = id
-        push!(loaded_parents, load_unknown_type(s, parent_dict))
+        if haskey(s.objs, UUID(id))
+            loaded_parent = s.objs[UUID(id)]
+        else
+            parent_dict = dict[Symbol(id)]
+            parent_dict[:id] = id
+            loaded_parent = load_unknown_type(s, parent_dict)
+        end            
+        push!(loaded_parents, loaded_parent)
     end
 
     return load_terms(s, loaded_parents, dict[:terms])
