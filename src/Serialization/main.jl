@@ -218,9 +218,9 @@ end
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
     if parent !== nothing && has_elem_basic_encoding(parent)
-        load_internal_with_parent(s, T, str, parent)
+        return load_internal_with_parent(s, T, str, parent)
     end
-    # re add assertion
+    @assert is_basic_serialization_type(T)
     return load_internal(s, T, str)
 end
 
