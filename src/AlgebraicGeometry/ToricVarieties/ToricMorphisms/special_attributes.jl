@@ -1,7 +1,7 @@
 @doc raw"""
     morphism_from_cox_variety(variety::AbstractNormalToricVariety)
 
-This method returns the quotient morphism from the Cox variety to the toric variety in question.
+Return the quotient morphism from the Cox variety to the toric variety in question.
 
 # Examples
 ```jldoctest
@@ -24,7 +24,7 @@ end
 @doc raw"""
     cox_variety(variety::AbstractNormalToricVariety)
 
-This method returns the Cox variety of the toric variety in question.
+Return the Cox variety of the toric variety in question.
 
 # Examples
 ```jldoctest

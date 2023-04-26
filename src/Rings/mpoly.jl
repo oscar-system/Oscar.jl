@@ -724,7 +724,7 @@ end
 @doc raw"""
     jacobi_matrix(f::MPolyRingElem)
 
-Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
+Given a polynomial $f$, return the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyRingElem)
   R = parent(f)
@@ -735,7 +735,7 @@ end
 @doc raw"""
     jacobi_ideal(f::MPolyRingElem)
 
-Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
+Given a polynomial $f$, return the Jacobian ideal of $f$.
 """
 function jacobi_ideal(f::MPolyRingElem)
   R = parent(f)
@@ -747,7 +747,7 @@ end
     jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
-this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
+return the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Vector{<:MPolyRingElem})
   @req length(g) > 0 "specify the common parent as first argument"

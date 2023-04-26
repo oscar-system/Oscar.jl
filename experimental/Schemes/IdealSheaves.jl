@@ -272,7 +272,7 @@ end
 @doc """
     subscheme(I::IdealSheaf) 
 
-For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
+For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` return
 the subscheme ``Y ⊂ X`` given by the zero locus of ``ℐ``.
 """
 function subscheme(I::IdealSheaf) 
@@ -572,7 +572,7 @@ end
 @doc raw"""
     maximal_associated_points(I::IdealSheaf)
 
-Returns a `Vector` of `IdealSheaf`s corresponding to the non-embedded associated points of ``I`` on ``scheme(I)``.
+Return a `Vector` of `IdealSheaf`s corresponding to the non-embedded associated points of ``I`` on ``scheme(I)``.
 
 Note:
 For usability reasons these associated points are not encoded as a subscheme, but as the corresponding ideal sheaf defining the subscheme.
@@ -635,7 +635,7 @@ end
 @doc raw"""
     associated_points(I::IdealSheaf)
 
-Returns a `Vector` of `IdealSheaf`s corresponding to the associated points of ``I`` on ``scheme(I)``.
+Return a `Vector` of `IdealSheaf`s corresponding to the associated points of ``I`` on ``scheme(I)``.
 
 Note:
 For usability reasons an associated point is not encoded as subscheme, but as the corresponding ideal sheaf defining the subscheme.

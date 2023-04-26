@@ -1,6 +1,3 @@
-
-
-
 ####################################################################################
 # (1) Check if a scheme is empty
 ####################################################################################
@@ -8,8 +5,7 @@
 @doc raw"""
     is_empty(X::AbsSpec)
 
-This method returns `true` if the affine scheme ``X`` is empty.
-Otherwise, `false` is returned.
+Check whether the affine scheme ``X`` is empty.
 
 # Examples
 ```jldoctest
@@ -44,7 +40,7 @@ is_empty(X::EmptyScheme) = true
 @doc raw"""
     is_subset(X::AbsSpec, Y::AbsSpec)
 
-Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
+Check whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding morphism.
 
 # Examples
@@ -510,7 +506,7 @@ end
 @doc raw"""
    is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
 
-Return whether a scheme `X` is equidimensional.
+Check whether the scheme `X` is equidimensional.
 
 Currently this command is available for affine schemes and space germs.
 
@@ -561,8 +557,7 @@ end
 @doc raw"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Return the boolean value whether an affine scheme `X` is reduced.
-
+Check whether the affine scheme `X` is reduced.
 """
 @attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
@@ -597,7 +592,7 @@ end
 @doc raw"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Return whether a scheme `X` is smooth.
+Check whether the scheme `X` is smooth.
 
 Note that smoothness and regularity do not coincide over non-perfect fields. 
 Smoothness implies regularity, but regular non-smooth schemes exist.
@@ -677,7 +672,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 @doc raw"""
    is_irreducible(X::AbsSpec)
 
-Return whether the affine scheme `X` is irreducible.
+Check whether the affine scheme `X` is irreducible.
 
 !!! note
     Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
@@ -693,8 +688,7 @@ end
 @doc raw"""
    is_integral(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
-
+Check whether the affine scheme `X` is integral, i.e. irreducible and reduced.
 """
 @attr Bool function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
@@ -707,7 +701,7 @@ end
 @doc raw"""
     is_geometrically_integral(X::AbsSpec)
 
-Return if ``X/k`` is geometrically integral.
+Test if ``X/k`` is geometrically integral.
 
 That is if ``X`` is integral when base changed to any field extension of ``k``.
 """
@@ -730,8 +724,7 @@ end
 @doc raw"""
    is_connected(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is connected.
-
+Check whether the affine scheme `X` is connected.
 """
 @attr Bool function is_connected(X::AbsSpec)
   error("not implemented yet")

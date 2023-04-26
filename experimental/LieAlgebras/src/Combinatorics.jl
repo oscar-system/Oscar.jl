@@ -9,7 +9,7 @@ end
 @doc raw"""
     combinations(v::AbstractVector{T}, k::Integer) where {T}
 
-Returns an iterator over all combinations of `k` elements of `v`.
+Return an iterator over all combinations of `k` elements of `v`.
 In each iteration, the elements are returned in the order they appear in `v`.
 The order of the combinations is lexicographic.
 
@@ -41,7 +41,7 @@ end
 @doc raw"""
     multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 
-Returns an iterator over all combinations of `k` elements of `v` with repetitions.
+Return an iterator over all combinations of `k` elements of `v` with repetitions.
 In each iteration, the elements are returned in the order they appear in `v`.
 The order of the combinations is lexicographic.
 
@@ -72,7 +72,7 @@ end
 @doc raw"""
     permutations(v::AbstractVector{T}) where {T}
 
-Returns an iterator over all permutations of `v`.
+Return an iterator over all permutations of `v`.
 There is no guarantee on the order of the permutations.
 
 ```jldoctest; setup = :(using Oscar.LieAlgebras)
@@ -98,7 +98,7 @@ end
 @doc raw"""
     permutations_with_sign(v::AbstractVector{T}) where {T}
 
-Returns an iterator over all permutations of `v` with their sign.
+Return an iterator over all permutations of `v` with their sign.
 There is no guarantee on the order of the permutations.
 
 ```jldoctest; setup = :(using Oscar.LieAlgebras)

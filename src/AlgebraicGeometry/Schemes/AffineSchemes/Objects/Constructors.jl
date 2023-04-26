@@ -168,7 +168,7 @@ end
     standard_spec(X::AbsSpec)
 
 For an affine spectrum with coordinate ring of type `MPolyRing`, 
-`MPolyQuoRing`, or `MPolyLocRing`, this returns the canonical 
+`MPolyQuoRing`, or `MPolyLocRing`, return the canonical
 transform to a `Spec` of an `MPolyQuoLocRing`. 
 
 # Examples
@@ -307,8 +307,8 @@ subscheme(X::AbsSpec, f::RingElem) = subscheme(X, ideal(OO(X), [f]))
 @doc raw"""
     subscheme(X::AbsSpec, I::Ideal)
 
-For a scheme ``X = Spec(R)`` and an ideal ``I ⊂ 𝒪(X)``
-this returns the closed subscheme defined by ``I``.
+For a scheme ``X = Spec(R)`` and an ideal ``I ⊂ 𝒪(X)``,
+return the closed subscheme defined by ``I``.
 
 # Examples
 ```jldoctest
@@ -346,8 +346,8 @@ end
 @doc raw"""
     hypersurface_complement(X::AbsSpec, f::RingElem)
 
-For a scheme ``X = Spec(R)`` and an element ``f ∈ R``
-this returns the open subscheme ``U = Spec(R[f⁻¹]) = X ∖ V(f)``
+For a scheme ``X = Spec(R)`` and an element ``f ∈ R``,
+return the open subscheme ``U = Spec(R[f⁻¹]) = X ∖ V(f)``
 defined by the complement of the vanishing locus of ``f``.
 
 # Examples
@@ -416,8 +416,8 @@ end
 @doc raw"""
     hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
 
-For a scheme ``X = Spec(R)`` and elements ``f₁, f₂, ... ∈ R``
-this returns the open subscheme ``U = Spec(R[f₁⁻¹,f₂⁻¹, ...]) = X ∖ V(f₁⋅f₂⋅…)``
+For a scheme ``X = Spec(R)`` and elements ``f₁, f₂, ... ∈ R``,
+return the open subscheme ``U = Spec(R[f₁⁻¹,f₂⁻¹, ...]) = X ∖ V(f₁⋅f₂⋅…)``
 defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅…``.
 
 # Examples
@@ -675,7 +675,7 @@ end
 @doc raw"""
     closure(X::AbsSpec, Y::AbsSpec) 
 
-Returns the closure of ``X`` in ``Y``.
+Return the closure of ``X`` in ``Y``.
 
 # Examples
 ```jldoctest

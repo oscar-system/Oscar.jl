@@ -150,7 +150,7 @@ inverted_set(L::MPolyQuoLocRing) = L.S
 @doc raw"""
     modulus(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``IS⁻¹``.
 """
 function modulus(L::MPolyQuoLocRing) 
   if !has_attribute(L, :modulus)
@@ -166,7 +166,7 @@ modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 @doc raw"""
     underlying_quotient(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``𝕜[x₁,…,xₙ]/I``.
 """
 underlying_quotient(L::MPolyQuoLocRing) = L.Q
 
@@ -185,7 +185,7 @@ end
 @doc raw"""
     localized_ring(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``𝕜[x₁,…,xₙ][S⁻¹]``.
 """
 localized_ring(L::MPolyQuoLocRing) = L.W
 
@@ -204,7 +204,7 @@ end
 @doc raw"""
     gens(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
 """
 gens(L::MPolyQuoLocRing) = L.(gens(base_ring(L)))
 
@@ -429,7 +429,7 @@ is_reduced(a::MPolyQuoLocRingElem) = a.is_reduced
 @doc raw"""
     lifted_numerator(a::MPolyQuoLocRingElem)
 
-For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a ∈ 𝕜[x₁,…,xₙ]`` of the numerator. 
 """
 lifted_numerator(a::MPolyQuoLocRingElem) = a.numerator
@@ -437,7 +437,7 @@ lifted_numerator(a::MPolyQuoLocRingElem) = a.numerator
 @doc raw"""
     lifted_denominator(a::MPolyQuoLocRingElem)
 
-For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``b ∈  𝕜[x₁,…,xₙ]`` of the denominator.
 """
 lifted_denominator(a::MPolyQuoLocRingElem) = a.denominator
@@ -445,7 +445,7 @@ lifted_denominator(a::MPolyQuoLocRingElem) = a.denominator
 @doc raw"""
     fraction(a::MPolyQuoLocRingElem)
 
-For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a//b ∈ Quot(𝕜[x₁,…,xₙ])`` of the fraction. 
 """
 fraction(a::MPolyQuoLocRingElem) = lifted_numerator(a)//lifted_denominator(a)
@@ -513,7 +513,7 @@ end
 @doc raw"""
     lift(f::MPolyQuoLocRingElem)
 
-For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a//b ∈  𝕜[x₁,…,xₙ][S⁻¹]`` of the fraction. 
 """
 lift(f::MPolyQuoLocRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
@@ -985,7 +985,7 @@ codomain(f::MPolyQuoLocalizedRingHom) = f.codomain
 @doc raw"""
     restricted_map(f::MPolyQuoLocalizedRingHom)
 
-For a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[U⁻¹] → S``this returns 
+Given a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[U⁻¹] → S``, return
 the canonically associated map ``ϕ' : 𝕜[x₁,…,xₘ] → S``.
 """
 restricted_map(f::MPolyQuoLocalizedRingHom) = f.res

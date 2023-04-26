@@ -1919,7 +1919,7 @@ end
     saturated_ideal(I::MPolyIdeal)
     saturated_ideal(I::MPolyQuoIdeal)
 
-Returns the largest ideal in $R$ mapping to $I$ under the canonical map $R \longrightarrow S$ for an ideal $I \in S$, where $S$ may be any of the
+Return the largest ideal in $R$ mapping to $I$ under the canonical map $R \longrightarrow S$ for an ideal $I \in S$, where $S$ may be any of the
 types 'MPolyLocRing', 'MPolyQuoLocRing', 'MPolyRing' and 'MPolyQuoRing' and $R$ is the underlying ring of type 'MPolyRing'.
 Note that the last two variants are only provided to allow a coherent usage.  
 

@@ -7398,7 +7398,7 @@ end
 @doc raw"""
     dual(f::ModuleFPHom; cod::FreeMod)
 
-For a morphism of modules ``f : M → N`` this returns the morphism 
+Given a morphism of modules ``f : M → N``, return the morphism
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
 
 The optional argument allows to specify a free module of rank one over the 
