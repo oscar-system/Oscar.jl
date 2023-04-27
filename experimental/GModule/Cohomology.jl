@@ -381,7 +381,7 @@ end
 
 export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
        action, cohomology_group, extension, pc_group
-       induce, permutation_group
+       induce
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -406,7 +406,7 @@ function fp_group(g::Vector{<:Oscar.GAPGroupElem})
   return F, GAPGroupHomomorphism(F, G, GAP.Globals.InverseGeneralMapping(X))
 end
 
-function permutation_group(G::Oscar.GAPGroup)
+function Oscar.permutation_group(G::Oscar.GAPGroup)
   X = GAP.Globals.IsomorphismPermGroup(G.X)
   P = PermGroup(GAP.Globals.Range(X))
   return P, GAPGroupHomomorphism(P, G, GAP.Globals.InverseGeneralMapping(X))
