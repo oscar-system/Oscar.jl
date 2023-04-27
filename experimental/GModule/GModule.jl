@@ -319,7 +319,7 @@ end
 
 gmodule(k::Nemo.fpField, C::GModule{<:Any, Generic.FreeModule{fpFieldElem}}) = C
 
-function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, QQFieldElem}}})
+function _character(C::GModule{<:Any, <:Generic.FreeModule{<:AbstractAlgebra.FieldElem}})
   G = group(C)
   phi = epimorphism_from_free_group(G)
   ac = Oscar.GrpCoh.action(C)
@@ -329,7 +329,7 @@ function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, QQFi
   K = base_ring(C)
 
   chr = []
-  for c = conjugacy_classes(G)
+  for c = conjugacy_classes(character_table(G))
     r = representative(c)
     if isone(r)
       push!(chr, (c, K(n)))
@@ -369,6 +369,11 @@ function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{QQFieldElem}})
   QQAb = abelian_closure(QQ)[1]
   return Oscar.group_class_function(group(C), [QQAb(x[2]) for x = _character(C)])
 end
+
+function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{<:AbstractAlgebra.FieldElem}})
+  return Oscar.group_class_function(group(C), [base_ring(C)(x[2]) for x = _character(C)])
+end
+
 
 function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   F = free_module(k, dim(C)*degree(base_ring(C)))
@@ -605,6 +610,11 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
     return Sigma
   end
   @vtime :MinField 2 fl, cb = Oscar.GrpCoh.is_coboundary(Sigma)
+
+  if !fl
+    do_error || return nothing
+    error("field too small")
+  end
 
   cc = Dict(k => cb(k).data for k = G)
   for g = G
@@ -893,7 +903,8 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
   @assert base_ring(m_in[1]) == k
   while true
     p = next_prime(p)
-    me = modular_init(k, p)
+    me = modular_init(k, p, deg_limit = 1)
+    isempty(me) && continue
     z1 = Hecke.modular_proj(C, me)
     if C === D
       z2 = z1
@@ -934,6 +945,8 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
   end
 end
 
+Oscar.nbits(a::QQFieldElem) = nbits(numerator(a)) + nbits(denominator(a))
+
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{QQFieldElem}}
   @assert base_ring(C) == base_ring(D)
 
@@ -948,6 +961,9 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
   @assert base_ring(m_in[1]) == k
   @assert base_ring(m_in[1]) == k
   @assert k == QQ
+  #a heuristic when to try to call reconstruct...
+  bt = maximum(maximum(nbits, mat(x)) for x = vcat(C.ac, D.ac)) * dim(C)
+  reco = 10
   while true
     p = next_prime(p)
     z1 = gmodule(GF(p), C)
@@ -957,7 +973,10 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       z2 = gmodule(GF(p), D)
     end
     
-    t = hom_base(z1, z2)
+    t = hom_base(z1, z2)  #TODO: here and elsewhere: get a rref of the hom
+                          #base to combine!!!!
+                          #(replaced by using fault tolerant lifting)
+                          #should use vector reconstruction - once we have it
     tt = [lift(s)  for s=t]
     @assert base_ring(tt[1]) == ZZ
     if isone(pp)
@@ -968,10 +987,15 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       @assert base_ring(T[1]) == ZZ
       pp *= p
       S = []
-      for t = T
-        fl, s = induce_rational_reconstruction(t, pp)
-        fl || break
-        push!(S, s)
+      if nbits(pp) > min(reco, bt)
+        if nbits(pp) > reco
+          reco *= 2
+        end
+        for t = T
+          fl, s = induce_rational_reconstruction(t, pp)
+          fl || break
+          push!(S, s)
+        end
       end
       if nbits(pp) > 1000 && get_assert_level(:MinField) > 1
         error("ndw")
@@ -1028,6 +1052,10 @@ end
 function gmodule(::ZZRing, C::GModule{<:Any, <:Generic.FreeModule{QQFieldElem}})
   ma = map(mat, C.ac)
   M = identity_matrix(QQ, dim(C))
+  if dim(C) == 0
+    F = free_module(ZZ, 0)
+    return gmodule(F, group(C), [hom(F, F, matrix(ZZ, 0, 0, ZZRingElem[])) for g = gens(group(C))])
+  end
   while true
     N = reduce(vcat, [M*x for x = ma])
     H = hnf(integral_split(N, ZZ)[1])[1:dim(C), :]
@@ -1121,9 +1149,8 @@ end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   f = GAP.Globals.IrreducibleAffordingRepresentation(chi.values)
-  dom = GAP.Globals.Source(f)
   K = abelian_closure(QQ)[1]
-  g = GAP.Globals.Image(f, GAP.Globals.GeneratorsOfGroup(dom))
+  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(group(chi).X), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
   F = free_module(K, degree(Int, chi))
   return gmodule(group(chi), [hom(F, F, x) for x = z])
@@ -1216,7 +1243,7 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem)
   c = zero_matrix(QQ, nrows(a), ncols(a))
   for i=1:nrows(a)
     for j=1:ncols(a)
-      fl, n, d = rational_reconstruction(a[i,j], pg)
+      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = true)
       fl || return fl, c
       c[i,j] = n//d
     end
