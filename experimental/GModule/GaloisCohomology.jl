@@ -228,7 +228,7 @@ function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, 
   end
   g = gen(K)
   lG = [g for g  = G]
-  @show l = findall(x->overlaps(conj(emb(g)), emb(mG(x)(g))), lG)
+  l = findall(x->overlaps(conj(emb(g)), emb(mG(x)(g))), lG)
   if length(l) == 0
     return sub(G, [one(G)])[2]
   end
@@ -1030,8 +1030,8 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
       else
         l, ml = completion(B.k, pp)
         mlL = induce_hom(ml, mL, B.mkK)
-        @show :serre, minimum(P)
-        @time s = Hecke.Hecke.local_fundamental_class_serre(mlL)
+#        @show :serre, minimum(P)
+        s = Hecke.Hecke.local_fundamental_class_serre(mlL)
         can = CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, Dict{NTuple{2, PermGroupElem}, GrpAbFinGenElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
       end
       @assert Oscar.GrpCoh.istwo_cocycle(can)
