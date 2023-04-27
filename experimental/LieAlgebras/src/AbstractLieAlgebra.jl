@@ -142,3 +142,18 @@ function lie_algebra(
 
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
 end
+
+function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
+  @req is_valid_dynkin(dynkin...) "Input not allowed by GAP."
+
+  coeffs_iso = inv(Oscar.iso_oscar_gap(R))
+  LG = GAP.Globals.SimpleLieAlgebra(
+    GAP.Obj(string(dynkin[1])), dynkin[2], domain(coeffs_iso)
+  )
+  s = [Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)]
+  LO = codomain(
+    _iso_gap_oscar_abstract_lie_algebra(LG, s; coeffs_iso, cached)
+  )::AbstractLieAlgebra{elem_type(R)}
+
+  return LO
+end
