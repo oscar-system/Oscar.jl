@@ -4,17 +4,17 @@
 #
 ###############################################################################
 
-function _iso_gap_oscar(F::GAP.GapObj)
-  if GAPWrap.IsLieAlgebra(F)
-    if GAPWrap.IsLieObjectCollection(F)
-      return _iso_gap_oscar_linear_lie_algebra(F)
-    else
-      return _iso_gap_oscar_abstract_lie_algebra(F)
-    end
+function _iso_gap_oscar_lie_algebra(F::GAP.GapObj)
+  if GAPWrap.IsLieObjectCollection(F)
+    return _iso_gap_oscar_linear_lie_algebra(F)
+  else
+    return _iso_gap_oscar_abstract_lie_algebra(F)
   end
 
   error("no method found")
 end
+
+push!(Oscar._iso_gap_oscar_methods, "IsLieAlgebra" => _iso_gap_oscar_lie_algebra)
 
 function _iso_gap_oscar_abstract_lie_algebra(
   LG::GAP.GapObj,
