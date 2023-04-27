@@ -19,10 +19,9 @@ end
 function _iso_gap_oscar_abstract_lie_algebra(
   LG::GAP.GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)];
+  coeffs_iso::Map{GAP.GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
   cached::Bool=true,
 )
-  RG = GAPWrap.LeftActingDomain(LG)
-  coeffs_iso = Oscar.iso_gap_oscar(RG)
   LO = _abstract_lie_algebra_from_GAP(LG, coeffs_iso, s; cached)
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
@@ -34,10 +33,9 @@ end
 function _iso_gap_oscar_linear_lie_algebra(
   LG::GAP.GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)];
+  coeffs_iso::Map{GAP.GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
   cached::Bool=true,
 )
-  RG = GAPWrap.LeftActingDomain(LG)
-  coeffs_iso = Oscar.iso_gap_oscar(RG)
   LO = _linear_lie_algebra_from_GAP(LG, coeffs_iso, s; cached)
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
@@ -82,24 +80,5 @@ function _linear_lie_algebra_from_GAP(
   ]
   n = size(basis[1])[1]
   LO = LinearLieAlgebra{elem_type(RO)}(RO, n, basis, Symbol.(s); cached)
-  return LO
-end
-
-function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
-  @req is_valid_dynkin(dynkin...) "Input not allowed by GAP."
-
-  coeffs_iso = inv(Oscar.iso_oscar_gap(R))
-  LG = GAP.Globals.SimpleLieAlgebra(
-    GAP.Obj(string(dynkin[1])), dynkin[2], domain(coeffs_iso)
-  )
-  s = [Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)]
-  LO = _abstract_lie_algebra_from_GAP(
-    LG, coeffs_iso, s; cached
-  )::AbstractLieAlgebra{elem_type(R)}
-
-  finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
-
-  iso = MapFromFunc(f, finv, LG, LO)
-  _set_iso_oscar_gap!(LO, inv(iso))
   return LO
 end
