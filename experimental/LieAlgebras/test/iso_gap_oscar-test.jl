@@ -19,10 +19,13 @@ num_random_tests = 10
       ]
 
       @testset for LG in lie_algebras
-        iso = Oscar.LieAlgebras._iso_gap_oscar(LG)
+        iso = Oscar.iso_gap_oscar(LG)
         @test domain(iso) == LG
         LO = codomain(iso)
         @test LO isa AbstractLieAlgebra
+        @test codomain(Oscar.iso_oscar_gap(LO)) === LG
+
+        @test iso == Oscar.iso_gap_oscar(LG) # test caching
 
         for _ in 1:num_random_tests
           x = LO(rand(-10:10, dim(LO)))
@@ -69,10 +72,13 @@ num_random_tests = 10
       ]
 
       @testset for LG in lie_algebras
-        iso = Oscar.LieAlgebras._iso_gap_oscar(LG)
+        iso = Oscar.iso_gap_oscar(LG)
         @test domain(iso) == LG
         LO = codomain(iso)
         @test LO isa LinearLieAlgebra
+        @test codomain(Oscar.iso_oscar_gap(LO)) === LG
+
+        @test iso == Oscar.iso_gap_oscar(LG) # test caching
 
         for _ in 1:num_random_tests
           x = LO(rand(-10:10, dim(LO)))

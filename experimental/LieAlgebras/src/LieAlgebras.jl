@@ -11,6 +11,7 @@ using Base: deepcopy_internal
 
 # functions with new methods
 import ..Oscar:
+  _iso_oscar_gap,
   action,
   base_ring,
   basis,
