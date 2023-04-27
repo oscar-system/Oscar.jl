@@ -108,7 +108,7 @@ function reps(K, G::Oscar.GAPGroup)
 
           # a block permutation matrix for the element `h`
           z = zero_matrix(K, dim(F), dim(F))
-          z[1:n,(p-1)*n+1:end] = inv(Y)
+          z[1:n,(p-1)*n+1:end] = Y
           #= This is wrong in Brueckner - or he's using a different
              conjugation. Max figured out what to do: the identity block
              needs to be lower left, and ubbber right the inverse.
@@ -170,7 +170,7 @@ Find a set of primes suth that are any irreducible F_p module M
 s.th. there is an epimorphism of G onto the extension of Q by M,
 the p is in the set.
 """
-function find_primes(mp::Map{FPGroup, PcGroup})
+function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   G = domain(mp)
   Q = codomain(mp)
   I = irreducible_modules(ZZ, Q) 
@@ -226,7 +226,7 @@ Implements the SQ-Algorithm by Brueckner, Chap 1.3
 
 If necessary, the prime(s) p that can be used are computed as well.
 """
-function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
+function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
