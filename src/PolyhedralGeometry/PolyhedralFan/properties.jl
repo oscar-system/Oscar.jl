@@ -164,7 +164,7 @@ end
 
 _ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
 
-_incidencematrix(::Val{_cone_pof_dim}) = _ray_indices
+_incidencematrix(::Val{_cone_of_dim}) = _ray_indices
 
 
 @doc raw"""
