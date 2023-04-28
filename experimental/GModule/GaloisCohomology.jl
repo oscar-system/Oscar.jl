@@ -936,7 +936,7 @@ Determines the Galois group (over `QQ`) of the extension parametrized by `A`.
 `A` needs to be normal over `QQ`.
 
 # Examples
-```jldoctest
+```jldoctest; setup = :(using Oscar)
 julia> QQx, x = QQ[:x];
 
 julia> k, a = number_field(x^4 - 12*x^3 + 36*x^2 - 36*x + 9);
