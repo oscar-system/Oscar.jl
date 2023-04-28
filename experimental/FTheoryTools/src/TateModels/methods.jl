@@ -82,10 +82,11 @@ end
 Set a description for a global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> set_description(t, "An SU(5)xU(1) GUT-model")
+
 
 julia> t
 Global Tate model over a not fully specified base -- An SU(5)xU(1) GUT-model based on arxiv paper 1109.3454 (equ. 3.5)
@@ -106,10 +107,11 @@ end
 Set a description for a global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> add_resolution(t, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"], ["s", "w", "e3", "e1", "e2"]])
+
 
 julia> length(resolutions(t))
 2
@@ -141,14 +143,14 @@ Careful: Currently, this assumes that all blowups are toric blowups.
 We hope to remove this requirement in the near future.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> v = resolve(t, 1)
 Normal toric variety
 
 julia> cox_ring(v)
-Multivariate Polynomial Ring in 14 variables a10, a21, a32, a43, ..., s over Rational Field graded by 
+Multivariate Polynomial Ring in 14 variables a10, a21, a32, a43, ..., s over Rational Field graded by
   a10 -> [0 0 0 0 0 0]
   a21 -> [0 0 0 0 0 0]
   a32 -> [0 0 0 0 0 0]

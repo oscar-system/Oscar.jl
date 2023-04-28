@@ -1,0 +1,14 @@
+[
+{
+    "file": "model1.json",
+    "arxiv_id": "1109.3454",
+    "equ_nr": "3.5",
+    "description": "SU(5)xU(1) restricted Tate model"
+},
+{
+    "file": "model2.json",
+    "arxiv_id": "1212.2949",
+    "equ_nr": "B.18",
+    "description": "SO(10)"
+}
+]

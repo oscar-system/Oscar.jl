@@ -1,5 +1,5 @@
 @doc raw"""
-    literature_tate_model(arxiv_id::String, equ_nr::String)
+    literature_tate_model(; arxiv_id::String="", equ_nr::String="", description::String="")
 
 Many Tate models have been created in the F-theory literature.
 A significant number of them have even been given specific
@@ -13,7 +13,7 @@ of the information available in the literature.
 available on such models in the literature.)
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> v = toric_ambient_space(t)
@@ -40,19 +40,39 @@ Multivariate Polynomial Ring in 10 variables a10, a21, a32, a43, ..., e over Rat
   e -> [-1 0]
 ```
 """
-function literature_tate_model(arxiv_id::String, equ_nr::String)
-  # Read all literature models
-  values = JSON.parsefile(joinpath(@__DIR__, "database.json"))
-  #return values
+function literature_tate_model(; arxiv_id::String="", equ_nr::String="", description::String="")
   
-  # Find the entry that we are looking for
-  fitting_entries = filter(v -> (v["arxiv_id"] == arxiv_id && v["equ_nr"] == equ_nr), values)
+  # try to find the file with the desired model
+  @req (arxiv_id != "" || equ_nr != "" || description != "") "No information provided -- cannot perform look-up"
+    
+  # read index file
+  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   
-  # Check if multiple entries match the criteria
-  @req length(fitting_entries) == 1 "Either no or more than one fitting entry found in database"
+  # create list of possible candidate files
+  candidate_files = Vector{String}()
+  for k in 1:length(file_index)
+    test = true
+    if arxiv_id != "" && file_index[k]["arxiv_id"] != arxiv_id
+      test = false
+    end
+    if equ_nr != "" && file_index[k]["equ_nr"] != equ_nr
+      test = false
+    end
+    if description != "" && file_index[k]["description"] != description
+      test = false
+    end
+    if test
+      push!(candidate_files, string(file_index[k]["file"]))
+    end
+  end
+  
+  # check if we found exactly one file, i.e. we were able to identify the model uniquely
+  @req length(candidate_files) == 1 "We could not uniquely identify the model"
+  
+  # we were able to find a unique model, so read that model
+  model = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
   
   # Construct the model in question
-  model = fitting_entries[1]
   auxiliary_base_ring, vars = PolynomialRing(QQ, string.(model["variables"]))
   a1 = zero(auxiliary_base_ring)
   if length(model["a1"]) > 0
