@@ -97,10 +97,6 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   return Z_trans, inc_Z_trans, pr_res
 end
 
-#@attr Bool function is_one(I::Union{MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal})
-#  return is_one(saturated_ideal(I))
-#end
-
 @doc """
     strict_transform(p::BlowupMorphism, I::IdealSheaf)
 

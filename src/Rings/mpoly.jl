@@ -24,22 +24,12 @@ function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbo
   Rx, _collect_variables(c, w)...
 end
 
-# To print [1, 2, 3] or (1, 2, 3) as "1, 2, 3"
-function _print_comma_list(i)
-  s = IOBuffer()
-  print(s, i[1])
-  for j in 2:length(i)
-    print(s, ", ", i[j])
-  end
-  return String(take!(s))
-end
-
 # To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
 
 _make_variable(a, i) = _make_variable(String(a), i)
 
 function _make_variable(a::String, i)
-  ii = _print_comma_list(i)
+  ii = join(i, ", ")
   if occursin('#', a)
     aa = replace(a, '#' => "$ii")
   else
@@ -592,12 +582,8 @@ Fields:
     if length(B) >= 1
       oscar_assure(B)
       R = B.gens.Ox
-      if R isa MPolyDecRing
-         if is_graded(R)
-           if !(all(is_homogeneous, B.gens.O))
-              throw(ArgumentError("The generators of the ideal must be homogeneous."))
-           end 
-         end
+      if is_graded(R)
+        @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
       end
     end
     r = new{T}()

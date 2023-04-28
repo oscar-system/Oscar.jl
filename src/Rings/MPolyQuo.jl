@@ -106,7 +106,7 @@ end
   qRing::MPolyQuoRing
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
-   singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
+   @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
    r = new{T}()
    r.gens  = IdealGens(Ox, si)
    r.qRing = Ox
@@ -114,20 +114,14 @@ end
    R = base_ring(Ox)
    r.gens.O = [R(g) for g = gens(r.gens.S)]
    B = r.gens
-   if length(B) >= 1
-     if R isa MPolyDecRing
-       if is_graded(R)
-         if !(all(is_homogeneous, B.gens.O))
-            throw(ArgumentError("The generators of the ideal must be homogeneous."))
-         end
-       end
-     end
+   if length(B) >= 1 && is_graded(R)
+     @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
    end
    return r
   end
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
-    base_ring(Ox) === base_ring(I) || error("base rings must match")
+    @req base_ring(Ox) === base_ring(I) "base rings must match"
     r = new{T}()
     r.gens = IdealGens(Ox, gens(I))
     r.qRing = Ox
@@ -298,7 +292,7 @@ ideal(x + y, x^2 + y^2)
 ```
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
   singular_assure(a)
   singular_assure(b)
   return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
@@ -326,7 +320,7 @@ ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
 ```
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
   singular_assure(a)
   singular_assure(b)
   return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
@@ -361,7 +355,7 @@ function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
   singular_assure(a)
   as = a.gens.S
   for g in b
-    base_ring(g) == base_ring(a) || error("base rings must match")
+    @req base_ring(g) == base_ring(a) "base rings must match"
     singular_assure(g)
   end
   as = Singular.intersection(as, [g.gens.S for g in b]...)
@@ -399,7 +393,7 @@ ideal(y)
 ```
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
 
   singular_assure(a)
   singular_assure(b)
@@ -530,7 +524,7 @@ end
 
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
-  a.P == b.P || error("wrong parents")
+  @req parent(a) == parent(b) "parents must match"
   return true
 end
 
@@ -669,7 +663,7 @@ true
 ```
 """
 function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
   as = simplify(a)
   groebner_assure(b)
   return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
@@ -894,7 +888,7 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
 end
 
 function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  base_ring(Q) === parent(a) || error("Parent mismatch")
+  @req base_ring(Q) === parent(a) "Parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 

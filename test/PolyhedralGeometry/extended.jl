@@ -197,6 +197,12 @@
         @test_throws ArgumentError convex_hull(collect(rays(Pos_poly)))
         @test_throws ArgumentError convex_hull(vertices(Pos_poly), collect(vertices(Pos_poly)))
         @test_throws ArgumentError positive_hull(collect(vertices(Pos_poly)))
+
+        IM = IncidenceMatrix([[1]])
+        lincone = Cone([1 0 0], [0 1 0])
+
+        @test Cone(rays_modulo_lineality(lincone)...) == lincone
+        @test ambient_dim(PolyhedralFan(rays_modulo_lineality(lincone)..., IM)) == 3
         
     end
 

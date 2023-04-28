@@ -167,9 +167,8 @@ GAP.gap_to_julia(::Type{QQAbElem}, a::GapInt) = QQAbElem(a)
 function matrices_over_cyclotomic_field(F::AnticNumberField, gapmats::GapObj)
     @req Nemo.is_cyclo_type(F) "F is not a cyclotomic field"
     @req GAPWrap.IsList(gapmats) "gapmats is not a GAP list"
-    GAPWrap.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
-    GAPWrap.IsCyclotomicCollCollColl(gapmats) ||
-      throw(ArgumentError("gapmats is not a GAP list of matrices of cyclotomics"))
+    @req !GAPWrap.IsEmpty(gapmats) "gapmats is empty"
+    @req GAPWrap.IsCyclotomicCollCollColl(gapmats) "gapmats is not a GAP list of matrices of cyclotomics"
 
     iso = iso_oscar_gap(F)
     result = dense_matrix_type(F)[]

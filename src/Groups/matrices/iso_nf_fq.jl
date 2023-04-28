@@ -9,9 +9,9 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
       # Check whether all matrices have the same base ring,
       # are square of the same size, and invertible.
       for mat in matrices
-         K == base_ring(mat) || throw(ArgumentError("matrices are not over the same base ring"))
-         is_unit(det(mat)) || throw(ArgumentError("matrices must be invertible"))
-         size(mat) == (n, n) || throw(ArgumentError("matrices must be square of the same size"))
+         @req K == base_ring(mat) "matrices are not over the same base ring"
+         @req is_unit(det(mat)) "matrices must be invertible"
+         @req size(mat) == (n, n) "matrices must be square of the same size"
       end
    end
 

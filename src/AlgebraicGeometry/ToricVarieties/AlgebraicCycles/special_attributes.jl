@@ -46,9 +46,7 @@ Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Fi
 ```
 """
 @attr MPolyQuoRing function chow_ring(v::AbstractNormalToricVariety)
-    if !is_simplicial(v)
-      throw(ArgumentError("The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"))
-    end
+    @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
     R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
     linear_relations = ideal_of_linear_relations(R, v)
     stanley_reisner = stanley_reisner_ideal(R, v)

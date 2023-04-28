@@ -206,9 +206,7 @@ function reduce!(a::NfNSGenElem)
 end
 
 function check_parent(a::NfNSGenElem{S, T}, b::NfNSGenElem{S, T}) where {S, T}
-  if parent(a) !== parent(b)
-    throw(ArgumentError("Parents of elements must be equal"))
-  end
+  @req parent(a) === parent(b) "Parents of elements must be equal"
 end
 
 ################################################################################

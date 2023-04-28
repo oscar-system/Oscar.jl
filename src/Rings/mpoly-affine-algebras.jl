@@ -762,9 +762,8 @@ true
 """
 function is_normal(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if base_ring(A) isa MPolyDecRing
-    throw(ArgumentError("Not implemented for quotients of decorated rings."))
-  end
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+
   I = A.I
   singular_assure(I)
   # TODO remove old1 & old2 once new Singular jll is out
@@ -810,9 +809,8 @@ function is_cohen_macaulay(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
- if !((R isa Oscar.MPolyDecRing) && is_standard_graded(R))
-    throw(ArgumentError("The base ring must be standard ZZ-graded."))
- end
+ @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
+
  singular_assure(I, negdegrevlex(gens(R)))
  res = Singular.LibHomolog.isCM(I.gens.gens.S)
  if res == 1 return true end
@@ -1140,9 +1138,8 @@ julia> LL[1][3]
 """
 function normalization(A::MPolyQuoRing; alg=:equidimDec)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if base_ring(A) isa MPolyDecRing
-    throw(ArgumentError("Not implemented for quotients of decorated rings."))
-  end
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+
   I = A.I
   br = base_ring(base_ring(A))
   singular_assure(I)
@@ -1199,9 +1196,8 @@ julia> L[3]
 """
 function normalization_with_delta(A::MPolyQuoRing; alg=:equidimDec)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if base_ring(A) isa MPolyDecRing
-    throw(ArgumentError("Not implemented for quotients of decorated rings."))
-  end
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+
   I = A.I
   br = base_ring(base_ring(A))
   singular_assure(I)
@@ -1230,9 +1226,10 @@ Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such
 """
 function noether_normalization(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
- if base_ring(A) isa MPolyDecRing && !(is_standard_graded(A))
-   throw(ArgumentError("If the base ring is decorated, it must be standard graded."))
- end
+  if base_ring(A) isa MPolyDecRing
+    @req is_standard_graded(A) "If the base ring is decorated, it must be standard graded"
+  end
+
  I = A.I
  R = base_ring(I)
  singular_assure(I)
@@ -1307,21 +1304,13 @@ function integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
     throw(ArgumentError("unsupported algorithm $alg"))
   end
 
-  if R isa MPolyDecRing
-    throw(ArgumentError("Not implemented for decorated rings."))
-  end
+  @req !(R isa MPolyDecRing) "Not implemented for decorated rings"
   
-  if nvars(R) != 2
-    throw(ArgumentError("The parent ring must be a polynomial ring in two variables."))
-  end
+  @req nvars(R) == 2 "The parent ring must be a polynomial ring in two variables"
 
-  if !(i == 1 || i == 2)
-    throw(ArgumentError("The index $i must be either 1 or 2, indicating the integral variable."))
-  end
+  @req i == 1 || i == 2 "The index $i must be either 1 or 2, indicating the integral variable"
 
-  if !isone(coeff(f, [i], [degree(f, i)]))
-    throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))
-  end
+  @req isone(coeff(f, [i], [degree(f, i)])) "The input polynomial must be monic as a polynomial in $(gen(R,i))"
 
   SR = singular_poly_ring(R)
 
@@ -1332,9 +1321,7 @@ function integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
     throw(NotImplementedError(:integral_basis, f))
   end
 
-  if !is_irreducible(f)
-    throw(ArgumentError("The input polynomial must be irreducible"))
-  end
+  @req is_irreducible(f) "The input polynomial must be irreducible"
 
   l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred", options...)
   A, p = quo(R, ideal(R, [f]))

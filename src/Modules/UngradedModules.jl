@@ -1,12 +1,3 @@
-# TODO replace asserts by error messages?
-
-#TODO: "fix" to allow QuoElem s as well...
-# this requires
-#  re-typeing of FreeModule
-#  typing of BiModArray
-# ... and all the rest.
-# parametrization has to be by elem_type(coeff_ring) and not, like currently, the bottom coeff ring
-# Also: qring is a Singular native. So it needs to be added to the ring creation
 
 ###############################################################################
 # FreeMod constructors
@@ -120,9 +111,45 @@ end
 function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  if is_graded(F)
+      if !compact
+        print(io, "Graded free module ")
+      end
+      i = 1
+      while i <= dim(F)
+          d = F.d[i]
+          j = 1
+          while i+j <= dim(F) && d == F.d[i+j]
+              j += 1
+          end
+          print(io_compact, base_ring(F), "^$j")
+          print(io_compact, "(", -d, ")")
+          if i+j <= dim(F)
+              print(io, " + ")
+          end
+          i += j
+      end
 
-  print(io, "Free module of rank $(F.n) over ")
-  print(IOContext(io, :compact =>false), F.R)
+      if rank(F)==0
+        print(io_compact, base_ring(F), "^0")
+      end
+
+      if !compact
+          print(io," of rank $(rank(F)) over ")
+          print(io_compact, base_ring(F))
+      end
+  else
+      if !compact
+          #Todo: Use once the printing of rings is fixed
+          #print(io_compact, "Free module ", base_ring(F), "^$(F.n) of rank $(F.n) over ")
+          print(io_compact, "Free module of rank $(F.n) over ")
+          print(io_compact, F.R)
+      else
+          print(io_compact, base_ring(F), "^$(F.n)")
+      end
+  end
 end
 
 @doc raw"""
@@ -146,10 +173,15 @@ Here, `F` and `G` are equal iff their base rings, ranks, and names for printing 
 function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
+  is_graded(F) == is_graded(G) || return false
+  if is_graded(F) && is_graded(G) 
+    return F.R == G.R && F.d == G.d && F.S == G.S
+  end
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
 end
 
 function hash(F::FreeMod, h::UInt)
+  is_graded(F) && return hash((base_ring(F), rank(F), F.S, F.d), h)
   return hash((base_ring(F), rank(F), F.S), h)
 end
 
@@ -161,6 +193,8 @@ Return  `true` if `F` and `G` are isomorphic, `false` otherwise.
 Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
+  is_graded(F) == is_graded(G) || return false
+  is_graded(F) && return MSet(F.d) == MSet(G.d)
   return F.R == G.R && rank(F) == rank(G)
 end
 
@@ -181,9 +215,37 @@ return the canonical isomorphism, that is map the i-th basis vector of the
 canonical basis of `F` to the i-th basis vector of the canonical basis of `G`.
 """
 function canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
-  @assert rank(F) == rank(G)
+  if F == G
+     return hom(F, G, [G[i] for i in 1:ngens(G)])
+  end
+  @assert is_isomorphic(F, G)
+  if is_graded(F) && is_graded(G)
+    b = get_multiset_bijection(F.d, G.d, true)
+    if length(b)==1
+      b1 = b[1]
+      return hom(F, G, [G[b1[i]] for i in 1:length(b1)])
+    else
+      error("there is no canonical isomorphism")
+    end
+    h = hom(F, G, [G[b[i]] for i in 1:length(b)])
+    return h
+  end
+  if is_graded(F) != is_graded(G)
+    error("there is no canonical isomorphism")
+  end
   return hom(F, G, gens(G))
 end
+
+function isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+  @assert is_isomorphic(F, G)
+  (!is_graded(F) && !is_graded(G)) && (return hom(F, G, gens(G)))
+  if is_graded(F) != is_graded(G)
+    error("there is no isomorphism")
+  end
+  b = get_multiset_bijection(F.d, G.d)
+  h = hom(F, G, [G[b[i]] for i in 1:length(b)])
+  return h
+ end
 
 ###############################################################################
 # FreeModElem constructors
@@ -567,7 +629,8 @@ end
 Check if `M` is zero.
 """
 function iszero(M::ModuleGens)
-  return iszero(singular_generators(M))
+  oscar_assure(M)
+  return all(iszero, M.O)
 end
 
 function show(io::IO, F::ModuleGens)
@@ -927,6 +990,38 @@ function morphism_type(
   return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
+function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  if is_graded(fmh)  
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:ngens(domain(fmh))
+        print(io, domain(fmh)[i], " -> ")
+        print(io_compact, fmh(domain(fmh)[i]))
+        print(io, "\n")
+      end
+      A = grading_group(fmh)
+      if degree(fmh) == A[0]
+        print(io, "Homogeneous module homomorphism")
+      else
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
+      end
+    end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    println(io, codomain(fmh))
+  end
+end
 
 ###############################################################################
 # SubModuleOfFreeModule
@@ -1222,14 +1317,27 @@ function is_generated_by_standard_unit_vectors(M::SubModuleOfFreeModule)
 end
 
 function show(io::IO, M::SubModuleOfFreeModule)
-  if ngens(M) == 1
-    print(io, "Submodule with ", ngens(M), " generator")
-  else
-    print(io, "Submodule with ", ngens(M), " generators")
+  @show_name(io, M)
+  @show_special(io, M)
+  io_compact = IOContext(io, :compact => true)
+  compact = get(io, :compact, false)
+  if !compact
+    if is_graded(M)
+      print(io_compact, "Graded submodule of ", M.F)
+    else
+      #Todo: Use again once the printing of rings is fixed
+      #print(io_compact, "Submodule of ", M.F)
+      print(io_compact, "Submodule")
+    end
+    if ngens(M) == 1
+      print(io, " with ", ngens(M), " generator")
+    else
+      print(io, " with ", ngens(M), " generators")
+    end
   end
   for i=1:ngens(M)
     if isassigned(M.gens.O, i)
-      print(io, "\n", i, " -> ", M[i])
+        print(io, "\n", i, " -> ", M[i])
     end
   end
 end
@@ -1626,13 +1734,33 @@ subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(A, B)
 function show(io::IO, SQ::SubquoModule)
   @show_name(io, SQ)
   @show_special(io, SQ)
+  io_compact = IOContext(io, :compact => true)
 
-  if isdefined(SQ, :quo)
-    print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
+  if is_graded(SQ)
+      if isdefined(SQ, :quo) && !iszero(SQ.quo)
+          print(io, "Graded subquotient")
+          print(io_compact, " of submodule of ", SQ.F, " generated by", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
+      else
+          print(io_compact, "Graded submodule of ", SQ.F)
+          print(io_compact, SQ.sub, "\n")
+          print(io, "represented as subquotient with no relations")
+      end
   else
-    #println(io, "Subquotient by ", SQ.sub)
-    print(io, SQ.sub, "\n")
-    print(io, "represented as subquotient with no relations.")
+      # Todo: Use again once the printing of rings is fixed
+      # if isdefined(SQ, :quo) && !iszero(SQ.quo)
+      #     print(io, "Subquotient")
+      #     print(io_compact, " of submodule of ", SQ.F, " generated by", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
+      # else
+      #     print(io_compact, "Submodule of ", SQ.F)
+      #     print(io_compact, SQ.sub, "\n")
+      #     print(io, "represented as subquotient with no relations")
+      # end
+      if isdefined(SQ, :quo) && !iszero(SQ.quo)
+        print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
+      else
+        print(io, SQ.sub, "\n")
+        print(io, "represented as subquotient with no relations.")
+      end
   end
 end
 
@@ -1644,24 +1772,40 @@ Show `SQ` as a subquotient of *matrices* `A` and `B`.
 function show_subquo(SQ::SubquoModule)
   #@show_name(io, SQ)
   #@show_special(io, SQ)
-
+  io_compact = IOContext(stdout, :compact => true)
   if isdefined(SQ, :quo)
     if is_generated_by_standard_unit_vectors(SQ.sub)
-      println("Cokernel of")
+      if is_graded(SQ)
+        println("Graded cokernel of")
+      else
+        println("Cokernel of")
+      end
       display(generator_matrix(SQ.quo))
     else
-      println("Subquotient with of image of")
+      if is_graded(SQ)
+        println("Graded subquotient of")
+      else
+        println("Subquotient of")
+      end
       display(generator_matrix(SQ.sub))
       println("by image of")
       display(generator_matrix(SQ.quo))
     end
   else
-    println("Image of")
+    if is_graded(SQ)
+      println("Graded image of")
+    else
+      println("Image of")
+    end
     display(generator_matrix(SQ.sub))
   end
+  print(io_compact, "with ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
+  io_compact = IOContext(stdout, :compact => true)
+  print(io_compact, domain(f), " -> ", codomain(f))
+  print("\n")
   D = domain(f)
   for i in 1:ngens(D)
     generator = gen(D, i)
@@ -1673,7 +1817,18 @@ function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
       end
     end
   end
-  return
+  print("\n")
+  if is_graded(f)
+    A = grading_group(f)
+    if degree(f)==A[0] 
+      print("Homogeneous homomorphism")
+    else
+      print(io_compact,"Graded homomorphism of degree ", degree(f))
+    end
+  else
+    print("Homomorphism")
+  end
+return
 end
 
 @doc raw"""
@@ -1755,11 +1910,19 @@ function cokernel(f::ModuleFPHom)
 end
 
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
-  return cokernel(map(F,A))
+  return is_graded(F) ? cokernel(graded_map(F, A)) : cokernel(map(F, A))
 end
 
 function cokernel(A::MatElem)
   return cokernel(map(A))
+end
+
+function image(F::FreeMod{R}, A::MatElem{R}) where R
+  return is_graded(F) ? image(graded_map(F, A))[1] : image(map(F, A))[1]
+end
+
+function image(A::MatElem)
+  return image(map(A))[1]
 end
 
 @doc raw"""
@@ -2307,7 +2470,8 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
+3 -> z^4*e[1]
+, Map with following data
 Domain:
 =======
 Subquotient of Submodule with 2 generators
@@ -2324,7 +2488,8 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1])
+3 -> z^4*e[1]
+)
 ```
 """
 function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
@@ -3274,7 +3439,13 @@ function presentation(SQ::SubquoModule)
   #A+B/B is generated by A and B
   #the relations are A meet B? written wrt to A
   R = base_ring(SQ)
-  F = FreeMod(R, ngens(SQ.sub))
+  if is_graded(SQ)
+    h_F_SQ = graded_map(SQ, gens(SQ))
+    F = domain(h_F_SQ)
+  else
+    F = FreeMod(R, ngens(SQ.sub))
+    h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
+  end
   set_attribute!(F,  :name => "br^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
@@ -3282,7 +3453,11 @@ function presentation(SQ::SubquoModule)
       q = [FreeModElem(coordinates(g), F) for g in gens(SQ.quo)]
     end
   else
-    s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
+    if is_graded(SQ)
+      s, _ = kernel(graded_map(ambient_free_module(SQ), gens(SQ.sum)))
+    else
+      s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
+    end
     #s = syzygy_module(SQ.sum.gens)
     #TODO: wait for Hans to release Modulo(A, B) that does exactly this
     c = collect(s.sub.gens)
@@ -3311,12 +3486,19 @@ function presentation(SQ::SubquoModule)
   #              R^a           1
   # so 0 has index -2, hence seed has to be -2
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
-  G = FreeMod(R, length(q))
+  if is_graded(SQ)
+    h_G_F = graded_map(F, q)
+    G = domain(h_G_F)
+  else
+    G = FreeMod(R, length(q))
+    h_G_F = hom(G, F, q)
+  end
   set_attribute!(G, :name => "br^$(length(q))")
-  h_G_F = hom(G, F, q)
-  h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
-
-  Z = FreeMod(F.R, 0)
+  if is_graded(SQ)
+    Z = graded_free_module(F.R, 0)
+  else
+    Z = FreeMod(F.R, 0)
+  end
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
   return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
@@ -3328,7 +3510,11 @@ end
 Return a free presentation of $F$.
 """
 function presentation(F::FreeMod)
-  Z = FreeMod(F.R, 0)
+  if is_graded(F)
+    Z = graded_free_module(F.R, 0)
+  else
+    Z = FreeMod(F.R, 0)
+  end
   set_attribute!(Z, :name => "0")
   return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
 end
@@ -3455,6 +3641,41 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
     return hom
   end
 end
+
+function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  domain_gens = gens(domain(fmh))
+  if is_graded(fmh)
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:length(domain_gens)
+        print(io, domain_gens[i], " -> ")
+        print(io_compact, fmh(domain_gens[i]))
+        print(io, "\n")
+      end
+      A = grading_group(fmh)
+      if degree(fmh) == A[0]
+        print(io, "Homogeneous module homomorphism")
+      else
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
+      end
+    end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    println(io, codomain(fmh))
+  end
+end
+
 
 ###################################################################
 
@@ -4176,7 +4397,13 @@ that converts elements from $S$ into morphisms $F \to G$.
 """
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
-  GH = FreeMod(F.R, rank(F) * rank(G))
+  @assert is_graded(F) == is_graded(G)
+  if is_graded(F)
+    d = [y - x for x in degrees(F) for y in degrees(G)]
+    GH = graded_free_module(F.R, d)
+  else
+    GH = FreeMod(F.R, rank(F) * rank(G))
+  end
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
 
   #list is g1 - f1, g2-f1, g3-f1, ...
@@ -4237,7 +4464,8 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+)
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -4307,7 +4535,8 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+)
 ```
 """
 function image(h::FreeModuleHom)
@@ -4440,7 +4669,7 @@ by Submodule with 3 generators
 ```
 """
 function image(a::ModuleFPHom)
- error("kernel is not implemented for the given types.")
+ error("image is not implemented for the given types.")
 end
 
 @doc raw"""
@@ -4576,6 +4805,10 @@ function kernel(a::ModuleFPHom)
  error("kernel is not implemented for the given types.")
 end
 
+function map(FR::FreeResolution, i::Int)
+  return map(FR.C, i)
+end
+
 @doc raw"""
     free_resolution(F::FreeMod)
 
@@ -4586,7 +4819,7 @@ Return a free resolution of `F`.
 function free_resolution(F::FreeMod)
   res = presentation(F)
   #set_attribute!(res, :show => Hecke.free_show, :free_res => F)
-  return res
+  return FreeResolution(res)
 end
 
 @doc raw"""
@@ -4641,6 +4874,23 @@ true
 """
 is_complete(FR::FreeResolution) = FR.C.complete
 
+function chain_range(FR::FreeResolution)
+  return Hecke.range(FR.C)
+end
+
+function map_range(FR::FreeResolution)
+  return Hecke.map_range(FR.C)
+end
+
+function chain_range(C::ComplexOfMorphisms)
+  return Hecke.range(C)
+end
+
+function map_range(C::ComplexOfMorphisms)
+  return Hecke.map_range(C)
+end
+
+
 #= Fill functions (and helpers) for Hecke ComplexOfMorphismses in terms of free resolutions =#
 function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
@@ -4687,11 +4937,19 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   j   = 2
 
   while j <= Singular.length(res)
-    codom = dom
-    dom   = free_module(br, Singular.ngens(res[j]))
-    SM    = SubModuleOfFreeModule(codom, res[j])
-    generator_matrix(SM)
-    map = hom(dom, codom, SM.matrix)
+    if is_graded(dom)
+      codom = dom
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      map = graded_map(codom, SM.matrix)
+      dom = domain(map)
+    else
+      codom = dom
+      dom   = free_module(br, Singular.ngens(res[j]))
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      map = hom(dom, codom, SM.matrix)
+    end
     pushfirst!(cc, map) 
     j += 1
   end
@@ -4822,18 +5080,34 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   dom = domain(pm.maps[1])
   j   = 2
   while j <= Singular.length(res)
-    codom = dom
-    rk    = Singular.ngens(res[j])
-    dom   = free_module(br, rk)
-    SM    = SubModuleOfFreeModule(codom, res[j])
-    generator_matrix(SM)
-    set_attribute!(dom, :name => "br^$rk")
-    insert!(maps, 1, hom(dom, codom, SM.matrix))
-    j += 1
+    if is_graded(dom)
+      codom = dom
+      rk    = Singular.ngens(res[j])
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      ff = graded_map(codom, SM.matrix)
+      dom = domain(ff)
+      set_attribute!(dom, :name => "br^$rk")
+      insert!(maps, 1, ff)
+      j += 1
+    else
+      codom = dom
+      rk    = Singular.ngens(res[j])
+      dom   = free_module(br, rk)
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      set_attribute!(dom, :name => "br^$rk")
+      insert!(maps, 1, hom(dom, codom, SM.matrix))
+      j += 1
+    end
   end
   if cc_complete == true
     # Finalize maps.
-    Z = FreeMod(br, 0)
+    if is_graded(domain(maps[1]))
+      Z = graded_free_module(br, 0)
+    else
+      Z = FreeMod(br, 0)
+    end
     set_attribute!(Z, :name => "0")
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
   end
@@ -4855,7 +5129,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
     # TODO: Use official getter and setter methods instead 
     # of messing manually with the internals of the complex.
-    for i in first(range(C)):k-1
+    for i in first(chain_range(C)):k-1
       N = domain(map(C, i))
 
       if iszero(N) # Fill up with zero maps
@@ -4895,21 +5169,29 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
-      Z = FreeMod(base_ring(M), 0)
-      set_attribute!(Z, :name => "0")
-      h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+      if is_graded(domain(mp[1]))
+        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+      else
+        Z = FreeMod(base_ring(M), 0)
+        set_attribute!(Z, :name => "0")
+        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+      end
       insert!(mp, 1, h)
       break
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeMod(base_ring(M), length(nz))
-    g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
+    if is_graded(codomain(mk))
+      g = graded_map(codomain(mk), collect(k.sub.gens)[nz])
+    else
+      F = FreeMod(base_ring(M), length(nz))
+      g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
+    end
     insert!(mp, 1, g)
   end
-  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false)
+  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
-  return C
+  return FreeResolution(C)
 end
 
 function Hecke.ring(I::MPolyIdeal)
@@ -4953,7 +5235,11 @@ Compute a free resolution of `I`.
 # Examples
 """
 function free_resolution(I::MPolyIdeal)
-  F = free_module(Hecke.ring(I), 1)
+  if is_graded(I)
+    F = graded_free_module(Hecke.ring(I), 1)
+  else
+    F = free_module(Hecke.ring(I), 1)
+  end
   S = sub(F, [x * gen(F, 1) for x = gens(I)], :module)
   n = Hecke.find_name(I)
   if n !== nothing
@@ -4970,8 +5256,13 @@ Compute a free resolution of `Q`.
 # Examples
 """
 function free_resolution(Q::MPolyQuoRing)
-  F = FreeMod(Q, 1)
-  q = quo(F, [Q(x) * gen(F, 1) for x = gens(Q.I)], :module)
+  br = base_ring(Q)
+  if is_graded(Q)
+    F = graded_free_module(br, 1)
+  else
+    F = free_module(br, 1)
+  end
+  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)], :module)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
@@ -5012,15 +5303,15 @@ by Submodule with 2 generators
 2 -> y^2*e[2]
 
 julia> H = hom(M, M)[1]
-hom of (Subquotient of Submodule with 2 generators
+hom of (Subquotient of
 1 -> e[1]
 2 -> e[2]
-by Submodule with 2 generators
+by
 1 -> x*e[1]
-2 -> y^2*e[2], Subquotient of Submodule with 2 generators
+2 -> y^2*e[2], Subquotient of
 1 -> e[1]
 2 -> e[2]
-by Submodule with 2 generators
+by
 1 -> x*e[1]
 2 -> y^2*e[2])
 
@@ -5040,6 +5331,9 @@ julia> relations(H)
 function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   if alg == :matrices && M isa SubquoModule && N isa SubquoModule
+    if is_graded(M) && is_graded(N)
+      error("This algorithm is not implemented for graded modules.")
+    end
     return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
@@ -5407,6 +5701,10 @@ Additionally, return
 function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   R = base_ring(F[1])
   G = FreeMod(R, sum([rank(f) for f = F]))
+  all_graded = all(is_graded, F)
+  if all_graded
+    G.d = vcat([f.d for f in F]...)
+  end
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -5607,6 +5905,10 @@ Given a collection of free modules, say, $F_1, \dots, F_n$ over a ring $R$, retu
 If `task = :map`, additionally return the map which sends a tuple $(f_1,\dots, f_n)$ of elements $f_i\in F_i$ to the pure tensor $f_1\otimes\dots\otimes f_n$.
 """
 function tensor_product(G::FreeMod...; task::Symbol = :none)
+  gs = [is_graded(g) for g in G]
+  if !all(gs) && !all(!x for x in gs)
+    error("All factors must either be graded or all must be ungraded.")
+  end
   s = G[1].S
   t = [[x] for x = 1:ngens(G[1])]
   for H = G[2:end]
@@ -5651,6 +5953,11 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   end
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
+
+  if all(is_graded(g) for g in G)
+    tensor_degrees = [sum(G[i].d[tplidx[i]] for i in 1:length(G)) for tplidx in t] 
+    F.d = tensor_degrees
+  end
 
   if task == :none
     return F
@@ -5860,7 +6167,7 @@ Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
-  tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
+  tensor_modules = [tensor_product(P, domain(map(C,first(chain_range(C)))), task=:cache_morphism)[1]]
   append!(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in Hecke.map_range(C)])
 
   for i in 1:length(Hecke.map_range(C))
@@ -5873,6 +6180,11 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
+
+function tensor_product(M::ModuleFP, F::FreeResolution)
+  return tensor_product(M, F.C)
+end
+
 
 @doc raw"""
     tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
@@ -5896,6 +6208,10 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+end
+
+function tensor_product(F::FreeResolution, M::ModuleFP)
+  return tensor_product(F.C, M)
 end
 
 @doc raw"""
@@ -5942,7 +6258,7 @@ represented as subquotient with no relations.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
-  lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
+  lifted_resolution = tensor_product(free_res.C[first(chain_range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
@@ -6029,6 +6345,10 @@ function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   return Hecke.ComplexOfMorphisms(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
 end
 
+function hom(M::ModuleFP, F::FreeResolution)
+  return hom(M, F.C)
+end
+
 @doc raw"""
     hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
@@ -6083,6 +6403,10 @@ function hom(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
 end
 
+function hom(F::FreeResolution, M::ModuleFP)
+  return hom(F.C, M)
+end
+
 @doc raw"""
     hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
@@ -6121,20 +6445,25 @@ function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, 
   #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
-  chain_range = Hecke.map_range(C)
-  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  m_range = Hecke.map_range(C)
+  hom_modules = [hom(domain(map(C,first(m_range))),P)]
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in m_range])
 
-  for i=1:length(chain_range)
+  for i=1:length(m_range)
     A = hom_modules[i][1]
     B = hom_modules[i+1][1]
 
-    j = chain_range[i]
+    j = m_range[i]
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(chain_range(C)), typ=C.typ)
 end
+
+function hom_without_reversing_direction(F::FreeResolution, M::ModuleFP)
+  return hom_without_reversing_direction(F.C, M)
+end
+
 
 #############################
 @doc raw"""
@@ -6179,6 +6508,11 @@ by Submodule with 2 generators
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
   return [homology(C,i) for i in Hecke.range(C)]
 end
+
+function homology(C::FreeResolution)
+  return homology(C.C)
+end
+
 
 @doc raw"""
     homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
@@ -6648,6 +6982,7 @@ zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubquoModule)
+  respect_grading = is_graded(M)
   function standard_unit_vector_in_relations(i::Int, M::SubquoModule)
     F = ambient_free_module(M)
     return in(F[i], M.quo)
@@ -6684,7 +7019,7 @@ function simplify(M::SubquoModule)
     return A
   end
 
-  function rows_to_delete(A::MatElem, max_index::Int)
+  function rows_to_delete(A::MatElem, max_index::Int, M::SubquoModule, respect_grading::Bool=false)
     to_delete_indices::Vector{Int} = []
     corresponding_row_index::Vector{Int} = []
     if max_index < nrows(A)
@@ -6695,6 +7030,7 @@ function simplify(M::SubquoModule)
       K = hcat(K[:,(ncols(K)-max_index+1):ncols(K)],K[:,1:(ncols(K)-max_index)])
     end
     for i=1:size(K)[1], j=1:max_index
+      #if is_unit(K[i,j]) && (!respect_grading || degree(M.sub.O[j]) == degree(M.quo.O[i]))
       if is_unit(K[i,j])
         deletion_possible = true
         for k in to_delete_indices
@@ -6728,20 +7064,19 @@ function simplify(M::SubquoModule)
   new_generators = delete_columns(M_generators, to_delete)
   new_relations = delete_columns(M_relations, to_delete)
 
-  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)),size(new_relations)[2])
+  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)), size(new_relations)[2], M, respect_grading)
 
   new_generators = delete_columns(new_generators, to_delete)
   new_relations = delete_columns(new_relations, to_delete)
 
   #remove rows
   #simplify relations
-  to_delete,_,_ = rows_to_delete(new_relations, size(new_relations)[1])
+  to_delete,_,_ = rows_to_delete(new_relations, size(new_relations)[1], M, respect_grading)
 
   new_relations = delete_rows(new_relations, to_delete)
 
   #simplify generators
-  to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1])
-
+  to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1], M, respect_grading)
 
   injection_matrix = delete_rows(identity_matrix(R, size(M_generators)[1]), to_delete)
   projection_matrix = zero_matrix(R, size(M_generators)[1], size(K_gen)[2]-length(to_delete))
@@ -6778,7 +7113,7 @@ function simplify(M::SubquoModule)
 end
 
 ######################################
-# Not only for testing
+# Matrix to morphism
 ######################################
 @doc raw"""
     map(F::FreeMod{T}, A::MatrixElem{T}) where T
@@ -6787,6 +7122,9 @@ Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \t
 with `rank(F) == m`.
 """
 function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
+  if is_graded(F) 
+    return graded_map(F,A)
+  end
   R = base_ring(F)
   F_domain = FreeMod(R, nrows(A))
 
@@ -7002,8 +7340,10 @@ a homomorphism ``M → R``.
 The optional argument allows to specify a free module of rank ``1`` 
 for the codomain of the dualizing functor.
 """
-function dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
-  base_ring(cod) === base_ring(M) && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
+function dual(M::ModuleFP; cod::Union{FreeMod, Nothing}=nothing)
+  R = base_ring(M)
+  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
+  base_ring(cod) === R && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
   return hom(M, cod)
 end
 
@@ -7014,20 +7354,46 @@ For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
 map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
 """
-function double_dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+  R = base_ring(M)
+  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
   M_dual, _ = dual(M, cod=cod)
   M_double_dual, _ = dual(M_dual, cod=cod)
-  psi = hom(M, M_double_dual, 
-            [homomorphism_to_element(M_double_dual, 
-                                     hom(M_dual, cod,
-                                         [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]
-                                        )
-                                    )
-             for x in gens(M)
-            ]
-           )
+  if length(gens(M_dual)) == 0
+    psi_gens = [zero(M_double_dual) for _ in gens(M)]
+  else
+    psi_gens = [
+      homomorphism_to_element(
+        M_double_dual,
+        FreeModuleHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+      )
+      for x in gens(M)
+    ]
+  end
+  psi = FreeModuleHom(M, M_double_dual, psi_gens)
   return M_double_dual, psi
 end
+
+function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+  R = base_ring(M)
+  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
+  M_dual, _ = dual(M, cod=cod)
+  M_double_dual, _ = dual(M_dual, cod=cod)
+  if length(gens(M_dual)) == 0
+    psi_gens = [zero(M_double_dual) for _ in gens(M)]
+  else
+    psi_gens = [
+      homomorphism_to_element(
+        M_double_dual,
+        SubQuoHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+      )
+      for x in gens(M)
+    ]
+  end
+  psi = SubQuoHom(M, M_double_dual, psi_gens)
+  return M_double_dual, psi
+end
+
 
 @doc raw"""
     dual(f::ModuleFPHom; cod::FreeMod)

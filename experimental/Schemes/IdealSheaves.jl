@@ -569,26 +569,19 @@ end
 # primary decomposition
 ########################################################################
 
-## this should go to src/Ring/mpolyquo-localization.jl
-function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
-  Q = base_ring(I)
-  R = base_ring(Q)
-  decomp = primary_decomposition(saturated_ideal(I))
-  result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
-  return result
-end
+@doc raw"""
+    maximal_associated_points(I::IdealSheaf)
 
-## this should go to src/Rings/mpolyquo-localization.jl
-function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
-  Q = base_ring(I)
-  R = base_ring(Q)
-  decomp = minimal_primes(saturated_ideal(I))
-  result = [ideal(Q, Q.(gens(b))) for b in decomp]
-  return result
-end
+Returns a `Vector` of `IdealSheaf`s corresponding to the non-embedded associated points of ``I`` on ``scheme(I)``.
 
+Note:
+For usability reasons these associated points are not encoded as a subscheme, but as the corresponding ideal sheaf defining the subscheme.
 
-function minimal_associated_points(I::IdealSheaf)
+Background:
+More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
+Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
+"""
+function maximal_associated_points(I::IdealSheaf)
   X = scheme(I)
   OOX = OO(X)
 
@@ -639,6 +632,19 @@ function minimal_associated_points(I::IdealSheaf)
   return associated_primes_result
 end
 
+@doc raw"""
+    associated_points(I::IdealSheaf)
+
+Returns a `Vector` of `IdealSheaf`s corresponding to the associated points of ``I`` on ``scheme(I)``.
+
+Note:
+For usability reasons an associated point is not encoded as subscheme, but as the corresponding ideal sheaf defining the subscheme.
+
+Background:
+More generally, a point ``x`` on a scheme ``X`` is associated to a quasi-coherent sheaf ``F``, if the maximal ideal ``m_x`` is associated to the ``O_{X,x}``-module ``F_x``.
+If ``U = Spec(A)`` is an affine open on a locally noetherian scheme ``X``, ``x \in U`` and ``p \in A`` the corresponding prime ideal, then ``p \in Ass(\Gamma(U,F))`` iff ``x \in Ass(F)``.
+
+"""
 function associated_points(I::IdealSheaf)
   X = scheme(I)
   OOX = OO(X)
