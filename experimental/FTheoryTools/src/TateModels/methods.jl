@@ -175,19 +175,16 @@ function resolve(t::GlobalTateModel, index::Int)
   nr_blowups = length(resolution)-1
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
-  function string_to_poly(R, s::String)
-    evaluate(eval(Meta.parse("_, ($(join(symbols(R), ','))) = PolynomialRing(ZZ, $(ngens(R)), cached = false);"*s)), gens(R));
-  end
   resolved_ambient_space = toric_ambient_space(t)
   R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], resolution[nr_blowups+1]))
   for k in 1:nr_blowups
-    @req all(x -> x in gR, [string_to_poly(R, p) for p in resolution[k]]) "Blowup currently not supported"
+    @req all(x -> x in gR, [eval_poly(p, R) for p in resolution[k]]) "Non-toric blowup currently not supported"
   end
   
   # Perform resolution
   for k in 1:nr_blowups
     S = cox_ring(resolved_ambient_space)
-    resolved_ambient_space = blow_up(resolved_ambient_space, ideal([string_to_poly(S, g) for g in resolution[k]]); coordinate_name = resolution[nr_blowups + 1][k], set_attributes = true)
+    resolved_ambient_space = blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in resolution[k]]); coordinate_name = resolution[nr_blowups + 1][k], set_attributes = true)
   end
   return resolved_ambient_space
 end
