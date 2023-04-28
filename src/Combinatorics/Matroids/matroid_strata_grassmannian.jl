@@ -1,3 +1,25 @@
+struct MatroidRealizationSpace
+    defining_ideal::Union{Oscar.MPolyIdeal,Nothing}
+    inequations::Union{Vector{Oscar.RingElem},Nothing}
+    ambient_ring::Union{Oscar.MPolyRing,Nothing}
+    representation_matrix::Union{Oscar.MatElem,Nothing}
+    representable::Bool
+end
+
+function Base.show(io::IO, RS::MatroidRealizationSpace)
+    if !RS.representable
+        print(io, "The matroid is not representable.")
+    else
+        println(io, "The representations of the matroid are parametrized by the matrix")
+        # println isn't ideal as it prints the matrix as one big line
+        display(RS.representation_matrix)
+        println(io, "in the ", RS.ambient_ring)
+        println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
+        println(io, "avoiding the zero loci of the polynomials\n", RS.inequations)
+    end
+end
+
+
 @doc Markdown.doc"""
     matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType, F::AbstractAlgebra.Ring = ZZ)
 
@@ -479,7 +501,8 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
      return fund_circs
  end
 
- function new_realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, F::AbstractAlgebra.Ring = ZZ)
+ function new_realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false)::MatroidRealizationSpace
 
     rk = rank(M)
     n = length(M)
@@ -490,7 +513,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     if B!=nothing
         goodB = sort!(Int.([M.gs2num[j] for j in B]))
     else
-        goodB = Bs[length(Bs)]
+        goodB = find_good_basis_heuristically(M)
     end
 
     polyR, x, mat = new_realization_space_matrix(goodM, goodB, F)
@@ -525,6 +548,56 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
         end
         
     end
+
+    def_ideal = ideal(polyR,eqs)
+    def_ideal = ideal(groebner_basis(def_ideal))
+    if !iszero(def_ideal)
+        for i in 1:length(ineqs)
+            ineqs[i] = reduce(ineqs[i], gens(def_ideal))
+        end
+    end
+    ineqs = gens_2_factors(ineqs)
     
-    return (eqs, ineqs, polyR, mat)
+    if saturate || polyR.nvars < 10
+        def_ideal = stepwise_saturation(def_ideal,ineqs)
+        def_ideal = ideal(groebner_basis(def_ideal))
+    end
+        
+    representable = !(isone(def_ideal))
+
+    if !representable
+        return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
+    end
+
+    return MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, representable)
 end
+
+# A heuristic function that tries to find a sensible basis for the moduli space computation for which the defining ideal is not too complicated
+function find_good_basis_heuristically(M::Matroid)
+    # as a first step we compare the number of variables for differnet choices of bases
+    num_vars = ([sum([length(intersect(c,b)) for c in fundamental_circuits_of_basis(M,b)]) for b in bases(M)])
+    min_num_vars = minimum(num_vars)
+    remaining_bases = [bases(M)[k] for k in 1:length(bases(M)) if num_vars[k]==min_num_vars]
+    # among the bases which the minimal number of variables we choose one for which the number of disjoint nonbases is minimal 
+    ind_min_number_worst_nonbases = argmin([count(n -> isdisjoint(n,b), nonbases(M)) for b in remaining_bases])
+    return remaining_bases[ind_min_number_worst_nonbases]
+end
+
+
+#returns the factors of f, but not the exponents
+function poly_2_factors(f)
+    return collect(keys(Dict(factor(f))))
+end
+
+# returns the unique factors of the elements of Sgen, again no exponents. 
+function gens_2_factors(Sgens)
+    return unique!(vcat([poly_2_factors(f) for f in Sgens]...))
+end
+
+function stepwise_saturation(I, Sgens)
+    for f in Sgens
+        I = saturation(I, ideal([f]))
+    end
+    return I
+end
+
