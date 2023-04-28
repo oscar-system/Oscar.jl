@@ -4,7 +4,7 @@
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(A::MPolyQuoRing)
 
 Return the Krull dimension of `A`.
@@ -25,7 +25,7 @@ function dim(A::MPolyQuoRing)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     vdim(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
@@ -76,7 +76,7 @@ end
 ##################################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_series(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -120,7 +120,7 @@ function hilbert_series(A::MPolyQuoRing)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -159,7 +159,7 @@ function hilbert_series_reduced(A::MPolyQuoRing)
    return hilbert_series(H,2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_series_expanded(A::MPolyQuoRing, d::Int)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -188,7 +188,7 @@ function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
    return hilbert_series_expanded(H, d)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_function(A::MPolyQuoRing, d::Int)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -225,7 +225,7 @@ function hilbert_function(A::MPolyQuoRing, d::Int)
    return hilbert_function(H, d)
 end
    
-@doc Markdown.doc"""
+@doc raw"""
      hilbert_polynomial(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -257,7 +257,7 @@ function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
    return hilbert_polynomial(H)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
@@ -330,7 +330,7 @@ function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:Baye
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     multi_hilbert_series(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
 
 Return the Hilbert series of the positively graded affine algebra `A`.
@@ -412,11 +412,10 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
    R = base_ring(A)
    I = A.I
    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   if !(R isa MPolyDecRing && is_graded(R) && is_positively_graded(R))
-       throw(ArgumentError("The base ring must be positively graded."))
-   end
+   @req is_positively_graded(R) "The base ring must be positively graded"
+
    G = grading_group(R)
-   if !(is_zm_graded(R))
+   if !is_zm_graded(R)
       H, iso = snf(G)
       V = [preimage(iso, x) for x in gens(G)]
       isoinv = hom(G, H, V)
@@ -466,9 +465,7 @@ end
 #   R = base_ring(A)
 #   I = A.I
 #   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-#   if !(R isa MPolyDecRing && is_graded(R) && is_positively_graded(R))
-#       throw(ArgumentError("The base ring must be positively graded."))
-#   end
+#   @req is_positively_graded(R) "The base ring must be positively graded"
 #   if !(is_zm_graded(R))
 #      G = grading_group(R)
 #      H, iso = snf(G)
@@ -522,7 +519,7 @@ end
 #   return  (p, q), T
 #end
 
-@doc Markdown.doc"""
+@doc raw"""
     multi_hilbert_series_reduced(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
@@ -624,7 +621,7 @@ function _monomial_ideal_membership(m::MPolyRingElem, I::MPolyIdeal)
 	return false
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
 
 Given a positively graded affine algebra $A$ over a field $K$ with grading group $G$,
@@ -721,7 +718,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_reduced(A::MPolyQuoRing)
 
 Given an affine algebra `A`, return `true` if `A` is reduced, `false` otherwise.
@@ -744,7 +741,7 @@ function is_reduced(A::MPolyQuoRing)
   return I == radical(I)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_normal(A::MPolyQuoRing)
 
 Given an affine algebra `A` over a perfect field,
@@ -779,7 +776,7 @@ function is_normal(A::MPolyQuoRing)
   return Bool(f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      is_cohen_macaulay(A::MPolyQuoRing) 
 
 Given a $\mathbb Z$-graded affine algebra `A = R/I` over a field, say, `K`, where the grading 
@@ -828,55 +825,14 @@ end
 #
 ##############################################################################
 
-# helper function for the containment problem, surjectivity and preimage
-function _containment_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
-   T, _ = polynomial_ring(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
-                                                               # since we do not have block orderings in Oscar
-   phi = hom(R, T, [gen(T, i) for i in 1:M])
-
-   # Groebner computation
-   A = phi.(gens(I))
-   B = [phi(W[i])-gen(T, M + i) for i in 1:N]
-   J = ideal(T, vcat(A, B))
-   GG = gens(T)
-
-   if ord == :lex
-      #G = groebner_basis(J, complete_reduction = true)
-      #return (T, phi, G)
-      O = degrevlex(GG[1:M])*lex(GG[M+1:M+N])
-   else ## ord == :degrevlex
-      O = degrevlex(GG[1:M])*degrevlex(GG[M+1:M+N])
-   end
-   groebner_assure(J, O, true)
-   return (T, phi, J)
-end
-
-# helper function to obtain information about qring status and 
-# convert elements, if needed
-function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyQuoRingElem
-   R = base_ring(r)
-   I = modulus(r)
-   W = [lift(v) for v in V]
-   F = lift(f)
-   return (R, I, W, F)
-end
-
-function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyRingElem
-   R = r
-   I = ideal(R, [R(0)])
-   W = [v for v in V]
-   F = f
-   return (R, I, W, F)
-end
-
-
-@doc Markdown.doc"""
+@doc raw"""
     subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
- 
-Given an element `f` of a multivariate polynomial ring over a field, or of a quotient of such a ring, 
-and given a vector `V` of further elements of that ring, consider the subalgebra generated by the entries 
-of `V` in the given ring. If `f` is contained in the subalgebra, return `(true, h)`, where `h` is giving 
-the polynomial relation. Return, `(false, 0)`, otherwise.
+
+Given an element `f` of a multivariate polynomial ring over a field, or of a
+quotient of such a ring, and given a vector `V` of further elements of that ring,
+consider the subalgebra generated by the entries of `V` in the given ring. If `f`
+is contained in the subalgebra, return `(true, h)`, where `h` is giving the
+polynomial relation. Return, `(false, 0)`, otherwise.
 
 # Examples
 ```jldoctest
@@ -890,35 +846,21 @@ julia> V = [x[1]^3*x[2]^3-x[1]^3*x[3]^3, x[1]^3*x[2]^3+x[1]^3*x[3]^3]
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3
 
 julia> subalgebra_membership(f, V)
-(true, t_1*t_2)
+(true, t1*t2)
 ```
 """
-function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyRingElem, MPolyQuoRingElem}
-   r = parent(f)
-   @req coefficient_ring(r) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @assert !isempty(v)
-   @assert all(x->parent(x) == r, v)
-   (R, I, W, F) = _ring_helper(r, f, v)
-   n = length(W)
-   m = ngens(R)
+function subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  R = parent(f)
+  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
+  @req !isempty(v) "Input vector must not be empty"
+  @req all(x -> parent(x) === R, v) "The polynomials must have the same parent"
 
-   # Build auxiliary objects
-   (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
-   TT, _ = polynomial_ring(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
-   
-   # Check containment
-   D = normal_form([phi(F)], J)
-   if leading_monomial(D[1]) < gen(T, m)
-      A = [zero(TT) for i in 1:m]
-      B = [gen(TT, i) for i in 1:n]
-      psi = hom(T, TT, vcat(A, B))
-      return (true, psi(D[1]))
-   else
-      return (false, TT(0))
-   end
+  S, _ = polynomial_ring(coefficient_ring(R), length(v), "t")
+  phi = hom(S, R, v)
+  return has_preimage(phi, f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     subalgebra_membership_homogeneous(f::T, V::Vector{T}; check::Bool = true)
       where T <: Union{MPolyDecRingElem, MPolyQuoRingElem{TT} where TT <: MPolyDecRingElem}
 
@@ -936,24 +878,24 @@ function subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingE
 end
 
 function subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingElemT}; check::Bool = true) where PolyRingElemT <: MPolyQuoRingElem{T} where T <: MPolyDecRingElem
-  return _subalgebra_membership_homogeneous(f.f, [ g.f for g in v ], modulus(parent(f)), check = check)
+  return _subalgebra_membership_homogeneous(lift(f), [ lift(g) for g in v ], modulus(parent(f)), check = check)
 end
 
 function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true) where PolyRingElemT <: MPolyDecRingElem
   R = parent(f)
-  @assert !isempty(v)
-  @assert all(g -> parent(g) == R, v)
+  @req !isempty(v) "Input vector must not be empty"
+  @req all(g -> parent(g) === R, v) "The polynomials must have the same parent"
   if check
-    @assert is_z_graded(R)
-    @assert is_positively_graded(R)
-    @assert is_homogeneous(f)
-    @assert all(is_homogeneous, v)
+    @req is_z_graded(R) "The base ring must be Z-graded"
+    @req is_positively_graded(R) "The base ring must be positively graded"
+    @req is_homogeneous(f) "The input must be homogeneous"
+    @req all(is_homogeneous, v) "The input must be homogeneous"
   end
 
   # This is basically [GP09, p. 86, Solution 2], but we only compute a degree
   # truncated Gröbner basis
 
-  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v), ordering = :lex)
+  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v))
 
   RtoT = hom(R, T, gens(T)[1:ngens(R)])
 
@@ -979,10 +921,13 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ])
   TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
 
-  if leading_monomial(nf) < gen(T, ngens(R))
-    return (true, TtoS(nf))
+  # f is in the subalgebra iff nf does not involve the variables
+  # gen(T, 1), ..., gen(T, ngens(R)), that is, iff LM(nf) is strictly smaller
+  # than gen(T, ngens(R)) w.r.t. the block ordering o.
+  if isone(cmp(o, gen(T, ngens(R)), leading_monomial(nf, ordering = o)))
+    return true, TtoS(nf)
   else
-    return (false, zero(S))
+    return false, zero(S)
   end
 end
 
@@ -991,16 +936,17 @@ end
 #  Minimalizing a set of subalgebra generators in graded case
 #
 ################################################################################
-@doc Markdown.doc""" 
-    minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
-Given a vector `V` of homogeneous elements of a positively graded multivariate 
-polynomial ring, or of a quotient of such a ring, return a minimal subset of the 
-elements in `V` which, in the given ring, generate 
+@doc raw"""
+    minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+
+Given a vector `V` of homogeneous elements of a positively graded multivariate
+polynomial ring, or of a quotient of such a ring, return a minimal subset of the
+elements in `V` which, in the given ring, generate
 the same subalgebra as all elements in `V`.
 
-!!! note
-    The conditions on `V` and the given ring are automatically checked.
+If `check` is `true` (default), the conditions on `V` and the given ring are
+checked.
 
 # Examples
 ```jldoctest
@@ -1018,25 +964,81 @@ julia> minimal_subalgebra_generators(V)
  y
 ```
 """
-function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
-  p = parent(V[1])
-  @assert all(x->parent(x) == p, V)
-  @req coefficient_ring(p) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if p isa MPolyRing
-      @req p isa MPolyDecRing && is_positively_graded(p) "The base ring must be positively graded"
-  else
-      @req base_ring(p) isa MPolyDecRing && is_graded(p) "The base ring must be graded"
+function minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
+  @req !isempty(V) "Input vector must not be empty"
+  I = ideal(parent(V[1]), [ zero(parent(V[1])) ])
+  return _minimal_subalgebra_generators_with_relations(V, I, check = check)[1]
+end
+
+function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyDecRingElem}; check::Bool = true)
+  @req !isempty(V) "Input vector must not be empty"
+  I = ideal(parent(V[1]), [ zero(parent(V[1])) ])
+  return _minimal_subalgebra_generators_with_relations(V, I, check = check)
+end
+
+function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyQuoRingElem{T}}; check::Bool = true) where T <: MPolyDecRingElem
+  @req !isempty(V) "Input vector must not be empty"
+  return _minimal_subalgebra_generators_with_relations([ lift(f) for f in V ], modulus(parent(V[1])), check = check)
+end
+
+function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true, start::Int = 0) where PolyRingElemT <: MPolyDecRingElem
+  @req !isempty(V) "Input vector must not be empty"
+  @assert start >= 0
+  R = parent(V[1])
+  @req all(g -> parent(g) === R, V) "The polynomials must have the same parent"
+  if check
+    @req is_z_graded(R) "The base ring must be Z-graded"
+    @req is_positively_graded(R) "The base ring must be positively graded"
+    @req all(is_homogeneous, V) "The input must be homogeneous"
   end
-  @req all(is_homogeneous, V) "The input data is not homogeneous"
-  # iterate over the generators, starting with those in lowest degree, then work up
-  W = sort(V, by = x -> degree(x)[1])
-  result = [ W[1] ]
-  for elm in W
-    if !subalgebra_membership(elm, result)[1]
-       push!(result, elm)
+
+  K = coefficient_ring(R)
+
+  # Use S to keep track of relations
+  S, _ = polynomial_ring(K, length(V), "t")
+  rels = Vector{elem_type(S)}(undef, length(V))
+
+  # If start > 0, we assume that the polynomials V[1:start] are known to be part
+  # of a minimal generating set
+  if start > 0
+    W = V[start + 1:end]
+    # Sort by increasing degree
+    sp = sortperm(W, lt = (x, y) -> degree(x)[1] < degree(y)[1])
+    W = W[sp]
+
+    res = V[1:start]
+    for i in 1:start
+      rels[i] = gen(S, i)
+    end
+  else
+    sp = sortperm(V, lt = (x, y) -> degree(x)[1] < degree(y)[1])
+    W = V[sp]
+
+    res = elem_type(R)[ W[1] ]
+    rels[sp[1]] = gen(S, 1)
+  end
+
+  for i in 1:length(W)
+    f = W[i]
+    fl, t = _subalgebra_membership_homogeneous(f, res, I, check = false)
+    if fl
+      # f is in the span of the generators so far
+      rels[start + sp[i]] = t(gens(S)[1:length(res)]...)
+    else
+      # f is a new generator
+      rels[start + sp[i]] = gen(S, start + i)
+      push!(res, f)
     end
   end
-  return result
+
+  # S might have too many variables
+  if length(V) > length(res)
+    S2, _ = polynomial_ring(K, length(res), "t")
+    t = append!(gens(S2), [ zero(S2) for i in 1:ngens(S) - ngens(S2) ])
+    rels = [ f(t...) for f in rels ]
+  end
+
+  return res, rels
 end
 
 ##############################################################################
@@ -1069,7 +1071,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
     for i in 1:length(l[1])]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normalization(A::MPolyQuoRing; alg = :equidimDec)
 
 Find the normalization of a reduced affine algebra over a perfect field $K$.
@@ -1148,7 +1150,7 @@ function normalization(A::MPolyQuoRing; alg=:equidimDec)
   return _conv_normalize_data(A, l, br)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normalization_with_delta(A::MPolyQuoRing; alg = :equidimDec)
 
 Compute the normalization
@@ -1214,7 +1216,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     noether_normalization(A::MPolyQuoRing)
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
@@ -1257,7 +1259,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
 
 Given a polynomial $f$ in two variables with coefficients in a perfect field $K$, and

@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     domain(tm::ToricMorphism)
 
 Return the domain of the toric morphism `tm`.
@@ -15,7 +15,7 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 domain(tm::ToricMorphism) = tm.domain
 
 
-@doc Markdown.doc"""
+@doc raw"""
     codomain(tm::ToricMorphism)
 
 Return the codomain of the toric morphism `tm`.
@@ -32,7 +32,7 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 codomain(tm::ToricMorphism) = tm.codomain
 
 
-@doc Markdown.doc"""
+@doc raw"""
     image(tm::ToricMorphism)
 
 Return the image of the toric morphism `tm`.
@@ -49,7 +49,7 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 image(tm::ToricMorphism) = tm.image
 
 
-@doc Markdown.doc"""
+@doc raw"""
     grid_morphism(tm::ToricMorphism)
 
 Return the underlying grid morphism of the toric morphism `tm`.
@@ -72,7 +72,7 @@ Abelian group with structure: Z^2
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
 
 
-@doc Markdown.doc"""
+@doc raw"""
     morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
 
 For a given toric morphism `tm`, this method computes the corresponding
@@ -100,7 +100,8 @@ Abelian group with structure: Z^4
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
     mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(d)), 0))
     for i in 1:nrows(images)
-      j = findfirst(x -> x == true, [contains(maximal_cones(cod)[j], [images[i,k] for k in 1:ncols(images)]) for j in 1:n_maximal_cones(cod)])
+      v = [images[i,k] for k in 1:ncols(images)]
+      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
       m = vcat([Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
     end
@@ -108,7 +109,7 @@ Abelian group with structure: Z^4
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 
 For a given toric morphism `tm`, this method computes the corresponding
@@ -139,7 +140,7 @@ Abelian group with structure: Z^4
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     morphism_on_class_group(tm::ToricMorphism)
 
 For a given toric morphism `tm`, this method computes the corresponding
@@ -170,7 +171,7 @@ Abelian group with structure: Z^2
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     morphism_on_picard_group(tm::ToricMorphism)
 
 For a given toric morphism `tm`, this method computes the corresponding

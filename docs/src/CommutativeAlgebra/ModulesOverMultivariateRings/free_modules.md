@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["free_modules.md"]
-```
-
 # Free Modules
 
 In this section, the expression *free module*  refers to a free module of finite rank

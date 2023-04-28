@@ -10,14 +10,13 @@ struct SLPolyRing{T<:RingElement,R<:Ring}  <: Ring
     end
 end
 
-SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
-                             AbstractVector{<:AbstractChar}}; cached::Bool = false) =
+SLPolyRing(r::Ring, s::AbstractVector{<:VarName}; cached::Bool = false) =
                                  SLPolyRing(r, Symbol.(s), cached = cached)
 
 SLPolyRing(r::Ring, n::Base.Integer; cached::Bool = false) = SLPolyRing(r, [Symbol("x$i") for i=1:n], cached = cached)
 
 # cf. mpoly.jl in Oscar
-SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
+SLPolyRing(r::Ring, v::Pair{<:VarName,
                             <:AbstractVector{<:Base.Integer}}...; cached::Bool = false) =
     SLPolyRing(r, [Symbol(s, n) for (s, ns) in v for n in ns], cached = cached)
 
@@ -49,7 +48,7 @@ function SLPolynomialRing(R::Ring, s; cached::Bool = false)
     S, gens(S)
 end
 
-function SLPolynomialRing(R::Ring, v::Pair{<:Union{String,Symbol},
+function SLPolynomialRing(R::Ring, v::Pair{<:VarName,
                                          <:AbstractVector{<:Base.Integer}}...; cached::Bool = false)
     S = SLPolyRing(R, v...; cached = cached)
 

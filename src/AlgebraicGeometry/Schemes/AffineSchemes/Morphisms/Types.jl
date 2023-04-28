@@ -4,7 +4,7 @@
 # Abstract morphisms of affine schemes                                 #
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsSpecMor{DomainType<:AbsSpec, 
                CodomainType<:AbsSpec, 
                PullbackType<:Hecke.Map,
@@ -37,7 +37,7 @@ end
 # Minimal concrete type for morphisms of affine schemes                #
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SpecMor{DomainType<:AbsSpec, 
             CodomainType<:AbsSpec, 
             PullbackType<:Hecke.Map
@@ -80,7 +80,7 @@ end
 ########################################################################
 # A special type for open inclusions                                   #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor
 
 An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another 

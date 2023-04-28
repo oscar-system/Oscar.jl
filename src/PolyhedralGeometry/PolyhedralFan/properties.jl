@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rays(PF::PolyhedralFan)
 
 Return the rays of `PF`.
@@ -55,7 +55,7 @@ _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 _maximal_cone(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(PF, i - 1))
 
 
-@doc Markdown.doc"""                                                 
+@doc raw"""                                                 
     rays_modulo_lineality(as, F::PolyhedralFan)
                          
 Return the rays of the polyhedral fan `F` up to lineality as a `NamedTuple`
@@ -98,7 +98,7 @@ rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
     
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_cones(PF::PolyhedralFan)
 
 Return the maximal cones of `PF`.
@@ -124,7 +124,7 @@ maximal_cones(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{Con
 
 _ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
-@doc Markdown.doc"""
+@doc raw"""
     cones(PF::PolyhedralFan, cone_dim::Int)
 
 Return an iterator over the cones of `PF` of dimension `cone_dim`.
@@ -151,7 +151,7 @@ julia> cones(PF, 2)
 ```
 """
 function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
-    l = cone_dim  - length(lineality_space(PF))
+    l = cone_dim - length(lineality_space(PF))
     l < 1 && return nothing
     return SubObjectIterator{Cone{T}}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
@@ -163,22 +163,36 @@ end
 _ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cones(PF::PolyhedralFan)
 
-Return a list of all non-zero-dimensional cones of a polyhedral fan.
+Return the ray indices of all non-zero-dimensional
+cones in a polyhedral fan.
 
 # Examples
-The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
 ```jldoctest
-julia> PF = face_fan(cube(3));
+julia> PF = face_fan(cube(2))
+Polyhedral fan in ambient dimension 2
 
-julia> length(cones(PF))
-26
+julia> cones(PF)
+8×4 IncidenceMatrix
+[1, 3]
+[2, 4]
+[1, 2]
+[3, 4]
+[1]
+[3]
+[2]
+[4]
 ```
 """
-function cones(PF::_FanLikeType{T}) where T<:scalar_types
-    return reduce(vcat, cones(PF,d) for d in 1:dim(PF))
+function cones(PF::_FanLikeType)
+  pmo = pm_object(PF)
+  ncones = pmo.HASSE_DIAGRAM.N_NODES
+  cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES,i) for i in 0:(ncones-1)];
+  cones = filter(x->!(-1 in x) && length(x)>0, cones);
+  cones = [Polymake.to_one_based_indexing(x) for x in cones];
+  return IncidenceMatrix([Vector{Int}(x) for x in cones])
 end
 
 
@@ -192,7 +206,7 @@ end
 ## Scalar properties
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(PF::PolyhedralFan)
 
 Return the dimension of `PF`.
@@ -209,7 +223,7 @@ julia> dim(PF)
 """
 dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     n_maximal_cones(PF::PolyhedralFan)
 
 Return the number of maximal cones of `PF`.
@@ -226,7 +240,25 @@ julia> n_maximal_cones(PF)
 """
 n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
-@doc Markdown.doc"""
+@doc raw"""
+    n_cones(PF::PolyhedralFan)
+
+Return the number of cones of `PF`.
+
+# Examples
+The cones given in this construction are non-redundant. There are six
+cones in this fan.
+```jldoctest
+julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]))
+Polyhedral fan in ambient dimension 2
+
+julia> n_cones(PF)
+4
+```
+"""
+n_cones(PF::_FanLikeType) = nrows(cones(PF))
+
+@doc raw"""
     ambient_dim(PF::PolyhedralFan)
 
 Return the ambient dimension `PF`, which is the dimension of the embedding
@@ -244,7 +276,7 @@ julia> ambient_dim(normal_fan(cube(4)))
 """
 ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     nrays(PF::PolyhedralFan)
 
 Return the number of rays of `PF`.
@@ -260,7 +292,7 @@ nrays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _nrays(PF) : 0
 _nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
-@doc Markdown.doc"""
+@doc raw"""
     f_vector(PF::PolyhedralFan)
 
 Compute the vector $(f₁,f₂,...,f_{dim(PF)-1})$` where $f_i$ is the number of
@@ -297,7 +329,7 @@ function f_vector(PF::_FanLikeType)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_dim(PF::PolyhedralFan)
 
 Return the dimension of the lineality space of the polyhedral fan `PF`, i.e.
@@ -328,7 +360,7 @@ lineality_dim(PF::_FanLikeType) = pm_object(PF).LINEALITY_DIM::Int
 ## Points properties
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_space(PF::PolyhedralFan)
 
 Return a non-redundant matrix whose rows are generators of the lineality space
@@ -358,7 +390,7 @@ _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_pointed(PF::PolyhedralFan)
 
 Determine whether `PF` is pointed, i.e. all its cones are pointed.
@@ -385,7 +417,7 @@ julia> lineality_dim(nf)
 is_pointed(PF::_FanLikeType) = pm_object(PF).POINTED::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_smooth(PF::PolyhedralFan{QQFieldElem})
 
 Determine whether `PF` is smooth.
@@ -402,7 +434,7 @@ false
 """
 is_smooth(PF::_FanLikeType{QQFieldElem}) = pm_object(PF).SMOOTH_FAN::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_regular(PF::PolyhedralFan)
 
 Determine whether `PF` is regular, i.e. the normal fan of a polytope.
@@ -418,7 +450,7 @@ false
 """
 is_regular(PF::_FanLikeType) = pm_object(PF).REGULAR::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_complete(PF::PolyhedralFan)
 
 Determine whether `PF` is complete, i.e. its support, the set-theoretic union
@@ -434,7 +466,7 @@ true
 is_complete(PF::_FanLikeType) = pm_object(PF).COMPLETE::Bool
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_simplicial(PF::PolyhedralFan)
 
 Determine whether `PF` is simplicial, i.e. every cone should be generated by a
@@ -457,7 +489,7 @@ is_simplicial(PF::_FanLikeType) = pm_object(PF).SIMPLICIAL::Bool
 ## Primitive collections
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     primitive_collections(PF::PolyhedralFan)
 
 Return the primitive collections of a polyhedral fan.
@@ -477,93 +509,3 @@ function primitive_collections(PF::_FanLikeType)
 end
 
 
-###############################################################################
-## Star subdivision
-###############################################################################
-
-@doc Markdown.doc"""
-    starsubdivision(PF::PolyhedralFan, n::Int)
-
-Return the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
-
-# Examples
-```jldoctest
-julia> star = starsubdivision(normal_fan(simplex(3)), 1)
-Polyhedral fan in ambient dimension 3
-
-julia> rays(star)
-5-element SubObjectIterator{RayVector{QQFieldElem}}:
- [0, 1, 0]
- [0, 0, 1]
- [-1, -1, -1]
- [1, 0, 0]
- [1, 1, 1]
-
-julia> ray_indices(maximal_cones(star))
-6×5 IncidenceMatrix
-[1, 2, 3]
-[2, 3, 4]
-[1, 3, 4]
-[2, 4, 5]
-[1, 2, 5]
-[1, 4, 5]
-```
-"""
-function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
-    # extract defining information on the fan
-    maxcones = IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
-    R = Polymake.common.primitive(pm_object(PF).RAYS)
-    
-    # check if n-th maximal cone does exist
-    if length(maxcones) < n
-        throw(ArgumentError("Cannot subdivide maximal cone $n as it does not exist!"))
-    end
-    nthmaxcone = Polymake.row(maxcones, n)
-    
-    # construct this cone and check if it is smooth
-    cone = Polymake.fan.cone(pm_object(PF), n-1)
-    if !cone.SMOOTH_CONE
-        throw(ArgumentError("Cannot subdivide maximal cone $n as it is not smooth!"))
-    end
-    
-    # compute new rays to be added from star subdivision
-    newindex = size(R,1) + 1
-    newray = sum([R[i,:] for i in nthmaxcone])
-    
-    # add this ray to form list of the new rays
-    newrays = [R; transpose(newray)]
-    
-    # identify all maximal cones in the new fan
-    d = Polymake.polytope.dim(cone)
-    newmaxcones = [Vector{Int64}(Polymake.row(maxcones, i)) for i in 1:(Polymake.nrows(maxcones)) if i!= n]
-    for subset in subsets(Vector{Int64}(nthmaxcone), d-1)
-        tmp = Vector{Int64}(subset)
-        append!(tmp, newindex)
-        push!(newmaxcones, tmp)
-    end
-    newmaxcones = IncidenceMatrix(newmaxcones)
-    
-    # return the new fan
-    return PolyhedralFan{T}(newrays, newmaxcones)
-    
-end
-
-###############################################################################
-## Cartesian/Direct product
-###############################################################################
-
-@doc Markdown.doc"""
-    *(PF1::PolyhedralFan, PF2::PolyhedralFan)
-
-Return the Cartesian/direct product of two polyhedral fans.
-
-# Examples
-```jldoctest
-julia> normal_fan(simplex(2))*normal_fan(simplex(3))
-Polyhedral fan in ambient dimension 5
-```
-"""
-function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
-    prod = Polymake.fan.product(pm_object(PF1), pm_object(PF2))
-    return PolyhedralFan{detect_scalar_type(PolyhedralFan, prod)}(prod)
-end

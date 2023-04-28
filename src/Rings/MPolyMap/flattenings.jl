@@ -8,7 +8,7 @@
 # To the outside, this is primarily the map identifying S with its 
 # flattened version.
 ########################################################################
-mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
+@attributes mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
                               FlatRingType<:Ring, CoeffRingType<:Ring
                              } <: Hecke.Map{TowerRingType, FlatRingType, 
                                             SetMap, RingFlattening
@@ -122,7 +122,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form (𝕜[x][u])/J
+  # Flattenings of quotient rings of the form (𝕜[x][u])/J → 𝕜[x, u]/J'
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyRingElem}}
@@ -143,7 +143,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J
+  # Flattenings of quotient rings of the form ((𝕜[x]/I)[u])/J → 𝕜[x, u]/(I' + J')
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoRingElem}}
@@ -166,7 +166,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J
+  # Flattenings of quotient rings of the form (((𝕜[x]/I)[U⁻¹])[u])/J → (𝕜[x, u]/(I' + J'))[U'⁻¹]
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyQuoLocRingElem}}
@@ -205,7 +205,7 @@ mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing},
                                                     )
   end
 
-  # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J
+  # Flattenings of quotient rings of the form ((𝕜[x][U⁻¹])[u])/J → (𝕜[x, u])[U'⁻¹]/J'
   function RingFlattening(
       S::MPolyQuoRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem{<:MPolyLocRingElem}}
@@ -274,7 +274,7 @@ end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
   if !has_attribute(I, :flat_counterpart)
-    I_flat = ideal(codomain(phi), phi.(gens(I)))
+    I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
     set_attribute!(I, :flat_counterpart, I_flat)
     return I_flat
   end

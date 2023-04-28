@@ -18,7 +18,7 @@ end
 
 iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
 
-@doc Markdown.doc"""
+@doc raw"""
     is_projective(M::SubquoModule)
 
 Given a subquotient ``M = (A + B)/B`` over a ring ``R`` return a triple 

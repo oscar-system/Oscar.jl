@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["subgroups.md"]
-```
-
 # [Subgroups](@id subgroups)
 
 The following functions are available in OSCAR for subgroup properties:
@@ -22,7 +14,7 @@ sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
 is_subset(H::T, G::T) where T <: GAPGroup
 is_subgroup(H::T, G::T) where T <: GAPGroup
 embedding(H::T, G::T) where T <: GAPGroup
-index(G::T, H::T) where T <: GAPGroup
+index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen}
 is_maximal_subgroup(H::T, G::T) where T <: GAPGroup
 is_normalized_by(H::T, G::T) where T <: GAPGroup
 is_normal_subgroup(H::T, G::T) where T <: GAPGroup
@@ -42,8 +34,8 @@ sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 derived_subgroup
 fitting_subgroup
 frattini_subgroup
-radical_subgroup
 socle
+solvable_radical
 pcore(G::GAPGroup, p::IntegerUnion)
 intersect(V::T...) where T<:GAPGroup
 ```

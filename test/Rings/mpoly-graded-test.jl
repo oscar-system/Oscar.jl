@@ -1,4 +1,7 @@
 @testset "MPolyQuoRing.graded" begin
+  R, (x,) = graded_polynomial_ring(QQ, ["x"], [1])
+  Q = quo(R, ideal([x^4]))[1];
+  @test_throws ArgumentError ideal(R, [x-x^2])
   R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   Q = quo(R, ideal([x^2, y]))[1];
   h = homogeneous_components(Q[1])
@@ -49,6 +52,8 @@ end
 
 @testset "mpoly-graded" begin
 
+    R, (x,) = graded_polynomial_ring(QQ, ["x"], [1])
+    @test_throws ArgumentError ideal(R, [x-x^2])
     Qx, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
     t = gen(Hecke.Globals.Qx)
     k1 , l= number_field(t^5+t^2+2)

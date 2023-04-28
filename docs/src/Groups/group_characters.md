@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["group_characters.md"]
-```
-
 # Group characters
 
 Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``
@@ -173,7 +165,8 @@ arithmetic operations:
 
 ```@docs
 scalar_product
-induced_class_function
+induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
+restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
 ```
 
 ## Symmetrizations of group characters

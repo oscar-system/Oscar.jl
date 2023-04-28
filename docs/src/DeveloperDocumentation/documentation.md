@@ -10,7 +10,7 @@ Exceptions to this philosophy are the developer and general pages.
 
 Exported function should have docstrings, which look like
 ```julia
-@doc Markdown.doc"""
+@doc raw"""
     functionname(x::ArgumentType, b::OtherArgument; c::Keyword = default) -> Int, Int
 
 A short description of the function. It is allowed to use $\LaTeX$.
@@ -22,7 +22,7 @@ If the signature is too long, use linebreaks to fit 80 characters.
 Please also do provide an example within the docstring if possible, preferably
 as a `jldoctest`, i.e.
 ````julia
-@doc Markdown.doc"""
+@doc raw"""
     functionname(x::ArgumentType, b::OtherArgument; c::Keyword = default) -> Int, Int
 
 A short description of the function. It is allowed to use $\LaTeX$.
@@ -98,7 +98,7 @@ build_doc(doctest = :fix)
 
 !!! tip
     If this command fails with an error message indicating lacking permissions
-    to change `AbtractAlgebra.jl` related docs, it may help to run the
+    to change `AbstractAlgebra.jl` related docs, it may help to run the
     following command:
     ```
     ]dev AbstractAlgebra

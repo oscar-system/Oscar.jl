@@ -4,7 +4,7 @@ using Test
 @testset "Blowup of toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     P2 = projective_space(NormalToricVariety, 2; set_attributes)
-    BP2 = blowup_on_ith_minimal_torus_orbit(P2, 1, "e"; set_attributes)
+    BP2 = blow_up(P2, 1; coordinate_name = "e", set_attributes = set_attributes)
     
     @testset "Basic properties of BP2" begin
         @test is_normal(BP2) == true

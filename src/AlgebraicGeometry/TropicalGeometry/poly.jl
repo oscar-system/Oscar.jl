@@ -3,7 +3,7 @@
 # =========================================
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     tropical_polynomial(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
 Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
@@ -55,7 +55,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     tropical_polynomial(f::MPolyRingElem,val::TropicalSemiringMap)
 
 Given a polynomial `f` and a tropical semiring map `val`,

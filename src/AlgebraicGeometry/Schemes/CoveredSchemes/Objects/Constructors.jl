@@ -4,7 +4,7 @@
 ########################################################################
 
 ### The standard constructor
-@doc Markdown.doc"""
+@doc raw"""
     CoveredScheme(C::Covering)
 
 Return a `CoveredScheme` ``X`` with `C` as its `default_covering`.

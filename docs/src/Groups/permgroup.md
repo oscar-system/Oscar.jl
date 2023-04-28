@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["permgroup.md"]
-```
-
 # Permutation groups
 
 Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.
@@ -26,6 +18,8 @@ is_isomorphic_with_symmetric_group(G::GAPGroup)
 alternating_group
 is_natural_alternating_group(G::GAPGroup)
 is_isomorphic_with_alternating_group(G::GAPGroup)
+permutation_group
+@permutation_group
 ```
 
 In OSCAR, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.

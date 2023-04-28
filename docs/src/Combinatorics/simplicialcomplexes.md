@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["simplicialcomplexes.md"]
-```
-
 # Simplicial Complexes
 
 ## Introduction

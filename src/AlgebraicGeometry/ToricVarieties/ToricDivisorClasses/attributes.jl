@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     divisor_class(tdc::ToricDivisorClass)
 
 Return the element of the class group corresponding to the toric divisor class `tdc`.
@@ -20,7 +20,7 @@ with components [1]
 divisor_class(tdc::ToricDivisorClass) = tdc.class
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(tdc::ToricDivisorClass)
 
 Return the toric variety on which the toric divisor class `tdc` is defined.
@@ -40,7 +40,7 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor(tdc::ToricDivisorClass)
 
 Constructs a toric divisor corresponding to the toric divisor class  `tdc`.

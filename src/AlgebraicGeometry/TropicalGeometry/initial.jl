@@ -3,7 +3,7 @@
 # ===================================================
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
 
 Return the valued weighted degree of a polynomial `f` with respect to valuation
@@ -74,7 +74,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
 
 Return the initial form of `f` with respect to valuation `val` and weight `w`.
@@ -186,7 +186,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     initial(I::MPolyIdeal, val::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
 
 Return the initial ideal of `I` with respect to valuation `val` and weight `w`.

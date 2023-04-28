@@ -35,6 +35,7 @@ GAP.@wrap DegreeOfLaurentPolynomial(x::GapObj)::GapInt
 GAP.@wrap DegreeOverPrimeField(x::GapObj)::Int
 GAP.@wrap DenominatorCyc(x::Any)::GapInt
 GAP.@wrap DenominatorRat(x::Any)::GapInt
+GAP.@wrap Dimension(x::GapObj)::Int
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap Elements(x::GapObj)::GapObj
 GAP.@wrap ElementsFamily(x::GapObj)::GapObj
@@ -180,6 +181,7 @@ GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
+GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap Size(x::Any)::GapInt

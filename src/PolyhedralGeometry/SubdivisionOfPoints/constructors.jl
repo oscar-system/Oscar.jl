@@ -18,7 +18,7 @@ SubdivisionOfPoints(x...) = SubdivisionOfPoints{QQFieldElem}(x...)
 # Avoid, if possible, to increase type stability
 SubdivisionOfPoints(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
 
-@doc Markdown.doc"""
+@doc raw"""
     SubdivisionOfPoints(points, cells)
 
 # Arguments
@@ -50,7 +50,7 @@ function SubdivisionOfPoints{T}(points::AbstractCollection[PointVector], cells::
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubdivisionOfPoints(points, weights)
 
 # Arguments

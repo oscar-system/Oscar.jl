@@ -14,7 +14,7 @@ function solve_mixed(as::Type{ZZMatrix}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, 
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) where {T}
 
 Solve $Ax = b$ under $Cx >= d$, assumes a finite solution set.
@@ -56,7 +56,7 @@ solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) whe
 solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) = solve_mixed(ZZMatrix, A, b, C, d)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T}
 
 Solve $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
@@ -98,7 +98,7 @@ solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) = solve_mixed(ZZMatrix, A, b,
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 
 Solve $Ax<=b$, assumes finite set of solutions.
@@ -138,7 +138,7 @@ solve_ineq(A::ZZMatrix, b::ZZMatrix) = solve_ineq(ZZMatrix, A, b)
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 
 Find all solutions to $Ax = b$, $x>=0$. Assumes a finite set of solutions.

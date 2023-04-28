@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_algebra(IR::InvRing;
       algo_gens::Symbol = :default, algo_rels::Symbol = :groebner_basis)
 

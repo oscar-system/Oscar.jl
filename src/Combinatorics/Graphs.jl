@@ -1,5 +1,3 @@
-using Markdown
-using JSON
 import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
@@ -17,7 +15,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
 
 Construct a graph on `nverts` vertices and no edges. `T` indicates whether the
@@ -42,7 +40,7 @@ end
 
 _has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
-@doc Markdown.doc"""
+@doc raw"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 
 Add edge `(s,t)` to the graph `g`.
@@ -63,7 +61,7 @@ function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 
 Remove edge `(s,t)` from the graph `g`.
@@ -89,7 +87,7 @@ function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, 
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Add a vertex to the graph `g`. The return value is the new vertex.
@@ -114,7 +112,7 @@ function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
 Remove the vertex `v` from the graph `g`.
@@ -140,7 +138,7 @@ function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirect
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
 
 Add a `n` new vertices to the graph `g`.
@@ -176,7 +174,7 @@ struct Edge
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     src(e::Edge)
 
 Return the source of an edge.
@@ -199,7 +197,7 @@ function src(e::Edge)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dst(e::Edge)
 
 Return the destination of an edge.
@@ -222,7 +220,7 @@ function dst(e::Edge)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     reverse(e::Edge)
 
 Return the edge in the opposite direction of the edge `e`.
@@ -271,7 +269,7 @@ end
 ##  Accessing properties
 ################################################################################
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of vertices of a graph.
@@ -291,7 +289,7 @@ function nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.nv(pm_object(g))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
@@ -312,7 +310,7 @@ function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return an iterator over the edges of the graph `g`.
@@ -336,7 +334,7 @@ function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 
 Check for an edge in a graph.
@@ -361,7 +359,7 @@ function has_edge(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
 Check for a vertex in a graph.
@@ -386,7 +384,7 @@ function has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirecte
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
 Return the neighboring vertices of a vertex `v` in a graph `g`. If the graph is
@@ -412,7 +410,7 @@ function neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
 Return the vertices of a graph `g` that have an edge going towards `v`. For an
@@ -441,7 +439,7 @@ function inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirect
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
 Return the vertices of a graph `g` that are target of an edge coming from `v`.
@@ -470,7 +468,7 @@ function outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirec
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
 Return all vertices of a graph `g` that are connected to the vertex `v` via an
@@ -500,7 +498,7 @@ function all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undire
     return [x+1 for x in result]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return an unsigned (boolean) incidence matrix representing a graph `g`.
@@ -524,7 +522,7 @@ julia> incidence_matrix(g)
 """
 incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}} = IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
 
-@doc Markdown.doc"""
+@doc raw"""
     signed_incidence_matrix(g::Graph{Directed})
 
 Return a signed incidence matrix representing a directed graph `g`.
@@ -551,7 +549,7 @@ signed_incidence_matrix(g::Graph{Directed}) = convert(Matrix{Int}, Polymake.grap
 ##  Higher order algorithms
 ################################################################################
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return generators of the automorphism group of the graph `g`.
@@ -574,7 +572,7 @@ function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, 
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the automorphism group of the graph `g`.
@@ -592,7 +590,7 @@ function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=false) where {T <: Union{Directed, Undirected}}
 
 Compute the shortest path between two vertices in a graph using Dijkstra's
@@ -637,7 +635,7 @@ function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=f
     return Polymake.to_one_based_indexing(result)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_connected(g::Graph{Undirected})
 
 Checks if the undirected graph `g` is connected.
@@ -664,7 +662,7 @@ function connected_components(g::Graph{Undirected})
     return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_strongly_connected(g::Graph{Directed})
 
 Checks if the directed graph `g` is strongly connected.
@@ -686,7 +684,7 @@ true
 """
 is_strongly_connected(g::Graph{Directed}) = Polymake.call_function(:graph, :is_strongly_connected, pm_object(g))::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     strongly_connected_components(g::Graph{Directed})
 
 Return the strongly connected components of a directed graph `g`.
@@ -712,7 +710,7 @@ function strongly_connected_components(g::Graph{Directed})
     return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_weakly_connected(g::Graph{Directed})
 
 Checks if the directed graph `g` is weakly connected.
@@ -729,7 +727,7 @@ true
 """
 is_weakly_connected(g::Graph{Directed}) = Polymake.call_function(:graph, :is_weakly_connected, pm_object(g))::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     weakly_connected_components(g::Graph{Directed})
 
 Return the weakly connected components of a directed graph `g`.
@@ -750,7 +748,7 @@ function weakly_connected_components(g::Graph{Directed})
     return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the diameter of a (strongly) connected (di-)graph `g`.
@@ -774,7 +772,7 @@ function diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.call_function(:graph, :diameter, pm_object(g))::Int
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Checks if the graph `g1` is isomorphic to the graph `g2`.
@@ -795,7 +793,7 @@ is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected
 ##  Standard constructions
 ################################################################################
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     edgegraph(p::Polyhedron)
 
 Return the edge graph of a `Polyhedron`, vertices of the graph correspond to
@@ -823,7 +821,7 @@ function edgegraph(p::Polyhedron)
     return Graph{Undirected}(pmg)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dualgraph(p::Polyhedron)
 
 Return the dual graph of a `Polyhedron`, vertices of the graph correspond to
@@ -856,7 +854,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     complete_graph(n::Int64)
 
 Assemble the undirected complete graph on `n` nodes.
@@ -878,7 +876,7 @@ function complete_graph(n::Int64)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     complete_bipartite_graph(n::Int64, m::Int64)
 
 Assemble the undirected complete bipartite graph between `n` and `m` nodes.
@@ -902,7 +900,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
 
 Visualize a graph.
@@ -915,7 +913,7 @@ end
 
 
 # Some standard polytopes from graphs
-@doc Markdown.doc"""
+@doc raw"""
     fractional_cut_polytope(G::Graph{Undirected})
 
 Construct the fractional cut polytope of the graph $G$.
@@ -932,7 +930,7 @@ Polyhedron in ambient dimension 6
 fractional_cut_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     fractional_matching_polytope(G::Graph{Undirected})
 
 Construct the fractional matching polytope of the graph $G$.
