@@ -1892,6 +1892,6 @@ end #module
 
 using .GrpCoh
 
-export gmodule, fp_group, pc_group, induce, cohomology_group
+export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 
