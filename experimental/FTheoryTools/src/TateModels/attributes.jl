@@ -15,7 +15,7 @@
 Return the Tate section ``a_1``.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> tate_section_a1(t)
@@ -31,7 +31,7 @@ tate_section_a1(t::GlobalTateModel) = t.tate_a1
 Return the Tate section ``a_2``.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> tate_section_a2(t)
@@ -47,7 +47,7 @@ tate_section_a2(t::GlobalTateModel) = t.tate_a2
 Return the Tate section ``a_3``.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> tate_section_a3(t)
@@ -63,7 +63,7 @@ tate_section_a3(t::GlobalTateModel) = t.tate_a3
 Return the Tate section ``a_4``.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> tate_section_a4(t)
@@ -79,7 +79,7 @@ tate_section_a4(t::GlobalTateModel) = t.tate_a4
 Return the Tate section ``a_6``.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> tate_section_a6(t)
@@ -99,7 +99,7 @@ tate_section_a6(t::GlobalTateModel) = t.tate_a6
 Return the Tate polynomial of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> tate_polynomial(t)
@@ -119,7 +119,7 @@ tate_polynomial(t::GlobalTateModel) = t.tate_polynomial
 Return the base space of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> base_space(t)
@@ -138,7 +138,7 @@ end
 Return the ambient space of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> ambient_space(t)
@@ -188,7 +188,7 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> calabi_yau_hypersurface(t)
@@ -212,7 +212,7 @@ end
 Return the global Weierstrass model which is equivalent to the given Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> global_weierstrass_model(t)
@@ -246,7 +246,7 @@ end
 Return the discriminant of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> discriminant(t);
@@ -334,7 +334,7 @@ Return the list of all known resolutions for the global
 Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> length(resolutions(t))
@@ -358,7 +358,7 @@ Return the description of a global Tate model,
 should such a description have been provided.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> description(t)
@@ -377,7 +377,7 @@ Return the arxiv identifier of a global Tate model,
 should such an identifier be known.
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> arxiv_id(t)
@@ -397,7 +397,7 @@ on the arxiv, this method will return the equation number in this
 paper which defined this model (or its resolutions).
 
 ```jldoctest
-julia> t = literature_tate_model("1109.3454", "3.5")
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> equ_nr(t)

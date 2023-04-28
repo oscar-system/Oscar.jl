@@ -1,4 +1,3 @@
-[
 {
     "arxiv_id": "1109.3454",
     "equ_nr": "3.5",
@@ -13,11 +12,4 @@
     "resolutions": [[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"], ["e1", "e4", "e2", "e3", "s"]],
                     [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"], ["s", "w", "e3", "e1", "e2"]]]
 
-},
-{
-    "arxiv_id": "xxxxxxxx",
-    "equ_nr": "xxxxxx",
-    "description": "some other model",
-    "dim": 3
 }
-]

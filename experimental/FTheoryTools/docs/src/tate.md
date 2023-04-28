@@ -172,7 +172,7 @@ su5_tate_model_over_arbitrary_3d_base()
 ```
 More generally, we support literature constructions.
 ```@docs
-literature_tate_model(arxiv_id::String, equ_nr::String)
+literature_tate_model(; arxiv_id::String="", equ_nr::String="", description::String="")
 ```
 
 
