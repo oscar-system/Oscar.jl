@@ -2711,3 +2711,36 @@ end
   return dim(saturated_ideal(I))
 end
 
+@attr Vector{<:MPolyLocRingElem} function minimal_generating_set(
+    I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem, 
+                                          <:MPolyRing, <:MPolyElem, 
+                                          <:MPolyComplementOfKPointIdeal}
+                          }
+  )
+  L = base_ring(I)::MPolyLocRing # Type annotation for the reader's convenience.
+  R = base_ring(L)::MPolyRing
+
+  shift, back_shift = base_ring_shifts(L) # The shifting maps of R moving the localization point to 
+                                          # origin and back. 
+  I_shift = shifted_ideal(I)::MPolyIdeal # The pre_saturated_ideal of I in R after the shift 
+                                         # moving the localization point to the origin
+  o = negdegrevlex(gens(R)) # the default local ordering
+
+  # Three lines as suggested by @afkafkafk13:
+  singular_assure(I_shift, o) # Fills the singular side with a ring with the correct ordering.
+  I_shift_gb, I_shift_min = Singular.mstd(I_shift.gens.gens.S) # The duplication of gens seems awkward, but it is probably correct.
+                                                               # This returns a pair of singular ideals
+  I_min = L.(back_shift.(R.(gens(I_shift_min)))) # We convert the generators back to the oscar side, 
+                                                 # shift them, and consider them as elements in the 
+                                                 # localization.
+  return I_min
+# std_I_shift = standard_basis(I_shift, ordering=o)::IdealGens # Refers to a pre-computed standard basis if there is any.
+# bpa = std_I_shift.gens::BiPolyArray # Only the BiPolyArray has a "singular side".
+# l_sing = Singular.minimal_generating_set(bpa.S) # This should have the correct ordering set due 
+#                                                 # to the construction history. TODO: Please confirm!
+# l_shift = R.(l_sing)::Vector{<:MPolyElem}
+# l_poly = back_shift.(l_shift)::Vector{<:MPolyElem}
+# l_loc = L.(l_poly)::Vector{<:MPolyLocRingElem}
+# return l_loc
+end
+
