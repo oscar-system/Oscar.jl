@@ -6,7 +6,8 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
 import Base: parent
 import Oscar: direct_sum
 export is_coboundary, idel_class_gmodule, relative_brauer_group
-export local_invariants
+export local_invariants, global_fundamental_class, shrink
+export local_index
 
 
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
@@ -44,7 +45,7 @@ end
 The natural `ZZ[G]` module where `G`, the
   automorphism group, acts on the ideal group defining the class field.
 """
-function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2])
   k = base_field(R)
   G = domain(mG)
   mR = R.rayclassgroupmap
@@ -101,6 +102,8 @@ function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, AnticNumberField}, mG 
 end
 
 """
+    is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{nf_elem}})
+
 For a 2-cochain with values in the multiplicative group of a number field,
 decide if it is a coboundary (trivial in the Brauer group). If so also
 return a splitting 1-cochain.
@@ -173,12 +176,16 @@ end
 
 
 """
+    decomposition_group(K::AnticNumberField, mK::Map, mG::Map, mGp; _sub::Bool = false)
 For a completion C of a number field K, implicitly given as the map
     mK:  K -> C
 And the automorphism group G of K given via
-    mG:  G -> aut(K)
-and the automorphism group Gp of Kp, given via
+    mG:  G -> Aut(K)
+`mG` defaults to the full automorphism group of `K` as a permutation group.
+And the automorphism group Gp of Kp, given via
     mGp: Gp -> Aut(Kp)
+defaulting to the full automorphism group over the prime field.
+
 Find the embedding of Gp -> G, realizing the local automorphism group
 as a subgroup of the global one.
 """
@@ -218,8 +225,12 @@ function Oscar.decomposition_group(K::AnticNumberField, mK::Map, mG::Map = autom
 end
 
 """
-  For a real or complex embedding `emb`, find the unique automorphism
-  that acts on this embedding as complex conjugation.
+    decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, mG::Map)
+
+For a real or complex embedding `emb`, find the unique automorphism
+that acts on this embedding as complex conjugation.
+`mG`, when given,  should be the map from the automorphism group. Otherwise
+it will be automatically supplied.
 """
 function Oscar.decomposition_group(K::AnticNumberField, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, K)[2])
   G = domain(mG)
@@ -247,8 +258,15 @@ end
 =#
 
 """
-For a local field extension K/k, return a gmodule for the multiplicative
-group of K as a Gal(K/k) module.
+    gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+
+For a local field extension K/k, return the multiplicative
+group of K as a Gal(K/k) module. Strictly, it returns a quotient
+of `K^*` that is cohomologically equivalent. For unramified fields,
+the quotient is just `ZZ`, for tame fields, it will be isomorphic to
+  `ZZ times F_q^*`
+for the residue field `F_q`. In the wild case a suitable induced
+module is factored out.
 
 Returns: 
  - the gmodule
@@ -392,18 +410,6 @@ end
  - the local/ global fund class, ie. normalize the cochain
  - map a local chain into a ray class group
 =#
-
-export GModule
-export action
-export cohomology_group
-export confluent_fp_group
-export extension
-export fp_group
-export gmodule
-export induce
-export is_coboundary
-export pc_group
-export word
 
 #= TODO
   for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
@@ -604,13 +610,20 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticN
 end
 
 
+"""
+    IdelParent
+
+A container structure for computations around idel-class cohomology.
+Describes a gmodule that is cohomologically equivalent to the 
+idel-class group, following Chinberg/ Debeerst/ Aslam.
+"""
 mutable struct IdelParent
   k::AnticNumberField
-  mG::Map # AutGrp -> Automorohisms
+  mG::Map # AutGrp -> Automorphisms
   S::Vector{NfAbsOrdIdl} # for each prime number ONE ideal above
   C::Vector{Map} # the completions at S
   D::Vector{Map} # Gp -> Aut
-  L::Vector{Map} # the mult. group map at C
+  L::Vector{Map} # the mult. group map at S
 
   #for P in S the modules used actually is
   #    Ind_G_p^G L[P]
@@ -633,12 +646,14 @@ mutable struct IdelParent
 end
 
 """
+    idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
+
 Following Debeerst:
   Algorithms for Tamagawa Number Conjectures. Dissertation, University of Kassel, June 2011.
 or Ali, 
 
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
-of the idel-class group.
+of the idel-class group. The primes in `s` will always be used.
 """
 function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @vprint :GaloisCohomology 1 "Ideal class group cohomology for $k\n"
@@ -845,6 +860,122 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   return I
 end
 
+"""
+returns a `Dict` containing the prime ideals where the idel
+represented by `a` as an element of `I` can be non-trivial, 
+ie. at the places in `I`.
+The values are elements in the corresponding completion.
+"""
+function idel_finite(I::IdelParent, a::GrpAbFinGenElem)
+  a = preimage(I.mq, a)
+  #a lives in a direct product
+  #  1st the units - induced, thus a direct product
+  #  2nd ... the data at primes in S:
+  #   induced from the completion at P
+  d = Dict{NfOrdIdl, Tuple{nf_elem, Hecke.LocalFieldElem}}()
+  for i=1:length(I.S)
+    p = I.S[i]
+    lp = prime_decomposition(order(p), minimum(p))
+    for P = lp
+      Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
+      x = mUp(pro(a))
+      d[P[1]] = (preimage(nKp, x), x)
+    end
+  end
+  return d
+end
+
+#from is_local_norm in Hecke
+#based on Klueners/ Acciaro
+function _local_norm(m0::NfOrdIdl, a::NfAbsOrdElem, p::NfAbsOrdIdl)
+  v1 = valuation(a, p)
+  v2 = valuation(m0, p)
+  n0 = divexact(m0, p^v2)
+  o0 = p^(v1 + v2)
+  y = crt(order(p)(1), n0, a, o0)
+  Y = y*order(p)
+  Y = divexact(Y, p^v1)
+  return Y
+end
+
+
+#maybe we need Idel's as independent objects?
+#realizes C -> Cl (or the coprime version into a ray class group:
+#for the idel `a` in `I` find an "equivalent" ideal.
+function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl, Nothing})
+  a = preimage(I.mq, a)
+  zk = maximal_order(I.k)
+  id = 1*zk
+  for p = I.S
+    lp = prime_decomposition(zk, minimum(p))
+    for P = lp
+      Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
+      x = mUp(pro(a))
+      if coprime === nothing
+        id *= fractional_ideal(zk, P[1])^Int(valuation(x)*absolute_ramification_index(parent(x)))
+      else
+        if valuation(x) > 0
+          id *= _local_norm(coprime, zk(preimage(nKp, x)), P[1])
+        else
+          id *= inv(_local_norm(coprime, zk(preimage(nKp, inv(x))), P[1]))
+        end
+      end
+    end
+  end
+  return id
+end
+
+function Oscar.galois_group(A::ClassField)
+  return PermGroup(codomain(A.quotientmap))
+end
+
+"""
+    galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = idel_class_gmodule(base_field(A)))
+
+Determines the Galois group (over `QQ`) of the extension parametrized by `A`.
+`A` needs to be normal over `QQ`.
+
+# Examples
+```jldoctest
+julia> QQx, x = QQ[:x];
+
+julia> k, a = number_field(x^4 - 12*x^3 + 36*x^2 - 36*x + 9);
+
+julia> a = ray_class_field(8*3*maximal_order(k), n_quo = 2);
+
+julia> a = filter(isnormal, subfields(a, degree = 2));
+
+juila> I = idel_class_gmodule(k)
+Idel-group for Number field over Rational Field with defining polynomial x^4 - 12*x^3 + 36*x^2 - 36*x + 9 using ZZRingElem[2, 3] as places
+
+julia> b = [galois_group(x, QQ, idel_parent = I) for x = a];
+
+julia> [describe(x[1]) for x = b]
+3-element Vector{String}:
+ "C4 x C2"
+ "Q8"
+ "D8"
+```
+"""    
+function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = idel_class_gmodule(base_field(A)))
+
+  m0, m_inf = defining_modulus(A)
+  @assert length(m_inf) == 0
+  mR = A.rayclassgroupmap
+  mQ = A.quotientmap
+  zk = order(m0)
+  qI = cohomology_group(idel_parent, 2)
+  q, mq = snf(qI[1])
+  a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
+  gA = gmodule(A, idel_parent.mG)
+  qA = cohomology_group(gA, 2)
+  aa = map_entries(a, parent = gA) do x
+    J = ideal(idel_parent, x, coprime = m0)
+    mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
+  end
+  return permutation_group(aa), (aa, gA)
+end
+
 function Oscar.components(A::GrpAbFinGen)
   return get_attribute(A, :direct_product)
 end
@@ -881,9 +1012,9 @@ function Oscar.completion(I::IdelParent, P::NfAbsOrdIdl)
   return Kp, nKp, mGp, mUp, pro * Hecke.canonical_projection(J, z[1]), Hecke.canonical_injection(J, z[1])*inj 
 end
 
-function Oscar.map_entries(mp::Map, C::GrpCoh.CoChain{N, G, M}; parent::GModule) where {N, G, M}
+function Oscar.map_entries(mp::Union{Map, Function}, C::GrpCoh.CoChain{N, G, M}; parent::GModule) where {N, G, M}
   d = Dict( k=> mp(v) for (k,v) = C.d)
-  return GrpCoh.CoChain{N, G, elem_type(codomain(mp))}(parent, d)
+  return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
 end
 
 #=
@@ -946,6 +1077,12 @@ function cyclic_generator(G::Oscar.GAPGroup)
   end
 end
 
+"""
+Let `mkK: k -> K` be an embedding map of number fields,
+`ml: k -> l` the completion map at some prime `p` in `k` and
+`mL: K -> L` the completion map at some prime `P` in `K` above `p`.
+This function returns the embedding `l -> L` induced by this data.
+"""
 function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NfToNfMor)
   @assert domain(ml) == domain(mkK)
   @assert domain(mL) == codomain(mkK)
@@ -1249,6 +1386,7 @@ function (B::RelativeBrauerGroup)(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.Mu
 end
 
 
+#trivia for QQ
 Base.minimum(::Map{QQField, AnticNumberField}, I::Union{Hecke.NfAbsOrdIdl, Hecke.NfAbsOrdFracIdl}) = minimum(I)*ZZ
 
 Hecke.extend(::Hecke.QQEmb, mp::MapFromFunc{QQField, AnticNumberField}) = complex_embeddings(codomain(mp))
@@ -1345,7 +1483,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
       push!(lb, RelativeBrauerGroupElem(B, d))
     end
   
-    fl, x = solve(lb, b)
+    fl, x = cansolve(lb, b)
     @assert fl
  
     return map_entries(mS*mMC, z[2](image(mq, q(x.coeff))), parent = mu)
@@ -1379,8 +1517,8 @@ function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrdIdl, Hecke.NumFieldEmb
   end
 end
 
-#write (or try to write) `b` as a ZZ-lienar combination of the elements in `A`
-function Oscar.solve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+#write (or try to write) `b` as a ZZ-linear combination of the elements in `A`
+function Oscar.cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
   @assert all(x->parent(x) == parent(b), A)
   lp = Set(collect(keys(b.data)))
   for a = A
@@ -1539,7 +1677,16 @@ function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
   #so i*hg should restrict to the local fund class...
 end
 
+"""
+    global_fundamental_class(A::IdelParent)
 
+Tries to find the canonical generator of `H^2(C)` the  2nd
+cohomology group of the idel-class group.
+
+Currently only works if this can be infered from the local data in
+the field, ie. if the `lcm` of the degrees of the completions is the
+full field degree.
+"""    
 function global_fundamental_class(A::IdelParent)
   C = A.data[1]
   d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
@@ -1648,6 +1795,12 @@ function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
   end
 end
 
+"""
+    direct_sum(G::GrpAbFinGen, H::GrpAbFinGen, V::Vector{<:Map{GrpAbFinGen, GrpAbFinGen}})
+
+For groups `G = prod G_i` and `H = prod H_i` as well as maps `V_i: G_i -> H_i`,
+build the induced map from `G -> H`.
+"""
 function Oscar.direct_sum(G::GrpAbFinGen, H::GrpAbFinGen, V::Vector{<:Map{GrpAbFinGen, GrpAbFinGen}})
   dG = get_attribute(G, :direct_product)
   dH = get_attribute(H, :direct_product)
@@ -1672,6 +1825,8 @@ function Oscar.simplify(C::GModule{PermGroup, GrpAbFinGen})
   return S, ms
 end
 
+#deliberately at the end as it messes up the syntax-highlighting for me
+#confusion about " and ()...
 function Base.show(io::IO, I::IdelParent)
   print(io, "Idel-group for $(I.k) using $(sort(collect(Set(minimum(x) for x = I.S)))) as places")
 end
@@ -1681,8 +1836,3 @@ end # module GrpCoh
 using .GaloisCohomology_Mod
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 
-
-#=
-x^4 - 60*x^2 + 16
-
-=#
