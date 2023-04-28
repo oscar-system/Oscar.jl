@@ -103,7 +103,11 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
 end
 
 function Base.show(io::IO, C::GModule)
-  print(io, C.G, " acting on ", C.M, "\nvia: ", C.ac)
+  AbstractAlgebra.@show_name(io, C)
+  AbstractAlgebra.@show_special(io, C)
+
+  io = IOContext(io, :compact => true)
+  print(io, "G-module for ", C.G, " acting on ", C.M)# , "\nvia: ", C.ac)
 end
 
 """
@@ -379,9 +383,9 @@ function Oscar.inflate(C::GModule, h)
   return gmodule(G, [action(C, h(g)) for g = gens(G)])
 end
 
-export GModule, gmodule, word, fp_group, confluent_fp_group, induce,
-       action, cohomology_group, extension, pc_group
-       induce
+export GModule, gmodule, word, fp_group, confluent_fp_group
+export action, cohomology_group, extension, pc_group
+export induce, is_consistent, istwo_cocycle
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -1879,10 +1883,15 @@ function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
   return extension(PcGroup, c)[1]
 end
 
+function Oscar.permutation_group(c::CoChain{2})
+  g = extension(c)[1]
+  return PermGroup(g)
+end
+
 end #module
 
 using .GrpCoh
 
-export gmodule, GModule, fp_group, pc_group, induce, cohomology_group,
-       permutation_group
+export gmodule, fp_group, pc_group, induce, cohomology_group
+export permutation_group, is_consistent, istwo_cocycle, GModule
 
