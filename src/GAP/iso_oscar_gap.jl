@@ -383,8 +383,11 @@ julia> preimage(f, y) == pol
 true
 ```
 """
-@attr Map function iso_oscar_gap(F)
-   return _iso_oscar_gap(F)
+@attr Map function iso_oscar_gap(R)
+  iso = _iso_oscar_gap(R)
+  S = codomain(iso)
+  GAP.Globals.SetIsoGapOscar(S, inv(iso))
+  return iso
 end
 
 
