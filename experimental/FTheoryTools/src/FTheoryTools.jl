@@ -9,6 +9,7 @@ include("WeierstrassModels/properties.jl")
 include("TateModels/constructors.jl")
 include("TateModels/attributes.jl")
 include("TateModels/properties.jl")
+include("TateModels/auxiliary.jl")
 include("TateModels/methods.jl")
 
 include("standard_constructions.jl")
