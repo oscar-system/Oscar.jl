@@ -945,8 +945,7 @@ julia> a = ray_class_field(8*3*maximal_order(k), n_quo = 2);
 
 julia> a = filter(isnormal, subfields(a, degree = 2));
 
-juila> I = idel_class_gmodule(k)
-Idel-group for Number field over Rational Field with defining polynomial x^4 - 12*x^3 + 36*x^2 - 36*x + 9 using ZZRingElem[2, 3] as places
+julia> I = idel_class_gmodule(k);
 
 julia> b = [galois_group(x, QQ, idel_parent = I) for x = a];
 
@@ -955,6 +954,7 @@ julia> [describe(x[1]) for x = b]
  "C4 x C2"
  "Q8"
  "D8"
+
 ```
 """    
 function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = idel_class_gmodule(base_field(A)))
