@@ -83,7 +83,11 @@ function is_subgroup(H::T, G::T) where T <: GAPGroup
    if !is_subset(H, G)
       return (false, nothing)
    else
-      return (true, _as_subgroup(G, H.X)[2])
+      # We do not call `_as_subgroup` because we want to store `H`.
+      return (true, hom(H, G,
+                        x -> group_element(G, x.X),
+                        x -> group_element(H, x.X);
+                        is_known_to_be_bijective = false))
    end
 end
 
