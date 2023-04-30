@@ -5,7 +5,7 @@
 ###############################################################################
 
 @doc raw"""
-    graded_free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+    graded_free_module(R::Ring, n::Int, name::VarName = :e; cached::Bool = false)
 
 Create the graded free module $R^n$ equipped with its basis of standard unit vectors
 and standard degrees, that is the standard unit vectors have degree 0.
@@ -28,19 +28,19 @@ Graded free module Multivariate Polynomial Ring in x, y over Rational Field grad
 
 ```
 """
-function graded_free_module(R::Ring, p::Int, name::String="e", d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p])
+function graded_free_module(R::Ring, p::Int, name::VarName=:e, d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p])
   @assert is_graded(R)
   M = FreeMod(R, p, name)
   M.d = d
   return M
 end
 
-function graded_free_module(R::Ring, d::Vector{GrpAbFinGenElem}, name::String="e")
+function graded_free_module(R::Ring, d::Vector{GrpAbFinGenElem}, name::VarName=:e)
   p = length(d)
   return graded_free_module(R, p, name, d)
 end
 
-function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
+function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::VarName=:e)
   @assert is_graded(R)
   A = grading_group(R)
   d = [W[i] * A[1] for i in 1:length(W)]
@@ -613,7 +613,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
+    FreeMod_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false)
 
 Construct a decorated (graded or filtered) free module over the ring `R` with rank `n`
 with the standard degrees, that is the standard unit vectors have degree 0.
@@ -621,12 +621,12 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
+function FreeMod_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false) 
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:n], [decoration(R)[0] for i=1:n])
 end
 
 @doc raw"""
-    free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false)
+    free_module_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false)
 
 Create the decorated free module $R^n$ equipped with its basis of standard unit vectors
 and standard degrees, that is the standard unit vectors have degree 0.
@@ -649,11 +649,11 @@ Decorated free module of rank 3 over Multivariate Polynomial Ring in x, y over R
 
 ```
 """
-free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, n, name, cached = cached)
+free_module_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false) = FreeMod_dec(R, n, name, cached = cached)
 
 
 @doc raw"""
-    FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) 
+    FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
 
 Construct a decorated (graded or filtered) free module over the ring `R` 
 with rank `n` where `n` is the length of `d`. `d` is the vector of degrees for the 
@@ -663,12 +663,12 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) 
+function FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) 
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:length(d)],d)
 end
 
 @doc raw"""
-    free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false)
+    free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
 
 Create the decorated free module $R^n$ (`n` is the length of `d`)
 equipped with its basis of standard unit vectors where the 
@@ -676,7 +676,7 @@ i-th standard unit vector has degree `d[i]`.
 
 The string `name` specifies how the basis vectors are printed. 
 """
-free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, d, name, cached = cached)
+free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) = FreeMod_dec(R, d, name, cached = cached)
 
 
 function FreeMod_dec(F::FreeMod, d::Vector{GrpAbFinGenElem})

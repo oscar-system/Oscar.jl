@@ -4,14 +4,14 @@
 ###############################################################################
 
 @doc raw"""
-    FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+    FreeMod(R::Ring, n::Int, name::VarName = :e; cached::Bool = false)
 
 Construct a free module over the ring `R` with rank `n`.
 Additionally one can provide names for the generators. If one does 
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
+function FreeMod(R::Ring, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
@@ -24,13 +24,10 @@ function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
 end
 
 @doc raw"""
-    free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
-
-    free_module(R::MPolyQuoRing, p::Int, name::String = "e"; cached::Bool = false)
-
-    free_module(R::MPolyLocRing, p::Int, name::String = "e"; cached::Bool = false)
-
-    free_module(R::MPolyQuoLocRing, p::Int, name::String = "e"; cached::Bool = false)
+    free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false)
+    free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false)
+    free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false)
+    free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false)
 
 Return the free $R$-module $R^p$, created with its basis of standard unit vectors.
 
@@ -75,10 +72,10 @@ julia> RQL(x)*FRQL[1]
 x*h[1]
 ```
 """
-free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
-free_module(R::MPolyQuoRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
-free_module(R::MPolyLocRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
-free_module(R::MPolyQuoLocRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
