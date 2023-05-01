@@ -15,7 +15,8 @@
 # The tuples in output are pairs of positive integers!
 function _tuples_divisors(d::T) where T <: Hecke.IntegerUnion
   div = divisors(d)
-  return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
+  if d >= 0
+    return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
 end
 
 # This is line 8 of Algorithm 1, they correspond to the possible
@@ -23,8 +24,8 @@ end
 # the determinant of C, m the maximal p-valuation of the gcd of
 # d1 and dp.
 function _find_D(d::T, m::Int, p::Int) where T <: Hecke.IntegerUnion
-  @assert is_prime(p)
-  @assert d != 0
+  @hassert :LatWithIsom 1 is_prime(p)
+  @hassert :LatWithIsom 1 d != 0
 
   # If m == 0, there are no conditions on the gcd of d1 and dp
   if m == 0
@@ -282,7 +283,7 @@ end
 
 function _ideals_of_norm(E, d::ZZRingElem)
   isone(d) && return [fractional_ideal(maximal_order(E), one(E))]
-  @assert E isa Hecke.NfRel
+  @hassert :LatWithIsom 1 E isa Hecke.NfRel
   K = base_field(E)
   OK = maximal_order(K)
   OE = maximal_order(E)
@@ -316,11 +317,11 @@ end
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
 
 function _possible_signatures(s1, s2, E, rk)
-  @assert E isa Hecke.NfRel
+  @hassert :LatWithIsom 1 E isa Hecke.NfRel
   ok, q = Hecke.is_cyclotomic_type(E)
-  @assert ok
-  @assert iseven(s2)
-  @assert Hecke.divides(2*(s1+s2), euler_phi(q))[1]
+  @hassert :LatWithIsom 1 ok
+  @hassert :LatWithIsom 1 iseven(s2)
+  @hassert :LatWithIsom 1 Hecke.divides(2*(s1+s2), euler_phi(q))[1]
   l = divexact(s2, 2)
   K = base_field(E)
   inf = real_places(K)
@@ -375,11 +376,11 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   reps = LatWithIsom[]
 
   if n*m < 3
-    @info "Order smaller than 3"
+    @vprint :LatWithIsom 1 "Order smaller than 3"
     f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
     G = genus(Lf)
     repre = representatives(G)
-    @info "$(length(repre)) representative(s)"
+    @vprint :LatWithIsom 1 "$(length(repre)) representative(s)"
     for LL in repre
       is_of_same_type(Lf, lattice_with_isometry(LL, f^m, check=false)) && push!(reps, lattice_with_isometry(LL, f, check=false))
     end
@@ -388,7 +389,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
 
   !iseven(s2) && return reps
 
-  @info "Order bigger than 3"
+  @vprint :LatWithIsom 1 "Order bigger than 3"
 
   ok, rk = Hecke.divides(rk, euler_phi(n*m))
 
@@ -399,25 +400,25 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
 
-  @info "We have the different"
+  @vprint :LatWithIsom 1 "We have the different"
 
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
   println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
-  @info "All possible ideal dets: $(length(detE))"
+  @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
   signatures = _possible_signatures(s1, s2, E, rk)
 
-  @info "All possible signatures: $(length(signatures))"
+  @vprint :LatWithIsom 1 "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
     append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(dd)*DE))
   end
   gene = unique(gene)
 
-  @info "All possible genera: $(length(gene))"
+  @vprint :LatWithIsom 1 "All possible genera: $(length(gene))"
   for g in gene
-    @info "g = $g"
+    @vprint :LatWithIsom 1 "g = $g"
     H = representative(g)
     if !is_integral(DE*scale(H))
       continue
@@ -425,12 +426,12 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
     if is_even(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
       continue
     end
-    @info "$H"
+    @vprint :LatWithIsom 1 "$H"
     M, fM = Hecke.trace_lattice_with_isometry(H)
     det(M) == d || continue
     M = lattice_with_isometry(M, fM)
-    @assert is_of_hermitian_type(M)
-    @assert order_of_isometry(M) == n*m
+    @hassert :LatWithIsom 1 is_of_hermitian_type(M)
+    @hassert :LatWithIsom 1 order_of_isometry(M) == n*m
     if is_even(M) != is_even(Lf)
       continue
     end
@@ -495,11 +496,11 @@ function _representative(t::Dict; check::Bool = true)
   println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
-  @info "All possible ideal dets: $(length(detE))"
+  @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
   signatures = _possible_signatures(s1, s2, E)
 
-  @info "All possible signatures: $(length(signatures))"
+  @vprint :LatWithIsom 1 "All possible signatures: $(length(signatures))"
 
   for dd in detE, sign in signatures
     append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(DE*dd)))
@@ -517,8 +518,8 @@ function _representative(t::Dict; check::Bool = true)
     H = H
     M = trace_lattice(H)
     det(M) == d || continue
-    @assert is_of_hermitian_type(M)
-    @assert order_of_isometry(M) == n
+    @hassert :LatWithIsom 1 is_of_hermitian_type(M)
+    @hassert :LatWithIsom 1 order_of_isometry(M) == n
     if iseven(M) != iseven(G)
       continue
     end
@@ -554,9 +555,9 @@ function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -
   @req p != q "Prime numbers must be distinct"
 
   reps = LatWithIsom[]
-  @info "Compute admissible triples"
+  @vprint :LatWithIsom 1 "Compute admissible triples"
   atp = admissible_triples(Lf, p, pA = pA, pB = pB)
-  @info "$(length(atp)) admissible triple(s)"
+  @vprint :LatWithIsom 1 "$(length(atp)) admissible triple(s)"
   for (A, B) in atp
     LB = lattice_with_isometry(representative(B))
     RB = representatives_of_hermitian_type(LB, p*q^d)
@@ -641,7 +642,7 @@ function splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0)
     E = try admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p)
     catch e return L2, L1, Lf, q, p
     end
-    @assert b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
+    @hassert :LatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
   end
   return reps
@@ -695,7 +696,7 @@ function splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
 
   A0 = kernel_lattice(Lf, p^d*q^e)
   bool, r = Hecke.divides(phi, cyclotomic_polynomial(p^d*q^e, parent(phi)))
-  @assert bool
+  @hassert :LatWithIsom 1 bool
 
   B0 = kernel_lattice(Lf, r)
   A = splitting_of_prime_power(A0, p)
@@ -755,7 +756,7 @@ function splitting_of_mixed_prime_power(Lf::LatWithIsom, p::Int)
   B = splitting_of_mixed_prime_power(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
     E = admissible_equivariant_primitive_extensions(LB, LA, Lf, p)
-    @assert all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
+    @hassert :LatWithIsom 1 all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
     append!(reps, E)
   end
   return reps

@@ -22,13 +22,13 @@ function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
   URPabs, mURPabs = unit_group(RPabs)
 
   function dlog(x::Hecke.NfRelElem)
-    @assert parent(x) == E
+    @hassert :LatWithIsom 1 parent(x) == E
     d = denominator(x, OE)
     xabs = d*(EabstoE\(x))
     dabs = copy(d)
     F = prime_decomposition(OEabs, minimum(Pabs))
     for PP in F
-      @assert valuation(EabstoE\(x), PP[1]) >= 0
+      @hassert :LatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
       exp = valuation(OEabs(d), PP[1])
       dabs *= api^exp
@@ -44,9 +44,9 @@ function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
   end
 
   function exp(k::GrpAbFinGenElem)
-    @assert parent(k) === URPabs
+    @hassert :LatWithIsom 1 parent(k) === URPabs
     x = EabstoE(Eabs(mRPabs\mURPabs(k)))
-    @assert dlog(x) == k
+    @hassert :LatWithIsom 1 dlog(x) == k
     return x
   end
 
@@ -77,18 +77,18 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
   S, mS = snf(K)
 
   function exp(k::GrpAbFinGenElem)
-    @assert parent(k) === S
+    @hassert :LatWithIsom 1 parent(k) === S
     return EabstoE(elem_in_nf(mRPabs\(mURPabs(mK(mS(k))))))
   end
 
   function dlog(x::Hecke.NfRelElem)
-    @assert parent(x) === E
+    @hassert :LatWithIsom 1 parent(x) === E
     d = denominator(x, OE)
     xabs = EabstoE\(d*x)
     dabs = copy(d)
     F = prime_decomposition(OEabs, minimum(Pabs))
     for PP in F
-      @assert valuation(EabstoE\(x), PP[1]) >= 0
+      @hassert :LatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
       exp = valuation(OEabs(d), PP[1])
       dabs *= api^exp
@@ -148,18 +148,18 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   S, mS = snf(K)
 
   function exp(k::GrpAbFinGenElem)
-    @assert parent(k) === S
+    @hassert :LatWithIsom 1 parent(k) === S
     return EabstoE(elem_in_nf(mRPabs\(mURPabs(mK(mS(k))))))
   end
 
   function dlog(x::Hecke.NfRelElem)
-    @assert parent(x) === E
+    @hassert :LatWithIsom 1 parent(x) === E
     d = denominator(x, OE)
     xabs = EabstoE\(d*x)
     dabs = copy(d)
     F = prime_decomposition(OEabs, minimum(EabstoE\P))
     for PP in F
-      @assert valuation(EabstoE\(x), PP[1]) >= 0
+      @hassert :LatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
       exp = valuation(OEabs(d), PP[1])
       dabs *= api^exp
@@ -180,9 +180,9 @@ end
 # in O is to distribute to the appropriate function above.
 
 function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
-  @assert is_prime(p)
-  @assert is_maximal(order(p))
-  @assert order(p) === base_ring(O)
+  @hassert :LatWithIsom 1 is_prime(p)
+  @hassert :LatWithIsom 1 is_maximal(order(p))
+  @hassert :LatWithIsom 1 order(p) === base_ring(O)
   E = nf(O)
   F = prime_decomposition(O, p)
   P = F[1][1]
@@ -239,20 +239,20 @@ function _get_product_quotient(E::Hecke.NfRel, Fac)
     if length(x) == 1
       return sum([inj[i](dlogs[i](x[1])) for i in 1:length(Fac)]) 
     else
-      @assert length(x) == length(Fac)
+      @hassert :LatWithIsom 1 length(x) == length(Fac)
       return sum([inj[i](dlogs[i](x[i])) for i in 1:length(Fac)])
     end
   end
 
   function exp(x::GrpAbFinGenElem)
     v = Hecke.NfRelElem[exps[i](proj[i](x)) for i in 1:length(Fac)]
-    @assert dlog(v) == x
+    @hassert :LatWithIsom 1 dlog(v) == x
     return v
   end
 
   for i in 1:10
     a = rand(G)
-    @assert dlog(exp(a)) == a
+    @hassert :LatWithIsom 1 dlog(exp(a)) == a
   end
 
   return G, dlog, exp
@@ -310,7 +310,7 @@ end
 # determinants approximations is new in this code.
 
 function _local_determinants_morphism(Lf::LatWithIsom)
-  @assert is_of_hermitian_type(Lf)
+  @hassert :LatWithIsom 1 is_of_hermitian_type(Lf)
 
   qL, fqL = discriminant_group(Lf)
   OqL = orthogonal_group(qL)
@@ -333,7 +333,7 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   DEQ = DEK*DKQ
 
   H2 = inv(DEQ)*dual(H)
-  @assert is_sublattice(H2, H) # This should be true since the lattice in Lf is integral
+  @hassert :LatWithIsom 1 is_sublattice(H2, H) # This should be true since the lattice in Lf is integral
 
   # This is the map used for the trace construction: it is stored on Lf when we
   # have constructed H. We need this map because it sets the rule of the
@@ -419,7 +419,7 @@ function _local_determinants_morphism(Lf::LatWithIsom)
   SQ, SQtoQ = snf(Q)
 
   function dlog(x::Vector)
-    @assert length(x) == length(Fsharpdata)
+    @hassert :LatWithIsom 1 length(x) == length(Fsharpdata)
     return SQtoQ\(mQ(j\(Fsharplog(x))))
   end
 
@@ -510,7 +510,7 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   q = domain(g)
-  @assert ambient_space(cover(q)) === domain(res)
+  @hassert :LatWithIsom 1 ambient_space(cover(q)) === domain(res)
 
   # B2 will be a local basis at p of the image of D^{-1}H^# under the induced
   # action of g via res.
@@ -541,7 +541,7 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
 
   # Here d is not necessarily well defined in O_E, but as it is implemented,
   # each of the denominator(a, O_E) return the smallest positive integer d such
-  # that d*a lies in O_E, while a might be a non-integral element in E.
+  # that d*a lies in O_E, while `a` might be a non-integral element in E.
   d = lcm(lcm([denominator(a, OEabs) for a in Bpabs]), lcm([denominator(a, OEabs) for a in B2abs]))
   dBpabs = change_base_ring(OEabs, d*Bpabs)
   dB2abs = change_base_ring(OEabs, d*B2abs)
@@ -561,20 +561,20 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
   # If what we have done is correct then K*newBp == newB2 modulo O_p, so all
   # entries in the difference K*newBp-newB2 must have non-negative P-valuation.
   # Since it is the case, then K satisfies K*Bp == B2 mod H locally at p.
-  @assert _scale_valuation(K*newBp-newB2, P) >= 0
+  @hassert :LatWithIsom 1 _scale_valuation(K*newBp-newB2, P) >= 0
   return K
 end
 
 # the minimum P-valuation among all the non-zero entries of M
 function _scale_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
-  @assert nf(order(P)) === base_ring(M)
+  @hassert :LatWithIsom 1 nf(order(P)) === base_ring(M)
   iszero(M) && return inf
   return minimum([valuation(v, P) for v in collect(M) if !iszero(v)])
 end
 
 # the minimum P-valuation among all the non-zero diagonal entries of M
 function _norm_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
-  @assert nf(order(P)) === base_ring(M)
+  @hassert :LatWithIsom 1 nf(order(P)) === base_ring(M)
   iszero(diagonal(M)) && return inf
   r =  minimum([valuation(v, P) for v in diagonal(M) if !iszero(v)])
   return r
@@ -590,20 +590,20 @@ end
 # looking at better representatives until we reach a good enough precision for
 # our purpose.
 function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::Hecke.NfRelOrdIdl, e::Int, a::Int; check = true) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
-  @assert trace(rho) == 1
+  @hassert :LatWithIsom 1 trace(rho) == 1
   E = base_ring(G)
   # G here is a local gram matrix
-  @assert G == map_entries(involution(E), transpose(G))
-  @assert base_ring(F) === E
+  @hassert :LatWithIsom 1 G == map_entries(involution(E), transpose(G))
+  @hassert :LatWithIsom 1 base_ring(F) === E
 
   # R represents the defect, how far F is to be an isometry of G
   R = G - F*G*map_entries(involution(E), transpose(F))
   # These are the necessary conditions for the input of algorithm 8 in BH22
   if check
-    @assert _scale_valuation(inv(G), P) >= 1+a
-    @assert _norm_valuation(inv(G), P) + valuation(rho, P) >= 1+a
-    @assert _scale_valuation(R, P) >= l-a
-    @assert _norm_valuation(R, P) + valuation(rho,P) >= l-a
+    @hassert :LatWithIsom 1 _scale_valuation(inv(G), P) >= 1+a
+    @hassert :LatWithIsom 1 _norm_valuation(inv(G), P) + valuation(rho, P) >= 1+a
+    @hassert :LatWithIsom 1 _scale_valuation(R, P) >= l-a
+    @hassert :LatWithIsom 1 _norm_valuation(R, P) + valuation(rho,P) >= l-a
   end
 
   # R is s-symmetric, where s is the canonical involution of E/K. We split R
@@ -625,10 +625,10 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
 
   l2 = 2*l+1
   if check
-    @assert _scale_valuation(F-newF, P) >= l+1
+    @hassert :LatWithIsom 1 _scale_valuation(F-newF, P) >= l+1
     R2 = G-newF*G*map_entries(involution(E), transpose(newF))
-    @assert _scale_valuation(R2, P) >= l2-a
-    @assert _norm_valuation(R2, P) + valuation(rho, P) >= l2-a
+    @hassert :LatWithIsom 1 _scale_valuation(R2, P) >= l2-a
+    @hassert :LatWithIsom 1 _norm_valuation(R2, P) + valuation(rho, P) >= l2-a
   end
 
   return newF, l2
@@ -650,7 +650,7 @@ end
 #
 function _approximate_isometry(H::Hecke.HermLat, H2::Hecke.HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
   E = base_field(H)
-  @assert nf(order(P)) === E
+  @hassert :LatWithIsom 1 nf(order(P)) === E
   ok, b = is_modular(H, minimum(P))
   if ok && b == -a
     return identity_matrix(E, 1)
@@ -744,8 +744,8 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
       rt = roots(t^2 - (g+1)*d^2, max_roots = 1, ispure = true, is_normal=true)
       if !is_empty(rt)
         rho = (1+rt[1])//2
-        @assert valuation(rho, Pabs) == 1-e
-        @assert trace(EabstoE(rho)) == 1
+        @hassert :LatWithIsom 1 valuation(rho, Pabs) == 1-e
+        @hassert :LatWithIsom 1 trace(EabstoE(rho)) == 1
         return EabstoE(rho)
       end
     end

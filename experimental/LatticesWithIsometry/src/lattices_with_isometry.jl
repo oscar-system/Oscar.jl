@@ -120,7 +120,7 @@ det(Lf::LatWithIsom) = det(lattice(Lf))::QQFieldElem
 Given a lattice with isometry $(L, f)$, return the scale of the underlying
 lattice `L` (see [`scale(::ZLat)`](@ref)).
 """
-scale(Lf::LatWithIsom) = det(lattice(Lf))::QQFieldElem
+scale(Lf::LatWithIsom) = scale(lattice(Lf))::QQFieldElem
 
 @doc Markdown.doc"""
     norm(Lf::LatWithIsom) -> QQFieldElem
@@ -154,7 +154,7 @@ Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 
 Note that to be even, `L` must be integral (see [`is_integral(::ZLat)`](@ref)).
 """
-is_even(Lf::LatWithIsom) = Hecke.iseven(lattice(Lf))::Bool
+is_even(Lf::LatWithIsom) = iseven(lattice(Lf))::Bool
 
 @doc Markdown.doc"""
     discriminant(Lf::LatWithIsom) -> QQFieldElem
@@ -220,7 +220,7 @@ function lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
   if check
     @req f*gram_matrix(L)*transpose(f) == gram_matrix(L) "f does not define an isometry of L"
     @req f_ambient*gram_matrix(ambient_space(L))*transpose(f_ambient) == gram_matrix(ambient_space(L)) "f_ambient is not an isometry of the ambient space of L"
-    @assert basis_matrix(L)*f_ambient == f*basis_matrix(L)
+    @hassert :LatWithIsom 1 basis_matrix(L)*f_ambient == f*basis_matrix(L)
   end
 
   return LatWithIsom(L, f, f_ambient, n)::LatWithIsom
@@ -381,7 +381,7 @@ $q_L$ induced by `f`.
     GL = Oscar._orthogonal_group(qL, UL, check = false)
   else
     @req is_of_hermitian_type(Lf) "Not yet implemented for indefinite lattices with isometry which are not of hermitian type"
-    dets = LWI._local_determinants_morphism(Lf)
+    dets = Oscar._local_determinants_morphism(Lf)
     GL, _ = kernel(dets)
   end
   return GL::AutomorphismGroup{TorQuadModule}
@@ -405,8 +405,8 @@ function _real_kernel_signatures(L::ZLat, M)
   newGC = Hecke._gram_schmidt(newGC, C)[1]
   diagC = diagonal(newGC)
 
-  @assert all(z -> isreal(z), diagC)
-  @assert all(z -> !iszero(z), diagC)
+  @hassert :LatWithIsom 1 all(z -> isreal(z), diagC)
+  @hassert :LatWithIsom 1 all(z -> !iszero(z), diagC)
 
   k1 = count(z -> z > 0, diagC)
   k2 = length(diagC) - k1
@@ -474,11 +474,11 @@ function kernel_lattice(Lf::LatWithIsom, p::QQPolyRingElem)
   k, K = left_kernel(change_base_ring(ZZ, d*M))
   L2 = lattice_in_same_ambient_space(L, K*basis_matrix(L))
   f2 = solve_left(change_base_ring(QQ, K), K*f)
-  @assert f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
+  @hassert :LatWithIsom 1 f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
   chi = parent(p)(collect(coefficients(minpoly(f2))))
   chif = parent(p)(collect(coefficients(minpoly(Lf))))
   _chi = gcd(p, chif)
-  @assert (rank(L2) == 0) || (chi == _chi)
+  @hassert :LatWithIsom 1 (rank(L2) == 0) || (chi == _chi)
   return lattice_with_isometry(L2, f2, ambient_representation = false)
 end
 
