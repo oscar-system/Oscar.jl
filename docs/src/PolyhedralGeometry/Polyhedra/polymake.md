@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["polymake.md"]
-```
-
 
 # `Polyhedron` and `polymake`'s `Polytope`
 

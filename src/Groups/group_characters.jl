@@ -268,8 +268,6 @@ nothing
 ```
 """
 function character_table(id::String, p::Int = 0)
-    @req hasproperty(GAP.Globals, :CTblLib) "no character table library available"
-
     if p == 0
       modid = id
     else
@@ -324,7 +322,6 @@ Currently the following series are supported.
 | `:ExtraspecialPlusOdd` | odd power of odd prime |
 """
 function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
-    @req hasproperty(GAP.Globals, :CTblLib) "no character table library available"
     args = GAP.Obj([string(series), parameter], recursive = true)
     tbl = GAP.Globals.CallFuncList(GAP.Globals.CharacterTable, args)::GapObj
     tbl === GAP.Globals.fail && return nothing
@@ -867,6 +864,14 @@ function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
     return group_class_function(tbl, irr[i])
 end
 #TODO: cache the irreducibles in the table
+
+# in order to make `tbl[end]` work
+Base.lastindex(tbl::GAPGroupCharacterTable) = length(tbl)
+
+# in order to make `findfirst` and `findall` work
+function Base.keys(tbl::GAPGroupCharacterTable)
+    return keys(1:length(tbl))
+end
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
     irr = GAP.Globals.Irr(GAPTable(tbl))::GapObj
@@ -1519,6 +1524,25 @@ For Brauer characters there is no generic method for checking irreducibility.
 """
 function is_irreducible(chi::GAPGroupClassFunction)
     return GAPWrap.IsIrreducibleCharacter(chi.values)
+end
+
+@doc raw"""
+    is_faithful(chi::GAPGroupClassFunction)
+
+Return `true` if the value of `chi` at the identity element does not occur
+as value of `chi` at any other element, and `false` otherwise.
+
+If `chi` is an ordinary character then `true` is returned if and only if
+the representations affording `chi` have trivial kernel.
+
+# Examples
+```jldoctest
+julia> show(map(is_faithful, character_table(symmetric_group(3))))
+Bool[0, 1, 0]
+```
+"""
+function is_faithful(chi::GAPGroupClassFunction)
+    return length(class_positions_of_kernel(chi)) == 1
 end
 
 # Apply a class function to a group element.

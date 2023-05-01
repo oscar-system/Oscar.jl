@@ -106,7 +106,7 @@ end
   qRing::MPolyQuoRing
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
-   singular_quotient_ring(Ox) == base_ring(si) || error("base rings must match")
+   @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
    r = new{T}()
    r.gens  = IdealGens(Ox, si)
    r.qRing = Ox
@@ -114,20 +114,14 @@ end
    R = base_ring(Ox)
    r.gens.O = [R(g) for g = gens(r.gens.S)]
    B = r.gens
-   if length(B) >= 1
-     if R isa MPolyDecRing
-       if is_graded(R)
-         if !(all(is_homogeneous, B.gens.O))
-            throw(ArgumentError("The generators of the ideal must be homogeneous."))
-         end
-       end
-     end
+   if length(B) >= 1 && is_graded(R)
+     @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
    end
    return r
   end
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
-    base_ring(Ox) === base_ring(I) || error("base rings must match")
+    @req base_ring(Ox) === base_ring(I) "base rings must match"
     r = new{T}()
     r.gens = IdealGens(Ox, gens(I))
     r.qRing = Ox
@@ -298,7 +292,7 @@ ideal(x + y, x^2 + y^2)
 ```
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
   singular_assure(a)
   singular_assure(b)
   return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
@@ -326,7 +320,7 @@ ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
 ```
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
   singular_assure(a)
   singular_assure(b)
   return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
@@ -334,6 +328,7 @@ end
 
 @doc raw"""
     intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
+    intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 
 Return the intersection of two or more ideals.
 
@@ -351,18 +346,27 @@ ideal(x)
 
 julia> intersect(a,b)
 ideal(x*y)
+
+julia> intersect([a,b])
+ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
   singular_assure(a)
   as = a.gens.S
   for g in b
-    base_ring(g) == base_ring(a) || error("base rings must match")
+    @req base_ring(g) == base_ring(a) "base rings must match"
     singular_assure(g)
-    gs = g.gens.S
-    as = Singular.intersection(as, gs)
   end
+  as = Singular.intersection(as, [g.gens.S for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
+end
+
+function intersect(V::Vector{MPolyQuoIdeal{T}}) where T
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return intersect(V[1], V[2:end]...)
 end
 
 #######################################################
@@ -389,7 +393,7 @@ ideal(y)
 ```
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
 
   singular_assure(a)
   singular_assure(b)
@@ -520,7 +524,7 @@ end
 
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
-  a.P == b.P || error("wrong parents")
+  @req parent(a) == parent(b) "parents must match"
   return true
 end
 
@@ -659,7 +663,7 @@ true
 ```
 """
 function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  base_ring(a) == base_ring(b) || error("base rings must match")
+  @req base_ring(a) == base_ring(b) "base rings must match"
   as = simplify(a)
   groebner_assure(b)
   return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
@@ -884,7 +888,7 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
 end
 
 function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  base_ring(Q) === parent(a) || error("Parent mismatch")
+  @req base_ring(Q) === parent(a) "Parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 
@@ -1534,56 +1538,51 @@ end
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `a` of a graded affine algebra over a field,
-return an array containing a minimal set of generators of `a`.
+return an array containing a minimal set of generators of `a`. If `I`
+is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
-
-julia> I = ideal(R, V)
-ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
-
 julia> A, p = quo(R, ideal(R, [x-y]));
 
-julia> a = ideal(A, [p(x) for x in V]);
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> a = ideal(A, V);
 
 julia> minimal_generating_set(a)
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- x
+ y
  z^2
+
+julia> a = ideal(A, [x-y])
+ideal(x - y)
+
+julia> minimal_generating_set(a)
+MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}[]
 ```
 """
-function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
-
   Q = base_ring(I)
 
   @assert is_graded(Q)
 
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  QS = singular_poly_ring(Q)
-  singular_assure(I)
-
-  IS = I.gens.S
-  GC.@preserve IS QS begin
-    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
-    gensS = gens(typeof(IS)(QS, ptr))
+  if isdefined(I, :gb)
+    singular_assure(I.gb)
+    _, sing_min = Singular.mstd(I.gb.gens.S)
+    return filter(!iszero, (Q).(gens(sing_min)))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
+    I.gb.gens.S.isGB = I.gb.isGB = true
+    return filter(!iszero, (Q).(gens(sing_min)))
   end
-
-  i = 1
-  while i <= length(gensS)
-    if iszero(gensS[i])
-      deleteat!(gensS, i)
-    else
-      i += 1
-    end
-  end
-
-  return elem_type(Q)[ Q(f) for f in gensS ]
 end
 
 ################################################################################

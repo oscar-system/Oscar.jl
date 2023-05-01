@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["orderings.md"]
-```
-
 # Monomial Orderings
 
 Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
@@ -132,7 +124,7 @@ m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
     For orderings such as `lex` and `degrevlex` which are  predefined in OSCAR, using the predefined version is much faster than using a representation as a matrix ordering.
 
 ```@docs
-matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
 ```
 
 As already shown above, OSCAR provides functions to recover defining matrices from given monomial orderings:
@@ -357,6 +349,11 @@ is_local(ord::MonomialOrdering)
 is_mixed(ord::MonomialOrdering)
 ```
 
+## Transfering an ordering from another ring
+
+```@docs
+induce(vars::AbstractVector{<:MPolyRingElem}, ord::MonomialOrdering)
+```
 
 ## Module Orderings
 

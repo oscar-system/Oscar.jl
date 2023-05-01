@@ -887,7 +887,7 @@ is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
 function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
-  N > 0 || throw(ArgumentError("conductor ($N) must be positive"))
+  @req N > 0 "conductor ($N) must be positive"
   z = root_of_unity(F, N)
   if n == 0
     return zero(z)

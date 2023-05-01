@@ -56,7 +56,7 @@ julia> ne(g)
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-    (_has_node(g, source) && _has_node(g, target)) || throw(ArgumentError("Nodes must be between 1 and $(nv(g)), but edge given is $source -- $target"))
+    @req _has_node(g, source) && _has_node(g, target) "Nodes must be between 1 and $(nv(g)), but edge given is $source -- $target"
     Polymake._add_edge(pm_object(g), source-1, target-1)
 end
 

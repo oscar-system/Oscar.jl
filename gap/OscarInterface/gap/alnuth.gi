@@ -127,14 +127,14 @@ BindGlobal("NormCosetsDescriptionOscar", function(F, norm)
   return rec(units := units, creps := creps);
 end);
 
-
+BindGlobal("_Vector_nf_elem", Oscar.eval(Julia.Meta.parse(GAPToJulia("Vector{nf_elem}"))));
 
 BindGlobal("PolynomialFactorsDescriptionOscar", function(F, coeffs)
   local K, cf, poly, facs, result, f, g, i;
 
   K := _OscarField(F);
 
-  cf := JuliaEvalString( "Vector{nf_elem}")(Reversed(List(coeffs, x -> K(GAPToJulia(x)))));
+  cf := _Vector_nf_elem(Reversed(List(coeffs, x -> K(GAPToJulia(x)))));
   poly := Oscar.polynomial(K, cf);
   facs := Oscar.factor(poly);
   Assert(0, Oscar.is_one(facs.unit));

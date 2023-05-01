@@ -67,7 +67,7 @@ end
 
 function Orderings.index_of_leading_term(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
   p = Orderings.permutation_of_terms(f, ord)
-  isempty(p) && throw(ArgumentError("zero element does not have a leading term"))
+  @req !isempty(p) "zero element does not have a leading term"
   return p[1]
 end
 

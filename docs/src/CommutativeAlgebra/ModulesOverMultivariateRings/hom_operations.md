@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["hom_operations.md"]
-```
-
 # Operations on Module Maps
 
 If module homomorphisms `a` and `b` with `codomain(a) === domain(b)` are given,

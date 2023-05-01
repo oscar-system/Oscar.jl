@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["CoveredSchemes.md"]
-```
-
 # Covered schemes
 
 Oscar supports modeling abstract schemes by means of a covering by affine charts. 

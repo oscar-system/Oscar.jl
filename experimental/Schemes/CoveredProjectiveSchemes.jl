@@ -253,7 +253,7 @@ with `base_scheme` ``W``.
     blow_up relies on this internal method for computing the blow ups of all chartsand appropriately assembles the returned projective schemes to a single coverec scheme.
 """
 
-function blow_up_chart(W::AbsSpec, I::Ideal; var_name::String="s")
+function blow_up_chart(W::AbsSpec, I::Ideal; var_name::VarName = :s)
   error("method `blow_up_chart` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
 end
 
@@ -262,7 +262,7 @@ end
 ########################################################################
 
 function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
-    var_name::String="s"
+    var_name::VarName = :s
   )
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 #  if one(OO(W)) in I 
@@ -326,14 +326,14 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
 end
 
 function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
-    var_name::String="s"
+    var_name::VarName = :s
   ) where {RingType<:Union{MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}}
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 
   # It follows the generic Proj construction
   R = OO(W)
   T, (t,) = polynomial_ring(R, ["t"])
-  S, s = grade(polynomial_ring(R, Symbol.([var_name*"$i" for i in 0:ngens(I)-1]))[1])
+  S, s = grade(polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])[1])
   phi = hom(S, T, [t*g for g in gens(I)])
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
@@ -609,7 +609,7 @@ function blow_up(
     I::IdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
-    var_name::String="s",
+    var_name::VarName=:s,
     covering::Covering=default_covering(scheme(I))
   )
   X = space(I)

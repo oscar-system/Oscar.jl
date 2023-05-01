@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["ArchitectureOfAffineSchemes.md"]
-```
-
 
 # Architecture of affine schemes
 

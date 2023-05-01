@@ -384,7 +384,7 @@ is_positively_graded(::MPolyRing) = false
 
 @doc raw"""
     graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
-    graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:Union{Symbol, AbstractString, Char}
+    graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:VarName
 
 Create a multivariate [`polynomial_ring`](@ref polynomial_ring(R, [:x])) with
 coefficient ring `C` and variables which print according to the variable names
@@ -427,11 +427,11 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 """
 function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
       W=ones(Int, length(V)); ordering=:lex) where
-      T<:Union{Symbol, AbstractString, Char}
+      T<:VarName
    return grade(polynomial_ring(C, V; ordering)[1], W)
 end
 
-function graded_polynomial_ring(C::Ring, n::Int, s::Union{Symbol, AbstractString, Char},
+function graded_polynomial_ring(C::Ring, n::Int, s::VarName,
       W=ones(Int, n); ordering=:lex)
    return grade(polynomial_ring(C, n, s; ordering)[1], W)
 end
@@ -754,7 +754,19 @@ function addeq!(a::MPolyDecRingElem, b::MPolyDecRingElem)
 end
 
 length(a::MPolyDecRingElem) = length(forget_decoration(a))
+
+@doc raw"""
+    total_degree(f::MPolyDecRingElem)
+
+Return the total degree of `f`.
+
+Given a set of variables ``x = \{x_1, \ldots, x_n\}``, the *total degree* of a monomial ``x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)`` is the sum of the ``\alpha_i``. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials. 
+
+!!! note
+    The notion of total degree does not dependent on weights given to the variables.
+"""
 total_degree(a::MPolyDecRingElem) = total_degree(forget_decoration(a))
+
 AbstractAlgebra.monomial(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.monomial(forget_decoration(a), i))
 AbstractAlgebra.coeff(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.coeff(forget_decoration(a), i)
 AbstractAlgebra.term(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.term(forget_decoration(a), i))
@@ -765,17 +777,17 @@ AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int, ::Type{T}) where T
 
 function has_weighted_ordering(R::MPolyDecRing)
   grading_to_ordering = false
-  w_ord = degrevlex(gens(forget_decoration(R))) # dummy, not used
+  w_ord = degrevlex(gens(R)) # dummy, not used
   # This is not meant to be exhaustive, there a probably more gradings which one
   # can meaningfully translate into a monomial ordering
   # However, we want to stick to global orderings.
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
-      w_ord = degrevlex(gens(forget_decoration(R)))
+      w_ord = degrevlex(gens(R))
       grading_to_ordering = true
     elseif all(x -> x > 0, w)
-      w_ord = wdegrevlex(gens(forget_decoration(R)), w)
+      w_ord = wdegrevlex(gens(R), w)
       grading_to_ordering = true
     end
   end
@@ -2078,15 +2090,15 @@ function _homogenization(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int = 1)
    return finish(F)
 end
 
-function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::String, pos::Int = 1)
+function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = String.(symbols(R))
+  A = symbols(R)
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
-     insert!(A, pos, var)
+     insert!(A, pos, Symbol(var))
   else
-     for i = 1:(size(W, 1))
+     for i = 1:size(W, 1)
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
@@ -2100,13 +2112,13 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::String, pos::Int = 
   return _homogenization(f, S, pos)
 end
 
-function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::String, pos::Int = 1)
+function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::VarName, pos::Int = 1)
    W = matrix(ZZ, W)
    return _homogenization(f, W, var, pos)
 end
 
 @doc raw"""
-    homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+    homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
 
 If $m$ is the number of rows of `W`, extend the parent polynomial ring of `f` by inserting $m$ extra variables, starting at position `pos`.
 Correspondingly, extend the integer matrix `W` by inserting the standard unit vectors of size $m$ as new columns, starting at column `pos`.
@@ -2115,12 +2127,12 @@ as weights to the variables. Homogenize `f` with respect to the induced $\mathbb
 variables. Return the result as an element of the extended ring with its $\mathbb Z^m$-grading. If $m=1$, the extra variable prints as `var`. Otherwise,
 the extra variables print as `var[`$i$`]`, for $i = 1 \dots m$.
 
-    homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+    homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
 
 Given a vector `V` of elements in a common polynomial ring, create an extended ring with $\mathbb Z^m$-grading as above.
 Homogenize the elements of `V` correspondingly,  and return the vector of homogenized elements.
 
-    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
 
 Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading as above.
 
@@ -2153,18 +2165,18 @@ Multivariate Polynomial Ring in x, y, z[1], z[2] over Rational Field graded by
   z[2] -> [0 1]
 ```
 """
-function homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+function homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
    return _homogenization(f, W, var, pos)
 end
 
-function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
-     insert!(A, pos, var)
+     insert!(A, pos, Symbol(var))
   else
      for i = 1:(size(W, 1))
        insert!(A, pos-1+i, _make_variable(var, i))
@@ -2178,7 +2190,7 @@ function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
 
-function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
   # TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
   V = homogenization(gens(I), W, var, pos)
   R = parent(V[1])
@@ -2188,11 +2200,11 @@ function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUn
 end
 
 @doc raw"""
-    homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
+    homogenization(f::MPolyRingElem, var::VarName, pos::Int = 1)
 
-    homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+    homogenization(V::Vector{T}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
 
-    homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
+    homogenization(I::MPolyIdeal{T}, var::VarName, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
 
 Homogenize `f`, `V`, or `I` with respect to the standard $\mathbb Z$-grading using a homogenizing variable printing as `var`.
 Return the result as an element of a graded polynomial ring with the homogenizing variable at position `pos`.
@@ -2248,29 +2260,31 @@ julia> homogenization(I, "w", ordering = deglex(gens(base_ring(I))))
 ideal(x*z - y^2, -w*z + x*y, -w*y + x^2, -w*z^2 + y^3)
 ```
 """
-function homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
+function homogenization(f::MPolyRingElem, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
-  insert!(A, pos, var)
+  insert!(A, pos, Symbol(var))
   L, _ = polynomial_ring(base_ring(R), A)
   S, = grade(L)
   return _homogenization(f, S, pos)
 end
-function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+
+function homogenization(V::Vector{T}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
-  insert!(A, pos, var)
+  insert!(A, pos, Symbol(var))
   L, _ = polynomial_ring(base_ring(R), A)
   S, = grade(L)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
-function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
+
+function homogenization(I::MPolyIdeal{T}, var::VarName, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
   # TODO: Adjust as soon as new GB concept is implemented
   return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var, pos))
 end
@@ -2378,7 +2392,7 @@ function dehomogenization(F::MPolyDecRingElem, pos::Int)
   for i = 1:m
       @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
-  A = String.(symbols(S))
+  A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
   R, _ = polynomial_ring(base_ring(S), A)
   return _dehomogenization(F, R, pos, m)
@@ -2394,7 +2408,7 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
   for i = 1:m
       @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
-  A = String.(symbols(S))
+  A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
   R, _ = polynomial_ring(base_ring(S), A)
   l = length(V)
@@ -2426,11 +2440,9 @@ function AbstractAlgebra.promote_rule(::Type{MPolyDecRingElem{S, T}}, ::Type{U})
   end
 end
 
-# For some reason the following is necessary to remove ambiguities
 function AbstractAlgebra.promote_rule(::Type{MPolyDecRingElem{S, T}}, ::Type{MPolyDecRingElem{S, T}}) where {S, T}
   return MPolyDecRingElem{S, T}
 end
-
 
 ################################################################################
 #

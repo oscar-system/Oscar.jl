@@ -165,6 +165,14 @@
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
      ],
+     "Algebraic Sets" => [
+        "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
+        "AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet.md",
+     ],
+     "Algebraic Varieties" => [
+        "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
+        "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
+     ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",
         "AlgebraicGeometry/ToricVarieties/NormalToricVarieties.md",
@@ -177,11 +185,6 @@
         "AlgebraicGeometry/ToricVarieties/Subvarieties.md",
         "AlgebraicGeometry/ToricVarieties/AlgebraicCycles.md",
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
-     ],
-     "Toric Schemes" => [
-         "Experimental/ToricSchemes/intro.md",
-         "Experimental/ToricSchemes/NormalToricSchemes.md",
-         "Experimental/ToricSchemes/AffineToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",
@@ -231,10 +234,11 @@
   "Developer Documentation" => [
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
-    "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
+    "DeveloperDocumentation/design_decisions.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

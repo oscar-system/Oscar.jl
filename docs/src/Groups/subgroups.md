@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["subgroups.md"]
-```
-
 # [Subgroups](@id subgroups)
 
 The following functions are available in OSCAR for subgroup properties:

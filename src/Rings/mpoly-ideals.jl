@@ -56,7 +56,9 @@ function ideal(g::Vector{T}) where {T <: MPolyRingElem}
   return ideal(parent(g[1]), g)
 end
 
-
+function is_graded(I::MPolyIdeal)
+  return is_graded(Hecke.ring(I))
+end
 
 # elementary operations #######################################################
 @doc raw"""
@@ -162,6 +164,7 @@ end
 # ideal intersection #######################################################
 @doc raw"""
     intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
+    intersect(V::Vector{MPolyIdeal{T}}) where T
 
 Return the intersection of two or more ideals.
 
@@ -170,7 +173,14 @@ Return the intersection of two or more ideals.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
-julia> I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
+julia> I = ideal(R, [x, y])^2;
+
+julia> J = ideal(R, [y^2-x^3+x]);
+
+julia> intersect(I, J)
+ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
+
+julia> intersect([I, J])
 ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
 ```
 """
@@ -179,10 +189,18 @@ function Base.intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
   si = I.gens.S
   for J in Js
     singular_assure(J)
-    si = Singular.intersection(si, J.gens.S)
   end
+  si = Singular.intersection(si, [J.gens.S for J in Js]...)
   return MPolyIdeal(base_ring(I), si)
 end
+
+function Base.intersect(V::Vector{MPolyIdeal{T}}) where T
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return Base.intersect(V[1], V[2:end]...)
+end
+
 
 #######################################################
 
@@ -1069,6 +1087,28 @@ end
 
 #######################################################
 @doc raw"""
+    coefficient_ring(I::MPolyIdeal)
+
+Return the coefficient ring of `I`, which is the coefficient ring of the
+polynomial ring containing the ideal.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+
+julia> I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
+
+julia> coefficient_ring(I)
+Rational Field
+```
+"""
+coefficient_ring(I::MPolyIdeal) = coefficient_ring(base_ring(I))
+
+
+#######################################################
+@doc raw"""
     ngens(I::MPolyIdeal)
 
 Return the number of generators of `I`.
@@ -1290,7 +1330,8 @@ end
     minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `I` in a graded multivariate polynomial ring
-over a field, return an array containing a minimal set of generators of `I`.
+over a field, return an array containing a minimal set of generators
+of `I`. If `I` is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest
@@ -1305,10 +1346,16 @@ julia> minimal_generating_set(I)
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x
  z^2
- x^3 + y^3
+ y^3
+
+julia> I = ideal(R, zero(R))
+ideal(0)
+
+julia> minimal_generating_set(I)
+MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
 ```
 """
-function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
 
@@ -1318,24 +1365,22 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::Mon
 
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  singular_assure(I, ordering)
-  IS = I.gens.S
-  RS = I.gens.Sx
-  GC.@preserve IS RS begin
-    ptr = Singular.libSingular.idMinBase(IS.ptr, RS.ptr)
-    gensS = gens(typeof(IS)(RS, ptr))
+  if !isempty(I.gb)
+    # make sure to not recompute a GB from scratch on the singular
+    # side if we have one
+    G = first(values(I.gb))
+    singular_assure(G, G.ord)
+    G.gens.S.isGB = true
+    _, sing_min = Singular.mstd(G.gens.S)
+    return filter(!iszero, (R).(gens(sing_min)))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    ring = I.gens.Ox
+    computed_gb = IdealGens(ring, sing_gb, true)
+    I.gb[computed_gb.ord] = computed_gb
+    return filter(!iszero, (R).(gens(sing_min)))
   end
-
-  i = 1
-  while i <= length(gensS)
-    if iszero(gensS[i])
-      deleteat!(gensS, i)
-    else
-      i += 1
-    end
-  end
-
-  return elem_type(R)[ R(f) for f in gensS ]
 end
 
 ################################################################################

@@ -40,7 +40,7 @@ end
 @doc raw"""
     matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
 
-Returns the data of the coordinate ring of the realization space of
+Return the data of the coordinate ring of the realization space of
 the matroid `M` using matrix coordinates. The matroid `M` should be
 a simple and connected matroid, say its rank is ``d``, and ground set
 ``[n]``. The vector `A` is `rank(M)+1` consists of ``d+1`` elements

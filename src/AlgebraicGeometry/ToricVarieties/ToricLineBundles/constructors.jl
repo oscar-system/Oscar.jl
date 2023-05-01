@@ -8,9 +8,7 @@ abstract type ToricCoherentSheaf end
     toric_variety::AbstractNormalToricVariety
     divisor_class::GrpAbFinGenElem
     function ToricLineBundle(toric_variety::AbstractNormalToricVariety, class::GrpAbFinGenElem)
-        if parent(class) !== picard_group(toric_variety)
-            throw(ArgumentError("The class must belong to the Picard group of the toric variety"))
-        end
+        @req parent(class) === picard_group(toric_variety) "The class must belong to the Picard group of the toric variety"
         return new(toric_variety, class)
     end
 end
@@ -76,9 +74,7 @@ Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
-    if !is_cartier(d)
-        throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle"))
-    end
+    @req is_cartier(d) "The toric divisor must be Cartier to define a toric line bundle"
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
     class = f(sum(coefficients(d)[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))))
     l = ToricLineBundle(v, class)
@@ -110,9 +106,7 @@ toric_line_bundle(d::ToricDivisor) = toric_line_bundle(toric_variety(d), d)
 ########################
 
 function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
-    if toric_variety(l1) !== toric_variety(l2)
-        throw(ArgumentError("The line bundles must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(l1) === toric_variety(l2) "The line bundles must be defined on the same toric variety"
     return toric_line_bundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
 end
 Base.:inv(l::ToricLineBundle) = toric_line_bundle(toric_variety(l), (-1)*divisor_class(l))

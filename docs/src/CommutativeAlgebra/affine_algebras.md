@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["affine_algebras.md"]
-```
-
 # Affine Algebras and Their Ideals
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.
@@ -280,6 +272,7 @@ minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
+intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 ```
 
 #### Ideal Quotients
@@ -502,7 +495,7 @@ subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQ
 ### Minimal Subalgebra Generators
 
 ```@docs
-minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
 ```
 
 ## Noether Normalization

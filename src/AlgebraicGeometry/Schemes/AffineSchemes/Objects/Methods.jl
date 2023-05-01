@@ -53,13 +53,9 @@ in the coordinate ring of an affine scheme.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:
@@ -129,7 +125,7 @@ end
 @doc raw"""
     components(X::AbsSpec)
 
-This returns a decomposition of ``X`` into its connected components 
+Return a decomposition of ``X`` into its connected components
 ``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
 """
 function components(X::AbsSpec)

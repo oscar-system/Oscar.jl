@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["autgroup.md"]
-```
-
 # Groups of automorphisms
 
 ```@docs

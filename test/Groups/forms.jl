@@ -109,8 +109,8 @@ end
    end
    end
 
-   @test_throws AssertionError Q(V[1],V[5])
-   @test_throws AssertionError f(V[2])
+   @test_throws ArgumentError Q(V[1],V[5])
+   @test_throws ArgumentError f(V[2])
 
    g = rand(GL(6,F))
    v = rand(V)
@@ -227,13 +227,13 @@ end
    y = zero_matrix(F,6,6)
    y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError is_congruent(f,g)
+   @test_throws ArgumentError is_congruent(f,g)
 
    F = GF(3,1)
    y = zero_matrix(F,8,8)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError is_congruent(f,g)
+   @test_throws ArgumentError is_congruent(f,g)
 
    #hermitian
    F,a = FiniteField(3,2,"a")

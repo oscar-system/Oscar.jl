@@ -255,7 +255,7 @@ function Oscar.discriminant(g::Vector{<:RingElem})
 end
 
 
-function slpoly_ring(R::AbstractAlgebra.Ring, n::Int; cached ::Bool = false)
+function slpoly_ring(R::AbstractAlgebra.Ring, n::Int; cached::Bool = false)
   return SLPolynomialRing(R, [ Symbol("x_$i") for i=1:n], cached = cached)
 end
 

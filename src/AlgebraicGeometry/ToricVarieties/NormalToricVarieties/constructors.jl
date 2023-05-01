@@ -436,12 +436,8 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 """
 function del_pezzo_surface(b::Int; set_attributes::Bool = true)
     # check for valid input
-    if b < 0
-        throw(ArgumentError("Number of blowups for construction of del Pezzo surfaces must be non-negative"))
-    end
-    if b > 3
-        throw(ArgumentError("Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
-    end
+    @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
+    @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
     
     # special case of projective space
     if b == 0
@@ -569,12 +565,12 @@ julia> bP3 = blow_up(P3, I)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by 
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
   x2 -> [0 1]
-  e -> [1 -1]
   x3 -> [0 1]
   x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
@@ -582,8 +578,8 @@ function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
     cone_list = cones(v)
-    cone_indices = [filter(l -> cone_list[k,l], 1:ncols(cone_list)) for k in 1:n_cones(v)]
-    cone_index = findfirst(x -> x == indices, cone_indices)
+    indexset = Set{Int}(indices)
+    cone_index = findfirst(i -> Polymake.row(cone_list, i) == indexset, 1:nrows(cone_list))
     @req cone_index !== nothing "There is no corresponding cone that could be subdivided"
     return blow_up(v, cone_index; coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
@@ -625,12 +621,12 @@ julia> bP3 = blow_up(P3, 5)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by 
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
   x2 -> [0 1]
-  e -> [1 -1]
   x3 -> [0 1]
   x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)

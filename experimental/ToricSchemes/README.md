@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 One can associate to a toric variety a scheme. The resulting class of schemes then benefits from

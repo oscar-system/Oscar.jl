@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["NormalToricSchemes.md"]
-```
-
 # Normal Toric Schemes
 
 ## Constructors

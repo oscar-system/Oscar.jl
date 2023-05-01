@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["constructions.md"]
-```
-
 # Constructions
 
 The standard way to define a polyhedron is by either giving a

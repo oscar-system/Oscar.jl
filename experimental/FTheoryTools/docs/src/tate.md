@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["Tate.md"]
-```
-
 # Global Tate models
 
 A global Tate model describes a particular form of an elliptic fibration.
@@ -125,7 +121,7 @@ tate_section_a3(t::GlobalTateModel)
 tate_section_a4(t::GlobalTateModel)
 tate_section_a6(t::GlobalTateModel)
 tate_polynomial(t::GlobalTateModel)
-cy_hypersurface(t::GlobalTateModel)
+calabi_yau_hypersurface(t::GlobalTateModel)
 global_weierstrass_model(t::GlobalTateModel)
 discriminant(t::GlobalTateModel)
 ```

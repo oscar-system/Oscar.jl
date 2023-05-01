@@ -240,10 +240,13 @@ function __init__()
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
-    GAP.Packages.load("ctbllib")
-    GAP.Packages.load("forms")
-    GAP.Packages.load("wedderga") # provides a function to compute Schur indices
-    GAP.Packages.load("repsn")
+    for pkg in ["ctbllib",
+                "forms",
+                "wedderga", # provides a function to compute Schur indices
+                "repsn",
+               ]
+      GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
+    end
     __init_group_libraries()
 
     add_verbose_scope(:K3Auto)
@@ -328,8 +331,8 @@ The optional parameter `doctest` can take three values:
   - `:fix`: Run the doctests and replace the output in the manual with
     the output produced by Oscar. Please use this option carefully.
 
-In github actions the Julia version used for building the manual and
-running the doctests is 1.6. Using a different Julia version will produce
+In GitHub Actions the Julia version used for building the manual is 1.8 and
+doctests are run with >= 1.7. Using a different Julia version may produce
 errors in some parts of Oscar, so please be careful, especially when setting
 `doctest=:fix`.
 
@@ -353,9 +356,9 @@ The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
 function build_doc(; doctest=false, strict=false, open_browser=true)
-  versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
+  versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = 
-"The Julia reference version for the doctests is 1.6, but you are using
+"The Julia reference version for the doctests is 1.7 or later, but you are using
 $(VERSION). Running the doctests will produce errors that you do not expect."
   if doctest != false && !versioncheck
     @warn versionwarn

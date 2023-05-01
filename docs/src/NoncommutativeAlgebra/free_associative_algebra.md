@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["free_associative_algebra.md"]
-```
-
 # Free Associative Algebras
 
 ## Two-sided ideals

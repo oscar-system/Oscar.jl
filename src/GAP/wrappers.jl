@@ -163,6 +163,7 @@ GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap MinimalPolynomial(x::GapObj, y::GAP.Obj)::GapObj
+GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
 GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NrCols(x::GapObj)::Int

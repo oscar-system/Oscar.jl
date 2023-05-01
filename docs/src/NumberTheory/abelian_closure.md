@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["abelian_closure.md"]
-```
-
 # Abelian closure of the rationals
 
 The abelian closure $\mathbf{Q}^\text{ab}$ is the maximal abelian extension of $\mathbf{Q}$

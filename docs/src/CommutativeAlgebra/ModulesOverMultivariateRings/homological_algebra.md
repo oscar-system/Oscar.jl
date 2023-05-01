@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["homological_algebra.md"]
-```
-
 # Homological Algebra
 
 Some OSCAR functions which are fundamental to homological algebra such as the `kernel` function

@@ -18,6 +18,7 @@ julia> Sgr, _ = grade(S);
 
 julia> P = ProjectiveScheme(Sgr)
 Projective space of dimension 2
+  with homogeneous coordinates x y z
   over Rational Field
 
 julia> (x, y, z) = gens(Sgr);
@@ -46,7 +47,7 @@ Projective scheme
   dehomogenization_cache::IdDict
 
   function ProjectiveScheme(S::MPolyDecRing)
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
+    is_standard_graded(S) || error("ring is not standard graded")
     n = ngens(S)-1
     A = coefficient_ring(S)
     return new{typeof(A), typeof(S)}(A, n, S)
@@ -56,7 +57,7 @@ Projective scheme
     for f in gens(I)
       parent(f) == S || error("elements do not belong to the correct ring")
     end
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
+    is_standard_graded(S) || error("ring is not standard graded")
     n = ngens(S)-1
     A = coefficient_ring(S)
     Q, _ = quo(S, I)
@@ -64,10 +65,8 @@ Projective scheme
   end
 
   function ProjectiveScheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}}
-    # Test disabled because `total_degree` does not work at the moment.
-    #all(x->(total_degree(x) == 1), gens(Q)) || error("ring is not standard graded") 
     S = base_ring(Q)
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
+    is_standard_graded(S) || error("ring is not standard graded")
     A = coefficient_ring(S)
     r = ngens(S)-1
     result = new{typeof(A), typeof(Q)}(A, r, Q)
