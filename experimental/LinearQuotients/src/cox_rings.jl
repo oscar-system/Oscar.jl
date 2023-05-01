@@ -337,7 +337,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
   R = codomain(RVGtoR)
   SAbG = base_ring(RVG) # RVG is a quotient ring graded by Ab(G)
   S = forget_grading(SAbG)
-  StoR = hom(S, R, [ RVGtoR(gen(RVG, i)) for i in 1:ngens(RVG) ])
+  StoR = hom(S, R, [ RVGtoR(x) for x in gens(RVG) ])
   I = forget_grading(modulus(RVG))
 
   Sdeg, _ = grade(S, [ degree(StoR(x)) for x in gens(S) ])

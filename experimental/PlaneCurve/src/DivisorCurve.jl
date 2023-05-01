@@ -524,7 +524,7 @@ end
 function _remove_zeros(I::T) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
    R = base_ring(I)
    g = gens(I)
-   filter!(x->x!= R(0), g)
+   filter!(!iszero, g)
    length(g) == 0 && return ideal(R, [R(0)])
    return ideal(R, g)
 end
@@ -541,9 +541,8 @@ end
 
 # Remove components which are not codim 1
 function _purify1(I::T, Q) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
-   R = base_ring(I)
+   !iszero(I) || error("ideal assumed to be non-zero")
    Id = _remove_zeros(I)
-   gen(Id, 1) != R(0) || error("ideal assumed to be non-zero")
    IdQ = ideal(Q, gens(Id))
    f = ideal(Q, [gen(Id, 1)])
    res = f:(f:IdQ)
