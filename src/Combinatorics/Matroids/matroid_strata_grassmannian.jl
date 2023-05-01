@@ -38,7 +38,7 @@ julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 [0   0         0   1   x[3, 2]   x[3, 3]   x[3, 4]]
 
 julia> W # The coordinate ring of the stratum in general a localized quotient ring `(R/I)[S⁻¹]`.
-Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of fpMPolyRingElem[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
+Localization of Quotient of Multivariate Polynomial Ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2], ..., x[3, 4] over Galois field with characteristic 2 by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3]) at the multiplicative set powers of fpRingElem[x[3, 3]*x[1, 4], x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4], x[2, 3]*x[1, 4], x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4], x[3, 2]*x[2, 4], x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4], x[1, 2]*x[2, 4], x[2, 4], x[1, 4], x[2, 1]*x[3, 4], x[1, 1]*x[3, 4], x[3, 4], x[3, 2]*x[2, 3], x[1, 2]*x[3, 3], x[1, 2]*x[2, 3], x[2, 3], x[1, 1]*x[2, 3], x[2, 1]*x[3, 3], x[1, 1]*x[3, 3], x[3, 3], x[1, 2], x[2, 1]*x[1, 2], x[2, 1]*x[3, 2], x[1, 1]*x[3, 2], x[3, 2], x[2, 1], x[1, 1], 1]
 ```
 """
 function matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType,  F::AbstractAlgebra.Ring = ZZ)
@@ -85,7 +85,7 @@ julia> X # The coordinate matrix.
 [0   0         0   1         1         1   1]
 
 julia> W # The coordinate ring of the stratum.
-Localization of Quotient of Multivariate Polynomial Ring in x[1, 1], x[1, 2], x[2, 3] over Galois field with characteristic 2 by ideal(x[2, 3] + 1, x[1, 2] + 1, x[1, 1] + 1, x[1, 1]*x[2, 3] + x[1, 2]) at the multiplicative set powers of fpMPolyRingElem[1, x[1, 1]*x[2, 3] + x[1, 1] + 1, x[2, 3], x[1, 2]*x[2, 3] + x[1, 2] + x[2, 3], x[1, 1] + x[1, 2] + 1, x[1, 2], x[1, 1], x[1, 2]*x[2, 3], x[1, 1]*x[2, 3]]
+Localization of Quotient of Multivariate Polynomial Ring in x[1, 1], x[1, 2], x[2, 3] over Galois field with characteristic 2 by ideal(x[2, 3] + 1, x[1, 2] + 1, x[1, 1] + 1, x[1, 1]*x[2, 3] + x[1, 2]) at the multiplicative set powers of fpRingElem[1, x[1, 1]*x[2, 3] + x[1, 1] + 1, x[2, 3], x[1, 2]*x[2, 3] + x[1, 2] + x[2, 3], x[1, 1] + x[1, 2] + 1, x[1, 2], x[1, 1], x[1, 2]*x[2, 3], x[1, 1]*x[2, 3]]
 ```
 """
 function matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
@@ -156,7 +156,7 @@ function make_polynomial_ring(Bs::Vector{Vector{Int}}, B::Vector{Int},
     
     MC = bases_matrix_coordinates(Bs, B)
     R, x = polynomial_ring(F, :"x"=>MC)
-    xdict = Dict{Vector{Int}, MPolyRingElem}([MC[i] => x[i] for i in 1:length(MC)])
+    xdict = Dict{Vector{Int}, RingElem}([MC[i] => x[i] for i in 1:length(MC)])
     return R, x, xdict
 end
 
@@ -168,7 +168,7 @@ end
 function make_coordinate_matrix_no_identity(d::Int, n::Int,
                                             MC::Vector{Vector{Int}},
                                             R::MPolyRing, x::Vector{T},
-                                            xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+                                            xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
     
     X = zero_matrix(R, d, n-d)
     for j in 1:n-d, i in 1:d
@@ -184,7 +184,7 @@ end
 
 # M and N have same number of rows, and M has #B columns, both have entries in ring R
 function interlace_columns(M::MatrixElem{T}, N::MatrixElem{T}, B::Vector{Int},
-                           R::MPolyRing, x::Vector{T}) where T <: MPolyRingElem 
+                           R::MPolyRing, x::Vector{T}) where T <: RingElem 
     
     M_nrows, M_ncols = size(M)
     N_nrows, N_ncols = size(N)
@@ -205,7 +205,7 @@ end
 function make_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
                                 B::Vector{Int},
                                 R::MPolyRing, x::Vector{T},
-                                xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+                                xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
     
     Id = identity_matrix(R,d)
     Xpre = make_coordinate_matrix_no_identity(d, n, MC, R, x, xdict)
@@ -216,17 +216,17 @@ end
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
 
-function bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
+function bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:RingElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
 
-#function bases_determinants(X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:MPolyRingElem}
+#function bases_determinants(X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:RingElem}
 
     #d::Int, n::Int, Bs::Vector{Vector{Int}},
     #MC::Vector{Vector{Int}},
     #B::Vector{Int}, R::MPolyRing, x::Vector{T},
-    #xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+    #xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
     
     #X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
     
@@ -239,7 +239,7 @@ end
 # function localizing_semigroup(d::Int, n::Int, Bs::Vector{Vector{Int}},
 #                               MC::Vector{Vector{Int}}, B::Vector{Int},
 #                               R::MPolyRing, x::Vector{T},
-#                               xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+#                               xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
 
     
 #     basesX = bases_determinants(X,Bs)
@@ -269,7 +269,7 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
                                                        B::Vector{Int},
                                                        R::MPolyRing,
                                                        x::Vector{T},
-                                                       xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+                                                       xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
     
 
     Bs = bases(M)
@@ -344,14 +344,14 @@ function realization_polynomial_ring(Bs::Vector{Vector{Int}}, A::Vector{Int},
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
     R, x = polynomial_ring(F, :"x"=>MR)
-    xdict = Dict{Vector{Int}, MPolyRingElem}(MR[i] => x[i] for i in 1:length(MR))
+    xdict = Dict{Vector{Int}, RingElem}(MR[i] => x[i] for i in 1:length(MR))
     return R, x, xdict
 end
 
 
 function matrix_realization_small(d::Int, n::Int, MC::Vector{Vector{Int}},
                                   R::MPolyRing, x::Vector{T},
-                                  xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+                                  xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
 
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
@@ -383,7 +383,7 @@ end
 
 function realization_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
                                        A::Vector{Int}, R::MPolyRing, x::Vector{T},
-                                       xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+                                       xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
     
     Id = matrix(R, projective_identity(d))
     Xpre = matrix_realization_small(d, n, MC, R, x, xdict)
@@ -393,7 +393,7 @@ end
 
 
 
-function realization_bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
+function realization_bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:RingElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
@@ -403,7 +403,7 @@ end
 function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
                                               F::AbstractAlgebra.Ring, A::Vector{Int},
                                               R::MPolyRing, x::Vector{T},
-                                              xdict::Dict{Vector{Int}, MPolyRingElem}) where T <: MPolyRingElem
+                                              xdict::Dict{Vector{Int}, RingElem}) where T <: RingElem
     
     Bs = bases(M)
     NBs = nonbases(M)
@@ -505,7 +505,8 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     goodM = isomorphic_matroid(M, [i for i in 1:n])
 
     Bs = bases(goodM)
-    if B!=nothing
+    
+    if !isnothing(B) 
         goodB = sort!(Int.([M.gs2num[j] for j in B]))
     else
         goodB = find_good_basis_heuristically(M)
@@ -546,11 +547,11 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
 
     def_ideal = ideal(polyR,eqs)
     def_ideal = ideal(groebner_basis(def_ideal))
-    if !iszero(def_ideal)
-        for i in 1:length(ineqs)
-            ineqs[i] = reduce(ineqs[i], gens(def_ideal))
-        end
-    end
+#    if !iszero(def_ideal)
+#        for i in 1:length(ineqs)
+#            ineqs[i] = reduce(ineqs[i], gens(def_ideal))
+#        end
+#    end
     ineqs = gens_2_factors(ineqs)
     
     if saturate || polyR.nvars < 10
@@ -560,9 +561,11 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
         
     representable = !(isone(def_ideal))
 
-    if !representable
-        return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
-    end
+    !representable && return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
+
+#    if !representable
+#        return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
+#    end
 
     return MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, representable)
 end
@@ -580,19 +583,184 @@ end
 
 
 #returns the factors of f, but not the exponents
-function poly_2_factors(f)
+function poly_2_factors(f::RingElem)
     return collect(keys(Dict(factor(f))))
 end
 
 # returns the unique factors of the elements of Sgen, again no exponents. 
-function gens_2_factors(Sgens)
+function gens_2_factors(Sgens::Vector{<:RingElem})
     return unique!(vcat([poly_2_factors(f) for f in Sgens]...))
 end
 
-function stepwise_saturation(I, Sgens)
-    for f in Sgens
-        I = saturation(I, ideal([f]))
-    end
+
+function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
+    foreach(f -> I = saturation(I,ideal([f])), Sgens)
     return I
 end
+
+# computes the coefficient of v in monomial m. 
+function coefficient_monomial(v::RingElem, m::RingElem)
+    isone(degree(m,v)) || return "The variable is not a degree 1 factor."
+    mf = factor(m)
+    mfdict = Dict(mf)
+    u = unit(mf)
+    not_v = [k^(mfdict[k]) for k in keys(mfdict) if k != v ]
+    length(not_v) == 0 ? u : u*prod(not_v)
+end
+
+# computes the coefficient of v in f. 
+function coefficient_v(v::RingElem, f::RingElem)
+    isone(degree(f,v)) || return "degree of variable must be 1"
+    withv = [term(f,i) for i in 1:length(f) if v in vars(monomial(f,i))]
+    return sum([coefficient_monomial(v,m) for m in withv])
+end
+
+
+function find_solution_v(v::RingElem, Igens::Vector{<:RingElem}, 
+                         Sgens::Vector{<:RingElem}, R::MPolyRing) 
+
+    
+    with_v_deg_1 = [g for g in Igens if isone(degree(g,v))] 
+    length(with_v_deg_1) != 0 || return "can't isolate"
+
+    for f in with_v_deg_1
+
+        den = coefficient_v(v, f)
+        fac_den = poly_2_factors(den)
+        !issubset(fac_den, Sgens) && continue
+
+        no_v = [term(f,i) for i in 1:length(f) if !(v in vars(monomial(f,i)))]
+        iszero(length(no_v)) && continue
+              
+        h = R(-1)*sum(no_v)
+        return h//den
+        
+    end
+    return "can't solve for v"
+end
+
+
+# v is replaced by t in f
+function sub_map(v::RingElem, t::RingElem, R::MPolyRing, xs::Vector{<:RingElem}) 
+    xs_v = map(x -> x==v ? t : x, xs )    
+    return hom(R,FractionField(R), a->a, xs_v)
+end
+
+
+
+# replace v by t in f, only return the numerator.
+function sub_v(v::RingElem, t::RingElem, f::RingElem, R::Ring, xs::Vector{<:RingElem}) 
+    m = sub_map(v,t,R,xs) 
+    new_f = numerator(m(f))
+    return new_f 
+end
+
+
+# removes factors that are in the semigroup generated by Sgens
+function clean(f::RingElem, R::MPolyRing, Sgens::Vector{<:RingElem})   
+    
+    fFactors = factor(f)
+    FactorsDict = Dict(fFactors) 
+    cleanf_arr = [k^(FactorsDict[k]) for k in keys(FactorsDict) if !(k in Sgens) || is_unit(k)]
+    
+    length(cleanf_arr) > 0 ? prod(cleanf_arr) : unit(fFactors)
+    
+end
+
+#variables in ideal
+function ideal_vars(Igens::Vector{<:RingElem}) 
+    return unique!(vcat([vars(gen) for gen in Igens]...))
+end
+
+function n_new_Sgens(x::RingElem, t::RingElem, Sgens::Vector{<:RingElem}, 
+                     R::Ring, xs::Vector{<:RingElem}) 
+    preSgens = unique!([sub_v(x, t, f, R, xs) for f in Sgens])
+    return gens_2_factors(preSgens)
+end
+
+function n_new_Igens(x::RingElem, t::RingElem, Igens::Vector{<:RingElem}, 
+                     Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}) 
+
+    preIgens = unique!([clean(sub_v(x, t, f, R, xs), R, Sgens) for f in Igens])
+    return filter(x-> x!= R(0), preIgens)
+end
+
+
+
+function reduce_ideal_one_step(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::Ring, 
+                               xs::Vector{<:RingElem}, elim::Vector{<:RingElem}, fullyReduced::Bool)
+    
+    if R(0) in Sgens
+        return "Not realizable 0 in Semigroup"
+    else
+        Ivars = ideal_vars(Igens); 
+        
+        
+        for x in Ivars 
+           t = find_solution_v(x, Igens, Sgens, R)
+            if t isa String
+                continue
+            else 
+                Sgens_new = n_new_Sgens(x, t, Sgens, R, xs);
+                Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs);
+                push!(elim, x)
+                return (Igens_new, Sgens_new, R, xs, elim, fullyReduced)
+            end
+   
+        end
+    return (Igens, Sgens, R, xs, elim, true)
+    end 
+end
+
+    
+function reduce_ideal_full(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing, 
+                           xs::Vector{<:RingElem}, elim::Vector{RingElem} = Vector{RingElem}(), 
+                           fullyReduced::Bool = false) 
+    
+    
+    output = reduce_ideal_one_step(Igens, Sgens, R, xs, elim, fullyReduced)
+    output isa String && return "Not Realizable 0 in Semigroup"
+    (Igens, Sgens, R, xs, elim, fullyReduced) = output    
+    
+    !fullyReduced && return reduce_ideal_full(Igens, Sgens, R, xs, elim, fullyReduced)
+    
+    zero_elim = []        
+    for i in 1:length(xs)
+        if xs[i] in elim
+            push!(zero_elim, 0)
+        else
+            push!(zero_elim, "x"*string(i) ) 
+        end
+    end
+        
+    xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
+    
+    cR = coefficient_ring(R)
+    
+    if length(xnew_str) == 0
+        
+        phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
+        return (phi.(Igens), phi.(Sgens), cR, Vector{RingElem}(), fullyReduced)
+   
+    end
+    
+
+    Rnew, xnew = PolynomialRing(coefficient_ring(R), xnew_str) 
+    
+    zero_elim_var = []
+    j=1
+    for i in 1:length(zero_elim)
+        if xs[i] in elim
+            push!(zero_elim_var, Rnew(0))
+        else
+            push!(zero_elim_var, xnew[j] ) 
+            j+=1
+        end
+    end
+        
+    phi = hom(R, Rnew, a->a, zero_elim_var)
+    
+    return (phi.(Igens), phi.(Sgens), Rnew, xnew, fullyReduced)
+end
+
 
