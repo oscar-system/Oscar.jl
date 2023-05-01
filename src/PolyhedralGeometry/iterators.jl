@@ -283,7 +283,7 @@ end
 
 function IncidenceMatrix(iter::SubObjectIterator)
     if hasmethod(_incidencematrix, Tuple{Val{iter.Acc}})
-        return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj)
+        return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
     else
         throw(ArgumentError("IncidenceMatrix not defined in this context."))
     end
