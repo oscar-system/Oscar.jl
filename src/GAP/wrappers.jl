@@ -24,6 +24,7 @@ GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap Characteristic(x::Any)::GapInt
 GAP.@wrap Coefficients(x::Any, y::Any)::GapObj
+GAP.@wrap CoefficientsFamily(x::GapObj)::GapObj
 GAP.@wrap CoefficientsOfUnivariatePolynomial(x::GapObj)::GapObj
 GAP.@wrap CoeffsCyc(x::GAP.Obj, y::Int)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
@@ -60,6 +61,7 @@ GAP.@wrap Image(x::Any, y::Any)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
+GAP.@wrap Indeterminate(x::GapObj)::GapObj
 GAP.@wrap IndeterminateNumberOfUnivariateRationalFunction(x::GapObj)::Int
 GAP.@wrap IndeterminatesOfPolynomialRing(x::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
@@ -177,7 +179,13 @@ GAP.@wrap NumberRows(x::GapObj)::Int
 GAP.@wrap NumeratorRat(x::Any)::GapInt
 GAP.@wrap ObjByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap One(x::Any)::GAP.Obj
+GAP.@wrap OnIndeterminates(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnLines(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnSets(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnSetsSets(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
+GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
@@ -195,6 +203,9 @@ GAP.@wrap Sqrt(x::Int64)::GAP.Obj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
 GAP.@wrap UnivariatePolynomialByCoefficients(x::GapObj, y::GapObj, z::Int)::GapObj
+GAP.@wrap Value(x::GapObj, y::Any)::Any
+GAP.@wrap Value(x::GapObj, y::Any, z::Any)::Any
+GAP.@wrap Value(x::GapObj, y::GapObj, z::GapObj, a::Any)::Any
 GAP.@wrap Z(x::Any)::GAP.Obj
 GAP.@wrap Zero(x::Any)::GAP.Obj
 

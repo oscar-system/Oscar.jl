@@ -1021,6 +1021,7 @@ export nvertices
 export objective_function
 export omega_group
 export on_indeterminates
+export on_lines
 export on_sets
 export on_sets_sets
 export on_tuples
@@ -1097,10 +1098,18 @@ export proj_space
 export project_full
 export projection
 export projection_to_base
+export projective_general_linear_group
 export projective_geometry
+export projective_orthogonal_group
+export projective_omega_group
 export projective_plane
 export projective_scheme
 export projective_space
+export projective_special_linear_group
+export projective_special_orthogonal_group
+export projective_special_unitary_group
+export projective_symplectic_group
+export projective_unitary_group
 export projective_variety
 export projective_algebraic_set
 export pullback
