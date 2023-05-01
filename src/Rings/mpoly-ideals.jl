@@ -1330,7 +1330,8 @@ end
     minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `I` in a graded multivariate polynomial ring
-over a field, return an array containing a minimal set of generators of `I`.
+over a field, return an array containing a minimal set of generators
+of `I`. If `I` is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest
@@ -1345,10 +1346,16 @@ julia> minimal_generating_set(I)
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x
  z^2
- x^3 + y^3
+ y^3
+
+julia> I = ideal(R, zero(R))
+ideal(0)
+
+julia> minimal_generating_set(I)
+MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
 ```
 """
-function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
 
@@ -1358,24 +1365,22 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; ordering::Mon
 
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  singular_assure(I, ordering)
-  IS = I.gens.S
-  RS = I.gens.Sx
-  GC.@preserve IS RS begin
-    ptr = Singular.libSingular.idMinBase(IS.ptr, RS.ptr)
-    gensS = gens(typeof(IS)(RS, ptr))
+  if !isempty(I.gb)
+    # make sure to not recompute a GB from scratch on the singular
+    # side if we have one
+    G = first(values(I.gb))
+    singular_assure(G, G.ord)
+    G.gens.S.isGB = true
+    _, sing_min = Singular.mstd(G.gens.S)
+    return filter(!iszero, (R).(gens(sing_min)))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    ring = I.gens.Ox
+    computed_gb = IdealGens(ring, sing_gb, true)
+    I.gb[computed_gb.ord] = computed_gb
+    return filter(!iszero, (R).(gens(sing_min)))
   end
-
-  i = 1
-  while i <= length(gensS)
-    if iszero(gensS[i])
-      deleteat!(gensS, i)
-    else
-      i += 1
-    end
-  end
-
-  return elem_type(R)[ R(f) for f in gensS ]
 end
 
 ################################################################################

@@ -208,6 +208,7 @@ end
   R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
   @test minimal_generating_set(I) == [ y, x^2 ]
+  @test !isempty(I.gb)
   @test minimal_generating_set(ideal(R, [ R() ])) == elem_type(R)[]
 end
 
