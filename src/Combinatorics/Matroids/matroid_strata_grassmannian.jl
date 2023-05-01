@@ -740,7 +740,7 @@ function reduce_ideal_full(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem},
     if length(xnew_str) == 0
         
         phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
-        return (phi.(Igens), phi.(Sgens), cR, Vector{RingElem}(), fullyReduced)
+        return (phi.(Igens), phi.(Sgens), cR)
    
     end
     
@@ -760,7 +760,7 @@ function reduce_ideal_full(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem},
         
     phi = hom(R, Rnew, a->a, zero_elim_var)
     
-    return (phi.(Igens), phi.(Sgens), Rnew, xnew, fullyReduced)
+    return (phi.(Igens), phi.(Sgens), Rnew)
 end
 
 
