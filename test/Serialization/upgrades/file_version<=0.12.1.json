@@ -1,0 +1,60 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      {
+        "major": 0,
+        "minor": 12,
+        "patch": 0,
+        "prerelease": [
+          "DEV"
+        ],
+        "build": []
+      }
+    ]
+  },
+  "type": "QQPolyRingElem",
+  "data": {
+    "parent": {
+      "id": "498b1e72-1d21-4d0b-a96b-4cdaf54ed4ac",
+      "type": "QQPolyRing",
+      "data": {
+        "base_ring": {
+          "type": "QQField"
+        },
+        "symbols": {
+          "type": "Vector",
+          "data": {
+            "vector": [
+              "x"
+            ],
+            "entry_type": "Symbol"
+          }
+        }
+      }
+    },
+    "coeffs": {
+      "type": "Vector",
+      "data": {
+        "vector": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "entry_type": "QQFieldElem"
+      }
+    }
+  }
+}
