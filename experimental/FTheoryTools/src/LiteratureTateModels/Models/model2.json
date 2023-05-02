@@ -1,7 +1,10 @@
 {
     "arxiv_id": "1212.2949",
+    "doi": "10.1007/jhep04(2013)061",
+    "version": "2",
     "equ_nr": "B.18",
     "description": "SO(10)",
+    "link": "https://export.arxiv.org/pdf/1212.2949",
     "dim": 3,
     "variables": ["b1", "b2", "b3", "b4", "b6", "z0"],
     "a1": [[1, 1], [6, 1]],

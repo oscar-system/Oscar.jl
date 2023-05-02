@@ -352,29 +352,31 @@ end
 #####################################################
 
 @doc raw"""
-    description(t::GlobalTateModel)
+    doi(t::GlobalTateModel)
 
-Return the description of a global Tate model,
-should such a description have been provided.
+Return the `doi` of the publication which introduced
+the global Tate model in question. If no `doi` is
+known, an error is raised.
 
 ```jldoctest
 julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
-julia> description(t)
-"SU(5)xU(1) restricted Tate model"
+julia> doi(t)
+"10.1016/j.nuclphysb.2011.12.013"
 ```
 """
-function description(t::GlobalTateModel)
-  @req has_attribute(t, :description) "No description known for this model"
-  return get_attribute(t, :description)
+function doi(t::GlobalTateModel)
+  @req has_attribute(t, :doi) "No doi known for this model"
+  return get_attribute(t, :doi)
 end
 
 @doc raw"""
     arxiv_id(t::GlobalTateModel)
 
-Return the arxiv identifier of a global Tate model,
-should such an identifier be known.
+Return the `arxiv_id` of the publication which introduced
+the global Tate model in question. If no `arxiv_id` is
+known, an error is raised.
 
 ```jldoctest
 julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
@@ -390,11 +392,32 @@ function arxiv_id(t::GlobalTateModel)
 end
 
 @doc raw"""
+    version(t::GlobalTateModel)
+
+Return the `version` of the arxiv publication which
+introduced the global Tate model in question. If no
+`version` is known, an error is raised.
+
+```jldoctest
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+
+julia> version(t)
+"2"
+```
+"""
+function version(t::GlobalTateModel)
+  @req has_attribute(t, :version) "No version known for this model"
+  return get_attribute(t, :version)
+end
+
+@doc raw"""
     equ_nr(t::GlobalTateModel)
 
-Should the global Tate model have been constructed in a paper
-on the arxiv, this method will return the equation number in this
-paper which defined this model (or its resolutions).
+Return the `equ_nr` in which the model was introduced
+in the publication on our record (either specified by
+`doi` or, if uploaded to the arxiv, the `arxiv_id` and
+`version`). If no `equ_nr` is known, an error is raised.
 
 ```jldoctest
 julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
@@ -407,4 +430,43 @@ julia> equ_nr(t)
 function equ_nr(t::GlobalTateModel)
   @req has_attribute(t, :equ_nr) "No equation number known for this model"
   return get_attribute(t, :equ_nr)
+end
+
+@doc raw"""
+    description(t::GlobalTateModel)
+
+Return the `description` of the model in question.
+If no `description` is known, an error is raised.
+
+```jldoctest
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+
+julia> description(t)
+"SU(5)xU(1) restricted Tate model"
+```
+"""
+function description(t::GlobalTateModel)
+  @req has_attribute(t, :description) "No description known for this model"
+  return get_attribute(t, :description)
+end
+
+@doc raw"""
+    link(t::GlobalTateModel)
+
+Return the `link` (formatted as string) to the online
+version of the paper which introduced the model in question.
+If no link is known, an error is raised.
+
+```jldoctest
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+
+julia> link(t)
+"https://export.arxiv.org/pdf/1109.3454"
+```
+"""
+function link(t::GlobalTateModel)
+  @req has_attribute(t, :link) "No link known for this model"
+  return get_attribute(t, :link)
 end

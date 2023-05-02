@@ -87,7 +87,6 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 
 julia> set_description(t, "An SU(5)xU(1) GUT-model")
 
-
 julia> t
 Global Tate model over a not fully specified base -- An SU(5)xU(1) GUT-model based on arxiv paper 1109.3454 (equ. 3.5)
 ```
@@ -111,7 +110,6 @@ julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> add_resolution(t, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"], ["s", "w", "e3", "e1", "e2"]])
-
 
 julia> length(resolutions(t))
 2
@@ -147,10 +145,10 @@ julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
 
 julia> v = resolve(t, 1)
-Normal toric variety
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2], [0, 0, 0, 1, 0, 0, -1, -2], [0, 0, 0, 1, 0, 0, -1, -1], [0, 0, 0, 1, 0, 0, 0, -1], [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1]]
 
 julia> cox_ring(v)
-Multivariate Polynomial Ring in 14 variables a10, a21, a32, a43, ..., s over Rational Field graded by
+Multivariate Polynomial Ring in 14 variables a10, a21, a32, a43, ..., s over Rational Field graded by 
   a10 -> [0 0 0 0 0 0]
   a21 -> [0 0 0 0 0 0]
   a32 -> [0 0 0 0 0 0]
@@ -177,7 +175,7 @@ function resolve(t::GlobalTateModel, index::Int)
   nr_blowups = length(resolution)-1
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
-  resolved_ambient_space = toric_ambient_space(t)
+  resolved_ambient_space = underlying_toric_variety(ambient_space(t))
   R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], resolution[nr_blowups+1]))
   for k in 1:nr_blowups
     @req all(x -> x in gR, [eval_poly(p, R) for p in resolution[k]]) "Non-toric blowup currently not supported"
@@ -188,5 +186,5 @@ function resolve(t::GlobalTateModel, index::Int)
     S = cox_ring(resolved_ambient_space)
     resolved_ambient_space = blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in resolution[k]]); coordinate_name = resolution[nr_blowups + 1][k], set_attributes = true)
   end
-  return resolved_ambient_space
+  return toric_covered_scheme(resolved_ambient_space)
 end
