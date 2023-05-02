@@ -33,7 +33,7 @@ The input `ordering=:lex` refers to the lexicograpical monomial ordering which s
 order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 !!! note
-    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ in the variables x, y, z with `ordering=:lex`.
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z, and  with `ordering=:lex`.
 
 ###### Examples
 
@@ -47,12 +47,14 @@ ZZMPolyRing
 julia> typeof(x)
 ZZMPolyRingElem
 
-julia> S, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+julia> S, (a, b, c) = polynomial_ring(ZZ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
 
-julia> R === S
-true
+julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
 
+julia> R === S === T
+true
 ```
 
 ```jldoctest
@@ -235,17 +237,16 @@ multivariate ring, and  `T` is the element type of its coefficient ring as above
     also meant to eventually model multivariate rings with filtrations
 	and their elements.
 
-
-The following function allows one to distinguish between graded and filtered rings:
+The following function allows one, in particular, to distinguish between graded and filtered rings.
 
 ```@docs
-is_graded(R::MPolyDecRing)
+is_graded(R::MPolyRing)
 ```
 
 ### Constructors for Graded Rings
 
 There are two basic ways of creating multivariate rings with gradings:
-While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
+While the `grade` function allows one to create a graded ring by assigning a grading to a polynomial ring already constructed,
 the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
@@ -264,6 +265,7 @@ graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
 
 ## Tests on Graded Rings
+
 
 ```@docs
 is_standard_graded(R::MPolyDecRing)

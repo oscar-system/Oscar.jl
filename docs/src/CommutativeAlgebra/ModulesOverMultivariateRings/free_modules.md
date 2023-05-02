@@ -21,7 +21,7 @@ and homomorphisms between free modules by matrices.
 
 All OSCAR types for the modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-The free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
+Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
 they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
@@ -34,6 +34,27 @@ they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod
 
 ```@docs
 free_module(R::MPolyRing, n::Int, name::VarName = :e; cached::Bool = false)
+```
+
+Over graded multivariate polynomial rings and their graded quotients,  there are two basic ways of
+creating graded free modules: While the `grade` function allows one to create a graded free module
+by assigning a grading to a free module already constructed, the `graded_free_module` function is
+meant to create a graded free module all at once.
+
+```@docs
+grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+```
+
+```@docs
+grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
+```
+
+```@docs
+graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+```
+
+```@docs
+graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
 ```
 
 ## Data Associated to Free Modules
@@ -60,6 +81,16 @@ julia> basis(F)
 
 julia> rank(F)
 3
+```
+
+In the graded case, we also have:
+
+```@docs
+ grading_group(F::FreeMod)
+```
+
+```@docs
+degrees_of_generators(F::FreeMod)
 ```
 
 ## Elements of Free Modules
@@ -100,7 +131,6 @@ x*e[1] + y*e[3]
 
 julia> f == g == h
 true
-
 ```
 
 Given an element `f`  of a free module `F` over a multivariate polynomial ring with element type `T`,
@@ -137,7 +167,22 @@ Whether a given element of a free module is zero can be tested as follows:
 is_zero(f::AbstractFreeModElem)
 ```
 
+In the graded case, we additionally have:
+
+```@docs
+is_homogeneous(f::FreeModElem)
+```
+
+```@docs
+degree(f::FreeModElem)
+```
+
+
 ## Tests on Free Modules
+
+The tests [`is_graded`](@ref), [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
+and [`is_zm_graded`](@ref) carry over analogously to free modules. They return `true` if the
+corresponding property is satisfied, and `false` otherwise. In addition, we have:
 
 ```@docs
 ==(F::FreeMod, G::FreeMod)

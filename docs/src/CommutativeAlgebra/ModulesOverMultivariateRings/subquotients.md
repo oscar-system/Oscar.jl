@@ -45,7 +45,7 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 
 All OSCAR types for the finitely presented modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-The subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
+Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
 they are modelled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
@@ -298,6 +298,10 @@ is_zero(m::SubquoModuleElem)
 ```
 
 ## Tests on Subqotients
+
+The functions [`is_graded`](@ref), [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
+and [`is_zm_graded`](@ref) carry over analogously to subquotients. They return `true` if the
+corresponding property is satisfied, and `false` otherwise. In addition, we have:
 
 ```@docs
 ==(M::SubquoModule{T}, N::SubquoModule{T}) where T

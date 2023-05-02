@@ -41,16 +41,16 @@ GrpAb: Z
 """
 grading_group(R::MPolyDecRing) = R.D
 
-@doc raw"""
-    is_graded(R::MPolyDecRing)
-
-Return `true` if `R` is graded, `false` otherwise.
-"""
 function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
 
-is_graded(::MPolyRing) = false
+@doc raw"""
+    is_graded(R::MPolyRing)
+
+Return `true` if `R` is graded, `false` otherwise.
+"""
+is_graded(R::MPolyRing) = false
 
 is_filtered(R::MPolyDecRing) = isdefined(R, :lt)
 is_filtered(::MPolyRing) = false
@@ -86,11 +86,10 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 
-Given a vector `W` of `ngens(R)` integers, define a $\mathbb Z$-grading on `R` by creating 
-a free abelian group of type `GrpAbFinGen` given by one free generator, converting the entries 
-of `W` to elements of that group, and assigning these elements as weights 
-to the variables. Return the graded ring as an object of type `MPolyDecRing`, 
-together with the vector of variables.
+Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `GrpAbFinGen` 
+given by one free generator, and convert the entries of `W` to elements of that group. Then 
+create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables 
+of `R`, and return the new ring, together with the vector of variables.
 
     grade(R::MPolyRing)
 
@@ -133,10 +132,11 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
  
-Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, define a $\mathbb Z^m$-grading on `R` 
-by creating a free abelian group of type `GrpAbFinGen` given by `m` free generators, converting the vectors in
-`W` to elements of that group, and assigning these elements as weights to the variables. Return the graded
-ring as an object of type `MPolyDecRing`, together with the vector of variables.
+Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free 
+abelian group of type `GrpAbFinGen` given by `m` free generators, and convert the vectors in
+`W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group 
+elements as weights to the variables of `R`, and return the new ring, together with the vector
+of variables.
 
     grade(R::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
 
@@ -461,10 +461,9 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
 
-Given a vector `W` of `ngens(R)` elements of a group `G` of type `GrpAbFinGen`,  
-define a  `G`-grading on `R` by assigning weights to the variables according to the entries of `W`.
-Return the graded ring as an object of type `MPolyDecRing`, together with the
-vector of variables.
+Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a 
+`G`-graded ring by assigning the entries of `W` as weights to the variables of `R`. Return
+the new ring as an object of type `MPolyDecRing`, together with the vector of variables.
 
 # Examples
 ```jldoctest
