@@ -1,16 +1,12 @@
 # Tropical Semiring
-@registerSerializationType(TropicalSemiring{typeof(min)}, true)
-@registerSerializationType(TropicalSemiring{typeof(max)}, true)
+@registerSerializationType(TropicalSemiring{typeof(min)})
+@registerSerializationType(TropicalSemiring{typeof(max)})
 
 ## elements
 @registerSerializationType(TropicalSemiringElem)
 
 function save_internal(s::SerializerState, t::TropicalSemiringElem)
-  T = parent(t)
-  return Dict(
-    :parent => save_type_dispatch(s, T),
-    :data => save_type_dispatch(s, data(t))
-  )
+  return string(data(t))
 end
 
 function load_internal(s::DeserializerState,
@@ -22,9 +18,9 @@ end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{TropicalSemiringElem{S}},
-                                   dict::Dict,
+                                   str::String,
                                    parent::TropicalSemiring{S}) where S
-  return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
+  return parent(load_type_dispatch(s, QQFieldElem, str))
 end
 
 

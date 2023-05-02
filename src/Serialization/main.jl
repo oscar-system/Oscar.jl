@@ -129,17 +129,15 @@ is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 
 
 function has_elem_basic_encoding(obj::T) where T <: Ring
-    if obj isa FqField
-        return absolute_degree(obj) == 1
-    elseif obj isa Nemo.zzModRing
-        return true
-    elseif obj isa Nemo.fpField
-        return true
-    elseif obj isa FlintPadicField
-        return true
-    end
     return is_basic_serialization_type(elem_type(obj))
 end
+
+has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
+has_elem_basic_encoding(obj::Nemo.fpField) = true
+has_elem_basic_encoding(obj::Nemo.zzModRing) = true
+has_elem_basic_encoding(obj::FlintPadicField) = true
+has_elem_basic_encoding(obj::TropicalSemiring) = true
+
 
 ################################################################################
 # High level
