@@ -16,6 +16,7 @@ export base_space
 export calabi_yau_hypersurface
 export description
 export discriminant
+export doi
 export equ_nr
 export fiber_ambient_space
 export global_tate_model
@@ -28,7 +29,14 @@ export global_weierstrass_model_over_hirzebruch_surface
 export global_weierstrass_model_over_projective_space
 export sample_toric_scheme
 export sample_toric_variety
+export has_arxiv_id
+export has_description
+export has_doi
+export has_equ_nr
+export has_link
+export has_version
 export singular_loci
+export link
 export literature_tate_model
 export resolutions
 export resolve
@@ -41,6 +49,7 @@ export tate_section_a2
 export tate_section_a3
 export tate_section_a4
 export tate_section_a6
+export version
 export weierstrass_polynomial
 export weierstrass_section_f
 export weierstrass_section_g

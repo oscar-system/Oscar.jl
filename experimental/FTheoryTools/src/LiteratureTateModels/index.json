@@ -1,14 +1,20 @@
 [
 {
     "file": "model1.json",
+    "doi": "10.1016/j.nuclphysb.2011.12.013",
     "arxiv_id": "1109.3454",
+    "version": "2",
     "equ_nr": "3.5",
-    "description": "SU(5)xU(1) restricted Tate model"
+    "description": "SU(5)xU(1) restricted Tate model",
+    "link": "https://export.arxiv.org/pdf/1109.3454"
 },
 {
     "file": "model2.json",
+    "doi": "10.1007/jhep04(2013)061",
     "arxiv_id": "1212.2949",
+    "version": "2",
     "equ_nr": "B.18",
-    "description": "SO(10)"
+    "description": "SO(10)",
+    "link": "https://export.arxiv.org/pdf/1212.2949"
 }
 ]

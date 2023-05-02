@@ -209,12 +209,11 @@ To this end, one invokes `set_verbosity_level(:GlobalTateModel, 1)`.
 More background information is available
 [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
 
-
 ### Advanced attributes
 
 The following attributes are currently only supported in a toric setting:
 ```@docs
-calabi_yau_hypersurface(t::GlobalWeierstrassModel)
+calabi_yau_hypersurface(t::GlobalTateModel)
 global_weierstrass_model(t::GlobalTateModel)
 ```
 Note that for applications in F-theory, *singular* elliptic fibrations are key
@@ -222,18 +221,20 @@ Note that for applications in F-theory, *singular* elliptic fibrations are key
 locus as well as the singular loci of the fibration in question are of ample
 importance:
 ```@docs
-discriminant(t::GlobalWeierstrassModel)
-singular_loci(t::GlobalWeierstrassModel)
+discriminant(t::GlobalTateModel)
+singular_loci(t::GlobalTateModel)
 ```
-
 
 ### Attributes for literature models
 
 For literature models, we provide the following attributes:
 ```@docs
-description(t::GlobalTateModel)
+doi(t::GlobalTateModel)
 arxiv_id(t::GlobalTateModel)
+version(t::GlobalTateModel)
 equ_nr(t::GlobalTateModel)
+description(t::GlobalTateModel)
+link(t::GlobalTateModel)
 ```
 Certainly, one can add this information for a model that does
 not have it:
@@ -241,7 +242,14 @@ not have it:
 set_description(t::GlobalTateModel, description::String)
 ```
 Note however, that these changes will (currently) not be stored
-in our data base.
+in our data base. One can also check if a model has a particular
+set of information. This is achieved with the following methods:
+* `has_doi(t::GlobalTateModel)`,
+* `has_arxiv_id(t::GlobalTateModel)`,
+* `has_version(t::GlobalTateModel)`,
+* `has_equ_nr(t::GlobalTateModel)`,
+* `has_description(t::GlobalTateModel)`,
+* `has_link(t::GlobalTateModel)`.
 
 
 ## Methods

@@ -1,7 +1,10 @@
 {
     "arxiv_id": "1109.3454",
+    "doi": "10.1016/j.nuclphysb.2011.12.013",
+    "version": "2",
     "equ_nr": "3.5",
     "description": "SU(5)xU(1) restricted Tate model",
+    "link": "https://export.arxiv.org/pdf/1109.3454",
     "dim": 3,
     "variables": ["a10", "a21", "a32", "a43", "a65", "w"],
     "a1": [[1, 1]],
