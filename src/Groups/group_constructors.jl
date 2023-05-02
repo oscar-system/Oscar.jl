@@ -230,9 +230,9 @@ end
 ################################################################################
 
 """
-    free_group(n::Int, s::Union{String, Symbol} = "f"; eltype::Symbol = :letter) -> FPGroup
-    free_group(L::Vector{<:Union{String, Symbol}}) -> FPGroup
-    free_group(L::Union{String, Symbol}...) -> FPGroup
+    free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter) -> FPGroup
+    free_group(L::Vector{<:VarName}) -> FPGroup
+    free_group(L::VarName...) -> FPGroup
 
 The first form returns the free group of rank `n`, where the generators are
 printed as `s1`, `s2`, ..., the default being `f1`, `f2`, ...
@@ -251,7 +251,7 @@ where the `i`-th generator is printed as `L[i]`.
 !!! warning "Note"
     Variables named like the group generators are *not* created by this function.
 """
-function free_group(n::Int, s::Union{String, Symbol} = "f"; eltype::Symbol = :letter)
+function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
    @req n >= 0 "n must be a non-negative integer"
    if eltype == :syllable
      return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
@@ -260,12 +260,12 @@ function free_group(n::Int, s::Union{String, Symbol} = "f"; eltype::Symbol = :le
    end
 end
 
-function free_group(L::Vector{<:Union{String, Symbol}})
+function free_group(L::Vector{<:VarName})
    J = GAP.GapObj(L, recursive = true)
    return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
 end
 
-function free_group(L::Union{String, Symbol}...)
+function free_group(L::VarName...)
    J = GAP.GapObj(L, recursive = true)
    return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
 end

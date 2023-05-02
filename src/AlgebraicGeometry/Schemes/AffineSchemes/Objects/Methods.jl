@@ -125,7 +125,7 @@ end
 @doc raw"""
     components(X::AbsSpec)
 
-This returns a decomposition of ``X`` into its connected components 
+Return a decomposition of ``X`` into its connected components
 ``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
 """
 function components(X::AbsSpec)

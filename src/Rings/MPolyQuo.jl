@@ -1538,56 +1538,51 @@ end
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 Given a homogeneous ideal `a` of a graded affine algebra over a field,
-return an array containing a minimal set of generators of `a`.
+return an array containing a minimal set of generators of `a`. If `I`
+is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
-
-julia> I = ideal(R, V)
-ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
-
 julia> A, p = quo(R, ideal(R, [x-y]));
 
-julia> a = ideal(A, [p(x) for x in V]);
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> a = ideal(A, V);
 
 julia> minimal_generating_set(a)
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- x
+ y
  z^2
+
+julia> a = ideal(A, [x-y])
+ideal(x - y)
+
+julia> minimal_generating_set(a)
+MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}[]
 ```
 """
-function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyDecRing are forced to be homogeneous though.
-
   Q = base_ring(I)
 
   @assert is_graded(Q)
 
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  QS = singular_poly_ring(Q)
-  singular_assure(I)
-
-  IS = I.gens.S
-  GC.@preserve IS QS begin
-    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
-    gensS = gens(typeof(IS)(QS, ptr))
+  if isdefined(I, :gb)
+    singular_assure(I.gb)
+    _, sing_min = Singular.mstd(I.gb.gens.S)
+    return filter(!iszero, (Q).(gens(sing_min)))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
+    I.gb.gens.S.isGB = I.gb.isGB = true
+    return filter(!iszero, (Q).(gens(sing_min)))
   end
-
-  i = 1
-  while i <= length(gensS)
-    if iszero(gensS[i])
-      deleteat!(gensS, i)
-    else
-      i += 1
-    end
-  end
-
-  return elem_type(Q)[ Q(f) for f in gensS ]
 end
 
 ################################################################################
