@@ -76,6 +76,7 @@ const pm = Polymake
                 end
             end
         end
+        @test facets(IncidenceMatrix, Cone1) == IncidenceMatrix(T == QQFieldElem ? [[2], [1]] : [[1], [2]])
         @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace{T}}
         @test facets(Cone1) isa SubObjectIterator{LinearHalfspace{T}}
         @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane{T}}
@@ -121,16 +122,20 @@ const pm = Polymake
             @test faces(Cone2, 2) == Cone{T}.([[0 0 1], [1 0 0]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
             @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
+            @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[2], [1]])
             @test faces(Cone4, 1) == Cone{T}.([[0 0 1], [1 0 0]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
+            @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[2], [1]])
         else
             @test faces(Cone2, 2) == Cone{T}.([[1 0 0], [0 0 1]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
             @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
+            @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[1], [2]])
             @test faces(Cone4, 1) == Cone{T}.([[1 0 0], [0 0 1]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
+            @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[1], [2]])
         end
         @test isnothing(faces(Cone2, 1))
 

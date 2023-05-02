@@ -44,6 +44,7 @@
         @test dim.(maximal_cones(F1)) == [2,2]
         @test ray_indices(maximal_cones(F1)) == incidence1
         @test IncidenceMatrix(maximal_cones(F1)) == incidence1
+        @test maximal_cones(IncidenceMatrix, F1) == incidence1
         @test n_maximal_cones(F1) == 2
         @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
         if T == QQFieldElem
@@ -61,6 +62,7 @@
         @test isnothing(cones(F2, 1))
         @test ray_indices(cones(F1, 2)) == incidence1
         @test IncidenceMatrix(cones(F1, 2)) == incidence1
+        @test cones(IncidenceMatrix, F1, 2) == incidence1
 
         II = ray_indices(maximal_cones(NFsquare))
         NF0 = PolyhedralFan(rays(NFsquare), II)

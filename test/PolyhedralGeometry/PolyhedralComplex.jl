@@ -101,6 +101,7 @@
          @test ray_indices(maximal_polyhedra(PCFLN)) == I[:, 4:4]
          @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
          @test IncidenceMatrix(maximal_polyhedra(PCFLN)) == I
+         @test maximal_polyhedra(IncidenceMatrix, PCFLN) == I
          
      end
     
