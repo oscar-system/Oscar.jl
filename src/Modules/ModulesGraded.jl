@@ -139,8 +139,12 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 0]
- Element of G with components [0 1]
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -153,13 +157,33 @@ julia> S, _ = grade(R, W)
   y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
 
 julia> F = free_module(S, 3)
-Free module of rank 3 over S
+Free module of rank 3 over Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1]
 
 julia> FF = grade(F)
-Graded free module S^3([0 0]) of rank 3 over S
+Graded free module Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1]^3([0 0]) of rank 3 over Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1]
 
 julia> F
-Free module of rank 3 over S
+Free module of rank 3 over Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1]
 ```
 """
 function grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
@@ -208,13 +232,34 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"],  [1 0 1; 0 1 1
   z -> [1 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over R
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]
 
 julia> FF = grade(F,  [[1, 0], [0, 1]])
-Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]^1([-1 0]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]^1([0 -1]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]
 
 julia> FFF = grade(F,  [1 0; 0 1])
-Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]^1([-1 0]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]^1([0 -1]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1]
 ```
 
 ```jldoctest
@@ -224,16 +269,28 @@ julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by 
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [1] by ideal(x*y), Map from
-R to S defined by a julia-function with inverse)
+Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1] to Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1] by ideal(x*y) defined by a julia-function with inverse)
 
 julia> F = free_module(S, 2)
-Free module of rank 2 over S
+Free module of rank 2 over Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1] by ideal(x*y)
 
 julia> FF = grade(F, [1, 2])
-Graded free module S^1([-1]) + S^1([-2]) of rank 2 over S
+Graded free module Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1] by ideal(x*y)^1([-1]) + Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1] by ideal(x*y)^1([-2]) of rank 2 over Quotient of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1] by ideal(x*y)
 ```
 """
 function grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
@@ -1441,95 +1498,3 @@ function is_zm_graded(M::SubquoModule)
   return  is_graded(M) && is_zm_graded(base_ring(M))
 end
 
-
-
-##################################
-### Castelnuovo-Mumford regularity
-##################################
-
-# TODO: 1. To be added as soon as MINIMAL free resolutions are available
-#       2. Allow arbitrary ZZ-gradings
-
-#-
-@doc raw"""
-    regularity(M::ModuleFP)
-
-Return the Castelnuovo-Mumford regularity of M.
- 
-# Examples
-```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> F = graded_free_module(R, 1);
-
-julia> M, _ = quo(F, [x^2*F[1], y^2*F[1], z^2*F[1]])
-(Graded subquotient of submodule of F generated by
-1 -> e[1]
-by submodule of F generated by
-1 -> x^2*e[1]
-2 -> y^2*e[1]
-3 -> z^2*e[1], F -> M
-e[1] -> e[1]
-Homogeneous module homomorphism)
-
-julia> regularity(M)
-3
-
-julia> FM = free_resolution(M);
-
-julia> betti_table(FM)
-       0 1 2 3 
-0    : 1 - - - 
-1    : - 3 - - 
-2    : - - 3 - 
-3    : - - - 1 
---------------
-total: 1 3 3 1 
-```
-"""
-function regularity(M::ModuleFP)
-   @assert is_standard_graded( base_ring(M))
-   F = free_resolution(M)  # correct as soon as minimal free resolutions are available
-   B = betti_table(F)
-   S = as_dictionary(B)
-   V = [x[2][1] - x[1] for x in keys(S)] 
-  return maximum(V)
-end
-
-
-@doc raw"""
-    regularity(I::MPolyIdeal)
-
-Return the Castelnuovo-Mumford regularity of I.
- 
-# Examples
-```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
-
-julia> I = ideal(R, [y^2*z − x^2*w, z^4 − x*w^3])
-ideal(-w*x^2 + y^2*z, -w^3*x + z^4)
-
-julia> regularity(I)
-6
-
-julia> FI = free_resolution(I);
-
-julia> betti_table(FI)
-       0 1 
-3    : 1 - 
-4    : 1 - 
-5    : - - 
-6    : - 1 
-----------
-total: 2 1 
-```
-"""
-function regularity(I::MPolyIdeal)
-   @assert is_standard_graded( base_ring(I))
-   F = free_resolution(I)  # correct as soon as minimal free resolutions are available
-   B = betti_table(F)
-   S = as_dictionary(B)
-   V = [x[2][1] - x[1] for x in keys(S)] 
-  return maximum(V)
-end
--#
