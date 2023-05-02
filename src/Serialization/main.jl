@@ -18,11 +18,11 @@ end
 
 struct DeserializerState
     objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
-
+    refs::Dict{Symbol, Any}
 end
 
 function DeserializerState()
-    return DeserializerState(Dict{UUID, Any}())
+    return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
 end
 
 const backref_sym = Symbol("#backref")
@@ -135,6 +135,8 @@ function has_elem_basic_encoding(obj::T) where T <: Ring
         return true
     elseif obj isa Nemo.fpField
         return true
+    elseif obj isa FlintPadicField
+        return true
     end
     return is_basic_serialization_type(elem_type(obj))
 end
@@ -152,7 +154,6 @@ function save_as_ref(s::SerializerState, obj::T) where T
         return Dict{Symbol, Any}(
             :type => backref_sym,
             :id => string(ref),
-            :version => 1, # ???
         )
     end
     
@@ -170,7 +171,6 @@ function save_as_ref(s::SerializerState, obj::T) where T
     return Dict{Symbol, Any}(
         :type => backref_sym,
         :id => string(ref),
-        :version => 1, # ???
     )
 end
 
@@ -209,7 +209,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         result[:_ns] = oscarSerializationVersion
 
         if !isempty(s.refs)
-            result[:data] = merge(result[:data], s.refs)
+            result[:refs] = s.refs
         end
     end
     return result
@@ -430,6 +430,10 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
         jsondict = upgrade(jsondict, file_version)
     end
 
+    if haskey(jsondict, :refs)
+        merge!(state.refs, jsondict[:refs])
+    end
+    
     if type !== nothing
         return load_type_dispatch(state, type, jsondict; parent=parent)
     end

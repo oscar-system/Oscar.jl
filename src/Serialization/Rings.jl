@@ -152,15 +152,22 @@ function save_internal(s::SerializerState, p::PolyRingElem)
         end
 
         encoded_coeff = save_internal(s, coeff)
-                
+        
         if has_elem_basic_encoding(base)
             push!(encoded_terms,  (i - 1, encoded_coeff))
         else
             parents = encoded_coeff[:parents]
-            push!(encoded_terms,  (i - 1, encoded_coeff[:terms]))
+            if typeof(base) <: Union{AbstractAlgebra.Generic.RationalFunctionField,
+                             FracField}
+                push!(encoded_terms,  (i - 1, (encoded_coeff[:num_terms],
+                                               encoded_coeff[:den_terms])))
+            else
+                push!(encoded_terms,  (i - 1, encoded_coeff[:terms]))
+            end
         end
     end
     parent_ring = save_as_ref(s, parent_ring)
+    # end of list should be loaded first
     push!(parents, parent_ring)
     
     return Dict(
@@ -170,16 +177,34 @@ function save_internal(s::SerializerState, p::PolyRingElem)
 end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector)
-    parent = parents[end]
+    parent_ring = parents[end]
+
     # shift so constant starts at 1
     degree = max(map(x->x[1] + 1, terms)...)
-
-    if parent isa Field
-        return parent(load_terms(s, parents[1:end - 1], terms))
+    if parent_ring isa Field
+        loaded_terms = load_terms(s, parents[1:end - 1], terms)
+        try 
+            return parent_ring(loaded_terms)
+        catch err
+            # hack untill we get updates in nemo
+            if err isa ErrorException
+                if err.msg == "Polynomial has wrong coefficient ring" && absolute_degree(coefficient_ring(parent(loaded_terms))) == 1
+                    return parent_ring.forwardmap(loaded_terms)
+                end
+            end
+            throw(err)
+        end
     end
-    base = base_ring(parent)
+
+    base = base_ring(parent_ring)
     loaded_terms = zeros(base, degree)
 
+    if base isa AbstractAlgebra.Generic.RationalFunctionField
+        # There is no official way to get the underlying polynomial ring of a rational function field.
+        # So we do the detour via the fraction_field object, of which the rational function field is build from.
+        parents[end - 1] = base_ring(AbstractAlgebra.Generic.fraction_field(base))
+    end
+    
     for term in terms
         exponent, coeff = term
         # account for shift
@@ -193,10 +218,18 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector)
                 loaded_terms[exponent] = base(coeff)
             end
         else
-            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff)
+            if typeof(base) <: Union{AbstractAlgebra.Generic.RationalFunctionField,
+                                     FracField}
+                num_coeff, den_coeff = coeff
+                loaded_num = load_terms(s, parents[1:end - 1], num_coeff)
+                loaded_den = load_terms(s, parents[1:end - 1], den_coeff)
+                loaded_terms[exponent] = loaded_num // loaded_den
+            else
+                loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff)
+            end
         end
     end
-    return parent(loaded_terms)
+    return parent_ring(loaded_terms)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: PolyRingElem}, dict::Dict)
@@ -207,10 +240,9 @@ function load_internal(s::DeserializerState, ::Type{<: PolyRingElem}, dict::Dict
         if haskey(s.objs, UUID(id))
             loaded_parent = s.objs[UUID(id)]
         else
-            parent_dict = dict[Symbol(id)]
+            parent_dict = s.refs[Symbol(id)]
             parent_dict[:id] = id
             loaded_parent = load_unknown_type(s, parent_dict)
-            println(id, s.objs[UUID(id)])
         end            
         push!(loaded_parents, loaded_parent)
     end
@@ -222,23 +254,22 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyRingElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
-    coeff_ring = coefficient_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    parents = Any[parent_ring]
+    base = base_ring(parent_ring)
     
-    return parent_ring(coeffs)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: PolyRingElem},
-                                   dict::Dict,
-                                   parent_ring::FqPolyRing)
-
-    coeff_ring = coefficient_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
-
-    return parent_ring(coeffs)
+    while (!has_elem_basic_encoding(base))
+        if base isa Field && !(base isa FracField)
+            if absolute_degree(base) == 1
+                break
+            end
+            pushfirst!(parents, base)
+            base = parent(defining_polynomial(base))
+            continue
+        end
+        pushfirst!(parents, base)
+        base = base_ring(base)
+    end
+    return load_terms(s, parents, dict[:terms])
 end
 
 ################################################################################

@@ -274,7 +274,7 @@ end
                 R, (z, w) = polynomial_ring(case[1], ["z", "w"])
                 p = z^2 + case[2] * z * w + case[3] * w^3
                 test_save_load_roundtrip(path, p) do loaded
-                  @test test_equality(p, loaded)
+                    @test test_equality(p, loaded)
                 end
 
                 @testset "Load with parent" begin

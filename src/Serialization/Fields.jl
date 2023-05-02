@@ -29,9 +29,9 @@ end
 
 function load_internal_with_parent(s::DeserializerState,
                                    z::Type{fpFieldElem},
-                                   dict::Dict,
+                                   str::String,
                                    parent::Nemo.fpField)
-    return parent(UInt64(dict[:data]))
+    return parent(parse(UInt64, str))
 end
 
 
@@ -117,7 +117,7 @@ end
 function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
-    poly_dict = save_type_dispatch(s, polynomial)[:data]
+    poly_dict = save_internal(s, polynomial)
     parents = poly_dict[:parents]
     push!(parents, save_as_ref(s, K))
     return Dict(
@@ -179,7 +179,7 @@ function save_internal(s::SerializerState, k::FqFieldElem)
     end
 
     polynomial = parent(defining_polynomial(K))(lift(ZZ["x"][1], k))
-    encoded_polynomial = save_type_dispatch(s, polynomial)[:data]
+    encoded_polynomial = save_internal(s, polynomial)
     parents = encoded_polynomial[:parents]
     push!(parents, save_as_ref(s, K))
     
@@ -305,10 +305,15 @@ end
 @registerSerializationType(FracElem)
 
 function save_internal(s::SerializerState, f::FracElem)
+    encoded_denominator = save_internal(s, denominator(f))
+    encoded_numerator = save_internal(s, numerator(f))
+    parents = encoded_numerator[:parents]
+    push!(parents, save_as_ref(s, parent(f)))
+
     return Dict(
-        :parent => save_type_dispatch(s, parent(f)),
-        :den => save_type_dispatch(s, denominator(f)),
-        :num => save_type_dispatch(s, numerator(f))
+        :parents => parents,
+        :den_terms => encoded_denominator[:terms],
+        :num_terms => encoded_numerator[:terms]
     )
 end
 
@@ -366,12 +371,15 @@ end
                            "RationalFunctionFieldElem")
 
 function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
-    frac_elem_parent = save_type_dispatch(s, parent(denominator(f)))
+    encoded_denominator = save_internal(s, denominator(f))
+    encoded_numerator = save_internal(s, numerator(f))
+    parents = encoded_numerator[:parents]
+    push!(parents, save_as_ref(s, parent(f)))
+
     return Dict(
-        :parent => save_type_dispatch(s, parent(f)),
-        :frac_elem_parent => frac_elem_parent,
-        :den => save_type_dispatch(s, denominator(f)),
-        :num => save_type_dispatch(s, numerator(f))
+        :parents => parents,
+        :den_terms => encoded_denominator[:terms],
+        :num_terms => encoded_numerator[:terms]
     )
 end
 
@@ -542,7 +550,7 @@ end
 ################################################################################
 # Padic Field
 
-@registerSerializationType(FlintPadicField, true)
+@registerSerializationType(FlintPadicField)
 @registerSerializationType(padic)
 
 function save_internal(s::SerializerState, P::FlintPadicField)
@@ -562,11 +570,7 @@ end
 #elements
 
 function save_internal(s::SerializerState, n::padic)
-    return Dict(
-        :rational_rep => save_type_dispatch(s, lift(QQ, n)),
-        :precision => save_type_dispatch(s, precision(n)),
-        :parent => save_type_dispatch(s, parent(n))
-    )
+    return string(lift(QQ, n))
 end
 
 function load_internal(s::DeserializerState, ::Type{padic}, dict::Dict)
@@ -578,10 +582,8 @@ end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{padic},
-                                   dict::Dict,
+                                   str::String,
                                    parent::FlintPadicField)
-    rational_rep = load_type_dispatch(s, QQFieldElem, dict[:rational_rep])
-    elem_precision = load_type_dispatch(s, Int64, dict[:precision])
-    
+    rational_rep = load_type_dispatch(s, QQFieldElem, str)
     return parent(rational_rep)
 end
