@@ -62,6 +62,7 @@ GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
 GAP.@wrap Indeterminate(x::GapObj)::GapObj
+GAP.@wrap Indeterminate(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap IndeterminateNumberOfUnivariateRationalFunction(x::GapObj)::Int
 GAP.@wrap IndeterminatesOfPolynomialRing(x::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt

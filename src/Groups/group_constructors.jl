@@ -247,8 +247,7 @@ julia> order(g)
 ```
 """
 function projective_general_linear_group(n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    return PermGroup(GAP.Globals.PGL(n, q))
 end
 
@@ -271,8 +270,7 @@ julia> order(g)
 ```
 """
 function projective_special_linear_group(n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    return PermGroup(GAP.Globals.PSL(n, q))
 end
 
@@ -295,8 +293,7 @@ julia> order(g)
 ```
 """
 function projective_symplectic_group(n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    @req iseven(n) "The dimension must be even"
    return PermGroup(GAP.Globals.PSp(n, q))
 end
@@ -320,8 +317,7 @@ julia> order(g)
 ```
 """
 function projective_unitary_group(n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    return PermGroup(GAP.Globals.PGU(n, q))
 end
 
@@ -344,8 +340,7 @@ julia> order(g)
 ```
 """
 function projective_special_unitary_group(n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    return PermGroup(GAP.Globals.PSU(n, q))
 end
 
@@ -365,12 +360,11 @@ julia> g = projective_orthogonal_group(1, 4, 3);  order(g)
 576
 
 julia> g = projective_orthogonal_group(3, 3);  order(g)
-48
+24
 ```
 """
 function projective_orthogonal_group(e::Int, n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    if e == 1 || e == -1
       @req iseven(n) "The dimension must be even"
    elseif e == 0
@@ -403,8 +397,7 @@ julia> g = projective_special_orthogonal_group(3, 3);  order(g)
 ```
 """
 function projective_special_orthogonal_group(e::Int, n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    if e == 1 || e == -1
       @req iseven(n) "The dimension must be even"
    elseif e == 0
@@ -437,8 +430,7 @@ julia> g = projective_omega_group(3, 3);  order(g)
 ```
 """
 function projective_omega_group(e::Int, n::Int, q::Int)
-   (a, b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
    if e == 1 || e == -1
       @req iseven(n) "The dimension must be even"
    elseif e == 0

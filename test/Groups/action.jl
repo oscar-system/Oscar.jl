@@ -117,4 +117,5 @@ end
   @test length(orb) == 31
   epi = action_homomorphism(orb)
   @test (order(F) - 1) * order(image(epi)[1]) == order(G)
+  @test_throws AssertionError on_lines(zero(V), one(G))
 end

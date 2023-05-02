@@ -402,7 +402,7 @@ such that the first nonzero entry is the `one` of the `base_ring` of `line`.
 ```jldoctest
 julia> n = 2;  F = GF(5);  g = general_linear_group(n, F);
 
-julia> v = gen(free_module(F, n), 1);
+julia> v = gen(free_module(F, n), 1)
 (1, 0)
 
 julia> m = gen(g,2)
@@ -420,6 +420,7 @@ on_lines(line::GapObj, x::GAPGroupElem) = GAPWrap.OnLines(line, x.X)
 
 function on_lines(line::AbstractAlgebra.Generic.FreeModuleElem, x::GAPGroupElem)
     res = line * x
+    @assert ! iszero(res) "vector must be nonzero"
     i = 1
     while iszero(res[i])
       i = i+1
