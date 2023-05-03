@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     LatWithIsom
 
 A container type for pairs `(L, f)` consisting on an integer lattice `L` of

@@ -5,21 +5,21 @@
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     lattice(Lf::LatWithIsom) -> ZLat
 
 Given a lattice with isometry $(L, f)$, return the underlying lattice `L`.
 """
 lattice(Lf::LatWithIsom) = Lf.Lb
 
-@doc Markdown.doc"""
+@doc raw"""
     isometry(Lf::LatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the underlying isometry `f`.
 """
 isometry(Lf::LatWithIsom) = Lf.f
 
-@doc Markdown.doc"""
+@doc raw"""
    ambient_isometry(Lf::LatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return an isometry of underlying isometry
@@ -27,7 +27,7 @@ of the ambient space of `L` inducing `f` on `L`
 """
 ambient_isometry(Lf::LatWithIsom) = Lf.f_ambient
 
-@doc Markdown.doc"""
+@doc raw"""
     order_of_isometry(Lf::LatWithIsom) -> Integer
 
 Given a lattice with isometry $(L, f)$, return the order of the underlying
@@ -41,7 +41,7 @@ order_of_isometry(Lf::LatWithIsom) = Lf.n
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rank(Lf::LatWithIsom) -> Integer
 
 Given a lattice with isometry $(L, f)$, return the rank of the underlying lattice
@@ -49,7 +49,7 @@ Given a lattice with isometry $(L, f)$, return the rank of the underlying lattic
 """
 rank(Lf::LatWithIsom) = rank(lattice(Lf))::Integer
 
-@doc Markdown.doc"""
+@doc raw"""
     charpoly(Lf::LatWithIsom) -> QQPolyRingElem
 
 Given a lattice with isometry $(L, f)$, return the characteristic polynomial of the
@@ -57,7 +57,7 @@ underlying isometry `f`.
 """
 charpoly(Lf::LatWithIsom) = charpoly(isometry(Lf))::QQPolyRingElem
 
-@doc Markdown.doc"""
+@doc raw"""
     minpoly(Lf::LatWithIsom) -> QQPolyRingElem
 
 Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
@@ -65,7 +65,7 @@ underlying isometry `f`.
 """
 minpoly(Lf::LatWithIsom) = minpoly(isometry(Lf))::QQPolyRingElem
 
-@doc Markdown.doc"""
+@doc raw"""
     genus(Lf::LatWithIsom) -> ZGenus
 
 Given a lattice with isometry $(L, f)$, return the genus of the underlying 
@@ -73,7 +73,7 @@ lattice `L` (see [`genus(::ZLat)`](@ref)).
 """
 genus(Lf::LatWithIsom) = genus(lattice(Lf))::ZGenus
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_space(Lf::LatWithIsom) -> QuadSpace
 
 Given a lattice with isometry $(L, f)$, return the ambient space of the underlying
@@ -81,7 +81,7 @@ lattice `L` (see [`ambient_space(::ZLat)`](@ref)).
 """
 ambient_space(Lf::LatWithIsom) = ambient_space(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
 
-@doc Markdown.doc"""
+@doc raw"""
     basis_matrix(Lf::LatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the basis matrix of the underlying
@@ -89,7 +89,7 @@ lattice `L` (see [`basis_matrix(::ZLat)`](@ref)).
 """
 basis_matrix(Lf::LatWithIsom) = basis_matrix(lattice(Lf))::QQMatrix
 
-@doc Markdown.doc"""
+@doc raw"""
     gram_matrix(Lf::LatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$ with basis matric `B` (see [`basis_matrix(Lf::LatWithIsom)`](@ref))
@@ -98,7 +98,7 @@ of lattice `L` associted to `B` with respect to $\Phi$.
 """
 gram_matrix(Lf::LatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_span(Lf::LatWithIsom) -> QuadSpace
 
 Given a lattice with isometry $(L, f)$, return the rational span $L \otimes \mathbb{Q}$
@@ -106,7 +106,7 @@ of the underlying lattice `L`.
 """
 rational_span(Lf::LatWithIsom) = rational_span(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
 
-@doc Markdown.doc"""
+@doc raw"""
     det(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the determinant of the
@@ -114,7 +114,7 @@ underlying lattice `L` (see [`det(::ZLat)`](@ref)).
 """
 det(Lf::LatWithIsom) = det(lattice(Lf))::QQFieldElem
 
-@doc Markdown.doc"""
+@doc raw"""
     scale(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the scale of the underlying
@@ -122,7 +122,7 @@ lattice `L` (see [`scale(::ZLat)`](@ref)).
 """
 scale(Lf::LatWithIsom) = scale(lattice(Lf))::QQFieldElem
 
-@doc Markdown.doc"""
+@doc raw"""
     norm(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the norm of the underlying
@@ -130,7 +130,42 @@ lattice `L` (see [`norm(::ZLat)`](@ref)).
 """
 norm(Lf::LatWithIsom) = norm(lattice(Lf))::QQFieldElem
 
-@doc Markdown.doc"""
+@doc raw"""
+    is_positive_definite(Lf::LatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return whether the underlying
+lattice `L` is positive definite (see [`is_positive_definite(::ZLat)`](@ref)).
+"""
+is_positive_definite(Lf::LatWithIsom) = is_positive_definite(lattice(Lf))::Bool
+
+@doc raw"""
+    is_negative_definite(Lf::LatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return whether the underlying
+lattice `L` is negative definite (see [`is_positive_definite(::ZLat)`](@ref)).
+"""
+is_negative_definite(Lf::LatWithIsom) = is_negative_definite(lattice(Lf))::Bool
+
+@doc raw"""
+    is_definite(Lf::LatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return whether the underlying
+lattice `L` is definite (see [`is_definite(::ZLat)`](@ref)).
+"""
+is_definite(Lf::LatWithIsom) = is_definite(lattice(Lf))::Bool
+
+@doc raw"""
+    minimum(Lf::LatWithIsom) -> QQFieldElem
+
+Given a positive definite lattice with isometry $(L, f)$, return the minimum
+of the underlying lattice `L` (see [`minimum(::ZLat)`](@ref)).
+"""
+function minimum(Lf::LatWithIsom)
+  @req is_positive_definite(Lf) "Underlying lattice must be positive definite"
+  return minimum(lattice(Lf))
+end
+
+@doc raw"""
     is_integral(Lf::LatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
@@ -138,7 +173,7 @@ is integral, i.e. whether its scale is an integer (see [`scale(::LatWithIsom)`](
 """
 is_integral(Lf::LatWithIsom) = is_integral(lattice(Lf))::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(Lf::LatWithIsom) -> Int
 
 Given a lattice with isometry $(L, f)$ inside the quadratic space $(V, \Phi)$,
@@ -146,7 +181,7 @@ return the dimension of `V` as a $\mathbb Q$ vector space.
 """
 degree(Lf::LatWithIsom) = degree(lattice(Lf))::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     is_even(Lf::LatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
@@ -156,7 +191,7 @@ Note that to be even, `L` must be integral (see [`is_integral(::ZLat)`](@ref)).
 """
 is_even(Lf::LatWithIsom) = iseven(lattice(Lf))::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant(Lf::LatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
@@ -164,7 +199,7 @@ lattice `L` (see [`discriminant(::ZLat)`](@ref)).
 """
 discriminant(Lf::LatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
 
-@doc Markdown.doc"""
+@doc raw"""
     signature_tuple(Lf::LatWithIsom) -> Tuple{Int, Int, Int}
 
 Given a lattice with isometry $(L, f)$, return the signature tuple of the
@@ -178,7 +213,7 @@ signature_tuple(Lf::LatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int,
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
                                                 ambient_representation = true)
 				                                                             -> LatWithIsom
@@ -227,7 +262,7 @@ function lattice_with_isometry(L::ZLat, f::QQMatrix; check::Bool = true,
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     lattice_with_isometry(L::ZLat) -> LatWithIsom
 
 Given a $\mathbb Z$-lattice `L` return the lattice with isometry pair $(L, f)$,
@@ -241,11 +276,11 @@ end
 
 ###############################################################################
 #
-#  Operations on lattice with isometry
+#  Operations on lattices with isometry
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rescale(Lf::LatWithIsom, a::RationalUnion) -> LatWithIsom
 
 Given a lattice with isometry $(L, f)$ and a rational number `a`, return the lattice
@@ -255,7 +290,7 @@ function rescale(Lf::LatWithIsom, a::Hecke.RationalUnion)
   return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dual(Lf::LatWithIsom) -> LatWithIsom
 
 Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that `f` is
@@ -268,7 +303,7 @@ function dual(Lf::LatWithIsom)
   return lattice_with_isometry(dual(lattice(Lf)), ambient_isometry(Lf), check = false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     lll(Lf::LatWithIsom) -> LatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the same lattice with isometry with a different
@@ -284,13 +319,89 @@ function lll(Lf::LatWithIsom)
   return lattice_with_isometry(L2, f, ambient_representation = true)
 end
 
+@doc raw"""
+    direct_sum(x::Vector{LatWithIsom}) -> LatWithIsom, Vector{AbstractSpaceMor}
+    direct_sum(x::Vararg{LatWithIsom}) -> LatWithIsom, Vector{AbstractSpaceMor}
+
+Given a collection of lattices with isometries $(L_1, f_1) \ldots, (L_n, f_n)$,
+return the lattice with isometry $(L, f)$ together with the injections $L_i \to L$,
+where `L` is the direct sum $L := L_1 \oplus \ldots \oplus L_n$ and `f` is the
+isometry of `L` induced by the diagonal actions of the $f_i$'s.
+
+For objects of type `LatWithIsom`, finite direct sums and finite direct products
+agree and they are therefore called biproducts.
+If one wants to obtain $(L, f)$ as a direct product with the projections $L \to L_i$,
+one should call `direct_product(x)`.
+If one wants to obtain $(L, f)$ as a biproduct with the injections $L_i \to L$ and
+the projections $L \to L_i$, one should call `biproduct(x)`.
+"""
+function direct_sum(x::Vector{LatWithIsom})
+  @req length(x) >= 2 "Input must consist of at least 2 lattices with isometries"
+  W, inj = direct_sum(lattice.(x))
+  f = block_diagonal_matrix(ambient_isometry.(x))
+  return lattice_with_isometry(W, f, check=false), inj
+end
+
+direct_sum(x::Vararg{LatWithIsom}) = direct_sum(collect(x))
+
+@doc raw"""
+    direct_product(x::Vector{LatWithIsom}) -> LatWithIsom, Vector{AbstractSpaceMor}
+    direct_product(x::Vararg{LatWithIsom}) -> LatWithIsom, Vector{AbstractSpaceMor}
+
+Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
+return the lattice with isometry $(L, f)$ together with the projections $L \to L_i$,
+where `L` is the direct product $L := L_1 \times \ldots \times L_n$ and `f` is the
+isometry of `L` induced by the diagonal actions of the $f_i$'s.
+
+For objects of type `LatWithIsom`, finite direct sums and finite direct products
+agree and they are therefore called biproducts.
+If one wants to obtain $(L, f)$ as a direct sum with the injections $L_i \to L$,
+one should call `direct_sum(x)`.
+If one wants to obtain $(L, f)$ as a biproduct with the injections $L_i \to L$ and
+the projections $L \to L_i$, one should call `biproduct(x)`.
+"""
+function direct_product(x::Vector{LatWithIsom})
+  @req length(x) >= 2 "Input must consist of at least 2 lattices with isometries"
+  W, proj = direct_product(lattice.(x))
+  f = block_diagonal_matrix(ambient_isometry.(x))
+  return lattice_with_isometry(W, f, check=false), proj
+end
+
+direct_product(x::Vararg{LatWithIsom}) = direct_product(collect(x))
+
+@doc raw"""
+    biproduct(x::Vector{LatWithIsom}) -> LatWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
+    biproduct(x::Vararg{LatWithIsom}) -> LatWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
+
+Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
+return the lattice with isometry $(L, f)$ together with the injections
+$L_i \to L$ and the projections $L \to L_i$, where `L` is the biproduct
+$L := L_1 \oplus \ldots \oplus L_n$ and `f` is the isometry of `L` induced by the
+diagonal actions of the $f_i$'s.
+
+For objects of type `LatWithIsom`, finite direct sums and finite direct products
+agree and they are therefore called biproducts.
+If one wants to obtain $(L, f)$ as a direct sum with the injections $L_i \to L$,
+one should call `direct_sum(x)`.
+If one wants to obtain $(L, f)$ as a direct product with the projections $L \to L_i$,
+one should call `direct_product(x)`.
+"""
+function biproduct(x::Vector{LatWithIsom})
+  @req length(x) >= 2 "Input must consist of at least 2 lattices with isometries"
+  W, inj, proj = biproduct(lattice.(x))
+  f = block_diagonal_matrix(ambient_isometry.(x))
+  return lattice_with_isometry(W, f, check=false), inj, proj
+end
+
+biproduct(x::Vararg{LatWithIsom}) = biproduct(collect(x))
+
 ###############################################################################
 #
 #  Hermitian structure
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_of_hermitian_type(Lf::LatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
@@ -309,7 +420,7 @@ function is_of_hermitian_type(Lf::LatWithIsom)
   return is_cyclotomic_polynomial(minpoly(isometry(Lf)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hermitian_structure(Lf::LatWithIsom) -> HermLat
 
 Given a lattice with isometry $(L, f)$ such that the minimal polynomial of the
@@ -335,7 +446,7 @@ end
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     discriminant_group(Lf::LatWithIsom) -> TorQuadMod, AutomorphismGroupElem
 
 Given an integral lattice with isometry $(L, f)$, return the discriminant group `q`
@@ -351,7 +462,7 @@ function discriminant_group(Lf::LatWithIsom)
   return (q, Oq(gens(matrix_group(f))[1], check = false))::Tuple{TorQuadModule, AutomorphismGroupElem{TorQuadModule}}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     image_centralizer_in_Oq(Lf::LatWithIsom) -> AutomorphismGroup{TorQuadModule}
 
 Given an integral lattice with isometry $(L, f)$, return the image $G_L$ in
@@ -414,7 +525,7 @@ function _real_kernel_signatures(L::ZLat, M)
   return (k1, k2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     signatures(Lf::LatWithIsom) -> Dict{Int, Tuple{Int, Int}}
 
 Given a lattice with isometry $(L, f)$ where the minimal polynomial of `f`
@@ -455,7 +566,7 @@ function _divides(k::IntExt, n::Int)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel_lattice(Lf::LatWithIsom, p::Union{fmpz_poly, QQPolyRingElem})
                                                          -> LatWithIsom
 
@@ -484,7 +595,7 @@ end
 
 kernel_lattice(Lf::LatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel_lattice(Lf::LatWithIsom, l::Integer) -> LatWithIsom
 
 Given a lattice with isometry $(L, f)$ and an integer `l`, return the kernel
@@ -496,7 +607,7 @@ function kernel_lattice(Lf::LatWithIsom, l::Integer)
   return kernel_lattice(Lf, p)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     invariant_lattice(Lf::LatWithIsom) -> LatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the invariant lattice $L^f$ of
@@ -505,7 +616,7 @@ in this case)
 """
 invariant_lattice(Lf::LatWithIsom) = kernel_lattice(Lf, 1)
 
-@doc Markdown.doc"""
+@doc raw"""
     coinvariant_lattice(Lf::LatWithIsom) -> LatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the coinvariant lattice $L_f$ of
@@ -530,7 +641,7 @@ end
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     type(Lf::LatWithIsom)
                       -> Dict{Int, Tuple{ <: Union{ZGenus, HermGenus}, ZGenus}}
 
@@ -563,7 +674,7 @@ $\mathbb{Z}$-lattice $\Ker(f^k-1)$.
   return t
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_of_type(Lf::LatWithIsom, t::Dict) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether $(L, f)$ is of type `t`.
@@ -585,7 +696,7 @@ function is_of_type(L::LatWithIsom, t::Dict)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_of_same_type(Lf::LatWithIsom, Mg::LatWithIsom) -> Bool
 
 Given two lattices with isometry $(L, f)$ and $(M, g)$, return whether they are
@@ -598,7 +709,7 @@ function is_of_same_type(L::LatWithIsom, M::LatWithIsom)
   return is_of_type(L, type(M))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_hermitian(t::Dict) -> Bool
 
 Given a type `t` of lattices with isometry, return whether `t` is hermitian, i.e.

@@ -15,8 +15,7 @@
 # The tuples in output are pairs of positive integers!
 function _tuples_divisors(d::T) where T <: Hecke.IntegerUnion
   div = divisors(d)
-  if d >= 0
-    return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
+  return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
 end
 
 # This is line 8 of Algorithm 1, they correspond to the possible
@@ -71,7 +70,7 @@ function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p
   return L
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer) -> Bool
 
 Given a triple of $\mathbb Z$-genera `(A,B,C)` and a prime number `p`, such
@@ -209,7 +208,7 @@ function is_admissible_triple(A::T, B::T, C::T, p::Integer) where T <: Union{ZLa
   return is_admissible_triple(L[1], L[2], L[3], p)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     admissible_triples(C::ZGenus, p::Integer) -> Vector{Tuple{ZGenus, ZGenus}}
 
 Given a $\mathbb Z$-genus `C` and a prime number `p`, return all tuples of
@@ -350,7 +349,7 @@ function _possible_signatures(s1, s2, E, rk)
   return signs
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
                                             -> Vector{LatWithIsom}
 
@@ -376,11 +375,11 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   reps = LatWithIsom[]
 
   if n*m < 3
-    @vprint :LatWithIsom 1 "Order smaller than 3"
+    @vprint :LatWithIsom 1 "Order smaller than 3\n"
     f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
     G = genus(Lf)
     repre = representatives(G)
-    @vprint :LatWithIsom 1 "$(length(repre)) representative(s)"
+    @vprint :LatWithIsom 1 "$(length(repre)) representative(s)\n"
     for LL in repre
       is_of_same_type(Lf, lattice_with_isometry(LL, f^m, check=false)) && push!(reps, lattice_with_isometry(LL, f, check=false))
     end
@@ -389,7 +388,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
 
   !iseven(s2) && return reps
 
-  @vprint :LatWithIsom 1 "Order bigger than 3"
+  @vprint :LatWithIsom 1 "Order bigger than 3\n"
 
   ok, rk = Hecke.divides(rk, euler_phi(n*m))
 
@@ -400,25 +399,25 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
 
-  @vprint :LatWithIsom 1 "We have the different"
+  @vprint :LatWithIsom 1 "We have the different\n"
 
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
   println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
-  @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))"
+  @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))\n"
 
   signatures = _possible_signatures(s1, s2, E, rk)
 
-  @vprint :LatWithIsom 1 "All possible signatures: $(length(signatures))"
+  @vprint :LatWithIsom 1 "All possible signatures: $(length(signatures))\n"
   for dd in detE, sign in signatures
     append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(dd)*DE))
   end
   gene = unique(gene)
 
-  @vprint :LatWithIsom 1 "All possible genera: $(length(gene))"
+  @vprint :LatWithIsom 1 "All possible genera: $(length(gene))\n"
   for g in gene
-    @vprint :LatWithIsom 1 "g = $g"
+    @vprint :LatWithIsom 1 "g = $g\n"
     H = representative(g)
     if !is_integral(DE*scale(H))
       continue
@@ -426,7 +425,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
     if is_even(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
       continue
     end
-    @vprint :LatWithIsom 1 "$H"
+    @vprint :LatWithIsom 1 "$H\n"
     M, fM = Hecke.trace_lattice_with_isometry(H)
     det(M) == d || continue
     M = lattice_with_isometry(M, fM)
@@ -447,7 +446,7 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   return reps
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     representatives_of_hermitian_type(t::Dict, m::Int = 1; check::Bool = true)
                                                              -> Vector{LatWithIsom}
 
@@ -496,11 +495,11 @@ function _representative(t::Dict; check::Bool = true)
   println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
-  @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))"
+  @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))\n"
 
   signatures = _possible_signatures(s1, s2, E)
 
-  @vprint :LatWithIsom 1 "All possible signatures: $(length(signatures))"
+  @vprint :LatWithIsom 1 "All possible signatures: $(length(signatures))\n"
 
   for dd in detE, sign in signatures
     append!(gene, genera_hermitian(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(DE*dd)))
@@ -531,7 +530,7 @@ function _representative(t::Dict; check::Bool = true)
   return nothing
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int) -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ of hermitian type with `f` of order $q^d$
@@ -555,9 +554,9 @@ function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -
   @req p != q "Prime numbers must be distinct"
 
   reps = LatWithIsom[]
-  @vprint :LatWithIsom 1 "Compute admissible triples"
+  @vprint :LatWithIsom 1 "Compute admissible triples\n"
   atp = admissible_triples(Lf, p, pA = pA, pB = pB)
-  @vprint :LatWithIsom 1 "$(length(atp)) admissible triple(s)"
+  @vprint :LatWithIsom 1 "$(length(atp)) admissible triple(s)\n"
   for (A, B) in atp
     LB = lattice_with_isometry(representative(B))
     RB = representatives_of_hermitian_type(LB, p*q^d)
@@ -577,7 +576,7 @@ function splitting_of_hermitian_prime_power(Lf::LatWithIsom, p::Int; pA::Int = -
   return reps
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     splitting_of_hermitian_prime_power(t::Dict, p::Int) -> Vector{LatWithIsom}
 
 Given a hermitian type `t` of lattice with isometry $(L, f)$ with `f` of order
@@ -596,7 +595,7 @@ function splitting_of_hermitian_prime_power(t::Dict, p::Int)
   return splitting_of_hermitian_prime_power(Lf, p)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0) -> Vector{LatWithIsom}
 
 Given a lattice with isometry $(L, f)$ with `f` of order $q^e$ for some prime number
@@ -648,7 +647,7 @@ function splitting_of_prime_power(Lf::LatWithIsom, p::Int, b::Int = 0)
   return reps
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
                                                  -> Vector{LatWithIsom}
 
@@ -709,7 +708,7 @@ function splitting_of_partial_mixed_prime_power(Lf::LatWithIsom, p::Int)
   return reps
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     splitting_of_mixed_prime_power(Lf::LatWithIsom, p::Int)
                                           -> Vector{LatWithIsom}
 

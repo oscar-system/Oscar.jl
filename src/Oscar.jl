@@ -256,6 +256,9 @@ function __init__()
     add_verbose_scope(:GlobalWeierstrassModel)
 
     add_verbosity_scope(:LinearQuotients)
+
+    add_assertion_scope(:LatWithIsom)
+    add_verbosity_scope(:LatWithIsom)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))

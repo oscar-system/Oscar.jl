@@ -83,11 +83,11 @@ function _get_V(fq, mu, p)
   q = domain(fq)
   V, Vinq = primary_part(q, p)
   pV, pVinq = sub(q, Vinq.([divexact(order(g), p)*g for g in gens(V) if !(order(g)==1)]))
-  fpV = restrict_automorphism(fq, pVinq)
+  fpV = restrict_endomorphism(fq, pVinq)
   fpV_mu = evaluate(mu, fpV)
   K, KtopV = kernel(fpV_mu)
   Ktoq = compose(KtopV, pVinq)
-  fK = restrict_automorphism(fq, Ktoq)
+  fK = restrict_endomorphism(fq, Ktoq)
   return K, Ktoq, fK
 end
 
@@ -154,9 +154,9 @@ function _cokernel_as_Fp_vector_space(HinV, p, f)
 
   VtoVS = inv(VStoV)
 
-  n = ngens(Vs)
+  n = ngens(VS)
   F = GF(p)
-  MVS = matrix(compose(VstoV, compose(f, VtoVS)))
+  MVS = matrix(compose(VStoV, compose(f, VtoVS)))
   Vp = VectorSpace(F, n)
 
   function _VstoVp(x::TorQuadModuleElem)
@@ -169,12 +169,12 @@ function _cokernel_as_Fp_vector_space(HinV, p, f)
     return VS(vec(collect(x)))
   end
 
-  VStoVp = Hecke.MapFromFunc(_VstoVp, _VptoVs, Vs, Vp)
-  VtoVp = compose(VtoVs, VStoVp)
+  VStoVp = Hecke.MapFromFunc(_VstoVp, _VptoVs, VS, Vp)
+  VtoVp = compose(VtoVS, VStoVp)
   subgene = elem_type(Vp)[VtoVp(HStoV(a)) for a in gens(HS)]
   Hp, _ = sub(Vp, subgene)
   Qp, VptoQp = quo(Vp, Hp)
-  fVp = change_base_ring(F, MVs)
+  fVp = change_base_ring(F, MVS)
   ok, fQp = can_solve_with_solution(VptoQp.matrix, fVp*VptoQp.matrix)
   @assert ok
 
@@ -209,7 +209,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   p = elementary_divisors(V)[1]
   pq, pqtoq = primary_part(q, p)
   g = valuation(ord, p)
-  @hassert :LatWithIsom 1 all(a -> haspreimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq))
+  @hassert :LatWithIsom 1 all(a -> has_preimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq))
   H0, H0inV = sub(V, [preimage(Vinq, (p^l)*pqtoq(a)) for a in gens(pq)])
   Qp, VtoVp, VptoQp, fQp = _cokernel_as_Fp_vector_space(H0inV, p, f)
   Vp = codomain(VtoVp)
@@ -345,7 +345,7 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
     stabNphi = AutomorphismGroupElem{TorQuadModule}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
     stabNphi, _ = sub(OHM, stabNphi)
     reps = double_cosets(OHM, stabNphi, imM)
-    @vprint :LatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
+    @vprint :LatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions\n"
 
     for g in reps
       g = representative(g)
@@ -363,7 +363,7 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
       M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
       @hassert :LatWithIsom 1 genus(M) == genus(M2)
       push!(results, (L, M2, N2))
-      @vprint :LatWithIsom 1 "Gluing done"
+      @vprint :LatWithIsom 1 "Gluing done\n"
       GC.gc()
     end
   end
@@ -412,7 +412,7 @@ function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::
     stabNphi = AutomorphismGroupElem{TorQuadModule}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
     stabNphi, _ = sub(OHM, stabNphi)
     reps = double_cosets(OHM, stabNphi, imM)
-    @vprint :LatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
+    @vprint :LatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions\n"
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
@@ -429,7 +429,7 @@ function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::
       M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
       @hassert :LatWithIsom 1 genus(M) == genus(M2)
       push!(results, (L, M2, N2))
-      @vprint :LatWithIsom 1 "Gluing done"
+      @vprint :LatWithIsom 1 "Gluing done\n"
       GC.gc()
     end
   end
@@ -437,7 +437,7 @@ function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat)
                                      -> Vector{Tuple{ZLat, ZLat, ZLat}}
 
@@ -477,20 +477,20 @@ function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::Automorph
     VM, VMinqM = primary_part(qM, p)
   end
   for k  in divisors(gcd(order(VM), order(qL)))
-    @vprint :LatWithIsom 1 "Glue order: $(k)"
+    @vprint :LatWithIsom 1 "Glue order: $(k)\n"
     if el
       subsL = subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(GL), GL, k)
     else
       subsL = subgroups_orbit_representatives_and_stabilizers(GL, order = k)
     end
-    @vprint :LatWithIsom 1 "$(length(subsL)) subgroup(s)"
+    @vprint :LatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
     for H in subsL
       HL = domain(H[1])
       it = subgroups(abelian_group(VM), order = order(HL))
       subsM = [sub(qM, VMinqM.(VM.(j[2].(gens(j[1])))))[2] for j in it]
       filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
       isempty(subsM)  && continue
-      @vprint :LatWithIsom 1 "Possible gluings"
+      @vprint :LatWithIsom 1 "Possible gluings\n"
       HM = subsM[1]
       ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
       @hassert :LatWithIsom 1 ok
@@ -690,7 +690,7 @@ end
 #  return results
 #end
 
-@doc Markdown.doc"""
+@doc raw"""
     admissible_equivariant_primitive_extensions(Afa::LatWithIsom,
                                                 Bfb::LatWithIsom,
                                                 Cfc::LatWithIsom,
@@ -726,13 +726,14 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
   # requirement for the algorithm of BH22
   @req is_prime(p) "p must be a prime number" 
 
+  amb = ambient_space(A) === ambient_space(B) === ambient_space(C)
   if check 
     @req all(L -> is_integral(L), [A, B, C]) "Underlying lattices must be integral"
     chiA = minpoly(A)
     chiB = minpoly(parent(chiA), isometry(B))
     @req gcd(chiA, chiB) == 1 "Minimal irreducible polynomials must be relatively coprime"
     @req is_admissible_triple(A, B, C, p) "Entries, in this order, do not define an admissible triple"
-    if ambient_space(A) === ambient_space(B) === ambient_space(C)
+    if amb
       G = gram_matrix(ambient_space(C))
       @req iszero(basis_matrix(A)*G*transpose(basis_matrix(B))) "Lattice in same ambient space must be orthogonal"
     end 
@@ -751,7 +752,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
   @hassert :LatWithIsom 1 fqB in GB
 
   # this is where we will perform the glueing
-  if ambient_space(A) === ambient_space(B)
+  if amb
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _sum_with_embeddings_orthogonal_groups(qA, qB)
   else
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _direct_sum_with_embeddings_orthogonal_groups(qA, qB)
@@ -767,7 +768,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
     geneB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(OqB(b.X)) for b in gens(GB)]
     gene = vcat(geneA, geneB)
     GC2, _ = sub(OD, gene)
-    if ambient_space(A) === ambient_space(B) === ambient_space(C)
+    if amb
       C2 = lattice(A)+lattice(B)
       fC2 = block_diagonal_matrix([isometry(A), isometry(B)])
       _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
@@ -842,7 +843,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
 
     actB = hom(stabB, OSB, [OSB(restrict_automorphism(x, SBinqB)) for x in gens(stabB)])
     imB, _ = image(actB)
-    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(Hecke.kernel(ctB)[1])]
+    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(Hecke.kernel(actB)[1])]
     push!(kerB, OqBinOD(one(OqB)))
     fSB = OSB(restrict_automorphism(fqB, SBinqB))
 
@@ -887,7 +888,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
       g = representative(g)
       phig = compose(phi, hom(g))
 
-      if ambient_space(A) === ambient_space(B)
+      if amb
         _glue = Vector{QQFieldElem}[lift(g) + lift(phig(g)) for g in gens(domain(phig))]
         z = zero_matrix(QQ, 0, degree(A))
         glue = reduce(vcat, [matrix(QQ, 1, degree(A), g) for g in _glue], init=z)
