@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["free_modules.md"]
-```
-
 # Free Modules
 
 In this section, the expression *free module*  refers to a free module of finite rank
@@ -41,7 +33,7 @@ they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod
 ## Constructors
 
 ```@docs
-free_module(R::MPolyRing, n::Int, name::String = "e"; cached::Bool = false)
+free_module(R::MPolyRing, n::Int, name::VarName = :e; cached::Bool = false)
 ```
 
 ## Data Associated to Free Modules

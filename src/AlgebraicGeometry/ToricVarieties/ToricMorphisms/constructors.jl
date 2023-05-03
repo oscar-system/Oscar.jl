@@ -16,7 +16,7 @@ end
 ####################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
@@ -45,7 +45,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vect
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
@@ -74,7 +74,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matr
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
@@ -105,7 +105,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMa
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism from the `domain` to the `codomain` with map given by the `grid_morphism`.
@@ -140,9 +140,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
     @req (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) "The mapping matrix must not be empty"
 
     # check for a well-defined map
-    if nrows(matrix(grid_morphism)) !== rank(character_lattice(domain))
-      throw(ArgumentError("The number of rows of the mapping matrix must match the rank of the character lattice of the domain toric variety"))
-    end
+    @req nrows(matrix(grid_morphism)) == rank(character_lattice(domain)) "The number of rows of the mapping matrix must match the rank of the character lattice of the domain toric variety"
 
     # compute the image
     image_rays = matrix(ZZ, rays(domain)) * matrix(grid_morphism)
@@ -153,9 +151,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
     if codomain === nothing
       return ToricMorphism(domain, grid_morphism, image, image)
     else
-      if ncols(matrix(grid_morphism)) !== rank(character_lattice(codomain))
-        throw(ArgumentError("The number of columns of the mapping matrix must match the rank of the character lattice of the codomain toric variety"))
-      end
+      @req ncols(matrix(grid_morphism)) == rank(character_lattice(codomain)) "The number of columns of the mapping matrix must match the rank of the character lattice of the codomain toric variety"
       codomain_cones = maximal_cones(codomain)
       image_cones = [positive_hull(matrix(ZZ, rays(c)) * matrix(grid_morphism)) for c in maximal_cones(domain)]
       for c in image_cones
@@ -170,7 +166,7 @@ end
 # 3: Special constructors
 ####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_identity_morphism(variety::AbstractNormalToricVariety)
 
 Construct the toric identity morphism from `variety` to `variety`.
@@ -218,9 +214,7 @@ end
 ####################################################
 
 function Base.:*(tm1::ToricMorphism, tm2::ToricMorphism)
-    if codomain(tm1) !== domain(tm2)
-        throw(ArgumentError("The codomain of the first toric morphism must be identically the same as the domain of the second morphism"))
-    end
+    @req codomain(tm1) === domain(tm2) "The codomain of the first toric morphism must be identically the same as the domain of the second morphism"
     return toric_morphism(domain(tm1), grid_morphism(tm1) * grid_morphism(tm2), codomain(tm2))
 end
 

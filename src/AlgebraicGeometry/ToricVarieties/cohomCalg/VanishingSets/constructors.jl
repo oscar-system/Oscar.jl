@@ -7,12 +7,9 @@
     ps::Vector{Polyhedron{QQFieldElem}}
     i::Int
     function ToricVanishingSet(toric_variety::AbstractNormalToricVariety, ps::Vector{Polyhedron{QQFieldElem}}, i::Int)
-        if !all(p -> ambient_dim(p) == rank(picard_group(toric_variety)), ps)
-            throw(ArgumentError("The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety"))
-        end
-        if !(0 <= i <= dim(toric_variety))
-            throw(ArgumentError("The cohomology index must not be negative and not larger than $(dim(toric_variety))"))
-        end
+        r = rank(picard_group(toric_variety))
+        @req all(p -> ambient_dim(p) == r, ps) "The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety"
+        @req 0 <= i <= dim(toric_variety) "The cohomology index must not be negative and not larger than $(dim(toric_variety))"
         return new(toric_variety, ps, i)
     end
 end

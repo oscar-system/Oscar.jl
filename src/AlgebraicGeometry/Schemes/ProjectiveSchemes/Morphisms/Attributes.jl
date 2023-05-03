@@ -2,7 +2,21 @@
 ### getters
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
+@doc raw"""
+     pullback(phi::ProjectiveSchemeMor)
+
+For a morphism `phi` of projective schemes, this returns the associated 
+morphism of graded affine algebras.
+"""
 pullback(phi::ProjectiveSchemeMor) = phi.pullback
+
+@doc raw"""
+    base_ring_morphism(phi::ProjectiveSchemeMor) 
+
+For a morphism `phi : P → Q` of relative projective spaces 
+over `psi : Spec(A) → Spec(B)` this returns the associated 
+map `B → A`.
+"""
 function base_ring_morphism(phi::ProjectiveSchemeMor) 
   if isdefined(phi, :base_ring_morphism)
     return phi.base_ring_morphism
@@ -11,14 +25,34 @@ function base_ring_morphism(phi::ProjectiveSchemeMor)
 end
 
 # in case we have honest base schemes, also make the map of schemes available
-function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocRing}})
+@doc raw"""
+    base_map(phi::ProjectiveSchemeMor)
+
+For a morphism `phi : P → Q` of relative projective spaces 
+over `psi : Spec(A) → Spec(B)` this returns `psi`.
+"""
+function base_map(phi::ProjectiveSchemeMor)
   if !isdefined(phi, :map_on_base_schemes)
     phi.map_on_base_schemes = SpecMor(base_scheme(domain(phi)), base_scheme(codomain(phi)), coefficient_map(pullback(phi)))
   end
   return phi.map_on_base_schemes::SchemeMor
 end
 
+function base_map(phi::ProjectiveSchemeMor{<:Any, <:Any, <:Any, Nothing})
+  error("there exists no associated base map")
+end
+
 # Map on affine cones over the same base scheme.
+@doc raw"""
+    map_on_affine_cones(phi::ProjectiveSchemeMor)
+
+For a morphism `phi : X → Y` this returns the associated morphism 
+of the `affine_cone`s ``C(X) → C(Y)``.
+"""
+function map_on_affine_cones(phi::ProjectiveSchemeMor)
+  error("method not implemented for this type of input")
+end
+
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{
                              <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
@@ -46,10 +80,10 @@ end
 # Map on affine cones with a non-trivial map on base schemes.
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{
-                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
+                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing,
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }},
-                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
+                             <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing,
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }}
                             };
@@ -95,13 +129,13 @@ function map_on_affine_cones(
     pb_phi = pullback(phi)
     C_dom, flat_dom = affine_cone(domain(phi))
     C_cod, flat_cod = affine_cone(codomain(phi))
-    pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(gens(graded_coordinate_ring(codomain(phi))))), check=false)
+    pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(gens(homogeneous_coordinate_ring(codomain(phi))))), check=false)
     phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
   end
   return phi.map_on_affine_cones::AbsSpecMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecOpenRing}, <:ProjectiveScheme{<:SpecOpenRing}})
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:SpecOpenRing}, <:AbsProjectiveScheme{<:SpecOpenRing}})
   if !isdefined(phi, :map_on_affine_cones)
     X = domain(phi)
     CX, map_X = affine_cone(X)

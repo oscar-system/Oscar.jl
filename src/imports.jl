@@ -1,5 +1,4 @@
 # standard packages
-using Markdown
 using Pkg
 using Random
 using RandomExtensions
@@ -161,12 +160,13 @@ import Nemo:
 exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer,
     :genus_symbol, :data, :narrow_class_group, :perm, :SymmetricGroup,
     :coefficients, :leading_coefficient, :coefficients_and_exponents,
-    :exponents, :monomials, :leading_monomial, :terms, :leading_term, :tail, :Partition]
+    :exponents, :exponent_vectors, :monomials, :leading_monomial, :terms,
+    :leading_term, :tail, :Partition]
 
 for i in names(Hecke)
   (i in exclude || !isdefined(Hecke, i)) && continue
-  eval(Meta.parse("import Hecke." * string(i)))
-  eval(Expr(:export, i))
+  @eval import Hecke: $i
+  @eval export $i
 end
 
 import Hecke:

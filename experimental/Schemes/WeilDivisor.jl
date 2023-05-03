@@ -14,7 +14,7 @@ export scheme_type
 export subsystem
 export weil_divisor
 
-@doc Markdown.doc"""
+@doc raw"""
     WeilDivisor
 
 A Weil divisor on an integral separated `AbsCoveredScheme` ``X``; 
@@ -72,7 +72,7 @@ coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
 
-@doc Markdown.doc"""
+@doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
 
 Return the zero `WeilDivisor` over `X` with coefficients 
@@ -88,14 +88,14 @@ function zero(W::WeilDivisor)
 end
 
 # provide non-camelcase methods
-@doc Markdown.doc"""
+@doc raw"""
     weil_divisor(X::AbsCoveredScheme, R::Ring)
 
 See the documentation for `WeilDivisor`.
 """
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
-@doc Markdown.doc"""
+@doc raw"""
     WeilDivisor(I::IdealSheaf, R::Ring)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
@@ -109,7 +109,7 @@ end
 
 weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
 
-@doc Markdown.doc"""
+@doc raw"""
     WeilDivisor(I::IdealSheaf)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
@@ -195,11 +195,10 @@ end
 #  # TODO: Work out the intersection
 #end
 
-@doc Markdown.doc"""
+@doc raw"""
     in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
 
-Returns `true` if the rational function `f` is in the linear system ``|D|``
-and `false` otherwise.
+Check if the rational function `f` is in the linear system ``|D|``.
 """
 function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
   X = scheme(D) 
@@ -220,7 +219,7 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bo
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     LinearSystem
 
 A linear system of a Weil divisor `D` on a variety `X`, 
@@ -248,7 +247,7 @@ end
 linear_system(f::Vector, D::WeilDivisor; check::Bool=true) = LinearSystem(f, D, check=check)
 
 ### essential getters 
-@doc Markdown.doc"""
+@doc raw"""
     weil_divisor(L::LinearSystem)
 
 Return the divisor `D` of the linear system `L = |D|`.
@@ -258,7 +257,7 @@ function weil_divisor(L::LinearSystem)
 end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
-@doc Markdown.doc"""
+@doc raw"""
     variety(L::LinearSystem)
 
 Return the variety on which `L` is defined.
@@ -267,11 +266,11 @@ variety(L::LinearSystem) = scheme(weil_divisor(L))
 # an alias for the user's convenience 
 scheme(L::LinearSystem) = variety(L)
 
-@doc Markdown.doc"""
+@doc raw"""
     subsystem(L::LinearSystem, P::IdealSheaf, n::Int) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
-and an integer `n`, this returns a pair ``(K, A)`` consisting 
+and an integer `n`, return a pair ``(K, A)`` consisting
 of the subsystem of elements in ``|D + P|`` and the representing 
 matrix ``A`` for its inclusion into ``L`` on the given set 
 of generators.

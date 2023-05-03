@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 The commutative algebra part of OSCAR provides functionality for dealing with

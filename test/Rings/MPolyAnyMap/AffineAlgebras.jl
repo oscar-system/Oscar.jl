@@ -52,18 +52,10 @@
   s3 = quo(r, ideal(r, [X^2-Y^2*Z]))[1]
   f3 = hom(r2, s3, [gen(s3, 1), gen(s3, 2)])
 
-  @test isfinite(f1) == true
-  @test isfinite(f2) == true
-  @test isfinite(f3) == false
+  @test is_finite(f1) == true
+  @test is_finite(f2) == true
+  @test is_finite(f3) == false
 
-  s, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"])
-  S = quo(s, ideal(s, [c-b^3]))[1]
-  t = subalgebra_membership(S(c+a^2-b^6), S.([a,b^3]))
-  T = parent(t[2])
-  @test t[1] == true
-  @test t[2] == gen(T, 1)^2-gen(T, 2)^2+gen(T, 2) 
-
-  
   begin
     # #655
     R, vars = QQ["x","y"]

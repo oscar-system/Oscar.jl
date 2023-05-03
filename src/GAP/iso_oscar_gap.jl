@@ -175,7 +175,7 @@ end
 function _iso_oscar_gap(FO::FinField)
    p = GAP.Obj(characteristic(FO))::GAP.Obj
    d = degree(FO)
-   if GAPWrap.IsCheapConwayPolynomial(p, d)
+   if d == 1 || GAPWrap.IsCheapConwayPolynomial(p, d)
      FG = GAPWrap.GF(p, d)
    else
      # Calling `GAPWrap.GF(p, d)` would throw a GAP error.
@@ -268,7 +268,7 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.
    finv = function(x::GAP.Obj)
       GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
       coeffs = GAPWrap.Coefficients(B, x)
-      coeffs === GAP.Globals.fail && throw(ArgumentError("$x is not an element oof $FG"))
+      @req coeffs !== GAP.Globals.fail "$x is not an element oof $FG"
       return QQFieldElem(coeffs[1]) * oO + QQFieldElem(coeffs[2]) * zO
    end
 

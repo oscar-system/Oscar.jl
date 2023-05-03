@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 The number theory part of OSCAR provides functionality for algebraic number theory.

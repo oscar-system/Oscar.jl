@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["ideals.md"]
-```
-
 # Ideals in Multivariate Rings
 
 ## Types
@@ -107,6 +99,7 @@ minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
+intersect(V::Vector{MPolyIdeal{T}}) where T
 ```
 
 ### Ideal Quotients
@@ -203,7 +196,7 @@ radical(I::MPolyIdeal)
 ### Primary Decomposition
 
 ```@docs
-primary_decomposition(I::MPolyIdeal; alg = :GTZ)
+primary_decomposition(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 ```
 
 ### Absolute Primary Decomposition
@@ -215,7 +208,7 @@ absolute_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
 ### Minimal Associated Primes
 
 ```@docs
-minimal_primes(I::MPolyIdeal; alg = :GTZ)
+minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 ```
 
 ### Weak Equidimensional Decomposition
@@ -247,11 +240,11 @@ equidimensional_hull_radical(I::MPolyIdeal)
 Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
 
 ```@docs
-homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
 ```
 
 ```@docs
-homogenization(f::MPolyRingElem, var::String, pos::Int=1)
+homogenization(f::MPolyRingElem, var::VarName, pos::Int=1)
 ```
 
 ```@docs

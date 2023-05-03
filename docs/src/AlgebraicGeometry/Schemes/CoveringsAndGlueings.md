@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["CoveredSchemes.md"]
-```
-
 # Coverings
 
 `Covering`s are the backbone data structure for `CoveredScheme`s in Oscar. 

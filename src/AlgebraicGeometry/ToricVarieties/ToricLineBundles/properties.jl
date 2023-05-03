@@ -1,7 +1,7 @@
 is_trivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_basepoint_free(l::ToricLineBundle)
 
 Return `true` if the toric line bundle `l` is basepoint free and `false` otherwise.
@@ -18,7 +18,7 @@ true
 is_basepoint_free(l::ToricLineBundle) = is_basepoint_free(toric_divisor(l))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_ample(l::ToricLineBundle)
 
 Return `true` if the toric line bundle `l` is ample and `false` otherwise.
@@ -35,7 +35,7 @@ false
 is_ample(l::ToricLineBundle) = is_ample(toric_divisor(l))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_very_ample(l::ToricLineBundle)
 
 Return `true` if the toric line bundle `l` is very ample and `false` otherwise.

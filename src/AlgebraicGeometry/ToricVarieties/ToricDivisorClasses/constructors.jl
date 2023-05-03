@@ -6,9 +6,7 @@
     toric_variety::AbstractNormalToricVariety
     class::GrpAbFinGenElem
     function ToricDivisorClass(toric_variety::AbstractNormalToricVariety, class::GrpAbFinGenElem)
-        if parent(class) !== class_group(toric_variety)
-            throw(ArgumentError("The class must belong to the class group of the toric variety"))
-        end
+        @req parent(class) === class_group(toric_variety) "The class must belong to the class group of the toric variety"
         return new(toric_variety, class)
     end
 end
@@ -18,7 +16,7 @@ end
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
 
 Construct the toric divisor class associated to a group
@@ -36,7 +34,7 @@ Divisor class on a normal toric variety
 toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the toric divisor class associated to a list of integers which
@@ -58,7 +56,7 @@ toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <
 # 3: Special constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor_class(td::ToricDivisor)
 
 Construct the toric divisor class associated to the element ... of the class group of the normal toric variety `v`.
@@ -87,17 +85,13 @@ end
 ########################
 
 function Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The divisor classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(tdc1) === toric_variety(tdc1) "The divisor classes must be defined on the same toric variety"
     return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) + divisor_class(tdc2))
 end
 
 
 function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The divisor classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(tdc1) === toric_variety(tdc1) "The divisor classes must be defined on the same toric variety"
     return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end
 

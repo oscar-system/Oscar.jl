@@ -11,7 +11,7 @@
 # NormalToricVariety's.
 abstract type _FanLikeType{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     PolyhedralFan(Rays::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}, [LS::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator},] Cones::IncidenceMatrix)
 
 A polyhedral fan formed from rays and cones made of these rays.
@@ -54,7 +54,7 @@ PolyhedralFan(x...; non_redundant::Bool = false) = PolyhedralFan{QQFieldElem}(x.
 # Avoid, if possible, to increase type stability
 PolyhedralFan(p::Polymake.BigObject) = PolyhedralFan{detect_scalar_type(PolyhedralFan, p)}(p)
 
-@doc Markdown.doc"""
+@doc raw"""
     PolyhedralFan{T}(Rays, Cones; non_redundant = false) where T<:scalar_types
 
 # Arguments
@@ -79,12 +79,12 @@ Polyhedral fan in ambient dimension 2
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
    if non_redundant
       return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
-         RAYS = Rays,
+         RAYS = unhomogenized_matrix(Rays),
          MAXIMAL_CONES = Incidence,
       ))
    else
       return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
-         INPUT_RAYS = Rays,
+         INPUT_RAYS = unhomogenized_matrix(Rays),
          INPUT_CONES = Incidence,
       ))
    end
@@ -92,14 +92,14 @@ end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
    if non_redundant
       return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
-         RAYS = Rays,
-         LINEALITY_SPACE = LS,
+         RAYS = unhomogenized_matrix(Rays),
+         LINEALITY_SPACE = unhomogenized_matrix(LS),
          MAXIMAL_CONES = Incidence,
       ))
    else
       return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
-         INPUT_RAYS = Rays,
-         INPUT_LINEALITY = LS,
+         INPUT_RAYS = unhomogenized_matrix(Rays),
+         INPUT_LINEALITY = unhomogenized_matrix(LS),
          INPUT_CONES = Incidence,
       ))
    end
@@ -133,7 +133,7 @@ end
 ### From group action on maximal cones
 ###############################################################################
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     polyhedral_fan_from_rays_action(::Type{T}, Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) where T<:scalar_types
 
 Construct a polyhedral fan with a group action.

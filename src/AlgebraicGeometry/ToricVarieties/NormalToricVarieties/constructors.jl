@@ -19,7 +19,7 @@ pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
 
 Construct the affine normal toric variety $U_{C}$ corresponding to a polyhedral
@@ -54,7 +54,7 @@ function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(C::Cone; set_attributes::Bool = true)
 
 Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
@@ -88,7 +88,7 @@ function normal_toric_variety(C::Cone; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
@@ -128,7 +128,7 @@ function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vec
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
 
 Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
@@ -157,7 +157,7 @@ function normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
 
 Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
@@ -185,7 +185,7 @@ function normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 
 For internal design, we make a strict distinction between
@@ -221,7 +221,7 @@ end
 # 3: Special constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
 
 Constructs the (toric) affine space of dimension `d`.
@@ -252,7 +252,7 @@ function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool =
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
 
 Construct the projective space of dimension `d`.
@@ -301,7 +301,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bo
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 
 Construct the weighted projective space corresponding to the weights `w`.
@@ -367,7 +367,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     hirzebruch_surface(r::Int; set_attributes::Bool = true)
 
 Constructs the r-th Hirzebruch surface.
@@ -423,7 +423,7 @@ function hirzebruch_surface(r::Int; set_attributes::Bool = true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     del_pezzo_surface(b::Int; set_attributes::Bool = true)
 
 Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
@@ -436,12 +436,8 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 """
 function del_pezzo_surface(b::Int; set_attributes::Bool = true)
     # check for valid input
-    if b < 0
-        throw(ArgumentError("Number of blowups for construction of del Pezzo surfaces must be non-negative"))
-    end
-    if b > 3
-        throw(ArgumentError("Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
-    end
+    @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
+    @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
     
     # special case of projective space
     if b == 0
@@ -536,56 +532,121 @@ end
 
 
 ############################
-# 4: Advanced constructions
+# 4: Blowups
 ############################
 
-@doc Markdown.doc"""
-    blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
+@doc raw"""
+  blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
 
-Return the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
+Blowup the toric variety by subdividing the cone in the list
+of *all* cones of the fan of `v` which corresponds to the
+provided ideal `I`. Note that this cone need not be maximal.
+
+By default, we pick "e" as the name of the homogeneous coordinate for
+the exceptional divisor. As third optional argument on can supply
+a custom variable name.
 
 # Examples
 ```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
-julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> I = ideal([x2,x3])
+ideal(x2, x3)
+
+julia> bP3 = blow_up(P3, I)
 Normal toric variety
 
-julia> cox_ring(bP2)
-Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by
-  x2 -> [1 0]
-  x3 -> [0 1]
+julia> cox_ring(bP3)
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
-  e -> [-1 1]
+  x2 -> [0 1]
+  x3 -> [0 1]
+  x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
-function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
-    # compute the blow-up variety
-    new_fan = starsubdivision(fan(v), n)
-    new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
-    
-    # extract the old and new rays
-    # the new cones are in general given by first (in general) permuting the old rays and then adding a new ray (not necessarily at the last position)
-    old_rays = rays(fan(v))
-    new_rays = rays(new_fan)
-    
-    # check for name clash with variable name chosen for blowup
-    old_vars = [string(x) for x in gens(cox_ring(v))]
-    isnothing(findfirst(x->occursin(coordinate_name, x), old_vars)) ||
-        throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety"))
+function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+    @req parent(gens(I)[1]) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
+    indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
+    @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
+    cone_list = cones(v)
+    indexset = Set{Int}(indices)
+    cone_index = findfirst(i -> Polymake.row(cone_list, i) == indexset, 1:nrows(cone_list))
+    @req cone_index !== nothing "There is no corresponding cone that could be subdivided"
+    return blow_up(v, cone_index; coordinate_name = coordinate_name, set_attributes = set_attributes)
+end
 
-    # set up Cox ring of new variety
-    new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]
+
+@doc raw"""
+  blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+
+Blowup the toric variety by subdividing the n-th cone in the list
+of *all* cones of the fan of `v`. This cone need not be maximal.
+
+By default, we pick "e" as the name of the homogeneous coordinate for
+the exceptional divisor. As third optional argument on can supply
+a custom variable name.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+
+julia> cones(P3)
+14×4 IncidenceMatrix
+[1, 2, 3]
+[2, 3, 4]
+[1, 3, 4]
+[1, 2, 4]
+[2, 3]
+[1, 3]
+[1, 2]
+[3, 4]
+[2, 4]
+[1, 4]
+[2]
+[3]
+[1]
+[4]
+
+julia> bP3 = blow_up(P3, 5)
+Normal toric variety
+
+julia> cox_ring(bP3)
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
+  x1 -> [1 0]
+  x2 -> [0 1]
+  x3 -> [0 1]
+  x4 -> [1 0]
+  e -> [1 -1]
+```
+"""
+function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+    new_fan = star_subdivision(fan(v), n)
+    new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
+    new_rays = rays(new_fan)
+    old_vars = [string(x) for x in gens(cox_ring(v))]
+    @req findfirst(x->occursin(coordinate_name, x), old_vars) === nothing "The name for the blowup coordinate is already taken"
+    new_vars = [if new_rays[i] in rays(fan(v)) old_vars[findfirst(x->x==new_rays[i], rays(fan(v)))] else coordinate_name end for i in 1:length(new_rays)]
     set_attribute!(new_variety, :coordinate_names, new_vars)
-    weights = [map_from_torusinvariant_weil_divisor_group_to_class_group(new_variety)(x) for x in gens(torusinvariant_weil_divisor_group(new_variety))]
-    set_attribute!(new_variety, :cox_ring_weights, weights)
-    
     return new_variety
 end
 
 
-@doc Markdown.doc"""
+
+############################
+# 5: Cartesian product
+############################
+
+@doc raw"""
     Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
@@ -644,11 +705,12 @@ function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; s
 end
 
 
-############################
-# 5: Toric varieties from triangulations
-############################
 
-@doc Markdown.doc"""
+########################################
+# 6: Toric varieties from triangulations
+########################################
+
+@doc raw"""
     normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
 
 Returns the list of toric varieties obtained from fine regular
@@ -696,11 +758,12 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attr
 end
 
 
-############################
-# 6: Toric varieties from GLSMs
-############################
 
-@doc Markdown.doc"""
+###############################
+# 7: Toric varieties from GLSMs
+###############################
+
+@doc raw"""
     normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 
 Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
@@ -766,8 +829,9 @@ end
 normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
 
 
+
 ############################
-### 7: Display
+### 8: Display
 ############################
 function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string

@@ -2,20 +2,20 @@
 function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  for s in gens(graded_coordinate_ring(codomain(f)))
+  for s in gens(homogeneous_coordinate_ring(codomain(f)))
     iszero(pullback(f)(s) - pullback(g)(s)) || return false
   end
   return true
 end
 
-function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}}, 
-            g::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}}) 
+function ==(f::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}},
+            g::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}})
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   return map_on_affine_cones(f) == map_on_affine_cones(g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     covered_scheme_morphism(f::ProjectiveSchemeMor)
 
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
@@ -36,7 +36,7 @@ of ``X`` and ``Y``, respectively.
   U = affine_charts(X)
   for i in 1:ngens(SX)
     U_i = U[i]
-    dehom = dehomogenize(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
+    dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
     for j in 1:ngens(SY)
       y = gens(SY, j)
       denom = dehom(pbf(y))

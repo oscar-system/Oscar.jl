@@ -7,7 +7,7 @@
 ########################################################################
 # (1) Check and store, whether a covered scheme is empty               #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_empty(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is empty.
@@ -23,7 +23,7 @@ end
 ########################################################################
 # (2) Check and store, whether a covered scheme is smooth              #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_smooth(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is smooth.
@@ -43,7 +43,7 @@ end
 # (3) Check and store, whether a covered scheme is integral            #
 #     i.e. irreducible and reduced                                     #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_integral(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is integral.
@@ -58,7 +58,7 @@ end
 #      do not confuse with connectedness of the scheme
 # Note: This does not work with glueing_graph, because empty patches
 #      need to be ignored without changing the covering
-@doc Markdown.doc"""
+@doc raw"""
    is_connected_glueing(X::AbsCoveredScheme)
 
 Return the boolean value whether the glueing graph of the default
@@ -75,7 +75,7 @@ end
 ########################################################################
 # (4) Check and store, whether a covered scheme is connected           #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_connected(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is connected.
@@ -92,7 +92,7 @@ end
 ##############################################################################
 # (5) Check and store, whether a scheme is reduced
 ##############################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_reduced(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is reduced.
@@ -105,7 +105,7 @@ end
 ##############################################################################
 # (6) Check and store, whether a covered scheme is irreducible
 ##############################################################################
-@doc Markdown.doc"""
+@doc raw"""
    is_irreducible(X::AbsCoveredScheme)
 
 Return the boolean value whether a covered scheme `X` is irreducible.

@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["para_rational_curves.md"]
-```
-
 # Rational Parametrizations of Rational Plane Curves
 
 !!! note

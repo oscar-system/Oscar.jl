@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
 
 Return the common refinement of two polyhedral complexes. 
@@ -40,11 +40,12 @@ function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) 
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
      k_skeleton(PC::PolyhedralComplex,k::Int)
 
 Return the k-skeleton of a polyhedral complex.
-#Examples
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2,3]])
 1×3 IncidenceMatrix

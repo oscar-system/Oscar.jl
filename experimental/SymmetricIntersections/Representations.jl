@@ -1,6 +1,6 @@
 const GG = GAP.Globals
 
-import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective
+import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective, is_faithful
 
 export action_on_submodule
 export affording_representation
@@ -27,7 +27,6 @@ export irreducible_characters_underlying_group
 export irreducible_affording_representation
 export is_character
 export is_constituent
-export is_faithful
 export is_isotypical
 export is_isotypical_component
 export is_similar
@@ -70,7 +69,7 @@ part of my codes to extend a bit more the notion of representations in Oscar.
 
 ### Representation ring
 
-@doc Markdown.doc"""
+@doc raw"""
     base_field(RR::RepRing{S, T}) where {S, T} -> S
 
 Given a representation ring `RR`, return the (cached) splitting field of the
@@ -78,21 +77,21 @@ associated finite group.
 """
 base_field(RR::RepRing) = RR.field
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_group(RR::RepRing{S, T}) where {S, T} -> T
 
 Return the underlying group associated to the representation ring `RR`.
 """
 underlying_group(RR::RepRing) = RR.group
 
-@doc Markdown.doc"""
+@doc raw"""
     generators_underlying_group(RR::RepRing) -> Vector
 
 Return a (cached) finite set of generators for the underlying group of `RR`.
 """
 generators_underlying_group(RR::RepRing) = RR.gens
 
-@doc Markdown.doc"""
+@doc raw"""
     character_table_underlying_group(RR::RepRing)
                                            -> Oscar.GAPGroupCharacterTable
 
@@ -101,7 +100,7 @@ Return the `QQAb`-character table of the underlying group of `RR`, where
 """
 character_table_underlying_group(RR::RepRing) = RR.ct
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_characters_underlying_group(RR::RepRing)
                                      -> Vector{Oscar.GAPGroupClassFunction}
 
@@ -114,7 +113,7 @@ irreducible_characters_underlying_group(RR::RepRing) = RR.irr
 
 ### Linear representations of finite group
 
-@doc Markdown.doc"""
+@doc raw"""
     representation_ring(LR::LinRep{S, T, U}) where {S, T, U}
                                                    -> RepRing{S, T}
 
@@ -122,28 +121,28 @@ Return the representation ring which `LR` belongs to.
 """
 representation_ring(LR::LinRep) = LR.rep_ring
 
-@doc Markdown.doc"""
+@doc raw"""
     representation_mapping(LR::LinRep) -> GAPGroupHomomorphism
 
 Return the underlying representation mapping associated to `LR`.
 """
 representation_mapping(LR::LinRep) = LR.f
 
-@doc Markdown.doc"""
+@doc raw"""
     character_representation(LR::LinRep) -> Oscar.GAPGroupClassFunction
 
 Return the corresponding character to the linear representation `LR`.
 """
 character_representation(LR::LinRep) = LR.char
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_group(LR::LinRep{S, T, U}) -> T
 
 Return the underlying group of `LR`.
 """
 underlying_group(LR::LinRep) = underlying_group(representation_ring(LR))
 
-@doc Markdown.doc"""
+@doc raw"""
     dimension_representation(LR::LinRep) -> Int
 
 Return the dimension of the underlying module of `LR`.
@@ -154,7 +153,7 @@ dimension_representation(LR::LinRep) = Int(degree(LR.char))
 
 ### Projective representations of finite group
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_lift(PR::ProjRep{S, T, U, V} where {S, T, U, V} -> LinRep{S, T, U}
 
 Return a (cached) linear lift of `PR` to a Schur cover of the underlying group
@@ -162,14 +161,14 @@ of `PR`.
 """
 linear_lift(PR::ProjRep) = PR.LR
 
-@doc Markdown.doc"""
+@doc raw"""
     underlying_group(PR::ProjRep{S, T, U, V}) where {S, T, U, V} -> V
 
 Return the underlying group of `PR`.
 """
 underlying_group(PR::ProjRep) = codomain(PR.p)
 
-@doc Markdown.doc"""
+@doc raw"""
     associated_schur_cover(PR::ProjRep) -> GAPGroupHomomorphism
 
 Return the Schur cover along which the projective representation is
@@ -177,7 +176,7 @@ lifted.
 """
 associated_schur_cover(PR::ProjRep) = PR.p
 
-@doc Markdown.doc"""
+@doc raw"""
     representation_ring_linear_lift(PR::ProjRep{S, T, U, V}) where {S, T, U, V}
                                                                 -> RepRing{S, T}
 
@@ -185,21 +184,21 @@ Return the representation ring of the linear lifts of `PR`.
 """
 representation_ring_linear_lift(PR::ProjRep) = representation_ring(PR.LR)
 
-@doc Markdown.doc"""
+@doc raw"""
     representation_mapping_linear_lift(PR::ProjRep) -> GAPGroupHomomorphism
 
 Return the representation map associated to a linear lift of `PR`.
 """
 representation_mapping_linear_lift(PR::ProjRep) = representation_mapping(linear_lift(PR))
 
-@doc Markdown.doc"""
+@doc raw"""
     character_linear_lift(PR::ProjRep) -> Oscar.GAPGroupClassFunction
 
 Return the character of the linear lift of `PR` which is cached.
 """
 character_linear_lift(PR::ProjRep) = character_representation(PR.LR)
 
-@doc Markdown.doc"""
+@doc raw"""
     dimension_linear_lift(PR::ProjRep) -> Int
 
 Return the dimension of any linear lift of `PR`.
@@ -212,7 +211,7 @@ dimension_linear_lift(PR::ProjRep) = dimension_representation(PR.LR)
 #
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     character_representation(RR::RepRing, f::GAPGroupHomomorphism)
                                                  -> Oscar.GAPGroupClassFunction
 
@@ -234,7 +233,7 @@ function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, 
   return c
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     character_decomposition(rep::LinRep)
                            -> Vector{Tuple{Int, Oscar.GAPGroupClassFunction}}
 
@@ -242,7 +241,7 @@ Return the decomposition of the character afforded by `rep`.
 """
 character_decomposition(rep::LinRep) = character_decomposition(character_representation(rep))
 
-@doc Markdown.doc"""
+@doc raw"""
     character_decomposition(prep::ProjRep)
                           -> Vector{Tuple{Int, Oscar.GAPGroupClassFunction}}
 
@@ -254,7 +253,7 @@ character_decomposition(prep::ProjRep) = character_decomposition(linear_lift(pre
 # We decompose characters as sum of positive multiple of some irreducible characters.
 # Actually, we could decompose any class functions in this way, one will obtain some
 # negative multiplicities then.
-@doc Markdown.doc"""
+@doc raw"""
     character_decomposition(char::Oscar.GAPGroupClassFunction)
                               -> Vector{Tuple{Int, Oscar.GAPGroupClassFunction}}
 
@@ -275,7 +274,7 @@ function character_decomposition(char::Oscar.GAPGroupClassFunction)
 end
 
 # This is just an import of a GAP function
-@doc Markdown.doc"""
+@doc raw"""
     is_character(chi::Oscar.GAPGroupClassFunction) -> Bool
 
 Given a class function `chi` on a group `G`, return whether `chi` defines a
@@ -283,7 +282,7 @@ character of `G` (over its codomain).
 """
 is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(chi.table.GAPTable, chi.values)::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction -> Bool
 
 Given two characters `chi` and `nu` of a group `G`, return whether `nu` is
@@ -291,7 +290,7 @@ constituent of `chi`.
 """
 is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction = chi == nu || is_character(chi-nu)
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isotypical(char::Oscar.GAPGroupClassFunction) -> Bool
 
 Given a character `char` of a group `G`, return whether it is isotypical.
@@ -302,7 +301,7 @@ irreducible character.
 is_isotypical(char::Oscar.GAPGroupClassFunction) = length(character_decomposition(char)) == 1
 
 # We compute all constituents of chi of degree t
-@doc Markdown.doc"""
+@doc raw"""
     constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
                                      -> Vector{Oscar.GAPGroupClassFunction)
 
@@ -344,7 +343,7 @@ function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
   return Oscar.GAPGroupClassFunction[sum(L[l]) for l in el]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     all_characters(RR::RepRing, t::Int) -> Vector{Oscar.GAPGroupClassFunction}
 
 Given a representation ring `RR` associated to a finite group `E` and an integer
@@ -407,7 +406,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     representation_ring(E::T) where T <: Oscar.GAPGroup -> RepRing
 
 Given a finite group `E`, return the representation ring over `E` over the
@@ -451,7 +450,7 @@ function _linear_representation(RR::RepRing{S ,T}, mr::Vector{V}) where {S ,T ,U
 end
 
 # The associated constructors to the corresponding types.
-@doc Markdown.doc"""
+@doc raw"""
     linear_representation(RR::RepRing, f::GAPGroupHomomorphism,
                                        chi::Oscar.GAPGroupClassFunction) -> LinRep
 
@@ -475,7 +474,7 @@ function linear_representation(RR::RepRing{S ,T}, f::GAPGroupHomomorphism) where
   return LinRep{S, T, elem_type(S)}(RR, f, chi)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_projective(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
     is_projective(chi::GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
@@ -492,7 +491,7 @@ end
 
 is_projective(rep::LinRep, p::GAPGroupHomomorphism) = is_projective(character_representation(rep), p)
 
-@doc Markdown.doc"""
+@doc raw"""
     projective_representation(RR::RepRing, f::GAPGroupHomomorphism, p::GAPGroupHomomorphism) -> ProjRep
     projective_representation(rep::LinRep, p::GAPGroupHomomorphism) -> ProjRep
 
@@ -519,7 +518,7 @@ function projective_representation(rep::LinRep{S, T, U}, p::V; check::Bool = tru
   return ProjRep{S, T, U, V}(rep, p)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_irreducible(rep::LinRep) -> Bool
 
 Return whether `rep` is an irreducible linear representation.
@@ -528,7 +527,7 @@ function is_irreducible(rep::LinRep)
   return Oscar.is_irreducible(character_representation(rep))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_irreducible(prep::ProjRep) -> Bool
 
 Return whether the underlying linear lift of `prep` is an irreducible
@@ -538,7 +537,7 @@ function is_irreducible(prep::ProjRep)
   return is_irreducible(linear_lift(prep))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isotypical(rep::LinRep) -> Bool
 
 Return whether `rep` is a positive multiple of an irreducible linear
@@ -548,7 +547,7 @@ function is_isotypical(rep::LinRep)
   return is_isotypical(character_representation(rep))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isotypical(prep::ProjRep) -> Bool
 
 Return whether the underlying linear lift of `prep` is a positive
@@ -565,7 +564,7 @@ end
 # the matrices in the image, both stored in `RR`, we translate the homomorphism
 # constructed in GAP to match properly the data here. We also add an extra caching
 # in `RR` to avoid having to reconstruct irreducible representations already computed.
-@doc Markdown.doc"""
+@doc raw"""
     irreducible_affording_representation(RR::RepRing,
                                          chi::Oscar.GAPGroupClassFunction)
                                                                       -> LinRep
@@ -615,7 +614,7 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   return lin::elem_type(RR)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     affording_representation(RR::RepRing, chi::Oscar.GAPGroupClassFunction)
                                                                       -> LinRep
 
@@ -643,7 +642,7 @@ end
 # This can be expensive if not necessary. Though, to setup a complex algorithm,
 # it could allow to save some time by already precomputing all irreducible
 # representations in `RR` and storing them.
-@doc Markdown.doc"""
+@doc raw"""
     all_irreducible_representations(RR::RepRing) -> Vector{LinRep}
     all_irreducible_representation(E::GAPGroup) -> Vector{LinRep}
 
@@ -674,7 +673,7 @@ end
 # In most of our "induced action function", we reconstruct the representations
 # from a list of matrices coming from the images of H by the original representation
 # where H is the set of generators cached in the corresponding representation ring
-@doc Markdown.doc"""
+@doc raw"""
     matrix_representation(LR::LinRep{S, T, U}) -> Vector{MatElem{U}}
 
 Return the matrix representation of the corresponding images of the
@@ -685,7 +684,7 @@ function matrix_representation(LR::LinRep{S, T, U}) where {S, T, U}
   return matrix.(f.(gens(domain(f))))::Vector{dense_matrix_type(U)}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix_representation_linear_lift(PR::ProjRep{S, T, U, V})
                                        where {S, T, U, V} -> Vector{MatElem{U}}
 
@@ -698,7 +697,7 @@ matrix_representation_linear_lift(PR::ProjRep{S, T, U, V}) where {S, T, U, V} = 
 
 ### Faithfulness
 
-@doc Markdown.doc"""
+@doc raw"""
     is_faithful(rep::LinRep) -> Bool
 
 Return whether the underlying representation mapping of `rep` is injective.
@@ -708,7 +707,7 @@ function is_faithful(rep::LinRep)
   return is_injective(f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_projectively_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
     is_projectively_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
@@ -729,7 +728,7 @@ end
 
 is_faithful(rep::LinRep, p::GAPGroupHomomorphism) = is_faithful(character_representation(rep), p)
 
-@doc Markdown.doc"""
+@doc raw"""
     is_faithful(prep::ProjRep) -> Bool
 
 Given a projective representation `prep` lifting to a linear representation `rep` along
@@ -741,7 +740,7 @@ is_faithful(pr::ProjRep) = is_faithful(character_linear_lift(pr), associated_sch
 
 ### Comparison
 
-@doc Markdown.doc"""
+@doc raw"""
     is_equivalent(rep1::T, rep2::T) where T <: LinRep -> Bool
 
 Given two representations `rep1` and `rep2` of the same representation
@@ -755,7 +754,7 @@ function is_equivalent(rep1::T, rep2::T) where T <: LinRep
   return character_representation(rep1) == character_representation(rep2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_similar(prep1::T, prep2::T) where T <: ProjRep -> Bool
 
 Given two projective representations `prep1` and `prep2` of the same group
@@ -779,7 +778,7 @@ end
 # the group on a hypothetical sub-module, without involving any basis. So if the
 # comparison of the character return true, we can find a submodule of the module
 # defined by `rep` on which the group acts via `rep2`.
-@doc Markdown.doc"""
+@doc raw"""
     is_subrepresentation(rep::T, rep2::T) where T <: LinRep -> Bool
     is_subrepresentation(prep::T, prep2::T) where T <: ProjRep -> Bool
 
@@ -800,7 +799,7 @@ function is_subrepresentation(prep::T, prep2::T) where T <: ProjRep
   return is_subrepresentation(linear_lift(prep), linear_lift(prep2))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isotypical_component(rep::T, rep2::T) where T <: LinRep -> Bool
     is_isotypical_component(prep::T, prep2::T) where T <: ProjRep -> Bool
     
@@ -828,7 +827,7 @@ end
 
 ### Dual representation
 
-@doc Markdown.doc"""
+@doc raw"""
     dual_representation(rep::T) where T <: LinRep -> T
     dual_representation(prep::T) where T <: ProjRep -> T
 
@@ -857,7 +856,7 @@ end
 
 ### Direct sum in representation ring
 
-@doc Markdown.doc"""
+@doc raw"""
     direct_sum_representation(rep1::T, rep2::T) where T <: LinRep -> T
     direct_sum_representation(prep1::T, prep2::T) where T <: ProjRep -> T
 
@@ -905,7 +904,7 @@ function _standard_basis(F::U, n::Int) where U
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     basis_exterior_power(B::Vector{T}, t::Int) where T -> Vector{Vector{T}}
 
 Given a basis `B` of a finite dimensional vector space `V`, return a basis for
@@ -1002,7 +1001,7 @@ function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem
   return coll
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     symmetric_power_representation(rep::T, d::Int) where T <: LinRep -> T
     symmetric_power_representation(prep::T, d::Int) where T <: ProjRep -> T
 
@@ -1026,7 +1025,7 @@ function symmetric_power_representation(prep::ProjRep{S, T, U, V}, d::Int) where
   return ProjRep{S, T, U ,V}(lin, associated_schur_cover(prep))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_polynomial_representation(rep::T, d::Int)
                                                          where T <: LinRep -> T
     homogeneous_polynonial_representation(prep::T, d::Int)
@@ -1108,7 +1107,7 @@ function _action_exterior_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{
   return coll
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     exterior_power_representation(rep::T, t::Int) where T <: LinRep -> T
     exterior_power_representation(prep::T, t::Int) where T <: ProjRep -> T
 
@@ -1201,7 +1200,7 @@ function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   return bool, RR, sum_index, pschur
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     faithful_projective_representations(G::Oscar.GAPGroup, dim::Int)
                                                              -> Vector{ProjRep}
 
@@ -1236,7 +1235,7 @@ end
 # All this part could be made cleaner with a proper structure of module which
 # endows a vector space and a linear representation of a group on it
 
-@doc Markdown.doc"""
+@doc raw"""
     basis_isotypical_component(rep::LinRep{S, T, U},
                                chi::Oscar.GAPGroupClassFunction)
                                           where {S, T, U} -> Vector{MatElem{U}}
@@ -1259,7 +1258,7 @@ function basis_isotypical_component(rep::LinRep{S, T, U}, chi::Oscar.GAPGroupCla
   return Hecke._basis_of_commutator_algebra(As, Bs)::Vector{dense_matrix_type(U)}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     to_equivalent_block_representation(rep::LinRep{S, T, U})
                                  where {S, T, U} -> LinRep{S, T, U}, MatElem{U}
     to_equivalent_block_representation(rep::ProjRep{S, T, U, V})
@@ -1301,7 +1300,7 @@ function to_equivalent_block_representation(prep::ProjRep{S, T, U, V}) where {S,
   return ProjRep{S, T, U, V}(lin,  associated_schur_cover(prep)), B
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_submodule(rep::LinRep{S, T, U}, M::W)
                                        where {S, T, U, W <: MatElem{U}} -> Bool
 
@@ -1321,7 +1320,7 @@ function is_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: MatElem{U
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     action_on_submodule(rep::LinRep{S, T, U}, M::W)
                             where {S, T, U, W <: MatElem{U}} -> LinRep{S, T, U}
                                                                              
@@ -1342,7 +1341,7 @@ function action_on_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: Ma
   return _linear_representation(representation_ring(rep), coll)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     complement_submodule(rep::LinRep{S, T, U}, M::W)
                                      where {S, T, U, W <: MatElem{U}} -> W
 
@@ -1383,7 +1382,7 @@ function complement_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: M
   return bas
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quotient_representation(rep::LinRep{S, T, U}, M::W)
                   where {S, T, U, W <: MatElem{U} -> LinRep{S, T, U}, MatElem{U}
 
@@ -1414,7 +1413,7 @@ function quotient_representation(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <
   return repQ, proj
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     isotypical_components(rep::LinRep{S, T, U}) where {S, T, U}
                          -> Dict{Oscar.GAPGroupClassFunction,
                                  Tuple{MatElem{U}, MatElem{U}}}

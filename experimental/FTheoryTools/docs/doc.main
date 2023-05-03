@@ -1,0 +1,7 @@
+[
+   "F-Theory Tools" => [
+      "introduction.md",
+      "weierstrass.md",
+      "tate.md",
+   ],
+]

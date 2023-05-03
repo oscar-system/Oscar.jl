@@ -1,7 +1,7 @@
 @testset "blowups" begin
   P = projective_space(QQ, ["x", "y", "z", "w"])
   X = covered_scheme(P)
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   (x, y, z, w) = gens(S)
   M = S[x y z; y z w]
   I = ideal(S, minors(M, 2))

@@ -100,7 +100,7 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
+@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX, _ = affine_cone(X)
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
@@ -143,7 +143,7 @@ affine_refinements(C::Covering) = C.affine_refinements
   return result
 end
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   CX, _ = affine_cone(X)
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
@@ -238,7 +238,7 @@ refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tup
 #covered_scheme_type(X::Spec) = covered_scheme_type(typeof(X))
 #
 #covered_scheme_type(::Type{T}) where {T<:ProjectiveScheme} = covered_scheme_type(affine_patch_type(P))
-#covered_scheme_type(P::ProjectiveScheme) = covered_scheme_type(typeof(P))
+#covered_scheme_type(P::AbsProjectiveScheme) = covered_scheme_type(typeof(P))
 
 ### getter methods
 refinements(X::CoveredScheme) = X.refinements
@@ -284,7 +284,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  return last(p), p, q
 #end
 #
-#@doc Markdown.doc"""
+#@doc raw"""
 #    common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
 #
 #Given two coverings of ``X``, return a triple `(C_new, f, g)` consisting 

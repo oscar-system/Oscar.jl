@@ -9,11 +9,11 @@
 
 export schur_polynomial
 
-@doc Markdown.doc"""
+@doc raw"""
     schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
     schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
 
-Returns the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in `n` variables.
+Return the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in `n` variables.
 
 If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ,n)`.
 

@@ -84,18 +84,7 @@ function encodeType(::Type{T}) where T
 end
 
 function decodeType(input::String)
-    if haskey(reverseTypeMap, input)
-        return reverseTypeMap[input]
-    else
-        # As a default, parse the type from the string.
-        #
-        # WARNING: Never deserialize data from an untrusted source, as this
-        # parsing is insecure and potentially malicious code could be
-        # entered here. (also computationally expensive)
-        # Standard Oscar tests should never pass this line
-        @warn "Serialization: Generic Decoding of type $input"
-        eval(Meta.parse(input))
-
+    get(reverseTypeMap, input) do
         error("unsupported type '$input' for decoding")
     end
 end

@@ -21,7 +21,7 @@ abstract type CurveDivisor end
 
 ################################################################################
 # The curve C is assume to be smooth and irreducible, but it is not checked.
-@doc Markdown.doc"""
+@doc raw"""
     AffineCurveDivisor(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S <: FieldElem
 
 Given a curve `C` which is assumed to be smooth and irreducible, return the divisor on the curve `C` defined by `D`.
@@ -41,7 +41,7 @@ julia> Q = Oscar.Point([QQ(0), QQ(-1)])
 Point with coordinates QQFieldElem[0, -1]
 
 julia> Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
-3*QQFieldElem[0, 0] - 2*QQFieldElem[0, -1]
+-2*QQFieldElem[0, -1] + 3*QQFieldElem[0, 0]
 ```
 """
 struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
@@ -73,7 +73,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ProjCurveDivisor(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
 
 Given a curve `C` which is assumed to be smooth and irreducible, return the divisor on the curve `C` defined by `D`.
@@ -103,7 +103,7 @@ julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
 (0 : -1 : 1)
 
 julia> D = Oscar.ProjCurveDivisor(C, Dict(P => 3, Q => -2))
-3*(0 : 0 : 1) - 2*(0 : 1 : -1)
+-2*(0 : 1 : -1) + 3*(0 : 0 : 1)
 ```
 """
 mutable struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
@@ -165,7 +165,7 @@ end
 
 ################################################################################
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     curve(D::CurveDivisor)
 
 Return the curve on which the divisor is considered.
@@ -174,7 +174,7 @@ function curve(D::CurveDivisor)
     return D.C
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(D::CurveDivisor)
 
 Return the degree of the divisor.
@@ -184,7 +184,7 @@ function Oscar.degree(D::CurveDivisor)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     curve_zero_divisor(C::ProjPlaneCurve{S}) where S <: FieldElem
 
 Return the divisor `0` on the curve `C`.
@@ -193,7 +193,7 @@ function curve_zero_divisor(C::ProjPlaneCurve{S}) where S <: FieldElem
     return ProjCurveDivisor{S}(C, Dict{Oscar.Geometry.ProjSpcElem{S}, Int}())
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     curve_zero_divisor(C::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return the divisor `0` on the curve `C`.
@@ -254,7 +254,7 @@ end
 ################################################################################
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_effective(D::CurveDivisor)
 
 Return `true` if `D` is an effective divisor, `false` otherwise.
@@ -274,7 +274,7 @@ julia> Q = Oscar.Point([QQ(0), QQ(-1)])
 Point with coordinates QQFieldElem[0, -1]
 
 julia> D = Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
-3*QQFieldElem[0, 0] - 2*QQFieldElem[0, -1]
+-2*QQFieldElem[0, -1] + 3*QQFieldElem[0, 0]
 
 julia> Oscar.is_effective(D)
 false
@@ -293,7 +293,7 @@ end
 # the following presentation.
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyRingElem{S}}
     multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
 
@@ -345,7 +345,7 @@ end
 
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}, P::Point{S}) where S <: FieldElem
     multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
@@ -377,7 +377,7 @@ end
 ################################################################################
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyRingElem{S}) where S <: FieldElem
 
 Return the divisor defined by the polynomial `F` on the curve `C`.
@@ -398,7 +398,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyRingElem{S}}
 
 Return the divisor defined by the rational function `phi` on the curve `C`.
@@ -413,7 +413,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyDecRingElem{S}) where S <: FieldElem
 
 Return the divisor defined by the polynomial `F` on the curve `C`. The points of the divisor are in the projective space `PP` if specified, or in a new projective space otherwise.
@@ -441,7 +441,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
 
 Return the divisor defined by the rational function `phi` on the curve `C`.
@@ -468,7 +468,7 @@ julia> phi = T(x)//T(y)
 x//y
 
 julia> Oscar.divisor(PP[1], C, phi)
--(0 : 0 : 1) + (0 : 1 : -1)
+(0 : 1 : -1) - (0 : 0 : 1)
 ```
 """
 function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyDecRingElem{S}}
@@ -590,7 +590,7 @@ end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     global_sections(D::ProjCurveDivisor)
 
 Return a set of generators of the global sections of the sheaf associated to the divisor `D` of a smooth and irreducible projective curve.
@@ -634,7 +634,7 @@ function global_sections(D::ProjCurveDivisor)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     dimension_global_sections(D::ProjCurveDivisor)
 
 Return the dimension of the global sections of the sheaf associated to the divisor `D` of a smooth and irreducible projective curve.
@@ -688,7 +688,7 @@ function _linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
 
 Return `true` if the divisors `D` and `E` are linearly equivalent, and `false`
@@ -733,7 +733,7 @@ function is_linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     is_principal(D::ProjCurveDivisor{S}) where S <: FieldElem
 
 Return `true` if the divisor `D` is principal, and `false` otherwise
@@ -774,7 +774,7 @@ function Oscar.is_principal(D::ProjCurveDivisor{S}) where S <: FieldElem
 end
 
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     principal_divisor(D::ProjCurveDivisor{S}) where S <: FieldElem
 
 If the divisor `D` is principal, return a rational function `phi` such that `D`
@@ -811,7 +811,7 @@ julia> F = Oscar.ProjCurveDivisor(C, R, 2)
 2*(0 : 0 : 1)
 
 julia> G = 2*E - 2*F
--4*(0 : 0 : 1) + 4*(0 : 1 : 0)
+4*(0 : 1 : 0) - 4*(0 : 0 : 1)
 
 julia> Oscar.principal_divisor(G)
 x^2//z^2

@@ -53,7 +53,7 @@ end
 # ---------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalVariety()
 
 Construct the embedded tropical variety of a polynomial ideal over a (possibly trivially) valued field
@@ -68,7 +68,7 @@ Construct the embedded tropical variety of a polynomial ideal over a (possibly t
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalVariety{M,EMB}(Sigma::PolyhedralComplex)
 
 Construct the abstract tropical variety from a polyhedral complex

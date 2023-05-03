@@ -2,7 +2,7 @@
 ########################################################################
 # Morphisms of coverings                                               #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     CoveringMorphism
 
 A morphism ``f : C → D`` of two coverings. For every patch ``U`` of ``C`` this

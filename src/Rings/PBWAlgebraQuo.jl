@@ -32,10 +32,12 @@ export PBWAlgQuo, PBWAlgQuoElem
 
 
 
+###### @attributes    ### DID NOT WORK -- alternative solution found (via have_special_impl, see ExteriorAlgebra.jl)
 mutable struct PBWAlgQuo{T, S} <: NCRing
     I::PBWAlgIdeal{0, T, S}
     sring::Singular.PluralRing{S}  # For ExtAlg this is the Singular impl; o/w same as I.basering.sring
 end
+
 
 # For backward compatibility: ctor with 1 arg:
 #    uses "default" arith impl -- namely that from basering!
@@ -94,8 +96,22 @@ end
 @enable_all_show_via_expressify PBWAlgQuoElem
 
 function expressify(Q::PBWAlgQuo; context = nothing)  # what about new sring data-field ???
-  return Expr(:call, :/, expressify(Q.I.basering; context = nothing),
-                         expressify(Q.I; context = nothing))
+    ## special printing if Q is an exterior algebra
+######    if get_attribute(Q, :is_exterior_algebra) === :true
+    if have_special_impl(Q)
+        a = Q.I.basering
+        x = symbols(a)
+        n = length(x)
+        return Expr(:sequence, Expr(:text, "Exterior algebra over "),
+                               expressify(coefficient_ring(a);  context=context),
+                               Expr(:text, " in ("),
+                               Expr(:series, x...),
+                               Expr(:text, ")"))
+
+    end
+    # General case (not exterior algebra)
+    return Expr(:call, :/, expressify(Q.I.basering; context = nothing),
+                           expressify(Q.I; context = nothing))
 end
 
 @enable_all_show_via_expressify PBWAlgQuo
@@ -143,7 +159,7 @@ end
 
 function is_zero(a::PBWAlgQuoElem)
     if !have_special_impl(parent(a))  # must reduce if not exterior algebras
-        simplify(a); # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
+        simplify(a)  # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
     end
     return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
 end
@@ -190,7 +206,7 @@ end
 
 ####
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(A::PBWAlgRing, I::PBWAlgIdeal)
 
 Given a two-sided ideal `I` of `A`, create the quotient algebra $A/I$ and
@@ -278,10 +294,8 @@ function (Q::PBWAlgQuo)(c::IntegerUnion)
 end
 
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
-    if parent(a) != Q
-        throw(ArgumentError("coercion between different PBWAlg quotients not possible"));
-    end;
-  return a;
+  @req parent(a) == Q "coercion between different PBWAlg quotients not possible"
+  return a
 end
 
 #############################################
@@ -295,9 +309,8 @@ end
 
 # 2023-03-09 JAA  commented out placeholder code below -- should be replaced by code from ExteriorAlgebra.jl
 
-# @doc Markdown.doc"""
-#     exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+# @doc raw"""
+#     exterior_algebra(K::Ring, xs::AbstractVector{<:VarName})
 
 # Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th exterior algebra over `K`.
 
@@ -305,7 +318,6 @@ end
 
 # # Examples
 # """
-# function exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-#                                     AbstractVector{Symbol}, AbstractVector{Char}})
+# function exterior_algebra(K::Ring, xs::AbstractVector{<:VarName})
 #   throw(NotImplementedError(:exterior_algebra, K, xs))
 # end

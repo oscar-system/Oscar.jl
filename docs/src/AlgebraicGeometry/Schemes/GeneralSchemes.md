@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["GeneralSchemes.md"]
-```
-
 # General schemes
 
 Arbitrary schemes over a commutative base ring ``\mathbb k`` with unit 

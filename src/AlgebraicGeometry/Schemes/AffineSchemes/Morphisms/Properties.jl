@@ -4,7 +4,7 @@
 # (1) Isomorphism, inverse and identity
 ########################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isomorphism(f::AbsSpecMor)
 
 This method checks if a morphism is an isomorphism.
@@ -16,7 +16,7 @@ This method checks if a morphism is an isomorphism.
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_inverse_of(f::AbsSpecMor, g::AbsSpecMor)
 
 This method checks if a morphism ``f`` is the inverse of a morphism ``g``.
@@ -25,7 +25,7 @@ function is_inverse_of(f::S, g::T) where {S<:AbsSpecMor, T<:AbsSpecMor}
   return is_isomorphism(f) && (inverse(f) == g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_identity_map(f::AbsSpecMor)
 
 This method checks if a morphism is the identity map.
@@ -33,13 +33,9 @@ This method checks if a morphism is the identity map.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field

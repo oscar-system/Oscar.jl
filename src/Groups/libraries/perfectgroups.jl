@@ -2,10 +2,10 @@
 # Perfect groups
 ###################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     orders_perfect_groups()
 
-Returns a sorted vector of all numbers to $2 \cdot 10^6$ that occur as orders
+Return a sorted vector of all numbers to $2 \cdot 10^6$ that occur as orders
 of perfect groups.
 
 # Examples
@@ -28,7 +28,7 @@ function orders_perfect_groups()
     return Vector{Int}(GAP.Globals.SizesPerfectGroups())
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     has_number_perfect_groups(n::Int)
 
 Return `true` if the number of perfect groups of order `n` are available
@@ -47,7 +47,7 @@ false
 """
 has_number_perfect_groups(n::Int) = has_perfect_groups(n) # for now just an alias
 
-@doc Markdown.doc"""
+@doc raw"""
     has_perfect_group_identification(n::Int)
 
 Return `true` if identification is supported for the perfect
@@ -66,7 +66,7 @@ false
 """
 has_perfect_group_identification(n::Int) = has_perfect_groups(n) # for now just an alias
 
-@doc Markdown.doc"""
+@doc raw"""
     has_perfect_groups(deg::Int)
 
 Return `true` if the perfect groups of order `n` are available

@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     ModuleFP{T}
 
 The abstract supertype of all finitely presented modules.
@@ -6,14 +6,14 @@ The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}
 
 The abstract supertype of all finitely generated free modules.
 """
 abstract type AbstractFreeMod{T} <: ModuleFP{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractSubQuo{T} <: ModuleFP{T}
 
 The abstract supertype of all finitely presented subquotient modules.
@@ -21,21 +21,21 @@ The abstract supertype of all finitely presented subquotient modules.
 abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleFPElem{T} <: ModuleElem{T}
 
 The abstract supertype of all elements of finitely presented modules.
 """
 abstract type ModuleFPElem{T} <: ModuleElem{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
 
 The abstract supertype of all elements of finitely generated free modules.
 """
 abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
 
-@doc Markdown.doc"""
+@doc raw"""
     AbstractSubQuoElem{T} <: ModuleFPElem{T}
 
 The abstract supertype of all elements of subquotient modules.
@@ -44,7 +44,7 @@ abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
 abstract type ModuleFPHomDummy end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleFPHom{T1, T2, RingMapType}
 
 The abstract supertype for morphisms of finitely presented modules over multivariate polynomial rings .
@@ -58,7 +58,7 @@ abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, Mo
 
 parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeMod{T <: RingElem} <: AbstractFreeMod{T}
 
 The type of free modules.
@@ -72,6 +72,7 @@ option is set in suitable functions.
   R::Ring
   n::Int
   S::Vector{Symbol}
+  d::Union{Vector{GrpAbFinGenElem}, Nothing}
 
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
@@ -81,6 +82,7 @@ option is set in suitable functions.
     r.n = n
     r.R = R
     r.S = S
+    r.d = nothing
 
     r.incoming_morphisms = Vector{ModuleFPHom}()
     r.outgoing_morphisms = Vector{ModuleFPHom}()
@@ -89,7 +91,7 @@ option is set in suitable functions.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem{T}
 
 The type of free module elements. An element of a free module $F$ is given by a sparse row (`SRow`)
@@ -116,17 +118,18 @@ julia> f == g
 true
 ```
 """
-struct FreeModElem{T} <: AbstractFreeModElem{T}
+mutable struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
+  d::Union{GrpAbFinGenElem, Nothing}
 
   function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
-    r = new{T}(coords,parent)
-    return r
+      r = new{T}(coords, parent, nothing)
+      return r
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens{T}
 
 Data structure for a generating systems for submodules.
@@ -181,7 +184,7 @@ Relative Gröbner / standard bases are also supported.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule{T} <: ModuleFP{T}
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
@@ -195,6 +198,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   default_ordering::ModuleOrdering
   matrix::MatElem
+  is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
@@ -206,7 +210,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule{T} <: ModuleFP{T}
 
 The type of subquotient modules.
@@ -245,7 +249,7 @@ option is set in suitable functions.
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModuleElem{T}
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
@@ -323,6 +327,7 @@ mutable struct SubQuoHom{
   im::Vector
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
+  d::GrpAbFinGenElem
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
@@ -334,7 +339,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{FreeModElem}(im)
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
@@ -346,7 +351,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{SubquoModuleElem}(im)
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
@@ -358,7 +363,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = im
-    return r
+    return set_grading(r)
   end
 
   # Constructors for maps with change of base ring
@@ -377,7 +382,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{FreeModElem}(im)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -395,7 +400,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{SubquoModuleElem}(im)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -413,7 +418,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = im
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
 end
@@ -426,7 +431,7 @@ const CRing_dec = Union{MPolyDecRing, MPolyQuoRing{<:Oscar.MPolyDecRingElem}}
 const CRingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRingElem}}
 #TODO: other name for CRing_dec -> which?
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeMod_dec{T <: CRingElem_dec} <: ModuleFP_dec{T}
 
 The type of decorated (graded or filtered) free modules.
@@ -454,7 +459,7 @@ option is set in suitable functions.
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem_dec{T}
 
 The type of decorated free module elements. An element of a decorated free module $F$ is 
@@ -479,7 +484,7 @@ const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubquoDecModule{T} will be inclu
 const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubquoDecModuleElem{T} will be included
 
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2, RingMapType} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
@@ -494,6 +499,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
   header::MapHeader
   ring_map::RingMapType
+  d::GrpAbFinGenElem
   
   matrix::MatElem
   inverse_isomorphism::ModuleFPHom
@@ -519,7 +525,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
-    return r
+    return set_grading(r)
   end
 
   function FreeModuleHom(
@@ -544,7 +550,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
 end
@@ -625,7 +631,7 @@ struct FreeModuleHom_dec{
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeResolution{T}
 
 Data structure for free resolutions.
@@ -676,4 +682,13 @@ function Base.show(io::IO, FR::FreeResolution)
             continue
         end
     end
+end
+
+mutable struct BettiTable
+  B::Dict{Tuple{Int, Any}, Int}
+  project::Union{GrpAbFinGenElem, Nothing}
+  reverse_direction::Bool
+  function BettiTable(B::Dict{Tuple{Int, Any}, Int}; project::Union{GrpAbFinGenElem, Nothing}=nothing, reverse_direction::Bool=false)
+      return new(B, project, reverse_direction)
+  end
 end

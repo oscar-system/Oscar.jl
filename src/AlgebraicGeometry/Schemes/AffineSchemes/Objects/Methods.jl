@@ -44,7 +44,7 @@ end
 # (3) Check for zero divisors in rings
 ########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_non_zero_divisor(f::RingElem, X::AbsSpec)
 
 Checks if a ring element is a non-zero divisor
@@ -53,13 +53,9 @@ in the coordinate ring of an affine scheme.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:
@@ -126,10 +122,10 @@ end
 # It seems likely that the implementation can be tuned so that, for 
 # instance, the massive use of primary decompositions can be avoided. 
 # This should eventually be addressed. 
-@doc Markdown.doc"""
+@doc raw"""
     components(X::AbsSpec)
 
-This returns a decomposition of ``X`` into its connected components 
+Return a decomposition of ``X`` into its connected components
 ``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
 """
 function components(X::AbsSpec)

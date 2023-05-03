@@ -111,8 +111,6 @@ include("Experimental/MatrixGroups-test.jl")
 include("Experimental/JuLie-test.jl")
 include("Experimental/SymmetricIntersections-test.jl")
 include("Experimental/ExteriorAlgebra-test.jl")
-include("Experimental/LinearQuotients/runtests.jl")
-include("Experimental/FTheoryTools/runtests.jl")
 
 include("Rings/ReesAlgebra.jl")
 
@@ -131,18 +129,6 @@ include("StraightLinePrograms/runtests.jl")
 
 @static if compiletimes
   Base.cumulative_compile_timing(false);
-end
-
-# Doctests
-
-# We want to avoid running the doctests twice so we skip them when
-# "oscar_run_doctests" is set by OscarDevTools.jl
-if v"1.6.0" <= VERSION < v"1.7.0" && !haskey(ENV,"oscar_run_doctests")
-  @info "Running doctests (Julia version is 1.6)"
-  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
-  doctest(Oscar)
-else
-  @info "Not running doctests (Julia version must be 1.6)"
 end
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes

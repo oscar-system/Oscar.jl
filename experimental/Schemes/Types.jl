@@ -71,7 +71,7 @@ end
 ########################################################################
 # Sheaves                                                              #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
 Abstract type for a sheaf ℱ on a space X.
@@ -96,7 +96,7 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     PreSheafOnScheme
 
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
@@ -165,7 +165,7 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     StructureSheafOfRings <: AbsPreSheaf
 
 On an `AbsCoveredScheme` ``X`` this returns the sheaf ``𝒪`` of rings of
@@ -405,7 +405,7 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     IdealSheaf <: AbsPreSheaf
 
 A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.

@@ -51,11 +51,9 @@ export exterior_algebra  # MAIN EXPORT!
 # Attach docstring to "abstract" function exterior_algebra, so that
 # it is automatically "inherited" by the methods.
 
-@doc Markdown.doc"""
+@doc raw"""
     exterior_algebra(K::Field, numVars::Int)
-    exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
-                                                     AbstractVector{Symbol},
-                                                     AbstractVector{Char}})
+    exterior_algebra(K::Field, listOfVarNames::AbstractVector{<:VarName})
 
 The *first form* returns an exterior algebra with coefficient field `K` and
 `numVars` variables: `numVars` must be positive, and the variables are
@@ -100,9 +98,7 @@ end
 #---------------------------------
 # Method where caller specifies name of variables.
 
-function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:AbstractString},
-                                                          AbstractVector{Symbol},
-                                                          AbstractVector{Char}})
+function exterior_algebra(K::Field, listOfVarNames::AbstractVector{<:VarName})
     numVars = length(listOfVarNames)
     if numVars == 0
         throw(ArgumentError("no variables/indeterminates given"))
@@ -121,21 +117,14 @@ function exterior_algebra(K::Field, listOfVarNames::Union{AbstractVector{<:Abstr
     end
     PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false) # disable check since we know it is OK!
     I = two_sided_ideal(PBW, PBW_indets.^2)
-    # Now construct the fast exteriorAlgebra in Singular; get var names from
-    # PBW in case it had "mangled" them.
+    # Now construct the fast exteriorAlgebra in Singular;
+    # get var names from PBW in case it had "mangled" them.
     P, _ = Singular.polynomial_ring(SameCoeffRing, string.(symbols(PBW)))
     SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr))
     ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
-    # ***WORKAROUND***
-    # Singular is "too smart" when there is just 1 indet, so we error out
-    # When Singular is fixed, a @test_broken in the test suite will fail!!
-    # When that happens remove this comment and the if stmt below (& fix the test)
-    if supertype(typeof(ExtAlg_singular)) != AbstractAlgebra.NCRing
-        throw(NotImplementedError(:exterior_algebra, "1 variable not yet supported  (requires Singular update)"))
-    end
-    # ***END OF WORKAROUND***
     # Create Quotient ring with special implementation:
     ExtAlg,_ = quo(PBW, I;  SpecialImpl = ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
+######    set_attribute!(ExtAlg, :is_exterior_algebra, :true)  ### DID NOT WORK (see PBWAlgebraQuo.jl)  Anyway, the have_special_impl function suffices.
     return ExtAlg, gens(ExtAlg)
 end
 
@@ -150,7 +139,7 @@ end
 # # Returns 2 components: ExtAlg, list of the gens/variables in order (e1,..,en)
 
 
-# @doc Markdown.doc"""
+# @doc raw"""
 #     exterior_algebra_PBWAlgQuo(coeffRing::Ring, numVars::Int)
 #     exterior_algebra_PBWAlgQuo(coeffRing::Ring, listOfVarNames::Vector{String})
 
@@ -187,7 +176,7 @@ end
 #     return exterior_algebra_PBWAlgQuo(K,  (1:numVars) .|> (k -> "e$k"))
 # end
 
-# function exterior_algebra_PBWAlgQuo(K::Ring, listOfVarNames::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+# function exterior_algebra_PBWAlgQuo(K::Ring, listOfVarNames::AbstractVector{<:VarName})
 #     numVars = length(listOfVarNames)
 #     if (numVars == 0)
 #         throw(ArgumentError("no variables/indeterminates given"))

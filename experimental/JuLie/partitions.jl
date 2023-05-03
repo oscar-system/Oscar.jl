@@ -22,7 +22,7 @@ export partitions
 ################################################################################
 # Partition type
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     Partition{T<:IntegerUnion} <: AbstractVector{T}
 
 A **partition** of a non-negative integer ``n`` is a decreasing sequence ``λ₁ ≥ λ₂ ≥ … ≥
@@ -128,7 +128,7 @@ function Base.copy(P::Partition{T}) where T<:IntegerUnion
   return Partition{T}(copy(P.p))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     getindex_safe(P::Partition, i::IntegerUnion)
 
 In algorithms involving partitions it is sometimes convenient to be able to access parts
@@ -160,7 +160,7 @@ end
 # Generating and counting unrestricted partitions
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     num_partitions(n::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n`. 
@@ -191,7 +191,7 @@ function num_partitions(n::IntegerUnion)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(n::IntegerUnion)
 
 A list of all partitions of a non-negative integer `n`, produced in lexicographically
@@ -267,38 +267,37 @@ function partitions(n::IntegerUnion)
 end
 
 
-@doc Markdown.doc"""
-    ascending_partitions(n::IntegerUnion;alg="ks")
+@doc raw"""
+    ascending_partitions(n::IntegerUnion; algorithm::Symbol=:ks)
 
 Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending*
 sequence (which is our convention), one can also encode it as an *ascending*
 sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is
 said that generating the list of all ascending partitions is more efficient
-than generating descending ones. To test this, I have implemented the
+than generating descending ones. To test this, we have implemented the
 algorithms given in the papers:
-1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
-2. "m" is Algorithm 6 in [Mer12](@cite). This is actually similar to "ks".
+1. `:ks` (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
+2. `:m` is Algorithm 6 in [Mer12](@cite). This is actually similar to `:ks`.
 
 The ascending partitions are stored here as arrays and are not of type
-`Partition` since the latter are descending by our convention. I am using "ks"
-as default since it looks slicker and I believe there is a tiny mistake in the
-publication of "m" (which I fixed).
+`Partition` since the latter are descending by our convention. We are using `:ks`
+as default since it looks slicker.
 
 # Comparison
 
-I don't see a significant speed difference to the descending encoding:
+We don't see a significant speed difference to the descending encoding:
 ```julia-repl
 julia> @btime partitions(Int8(90));
 3.376 s (56634200 allocations: 6.24 GiB)
 
-julia> @btime ascending_partitions(Int8(90),alg="ks");
+julia> @btime ascending_partitions(Int8(90), algorithm=:ks);
 3.395 s (56634200 allocations: 6.24 GiB)
 
-julia> @btime ascending_partitions(Int8(90),alg="m");
+julia> @btime ascending_partitions(Int8(90), algorithm=:m);
 3.451 s (56634200 allocations: 6.24 GiB)
 ```
 """
-function ascending_partitions(n::IntegerUnion; alg="ks")
+function ascending_partitions(n::IntegerUnion; algorithm::Symbol="ks")
 
   #Argument checking
   @req n >= 0 "n >= 0 required"
@@ -314,7 +313,7 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
   end
 
   # Now, the algorithm starts
-  if alg=="ks"
+  if algorithm === :ks
     P = Vector{T}[]    #this will be the array of all partitions
     a = zeros(T, n)
     k = 2
@@ -341,7 +340,7 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
     end
     return P
 
-  elseif alg=="m"
+  elseif algorithm === :m
     P = Vector{T}[]    #this will be the array of all partitions
     a = zeros(T, n)
     k = 1
@@ -398,7 +397,7 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
     end
     return P
   else
-    error("alg must be either ks or m")
+    error("algorithm must be either :ks or :m")
   end
 
 end
@@ -407,7 +406,7 @@ end
 # Generating and counting restricted partitions
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
@@ -466,7 +465,7 @@ function num_partitions(n::IntegerUnion, k::IntegerUnion)
 
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 
 A list of all partitions of a non-negative integer `m` into `n >= 0` parts with lower bound
@@ -587,7 +586,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 
 All partitions of a non-negative integer `m` into `n` parts (no further restrictions).
@@ -623,7 +622,7 @@ function partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
 
 All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an
@@ -839,7 +838,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   return P
 end
 
-@Markdown.doc """
+@doc raw"""
     partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
   
 All partitions of a non-negative integer `m` where each part is an element in the vector `v`
@@ -920,7 +919,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<
 
 end
 
-@Markdown.doc """
+@doc raw"""
     function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
   
 All partitions of a non-negative integer `m` where each part is an element in the vector
@@ -973,7 +972,7 @@ end
 # Relations
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     dominates(lambda::Partition, mu::Partition)
 
 The **dominance order** on partitions is the partial order ``⊵`` defined by ``λ ⊵ μ`` if and
@@ -1025,7 +1024,7 @@ end
 ################################################################################
 # Operations
 ################################################################################
-@doc Markdown.doc"""
+@doc raw"""
     conjugate(lambda::Partition{T}) where T<:IntegerUnion
 
 The **conjugate** of a partition is obtained by considering its Young diagram

@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
@@ -35,12 +35,10 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "ExteriorAlgebra",
-  "FTheoryTools",
   "GaloisGrp",
   "GITFans",
   "GModule",
   "JuLie",
-  "LinearQuotients",
   "Matrix",
   "ModStd",
   "MPolyRingSparse",
@@ -120,7 +118,7 @@ function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit=false, full=false)
 
 Print the versions of all Oscar-related dependencies.
@@ -170,14 +168,14 @@ end
 # precompilation
 const rng_seed = Ref{UInt32}(rand(UInt32))
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seed()
 
 Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
 """
 get_seed() = return rng_seed[]
 
-@doc Markdown.doc"""
+@doc raw"""
     set_seed!(s::Integer)
 
 Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
@@ -186,7 +184,7 @@ function set_seed!(s::Integer)
   rng_seed[] = convert(UInt32, s)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seeded_rng()
 
 Return a new random number generator object of type MersenneTwister which is
@@ -242,14 +240,22 @@ function __init__()
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
-    GAP.Packages.load("ctbllib")
-    GAP.Packages.load("forms")
-    GAP.Packages.load("wedderga") # provides a function to compute Schur indices
-    GAP.Packages.load("repsn")
+    for pkg in ["ctbllib",
+                "forms",
+                "wedderga", # provides a function to compute Schur indices
+                "repsn",
+               ]
+      GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
+    end
     __init_group_libraries()
 
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
+
+    add_verbose_scope(:GlobalTateModel)
+    add_verbose_scope(:GlobalWeierstrassModel)
+
+    add_verbosity_scope(:LinearQuotients)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -313,7 +319,7 @@ function open_doc()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
@@ -325,8 +331,8 @@ The optional parameter `doctest` can take three values:
   - `:fix`: Run the doctests and replace the output in the manual with
     the output produced by Oscar. Please use this option carefully.
 
-In github actions the Julia version used for building the manual and
-running the doctests is 1.6. Using a different Julia version will produce
+In GitHub Actions the Julia version used for building the manual is 1.8 and
+doctests are run with >= 1.7. Using a different Julia version may produce
 errors in some parts of Oscar, so please be careful, especially when setting
 `doctest=:fix`.
 
@@ -350,9 +356,9 @@ The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
 function build_doc(; doctest=false, strict=false, open_browser=true)
-  versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
+  versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = 
-"The Julia reference version for the doctests is 1.6, but you are using
+"The Julia reference version for the doctests is 1.7 or later, but you are using
 $(VERSION). Running the doctests will produce errors that you do not expect."
   if doctest != false && !versioncheck
     @warn versionwarn
@@ -401,41 +407,49 @@ function build()
 end
 
 
-@doc Markdown.doc"""
-    test_module(x, new::Bool = true)
+@doc raw"""
+    test_module(file::AbstractString; new::Bool = true)
 
-Run the Oscar tests in the file `x.jl` where `x` is a string.
+Run the Oscar tests in the file `test/<file>.jl` where `file` may be a path.
 
-If `x == "all"` run the entire testsuite.
+The optional parameter `new` takes the values `false` and `true` (default). If
+`true`, then the tests are run in a new session, otherwise the currently active
+session is used.
+
+For experimental modules, use [`test_experimental_module`](@ref) instead.
+"""
+function test_module(file::AbstractString; new::Bool=true)
+  julia_exe = Base.julia_cmd()
+  rel_test_file = normpath("test", "$file.jl")
+  test_file = joinpath(oscardir, rel_test_file)
+
+  if new
+    cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
+    @info("spawning ", `$julia_exe -e \"$cmd\"`)
+    run(`$julia_exe -e $cmd`)
+  else
+    @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
+    @info("Running tests for $rel_test_file in same session")
+    Base.include(Base.Main, test_file)
+  end
+end
+
+@doc raw"""
+    test_experimental_module(project::AbstractString; file::AbstractString="runtests", new::Bool = true)
+
+Run the Oscar tests in the file `experimental/<project>/test/<file>.jl`
+where `file` may be a path.
+The default is to run the entire test suite of the module `project`.
 
 The optional parameter `new` takes the values `false` and `true` (default). If
 `true`, then the tests are run in a new session, otherwise the currently active
 session is used.
 """
-function test_module(x::AbstractString, new::Bool = true)
-   julia_exe = Base.julia_cmd()
-   if x == "all"
-     test_file = joinpath(oscardir, "test/runtests.jl")
-   else
-     test_file = joinpath(oscardir, "test/$x.jl")
-   end
-
-   if new
-     cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
-     @info("spawning ", `$julia_exe -e \"$cmd\"`)
-     run(`$julia_exe -e $cmd`)
-   else
-     @info("Running tests for $x in same session")
-     try
-       include(test_file)
-     catch e
-       if isa(e, LoadError)
-         println("You need to do \"using Test\"")
-       else
-         rethrow(e)
-       end
-     end
-   end
+function test_experimental_module(
+  project::AbstractString; file::AbstractString="runtests", new::Bool=true
+)
+  test_file = "../experimental/$project/test/$file"
+  test_module(test_file; new)
 end
 
 include("Exports.jl")
@@ -508,6 +522,7 @@ include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 include("GAP/iso_gap_oscar.jl")
 include("GAP/iso_oscar_gap.jl")
+include("../gap/OscarInterface/julia/alnuth.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 include("Groups/action.jl")  # needs some PolynomialRings functionality
@@ -570,7 +585,7 @@ include("Deprecations.jl")
 const global OSCAR = Oscar
 const global oscar = Oscar
 
-@doc Markdown.doc"""
+@doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   ?Nemo
   ?Hecke
@@ -578,7 +593,6 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   for more information
 """
 module ANTIC
-using Markdown
 end
 
 end # module

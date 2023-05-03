@@ -404,3 +404,17 @@ end
    @test !is_elimination_ordering(lex(R), [y,z])
    @test is_elimination_ordering(deglex([x,y])*deglex([y,z,w]), [x,y])
 end
+
+@testset "Inducing monomial orderings" begin
+   R, (x, y, z) = polynomial_ring(QQ, 3)
+   S, (a, b, c) = polynomial_ring(GF(5), 3)
+
+   @test lex([a, b]) == induce([a, b], lex([x, y]))
+   @test revlex([a, b, c]) == induce([a, b, c], revlex([x, y, z]))
+   @test degrevlex([a, c]) == induce([a, c], degrevlex([x, z]))
+   M = matrix(ZZ, [1 1 1; 1 0 0; 0 1 0])
+   @test matrix_ordering([a, b, c], M) == induce([a, b, c], matrix_ordering([x, y, z], M))
+   @test wdeglex([a, b], [1, 2]) == induce([a, b], wdeglex([x, y], [1, 2]))
+   @test revlex([a, b])*neglex([c]) == induce([a, b, c], revlex([x, y])*neglex([z]))
+   @test lex([a])*lex([b])*lex([c]) == induce([a, b, c], lex([x])*lex([y])*lex([z]))
+end

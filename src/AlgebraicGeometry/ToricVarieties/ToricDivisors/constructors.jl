@@ -18,7 +18,7 @@ pm_tdivisor(td::ToricDivisor) = td.polymake_divisor
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear
@@ -33,9 +33,7 @@ Torus-invariant, non-prime divisor on a normal toric variety
 """
 function toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
     # check input
-    if length(coeffs) != pm_object(v).N_RAYS
-        throw(ArgumentError("Number of coefficients needs to match number of prime divisors"))
-    end
+    @req length(coeffs) == pm_object(v).N_RAYS "Number of coefficients needs to match number of prime divisors"
     
     # construct the divisor
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=Polymake.Vector{Polymake.Integer}(coeffs))
@@ -58,7 +56,7 @@ end
 # 3: Special constructors
 ######################
 
-@doc Markdown.doc"""
+@doc raw"""
     divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor associated to a character of the normal toric variety `v`.
@@ -70,9 +68,8 @@ Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
-    if length(character) != rank(character_lattice(v))
-        throw(ArgumentError("Character must consist of $(rank(character_lattice(v))) integers"))
-    end
+    r = rank(character_lattice(v))
+    @req length(character) == r "Character must consist of $r integers"
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))
     coeffs = [ZZRingElem(x) for x in transpose(f(char).coeff)][:, 1]
@@ -85,18 +82,14 @@ end
 ########################
 
 function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
-    if toric_variety(td1) !== toric_variety(td2)
-        throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(td1) === toric_variety(td2) "The toric divisors must be defined on the same toric variety"
     new_coeffiicients = coefficients(td1) + coefficients(td2)
     return toric_divisor(toric_variety(td1), new_coeffiicients)
 end
 
 
 function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
-    if toric_variety(td1) !== toric_variety(td2)
-        throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(td1) === toric_variety(td2) "The toric divisors must be defined on the same toric variety"
     new_coeffiicients = coefficients(td1) - coefficients(td2)
     return toric_divisor(toric_variety(td1), new_coeffiicients)
 end

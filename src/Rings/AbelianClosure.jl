@@ -23,7 +23,7 @@
 
 module AbelianClosure 
 
-using ..Oscar, Markdown
+using ..Oscar
 
 import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_internal, hash
 
@@ -73,7 +73,7 @@ const _QQAbGen_sparse = QQAbFieldGen(_QQAb_sparse)
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     abelian_closure(QQ::RationalField)
 
 Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals
@@ -887,7 +887,7 @@ is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
 function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
-  N > 0 || throw(ArgumentError("conductor ($N) must be positive"))
+  @req N > 0 "conductor ($N) must be positive"
   z = root_of_unity(F, N)
   if n == 0
     return zero(z)

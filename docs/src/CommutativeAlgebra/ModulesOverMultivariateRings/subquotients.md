@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["subquotients.md"]
-```
-
 # Subquotients
 
 A subquotient  is a submodule of a quotient of a free module. In this section, the expression

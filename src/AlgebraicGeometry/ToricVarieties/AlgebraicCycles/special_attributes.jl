@@ -2,7 +2,7 @@
 # 1: Special attributes of toric varieties
 ################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     chow_ring(v::AbstractNormalToricVariety)
 
 Return the Chow ring of the simplicial toric variety `v`.
@@ -46,9 +46,7 @@ Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Fi
 ```
 """
 @attr MPolyQuoRing function chow_ring(v::AbstractNormalToricVariety)
-    if !is_simplicial(v)
-      throw(ArgumentError("The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"))
-    end
+    @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
     R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
     linear_relations = ideal_of_linear_relations(R, v)
     stanley_reisner = stanley_reisner_ideal(R, v)
@@ -56,11 +54,11 @@ Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Fi
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
 
-Returns a list of generators of the Chow ring of a complete,
-simplicial toric variety.
+Return a list of generators of the Chow ring of a
+complete, simplicial toric variety.
 
 Recall that the cones of a complete, simplicial toric variety
 can be seen as generators of the Chow ring (lemma 12.5.1 in
@@ -72,21 +70,28 @@ rational equivalence into account.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> length(gens_of_rational_equivalence_classes(p2))
-6
+julia> gens_of_rational_equivalence_classes(p2)
+6-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ x3^2
+ x3^2
+ x3^2
+ x3
+ x3
+ x3
 ```
 """
 @attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
-    g = gens(chow_ring(v))
-    r_list = [rays(c) for c in cones(v)]
-    return [prod([g[findfirst(x->x==r, rays(v))] for r in rs]) for rs in r_list]
+  cr = chow_ring(v)
+  R = base_ring(cr)
+  cs = cones(v)
+  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:n_cones(v)]
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
 
-Returns a dictionary which maps the generators of the chow
+Return a dictionary which maps the generators of the chow
 ring to monomials in the Cox ring. This dictionary involves
 a choice, i.e. is not unique.
 
@@ -94,24 +99,27 @@ a choice, i.e. is not unique.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> length(map_gens_of_chow_ring_to_cox_ring(p2))
-4
+julia> map_gens_of_chow_ring_to_cox_ring(p2)
+Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
+  x3^2 => x1*x3
+  x3   => x3
 ```
 """
 @attr Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
-    g = gens(chow_ring(v))
-    g2 = gens(cox_ring(v))
-    r_list = [rays(c) for c in cones(v)]
-    mapping = Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-    for rs in r_list
-      p1 = prod([g[findfirst(x->x==r, rays(v))] for r in rs]).f
-      p2 = prod([g2[findfirst(x->x==r, rays(v))] for r in rs])
-      coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
-      if coeff != 1
-        p1 = 1//coeff * p1
-        p2 = 1//coeff * p2
-      end
-      mapping[p1] = p2
+  cr = chow_ring(v)
+  R = base_ring(cr)
+  co = cox_ring(v)
+  cs = cones(v)
+  mapping = Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  for k in 1:nrows(cs)
+    p1 = simplify(cr(R([1], [Vector{Int}(cs[k,:])]))).f
+    p2 = co([1], [Vector{Int}(cs[k,:])])
+    coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
+    if coeff != 1
+      p1 = 1//coeff * p1
+      p2 = 1//coeff * p2
     end
-    return mapping
+    mapping[p1] = p2
+  end
+  return mapping
 end

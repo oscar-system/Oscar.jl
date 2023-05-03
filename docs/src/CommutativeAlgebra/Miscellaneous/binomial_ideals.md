@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["binomial_ideals.md"]
-```
-
 # Binomial Primary Decomposition
 
 ## Introduction

@@ -3,7 +3,7 @@
 ############################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(v::AbstractNormalToricVariety)
 
 Return the dimension of the normal toric variety `v`.
@@ -21,7 +21,7 @@ julia> dim(antv)
 @attr Int dim(v::AbstractNormalToricVariety) = pm_object(v).FAN_DIM
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dim_of_torusfactor(v::AbstractNormalToricVariety)
 
 Return the dimension of the torus factor of the normal toric variety `v`.
@@ -46,7 +46,7 @@ julia> dim_of_torusfactor(antv)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     euler_characteristic(v::AbstractNormalToricVariety)
 
 Return the Euler characteristic of the normal toric variety `v`.
@@ -72,7 +72,7 @@ end
 ###############################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_finalized(v::AbstractNormalToricVariety)
 
 Checks if the Cox ring, the coordinate ring of the torus,
@@ -102,7 +102,7 @@ function is_finalized(v::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
 Allows to set the names of the homogeneous coordinates as long as the toric variety in
@@ -125,14 +125,12 @@ function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::V
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
-    if length(coordinate_names) != nrays(v)
-        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan"))
-    end
+    @req length(coordinate_names) == nrays(v) "The provided list of coordinate names must match the number of rays in the fan"
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
 Allows to set the names of the coordinates of the torus.
@@ -153,9 +151,7 @@ function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate
     if is_finalized(v)
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
-    if length(coordinate_names) != ambient_dim(v)
-        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan"))
-    end
+    @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
     set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
 end
 
@@ -166,9 +162,11 @@ end
 ########################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficient_ring(v::AbstractNormalToricVariety)
-This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
+
+Return the coefficient_ring `QQ` of the normal toric variety `v`.
+
 # Examples
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
@@ -182,10 +180,10 @@ true
 coefficient_ring(v::AbstractNormalToricVariety) = QQ
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinate_names(v::AbstractNormalToricVariety)
 
-This method returns the names of the homogeneous coordinates of 
+Return the names of the homogeneous coordinates of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 
 # Examples
@@ -211,7 +209,7 @@ function _cox_ring_weights(v::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`, in this case by adding
@@ -238,7 +236,7 @@ function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cox_ring(v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`.
@@ -275,7 +273,7 @@ end
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Return the Stanley-Reisner ideal of a normal toric variety `v` as an ideal of
@@ -300,7 +298,7 @@ function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     stanley_reisner_ideal(v::AbstractNormalToricVariety)
 
 Return the Stanley-Reisner ideal of a normal toric variety `v`.
@@ -332,7 +330,7 @@ julia> ngens(stanley_reisner_ideal(p2))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Return the irrelevant ideal of a normal toric variety `v` as an ideal in `R`.
@@ -354,7 +352,7 @@ function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     irrelevant_ideal(v::AbstractNormalToricVariety)
 
 Return the irrelevant ideal of a normal toric variety `v`.
@@ -378,7 +376,7 @@ end
 ########################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Return the ideal of linear relations of the simplicial and complete toric variety `v` in the ring R.
@@ -394,12 +392,9 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !is_simplicial(v)
-        throw(ArgumentError("The ideal of linear relations is only supported for simplicial toric varieties"))
-    end
-    if ngens(R) != nrays(v)
-        throw(ArgumentError("The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"))
-    end
+    @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
+    @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
+
     indeterminates = gens(R)
     d = rank(character_lattice(v))
     generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
@@ -407,7 +402,7 @@ function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_of_linear_relations(v::AbstractNormalToricVariety)
 
 Return the ideal of linear relations of the simplicial and complete toric variety `v`.
@@ -433,7 +428,7 @@ end
 ########################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 
 Return the toric ideal defining the affine normal toric variety as an ideal in
@@ -464,7 +459,7 @@ function toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_ideal(antv::AffineNormalToricVariety)
 
 Return the toric ideal defining the affine normal toric variety.
@@ -504,9 +499,10 @@ end
 ########################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinate_names_of_torus(v::AbstractNormalToricVariety)
-This method returns the names of the coordinates of the torus of
+
+Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
 @attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)
@@ -514,7 +510,7 @@ the normal toric variety `v`. The default is `x1, ..., xn`.
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Computes the coordinate ring of the torus of the normal toric variety `v`
@@ -522,15 +518,13 @@ in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
     n = length(coordinate_names_of_torus(v))
-    if length(gens(R)) < 2 * n
-        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates"))
-    end
-    relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
+    @req length(gens(R)) >= 2 * n "The given ring must have at least $n indeterminates"
+    relations = [gens(R)[i] * gens(R)[i+n] - one(coefficient_ring(R)) for i in 1:n]
     return quo(R, ideal(relations))[1]
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinate_ring_of_torus(v::AbstractNormalToricVariety)
 
 Computes the coordinate ring of the torus of the normal toric variety `v`.
@@ -556,7 +550,7 @@ end
 #########################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 
 Computes the rational function corresponding to a character of the normal toric variety `v`.
@@ -576,7 +570,7 @@ end
 character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
 
 
-@doc Markdown.doc"""
+@doc raw"""
     character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
 
 Computes the rational function corresponding to a character of the normal toric variety `v`.
@@ -614,7 +608,7 @@ character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, char
 ##############################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     character_lattice(v::AbstractNormalToricVariety)
 
 Return the character lattice of a normal toric variety `v`.
@@ -630,7 +624,7 @@ GrpAb: Z^2
 @attr GrpAbFinGen character_lattice(v::AbstractNormalToricVariety) = free_abelian_group(ambient_dim(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the torusinvariant divisor group of a normal toric variety `v`.
@@ -646,7 +640,7 @@ GrpAb: Z^3
 @attr GrpAbFinGen torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety) = free_abelian_group(nrays(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
@@ -671,7 +665,7 @@ Abelian group with structure: Z^3
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 
 Return the list of all torus invariant prime divisors in a normal toric variety `v`.
@@ -699,7 +693,7 @@ julia> torusinvariant_prime_divisors(p2)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     class_group(v::AbstractNormalToricVariety)
 
 Return the class group of the normal toric variety `v`.
@@ -715,7 +709,7 @@ GrpAb: Z
 @attr GrpAbFinGen class_group(v::AbstractNormalToricVariety) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
 
 Return the map from the group of Weil divisors to the class of group of a normal toric variety `v`.
@@ -741,7 +735,7 @@ Abelian group with structure: Z
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the embedding of the group of Cartier divisors into the group of
@@ -823,7 +817,7 @@ Abelian group with structure: Z^3
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
 
 Return the Cartier divisor group of an abstract normal toric variety `v`.
@@ -842,7 +836,7 @@ GrpAb: Z^3
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
 
 Return the map from the Cartier divisors to the Picard group
@@ -876,7 +870,7 @@ Abelian group with structure: Z
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     picard_group(v::AbstractNormalToricVariety)
 
 Return the Picard group of an abstract normal toric variety `v`.
@@ -939,7 +933,7 @@ julia> dim(mori)
 @attr Cone mori_cone(v::NormalToricVariety) = Cone(pm_object(v).MORI_CONE)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     fan(v::AbstractNormalToricVariety)
 
 Return the fan of an abstract normal toric variety `v`.
@@ -956,7 +950,7 @@ Polyhedral fan in ambient dimension 2
 @attr PolyhedralFan{QQFieldElem} fan(v::AbstractNormalToricVariety) = PolyhedralFan{QQFieldElem}(pm_object(v))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cone(v::AffineNormalToricVariety)
 
 Return the cone of the affine normal toric variety `v`.
@@ -970,12 +964,62 @@ Polyhedral cone in ambient dimension 2
 @attr Cone cone(v::AffineNormalToricVariety) = maximal_cones(v)[1]
 
 
+@doc raw"""
+    dual_cone(v::AffineNormalToricVariety)
+
+Return the dual cone of the affine normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> dual_cone(antv)
+Polyhedral cone in ambient dimension 2
+
+julia> polarize(cone(antv)) == dual_cone(antv)
+true
+```
+"""
+@attr Cone dual_cone(v::AffineNormalToricVariety) = polarize(cone(v))
+
+
+@doc raw"""
+    hilbert_basis(v::AffineNormalToricVariety)
+
+For an affine toric variety ``v``, this returns the Hilbert
+basis of the cone dual to the cone of ``v``.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([-1 1; 1 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> hilbert_basis(antv)
+[-1   1]
+[ 1   1]
+[ 0   1]
+```
+"""
+@attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(dual_cone(v)))
+
+
+_variable_ray_correspondence(v::AbstractNormalToricVariety) = Dict{RayVector, MPolyRingElem}(zip(rays(v), gens(cox_ring(v))))
+_ray_variable_correspondence(v::AbstractNormalToricVariety) = Dict{MPolyRingElem, RayVector}(zip(gens(cox_ring(v)), rays(v)))
+
+
 ############################
 # Affine covering
 ############################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     affine_open_covering(v::AbstractNormalToricVariety)
 
 Compute an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.

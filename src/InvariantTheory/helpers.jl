@@ -4,6 +4,17 @@
 #
 ################################################################################
 
+base_ring(C::PowerProductCache) = C.ring
+
+# Don't want to call it `exponent_vector` because I don't want it to be exported.
+function get_exponent_vector(C::PowerProductCache{S, T}, f::T) where {S, T}
+  @assert C.exponent_vectors_known[total_degree(f)] "exponent vectors for this degree were not computed, please trigger a re-computation with `remember_exponents = true`"
+
+  return C.exponent_vectors[f]
+end
+
+power_base(C::PowerProductCache) = C.base
+
 # Add a base element to the cache.
 function add_base_element!(C::PowerProductCache{S, T}, f::T, remember_exponents::Bool = true) where {S, T}
   @assert !iszero(f)

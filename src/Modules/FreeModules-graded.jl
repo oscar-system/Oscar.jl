@@ -26,15 +26,15 @@ const RingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRi
   end
 end
 
-function FreeModule(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) 
+function FreeModule(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) 
   return FreeModule_dec([grading_group(R)[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
-free_module(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
+free_module(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false)
+function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
-free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
+free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
@@ -551,7 +551,7 @@ function show(io::IO, SQ::SubquoDecModule)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
   A subquotient is (internally) given wia two submodules A and B of the same 
   FreeModule F. It represents $(A+B)/B$, so elements are given as elements
   in $A+B$
@@ -1305,7 +1305,7 @@ gens(F::SubquoDecModule, G::FreeModule_dec) = [x.a for x = gens(F)]
 rels(F::FreeModule_dec) = elem_type(F)[]
 rels(F::SubquoDecModule) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
 
-@doc Markdown.doc"""
+@doc raw"""
     tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubquoDecModule, Map
 
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.

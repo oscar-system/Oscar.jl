@@ -1,3 +1,4 @@
+using JSON
 using TOPCOM_jll
 
 function topcom_regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
@@ -108,7 +109,7 @@ function _is_star_triangulation(triang::Vector{Vector{Int}})
     return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     all_triangulations(pts::AbstractCollection[PointVector]; full=false)
 
 Compute all triangulations on the points given as the rows of `pts`. Optionally
@@ -149,7 +150,7 @@ function all_triangulations(pts::AbstractCollection[PointVector]; full::Bool=fal
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     all_triangulations(P::Polyhedron)
 
 Compute all triangulations that can be formed using the vertices of the given
@@ -179,7 +180,7 @@ function all_triangulations(P::Polyhedron)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     star_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false, regular::Bool=false)
 
 Return all star triangulations of the given point configuration, i.e. all
@@ -201,7 +202,7 @@ function star_triangulations(pts::AbstractCollection[PointVector]; full::Bool=fa
     return [t for t in result if _is_star_triangulation(t)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
 
 Return all star triangulations of the given bounded and full-dimensional
@@ -247,7 +248,7 @@ function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=fals
     is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
     is_bounded(P) || error("Input polytope must be bounded.")
     zero = [0 for i in 1:ambient_dim(P)]
-    @req contains(P, zero) "Input polyhedron must contain origin."
+    @req zero in P "Input polyhedron must contain origin."
     V = vertices(P)
     V = [Vector{QQFieldElem}(v) for v in V if !iszero(v)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, transpose(hcat(V...))))
@@ -257,7 +258,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_triangulations(pts::AbstractCollection[PointVector]; full=false)
 
 Compute all regular triangulations on the points given as the rows of `pts`.
@@ -300,7 +301,7 @@ function regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_triangulations(P::Polyhedron)
 
 Compute all regular triangulations that can be formed using the vertices of the
@@ -338,7 +339,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_triangulation(pts::AbstractCollection[PointVector]; full=false)
 
 Computes ONE regular triangulations on the points given as the rows of `pts`.
@@ -382,7 +383,7 @@ function regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_triangulation(P::Polyhedron)
 
 Computes ONE regular triangulations that can be formed using the vertices of the
@@ -420,7 +421,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     secondary_polytope(P::Polyhedron)
 
 Compute the secondary polytope of a polyhedron, i.e. the convex hull of all the
@@ -441,7 +442,7 @@ function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
     return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     isregular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
@@ -467,7 +468,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubdivisionOfPoints(P::Polyhdron, cells::IncidenceMatrix)
 
 # Arguments
@@ -492,7 +493,7 @@ Subdivision of points in ambient dimension 2
 SubdivisionOfPoints(P::Polyhedron, cells::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), cells)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubdivisionOfPoints(P::Polyhdron, weights::AbstractVector)
 
 # Arguments
@@ -523,7 +524,7 @@ SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     gkz_vector(SOP::SubdivisionOfPoints)
 
 Compute the gkz vector of a triangulation given as a subdivision of points, SOP.

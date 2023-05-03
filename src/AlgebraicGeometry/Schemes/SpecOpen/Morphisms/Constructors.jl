@@ -39,7 +39,7 @@ end
 ########################################################################
 # Restrictions of morphisms to SpecOpens                               #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool=true)
 
 Return the restriction ``g: U → V`` of ``f`` to ``U`` and ``V``.
@@ -103,7 +103,7 @@ end
 # Maximal extensions of rational maps given by rational coordinate     #
 # functions on the affine patches.                                     #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     maximal_extension(X::AbsSpec, Y::AbsSpec, f::AbstractAlgebra.Generic.Frac)
 
 Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 

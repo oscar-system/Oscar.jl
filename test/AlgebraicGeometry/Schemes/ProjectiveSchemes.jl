@@ -8,8 +8,8 @@
   X = ProjectiveScheme(S, I)
   CX, id = affine_cone(X)
   p = covered_projection_to_base(X)
-  @test OO(CX).(homogeneous_coordinates(X)) == [id(g) for g in gens(S)]
-  hc = homogeneous_coordinates(X)
+  @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
+  hc = Oscar.homogeneous_coordinates_on_affine_cone(X)
 
   phi = ProjectiveSchemeMor(X, X, [-u, -v])
 
@@ -23,8 +23,8 @@
   I = ideal(S, [u])
   X = ProjectiveScheme(S, I)
   CX, id = affine_cone(X)
-  @test OO(CX).(homogeneous_coordinates(X)) == [id(g) for g in gens(S)]
-  hc = homogeneous_coordinates(X)
+  @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
+  hc = Oscar.homogeneous_coordinates_on_affine_cone(X)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
 
@@ -52,7 +52,7 @@ end
   X = Spec(R, I)
   U = SpecOpen(X, [x, y])
   P = projective_space(OO(U), 1)
-  S = graded_coordinate_ring(P)
+  S = homogeneous_coordinate_ring(P)
   Y = subscheme(P, [OO(U)(x)*S[1]- OO(U)(y)*S[2], OO(U)(z)*S[1] - OO(U)(x)*S[2]]) # Coercion needs to be carried out manually.
   C, phi = affine_cone(Y)
   s1 = phi(S[2])
@@ -65,7 +65,7 @@ end
 
 @testset "projective schemes as covered schemes" begin
   P3 = projective_space(QQ,3)
-  S = graded_coordinate_ring(P3)
+  S = homogeneous_coordinate_ring(P3)
   F = subscheme(P3,ideal(S,S[1]^4+S[2]^4+S[3]^4+S[4]^4))
   Fc = covered_scheme(F)
   U = patches(Fc)[1]
@@ -76,13 +76,13 @@ end
 @testset "Fermat lines" begin
   K,a = cyclotomic_field(8)
   P3 = projective_space(K,3)
-  S = graded_coordinate_ring(P3)
+  S = homogeneous_coordinate_ring(P3)
   F = subscheme(P3, ideal(S, S[1]^4 + S[2]^4 + S[3]^4 + S[4]^4))
   Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
   oscar.intersect_in_covering(U,V,Fc[1]);
-  SF = graded_coordinate_ring(F)
+  SF = homogeneous_coordinate_ring(F)
   line = subscheme(F, ideal(SF, [SF[1]+a*SF[2],SF[3]+a*SF[4]]))
   groebner_basis(defining_ideal(line))
 end
@@ -150,10 +150,10 @@ end
 #  @test base_ring_type(IP2_U) == typeof(OO(U))
 #  @test base_ring_type(IP2_UY) == typeof(OO(UY))
 # 
-#  @test ring_type(IP2_X) == typeof(graded_coordinate_ring(IP2_X))
-#  @test ring_type(IP2_Y) == typeof(graded_coordinate_ring(IP2_Y))
-#  @test ring_type(IP2_U) == typeof(graded_coordinate_ring(IP2_U))
-#  @test ring_type(IP2_UY) == typeof(graded_coordinate_ring(IP2_UY))
+#  @test ring_type(IP2_X) == typeof(homogeneous_coordinate_ring(IP2_X))
+#  @test ring_type(IP2_Y) == typeof(homogeneous_coordinate_ring(IP2_Y))
+#  @test ring_type(IP2_U) == typeof(homogeneous_coordinate_ring(IP2_U))
+#  @test ring_type(IP2_UY) == typeof(homogeneous_coordinate_ring(IP2_UY))
 
   CX, _ = affine_cone(IP2_X)
   CY, _ = affine_cone(IP2_Y)
@@ -192,61 +192,61 @@ end
 
   map_on_affine_cones(map)
 
-  IP2_Xh = subscheme(IP2_X, gens(graded_coordinate_ring(IP2_X))[1])
-  ProjectiveSchemeMor(IP2_Xh, IP2_X, gens(graded_coordinate_ring(IP2_Xh)))
-  IP2_Yh = subscheme(IP2_Y, gens(graded_coordinate_ring(IP2_Y))[1])
-  ProjectiveSchemeMor(IP2_Yh, IP2_Y, gens(graded_coordinate_ring(IP2_Yh)))
-  IP2_Uh = subscheme(IP2_U, gens(graded_coordinate_ring(IP2_U))[1])
-  ProjectiveSchemeMor(IP2_Uh, IP2_U, gens(graded_coordinate_ring(IP2_Uh)))
-  IP2_UYh = subscheme(IP2_UY, gens(graded_coordinate_ring(IP2_UY))[1])
-  ProjectiveSchemeMor(IP2_UYh, IP2_UY, gens(graded_coordinate_ring(IP2_UYh)))
-  IP2_Wh = subscheme(IP2_W, gens(graded_coordinate_ring(IP2_W))[1])
-  ProjectiveSchemeMor(IP2_Wh, IP2_W, gens(graded_coordinate_ring(IP2_Wh)))
+  IP2_Xh = subscheme(IP2_X, gens(homogeneous_coordinate_ring(IP2_X))[1])
+  ProjectiveSchemeMor(IP2_Xh, IP2_X, gens(homogeneous_coordinate_ring(IP2_Xh)))
+  IP2_Yh = subscheme(IP2_Y, gens(homogeneous_coordinate_ring(IP2_Y))[1])
+  ProjectiveSchemeMor(IP2_Yh, IP2_Y, gens(homogeneous_coordinate_ring(IP2_Yh)))
+  IP2_Uh = subscheme(IP2_U, gens(homogeneous_coordinate_ring(IP2_U))[1])
+  ProjectiveSchemeMor(IP2_Uh, IP2_U, gens(homogeneous_coordinate_ring(IP2_Uh)))
+  IP2_UYh = subscheme(IP2_UY, gens(homogeneous_coordinate_ring(IP2_UY))[1])
+  ProjectiveSchemeMor(IP2_UYh, IP2_UY, gens(homogeneous_coordinate_ring(IP2_UYh)))
+  IP2_Wh = subscheme(IP2_W, gens(homogeneous_coordinate_ring(IP2_W))[1])
+  ProjectiveSchemeMor(IP2_Wh, IP2_W, gens(homogeneous_coordinate_ring(IP2_Wh)))
 
   incYtoX = inclusion_morphism(Y, X)
-  h = hom(graded_coordinate_ring(IP2_X), graded_coordinate_ring(IP2_Y), pullback(incYtoX), gens(graded_coordinate_ring(IP2_Y)))
+  h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_Y), pullback(incYtoX), gens(homogeneous_coordinate_ring(IP2_Y)))
   YtoX = ProjectiveSchemeMor(IP2_Y, IP2_X, 
                              h, 
                              incYtoX
                             );
   @test YtoX == inclusion_morphism(IP2_Y, IP2_X)
   IP2_Y2, map = fiber_product(incYtoX, IP2_X)
-  h2 = hom(graded_coordinate_ring(IP2_Y2), graded_coordinate_ring(IP2_Y), gens(graded_coordinate_ring(IP2_Y)))
+  h2 = hom(homogeneous_coordinate_ring(IP2_Y2), homogeneous_coordinate_ring(IP2_Y), gens(homogeneous_coordinate_ring(IP2_Y)))
   YtoY2 = ProjectiveSchemeMor(IP2_Y, IP2_Y2, h2)
   @test compose(YtoY2, map) == YtoX
 
   incUtoX = inclusion_morphism(U, X)
-  h = hom(graded_coordinate_ring(IP2_X), graded_coordinate_ring(IP2_U), pullback(incUtoX), gens(graded_coordinate_ring(IP2_U)))
+  h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_U), pullback(incUtoX), gens(homogeneous_coordinate_ring(IP2_U)))
   UtoX = ProjectiveSchemeMor(IP2_U, IP2_X, 
                              h, 
                              incUtoX
                             );
   @test UtoX == inclusion_morphism(IP2_U, IP2_X)
   IP2_U2, map = fiber_product(incUtoX, IP2_X)
-  h2 = hom(graded_coordinate_ring(IP2_U2), graded_coordinate_ring(IP2_U), gens(graded_coordinate_ring(IP2_U)))
+  h2 = hom(homogeneous_coordinate_ring(IP2_U2), homogeneous_coordinate_ring(IP2_U), gens(homogeneous_coordinate_ring(IP2_U)))
   UtoU2 = ProjectiveSchemeMor(IP2_U, IP2_U2, h2)
   @test compose(UtoU2, map) == UtoX
 
   incUYtoY = inclusion_morphism(UY, Y)
-  h = hom(graded_coordinate_ring(IP2_Y), graded_coordinate_ring(IP2_UY), pullback(incUYtoY), gens(graded_coordinate_ring(IP2_UY)))
+  h = hom(homogeneous_coordinate_ring(IP2_Y), homogeneous_coordinate_ring(IP2_UY), pullback(incUYtoY), gens(homogeneous_coordinate_ring(IP2_UY)))
   UYtoY = ProjectiveSchemeMor(IP2_UY, IP2_Y, 
                               h, 
                               incUYtoY
                              );
   @test UYtoY == inclusion_morphism(IP2_UY, IP2_Y)
   IP2_UY2, map = fiber_product(incUYtoY, IP2_Y)
-  h2 = hom(graded_coordinate_ring(IP2_UY2), graded_coordinate_ring(IP2_UY), gens(graded_coordinate_ring(IP2_UY)))
+  h2 = hom(homogeneous_coordinate_ring(IP2_UY2), homogeneous_coordinate_ring(IP2_UY), gens(homogeneous_coordinate_ring(IP2_UY)))
   UYtoUY2 = ProjectiveSchemeMor(IP2_UY, IP2_UY2, h2)
   @test compose(UYtoUY2, map) == UYtoY
 
   incUYtoX = inclusion_morphism(UY, X)
-  h = hom(graded_coordinate_ring(IP2_X), graded_coordinate_ring(IP2_UY), pullback(incUYtoX), gens(graded_coordinate_ring(IP2_UY)))
+  h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_UY), pullback(incUYtoX), gens(homogeneous_coordinate_ring(IP2_UY)))
   UYtoX = ProjectiveSchemeMor(IP2_UY, IP2_X, 
                               h, 
                               incUYtoX
                              );
   IP2_UY2, map = fiber_product(incUYtoX, IP2_X)
-  h2 = hom(graded_coordinate_ring(IP2_UY2), graded_coordinate_ring(IP2_UY), gens(graded_coordinate_ring(IP2_UY)))
+  h2 = hom(homogeneous_coordinate_ring(IP2_UY2), homogeneous_coordinate_ring(IP2_UY), gens(homogeneous_coordinate_ring(IP2_UY)))
   UYtoUY2 = ProjectiveSchemeMor(IP2_UY, IP2_UY2, h2)
   @test compose(UYtoUY2, map) == UYtoX
 
@@ -264,14 +264,14 @@ end
   @test id == identity_map(IP2_QQ)
 end
 
-@testset "warham_preparations" begin
+@testset "properties of projective schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   S, _ = grade(R)
   X = ProjectiveScheme(S)
   I = ideal(S, x^2 - y*z)
   Q, _ = quo(S, I)
   C = ProjectiveScheme(Q)
-  @test graded_coordinate_ring(C) === Q
+  @test homogeneous_coordinate_ring(C) === Q
   @test dim(C) == 1
   @test degree(C) == 2
   @test is_smooth(C)
@@ -282,10 +282,15 @@ end
   I = ideal(S, [x^4 + y^4 + z^4 + w^4])
   Q, _ = quo(S, I)
   Y = ProjectiveScheme(Q)
-  @test graded_coordinate_ring(Y) === Q
+  @test homogeneous_coordinate_ring(Y) === Q
   @test dim(Y) == 2
   @test degree(Y) == 4
   @test is_smooth(Y)
   @test arithmetic_genus(Y) == 1
+  @test is_reduced(Y)
+  @test is_integral(Y)
+  @test is_geometrically_integral(Y)
+  @test !is_empty(Y)
+  @test is_geometrically_reduced(Y)
 end
 

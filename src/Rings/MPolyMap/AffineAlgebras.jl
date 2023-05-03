@@ -41,7 +41,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel(F::AffAlgHom)
 
 Return the kernel of `F`.
@@ -59,35 +59,13 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_injective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
 function is_injective(F::AffAlgHom)
-  iszero(kernel(F))
-end
-
-# Helper function related to the computation of surjectivity, preimage etc.
-# Stores the necessary data in groebner_data, resp. groebner_data_lex
-function _groebner_data(F::AffAlgHom, ord::Symbol)
-  r = domain(F)
-  s = codomain(F)
-  n = ngens(r)
-  m = ngens(s)
-  return get_attribute!(F, ord) do
-    (S, I, W, _) = _ring_helper(s, zero(s), _images(F))
-    # Build auxiliary objects
-    (T, inc, J) = _containment_helper(S, n, m, I, W, ord)
-    # make sure to compute the NF with respect to the correct ordering  
-    D = normal_form([gen(T, i) for i in 1:m], J,
-                    ordering = first(collect(keys(J.gb))))
-    A = [zero(r) for i in 1:m]
-    B = [gen(r, i) for i in 1:n]
-    pr = hom(T, r, vcat(A, B))
-    groebner_data_lex = (T, inc, pr, J, D)
-    return groebner_data_lex
-  end
+  return iszero(kernel(F))
 end
 
 ################################################################################
@@ -96,27 +74,13 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_surjective(F::AffAlgHom)
 
 Return `true` if `F` is surjective, `false` otherwise.
 """
 function is_surjective(F::AffAlgHom)
-  # Compute data necessary for computation
-  r = domain(F)
-  s = codomain(F)
-  n = ngens(r)
-  m = ngens(s)
-  (T, _, _, _, D) = _groebner_data(F, :degrevlex)
-
-  # Check if map is surjective
-
-  for i in 1:m
-     if !(leading_monomial(D[i]) < gen(T, m))
-        return false
-     end
-  end
-  return true
+  return all(x -> has_preimage(F, x)[1], gens(codomain(F)))
 end
 
 ################################################################################
@@ -125,7 +89,7 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_bijective(F::AffAlgHom)
 
 Return `true` if `F` is bijective, `false` otherwise.
@@ -140,29 +104,30 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     is_finite(F::AffAlgHom)
 
 Return `true` if `F` is finite, `false` otherwise.
 """
 function is_finite(F::AffAlgHom)
-  (T, _, _, J, _) = _groebner_data(F, :lex)
-  G = collect(groebner_assure(J))
-  # Find all elements with leading monomial which contains the 
-  # variables x_i.
-  s = codomain(F)
-  m = ngens(s)
-  L = map(AbstractAlgebra.leading_monomial, G)
+  # Use [GP08, Proposition 3.1.5]
+  T, _, _, J = _groebner_data(F)
+  n = ngens(codomain(F))
+  o = lex(gens(T)[1:n])*induce(gens(T)[n + 1:end], default_ordering(domain(F)))
+  gb = groebner_basis(J, ordering = o)
 
   # Check if for all i, powers of x_i occur as leading monomials
-  N = Vector{Int}()
-  for i in 1:length(L)
-     exp = exponent_vector(L[i], 1)
-     f = findall(x->x!=0, exp) 
-     length(f) == 1 && f[1] <= m && union!(N, f)
+  b = falses(n)
+  for f in gb
+    exp = exponent_vector(leading_monomial(f, ordering = o), 1)
+    inds = findall(x -> x != 0, exp)
+    if length(inds) > 1 || inds[1] > n
+      continue
+    end
+    b[inds[1]] = true
   end
 
-  return length(N) == m
+  return all(b)
 end
 
 ##############################################################################
@@ -171,7 +136,7 @@ end
 #
 ##############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     inverse(F::AffAlgHom)
 
 If `F` is bijective, return its inverse.
@@ -204,40 +169,50 @@ x
 """
 function inverse(F::AffAlgHom)
   !is_injective(F) && error("Homomorphism is not injective")
-  !is_surjective(F) && error("Homomorphism is not surjective")
 
-  # Compute inverse map via preimages of algebra generators
-  r = domain(F)
-  s = codomain(F)
-  n = ngens(r)
-  m = ngens(s)
+  R = domain(F)
+  S = codomain(F)
 
-  (T, _, pr, _, D) = _groebner_data(F, :degrevlex)
-  psi = hom(s, r, [pr(D[i]) for i in 1:m])
-  #psi.kernel = ideal(s, [zero(s)])
-  return psi
-end
+  preimgs = elem_type(R)[]
+  for i in 1:ngens(S)
+    fl, p = has_preimage(F, gen(S, i))
+    fl || error("Homomorphism is not surjective")
+    push!(preimgs, p)
+  end
 
-function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
-  @assert parent(f) === codomain(F)
-  return preimage_with_kernel(F, f)[1]
+  return hom(S, R, preimgs)
 end
 
 function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
-  @assert parent(f) === codomain(F)
-  r = domain(F)
-  s = codomain(F)
-  n = ngens(r)
-  m = ngens(s)
-
-  (S, _, _, g) = _ring_helper(s, f, [zero(s)])
-  (T, inc, pr, J, o) = _groebner_data(F, :degrevlex)
-  D = normal_form([inc(g)], J, ordering = first(collect(keys(J.gb))))
-  !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
-  return (pr(D[1]), kernel(F))
+  return preimage(F, f), kernel(F)
 end
 
-@doc Markdown.doc"""
+function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+  fl, g = has_preimage(F, f)
+  !fl && error("Element not contained in image")
+  return g
+end
+
+function has_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+  # Basically [GP09, p. 86, Solution 2]
+  @req parent(f) === codomain(F) "Polynomial is not element of the codomain"
+
+  R = domain(F)
+  S = codomain(F)
+  m = ngens(R)
+  n = ngens(S)
+
+  T, inc, pr, J = _groebner_data(F)
+  o = induce(gens(T)[1:n], default_ordering(S))*induce(gens(T)[n + 1:end], default_ordering(R))
+  gb = groebner_basis(J, ordering = o)
+  nf = normal_form(inc(lift(f)), J, ordering = o)
+  if isone(cmp(o, gen(T, n), leading_monomial(nf, ordering = o)))
+    return true, pr(nf)
+  end
+  return false, zero(R)
+end
+
+@doc raw"""
     preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
 Return the preimage of the ideal `I` under `F`.
@@ -251,4 +226,31 @@ function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
   Ix = Singular.Ideal(CS, CS.(V))
   prIx = Singular.preimage(salghom, Ix)
   return ideal(D, D.(gens(prIx)))
+end
+
+# Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .
+# Construct the polynomial ring K[y, x], the natural maps K[x] -> K[y, x]
+# and K[y, x] -> K[y], and the ideal I_2 + (y_i - f_i) in it.
+# No actual Gröbner basis computation is done here, but computed bases are
+# cached in the ideal.
+function _groebner_data(F::AffAlgHom)
+  R = domain(F)
+  S = codomain(F)
+  S2 = base_ring(modulus(S))
+  m = ngens(R)
+  n = ngens(S)
+  J = get_attribute!(F, :groebner_data) do
+    K = coefficient_ring(R)
+    @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
+    T, _ = polynomial_ring(K, m + n)
+
+    S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
+
+    fs = map(lift, _images(F))
+    return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
+  end
+  T = base_ring(J)
+  S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
+  TtoR = hom(T, R, append!(zeros(R, n), gens(R)))
+  return T, S2toT, TtoR, J
 end

@@ -10,7 +10,7 @@
 @alias hasrelshp has_relshp
 @alias hastorusfactor has_torusfactor
 @alias inner_automorphisms_group inner_automorphism_group
-@alias isabsolutely_irreducible is_absolutely_irreducible
+#@alias isabsolutely_irreducible is_absolutely_irreducible
 @alias isaffine is_affine
 @alias isalmostsimple is_almostsimple
 @alias isalternating_form is_alternating_form
@@ -23,7 +23,7 @@
 @alias iscomplete is_complete
 @alias iscongruent is_congruent
 @alias isconjugate_subgroup is_conjugate_subgroup
-@alias isdecomposable is_decomposable
+#@alias isdecomposable is_decomposable
 @alias isdecorated is_decorated
 @alias isdihedral_group is_dihedral_group
 @alias isfano is_fano

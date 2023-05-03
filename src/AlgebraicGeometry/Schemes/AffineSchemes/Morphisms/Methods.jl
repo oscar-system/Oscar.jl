@@ -5,7 +5,7 @@
 # (1) The fibre product of two morphisms of affine schemes
 ###########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     fiber_product(f::SpecMor{SpecType, SpecType, <:Any}, g::SpecMor{SpecType, SpecType, <:Any}) where {SpecType<:StdSpec}
 
 For morphisms ``f : Y → X`` and ``g : Z → X`` return the fiber
@@ -31,10 +31,10 @@ end
 # (2) The direct product of two affine schemes
 ###########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     product(X::AbsSpec, Y::AbsSpec)
     
-Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over 
+Return a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over
 the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 ``p₂ : X×Y → Y``.
 """

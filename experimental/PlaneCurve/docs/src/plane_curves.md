@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["plane_curves.md"]
-```
-
 
 # Affine and Projective Plane Curves
 

@@ -92,16 +92,16 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
   return T(numerator(k))::T
 end
 
-@doc Markdown.doc"""
-     iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
+@doc raw"""
+     iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
-Setting `algo = :linear_algebra` means that plain linear algebra is used.
-The default option `algo = :default` asks to select the heuristically best algorithm.
+The optional argument `algorithm` specifies the algorithm to be used.
+If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 When using the Reynolds operator, the basis is constructed element-by-element.
 With linear algebra, this is not possible and the basis will be constructed
@@ -174,12 +174,12 @@ julia> collect(B)
  x[3]^2
 ```
 """
-function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
+function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
   @assert d >= 0 "Degree must be non-negative"
 
-  if algo == :default
+  if algorithm == :default
     if is_modular(R)
-      algo = :linear_algebra
+      algorithm = :linear_algebra
     else
       # Use the estimate in KS99, Section 17.2
       # We use the "worst case" estimate, so 2d|G|/s instead of sqrt(2d|G|/s)
@@ -195,23 +195,23 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
       n = degree(group(R))
       k = binomial(n + d - 1, n - 1)
       if k > d*g/s
-        algo = :reynolds
+        algorithm = :reynolds
       else
-        algo = :linear_algebra
+        algorithm = :linear_algebra
       end
     end
   end
 
-  if algo == :reynolds
+  if algorithm == :reynolds
     return iterate_basis_reynolds(R, d)
-  elseif algo == :linear_algebra
+  elseif algorithm == :linear_algebra
     return iterate_basis_linear_algebra(R, d)
   else
-    error("Unsupported argument :$(algo) for algo.")
+    error("Unsupported argument :$(algorithm) for algorithm")
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,

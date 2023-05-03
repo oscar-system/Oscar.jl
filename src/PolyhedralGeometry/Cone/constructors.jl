@@ -22,7 +22,7 @@ Cone(x...; kwargs...) = Cone{QQFieldElem}(x...; kwargs...)
 # Avoid, if possible, to increase type stability
 Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
-@doc Markdown.doc"""
+@doc raw"""
     positive_hull([::Type{T} = QQFieldElem,] R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
@@ -63,9 +63,9 @@ function positive_hull(::Type{T}, R::AbstractCollection[RayVector], L::Union{Abs
     end
 
     if non_redundant
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = unhomogenized_matrix(L),))
     else
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = unhomogenized_matrix(L),))
     end
 end
 # Redirect everything to the above constructor, use QQFieldElem as default for the
@@ -85,8 +85,7 @@ function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 end
 
 
-@doc Markdown.doc"""
-
+@doc raw"""
     cone_from_inequalities([::Type{T} = QQFieldElem,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
 
 The (convex) cone defined by
@@ -118,7 +117,38 @@ function cone_from_inequalities(::Type{T}, I::AbstractCollection[LinearHalfspace
     end
 end
 
+@doc raw"""
+    cone_from_equations([::Type{T} = QQFieldElem,] E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false)
+
+The (convex) cone defined by
+```math
+\{ x | Ex = 0 \}.
+```
+Use `non_redundant = true` if the given description contains no redundant rows to
+avoid unnecessary redundancy checks.
+
+# Examples
+```jldoctest
+julia> C = cone_from_equations([1 0 0; 0 -1 1])
+Polyhedral cone in ambient dimension 3
+
+julia> lineality_space(C)
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 1, 1]
+
+julia> dim(C)
+1
+```
+"""
+function cone_from_equations(s::Type{T}, E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false) where T<:scalar_types
+    EM = linear_matrix_for_polymake(E)
+    IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
+    return cone_from_inequalities(s, IM, EM; non_redundant = non_redundant)
+end
+
 cone_from_inequalities(x...) = cone_from_inequalities(QQFieldElem, x...)
+
+cone_from_equations(E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false) = cone_from_equations(QQFieldElem, E; non_redundant = non_redundant)
 
 """
     pm_object(C::Cone)

@@ -1,6 +1,6 @@
 module ModStdQt
 
-using Oscar, Markdown
+using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
 
@@ -558,7 +558,7 @@ function _cmp(f::MPolyRingElem, g::MPolyRingElem)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute
@@ -567,18 +567,15 @@ algebraic closure of Q(A).
 
 The return value is an array 
 - first entry is a leading coefficient
-- the others are tuples, one for each irreducible factor of the input, either
+- the others are tuples, one for each irreducible factor of the input, namely
 
-  - two polynomials and an integer: the polynomials are 
+  two polynomials and an integer: the polynomials are 
       over a finite extension of Q(A) given as a residue field,
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
       extension, the last entry (the integer) is the multiplicity.
-      In this case, there are degree(h(t)) many abs. irreducible factors, but they
-      are all conjugate to the 1st tuple entry. The 2nd entry is the product of all the
-      other conjugates,
-
-  - one polynomial over Q(A) - indicating that this factor is abs. irreducible 
-      and the multiplicity
+      Since there are degree(h(t)) many abs. irreducible factors, which 
+      are all conjugate to the 1st tuple entry, we return the product of the 
+      remaining degree - 1 many as the 2nd entry.
 
 # Examples     
 
@@ -591,7 +588,7 @@ julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
  (X[1] + t*X[2], X[1] - t*X[2], 1)
- (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
+ (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1, 1)
 
 julia> parent(f[3][1])
 Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
@@ -614,7 +611,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) <= 0)
     res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
     if res === nothing
-      push!(an, (Oscar._restore_numerators(Qtx, k), e))
+      push!(an, (Oscar._restore_numerators(Qtx, k), parent(k)(1), e))
       continue
     end
     p, c, ex = res
@@ -638,6 +635,12 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
     push!(an, (bb, divexact(kk, bb), e))
   end
   return an
+end
+
+function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
+  lf = factor_absolute(f)
+  @assert length(lf) > 1
+  return length(lf) == 2 && lf[2][end] == 1 && is_one(lf[2][2]) 
 end
 
 function Oscar.monomial(R::MPolyRing, v::Vector{Int})

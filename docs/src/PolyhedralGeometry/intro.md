@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 The polyhedral geometry part of OSCAR provides functionality for handling
@@ -89,6 +81,7 @@ Type                                   | A `LinearHalfspace` corresponds to...
 :------------------------------------- | :----------------------------------------------------------
 `AbstractVector{<:Halfspace}`          | an element of the vector.
 `AbstractMatrix`/`MatElem` `A`         | the halfspace with normal vector `A[i, :]`.
+`AbstractVector{<:AbstractVector}` `A` | the halfspace with normal vector `A[i]`.
 `SubObjectIterator{<:Halfspace}`       | an element of the iterator.
 
 `AbstractCollection[LinearHyperplane]` can be given as:
@@ -97,6 +90,7 @@ Type                                   | A `LinearHyperplane` corresponds to...
 :------------------------------------- | :-----------------------------------------------------------
 `AbstractVector{<:Hyperplane}`         | an element of the vector.
 `AbstractMatrix`/`MatElem` `A`         | the hyperplane with normal vector `A[i, :]`.
+`AbstractVector{<:AbstractVector}` `A` | the hyperplane with normal vector `A[i]`.
 `SubObjectIterator{<:Hyperplane}`      | an element of the iterator.
 
 `AbstractCollection[AffineHalfspace]` can be given as:

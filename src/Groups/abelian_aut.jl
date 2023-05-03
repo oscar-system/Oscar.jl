@@ -8,7 +8,7 @@ function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   return codomain(iso), iso, iso2
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{GrpAbFinGen} 
 
 Return the automorphism group of `G`.
@@ -52,7 +52,7 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
   return subgrp1, hom(subgrp1, aut, img)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(f::AutomorphismGroupElem{GrpAbFinGen}) -> GrpAbFinGenMap 
 
 Return the element `f` of type `GrpAbFinGenMap`.
@@ -99,7 +99,7 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bo
   return aut(g)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(f::AutomorphismGroupElem{GrpAbFinGen}) -> ZZMatrix
 
 Return the underlying matrix of `f` as a module homomorphism.
@@ -107,7 +107,7 @@ Return the underlying matrix of `f` as a module homomorphism.
 matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
 
 
-@doc Markdown.doc"""
+@doc raw"""
     defines_automorphism(G::GrpAbFinGen, M::ZZMatrix) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
@@ -160,14 +160,14 @@ function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
 
 Return a matrix inducing `f`.
 """
 matrix(f::AutomorphismGroupElem{TorQuadModule}) = hom(f).map_ab.map
 
-@doc Markdown.doc"""
+@doc raw"""
     defines_automorphism(G::TorQuadModule, M::ZZMatrix) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
@@ -204,7 +204,7 @@ function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadModule
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     orthogonal_group(T::TorQuadModule)  -> AutomorphismGroup{TorQuadModule}
 
 Return the full orthogonal group of this torsion quadratic module.
@@ -236,7 +236,7 @@ Return the full orthogonal group of this torsion quadratic module.
   return _orthogonal_group(T, gensOT, check=false)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     embedding_orthogonal_group(i::TorQuadModuleMor) -> GAPGroupHomomorphism
 
 Given an embedding $i\colon A \to D$ between two torsion quadratic modules,
@@ -266,5 +266,137 @@ function embedding_orthogonal_group(i::TorQuadModuleMor)
   end
   OAtoOD = hom(OA, OD, geneOAinOD, check = false)
   return OAtoOD::GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}
+end
+
+###############################################################################
+#
+#  Action on injections
+#
+###############################################################################
+
+@doc raw"""
+    is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor) -> Bool
+
+Given an abelian group morphism $i\colon S \to T$ form a torsion quadratic module
+`S` to a torsion quadratic module `T`, and an abelian group endomorphism `f`
+of `T`, return whether `f` preserves the image of `i` in `T`, i.e. whether
+$f(i(s)) \in i(S)$ for all $s \in S$.
+"""
+function is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor)
+  @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
+  U = domain(i)
+  for a in gens(U)
+    b = f(i(a))
+    has_preimage(i, b)[1] || return false
+  end
+  return true
+end
+
+@doc raw"""
+    is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor)
+                                                                        -> Bool
+
+Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic module
+`S` to a torsion quadratic module `T`, and an automorphism `f` of `T`, return
+whether `f` preserves the image of `i` in `T`, i.e. whether
+$f(i(s)) \in i(S)$ for all $s \in S$.
+"""
+function is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor)
+  @req domain(parent(f)) === codomain(i) "f must be an automorphism of the target of i"
+  return is_invariant(hom(f), i)
+end
+
+@doc raw"""
+    is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
+                                                                        -> Bool
+
+Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic module
+`S` to a torsion quadratic module `T`, and a group `G` of automorphisms of `T`,
+return whether the image of `i` in `T` is preserved by every element in
+`G`, i.e. whether $f(i(s)) \in i(S)$ for all $s \in S$ and all $f \in G$
+"""
+function is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
+  @req domain(G) === codomain(i) "G must consist of automorphisms of the target of i"
+  return all(f -> is_invariant(f, i), gens(G))
+end
+
+@doc raw"""
+    restrict_endomorphism(f::TorQuadModule, i::TorQuadModuleMor)
+                                                            -> TorQuadModuleMor
+
+Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic
+module `S` in a torsion quadratic module `T`, and an abelian group endomorphism
+of `T`, return the restriction of `f` to `S`.
+
+If `S` is not invariant under the action of `f`, then an error is thrown.
+"""
+function restrict_endomorphism(f::TorQuadModuleMor, i::TorQuadModuleMor; check::Bool = true)
+  @req !check || is_injective(i) "i must be an injection"
+  @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
+  imgs = TorQuadModuleElem[]
+  U = domain(i)
+  for a in gens(U)
+    b = f(i(a))
+    ok, c = has_preimage(i, b)
+    @req ok "The domain of i is not invariant under the action of f"
+    push!(imgs, c)
+  end
+  return hom(U, U, imgs)
+end
+
+@doc raw"""
+    restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule},
+                          i::TorQuadModuleMor)   -> TorQuadModuleMor
+
+Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic
+module `S` in a torsion quadratic module `T`, and an automorphism `f` of `T`,
+return the restriction of `f` to `S`.
+
+If `S` is not invariant under the action of `f`, then an error is thrown.
+"""
+function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
+  @req !check || is_injective(i) "i must be an injection"
+  @req domain(parent(f)) === codomain(i) "f must be an automorphism of the target of i"
+  return restrict_endomorphism(hom(f), i, check = false)
+end
+
+@doc raw"""
+    restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule},
+                                i::TorQuadModuleMor; check::Bool = true)
+                                            -> AutomorphismGroup{TorQuadModule},
+                                               GAPGroupHomomorphism
+
+Given an embedding $i\colon S \to T$ of a torsion quadratic module `S` in a
+torsion quadratic module `T`, and a group `G` of automorphisms of `T`, return
+the group of automorphisms `H` of `S` generated by the restrictions of the
+elements in `G` to `S`, together with the restriction map $G \to H$.
+
+If `S` is not invariant under the action of `G`, then an error is thrown.
+
+By default, the function checks whether `i` is injective and whether `i`
+is a torsion quadratic module morphism. One can disable these checks
+by setting `check = false`.
+"""
+function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool = true)
+
+  if check
+    @req is_injective(i) "i must be an injection"
+    @req modulus_bilinear_form(domain(i)) == modulus_bilinear_form(codomain(i)) "The bilinear forms of the domain and the codomain of i must take values in the same torsion module"
+    @req modulus_quadratic_form(domain(i)) == modulus_quadratic_form(codomain(i)) "The quadratic forms of the domain and the codomain of i must take values in the same torsion module"
+    @req all(a -> all(b -> a*b == i(a)*i(b), gens(domain(i))), gens(domain(i))) "i must preserve bilinear products"
+    @req all(a -> Hecke.quadratic_product(a) == Hecke.quadratic_product(i(a)), gens(domain(i))) "i must preserve quadratic products"
+  end
+
+  @req domain(G) === codomain(i) "G must consist of automorphisms of the target of i"
+  restr = ZZMatrix[]
+  for f in gens(G)
+    g = try restrict_automorphism(f, i, check = false)
+        catch e throw(ArgumentError("The domain of i is not invariant under the action of G"))
+        end
+    push!(restr, g.map_ab.map)
+  end
+  H = _orthogonal_group(domain(i), unique(restr), check = check)
+  res = hom(G, H, gens(G), H.(restr), check = check)
+  return H, res
 end
 

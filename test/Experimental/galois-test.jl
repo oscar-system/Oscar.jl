@@ -26,8 +26,8 @@
 
   K, a = number_field(x^4-2)
   G, C = galois_group(K)
-  Gc, Cc = galois_group(K, algo = :Complex)
-  Gs, Cs = galois_group(K, algo = :Symbolic)
+  Gc, Cc = galois_group(K, algorithm = :Complex)
+  Gs, Cs = galois_group(K, algorithm = :Symbolic)
   @test is_isomorphic(G, Gc)
   @test is_isomorphic(G, Gs)
 end
