@@ -66,7 +66,7 @@ function registerSerializationType(ex::Any,
         quote
             registerSerializationType($ex, $str)
             encodeType(::Type{<:$ex}) = $str
-            serialize_with_id(T::Type{<:$ex}) = $uses_id && !has_elem_basic_encoding(T)
+            serialize_with_id(obj::T) where T <: $ex = !has_elem_basic_encoding(obj)
         end)
 end
 
@@ -131,7 +131,7 @@ is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 function has_elem_basic_encoding(obj::T) where T <: Ring
     return is_basic_serialization_type(elem_type(obj))
 end
-
+has_elem_basic_encoding(obj::T) = false
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
@@ -177,7 +177,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         return save_internal(s, obj)
     end
 
-    if !isprimitivetype(T) && !Base.issingletontype(T) && serialize_with_id(T)
+    if !isprimitivetype(T) && !Base.issingletontype(T) && serialize_with_id(obj)
         # if obj is already serialized, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
