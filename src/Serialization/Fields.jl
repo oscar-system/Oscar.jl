@@ -263,6 +263,7 @@ end
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::Union{NfAbsNS, NfRelNS})
     loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
+    loaded_terms = evaluate(loaded_terms, gens(parent_ring))
     return parent_ring(loaded_terms)
 end
 
