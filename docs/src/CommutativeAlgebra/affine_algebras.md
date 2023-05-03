@@ -647,7 +647,7 @@ degree(A::MPolyQuoRing)
 ### Positive Gradings in General
 
 ```@docs
-multi_hilbert_series(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
-multi_hilbert_series_reduced(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
+multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
 ```

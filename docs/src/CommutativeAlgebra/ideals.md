@@ -196,7 +196,7 @@ radical(I::MPolyIdeal)
 ### Primary Decomposition
 
 ```@docs
-primary_decomposition(I::MPolyIdeal; alg = :GTZ)
+primary_decomposition(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 ```
 
 ### Absolute Primary Decomposition
@@ -208,7 +208,7 @@ absolute_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
 ### Minimal Associated Primes
 
 ```@docs
-minimal_primes(I::MPolyIdeal; alg = :GTZ)
+minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 ```
 
 ### Weak Equidimensional Decomposition
