@@ -158,13 +158,6 @@ function save_internal(s::SerializerState, K::FqField)
     )
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::Union{FqField})
-    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
-    println(loaded_terms)
-    return parent_ring(loaded_terms)
-end
-
 function load_internal(s::DeserializerState,
                        ::Type{<: FqField},
                        dict::Dict)
@@ -182,7 +175,6 @@ function save_internal(s::SerializerState, k::FqFieldElem)
     if absolute_degree(K) == 1
         return string(lift(ZZ, k))
     end
-
     polynomial = parent(defining_polynomial(K))(lift(ZZ["x"][1], k))
     encoded_polynomial = save_internal(s, polynomial)
     parents = encoded_polynomial[:parents]
@@ -194,17 +186,23 @@ function save_internal(s::SerializerState, k::FqFieldElem)
     )
 end
 
+# Field should already be loaded by this point
+function load_internal(s::DeserializerState,
+                       ::Type{<: FqFieldElem},
+                       dict::Dict)
+    loaded_parents = load_parents(s, dict[:parents])
+    return load_terms(s, loaded_parents, dict[:terms], loaded_parents[end])
+end
+
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::FqField)
     loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
     try
-        terms =  parent_ring(loaded_terms)
-        return terms
+        return parent_ring(loaded_terms)
     catch err
         # hack untill we get updates in nemo
         if err isa ErrorException
             if err.msg == "Polynomial has wrong coefficient ring" && absolute_degree(coefficient_ring(parent(loaded_terms))) == 1
-
                 return parent_ring.forwardmap(loaded_terms)
             end
         end

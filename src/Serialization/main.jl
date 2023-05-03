@@ -125,6 +125,7 @@ is_basic_serialization_type(::Type{ZZRingElem}) = true
 is_basic_serialization_type(::Type{QQFieldElem}) = true
 is_basic_serialization_type(::Type{Bool}) = true
 is_basic_serialization_type(::Type{Symbol}) = true
+# this deals with int32, int64 etc.
 is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 
 # ATTENTION
@@ -133,7 +134,8 @@ is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 function has_elem_basic_encoding(obj::T) where T <: Ring
     return is_basic_serialization_type(elem_type(obj))
 end
-has_elem_basic_encoding(obj::T) = false
+
+has_elem_basic_encoding(obj::T) where T = false
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
@@ -175,6 +177,8 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function save_type_dispatch(s::SerializerState, obj::T) where T
+    # this is only used when serializing basic types like "3//4"
+    # file should know it belongs to QQ somehow
     if is_basic_serialization_type(T) && s.depth != 0
         return save_internal(s, obj)
     end
@@ -282,7 +286,7 @@ function save_internal_generic(s::SerializerState, obj::T) where T
         if n != :__attrs
             result[n] = save_type_dispatch(s, getfield(obj, n))
         end
-    end
+    endpp
     return result
 end
 
