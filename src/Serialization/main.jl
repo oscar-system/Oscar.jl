@@ -59,14 +59,14 @@ end
 function registerSerializationType(ex::Any,
                                    uses_id::Bool,
                                    str::Union{String,Nothing} = nothing)
-  if str === nothing
-    str = string(ex)
-  end
+    if str === nothing
+      str = string(ex)
+    end
     return esc(
         quote
             registerSerializationType($ex, $str)
             encodeType(::Type{<:$ex}) = $str
-            serialize_with_id(::Type{<:$ex}) = $uses_id
+            serialize_with_id(T::Type{<:$ex}) = $uses_id && !has_elem_basic_encoding(T)
         end)
 end
 
