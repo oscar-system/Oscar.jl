@@ -39,7 +39,7 @@ end
 ################################################################################
 # ZZRingElem variant
 @registerSerializationType(Nemo.FpFieldElem)
-@registerSerializationType(Nemo.FpField, true)
+@registerSerializationType(Nemo.FpField)
 
 function save_internal(s::SerializerState, F::Nemo.FpField)
     return Dict(
@@ -53,22 +53,14 @@ end
 
 # elements
 function save_internal(s::SerializerState, elem::FpFieldElem)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(elem)),
-        :data => save_type_dispatch(s, Nemo.data(elem))
-    )
-end
-
-function load_internal(s::DeserializerState, ::Type{FpFieldElem}, dict::Dict)
-    F = load_type_dispatch(s, Nemo.FpField, dict[:parent])
-    return F(load_type_dispatch(s, ZZRingElem, dict[:data]))
+    return string(Nemo.data(elem))
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{FpFieldElem},
-                                   dict::Dict,
+                                   str::String,
                                    parent::Nemo.FpField)
-    return parent(load_type_dispatch(s, ZZRingElem, dict[:data]))
+    return parent(load_type_dispatch(s, ZZRingElem, str))
 end
 
 ################################################################################
@@ -126,6 +118,12 @@ function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem,
     )
 end
 
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::Union{fqPolyRepField, SimpleNumField})
+    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
+    return parent_ring(loaded_terms)
+end
+
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
                        dict::Dict)
@@ -160,6 +158,13 @@ function save_internal(s::SerializerState, K::FqField)
     )
 end
 
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::Union{FqField})
+    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
+    println(loaded_terms)
+    return parent_ring(loaded_terms)
+end
+
 function load_internal(s::DeserializerState,
                        ::Type{<: FqField},
                        dict::Dict)
@@ -189,16 +194,22 @@ function save_internal(s::SerializerState, k::FqFieldElem)
     )
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: FqFieldElem},
-                       dict::Dict)
-    K = load_type_dispatch(s, FqField, dict[:parent])
-    if absolute_degree(K) == 1
-        polynomial = load_type_dispatch(s, ZZRingElem, dict[:polynomial])
-    else
-        polynomial = load_type_dispatch(s, PolyRingElem, dict[:polynomial])
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::FqField)
+    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
+    try
+        terms =  parent_ring(loaded_terms)
+        return terms
+    catch err
+        # hack untill we get updates in nemo
+        if err isa ErrorException
+            if err.msg == "Polynomial has wrong coefficient ring" && absolute_degree(coefficient_ring(parent(loaded_terms))) == 1
+
+                return parent_ring.forwardmap(loaded_terms)
+            end
+        end
+        throw(err)
     end
-    return K(polynomial)
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -242,11 +253,20 @@ function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSEl
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
     polynomial_parent = parent(polynomial)
+    poly_dict = save_internal(s, polynomial)
+    parents = poly_dict[:parents]
+    push!(parents, save_as_ref(s, K))
     return Dict(
-        :parent_field => save_type_dispatch(s, K),
-        :polynomial => save_type_dispatch(s, polynomial),
-        :polynomial_parent => save_type_dispatch(s, polynomial_parent)
+        :parents => parents,
+        :terms => poly_dict[:terms]
     )
+end
+
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::Union{NfAbsNS, NfRelNS})
+    println(terms, parents[end - 1])
+    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
+    return parent_ring(loaded_terms)
 end
 
 function load_internal(s::DeserializerState,
@@ -317,12 +337,12 @@ function save_internal(s::SerializerState, f::FracElem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
-    R = load_unknown_type(s, dict[:parent])
-    num = load_unknown_type(s, dict[:num])
-    den = load_unknown_type(s, dict[:den])
-
-    return R(num) // R(den)
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::FracField)
+    num_coeff, den_coeff = terms
+    loaded_num = load_terms(s, parents[1:end - 1], num_coeff, parents[end - 1])
+    loaded_den = load_terms(s, parents[1:end - 1], den_coeff, parents[end-1])
+    return  parent_ring(loaded_num) // parent_ring(loaded_den)
 end
 
 function load_internal_with_parent(s::DeserializerState,
