@@ -398,6 +398,15 @@ function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFu
     )
 end
 
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::AbstractAlgebra.Generic.RationalFunctionField)
+    num_coeff, den_coeff = terms
+    parents[end - 1] = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
+    loaded_num = load_terms(s, parents[1:end - 1], num_coeff, parents[end - 1])
+    loaded_den = load_terms(s, parents[1:end - 1], den_coeff, parents[end-1])
+    return  parent_ring(loaded_num, loaded_den)
+end
+    
 function load_internal(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
                        dict::Dict)

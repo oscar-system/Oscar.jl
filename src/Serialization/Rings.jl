@@ -145,7 +145,6 @@ function save_internal(s::SerializerState, p::PolyRingElem)
     parent_ring = save_as_ref(s, parent_ring)
     # end of list should be loaded first
     push!(parents, parent_ring)
-    println(encoded_terms, p)
     return Dict(
         :parents => parents,
         :terms =>  encoded_terms
