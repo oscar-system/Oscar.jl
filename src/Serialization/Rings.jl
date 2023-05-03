@@ -129,29 +129,23 @@ function save_internal(s::SerializerState, p::PolyRingElem)
     for coeff in coeffs
         # collect not trivial terms
         if is_zero(coeff)
+            exponent += 1
             continue
         end
-
+        
         encoded_coeff = save_internal(s, coeff)
         if has_elem_basic_encoding(base)
             push!(encoded_terms,  (exponent, encoded_coeff))
         else
             parents = encoded_coeff[:parents]
-            # there should not be a type check within such a function
-            if typeof(base) <: Union{AbstractAlgebra.Generic.RationalFunctionField,
-                             FracField}
-                push!(encoded_terms,  (exponent, (encoded_coeff[:num_terms],
-                                                  encoded_coeff[:den_terms])))
-            else
-                push!(encoded_terms,  (exponent, encoded_coeff[:terms]))
-            end
+            push!(encoded_terms,  (exponent, encoded_coeff[:terms]))
         end
         exponent += 1
     end
     parent_ring = save_as_ref(s, parent_ring)
     # end of list should be loaded first
     push!(parents, parent_ring)
-    
+    println(encoded_terms, p)
     return Dict(
         :parents => parents,
         :terms =>  encoded_terms
@@ -171,13 +165,10 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
         exponent += 1
 
         if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
             coeff_type = elem_type(base)
-            if has_elem_basic_encoding(base)
-                loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
                                                             parent=base)
-            else
-                loaded_terms[exponent] = base(coeff)
-            end
         else
             loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
         end
@@ -223,6 +214,7 @@ function load_parents(s::DeserializerState, parents::Vector)
     end
     return loaded_parents
 end
+
 function load_internal(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict)
     loaded_parents = load_parents(s, dict[:parents])

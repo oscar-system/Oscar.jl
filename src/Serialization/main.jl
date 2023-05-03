@@ -286,7 +286,7 @@ function save_internal_generic(s::SerializerState, obj::T) where T
         if n != :__attrs
             result[n] = save_type_dispatch(s, getfield(obj, n))
         end
-    endpp
+    end
     return result
 end
 
