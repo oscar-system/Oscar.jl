@@ -143,7 +143,8 @@ function save_internal(s::SerializerState, p::PolyRingElem)
         exponent += 1
     end
     parent_ring = save_as_ref(s, parent_ring)
-    # end of list should be loaded first
+    # end of list should be loaded last
+
     push!(parents, parent_ring)
     return Dict(
         :parents => parents,
@@ -227,7 +228,7 @@ function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
     base = base_ring(parent_ring)
     
     while (!has_elem_basic_encoding(base))
-        if base isa Field && !(base isa FracField)
+        if base isa Field && !(typeof(base) <: Union{FracField, AbstractAlgebra.Generic.RationalFunctionField})
             if absolute_degree(base) == 1
                 break
             end

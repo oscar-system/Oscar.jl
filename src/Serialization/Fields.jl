@@ -391,8 +391,10 @@ function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFu
     encoded_denominator = save_internal(s, denominator(f))
     encoded_numerator = save_internal(s, numerator(f))
     parents = encoded_numerator[:parents]
+    # this removes the unnecessary polynomial ring for the denominator and
+    # numerator
+    pop!(parents)
     push!(parents, save_as_ref(s, parent(f)))
-
     return Dict(
         :parents => parents,
         :terms => (encoded_numerator[:terms], encoded_denominator[:terms])
@@ -402,9 +404,10 @@ end
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::AbstractAlgebra.Generic.RationalFunctionField)
     num_coeff, den_coeff = terms
-    parents[end - 1] = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
+    println(parents)
+    pushfirst!(parents, base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring)))
     loaded_num = load_terms(s, parents[1:end - 1], num_coeff, parents[end - 1])
-    loaded_den = load_terms(s, parents[1:end - 1], den_coeff, parents[end-1])
+    loaded_den = load_terms(s, parents[1:end - 1], den_coeff, parents[end - 1])
     return  parent_ring(loaded_num, loaded_den)
 end
     
