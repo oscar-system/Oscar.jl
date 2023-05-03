@@ -726,6 +726,10 @@ end
   scp = scalar_product(t[1], t[2])
   @test scp == 0
   @test scp isa QQFieldElem
+  res = coordinates(chi)
+  @test res == [0, 0, 1, 0, 0]
+  @test res isa Vector{QQFieldElem}
+  @test coordinates(Int, chi) isa Vector{Int}
 
   # conjugate characters
   h = pcore(g, 2)[1]

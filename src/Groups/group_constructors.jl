@@ -225,6 +225,227 @@ end
 
 ################################################################################
 #
+#  Projective groups obtained from classical groups
+#
+################################################################################
+
+@doc raw"""
+    projective_general_linear_group(n::Int, q::Int)
+
+Return the factor group of [`general_linear_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+The group is represented as a permutation group.
+
+# Examples
+```jldoctest
+julia> g = projective_general_linear_group(2, 3)
+Group([ (3,4), (1,2,4) ])
+
+julia> order(g)
+24
+```
+"""
+function projective_general_linear_group(n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   return PermGroup(GAP.Globals.PGL(n, q))
+end
+
+
+@doc raw"""
+    projective_special_linear_group(n::Int, q::Int)
+
+Return the factor group of [`special_linear_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+The group is represented as a permutation group.
+
+# Examples
+```jldoctest
+julia> g = projective_special_linear_group(2, 3)
+Group([ (2,3,4), (1,2)(3,4) ])
+
+julia> order(g)
+12
+```
+"""
+function projective_special_linear_group(n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   return PermGroup(GAP.Globals.PSL(n, q))
+end
+
+
+@doc raw"""
+    projective_symplectic_group(n::Int, q::Int)
+
+Return the factor group of [`symplectic_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+The group is represented as a permutation group.
+
+# Examples
+```jldoctest
+julia> g = projective_symplectic_group(2, 3)
+Group([ (2,3,4), (1,2)(3,4) ])
+
+julia> order(g)
+12
+```
+"""
+function projective_symplectic_group(n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   @req iseven(n) "The dimension must be even"
+   return PermGroup(GAP.Globals.PSp(n, q))
+end
+
+
+@doc raw"""
+    projective_unitary_group(n::Int, q::Int)
+
+Return the factor group of [`unitary_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+The group is represented as a permutation group.
+
+# Examples
+```jldoctest
+julia> g = projective_unitary_group(2, 3)
+Group([ (3,4)(5,8)(6,9)(7,10), (1,2,6)(3,7,10)(4,8,5) ])
+
+julia> order(g)
+24
+```
+"""
+function projective_unitary_group(n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   return PermGroup(GAP.Globals.PGU(n, q))
+end
+
+
+@doc raw"""
+    projective_special_unitary_group(n::Int, q::Int)
+
+Return the factor group of [`special_unitary_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+The group is represented as a permutation group.
+
+# Examples
+```jldoctest
+julia> g = projective_special_unitary_group(2, 3)
+Group([ (2,9,6)(3,8,10)(4,7,5), (1,2)(5,10)(6,9)(7,8) ])
+
+julia> order(g)
+12
+```
+"""
+function projective_special_unitary_group(n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   return PermGroup(GAP.Globals.PSU(n, q))
+end
+
+
+"""
+    projective_orthogonal_group(e::Int, n::Int, q::Int)
+
+Return the factor group of [`orthogonal_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+
+As for `orthogonal_group`, `e` can be omitted if `n` is odd.
+
+# Examples
+```jldoctest
+julia> g = projective_orthogonal_group(1, 4, 3);  order(g)
+576
+
+julia> g = projective_orthogonal_group(3, 3);  order(g)
+24
+```
+"""
+function projective_orthogonal_group(e::Int, n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   if e == 1 || e == -1
+      @req iseven(n) "The dimension must be even"
+   elseif e == 0
+      @req isodd(n) "The dimension must be odd"
+   else
+      throw(ArgumentError("Invalid description of projective orthogonal group"))
+   end
+   return PermGroup(GAP.Globals.PGO(e, n, q))
+end
+
+projective_orthogonal_group(n::Int, q::Int) = projective_orthogonal_group(0, n, q)
+
+
+"""
+    projective_special_orthogonal_group(e::Int, n::Int, q::Int)
+
+Return the factor group of [`special_orthogonal_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+
+As for `special_orthogonal_group`, `e` can be omitted if `n` is odd.
+
+# Examples
+```jldoctest
+julia> g = projective_special_orthogonal_group(1, 4, 3);  order(g)
+288
+
+julia> g = projective_special_orthogonal_group(3, 3);  order(g)
+24
+```
+"""
+function projective_special_orthogonal_group(e::Int, n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   if e == 1 || e == -1
+      @req iseven(n) "The dimension must be even"
+   elseif e == 0
+      @req isodd(n) "The dimension must be odd"
+   else
+      throw(ArgumentError("Invalid description of projective special orthogonal group"))
+   end
+   return PermGroup(GAP.Globals.PSO(e, n, q))
+end
+
+projective_special_orthogonal_group(n::Int, q::Int) = projective_special_orthogonal_group(0, n, q)
+
+
+"""
+    projective_omega_group(e::Int, n::Int, q::Int)
+
+Return the factor group of [`omega_group`](@ref),
+called with the same parameters,
+by its scalar matrices.
+
+As for `omega_group`, `e` can be omitted if `n` is odd.
+
+# Examples
+```jldoctest
+julia> g = projective_omega_group(1, 4, 3);  order(g)
+144
+
+julia> g = projective_omega_group(3, 3);  order(g)
+12
+```
+"""
+function projective_omega_group(e::Int, n::Int, q::Int)
+   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+   if e == 1 || e == -1
+      @req iseven(n) "The dimension must be even"
+   elseif e == 0
+      @req isodd(n) "The dimension must be odd"
+   else
+      throw(ArgumentError("Invalid description of projective orthogonal group"))
+   end
+   return PermGroup(GAP.Globals.POmega(e, n, q))
+end
+
+projective_omega_group(n::Int, q::Int) = projective_omega_group(0, n, q)
+
+
+################################################################################
+#
 # begin FpGroups
 #
 ################################################################################
