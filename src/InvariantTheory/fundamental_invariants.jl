@@ -124,7 +124,7 @@ function fundamental_invariants_via_primary_and_secondary(IR::InvRing)
 
     invars_cache.invars = primary_invariants(IR)
     invars_cache.S = graded_polynomial_ring(K, [ "y$i" for i = 1:length(invars_cache.invars) ], [ total_degree(forget_grading(f)) for f in invars_cache.invars ])[1]
-    invars_cache.toS = Dict{elem_type(R), elem_type(invars_cache.S)}(invars_cache.invars[i] => gens(invars_cache.S)[i] for i = 1:length(invars_cache.invars))
+    invars_cache.toS = Dict{elem_type(R), elem_type(invars_cache.S)}(invars_cache.invars[i] => gen(invars_cache.S, i) for i = 1:length(invars_cache.invars))
 
     return invars_cache
   end

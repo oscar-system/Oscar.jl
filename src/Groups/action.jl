@@ -365,14 +365,14 @@ function on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where 
 end
 
 function on_indeterminates(I::MPolyIdeal, p::PermGroupElem)
-  @assert ngens(parent(gen(I, 1))) == degree(parent(p))
+  @assert ngens(base_ring(I)) == degree(parent(p))
   imggens = [on_indeterminates(x, p) for x in gens(I)]
   return ideal(parent(imggens[1]), imggens)
 end
 
 function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
   @assert base_ring(gen(I, 1)) == base_ring(p)
-  @assert ngens(parent(gen(I, 1))) == degree(parent(p))
+  @assert ngens(base_ring(I)) == degree(parent(p))
   imggens = [on_indeterminates(x, p) for x in gens(I)]
   return ideal(parent(imggens[1]), imggens)
 end

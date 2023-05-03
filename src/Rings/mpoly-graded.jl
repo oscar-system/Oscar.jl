@@ -2195,7 +2195,7 @@ function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUn
   V = homogenization(gens(I), W, var, pos)
   R = parent(V[1])
   IH = ideal(R, V)
-  Y = ideal(R, [gens(R)[i] for i = pos:(pos+size(W, 1)-1)])
+  Y = ideal(R, [gen(R, i) for i = pos:(pos+size(W, 1)-1)])
   return saturation(IH, Y)
 end
 
@@ -2390,7 +2390,7 @@ function dehomogenization(F::MPolyDecRingElem, pos::Int)
   m = ngens(G)
   @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
   A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
@@ -2406,7 +2406,7 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
   m = ngens(G)
   @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
   A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
@@ -2527,8 +2527,6 @@ end
 Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
-
-gens(A::MPolyDecRing, i::Int) = A[i]
 
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
 # TODO: This still seems to be not resolved!!!

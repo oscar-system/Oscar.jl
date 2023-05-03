@@ -1066,7 +1066,7 @@ function free_resolution(S::SubquoDecModule, limit::Int = -1)
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gens(k)[nz]])
+    F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gen(k, nz)])
     g = hom(F, codomain(mk), collect(k.sub)[nz])
     insert!(mp, 1, g)
   end

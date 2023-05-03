@@ -13,7 +13,7 @@
 
   f = hom(S, S, hom(R, R, [first(gens(R)), first(gens(R)), last(gens(R))]), gens(S))
   K = kernel(f)
-  @test S(gens(R)[1] - gens(R)[2]) in K
+  @test S(gen(R, 1) - gen(R, 2)) in K
 
   R, _ = quo(R, ideal(R, sum(gens(R))))
   S, _ = polynomial_ring(R, ["s", "t"])
@@ -26,9 +26,9 @@
   K = kernel(f)
   @test zero(S) in K
 
-  f = hom(S, S, hom(R, R, [first(gens(R)) + gens(R)[2], zero(R), last(gens(R))]), gens(S))
+  f = hom(S, S, hom(R, R, [first(gens(R)) + gen(R, 2), zero(R), last(gens(R))]), gens(S))
   K = kernel(f)
-  @test S(gens(R)[2]) in K
+  @test S(gen(R, 2)) in K
 
   R = base_ring(R)
   U = powers_of_element(sum(gens(R)))
@@ -60,9 +60,9 @@
   K = kernel(f)
   @test S[1] - S[2] in K
  
-  f = hom(S, S, hom(R, R, [zero(R), first(gens(R)) + gens(R)[2], last(gens(R))]), gens(S))
+  f = hom(S, S, hom(R, R, [zero(R), first(gens(R)) + gen(R, 2), last(gens(R))]), gens(S))
   K = kernel(f)
-  @test S(gens(R)[1]) in K
+  @test S(gen(R, 1)) in K
 end
 
 @testset "cross kernel computations" begin

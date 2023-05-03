@@ -912,8 +912,8 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   singular_assure(GJ)
   I = Singular.Ideal(GJ.Sx, GJ.Sx(RtoT(f)))
   K = ideal(T, reduce(I, GJ.S))
-  @assert is_one(length(gens(K.gens.S)))
-  nf = GJ.Ox(gens(K.gens.S)[1])
+  @assert is_one(ngens(K.gens.S))
+  nf = GJ.Ox(K.gens.S[1])
   ###
 
   S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ])
