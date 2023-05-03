@@ -5,10 +5,12 @@
 ###############################################################################
 
 function _iso_gap_oscar_lie_algebra(F::GAP.GapObj)
-  if GAPWrap.IsLieObjectCollection(F)
-    return _iso_gap_oscar_linear_lie_algebra(F)
-  else
-    return _iso_gap_oscar_abstract_lie_algebra(F)
+  if GAPWrap.IsFiniteDimensional(F)
+    if GAPWrap.IsLieObjectCollection(F)
+      return _iso_gap_oscar_linear_lie_algebra(F)
+    else
+      return _iso_gap_oscar_abstract_lie_algebra(F)
+    end
   end
 
   error("no method found")

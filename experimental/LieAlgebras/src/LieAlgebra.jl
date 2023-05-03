@@ -223,9 +223,12 @@ function lie_algebra(
   cached::Bool=true,
 )
   @req GAPWrap.IsLieAlgebra(gapL) "gapL must be a Lie algebra."
-  if GAPWrap.IsLieObjectCollection(gapL)
-    return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s; cached))
-  else
-    return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s; cached))
+  if GAPWrap.IsFiniteDimensional(gapL)
+    if GAPWrap.IsLieObjectCollection(gapL)
+      return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s; cached))
+    else
+      return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s; cached))
+    end
   end
+  error("Not implemented.")
 end

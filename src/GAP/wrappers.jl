@@ -105,6 +105,7 @@ GAP.@wrap IsFFE(x::Any)::Bool
 GAP.@wrap IsFFECollCollColl(x::Any)::Bool
 GAP.@wrap IsField(x::Any)::Bool
 GAP.@wrap IsFinite(x::Any)::Bool
+GAP.@wrap IsFiniteDimensional(x::Any)::Bool
 GAP.@wrap IsFinitelyGeneratedGroup(x::Any)::Bool
 GAP.@wrap IsFpGroup(x::Any)::Bool
 GAP.@wrap IsFreeGroup(x::Any)::Bool

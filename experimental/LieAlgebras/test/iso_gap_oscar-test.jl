@@ -1,6 +1,40 @@
 import Oscar: GAPWrap
 
-num_random_tests = 10
+function test_iso_gap_oscar(LG, oscarT; num_random_tests::Int=10)
+  iso = Oscar.iso_gap_oscar(LG)
+  @test domain(iso) == LG
+  LO = codomain(iso)
+  @test LO isa oscarT
+
+  @test codomain(Oscar.iso_oscar_gap(LO)) === LG
+
+  @test iso === Oscar.iso_gap_oscar(LG) # test caching
+
+  for _ in 1:num_random_tests
+    x = LO(rand(-10:10, dim(LO)))
+    y = LO(rand(-10:10, dim(LO)))
+    x_ = preimage(iso, x)
+    y_ = preimage(iso, y)
+
+    # mapping non-zero to non-zero
+    @test iszero(x) == iszero(x_)
+    @test iszero(y) == iszero(y_)
+
+    # self-inverse
+    @test iso(x_) == x
+    @test iso(y_) == y
+
+    # f homomorphic
+    @test iso(2 * x_) == 2 * iso(x_)
+    @test iso(x_ + y_) == iso(x_) + iso(y_)
+    @test iso(x_ * y_) == iso(x_) * iso(y_)
+
+    # f^-1 homomorphic
+    @test preimage(iso, 2 * x) == 2 * preimage(iso, x)
+    @test preimage(iso, x + y) == preimage(iso, x) + preimage(iso, y)
+    @test preimage(iso, x * y) == preimage(iso, x) * preimage(iso, y)
+  end
+end
 
 @testset "LieAlgebras.iso_gap_oscar" begin
   baserings = [GAP.Globals.Rationals, GAPWrap.CF(4)]
@@ -19,38 +53,7 @@ num_random_tests = 10
       ]
 
       @testset for LG in lie_algebras
-        iso = Oscar.iso_gap_oscar(LG)
-        @test domain(iso) == LG
-        LO = codomain(iso)
-        @test LO isa AbstractLieAlgebra
-        @test codomain(Oscar.iso_oscar_gap(LO)) === LG
-
-        @test iso == Oscar.iso_gap_oscar(LG) # test caching
-
-        for _ in 1:num_random_tests
-          x = LO(rand(-10:10, dim(LO)))
-          y = LO(rand(-10:10, dim(LO)))
-          x_ = preimage(iso, x)
-          y_ = preimage(iso, y)
-
-          # mapping non-zero to non-zero
-          @test iszero(x) == iszero(x_)
-          @test iszero(y) == iszero(y_)
-
-          # self-inverse
-          @test iso(x_) == x
-          @test iso(y_) == y
-
-          # f homomorphic
-          @test iso(2 * x_) == 2 * iso(x_)
-          @test iso(x_ + y_) == iso(x_) + iso(y_)
-          @test iso(x_ * y_) == iso(x_) * iso(y_)
-
-          # f^-1 homomorphic
-          @test preimage(iso, 2 * x) == 2 * preimage(iso, x)
-          @test preimage(iso, x + y) == preimage(iso, x) + preimage(iso, y)
-          @test preimage(iso, x * y) == preimage(iso, x) * preimage(iso, y)
-        end
+        test_iso_gap_oscar(LG, AbstractLieAlgebra)
       end
     end
 
@@ -72,38 +75,15 @@ num_random_tests = 10
       ]
 
       @testset for LG in lie_algebras
-        iso = Oscar.iso_gap_oscar(LG)
-        @test domain(iso) == LG
-        LO = codomain(iso)
-        @test LO isa LinearLieAlgebra
-        @test codomain(Oscar.iso_oscar_gap(LO)) === LG
+        test_iso_gap_oscar(LG, LinearLieAlgebra)
+      end
+    end
 
-        @test iso == Oscar.iso_gap_oscar(LG) # test caching
+    @testset "Infinite dimensional Lie algebra" begin
+      lie_algebras = [GAP.Globals.FreeLieAlgebra(RG, 1), GAP.Globals.FreeLieAlgebra(RG, 2)]
 
-        for _ in 1:num_random_tests
-          x = LO(rand(-10:10, dim(LO)))
-          y = LO(rand(-10:10, dim(LO)))
-          x_ = preimage(iso, x)
-          y_ = preimage(iso, y)
-
-          # mapping non-zero to non-zero
-          @test iszero(x) == iszero(x_)
-          @test iszero(y) == iszero(y_)
-
-          # self-inverse
-          @test iso(x_) == x
-          @test iso(y_) == y
-
-          # f homomorphic
-          @test iso(2 * x_) == 2 * iso(x_)
-          @test iso(x_ + y_) == iso(x_) + iso(y_)
-          @test iso(x_ * y_) == iso(x_) * iso(y_)
-
-          # f^-1 homomorphic
-          @test preimage(iso, 2 * x) == 2 * preimage(iso, x)
-          @test preimage(iso, x + y) == preimage(iso, x) + preimage(iso, y)
-          @test preimage(iso, x * y) == preimage(iso, x) * preimage(iso, y)
-        end
+      @testset for LG in lie_algebras
+        @test_throws ErrorException Oscar.iso_gap_oscar(LG)
       end
     end
   end
