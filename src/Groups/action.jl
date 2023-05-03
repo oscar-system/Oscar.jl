@@ -127,7 +127,7 @@ For `Set` objects, one can also call `^` instead of `on_sets`.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.GapObj([1,3])
+julia> l = GAP.GapObj([1, 3])
 GAP: [ 1, 3 ]
 
 julia> on_sets(l, g[1])
@@ -197,7 +197,7 @@ julia> on_sets_sets([[1, 2], [3, 4]], g[1])
  [1, 4]
  [2, 3]
 
-julia> on_sets_sets(((1,2), (3,4)), g[1])
+julia> on_sets_sets(((1, 2), (3, 4)), g[1])
 ((1, 4), (2, 3))
 
 julia> on_sets_sets(Set([[1, 2], [3, 4]]), g[1])
@@ -310,7 +310,7 @@ x1*x2 + x2*x3
 julia> f^p
 x1*x3 + x2*x3
 
-julia> x = [GAP.Globals.X( GAP.Globals.Rationals, i ) for i in 1:3];
+julia> x = [GAP.Globals.X(GAP.Globals.Rationals, i) for i in 1:3];
 
 julia> f = x[1]*x[2] + x[2]*x[3]
 GAP: x_1*x_2+x_2*x_3
@@ -405,7 +405,7 @@ julia> n = 2;  F = GF(5);  g = general_linear_group(n, F);
 julia> v = gen(free_module(F, n), 1)
 (1, 0)
 
-julia> m = gen(g,2)
+julia> m = gen(g, 2)
 [4   1]
 [4   0]
 
@@ -457,7 +457,7 @@ julia> S = stabilizer(G, [1, 2]);  order(S[1])
 julia> S = stabilizer(G, Set([1, 2]));  order(S[1])
 12
 
-julia> S = stabilizer(G, [1,1,2,2,3], permuted);  order(S[1])
+julia> S = stabilizer(G, [1, 1, 2, 2, 3], permuted);  order(S[1])
 4
 ```
 """
