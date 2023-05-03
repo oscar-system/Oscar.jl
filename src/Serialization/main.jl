@@ -127,7 +127,9 @@ is_basic_serialization_type(::Type{Bool}) = true
 is_basic_serialization_type(::Type{Symbol}) = true
 is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 
-
+# ATTENTION
+# We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
+# In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
 function has_elem_basic_encoding(obj::T) where T <: Ring
     return is_basic_serialization_type(elem_type(obj))
 end
@@ -213,6 +215,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     return result
 end
 
+# ATTENTION
+# The load mechanism needs to look at the serialized data first, in order to detect objects with a basic encoding.
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
     if parent !== nothing && has_elem_basic_encoding(parent)
