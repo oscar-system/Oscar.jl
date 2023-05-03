@@ -262,7 +262,6 @@ end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::Union{NfAbsNS, NfRelNS})
-    println(terms, parents[end - 1])
     loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
     return parent_ring(loaded_terms)
 end
@@ -330,8 +329,7 @@ function save_internal(s::SerializerState, f::FracElem)
 
     return Dict(
         :parents => parents,
-        :den_terms => encoded_denominator[:terms],
-        :num_terms => encoded_numerator[:terms]
+        :terms => (encoded_numerator[:terms], encoded_denominator[:terms]),
     )
 end
 
@@ -396,8 +394,7 @@ function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFu
 
     return Dict(
         :parents => parents,
-        :den_terms => encoded_denominator[:terms],
-        :num_terms => encoded_numerator[:terms]
+        :terms => (encoded_numerator[:terms], encoded_denominator[:terms])
     )
 end
 
