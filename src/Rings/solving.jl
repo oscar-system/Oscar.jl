@@ -105,7 +105,7 @@ function _rational_solutions(
         precision::Int=32                     # precision of the solution set
         )
 
-    @assert coefficient_ring(base_ring(I)) == QQ
+    @assert coefficient_ring(I) == QQ
     AI = AlgebraicSolving.Ideal(gens(I))
 
     AlgebraicSolving.rational_solutions(AI,

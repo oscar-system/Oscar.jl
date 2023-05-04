@@ -522,6 +522,7 @@ include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 include("GAP/iso_gap_oscar.jl")
 include("GAP/iso_oscar_gap.jl")
+include("../gap/OscarInterface/julia/alnuth.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 include("Groups/action.jl")  # needs some PolynomialRings functionality

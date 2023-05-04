@@ -114,8 +114,8 @@ Normal toric variety without torusfactor
 ```
 """
 @attr AbstractNormalToricVariety function toric_base_space(t::GlobalTateModel)
-    base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
-    return t.toric_base_space
+  base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
+  return t.toric_base_space
 end
 
 
@@ -136,8 +136,8 @@ false
 ```
 """
 @attr AbstractNormalToricVariety function toric_ambient_space(t::GlobalTateModel)
-    base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
-    return t.toric_ambient_space
+  base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
+  return t.toric_ambient_space
 end
 
 
@@ -160,8 +160,8 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-    base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-    return t.calabi_yau_hypersurface
+  base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  return t.calabi_yau_hypersurface
 end
 
 
@@ -183,19 +183,19 @@ Global Weierstrass model over a not fully specified base
 ```
 """
 @attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
-    b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
-    b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
-    b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
-    f = - 1//48 * (b2^2 - 24 * b4)
-    g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
-    S = cox_ring(toric_ambient_space(t))
-    x, y, z = gens(S)[ngens(S)-2:ngens(S)]
-    ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
-    pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
-    model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, base_fully_specified(t))
-    return model
+  b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
+  b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
+  b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
+  f = - 1//48 * (b2^2 - 24 * b4)
+  g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
+  S = cox_ring(toric_ambient_space(t))
+  x, y, z = gens(S)[ngens(S)-2:ngens(S)]
+  ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
+  pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
+  model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, base_fully_specified(t))
+  return model
 end
 
 
@@ -279,66 +279,3 @@ julia> singular_loci(t)[2]
 ```
 """
 @attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
-
-
-#####################################################
-# 7: Fiber analysis
-#####################################################
-
-function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
-    # Ideal of the defining polynomial
-    hypersurface_ideal = ideal([tate_polynomial(model)])
-
-    # Toric ambient space
-    tas = toric_ambient_space(model)
-
-    # Various important ideals
-    irr = irrelevant_ideal(tas);
-    sri = stanley_reisner_ideal(tas);
-    lin = ideal_of_linear_relations(tas);
-
-    # Singular loci
-    sing_loc = singular_loci(model)
-
-    # Pick out the singular loci that are more singular than an I_1
-    # Then keep only the locus and not the extra info about it
-    interesting_singular_loci = map(tup -> tup[1], filter(locus -> locus[2][3] > 1, sing_loc))
-
-    # This is a kludge to map polynomials on the base into the ambient space, and should be fixed once the ambient space constructors supply such a map
-    base_coords = parent(gens(interesting_singular_loci[1])[1])
-    ambient_coords = parent(tate_polynomial(model))
-    base_to_ambient_ring_map = hom(base_coords, ambient_coords, gens(ambient_coords)[1:end-3])
-
-    # Resolved model
-    strict_transform, exceptionals, crepant, res_irr, res_sri, res_lin, res_S, res_S_gens, res_ring_map = _blowup_global_sequence(hypersurface_ideal, centers, irr, sri, lin)
-    if !crepant
-        @warn "The given sequence of blowups is not crepant"
-    end
-
-    loci_fiber_intersections = Tuple{MPolyIdeal{QQMPolyRingElem}, Vector{Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}}}[]
-    for locus in interesting_singular_loci
-        # Currently have to get the ungraded ideal generators by hand using .f
-        ungraded_locus = ideal(map(gen -> base_to_ambient_ring_map(gen).f, gens(locus)))
-
-        # Potential components of the fiber over this locus
-        # For now, we only consider the associated prime ideal,
-        #   but we may later want to actually consider the primary ideals
-        potential_components = map(pair -> pair[2], primary_decomposition(strict_transform + res_ring_map(ungraded_locus)))
-
-        # Filter out the trivial loci among the potential components
-        components = filter(component -> _is_nontrivial(component, res_irr), potential_components)
-
-        # Check the pairwise intersections of the components
-        intersections = Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}[]
-        for i in 1:length(components) - 1
-            for j in i + 1:length(components)
-                intersection = filter(candidate_locus -> _is_nontrivial(candidate_locus, res_irr), map(pair -> pair[2], primary_decomposition(components[i] + components[j])))
-                push!(intersections, ((i, j), intersection))
-            end
-        end
-
-        push!(loci_fiber_intersections, (ungraded_locus, intersections))
-    end
-
-    return loci_fiber_intersections
-end

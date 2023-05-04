@@ -110,7 +110,7 @@ function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
 end
 
 function find_non_zero_divisor(U::SpecOpen)
-  n = length(complement_equations(U))
+  n = ngens(U)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   n == 0 && return zero(R)

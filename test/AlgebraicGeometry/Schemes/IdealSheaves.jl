@@ -59,7 +59,7 @@ end
   I = IdealSheaf(IP2, Ihom)
   @test is_prime(I)
   I2 = IdealSheaf(IP2, gens(Ihom))
-  I3 = IdealSheaf(IP2, gens(Ihom)[1])
+  I3 = IdealSheaf(IP2, gen(Ihom, 1))
   @test I == I2 == I3
   U = patches(default_covering(X))
   @test I(U[1]) isa Oscar.Ideal 
@@ -102,7 +102,7 @@ end
   g = ProjectiveSchemeMor(P, P, psi)
   g_cov = covered_scheme_morphism(g)
 
-  II = IdealSheaf(Q, [gens(SQ)[1]+gens(SQ)[2]])
+  II = IdealSheaf(Q, [gen(SQ, 1)+gen(SQ, 2)])
   pbII = pullback(f_cov)(II)
   X = covered_scheme(P)
   U = affine_charts(X)

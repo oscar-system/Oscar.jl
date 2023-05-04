@@ -3,20 +3,20 @@
 ################################################
 
 @attributes mutable struct GlobalWeierstrassModel
-    poly_f::MPolyRingElem{QQFieldElem}
-    poly_g::MPolyRingElem{QQFieldElem}
-    pw::MPolyRingElem{QQFieldElem}
-    toric_base_space::AbstractNormalToricVariety
-    toric_ambient_space::AbstractNormalToricVariety
-    calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
-    function GlobalWeierstrassModel(poly_f::MPolyRingElem{QQFieldElem},
-                                    poly_g::MPolyRingElem{QQFieldElem},
-                                    pw::MPolyRingElem{QQFieldElem},
-                                    toric_base_space::AbstractNormalToricVariety,
-                                    toric_ambient_space::AbstractNormalToricVariety,
-                                    calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-        return new(poly_f, poly_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
-    end
+  poly_f::MPolyRingElem{QQFieldElem}
+  poly_g::MPolyRingElem{QQFieldElem}
+  pw::MPolyRingElem{QQFieldElem}
+  toric_base_space::AbstractNormalToricVariety
+  toric_ambient_space::AbstractNormalToricVariety
+  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
+  function GlobalWeierstrassModel(poly_f::MPolyRingElem{QQFieldElem},
+                                  poly_g::MPolyRingElem{QQFieldElem},
+                                  pw::MPolyRingElem{QQFieldElem},
+                                  toric_base_space::AbstractNormalToricVariety,
+                                  toric_ambient_space::AbstractNormalToricVariety,
+                                  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
+    return new(poly_f, poly_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
+  end
 end
 
 
@@ -41,13 +41,13 @@ julia> dim(toric_ambient_space(w))
 ```
 """
 function global_weierstrass_model(base::AbstractNormalToricVariety)
-    toric_ambient_space = _ambient_space_from_base(base)
-    (f,g) = _weierstrass_sections(base)
-    pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pw])
-    model = GlobalWeierstrassModel(f, g, pw, base, toric_ambient_space, calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, true)
-    return model
+  toric_ambient_space = _ambient_space_from_base(base)
+  (f,g) = _weierstrass_sections(base)
+  pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pw])
+  model = GlobalWeierstrassModel(f, g, pw, base, toric_ambient_space, calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, true)
+  return model
 end
 
 
@@ -88,13 +88,13 @@ false
 ```
 """
 function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
-    @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
-    toric_ambient_space = _ambient_space_from_base(base)
-    pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pw])
-    model = GlobalWeierstrassModel(f, g, pw, base, toric_ambient_space, calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, true)
-    return model
+  @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
+  toric_ambient_space = _ambient_space_from_base(base)
+  pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pw])
+  model = GlobalWeierstrassModel(f, g, pw, base, toric_ambient_space, calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, true)
+  return model
 end
 
 
@@ -117,26 +117,26 @@ Global Weierstrass model over a not fully specified base
 ```
 """
 function global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
-    @req ((parent(poly_f) == auxiliary_base_ring) && (parent(poly_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
-    @req d > 0 "The dimension of the base space must be positive"
-    @req (ngens(auxiliary_base_ring) >= d) "We expect at least as many base variables as the desired base dimension"
-
-    # convert Weierstrass sections into polynomials of the auxiliary base
-    auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
-    S = cox_ring(auxiliary_base_space)
-    ring_map = hom(auxiliary_base_ring, S, gens(S))
-    f = ring_map(poly_f)
-    g = ring_map(poly_g)
-
-    # construct auxiliary ambient space
-    auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
-
-    # compute model
-    pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))
-    calabi_yau_hypersurface = closed_subvariety_of_toric_variety(auxiliary_ambient_space, [pw])
-    model = GlobalWeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space, calabi_yau_hypersurface)
-    set_attribute!(model, :base_fully_specified, false)
-    return model
+  @req ((parent(poly_f) == auxiliary_base_ring) && (parent(poly_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
+  @req d > 0 "The dimension of the base space must be positive"
+  @req (ngens(auxiliary_base_ring) >= d) "We expect at least as many base variables as the desired base dimension"
+  
+  # convert Weierstrass sections into polynomials of the auxiliary base
+  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
+  S = cox_ring(auxiliary_base_space)
+  ring_map = hom(auxiliary_base_ring, S, gens(S))
+  f = ring_map(poly_f)
+  g = ring_map(poly_g)
+  
+  # construct auxiliary ambient space
+  auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
+  
+  # compute model
+  pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))
+  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(auxiliary_ambient_space, [pw])
+  model = GlobalWeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space, calabi_yau_hypersurface)
+  set_attribute!(model, :base_fully_specified, false)
+  return model
 end
 
 
@@ -145,9 +145,9 @@ end
 #######################################
 
 function Base.show(io::IO, w::GlobalWeierstrassModel)
-    if base_fully_specified(w)
-        print(io, "Global Weierstrass model over a concrete base")
-    else
-        print(io, "Global Weierstrass model over a not fully specified base")
-    end
+  if base_fully_specified(w)
+    print(io, "Global Weierstrass model over a concrete base")
+  else
+    print(io, "Global Weierstrass model over a not fully specified base")
+  end
 end

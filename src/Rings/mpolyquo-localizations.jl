@@ -208,6 +208,8 @@ Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return the vector ``[x₁//1,…,
 """
 gens(L::MPolyQuoLocRing) = L.(gens(base_ring(L)))
 
+gen(L::MPolyQuoLocRing, i::Int) = L(gen(base_ring(L), i))
+
 ### printing
 function Base.show(io::IO, L::MPolyQuoLocRing)
   print(io, "Localization of $(underlying_quotient(L)) at the multiplicative set $(inverted_set(L))")
@@ -1230,7 +1232,7 @@ function is_isomorphism(
   for f in images(phi)
     J_ext = ideal(B, push!(gens(J), inc2(denominator(f))))
     G, M = standard_basis_with_transformation_matrix(J_ext)
-	gens(G)[1]==one(B) || error("the denominator is not a unit in the target ring")
+    gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, last(collect(M)))
   end
 
@@ -1245,7 +1247,7 @@ function is_isomorphism(
     q = lifted_denominator(phi_h)
     J_ext = ideal(B, push!(gens(J), inc2(p)))
     G, M = standard_basis_with_transformation_matrix(J_ext)
-	gens(G)[1]==one(B) || error("the denominator is not a unit in the target ring")
+    gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, inc2(q)*last(collect(M)))
   end
   pushfirst!(imagesB, prod(denoms))
@@ -1258,7 +1260,7 @@ function is_isomorphism(
   # be realized.
   C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
   j2 = hom(B, C, B_vars)
-  G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
+  G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
 				  String.(symbols(C)),  
 				  ordering=Singular.ordering_dp(1)
@@ -1278,20 +1280,20 @@ function is_isomorphism(
   pre_images = Vector{elem_type(V)}()
   #pre_imagesA = Vector{elem_type(A)}()
   # the first variable needs special treatment
-  #singp = Singular.reduce(gens(singC)[1], stdG)
-  #singp < gens(singC)[n+1] || return false
+  #singp = Singular.reduce(gen(singC, 1), stdG)
+  #singp < gen(singC, n+1) || return false
   #p = C(singp)
   #push!(pre_imagesA, evaluate(p, vcat([zero(A) for i in 0:n], gens(A))))
   for i in 1:n
-    singp = Singular.reduce(gens(singC)[i+1], stdG)
-    singp < gens(singC)[n+1] || return false
+    singp = Singular.reduce(gen(singC, i+1), stdG)
+    singp < gen(singC, n+1) || return false
     p = C(singp)
     # Write p as an element in the very original ring
     #push!(pre_imagesA, evaluate(p, vcat([zero(A) for i in 0:n], gens(A))))
     push!(pre_images, evaluate(p, vcat([zero(V) for i in 0:n], [V(one(R), d1)], V.(gens(R)))))
   end
 
-  invJ = ideal(A, [(p < gens(singC)[n+1] ? evaluate(C(p), vcat([zero(A) for i in 0:n], gens(A))) : zero(A)) for p in gens(stdG)])
+  invJ = ideal(A, [(p < gen(singC, n+1) ? evaluate(C(p), vcat([zero(A) for i in 0:n], gens(A))) : zero(A)) for p in gens(stdG)])
   # TODO: invJ is already a Groebner basis, but only for the ordering used 
   # in the above elimination.
   # Make sure, this ordering is used again for the sanity check below!
@@ -1324,14 +1326,14 @@ end
 # of the original one, and a list of the new variables. 
 function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
-  n = length(gens(R))
+  n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1:n])
-  return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
+  return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
 function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
-  n = length(gens(R))
+  n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
@@ -1365,7 +1367,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   j = 1
   for i in 1:ngens(R)
     if !iszero(l[4][i])
-      push!(imgs, gens(Rnew)[j])
+      push!(imgs, gen(Rnew, j))
       j = j+1
     else
       push!(imgs, zero(Rnew))
@@ -1421,7 +1423,7 @@ function simplify(L::MPolyQuoRing)
   j = 1
   for i in 1:ngens(R)
     if !iszero(l[4][i])
-      push!(imgs, gens(Rnew)[j])
+      push!(imgs, gen(Rnew, j))
       j = j+1
     else
       push!(imgs, zero(Rnew))
@@ -1500,7 +1502,7 @@ end
  
 ### required getter functions
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
-gens(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
+gen(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 getindex(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
@@ -1629,13 +1631,13 @@ end
 
 ### printing
 function Base.show(io::IO, I::MPolyQuoLocalizedIdeal)
-  if length(gens(I)) == 0
+  if ngens(I) == 0
     print(io, "zero ideal in $(base_ring(I))")
     return
   end
   str = "ideal in $(base_ring(I)) generated by [$(first(gens(I)))"
   for i in 2:ngens(I)
-    str = str * ", $(gens(I, i))"
+    str = str * ", $(gen(I, i))"
   end
   str = str * "]"
   print(io, str)

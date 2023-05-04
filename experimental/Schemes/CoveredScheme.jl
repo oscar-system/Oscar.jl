@@ -13,7 +13,7 @@ export refinements
 #    a::Vector{RingElemType}=as_vector(coordinates(one(OO(ambient_scheme(U))),
 #                                                  ideal(OO(ambient_scheme(U)),
 #                                                        OO(ambient_scheme(U)).(gens(U)))),
-#                                      length(gens(U))),
+#                                      ngens(U)),
 #    check::Bool=true
 #  ) where {RingElemType<:RingElem}
 #  X = ambient_scheme(U)
