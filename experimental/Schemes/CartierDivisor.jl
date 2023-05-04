@@ -183,8 +183,8 @@ end
 Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `IdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
 """
 function irreducible_decomposition(C::EffectiveCartierDivisor)
-  cov = default_covering(C)
   X = scheme(C)
+  cov = default_covering(X)
   OOX = OO(X)
 
   charts_todo = copy(patches(cov))
