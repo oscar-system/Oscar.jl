@@ -104,7 +104,9 @@ of ``U``. This function can also be called using the
 `getindex` method or simply via `U[i]`.
 """
 affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
+gen(U::SpecOpen, i::Int) = affine_patches(U)[i]
 getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
+ngens(U::SpecOpen) = length(U.gens)
 
 function getindex(U::SpecOpen, X::AbsSpec) 
   for i in 1:npatches(U)

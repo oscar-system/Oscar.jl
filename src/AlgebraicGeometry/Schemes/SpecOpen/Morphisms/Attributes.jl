@@ -27,15 +27,15 @@ function pullback(f::SpecOpenMor)
     # First check whether we are in an easy case where we only have a restriction
     if ambient_coordinate_ring(domain(f)) === ambient_coordinate_ring(codomain(f)) && complement_equations(V) == complement_equations(U)
       function my_restr(a::SpecOpenRingElem)
-        return SpecOpenRingElem(OO(V), [OO(V[i])(a[i]) for i in 1:number_of_complement_equations(V)])
+        return SpecOpenRingElem(OO(V), [OO(V[i])(a[i]) for i in 1:ngens(V)])
       end
       f.pullback = Hecke.MapFromFunc(my_restr, OO(U), OO(V))
       return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
     end
 
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
-    d = [pullback(f[i]).(complement_equations(U)) for i in 1:number_of_complement_equations(V)]
-    W = [SpecOpen(V[i], ideal(OO(V[i]), d[i]), check=false) for i in 1:number_of_complement_equations(V)]
+    d = [pullback(f[i]).(complement_equations(U)) for i in 1:ngens(V)]
+    W = [SpecOpen(V[i], ideal(OO(V[i]), d[i]), check=false) for i in 1:ngens(V)]
     # Not every element of d needs to be non-zero. But zero elements will be 
     # discarded by the constructor for the SpecOpen! So we need to manually 
     # relate them for the time being. This should only be a temporary fix, however.
@@ -53,15 +53,15 @@ function pullback(f::SpecOpenMor)
       end
       push!(a, b)
     end
-    pb_res = [[pullback(restrict(f[i], W[i][j], U[a[i][j]], check=false)) for j in 1:number_of_complement_equations(W[i])] for i in 1:number_of_complement_equations(V)]
-    lift_maps = [restriction_map(W[i], V[i], one(ambient_coordinate_ring(V[i])), check=false) for i in 1:number_of_complement_equations(V)]
+    pb_res = [[pullback(restrict(f[i], W[i][j], U[a[i][j]], check=false)) for j in 1:ngens(W[i])] for i in 1:ngens(V)]
+    lift_maps = [restriction_map(W[i], V[i], one(ambient_coordinate_ring(V[i])), check=false) for i in 1:ngens(V)]
     function mymap(a::SpecOpenRingElem)
       b = [lift_maps[i](
               SpecOpenRingElem(
                   OO(W[i]), 
-                  [pb_res[i][j](a[j]) for j in 1:number_of_complement_equations(U)],
+                  [pb_res[i][j](a[j]) for j in 1:ngens(U)],
                   check=false)
-             ) for i in 1:number_of_complement_equations(V)
+             ) for i in 1:ngens(V)
           ]
       return SpecOpenRingElem(OO(V), b, check=false)
 
@@ -70,7 +70,7 @@ function pullback(f::SpecOpenMor)
       # function mymap(a::RingElem)
       #   parent(a) === OO(ambient(U)) || return mymap(OO(ambient(U))(a))
       #   return SpecOpenRingElem(OO(V), 
-      #                           [f[i](a) for i in 1:number_of_complement_equations(V)], 
+      #                           [f[i](a) for i in 1:ngens(V)], 
       #                           check=false)
       # end
     end
