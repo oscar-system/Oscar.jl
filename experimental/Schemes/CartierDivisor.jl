@@ -204,7 +204,7 @@ function irreducible_decomposition(C::EffectiveCartierDivisor)
     end
 
     !is_one(I_temp) || break                                 ## break if nothing left
-    components_here = minimal_primes(I(U))
+    components_here = minimal_primes(I_temp)
     for comp in components_here
       I_temp, saturation_index = saturation_with_index(I_temp, comp)
       temp_dict=IdDict{AbsSpec,Ideal}()
