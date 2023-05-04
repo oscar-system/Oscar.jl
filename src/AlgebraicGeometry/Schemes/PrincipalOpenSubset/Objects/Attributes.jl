@@ -18,7 +18,8 @@ complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U
 ### assure compatibility with SpecOpen 
 complement_equations(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
 number_of_complement_equations(U::PrincipalOpenSubset) = 1
-getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? lifted_numerator(complement_equation(U)) : error("index out of range"))
+ngens(U::PrincipalOpenSubset) = 1
+getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
 function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
   if !isdefined(U, :inc)
