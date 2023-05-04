@@ -220,6 +220,6 @@ function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
     gen_list = vcat(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
   end
   Z = subscheme(X, gen_list)
-  return SpecOpen(Z, gens(U))
+  return SpecOpen(Z, complement_equations(U))
 end
 
