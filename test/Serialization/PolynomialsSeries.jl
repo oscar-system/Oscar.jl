@@ -14,7 +14,7 @@ P7 = PadicField(7, 30)
 T = TropicalSemiring()
 F, o  = Hecke.Nemo._FiniteField(4)
 Fs, s = F["s"]
-FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1)
+FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
 
 cases = [
     (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),

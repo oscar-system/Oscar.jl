@@ -158,7 +158,7 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
     degree = max(map(x->x[1] + 1, terms)...)
     base = base_ring(parent_ring)
     loaded_terms = zeros(base, degree)
-    
+
     for term in terms
         exponent, coeff = term
         # account for shift
@@ -177,7 +177,7 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
 end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::MPolyRing)
+                    parent_ring::Union{MPolyRing, UniversalPolyRing})
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     for term in terms
