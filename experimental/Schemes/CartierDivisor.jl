@@ -177,6 +177,11 @@ end
 ### Decompostion of an effective Cartier Divisor into irreducible components
 ### (specialized variant of associated_points, using pure codimension 1
 ###  and taking multiplicities into account)
+@doc raw"""
+    irreducible_decomposition(C::EffectiveCartierDivisor)
+
+Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `IdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
+"""
 function irreducible_decomposition(C::EffectiveCartierDivisor)
   cov = trivializing_covering(C)
   X = scheme(C)
