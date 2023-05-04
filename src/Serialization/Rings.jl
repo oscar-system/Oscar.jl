@@ -1,3 +1,28 @@
+function get_parents(parent_ring)
+    parents = Any[parent_ring]
+    base = base_ring(parent_ring)
+    
+    while (!has_elem_basic_encoding(base))
+        if base isa Field && !(typeof(base) <: Union{FracField, AbstractAlgebra.Generic.RationalFunctionField})
+            if absolute_degree(base) == 1
+                break
+            end
+            if typeof(base) <: Union{NfAbsNS, NfRelNS}
+                pushfirst!(parents, base)
+                ngens = length(gens(base))
+                base = polynomial_ring(base_field(base), ngens)[1]
+            else
+                pushfirst!(parents, base)
+                base = parent(defining_polynomial(base))
+            end
+            continue
+        end
+        pushfirst!(parents, base)
+        base = base_ring(base)
+    end
+    return parents
+end
+
 ################################################################################
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)
@@ -127,7 +152,7 @@ function save_internal(s::SerializerState, p::PolyRingElem)
     parents = []
     exponent = 0
     for coeff in coeffs
-        # collect not trivial terms
+        # collect only non trivial terms
         if is_zero(coeff)
             exponent += 1
             continue
@@ -224,27 +249,7 @@ end
 function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict,
                                    parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing})
-    parents = Any[parent_ring]
-    base = base_ring(parent_ring)
-    
-    while (!has_elem_basic_encoding(base))
-        if base isa Field && !(typeof(base) <: Union{FracField, AbstractAlgebra.Generic.RationalFunctionField})
-            if absolute_degree(base) == 1
-                break
-            end
-            if typeof(base) <: Union{NfAbsNS, NfRelNS}
-                pushfirst!(parents, base)
-                ngens = length(gens(base))
-                base = polynomial_ring(base_field(base), ngens)[1]
-            else
-                pushfirst!(parents, base)
-                base = parent(defining_polynomial(base))
-            end
-            continue
-        end
-        pushfirst!(parents, base)
-        base = base_ring(base)
-    end
+    parents = get_parents(parent_ring)
     return load_terms(s, parents, dict[:terms], parents[end])
 end
 
@@ -331,8 +336,14 @@ function save_internal(s::SerializerState, R::Union{
     ZZAbsPowerSeriesRing,
     fqPolyRepAbsPowerSeriesRing,
     zzModAbsPowerSeriesRing})
+    base = base_ring(R)
+    if has_elem_basic_encoding(base)
+        base_dict = save_type_dispatch(s, base)
+    else
+        base_dict = save_as_ref(s, base)
+    end
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(R)),
+        :base_ring => base_dict,
         :var => save_type_dispatch(s, var(R)),
         :max_precision => save_type_dispatch(s, max_precision(R)),
         :model => save_type_dispatch(s, :capped_absolute)
@@ -355,10 +366,32 @@ end
 function save_internal(s::SerializerState, r::RelPowerSeriesRingElem)
     v = valuation(r)
     pl = pol_length(r)
-    coeffs = map(x -> coeff(r, x), v:v + pl)
+    encoded_terms = []
+    parents = []
+    parent_ring = parent(r)
+    base = base_ring(parent_ring)
+    for exponent in v: v + pl
+        coefficient = coeff(r, exponent)
+        #collect only non trivial values
+        if is_zero(coefficient)
+            continue
+        end
+
+        encoded_coeff = save_internal(s, coefficient)
+        if has_elem_basic_encoding(base)
+            push!(encoded_terms,  (exponent, encoded_coeff))
+        else
+            parents = encoded_coeff[:parents]
+            push!(encoded_terms,  (exponent, encoded_coeff[:terms]))
+        end
+    end
+    parent_ring = save_as_ref(s, parent_ring)
+    # end of list should be loaded last
+    push!(parents, parent_ring)
+
     return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :coeffs => save_type_dispatch(s, coeffs),
+        :parents => parents,
+        :terms => encoded_terms,
         :valuation => save_type_dispatch(s, v),
         :pol_length => save_type_dispatch(s, pl),
         :precision => save_type_dispatch(s, precision(r))
@@ -366,69 +399,117 @@ function save_internal(s::SerializerState, r::RelPowerSeriesRingElem)
 end
 
 function save_internal(s::SerializerState, r::AbsPowerSeriesRingElem)
-    coeffs = map(x -> coeff(r, x), 0:pol_length(r))
+    pl = pol_length(r)
+    encoded_terms = []
+    parents = []
+    parent_ring = parent(r)
+    base = base_ring(parent_ring)
+    for exponent in 0:pl
+        coefficient = coeff(r, exponent)
+        #collect only non trivial values
+        if is_zero(coefficient)
+            continue
+        end
+
+        encoded_coeff = save_internal(s, coefficient)
+        if has_elem_basic_encoding(base)
+            push!(encoded_terms,  (exponent, encoded_coeff))
+        else
+            parents = encoded_coeff[:parents]
+            push!(encoded_terms,  (exponent, encoded_coeff[:terms]))
+        end
+    end
+    parent_ring = save_as_ref(s, parent_ring)
+    # end of list should be loaded last
+    push!(parents, parent_ring)
+
     return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :coeffs => save_type_dispatch(s, coeffs),
-        :pol_length => save_type_dispatch(s, pol_length(r)),
+        :parents => parents,
+        :terms => encoded_terms,
+        :pol_length => save_type_dispatch(s, pl),
         :precision => save_type_dispatch(s, precision(r))
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem}, dict::Dict)
-    parent = load_type_dispatch(s, SeriesRing, dict[:parent])
-    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    parents = load_parents(s, dict[:parents])
+    parent_ring = parents[end]
     valuation = load_type_dispatch(s, Int, dict[:valuation])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
+    base = base_ring(parent_ring)
+    loaded_terms = zeros(base, pol_length)
+
+    for term in dict[:terms]
+        exponent, coeff = term
+        
+        if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
+            coeff_type = elem_type(base)
+            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+                                                            parent=base)
+        else
+            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+    end
     
-    return parent(coeffs, pol_length, precision, valuation)
+    return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: RelPowerSeriesRingElem},
                                    dict::Dict,
                                    parent_ring::SeriesRing)
-    coeff_ring = base_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    parents = get_parents(parent_ring)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
     valuation = load_type_dispatch(s, Int, dict[:valuation])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
 
-    if precision > max_precision(parent_ring)
-        @warn("Precision Warning: given parent is less precise than serialized elem",
-              maxlog=1)
-    end
+    return parent_ring(terms[valuation + 1: end], pol_length, precision, valuation)
+end
 
-    return parent_ring(coeffs, pol_length, precision, valuation)
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector, parent_ring::SeriesRing)
+    highest_degree = max(map(x->x[1] + 1, terms)...)
+    base = base_ring(parent_ring)
+    # account for index shift
+    loaded_terms = zeros(base, highest_degree + 1)
+    for term in terms
+        exponent, coeff = term
+        exponent += 1
+        if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
+            coeff_type = elem_type(base)
+            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+                                                            parent=base)
+        else
+            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+    end
+    
+    return loaded_terms
 end
 
 function load_internal(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem}, dict::Dict)
-    parent = load_type_dispatch(s, SeriesRing, dict[:parent])
-    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    parents = load_parents(s, dict[:parents])
+    parent_ring = parents[end]
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
-    
-    return parent(coeffs, pol_length, precision)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
+
+    parent_ring(terms, pol_length, precision)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: AbsPowerSeriesRingElem},
                                    dict::Dict,
                                    parent_ring::SeriesRing)
-    coeff_ring = base_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    parents = get_parents(parent_ring)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
 
-    if precision > max_precision(parent_ring)
-        @warn("Precision Warning: given parent is less precise than serialized elem",
-              maxlog=1)
-    end
-
-    return parent_ring(coeffs, pol_length, precision)
+    return parent_ring(terms, pol_length, precision)
 end
 
 ################################################################################
