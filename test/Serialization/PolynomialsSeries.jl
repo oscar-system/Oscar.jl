@@ -29,7 +29,7 @@ cases = [
     (Frac, 1 // x, x^2, "Fraction Field"),
     (P7, 7 + 3*7^2, 7^5, "Padic Field"),
     (T, T(1), T(3)^2, "Tropical Semiring"),
-    (FF, FF(1), r, "Default Finite Field")
+    # (FF, FF(1), r, "Default Finite Field") waiting on a fix from nemo
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{
