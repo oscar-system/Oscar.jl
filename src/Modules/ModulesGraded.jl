@@ -7,16 +7,19 @@
 @doc raw"""
     graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 
-Given a graded multivariate polynomial ring `R` with grading group `G`, say,
+Given a graded ring `R` with grading group `G`, say,
 and given a vector `W` with `p` elements of `G`, create the free module $R^p$ 
 equipped with its basis of standard unit vectors, and assign weights to these 
 vectors according to the entries of `W`. Return the resulting graded free module.
 
-The string `name` specifies how the basis vectors are printed. 
-
     graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e")
 
 As above, with `p = length(W)`.
+
+!!! note
+    The function applies to graded multivariate polynomial rings and their quotients.
+
+The string `name` specifies how the basis vectors are printed. 
 
 # Examples
 ```jldoctest
@@ -39,7 +42,7 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
-  x -> [1]
+     x -> [1]
   y -> [1]^1([-2]) of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -58,14 +61,14 @@ function graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e
   return graded_free_module(R, p, W, name)
 end
 
-
 @doc raw"""
     graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
 
-Given a free module `F` over a graded ring with grading group $G = \mathbb Z^m$, and given
-a vector `W` of `ngens(F)` integer vectors of the same size `m`, say, define a $G$-grading on `F` 
-by converting the vectors in `W` to elements of $G$, and assigning these elements as weights to 
-the variables. Return the new module.
+Given a graded ring `R` with grading group $G = \mathbb Z^m$, 
+and given a vector `W` of integer vectors of the same size `p`, say, create the free 
+module $R^p$ equipped with its basis of standard unit vectors, and assign weights to these 
+vectors according to the entries of `W`, converted to elements of `G`. Return the 
+resulting graded free module.
 
     graded_free_module(R::Ring, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
 
@@ -73,12 +76,16 @@ As above, converting the columns of `W`.
 
     graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
 
-Given a free module `F` over a graded ring with grading group $G = \mathbb Z$, and given
-a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` converting the entries 
-of `W` to elements of `G`, and assigning these elements as weights to the variables. 
-Return the new module.
+Given a graded ring `R` with grading group $G = \mathbb Z$, 
+and given a vector `W` of integers, set `p = length(W)`, create the free module $R^p$ 
+equipped with its basis of standard unit vectors, and assign weights to these 
+vectors according to the entries of `W`, converted to elements of `G`. Return 
+the resulting graded free module.
 
 The string `name` specifies how the basis vectors are printed. 
+
+!!! note
+    The function applies to graded multivariate polynomial rings and their quotients.
 
 # Examples
 ```jldoctest
@@ -159,6 +166,9 @@ the new module.
     grade(F::FreeMod)
 
 As above, with all weights set to `zero(G)`.
+
+!!! note
+    The function applies to free modules over both graded multivariate polynomial rings and their quotients.
 
 # Examples
 ```jldoctest
@@ -252,6 +262,10 @@ Given a free module `F` over a graded ring with grading group $G = \mathbb Z$, a
 a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` converting the entries 
 of `W` to elements of `G`, and assigning these elements as weights to the variables. 
 Return the new module.
+
+!!! note
+    The function applies to free modules over both graded multivariate polynomial 
+    rings and their quotients.
 
 # Examples
 ```jldoctest

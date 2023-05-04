@@ -36,7 +36,7 @@ they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod
 free_module(R::MPolyRing, n::Int, name::VarName = :e; cached::Bool = false)
 ```
 
-Over graded multivariate polynomial rings and their graded quotients,  there are two basic ways of
+Over graded multivariate polynomial rings and their quotients,  there are two basic ways of
 creating graded free modules: While the `grade` function allows one to create a graded free module
 by assigning a grading to a free module already constructed, the `graded_free_module` function is
 meant to create a graded free module all at once.
