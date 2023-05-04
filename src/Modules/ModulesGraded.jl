@@ -42,7 +42,7 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
-     x -> [1]
+  x -> [1]
   y -> [1]^1([-2]) of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
   y -> [1]
