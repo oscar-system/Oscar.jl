@@ -174,34 +174,55 @@ function cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPo
   return one(ZZ)*effective_cartier_divisor(IP, f)
 end
 
+### Decompostion of an effective Cartier Divisor into irreducible components
+### (specialized variant of associated_points, using pure codimension 1
+###  and taking multiplicities into account)
+function irreducible_decomposition(C::EffectiveCartierDivisor)
+  cov = trivializing_covering(C)
+  X = scheme(C)
+  OOX = OO(X)
+
+  charts_todo = copy(patches(cov))
+  I = ideal_sheaf(C)
+  associated_primes_temp = Vector{Tuple{IdealSheaf, Int}}()  ## already identified components
+
+  # run through all charts and collect further irreducible components
+  while length(charts_todo) > 0
+    U = pop!(charts_todo)
+    !is_one(I(U)) || continue                                ## supp(C) might not meet all charts
+    I_temp=I(U)
+
+    for (J,_) in associated_primes_temp
+      !is_one(J(U)) || continue
+      I_temp=saturation(I_temp,J(U))                         ## kick out known components
+      !is_one(I_temp) || break                               ## break if nothing left
+    end
+
+    !is_one(I_temp) || break                                 ## break if nothing left
+    components_here = minimal_primes(I(U))
+    for comp in components_here
+      I_temp, saturation_index = saturation_with_index(I_temp, comp)
+      temp_dict=IdDict{AbsSpec,Ideal}()
+      temp_dict[U] = comp
+      I_sheaf_temp = IdealSheaf(X, extend!(cov, temp_dict), check=false)
+      push!(associated_primes_temp, (I_sheaf_temp, saturation_index))
+    end
+  end
+  return(associated_primes_temp)
+end
+
 ### Conversion into WeilDivisors
 function weil_divisor(C::EffectiveCartierDivisor)
   X = scheme(C)
   OOX = OO(X)
 
-  decomp = primary_decomposition(ideal_sheaf(C))
-
-  n = length(decomp)
-  primary_components = [a for (a, _) in decomp]
-  prime_components = [b for (_, b) in decomp]
-  
+  decomp = irreducible_decomposition(C)
   result = WeilDivisor(X, ZZ)
-  for i in 1:n
-    P = prime_components[i]
-    Q = primary_components[i]
-    k = ZZ(0)
-    for U in affine_charts(X)
-      isone(P(U)) && continue
-      R = base_ring(P(U))
-      L, phi = localization(R, complement_of_prime_ideal(P(U)))
-      F = FreeMod(L, 1)
-      QF, _ = phi(Q(U))*F
-      M, _ = quo(F, QF)
-      k = length(M)
-      break
-    end
-    result = result + k*WeilDivisor(P, ZZ)
+
+  for (I,k) in decomp
+    result = result + k*WeilDivisor(I,ZZ)
   end
+
   return result
 end
 
