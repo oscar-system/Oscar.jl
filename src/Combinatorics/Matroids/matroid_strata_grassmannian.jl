@@ -1,7 +1,7 @@
 struct MatroidRealizationSpace
-    defining_ideal::Union{Oscar.MPolyIdeal,Nothing}
+    defining_ideal::Union{Ideal, NumFieldOrdIdl, Nothing}
     inequations::Union{Vector{Oscar.RingElem},Nothing}
-    ambient_ring::Union{Oscar.MPolyRing,Nothing}
+    ambient_ring::Union{Oscar.MPolyRing, Ring, Nothing}
     representation_matrix::Union{Oscar.MatElem,Nothing}
     representable::Bool
 end
@@ -598,6 +598,145 @@ function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
     return I
 end
 
+
+
+
+
+
+
+
+#####################
+# initial reduction #
+#####################
+
+
+function update_hom(v_elim::RingElem, w_repl::RingElem, phi::Oscar.MPolyAnyMap)
+    R = codomain(phi)
+    phi2_im = replace(gens(R), v_elim => w_repl)
+    phi2 = hom(R, R, a->a, phi2_im)
+    return hom(R, R, a->a, phi2.(phi.(gens(R))))
+end
+
+function small_find_solution(v::RingElem, Igens::Vector{<:RingElem})
+    
+    with_v_deg_1 = [g for g in Igens if (total_degree(g) == 1 && isone(degree(g,v)) )] 
+    length(with_v_deg_1) != 0 || return "can't isolate"
+    
+    f = first(with_v_deg_1)
+    return -coeff(f, [v], [0])
+    
+end
+
+
+function small_reduce_one_step(Igens::Vector{<:RingElem}, phi::Oscar.MPolyAnyMap, 
+                               elim::Vector{<:RingElem}, fullyReduced::Bool)
+    Ivars = ideal_vars(Igens); 
+    length(Igens) == 0 && return (Igens, phi, elim, true)
+    for v in Ivars 
+        w = small_find_solution(v, Igens)
+        w isa String && continue
+        
+        push!(elim, v)
+        phi = update_hom(v, w, phi)
+        Igens = filter(x->x!=0, phi.(Igens))
+        return (Igens, phi, elim, false)
+    end
+    return (Igens, phi, elim, true)
+end
+
+function small_reduce_full_rec(Igens::Vector{<:RingElem}, 
+                               phi::Union{<:Oscar.MPolyAnyMap,Nothing} = nothing, 
+                               elim::Vector{<:RingElem} = Vector{RingElem}(), 
+                               fullyReduced=false)
+
+    if isnothing(phi)
+        R = parent(Igens[1])
+        phi=hom(R, R, a->a, gens(R))
+    end
+
+    output = small_reduce_one_step(Igens, phi, elim, fullyReduced)
+    output isa String && return "Not Realizable 0 in Semigroup"
+    
+    (Igens, phi, elim, fullyReduced) = output    
+    !fullyReduced && return small_reduce_full_rec(Igens, phi, elim, fullyReduced)
+    
+    
+    R = domain(phi)
+    x = gens(R)    
+    cR = coefficient_ring(R)
+    
+    
+    if length(elim) == length(x)
+        S = cR
+    else
+        S, y = polynomial_ring(cR, length(x) - length(elim))
+    end        
+    z=[]
+    j=1
+    for ele in x
+        if ele in elim
+            push!(z,0)
+        else
+            push!(z, y[j])
+            j+=1
+        end
+    end
+    phi2 = hom(R, S, a->a, z)
+    phif = phi*phi2
+
+    
+    return phif
+end
+
+
+function small_reduce(MRS::MatroidRealizationSpace) 
+    
+    !MRS.representable && return MRS    
+    phi = small_reduce_full_rec(gens(MRS.defining_ideal))
+    new_ring = codomain(phi)
+    new_ideal = phi(MRS.defining_ideal)
+    
+    new_ideal_gens = filter!(x->!iszero(x), phi.(gens(MRS.defining_ideal)))
+    
+    if length(new_ideal_gens) == 0
+        new_ideal = ideal(new_ring, [new_ring(0)])
+    else
+        new_ideal = ideal(new_ideal_gens)
+    end
+
+    new_mat = phi.(collect(MRS.representation_matrix))
+    new_mat = matrix(new_ring, new_mat)
+    new_ineq = unique!(filter(x->!is_unit(x), phi.(MRS.inequations)))
+    
+    return MatroidRealizationSpace(new_ideal, new_ineq, new_ring, new_mat, MRS.representable )
+    
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # computes the coefficient of v in monomial m. 
 function coefficient_monomial(v::RingElem, m::RingElem)
     isone(degree(m,v)) || return "The variable is not a degree 1 factor."
@@ -713,7 +852,7 @@ function reduce_ideal_one_step(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingEl
 end
 
     
-function reduce_ideal_full(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing, 
+function reduce_ideal_full_rec(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing, 
                            xs::Vector{<:RingElem}, elim::Vector{RingElem} = Vector{RingElem}(), 
                            fullyReduced::Bool = false) 
     
@@ -722,7 +861,7 @@ function reduce_ideal_full(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem},
     output isa String && return "Not Realizable 0 in Semigroup"
     (Igens, Sgens, R, xs, elim, fullyReduced) = output    
     
-    !fullyReduced && return reduce_ideal_full(Igens, Sgens, R, xs, elim, fullyReduced)
+    !fullyReduced && return reduce_ideal_full_rec(Igens, Sgens, R, xs, elim, fullyReduced)
     
     zero_elim = []        
     for i in 1:length(xs)
@@ -761,6 +900,13 @@ function reduce_ideal_full(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem},
     phi = hom(R, Rnew, a->a, zero_elim_var)
     
     return (phi.(Igens), phi.(Sgens), Rnew)
+end
+
+function reduce_ideal_full(MRS::MatroidRealizationSpace)
+    R= MRS.ambient_ring
+    xs=gens(R)
+    return reduce_ideal_full_rec(gens(MRS.defining_ideal), MRS.inequations, R, xs)
+
 end
 
 
