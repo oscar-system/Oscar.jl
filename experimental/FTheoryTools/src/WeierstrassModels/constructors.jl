@@ -1,29 +1,5 @@
 ################################################
-# 1: The Julia type for GlobalWeierstrassModel
-################################################
-
-#=
-@attributes mutable struct GlobalWeierstrassModel
-  weierstrass_f::MPolyRingElem{QQFieldElem}
-  weierstrass_g::MPolyRingElem{QQFieldElem}
-  pw::MPolyRingElem{QQFieldElem}
-  toric_base_space::AbstractNormalToricVariety
-  toric_ambient_space::AbstractNormalToricVariety
-  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
-  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
-                                  weierstrass_g::MPolyRingElem{QQFieldElem},
-                                  pw::MPolyRingElem{QQFieldElem},
-                                  toric_base_space::AbstractNormalToricVariety,
-                                  toric_ambient_space::AbstractNormalToricVariety,
-                                  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-    return new(weierstrass_f, weierstrass_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
-  end
-end
-=#
-
-
-################################################
-# 2: Constructors over specified bases
+# 1: Constructors over specified bases
 ################################################
 
 @doc raw"""
@@ -96,7 +72,7 @@ end
 
 
 ################################################
-# 3: Constructors over not fully specified bases
+# 2: Constructors over not fully specified bases
 ################################################
 
 @doc raw"""
@@ -138,7 +114,7 @@ end
 
 
 #######################################
-# 4: Display
+# 3: Display
 #######################################
 
 function Base.show(io::IO, w::GlobalWeierstrassModel)
