@@ -63,23 +63,23 @@ end
 
 
 @attributes mutable struct GlobalTateModel
-  a1::MPolyRingElem{QQFieldElem}
-  a2::MPolyRingElem{QQFieldElem}
-  a3::MPolyRingElem{QQFieldElem}
-  a4::MPolyRingElem{QQFieldElem}
-  a6::MPolyRingElem{QQFieldElem}
+  tate_a1::MPolyRingElem{QQFieldElem}
+  tate_a2::MPolyRingElem{QQFieldElem}
+  tate_a3::MPolyRingElem{QQFieldElem}
+  tate_a4::MPolyRingElem{QQFieldElem}
+  tate_a6::MPolyRingElem{QQFieldElem}
   pt::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
-  function GlobalTateModel(a1::MPolyRingElem{QQFieldElem},
-                          a2::MPolyRingElem{QQFieldElem},
-                          a3::MPolyRingElem{QQFieldElem},
-                          a4::MPolyRingElem{QQFieldElem},
-                          a6::MPolyRingElem{QQFieldElem},
+  function GlobalTateModel(tate_a1::MPolyRingElem{QQFieldElem},
+                          tate_a2::MPolyRingElem{QQFieldElem},
+                          tate_a3::MPolyRingElem{QQFieldElem},
+                          tate_a4::MPolyRingElem{QQFieldElem},
+                          tate_a6::MPolyRingElem{QQFieldElem},
                           pt::MPolyRingElem{QQFieldElem},
                           toric_base_space::AbstractNormalToricVariety,
                           toric_ambient_space::AbstractNormalToricVariety)
-    return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space)
+    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, pt, toric_base_space, toric_ambient_space)
   end
 end
 
