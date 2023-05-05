@@ -62,7 +62,7 @@ end
 
 function _weierstrass_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
   (f, g) = _weierstrass_sections(base)
-  return _weierstrass_polynomial(S, f, g)
+  return _weierstrass_polynomial(f, g, S)
 end
 
 function _weierstrass_polynomial(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
@@ -87,7 +87,7 @@ end
 
 function _tate_polynomial(base::AbstractNormalToricVariety, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
   (a1, a2, a3, a4, a6) = _tate_sections(base)
-  return _tate_polynomial(S, [a1, a2, a3, a4, a6])
+  return _tate_polynomial([a1, a2, a3, a4, a6], S)
 end
 
 function _tate_polynomial(ais::Vector{<:MPolyRingElem{QQFieldElem}}, S::MPolyDecRing{QQFieldElem, QQMPolyRing})
