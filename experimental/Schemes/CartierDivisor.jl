@@ -189,7 +189,7 @@ function irreducible_decomposition(C::EffectiveCartierDivisor)
 
   charts_todo = copy(patches(cov))
   I = ideal_sheaf(C)
-  associated_primes_temp = Vector{Tuple{IdealSheaf, Int}}()  ## already identified components
+  associated_primes_temp = Vector{Tuple{typeof(I), Int}}()  ## already identified components
 
   # run through all charts and collect further irreducible components
   while length(charts_todo) > 0
