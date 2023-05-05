@@ -408,10 +408,12 @@ Assign weights to the generators of `F` according to the entries of `W`.
 See the `grade` and `graded_free_module` functions.
 ```
 """
-function set_grading!(M::FreeMod, d::Vector{GrpAbFinGenElem})
-  @assert length(d) == ngens(M)
+function set_grading!(M::FreeMod, W::Vector{GrpAbFinGenElem})
+  @assert length(W) == ngens(M)
   @assert is_graded(base_ring(M))
-  M.d = d
+  R = base_ring(F)
+  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  M.d = W
 end
 
 function set_grading!(M::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
@@ -1050,6 +1052,46 @@ end
 
 
 
+##################################
+### Tests on graded modules
+##################################
+
+function is_graded(M::FreeMod)
+  return isa(M.d, Vector{GrpAbFinGenElem})
+end
+
+function is_graded(M::SubquoModule)
+  if isdefined(M, :quo)
+    return is_graded(M.sub) && is_graded(M.quo) && is_graded(M.sum)
+  else
+    return is_graded(M.sub)
+  end
+end
+
+function is_standard_graded(M::FreeMod)
+  return is_graded(M) && is_standard_graded(base_ring(M))
+end
+
+function is_standard_graded(M::SubquoModule)
+  return  is_graded(M) && is_standard_graded(base_ring(M))
+end
+
+function is_z_graded(M::FreeMod)
+  return  is_graded(M) && is_z_graded(base_ring(M))
+end
+
+function is_z_graded(M::SubquoModule)
+  return  is_graded(M) && is_z_graded(base_ring(M))
+end
+
+function is_zm_graded(M::FreeMod)
+  return  is_graded(M) && is_zm_graded(base_ring(M))
+end
+
+function is_zm_graded(M::SubquoModule)
+  return  is_graded(M) && is_zm_graded(base_ring(M))
+end
+
 
 ###############################################################################
 # FreeMod_dec constructors
@@ -1510,44 +1552,3 @@ function hom(F::FreeMod_dec, G::FreeMod_dec)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
-
-##################################
-### Tests on graded modules
-##################################
-
-function is_graded(M::FreeMod)
-  return isa(M.d, Vector{GrpAbFinGenElem})
-end
-
-function is_graded(M::SubquoModule)
-  if isdefined(M, :quo)
-    return is_graded(M.sub) && is_graded(M.quo) && is_graded(M.sum)
-  else
-    return is_graded(M.sub)
-  end
-end
-
-function is_standard_graded(M::FreeMod)
-  return is_graded(M) && is_standard_graded(base_ring(M))
-end
-
-function is_standard_graded(M::SubquoModule)
-  return  is_graded(M) && is_standard_graded(base_ring(M))
-end
-
-function is_z_graded(M::FreeMod)
-  return  is_graded(M) && is_z_graded(base_ring(M))
-end
-
-function is_z_graded(M::SubquoModule)
-  return  is_graded(M) && is_z_graded(base_ring(M))
-end
-
-function is_zm_graded(M::FreeMod)
-  return  is_graded(M) && is_zm_graded(base_ring(M))
-end
-
-function is_zm_graded(M::SubquoModule)
-  return  is_graded(M) && is_zm_graded(base_ring(M))
-end
-
