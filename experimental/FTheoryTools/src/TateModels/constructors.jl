@@ -1,35 +1,5 @@
 ################################################
-# 1: The Julia types for GlobalTateModel
-################################################
-
-#=
-@attributes mutable struct GlobalTateModel
-  a1::MPolyRingElem{QQFieldElem}
-  a2::MPolyRingElem{QQFieldElem}
-  a3::MPolyRingElem{QQFieldElem}
-  a4::MPolyRingElem{QQFieldElem}
-  a6::MPolyRingElem{QQFieldElem}
-  pt::MPolyRingElem{QQFieldElem}
-  toric_base_space::AbstractNormalToricVariety
-  toric_ambient_space::AbstractNormalToricVariety
-  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
-  function GlobalTateModel(a1::MPolyRingElem{QQFieldElem},
-                          a2::MPolyRingElem{QQFieldElem},
-                          a3::MPolyRingElem{QQFieldElem},
-                          a4::MPolyRingElem{QQFieldElem},
-                          a6::MPolyRingElem{QQFieldElem},
-                          pt::MPolyRingElem{QQFieldElem},
-                          toric_base_space::AbstractNormalToricVariety,
-                          toric_ambient_space::AbstractNormalToricVariety,
-                          calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-    return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
-  end
-end
-=#
-
-
-################################################
-# 2: Constructors over specified bases
+# 1: Constructors over specified bases
 ################################################
 
 @doc raw"""
@@ -105,7 +75,7 @@ end
 
 
 ################################################
-# 3: Constructors over not fully specified bases
+# 2: Constructors over not fully specified bases
 ################################################
 
 @doc raw"""
@@ -169,7 +139,7 @@ end
 
 
 ################################################
-# 4: Display
+# 3: Display
 ################################################
 
 function Base.show(io::IO, t::GlobalTateModel)
