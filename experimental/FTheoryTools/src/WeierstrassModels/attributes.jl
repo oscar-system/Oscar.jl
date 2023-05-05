@@ -56,7 +56,7 @@ Global Weierstrass model over a not fully specified base
 julia> weierstrass_polynomial(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.pw
+@attr MPolyRingElem{QQFieldElem} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.weierstrass_polynomial
 
 
 #######################################

@@ -93,7 +93,7 @@ Global Tate model over a not fully specified base
 julia> tate_polynomial(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_polynomial(t::GlobalTateModel) = t.pt
+@attr MPolyRingElem{QQFieldElem} tate_polynomial(t::GlobalTateModel) = t.tate_polynomial
 
 
 #####################################################

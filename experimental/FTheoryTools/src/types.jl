@@ -49,15 +49,15 @@ end
 @attributes mutable struct GlobalWeierstrassModel
   weierstrass_f::MPolyRingElem{QQFieldElem}
   weierstrass_g::MPolyRingElem{QQFieldElem}
-  pw::MPolyRingElem{QQFieldElem}
+  weierstrass_polynomial::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
   function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
                             weierstrass_g::MPolyRingElem{QQFieldElem},
-                            pw::MPolyRingElem{QQFieldElem},
+                            weierstrass_polynomial::MPolyRingElem{QQFieldElem},
                             toric_base_space::AbstractNormalToricVariety,
                             toric_ambient_space::AbstractNormalToricVariety)
-    return new(weierstrass_f, weierstrass_g, pw, toric_base_space, toric_ambient_space)
+    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, toric_base_space, toric_ambient_space)
   end
 end
 
@@ -68,7 +68,7 @@ end
   tate_a3::MPolyRingElem{QQFieldElem}
   tate_a4::MPolyRingElem{QQFieldElem}
   tate_a6::MPolyRingElem{QQFieldElem}
-  pt::MPolyRingElem{QQFieldElem}
+  tate_polynomial::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
   function GlobalTateModel(tate_a1::MPolyRingElem{QQFieldElem},
@@ -76,10 +76,10 @@ end
                           tate_a3::MPolyRingElem{QQFieldElem},
                           tate_a4::MPolyRingElem{QQFieldElem},
                           tate_a6::MPolyRingElem{QQFieldElem},
-                          pt::MPolyRingElem{QQFieldElem},
+                          tate_polynomial::MPolyRingElem{QQFieldElem},
                           toric_base_space::AbstractNormalToricVariety,
                           toric_ambient_space::AbstractNormalToricVariety)
-    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, pt, toric_base_space, toric_ambient_space)
+    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, toric_base_space, toric_ambient_space)
   end
 end
 
