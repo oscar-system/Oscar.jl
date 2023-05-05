@@ -2,12 +2,22 @@
 # 1: Fiber analysis
 #####################################################
 
+@doc raw"""
+    analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
+
+Determine the fiber of a (singular) global Tate model over a particular base locus.
+```
+"""
 function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
+  
+  # This method only works if the model is defined over a toric variety over toric scheme
+  @req typeof(base_space(model)) === ToricCoveredScheme{QQField} "Analysis of fibers currently only supported for toric scheme/variety as base space"
+  
   # Ideal of the defining polynomial
   hypersurface_ideal = ideal([tate_polynomial(model)])
   
   # Toric ambient space
-  tas = toric_ambient_space(model)
+  tas = ambient_space(model)
   
   # Various important ideals
   irr = irrelevant_ideal(tas);

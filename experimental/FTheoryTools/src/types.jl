@@ -4,11 +4,11 @@
 
 abstract type AbstractFTheoryModel end
 
-space_type = Union{ToricCoveredScheme{BRT}, CoveredScheme{BRT}} where {BRT<:Ring}
+ToricOrNonToricCoveredScheme = Union{ToricCoveredScheme{BRT}, CoveredScheme{BRT}} where {BRT<:Ring}
 
 @attributes mutable struct ClosedSubschemeModel <: AbstractFTheoryModel
-  base_space::space_type
-  ambient_space::space_type
+  base_space::ToricOrNonToricCoveredScheme
+  ambient_space::ToricOrNonToricCoveredScheme
   #@req typeof(base_space) === typeof(ambient_space) "Base and ambient space must be of the same type"
   # total_space
   # fiber_ambient_space
@@ -25,24 +25,24 @@ space_type = Union{ToricCoveredScheme{BRT}, CoveredScheme{BRT}} where {BRT<:Ring
   # toric_Q_factorial_terminal
   # jacbian_fibration
   # mirror_dual
-  ClosedSubschemeModel(base_space::space_type, ambient_space::space_type) = new(base_space, ambient_space)
+  ClosedSubschemeModel(base_space::ToricOrNonToricCoveredScheme, ambient_space::ToricOrNonToricCoveredScheme) = new(base_space, ambient_space)
 end
 
 
 @attributes mutable struct CompleteIntersectionModel <: AbstractFTheoryModel
-  base_space::space_type
-  ambient_space::space_type
+  base_space::ToricOrNonToricCoveredScheme
+  ambient_space::ToricOrNonToricCoveredScheme
   defining_ideal::MPolyIdeal
   # zero section
-  CompleteIntersectionModel(base_space::space_type, ambient_space::space_type, defining_ideal::MPolyIdeal) = new(base_space, ambient_space, defining_ideal)
+  CompleteIntersectionModel(base_space::ToricOrNonToricCoveredScheme, ambient_space::ToricOrNonToricCoveredScheme, defining_ideal::MPolyIdeal) = new(base_space, ambient_space, defining_ideal)
 end
 
 
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
-  base_space::space_type
-  ambient_space::space_type
+  base_space::ToricOrNonToricCoveredScheme
+  ambient_space::ToricOrNonToricCoveredScheme
   hypersurface_equation::MPolyRingElem{QQFieldElem}
-  HypersurfaceModel(base_space::space_type, ambient_space::space_type, hypersurface_equation::MPolyRingElem{QQFieldElem}) = new(base_space, ambient_space, hypersurface_equation)
+  HypersurfaceModel(base_space::ToricOrNonToricCoveredScheme, ambient_space::ToricOrNonToricCoveredScheme, hypersurface_equation::MPolyRingElem{QQFieldElem}) = new(base_space, ambient_space, hypersurface_equation)
 end
 
 
@@ -50,14 +50,14 @@ end
   weierstrass_f::MPolyRingElem{QQFieldElem}
   weierstrass_g::MPolyRingElem{QQFieldElem}
   weierstrass_polynomial::MPolyRingElem{QQFieldElem}
-  toric_base_space::AbstractNormalToricVariety
-  toric_ambient_space::AbstractNormalToricVariety
+  base_space::ToricOrNonToricCoveredScheme
+  ambient_space::ToricOrNonToricCoveredScheme
   function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
                             weierstrass_g::MPolyRingElem{QQFieldElem},
                             weierstrass_polynomial::MPolyRingElem{QQFieldElem},
-                            toric_base_space::AbstractNormalToricVariety,
-                            toric_ambient_space::AbstractNormalToricVariety)
-    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, toric_base_space, toric_ambient_space)
+                            base_space::ToricOrNonToricCoveredScheme,
+                            ambient_space::ToricOrNonToricCoveredScheme)
+    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space)
   end
 end
 
@@ -69,17 +69,17 @@ end
   tate_a4::MPolyRingElem{QQFieldElem}
   tate_a6::MPolyRingElem{QQFieldElem}
   tate_polynomial::MPolyRingElem{QQFieldElem}
-  toric_base_space::AbstractNormalToricVariety
-  toric_ambient_space::AbstractNormalToricVariety
+  base_space::ToricOrNonToricCoveredScheme
+  ambient_space::ToricOrNonToricCoveredScheme
   function GlobalTateModel(tate_a1::MPolyRingElem{QQFieldElem},
                           tate_a2::MPolyRingElem{QQFieldElem},
                           tate_a3::MPolyRingElem{QQFieldElem},
                           tate_a4::MPolyRingElem{QQFieldElem},
                           tate_a6::MPolyRingElem{QQFieldElem},
                           tate_polynomial::MPolyRingElem{QQFieldElem},
-                          toric_base_space::AbstractNormalToricVariety,
-                          toric_ambient_space::AbstractNormalToricVariety)
-    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, toric_base_space, toric_ambient_space)
+                          base_space::ToricOrNonToricCoveredScheme,
+                          ambient_space::ToricOrNonToricCoveredScheme)
+    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space)
   end
 end
 
@@ -103,33 +103,3 @@ end
 @attr HypersurfaceModel function conceptual_parent(gwm::GlobalWeierstrassModel)
   # do something
 end
-
-
-################################################
-# 3: Constructors
-################################################
-
-#=
-function global_tate_model(base::AbstractNormalToricVariety)
-  toric_ambient_space = _ambient_space_from_base(base)
-  (a1, a2, a3, a4, a6) = _tate_sections(base)
-  pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(toric_ambient_space))
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, base, toric_ambient_space, calabi_yau_hypersurface)
-  set_attribute!(model, :base_fully_specified, true)
-  return model
-end
-
-
-################################################
-# 3: Display methods
-################################################
-
-function Base.show(io::IO, t::GlobalTateModel)
-  if base_fully_specified(t)
-    print(io, "Global Tate model over a concrete base")
-  else
-    print(io, "Global Tate model over a not fully specified base")
-  end
-end
-=#
