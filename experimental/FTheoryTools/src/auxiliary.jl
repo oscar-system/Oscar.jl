@@ -14,6 +14,8 @@ end
 # 2: Construct ambient space from given base
 ################################################################
 
+_ambient_space_from_base(base::ToricCoveredScheme) = _ambient_space_from_base(underlying_toric_variety(base))
+
 function _ambient_space_from_base(base::AbstractNormalToricVariety)
   
   # Extract information about the toric base
@@ -43,9 +45,9 @@ function _ambient_space_from_base(base::AbstractNormalToricVariety)
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
   # Construct and return the ambient space
-  toric_ambient_space = normal_toric_variety(PolyhedralFan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
-  set_coordinate_names(toric_ambient_space, vcat([string(k) for k in gens(cox_ring(base))], ["x", "y", "z"]))
-  return toric_ambient_space
+  ambient_space = normal_toric_variety(PolyhedralFan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], ["x", "y", "z"]))
+  return ambient_space
   
 end
 
@@ -103,12 +105,12 @@ end
 ################################################################
 
 @doc raw"""
-    test_base()
+    sample_toric_variety()
 
 This method constructs a 3-dimensional toric variety, which we
 use for efficient testing of the provided functionality.
 """
-function test_base()
+function sample_toric_variety()
   rays = [-1 -1 -1; -1 -1 0; -1 -1 1; -1 -1 2; -1 -1 3; -1 -1 4;
           -1 -1 5; -1 0 -1; -1 0 0; -1 0 1; -1 0 2; -1 0 3; -1 0 4;
           -1 1 -1; -1 1 0; -1 1 1; -1 1 2; -1 1 3; -1 2 -1; -1 2 0;
@@ -131,6 +133,14 @@ function test_base()
           [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
   return normal_toric_variety(PolyhedralFan(rays, cones))
 end
+
+@doc raw"""
+    sample_toric_scheme()
+
+This method constructs a 3-dimensional toric variety, which we
+use for efficient testing of the provided functionality.
+"""
+sample_toric_scheme() = ToricCoveredScheme(sample_toric_variety())
 
 
 ################################################################
