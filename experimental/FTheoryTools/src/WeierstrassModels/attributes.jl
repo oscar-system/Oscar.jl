@@ -127,7 +127,7 @@ Closed subvariety of a normal toric variety
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::GlobalWeierstrassModel)
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return w.calabi_yau_hypersurface
+  return closed_subvariety_of_toric_variety(toric_ambient_space(w), [weierstrass_polynomial(w)])
 end
 
 

@@ -52,14 +52,12 @@ end
   pw::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
-  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
   function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
                             weierstrass_g::MPolyRingElem{QQFieldElem},
                             pw::MPolyRingElem{QQFieldElem},
                             toric_base_space::AbstractNormalToricVariety,
-                            toric_ambient_space::AbstractNormalToricVariety,
-                            calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-    return new(weierstrass_f, weierstrass_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
+                            toric_ambient_space::AbstractNormalToricVariety)
+    return new(weierstrass_f, weierstrass_g, pw, toric_base_space, toric_ambient_space)
   end
 end
 
@@ -73,7 +71,6 @@ end
   pt::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
-  calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
   function GlobalTateModel(a1::MPolyRingElem{QQFieldElem},
                           a2::MPolyRingElem{QQFieldElem},
                           a3::MPolyRingElem{QQFieldElem},
@@ -81,9 +78,8 @@ end
                           a6::MPolyRingElem{QQFieldElem},
                           pt::MPolyRingElem{QQFieldElem},
                           toric_base_space::AbstractNormalToricVariety,
-                          toric_ambient_space::AbstractNormalToricVariety,
-                          calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-    return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
+                          toric_ambient_space::AbstractNormalToricVariety)
+    return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space)
   end
 end
 
