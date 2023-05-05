@@ -4,19 +4,19 @@
 
 #=
 @attributes mutable struct GlobalWeierstrassModel
-  poly_f::MPolyRingElem{QQFieldElem}
-  poly_g::MPolyRingElem{QQFieldElem}
+  weierstrass_f::MPolyRingElem{QQFieldElem}
+  weierstrass_g::MPolyRingElem{QQFieldElem}
   pw::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
   calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
-  function GlobalWeierstrassModel(poly_f::MPolyRingElem{QQFieldElem},
-                                  poly_g::MPolyRingElem{QQFieldElem},
+  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
+                                  weierstrass_g::MPolyRingElem{QQFieldElem},
                                   pw::MPolyRingElem{QQFieldElem},
                                   toric_base_space::AbstractNormalToricVariety,
                                   toric_ambient_space::AbstractNormalToricVariety,
                                   calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-    return new(poly_f, poly_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
+    return new(weierstrass_f, weierstrass_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
   end
 end
 =#
@@ -100,7 +100,7 @@ end
 ################################################
 
 @doc raw"""
-    global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+    global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, weierstrass_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
 
 This method constructs a global Weierstrass model over a base space that is not
 fully specified. The following example illustrates this approach.
@@ -113,8 +113,8 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 ```
 """
-function global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
-  @req ((parent(poly_f) == auxiliary_base_ring) && (parent(poly_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
+function global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, weierstrass_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+  @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   @req (ngens(auxiliary_base_ring) >= d) "We expect at least as many base variables as the desired base dimension"
   
@@ -122,8 +122,8 @@ function global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MP
   auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
   S = cox_ring(auxiliary_base_space)
   ring_map = hom(auxiliary_base_ring, S, gens(S))
-  f = ring_map(poly_f)
-  g = ring_map(poly_g)
+  f = ring_map(weierstrass_f)
+  g = ring_map(weierstrass_g)
   
   # construct auxiliary ambient space
   auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)

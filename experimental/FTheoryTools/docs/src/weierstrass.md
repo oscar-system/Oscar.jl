@@ -95,7 +95,7 @@ toric base space, namely an affine space with those coordinates.
 
 For such geometries, we support the following functionality.
 ```@docs
-global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, weierstrass_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
 ```
 
 

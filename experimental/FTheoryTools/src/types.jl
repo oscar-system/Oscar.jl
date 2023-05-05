@@ -47,19 +47,19 @@ end
 
 
 @attributes mutable struct GlobalWeierstrassModel
-  poly_f::MPolyRingElem{QQFieldElem}
-  poly_g::MPolyRingElem{QQFieldElem}
+  weierstrass_f::MPolyRingElem{QQFieldElem}
+  weierstrass_g::MPolyRingElem{QQFieldElem}
   pw::MPolyRingElem{QQFieldElem}
   toric_base_space::AbstractNormalToricVariety
   toric_ambient_space::AbstractNormalToricVariety
   calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety
-  function GlobalWeierstrassModel(poly_f::MPolyRingElem{QQFieldElem},
-                            poly_g::MPolyRingElem{QQFieldElem},
+  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
+                            weierstrass_g::MPolyRingElem{QQFieldElem},
                             pw::MPolyRingElem{QQFieldElem},
                             toric_base_space::AbstractNormalToricVariety,
                             toric_ambient_space::AbstractNormalToricVariety,
                             calabi_yau_hypersurface::ClosedSubvarietyOfToricVariety)
-    return new(poly_f, poly_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
+    return new(weierstrass_f, weierstrass_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
   end
 end
 
