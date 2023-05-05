@@ -234,5 +234,33 @@ end
 @deprecate blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
 @deprecate starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types star_subdivision(PF, n)
 
+# Deprecated after 0.12.1
 @deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r; set_attributes = set_attributes)
 @deprecate del_pezzo_surface(b::Int; set_attributes::Bool = true) del_pezzo_surface(NormalToricVariety, b; set_attributes = set_attributes)
+
+function PolyhedralComplex{T}(
+                polyhedra::IncidenceMatrix, 
+                vr::AbstractCollection[PointVector], 
+                far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                non_redundant::Bool = false
+            ) where T<:scalar_types
+  Base.depwarn("'PolyhedralComplex{$T}(x...)' is deprecated, use 'polyhedral_complex($T, x...)' instead.", :PolyhedralComplex)
+  return polyhedral_complex(T, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
+end
+function PolyhedralComplex(
+                polyhedra::IncidenceMatrix, 
+                vr::AbstractCollection[PointVector], 
+                far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                non_redundant::Bool = false
+            )
+  Base.depwarn("'PolyhedralComplex' is deprecated, use 'polyhedral_complex' instead.", :PolyhedralComplex)
+  return polyhedral_complex(QQFieldElem, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
+end
+function PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types
+  Base.depwarn("'PolyhedralComplex' is deprecated, use 'polyhedral_complex' instead.", :PolyhedralComplex)
+  return polyhedral_complex(iter)
+end
+@deprecate PolyhedralComplex(p::Polymake.BigObject) polyhedral_complex(p)
+

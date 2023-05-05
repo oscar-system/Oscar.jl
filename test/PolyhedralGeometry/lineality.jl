@@ -64,7 +64,7 @@
         IM = IncidenceMatrix([[1,2,3],[1,3,4]])
         far_vertices = [2,3,4]
         L = [0 0 1]
-        PC = PolyhedralComplex(IM, VR, far_vertices, L)
+        PC = polyhedral_complex(IM, VR, far_vertices, L)
         @test length(vertices(PC)) == 0
         @test size(point_matrix(vertices(PC))) == (0, 3)
         @test length(rays(PC)) == 0

@@ -37,7 +37,7 @@ using Oscar: _integer_variables
         @testset "PolyhedralComplex" begin
             IM = IncidenceMatrix([[1,2,3],[1,3,4]])
             vr = [0 0; 1 0; 1 1; 0 1]
-            PC = PolyhedralComplex(IM, vr)
+            PC = polyhedral_complex(IM, vr)
             test_save_load_roundtrip(path, PC) do loaded
               @test loaded isa PolyhedralComplex
               @test Base.propertynames(PC) == Base.propertynames(loaded)

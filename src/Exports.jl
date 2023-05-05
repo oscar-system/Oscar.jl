@@ -131,7 +131,7 @@ export PcGroupElem
 export PermGroup
 export PermGroupElem
 export PointVector
-export PolyhedralComplex
+export PolyhedralComplex, polyhedral_complex
 export PolyhedralFan
 export Polyhedron
 export Polymake

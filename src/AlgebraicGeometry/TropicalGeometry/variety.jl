@@ -81,7 +81,7 @@ julia> VR = [0 0; 1 0; 0 1; -1 -1];
 
 julia> far_vertices = [2,3,4];
 
-julia> Sigma = PolyhedralComplex(IM, VR, far_vertices);
+julia> Sigma = polyhedral_complex(IM, VR, far_vertices);
 
 julia> tropicalLine = TropicalVariety{min,true}(Sigma)
 """
@@ -333,7 +333,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
 
 
 
-  PC = PolyhedralComplex(IncidenceMatrix(incidence_matrix),
+  PC = polyhedral_complex(IncidenceMatrix(incidence_matrix),
   verts_rays_matrix,
   far_vertices,
   lineality_space_gens)
