@@ -161,7 +161,7 @@ Closed subvariety of a normal toric variety
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return t.calabi_yau_hypersurface
+  return closed_subvariety_of_toric_variety(toric_ambient_space(t), [tate_polynomial(t)])
 end
 
 

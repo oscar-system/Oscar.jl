@@ -67,8 +67,7 @@ function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) whe
   @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
   toric_ambient_space = _ambient_space_from_base(base)
   pt = _tate_polynomial(ais, cox_ring(toric_ambient_space))
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
-  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, toric_ambient_space, calabi_yau_hypersurface)
+  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, toric_ambient_space)
   set_attribute!(model, :base_fully_specified, true)
   return model
 end
@@ -131,8 +130,7 @@ function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::In
   # construct model
   auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
   pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(auxiliary_ambient_space, [pt])
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space, calabi_yau_hypersurface)
+  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :base_fully_specified, false)
   return model
 end
