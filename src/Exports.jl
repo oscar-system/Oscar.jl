@@ -168,7 +168,6 @@ export SubQuoHom
 export SubdivisionOfPoints
 export SubquoModule
 export SubquoModuleElem
-export ToricCoveredScheme
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle

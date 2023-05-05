@@ -1,1 +1,2 @@
+export ToricCoveredScheme
 export underlying_toric_variety
