@@ -440,7 +440,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = 
   nrows(rel) == n && ncols(rel) == n || error("oops")
   scr = singular_coeff_ring(coefficient_ring(r))
   S = elem_type(scr)
-  sr, _ = Singular.polynomial_ring(scr, [string(x) for x in symbols(r)]; ordering = singular(ord))
+  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord))
   sr::Singular.PolyRing{S}
   s, gs, srel = _g_algebra_internal(sr, rel)
   if check && !is_zero(Singular.LibNctools.ndcond(s))
@@ -537,7 +537,7 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
     n = length(revs)
     bsring = Singular.PluralRing{S}(ptr, a.sring.base_ring, revs)
     bspolyring, _ = Singular.polynomial_ring(a.sring.base_ring,
-                                map(string, revs), ordering = ordering(bsring))
+                                revs, ordering = ordering(bsring))
     bsrel = Singular.zero_matrix(bspolyring, n, n)
     for i in 1:n-1, j in i+1:n
       bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)
@@ -1200,7 +1200,7 @@ function _left_eliminate(R::PBWAlgRing, I::Singular.sideal, sigma, sigmaC, order
     end
   end
 
-  sr, _ = Singular.polynomial_ring(base_ring(R.sring), string.(symbols(r)); ordering = o)
+  sr, _ = Singular.polynomial_ring(base_ring(R.sring), symbols(r); ordering = o)
   s, gs, _ = _g_algebra_internal(sr, R.relations)
   Io = _unsafe_coerse(s, I, false)
   Io = _left_eliminate_via_given_ordering(Io, sigmaC)

@@ -633,9 +633,14 @@ function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String 
     new_fan = star_subdivision(fan(v), n)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
-    old_vars = [string(x) for x in gens(cox_ring(v))]
-    @req findfirst(x->occursin(coordinate_name, x), old_vars) === nothing "The name for the blowup coordinate is already taken"
-    new_vars = [if new_rays[i] in rays(fan(v)) old_vars[findfirst(x->x==new_rays[i], rays(fan(v)))] else coordinate_name end for i in 1:length(new_rays)]
+    old_rays = rays(fan(v))
+    old_vars = string.(symbols(cox_ring(v)))
+    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
+    new_vars = Vector{String}(undef, length(new_rays))
+    for i in 1:length(new_rays)
+        j = findfirst(==(new_rays[i]), old_rays)
+        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
+    end
     set_attribute!(new_variety, :coordinate_names, new_vars)
     return new_variety
 end

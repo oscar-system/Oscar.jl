@@ -192,7 +192,7 @@ in `R`.
 """
 function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) where T
   return Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(base_ring(R))),
-              [string(x) for x = Nemo.symbols(R)],
+              symbols(R);
               ordering = ord,
               cached = false)[1]
 end
