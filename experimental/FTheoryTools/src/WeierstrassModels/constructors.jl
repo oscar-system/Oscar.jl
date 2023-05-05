@@ -41,13 +41,8 @@ julia> dim(toric_ambient_space(w))
 ```
 """
 function global_weierstrass_model(base::AbstractNormalToricVariety)
-  toric_ambient_space = _ambient_space_from_base(base)
-  (f,g) = _weierstrass_sections(base)
-  pw = _weierstrass_polynomial(f, g, cox_ring(toric_ambient_space))
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pw])
-  model = GlobalWeierstrassModel(f, g, pw, base, toric_ambient_space, calabi_yau_hypersurface)
-  set_attribute!(model, :base_fully_specified, true)
-  return model
+  (f, g) = _weierstrass_sections(base)
+  return global_weierstrass_model(f, g, base)
 end
 
 

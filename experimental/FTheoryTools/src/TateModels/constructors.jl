@@ -45,15 +45,7 @@ julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-function global_tate_model(base::AbstractNormalToricVariety)
-  toric_ambient_space = _ambient_space_from_base(base)
-  (a1, a2, a3, a4, a6) = _tate_sections(base)
-  pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(toric_ambient_space))
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space, [pt])
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, base, toric_ambient_space, calabi_yau_hypersurface)
-  set_attribute!(model, :base_fully_specified, true)
-  return model
-end
+global_tate_model(base::AbstractNormalToricVariety) = global_tate_model(_tate_sections(base), base)
 
 
 @doc raw"""
