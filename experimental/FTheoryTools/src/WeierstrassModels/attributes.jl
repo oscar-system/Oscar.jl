@@ -17,7 +17,7 @@ Global Weierstrass model over a not fully specified base
 julia> weierstrass_section_f(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
+@attr MPolyRingElem{QQFieldElem} weierstrass_section_f(w::GlobalWeierstrassModel) = w.weierstrass_f
 
 
 @doc raw"""
@@ -35,7 +35,7 @@ Global Weierstrass model over a not fully specified base
 julia> weierstrass_section_g(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} weierstrass_section_g(w::GlobalWeierstrassModel) = w.poly_g
+@attr MPolyRingElem{QQFieldElem} weierstrass_section_g(w::GlobalWeierstrassModel) = w.weierstrass_g
 
 
 #######################################
@@ -156,7 +156,7 @@ Global Weierstrass model over a not fully specified base
 julia> discriminant(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
+@attr MPolyRingElem{QQFieldElem} discriminant(w::GlobalWeierstrassModel) = 4 * w.weierstrass_f^3 + 27 * w.weierstrass_g^2
 
 
 @doc raw"""
