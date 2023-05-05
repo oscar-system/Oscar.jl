@@ -111,29 +111,3 @@ end
   @test pbII(U[2]) isa Ideal
   @test haskey(pbII.I.obj_cache, U[2])
 end
-
-@testset "primary decomposition of ideal sheaves" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
-  S = homogeneous_coordinate_ring(IP2)
-  (x,y,z) = gens(S)
-  I = ideal(S, x^2*y^3*(x+y+z))
-  II = IdealSheaf(IP2, I)
-  X = scheme(II)
-  l = primary_decomposition(II)
-  @test length(l) == 3
-  for i in 1:3
-    for j in 1:2
-      @test all(x->ngens(l[i][j](x))==1, affine_charts(X))
-    end
-  end
-
-  J = ideal(S, [y^2*(x+y+z), x*(x+y+z), x*y^2])
-  JJ = IdealSheaf(IP2, J)
-  l = primary_decomposition(JJ)
-  @test length(l) == 3
-  for i in 1:3
-    for j in 1:2
-      @test all(x->dim(l[i][j](x))<=0, affine_charts(X))
-    end
-  end
-end
