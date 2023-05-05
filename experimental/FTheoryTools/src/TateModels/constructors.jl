@@ -2,6 +2,7 @@
 # 1: The Julia types for GlobalTateModel
 ################################################
 
+#=
 @attributes mutable struct GlobalTateModel
   a1::MPolyRingElem{QQFieldElem}
   a2::MPolyRingElem{QQFieldElem}
@@ -24,6 +25,7 @@
     return new(a1, a2, a3, a4, a6, pt, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
   end
 end
+=#
 
 
 ################################################

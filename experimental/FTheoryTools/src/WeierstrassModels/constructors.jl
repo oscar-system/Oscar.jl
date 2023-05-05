@@ -2,6 +2,7 @@
 # 1: The Julia type for GlobalWeierstrassModel
 ################################################
 
+#=
 @attributes mutable struct GlobalWeierstrassModel
   poly_f::MPolyRingElem{QQFieldElem}
   poly_g::MPolyRingElem{QQFieldElem}
@@ -18,6 +19,7 @@
     return new(poly_f, poly_g, pw, toric_base_space, toric_ambient_space, calabi_yau_hypersurface)
   end
 end
+=#
 
 
 ################################################

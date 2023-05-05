@@ -1,3 +1,4 @@
+include("types.jl")
 include("auxiliary.jl")
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
