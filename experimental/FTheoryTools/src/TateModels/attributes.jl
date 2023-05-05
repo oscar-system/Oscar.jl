@@ -14,7 +14,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a1(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a1(t::GlobalTateModel) = t.a1
+@attr MPolyRingElem{QQFieldElem} tate_section_a1(t::GlobalTateModel) = t.tate_a1
 
 
 @doc raw"""
@@ -29,7 +29,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a2(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a2(t::GlobalTateModel) = t.a2
+@attr MPolyRingElem{QQFieldElem} tate_section_a2(t::GlobalTateModel) = t.tate_a2
 
 
 @doc raw"""
@@ -44,7 +44,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a3(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a3(t::GlobalTateModel) = t.a3
+@attr MPolyRingElem{QQFieldElem} tate_section_a3(t::GlobalTateModel) = t.tate_a3
 
 
 @doc raw"""
@@ -59,7 +59,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a4(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a4(t::GlobalTateModel) = t.a4
+@attr MPolyRingElem{QQFieldElem} tate_section_a4(t::GlobalTateModel) = t.tate_a4
 
 
 @doc raw"""
@@ -74,7 +74,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a6(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a6(t::GlobalTateModel) = t.a6
+@attr MPolyRingElem{QQFieldElem} tate_section_a6(t::GlobalTateModel) = t.tate_a6
 
 
 #####################################################
@@ -192,8 +192,7 @@ Global Weierstrass model over a not fully specified base
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
-  model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), calabi_yau_hypersurface)
+  model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t))
   set_attribute!(model, :base_fully_specified, base_fully_specified(t))
   return model
 end
