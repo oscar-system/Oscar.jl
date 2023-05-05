@@ -951,9 +951,9 @@ julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> Z = abelian_group(0);
 
-julia> Rg, (x, y, z)=grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
 
-julia> F = graded_free_module(Rg, 3)
+julia> F1 = graded_free_module(Rg, 3)
 Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -962,7 +962,7 @@ Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field g
   y -> [1]
   z -> [1]
 
-julia> G = graded_free_module(Rg, 2)
+julia> G1 = graded_free_module(Rg, 2)
 Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -971,28 +971,13 @@ Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field g
   y -> [1]
   z -> [1]
 
-julia> V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
-3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- y*e[1]
- (x + y)*e[1] + y*e[2]
- z*e[2]
+julia> V1 = [y*G1[1], (x+y)*G1[1]+y*G1[2], z*G1[2]]
 3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  y*e[1]
  (x + y)*e[1] + y*e[2]
  z*e[2]
 
-julia> a = hom(F, G, V)
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([-1]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0])
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
-Homogeneous module homomorphism
+julia> a1 = hom(F1, G1, V1)
 Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -1005,7 +990,7 @@ e[2] -> (x + y)*e[1] + y*e[2]
 e[3] -> z*e[2]
 Graded module homomorphism of degree [1]
 
-julia> F = graded_free_module(Rg, [1,1,1])
+julia> F2 = graded_free_module(Rg, [1,1,1])
 Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -1014,7 +999,7 @@ Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field g
   y -> [1]
   z -> [1]
 
-julia> G = graded_free_module(Rg, [0,0])
+julia> G2 = graded_free_module(Rg, [0,0])
 Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -1023,16 +1008,13 @@ Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field g
   y -> [1]
   z -> [1]
 
-julia> V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+julia> V2 = [y*G2[1], (x+y)*G2[1]+y*G2[2], z*G2[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
 
-julia> a = hom(F, G, V)
-
-julia> B = Rg[y 0; x+y y; 0 z]
-[    y   0]
-[x + y   y]
-[    0   z]
-
-julia> b = hom(F, G, B)
+julia> a2 = hom(F2, G2, V2)
 Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -1045,7 +1027,25 @@ e[2] -> (x + y)*e[1] + y*e[2]
 e[3] -> z*e[2]
 Homogeneous module homomorphism
 
-julia> a == b
+julia> B = Rg[y 0; x+y y; 0 z]
+[    y   0]
+[x + y   y]
+[    0   z]
+
+julia> b = hom(F2, G2, B)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 == b
 true
 
 ```
