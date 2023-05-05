@@ -51,6 +51,7 @@ Graded free module Multivariate Polynomial Ring in x, y over Rational Field grad
 function graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
   @assert length(W) == p
   @assert is_graded(R)
+  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
   M = FreeMod(R, p, name)
   M.d = W
   return M
@@ -230,6 +231,7 @@ function grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
   @assert length(W) == ngens(F)
   @assert is_graded(base_ring(F))
   R = base_ring(F)
+  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
   N = free_module(R, length(W))
   N.d = W
   N.S = F.S
