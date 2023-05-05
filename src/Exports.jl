@@ -132,7 +132,7 @@ export PermGroup
 export PermGroupElem
 export PointVector
 export PolyhedralComplex, polyhedral_complex
-export PolyhedralFan
+export PolyhedralFan, polyhedral_fan
 export Polyhedron
 export Polymake
 export PrincipalOpenSubset

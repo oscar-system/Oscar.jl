@@ -45,7 +45,7 @@ function _ambient_space_from_base(base::AbstractNormalToricVariety)
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
   # Construct and return the ambient space
-  ambient_space = normal_toric_variety(PolyhedralFan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
   set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], ["x", "y", "z"]))
   return ambient_space
   
@@ -131,7 +131,7 @@ function sample_toric_variety()
           [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32],
           [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30],
           [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
-  return normal_toric_variety(PolyhedralFan(rays, cones))
+  return normal_toric_variety(polyhedral_fan(rays, cones))
 end
 
 @doc raw"""

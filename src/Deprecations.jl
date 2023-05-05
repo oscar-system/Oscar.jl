@@ -264,3 +264,35 @@ function PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scal
 end
 @deprecate PolyhedralComplex(p::Polymake.BigObject) polyhedral_complex(p)
 
+
+@deprecate PolyhedralFan(p::Polymake.BigObject) polyhedral_fan(p)
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], 
+                          LS::Union{AbstractCollection[RayVector], Nothing}, 
+                          Incidence::IncidenceMatrix; 
+                          non_redundant::Bool = false) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, LS, Incidence; non_redundant=non_redundant)
+end
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, Incidence; non_redundant=non_redundant)
+end
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
+function PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan' is deprecated, use 'polyhedral_fan' instead.", :PolyhedralFan)
+  return polyhedral_fan(itr)
+end
+function PolyhedralFan(C::Cone{T}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan' is deprecated, use 'polyhedral_fan' instead.", :PolyhedralFan)
+  return polyhedral_fan(C)
+end
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, LS, Incidence)
+end
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, Incidence)
+end
+

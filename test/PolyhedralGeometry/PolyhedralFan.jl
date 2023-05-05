@@ -7,17 +7,17 @@
     Cone4 = positive_hull(T, R)
     Cone5 = positive_hull(T, [1 0 0; 0 1 0])
 
-    @test PolyhedralFan([Cone4, Cone5]) isa PolyhedralFan{T}
-    F0 = PolyhedralFan([Cone4, Cone5])
+    @test polyhedral_fan([Cone4, Cone5]) isa PolyhedralFan{T}
+    F0 = polyhedral_fan([Cone4, Cone5])
     I3 = [1 0 0; 0 1 0; 0 0 1]
     incidence1 = IncidenceMatrix([[1,2],[2,3]])
     incidence2 = IncidenceMatrix([[1,2]])
-    @test PolyhedralFan{T}(I3, incidence1) isa PolyhedralFan{T}
-    F1 = PolyhedralFan{T}(I3, incidence1)
-    F1NR = PolyhedralFan{T}(I3, incidence1; non_redundant = true)
-    @test PolyhedralFan{T}(I3, incidence1) isa PolyhedralFan{T}
-    F2 = PolyhedralFan{T}(R, L, incidence2)
-    F2NR = PolyhedralFan{T}(R, L, incidence2; non_redundant = true)
+    @test polyhedral_fan(T, I3, incidence1) isa PolyhedralFan{T}
+    F1 = polyhedral_fan(T, I3, incidence1)
+    F1NR = polyhedral_fan(T, I3, incidence1; non_redundant = true)
+    @test polyhedral_fan(T, I3, incidence1) isa PolyhedralFan{T}
+    F2 = polyhedral_fan(T, R, L, incidence2)
+    F2NR = polyhedral_fan(T, R, L, incidence2; non_redundant = true)
 
     @testset "core functionality" begin
         if T == QQFieldElem
@@ -65,7 +65,7 @@
         @test cones(IncidenceMatrix, F1, 2) == incidence1
 
         II = ray_indices(maximal_cones(NFsquare))
-        NF0 = PolyhedralFan(rays(NFsquare), II)
+        NF0 = polyhedral_fan(rays(NFsquare), II)
         @test nrays(NF0) == 4
         FF0 = face_fan(C0)
         @test nrays(FF0) == 4

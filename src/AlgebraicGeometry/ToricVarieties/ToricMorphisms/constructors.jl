@@ -145,7 +145,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
     # compute the image
     image_rays = matrix(ZZ, rays(domain)) * matrix(grid_morphism)
     image_rays = hcat([[Int(image_rays[i, j]) for i in 1:nrows(image_rays)] for j in 1:ncols(image_rays)]...)
-    image = normal_toric_variety(PolyhedralFan(image_rays, ray_indices(maximal_cones(domain))))
+    image = normal_toric_variety(polyhedral_fan(image_rays, ray_indices(maximal_cones(domain))))
 
     # compute the morphism
     if codomain === nothing
