@@ -43,6 +43,7 @@ Global Tate model over a concrete base
 ```
 """
 function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety) where {T<:MPolyRingElem{QQFieldElem}}
+  @req is_complete(base) "Base space must be complete"
   @req length(ais) == 5 "We require exactly 5 Tate sections"
   @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
   ambient_space = _ambient_space_from_base(base)
