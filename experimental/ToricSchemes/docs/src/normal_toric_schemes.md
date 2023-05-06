@@ -15,6 +15,17 @@ julia> toric_scheme = ToricCoveredScheme(P2)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 ```
 
+## Standard constructors
+
+We support constructors for a couple of famous geometries:
+```@docs
+affine_space(::Type{ToricCoveredScheme}, d::Int; set_attributes::Bool = true)
+projective_space(::Type{ToricCoveredScheme}, d::Int; set_attributes::Bool = true)
+weighted_projective_space(::Type{ToricCoveredScheme}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
+hirzebruch_surface(::Type{ToricCoveredScheme}, r::Int; set_attributes::Bool = true)
+del_pezzo_surface(::Type{ToricCoveredScheme}, b::Int; set_attributes::Bool = true)
+```
+
 
 ## Attributes
 
