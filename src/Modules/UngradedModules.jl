@@ -491,6 +491,10 @@ function hash(a::AbstractFreeModElem, h::UInt)
   return hash(tuple(parent(a), coordinates(a)), h)
 end
 
+function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
+  return FreeModElem(deepcopy_internal(coordinates(a), dict), parent(a))
+end
+
 # scalar multiplication with polynomials, integers
 function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
   if parent(a) !== base_ring(parent(b))
@@ -3857,6 +3861,10 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
     return false
   end
   return iszero(a-b)
+end
+
+function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
+  return SubquoModuleElem(deepcopy_internal(coordinates(a), dict), a.parent)
 end
 
 @doc raw"""

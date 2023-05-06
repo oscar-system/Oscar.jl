@@ -41,6 +41,10 @@ end
 	@test !(F([R(1), R(0), R(0)]) in M)
 	@test N[1] in M
 
+  @test gen(F, 1) == deepcopy(gen(F, 1))
+  @test gen(M, 1) == deepcopy(gen(M, 1))
+  @test gen(N, 1) == deepcopy(gen(N, 1))
+
 	M = SubquoModule(F, [x*F[1]])
 	N = SubquoModule(F, [y*F[1]])
 	G = FreeMod(R,3,"f")
