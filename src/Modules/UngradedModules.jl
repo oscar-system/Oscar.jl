@@ -165,7 +165,10 @@ ngens(F::AbstractFreeMod) = rank(F)
 
 Return  `true` if `F` and `G` are equal, `false` otherwise.
 
-Here, `F` and `G` are equal iff their base rings, ranks, and names for printing the basis elements are equal.
+Here, `F` and `G` are equal iff either 
+- both modules are ungraded and their base rings, ranks, and names for printing the basis elements are equal, 
+or else 
+- both modules are graded, the equalities above hold, and the degrees of the basis elements are equal.
 """
 function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
