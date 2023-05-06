@@ -41,6 +41,7 @@ Global Weierstrass model over a concrete base
 ```
 """
 function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
+  @req is_complete(base) "Base space must be complete"
   @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
   ambient_space = _ambient_space_from_base(base)
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
