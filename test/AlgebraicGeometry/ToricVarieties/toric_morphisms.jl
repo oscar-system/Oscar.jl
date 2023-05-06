@@ -4,10 +4,10 @@ using Test
 @testset "Toric morphisms (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     source = projective_space(NormalToricVariety, 1; set_attributes)
-    target = hirzebruch_surface(2; set_attributes)
+    target = hirzebruch_surface(NormalToricVariety, 2; set_attributes)
     tm1 = toric_morphism(source, matrix(ZZ, [[0, 1]]), target)
     tm2 = toric_identity_morphism(target)
-    tm3 = toric_identity_morphism(hirzebruch_surface(4; set_attributes))
+    tm3 = toric_identity_morphism(hirzebruch_surface(NormalToricVariety, 4; set_attributes))
     
     @testset "Argument errors for toric morphisms" begin
         @test_throws ArgumentError tm1 * tm1

@@ -37,10 +37,10 @@ toric toric variety `v`.
 julia> polynomial(volume_form(projective_space(NormalToricVariety, 2)))
 x3^2
 
-julia> polynomial(volume_form(del_pezzo_surface(3)))
+julia> polynomial(volume_form(del_pezzo_surface(NormalToricVariety, 3)))
 -e3^2
 
-julia> polynomial(volume_form(hirzebruch_surface(5)))
+julia> polynomial(volume_form(hirzebruch_surface(NormalToricVariety, 5)))
 1//5*x2^2
 ```
 """
@@ -85,7 +85,7 @@ associated to the torusinvariant prime divisors of the normal toric toric variet
 
 # Examples
 ```jldoctest
-julia> F3 = hirzebruch_surface(3)
+julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> length(intersection_form(F3))

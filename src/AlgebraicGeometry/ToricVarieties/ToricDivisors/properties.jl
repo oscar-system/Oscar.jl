@@ -5,7 +5,7 @@ Checks if the divisor `td` is Cartier.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -25,7 +25,7 @@ Determine whether the toric divisor `td` is principal.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -47,7 +47,7 @@ Determine whether the toric divisor `td` is basepoint free.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -93,7 +93,7 @@ true
 Determine whether the toric divisor `td` is integral.
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -112,7 +112,7 @@ true
 Determine whether the toric divisor `td` is ample.
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -131,7 +131,7 @@ false
 Determine whether the toric divisor `td` is very ample.
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -150,7 +150,7 @@ false
 Determine whether the toric divisor `td` is nef.
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -169,7 +169,7 @@ true
 Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])
@@ -189,7 +189,7 @@ Determine whether the toric divisor `td` is a prime divisor.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = toric_divisor(F4, [1,0,0,0])

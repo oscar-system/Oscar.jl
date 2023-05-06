@@ -8,7 +8,7 @@ Return `true` if the toric line bundle `l` is basepoint free and `false` otherwi
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_basepoint_free(toric_line_bundle(F4, [1, 0]))
@@ -25,7 +25,7 @@ Return `true` if the toric line bundle `l` is ample and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_ample(toric_line_bundle(F4, [1,0]))
@@ -42,7 +42,7 @@ Return `true` if the toric line bundle `l` is very ample and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_very_ample(toric_line_bundle(F4, [1,0]))

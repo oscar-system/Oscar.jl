@@ -368,17 +368,17 @@ end
 
 
 @doc raw"""
-    hirzebruch_surface(r::Int; set_attributes::Bool = true)
+    hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
 
 Constructs the r-th Hirzebruch surface.
 
 # Examples
 ```jldoctest
-julia> hirzebruch_surface(5)
+julia> hirzebruch_surface(NormalToricVariety, 5)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function hirzebruch_surface(r::Int; set_attributes::Bool = true)
+function hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
     variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
@@ -424,17 +424,17 @@ end
 
 
 @doc raw"""
-    del_pezzo_surface(b::Int; set_attributes::Bool = true)
+    del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
 
 Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
 
 # Examples
 ```jldoctest
-julia> del_pezzo_surface(3)
+julia> del_pezzo_surface(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function del_pezzo_surface(b::Int; set_attributes::Bool = true)
+function del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
     # check for valid input
     @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
     @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
