@@ -149,7 +149,9 @@ su5_tate_model_over_arbitrary_3d_base()
 In addition we should of course also provide convenient constructions of global Tate models
 over famous base spaces. Currently, we support the following:
 ```@docs
-global_tate_model_over_projective_space()
+global_tate_model_over_projective_space(d::Int)
+global_tate_model_over_hirzebruch_surface(r::Int)
+global_tate_model_over_del_pezzo_surface(b::Int)
 ```
 
 
