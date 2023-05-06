@@ -197,6 +197,8 @@
         @test_throws ArgumentError convex_hull(collect(rays(Pos_poly)))
         @test_throws ArgumentError convex_hull(vertices(Pos_poly), collect(vertices(Pos_poly)))
         @test_throws ArgumentError positive_hull(collect(vertices(Pos_poly)))
+
+        @test_throws ArgumentError IncidenceMatrix(lineality_space(Pos_poly))
         
     end
 

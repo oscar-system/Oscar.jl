@@ -137,6 +137,7 @@ const pm = Polymake
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
             @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[1], [2]])
         end
+        @test IncidenceMatrix(faces(Cone5, 1)) == IncidenceMatrix([[1], [2], [3], [4]])
         @test isnothing(faces(Cone2, 1))
 
         @test f_vector(Cone5) == [4, 4]
