@@ -1,30 +1,102 @@
-@doc raw"""
-    global_tate_model_over_projective_space()
+#####################################################
+# 1. Models over projective space
+#####################################################
 
-This method constructs a global Tate model over the 3-dimensional projective space.
+@doc raw"""
+    global_tate_model_over_projective_space(d::Int)
+
+This method constructs a global Tate model over the projective space.
 
 # Examples
 ```jldoctest
-julia> global_tate_model_over_projective_space()
+julia> global_tate_model_over_projective_space(3)
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_projective_space() = global_tate_model(projective_space(NormalToricVariety,3))
+global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_space(NormalToricVariety, d))
 
 
 @doc raw"""
-    global_weierstrass_model_over_projective_space()
+    global_weierstrass_model_over_projective_space(d::Int)
 
-This method constructs a global Weierstrass model over the 3-dimensional projective space.
+This method constructs a global Weierstrass model over the projective space.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_projective_space()
+julia> global_weierstrass_model_over_projective_space(3)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_projective_space() = global_weierstrass_model(projective_space(NormalToricVariety,3))
+global_weierstrass_model_over_projective_space(d::Int) = global_weierstrass_model(projective_space(NormalToricVariety, d))
 
+
+#####################################################
+# 2. Models over hirzebruch surfaces
+#####################################################
+
+@doc raw"""
+    global_tate_model_over_hirzebruch_surface(r::Int)
+
+This method constructs a global Tate model over a Hirzebruch surface.
+
+# Examples
+```jldoctest
+julia> global_tate_model_over_hirzebruch_surface(1)
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch_surface(NormalToricVariety, r))
+
+
+@doc raw"""
+    global_weierstrass_model_over_hirzebruch_surface(r::Int)
+
+This method constructs a global Weierstrass model over a Hirzebruch surface.
+
+# Examples
+```jldoctest
+julia> global_weierstrass_model_over_hirzebruch_surface(1)
+Global Weierstrass model over a concrete base
+```
+"""
+global_weierstrass_model_over_hirzebruch_surface(r::Int) = global_weierstrass_model(hirzebruch_surface(NormalToricVariety, r))
+
+
+#####################################################
+# 3. Models over del pezzo surface
+#####################################################
+
+@doc raw"""
+    global_tate_model_over_del_pezzo_surface(b::Int)
+
+This method constructs a global Tate model over a del-Pezzo surface.
+
+# Examples
+```jldoctest
+julia> global_tate_model_over_del_pezzo_surface(3)
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_surface(NormalToricVariety, b))
+
+
+@doc raw"""
+    global_weierstrass_model_over_del_pezzo_surface(b::Int)
+
+This method constructs a global Weierstrass model over a del-Pezzo surface.
+
+# Examples
+```jldoctest
+julia> global_weierstrass_model_over_del_pezzo_surface(3)
+Global Weierstrass model over a concrete base
+```
+"""
+global_weierstrass_model_over_del_pezzo_surface(b::Int) = global_weierstrass_model(del_pezzo_surface(NormalToricVariety, b))
+
+
+#####################################################
+# 4. Literature models
+#####################################################
 
 @doc raw"""
     su5_tate_model_over_arbitrary_3d_base()
