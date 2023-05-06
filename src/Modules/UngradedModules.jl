@@ -191,6 +191,28 @@ end
 Return  `true` if `F` and `G` are isomorphic, `false` otherwise.
 
 Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
+
+# Examples
+```jldoctest
+julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z)=grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, [1,1,3,2]);
+
+julia> G1 = graded_free_module(Rg, [1,1,2,3]);
+
+julia> is_isomorphic(F, G1)
+true
+
+julia> G2 = graded_free_module(Rg, [1,1,5,6]);
+
+julia> is_isomorphic(F, G2)
+false
+
+```
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
   is_graded(F) == is_graded(G) || return false
@@ -922,6 +944,110 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 
 julia> a == b
 true
+```
+
+```jldoctest
+julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, 3)
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G1 = graded_free_module(Rg, 2)
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V1 = [y*G1[1], (x+y)*G1[1]+y*G1[2], z*G1[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> a1 = hom(F1, G1, V1)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> F2 = graded_free_module(Rg, [1,1,1])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G2 = graded_free_module(Rg, [0,0])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V2 = [y*G2[1], (x+y)*G2[1]+y*G2[2], z*G2[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> a2 = hom(F2, G2, V2)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> B = Rg[y 0; x+y y; 0 z]
+[    y   0]
+[x + y   y]
+[    0   z]
+
+julia> b = hom(F2, G2, B)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 == b
+true
+
 ```
 """
 function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
@@ -1719,6 +1845,102 @@ by Submodule with 3 generators
 2 -> 0
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> V2 = [z*G[2]+y*G[1]]
+1-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1] + z*e[2]
+
+julia> a1 = hom(F1, G, V1)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 = hom(F2, G, V2)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1])
+e[1] -> y*e[1] + z*e[2]
+Homogeneous module homomorphism
+
+julia> V = subquotient(a1,a2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1]) generated by
+1 -> y*e[1]
+2 -> (x + y)*e[1] + y*e[2]
+3 -> z*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1]) generated by
+1 -> y*e[1] + z*e[2]
+
+julia> A1 = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+
+julia> A2 = Rg[x^3 x^2*y; (2*x^2+x*y)*x (2*y^3+y*x^2)]
+[          x^3           x^2*y]
+[2*x^3 + x^2*y   x^2*y + 2*y^3]
+
+julia> B = Rg[4*x*y^3 (2*x+y)^4]
+[4*x*y^3   16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4]
+
+julia> F2 = graded_free_module(Rg,[0,0])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> M1 = SubQuo(F2, A1, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> 4*x*y^3*e[1] + (16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4)*e[2]
+
+```
 """
 function subquotient(a::FreeModuleHom, b::FreeModuleHom)
   F = codomain(a)
@@ -1904,23 +2126,260 @@ by Submodule with 5 generators
 4 -> x*y^2*e[1]
 5 -> x*y*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> W = Rg[y 0; x y; 0 z]
+[y   0]
+[x   y]
+[0   z]
+
+julia> a = hom(F, G, W)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> M = cokernel(a)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+
+```
 """
 function cokernel(f::ModuleFPHom)
   return quo(codomain(f), image(f)[1], :module)
 end
 
+@doc raw"""
+    cokernel(F::FreeMod{R}, A::MatElem{R}) where R
+
+Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(F, A)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+julia> ambient_free_module(M) === F
+true
+
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, [8,8])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> A = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(F, A)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+julia> ambient_free_module(M) === F
+true
+
+julia> degrees_of_generators(M)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z
+with components [8]
+ Element of
+GrpAb: Z
+with components [8]
+
+```
+"""
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
   return is_graded(F) ? cokernel(graded_map(F, A)) : cokernel(map(F, A))
 end
 
+@doc raw"""
+    cokernel(A::MatElem)
+
+Return the cokernel of `A` as an object of type `SubquoModule`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(A)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+```
+"""
 function cokernel(A::MatElem)
   return cokernel(map(A))
 end
 
+@doc raw"""
+    image(F::FreeMod{R}, A::MatElem{R}) where R
+
+Return the image of `A` as an object of type `SubquoModule` with ambient free module `F`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(F, A)
+Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations.
+
+julia> ambient_free_module(M) === F
+true
+
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, [8,8])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> A = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(F, A)
+Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8])
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations
+
+julia> ambient_free_module(M) === F
+true
+
+julia> degrees_of_generators(M)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z
+with components [9]
+ Element of
+GrpAb: Z
+with components [10]
+
+```
+"""
 function image(F::FreeMod{R}, A::MatElem{R}) where R
   return is_graded(F) ? image(graded_map(F, A))[1] : image(map(F, A))[1]
 end
 
+@doc raw"""
+    cokernel(A::MatElem)
+
+Return the cokernel of `A` as an object of type `SubquoModule`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(A)
+Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations.
+
+```
+"""
 function image(A::MatElem)
   return image(map(A))[1]
 end
@@ -2074,6 +2533,59 @@ by Submodule with 3 generators
 julia> is_subset(M, N)
 true
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg,2);
+
+julia> O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia> O1a = [x*F[1],y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia> M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> is_subset(M1,M2)
+true
+
+julia> is_subset(M2,M1)
+true
+
+julia> M1 == M2
+true
+```
 """
 function is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
   if !isdefined(M, :quo) 
@@ -2165,6 +2677,53 @@ by Submodule with 3 generators
 julia> M == N
 false
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg,2);
+
+julia> O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia> O1a = [x*F[1],y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia> M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M1 == M2
+true
+```
 """
 function (==)(M::SubquoModule{T}, N::SubquoModule{T}) where {T} # TODO replace implementation by two inclusion checks?
   return compare_helper(M, N, (==))
@@ -2176,6 +2735,72 @@ end
 Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
 Return `false` if the ambient free modules are not isomorphic.
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y) = grade(R, [Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg,[2,3, 4])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
+[          x^3             x^2     x]
+[2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
+
+julia> M1 = image(F1, A1)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4])
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations
+
+julia> F2 = graded_free_module(Rg,[2,4, 3])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
+[          x^3     x             x^2]
+[2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
+
+julia> M2 = image(F2, A2)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3])
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+
+julia> is_canonically_isomorphic(M1, M2)
+true
+
+```
 """
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
@@ -2193,6 +2818,93 @@ Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
 Moreover, if `M` and `N` are canonically isomorphic then return also the isomorphism, 
 otherwise return the zero map.
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y) = grade(R, [Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg,[2,3, 4])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
+[          x^3             x^2     x]
+[2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
+
+julia> M1 = image(F1, A1)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4])
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations
+
+julia> F2 = graded_free_module(Rg,[2,4, 3])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
+[          x^3     x             x^2]
+[2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
+
+julia> M2 = image(F2, A2)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3])
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+
+julia> is_canonically_isomorphic_with_map(M1, M2)
+(true, Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4])
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations -> Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3])
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+x^3*e[1] + x^2*e[2] + x*e[3] -> x^3*e[1] + x*e[2] + x^2*e[3]
+(2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3] -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+Homogeneous module homomorphism)
+
+```
 """
 function is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   is_canonically_iso = is_canonically_isomorphic(M, N)
@@ -2308,6 +3020,118 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> sum(M, N)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*e[1]
+Homogeneous module homomorphism, Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+y*e[1] -> y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
   @assert ambient_free_module(M) === ambient_free_module(N)
@@ -2391,6 +3215,68 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> M + N
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
 ```
 """
 function +(M::SubquoModule{T},N::SubquoModule{T}) where T
@@ -2490,6 +3376,120 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 )
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> intersect(M, N)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+-x*y*e[1] -> -x*y*e[1]
+x*z^4*e[1] -> x*z^4*e[1]
+Homogeneous module homomorphism, Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+-x*y*e[1] -> x*y*e[1]
+x*z^4*e[1] -> 0
+Homogeneous module homomorphism)
+
 ```
 """
 function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
@@ -3542,6 +4542,208 @@ julia> rank(P[1])
 julia> rank(P[0])
 2
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, [1,2,2]);
+
+julia> p = presentation(F)
+C_1 ----> C_0 ----> C_-1 ----> C_-2
+
+julia> p[-2]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^0 of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> p[-1]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> p[0]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> p[1]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^0 of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> map(p,-1)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) -> 0
+e[1] -> 0
+e[2] -> 0
+e[3] -> 0
+Homogeneous module homomorphism
+
+julia> map(p,0)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2])
+e[1] -> e[1]
+e[2] -> e[2]
+e[3] -> e[3]
+Homogeneous module homomorphism
+
+julia> map(p,1)
+0 -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2])
+Homogeneous module homomorphism
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> P = presentation(M)
+C_1 ----> C_0 ----> C_-1 ----> C_-2
+
+julia> P[-2]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^0 of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> P[-1]
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> P[0]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> P[1]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-5]) of rank 5 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> map(P,-1)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> 0
+x*e[1] -> 0
+y*e[1] -> 0
+Homogeneous module homomorphism
+
+julia> map(P,0)
+br^2 -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+e[1] -> x*e[1]
+e[2] -> y*e[1]
+Homogeneous module homomorphism
+
+julia> map(P,1)
+br^5 -> br^2
+e[1] -> x*e[1]
+e[2] -> -y*e[1] + x*e[2]
+e[3] -> y^2*e[2]
+e[4] -> z^4*e[1]
+e[5] -> z^4*e[2]
+Homogeneous module homomorphism
+
+```
 """
 function presentation(M::ModuleFP)
  error("presentation is not implemented for the given types.")
@@ -3558,6 +4760,56 @@ If `task` is set to `:cache_morphism` then the isomorphism is cached.
 If `task` is set to `:only_morphism` then return only the isomorphism.
 
 # Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> present_as_cokernel(M, :all)
+(Graded subquotient of submodule of br^2 generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of br^2 generated by
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2], Graded subquotient of submodule of br^2 generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of br^2 generated by
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+e[1] -> x*e[1]
+e[2] -> y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   chainComplex = presentation(SQ)
@@ -3591,6 +4843,54 @@ If $M = N$ (mathematically, but with (possibly) different generating systems), r
 which is mathematically the identity. 
 If `task == :inverse` also the inverse map is computed and cached (in the morphism).
 If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> is_equal_with_morphism(M, M)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*e[1]
+y*e[1] -> y*e[1]
+Homogeneous module homomorphism
+
+```
 """
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
   @assert M == N
@@ -3795,6 +5095,148 @@ julia> c = hom(M, N, W);
 julia> is_welldefined(c)
 false
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_welldefined(a)
+true
+
+julia> W = Rg[y^2 0; 0 x^2]
+[y^2     0]
+[  0   x^2]
+
+julia> b = hom(M, N, W)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> a == b
+true
+
+julia> W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia> c = hom(M, N, W)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y*e[1]
+y*e[1] -> x*y*e[1]
+Graded module homomorphism of degree [1]
+
+julia> is_welldefined(c)
+false
+
+```
 """
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {RingMapType, T} = SubQuoHom(M, N, V, h) 
@@ -3872,6 +5314,74 @@ julia> A = matrix(a)
 
 julia> a(M[1])
 x*y^2*e[1]
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> matrix(a)
+[y^2     0]
+[  0   x^2]
+
 ```
 """
 function matrix(f::SubQuoHom)
@@ -4373,6 +5883,54 @@ false
 julia> is_zero(x*M[1])
 true
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1)
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> A = Rg[x; y]
+[x]
+[y]
+
+julia> B = Rg[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> is_zero(M[1])
+false
+
+julia> is_zero(x*M[1])
+true
+
+```
 """
 function is_zero(m::SubquoModuleElem)
   is_zero(ambient_representative(m)) && return true
@@ -4392,8 +5950,131 @@ end
 @doc raw"""
     hom(F::FreeMod, G::FreeMod)
 
-Return a subquotient $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
+Return a free module $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
 that converts elements from $S$ into morphisms $F \to G$.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> F2 = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> V, f = hom(F1, F2)
+(hom of (Multivariate Polynomial Ring in x, y, z over Rational Field^3, Multivariate Polynomial Ring in x, y, z over Rational Field^2), Map from
+hom of (Multivariate Polynomial Ring in x, y, z over Rational Field^3, Multivariate Polynomial Ring in x, y, z over Rational Field^2) to Set of all homomorphisms from Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field to Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field defined by a julia-function with inverse)
+
+julia> f(V[1])
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [1,2,2])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> F2 = graded_free_module(Rg, [3,5])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V, f = hom(F1, F2)
+(hom of (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]), Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5])), Map from
+hom of (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]), Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5])) to Set of all homomorphisms from Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] to Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse)
+
+julia> f(V[1])
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5])
+e[1] -> e[1]
+e[2] -> 0
+e[3] -> 0
+Graded module homomorphism of degree [2]
+
+```
 """
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
@@ -4467,6 +6148,47 @@ Codomain:
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
 )
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> kernel(a)
+(Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0])
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0])
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0])
+x*z*e[1] - y*z*e[2] + y^2*e[3] -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+Homogeneous module homomorphism)
+
+```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
   G = domain(h)
@@ -4537,6 +6259,53 @@ Codomain:
 =========
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 )
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> image(a)
+(Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations, Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+y*e[1] -> y*e[1]
+x*e[1] + y*e[2] -> x*e[1] + y*e[2]
+z*e[2] -> z*e[2]
+Homogeneous module homomorphism)
+
 ```
 """
 function image(h::FreeModuleHom)
@@ -4666,6 +6435,118 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> image(a)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*y^2*e[1] -> x*y^2*e[1]
+x^2*y*e[1] -> x^2*y*e[1]
+Homogeneous module homomorphism)
+
 ```
 """
 function image(a::ModuleFPHom)
@@ -4799,6 +6680,121 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> kernel(a)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+-y*e[1] -> -y*e[1]
+(x^2 - y^2)*e[1] -> (x^2 - y^2)*e[1]
+-x*y*e[1] -> -x*y*e[1]
+Homogeneous module homomorphism)
+
 ```
 """
 function kernel(a::ModuleFPHom)
