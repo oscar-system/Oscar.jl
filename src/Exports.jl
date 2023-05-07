@@ -173,7 +173,6 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
-export ToricSpec
 export TropicalCurve
 export TropicalHypersurface
 export TropicalLinearSpace
