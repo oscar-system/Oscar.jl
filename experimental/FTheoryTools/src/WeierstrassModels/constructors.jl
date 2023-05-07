@@ -47,7 +47,7 @@ function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingEle
   @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
   ambient_space = _ambient_space_from_base(base)
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
-  model = GlobalWeierstrassModel(f, g, pw, ToricCoveredScheme(base), ToricCoveredScheme(ambient_space))
+  model = GlobalWeierstrassModel(f, g, pw, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
   return model
 end
@@ -140,7 +140,7 @@ function global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, wei
   
   # compute model
   pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))
-  model = GlobalWeierstrassModel(f, g, pw, ToricCoveredScheme(auxiliary_base_space), ToricCoveredScheme(auxiliary_ambient_space))
+  model = GlobalWeierstrassModel(f, g, pw, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
   set_attribute!(model, :base_fully_specified, false)
   return model
 end

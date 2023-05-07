@@ -6,13 +6,10 @@ CurrentModule = Oscar
 
 ## Constructors
 
-We can construct a toric scheme as follows:
-```julia
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+We provide the following constructors for toric covered schemes:
+```@docs
+toric_covered_scheme(antv::AffineNormalToricVariety)
+toric_covered_scheme(ntv::NormalToricVariety)
 ```
 
 ## Special constructors

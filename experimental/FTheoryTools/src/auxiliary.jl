@@ -140,7 +140,7 @@ end
 This method constructs a 3-dimensional toric variety, which we
 use for efficient testing of the provided functionality.
 """
-sample_toric_scheme() = ToricCoveredScheme(sample_toric_variety())
+sample_toric_scheme() = toric_covered_scheme(sample_toric_variety())
 
 
 ################################################################

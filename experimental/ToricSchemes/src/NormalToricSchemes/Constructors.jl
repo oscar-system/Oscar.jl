@@ -2,6 +2,61 @@
 ### 1: General constructor
 ###############################
 
+@doc raw"""
+    toric_spec(antv::AffineNormalToricVariety)
+
+Constructs the affine toric scheme (i.e. Spec of a ring) associated to an affine toric variety.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> toric_spec(antv)
+Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
+```
+"""
+toric_spec(antv::AffineNormalToricVariety) = ToricSpec(antv)
+
+
+@doc raw"""
+    toric_covered_scheme(antv::AffineNormalToricVariety)
+
+Constructs the toric covered scheme associated to an affine toric variety.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> toric_covered_scheme(antv)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
+```
+"""
+toric_covered_scheme(antv::AffineNormalToricVariety) = ToricCoveredScheme(normal_toric_variety(fan(antv)))
+
+
+@doc raw"""
+    toric_covered_scheme(ntv::NormalToricVariety)
+
+Constructs the toric covered scheme associated to a normal toric variety.
+
+# Examples
+```jldoctest
+julia> ntv = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> toric_covered_scheme(ntv)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+```
+"""
+toric_covered_scheme(ntv::NormalToricVariety) = ToricCoveredScheme(ntv)
 
 
 ###############################
