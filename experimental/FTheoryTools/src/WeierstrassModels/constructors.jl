@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    global_weierstrass_model(base::AbstractNormalToricVariety)
+    global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
 
 This method constructs a global Weierstrass model over a given toric base
 3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
@@ -11,18 +11,18 @@ coefficients.
 
 # Examples
 ```jldoctest
-julia> w = global_weierstrass_model(sample_toric_variety())
+julia> w = global_weierstrass_model(sample_toric_variety(); completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-function global_weierstrass_model(base::AbstractNormalToricVariety)
+function global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
   (f, g) = _weierstrass_sections(base)
-  return global_weierstrass_model(f, g, base)
+  return global_weierstrass_model(f, g, base; completeness_check = completeness_check)
 end
 
 
 @doc raw"""
-    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
+    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety; completeness_check::Bool = true)
 
 This method operates analogously to `global_weierstrass_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -36,12 +36,14 @@ julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bu
 
 julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
 
-julia> w = global_weierstrass_model(f, g, base)
+julia> w = global_weierstrass_model(f, g, base; completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
-  @req is_complete(base) "Base space must be complete"
+function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+  if completeness_check
+    @req is_complete(base) "Base space must be complete"
+  end
   @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
   ambient_space = _ambient_space_from_base(base)
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
@@ -57,7 +59,7 @@ end
 
 
 @doc raw"""
-    global_weierstrass_model(base::ToricCoveredScheme)
+    global_weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
 
 This method constructs a global Weierstrass model over a given toric base
 3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
@@ -65,15 +67,15 @@ coefficients.
 
 # Examples
 ```jldoctest
-julia> w = global_weierstrass_model(sample_toric_scheme())
+julia> w = global_weierstrass_model(sample_toric_scheme(); completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model(base::ToricCoveredScheme) = global_weierstrass_model(underlying_toric_variety(base))
+global_weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true) = global_weierstrass_model(underlying_toric_variety(base), completeness_check = completeness_check)
 
 
 @doc raw"""
-    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme)
+    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme; completeness_check::Bool = true)
 
 This method operates analogously to `global_weierstrass_model(base::ToricCoveredScheme)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -87,11 +89,11 @@ julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bu
 
 julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^6)]);
 
-julia> w = global_weierstrass_model(f, g, base)
+julia> w = global_weierstrass_model(f, g, base; completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme) = global_weierstrass_model(f, g, underlying_toric_variety(base))
+global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme; completeness_check::Bool = true) = global_weierstrass_model(f, g, underlying_toric_variety(base), completeness_check = completeness_check)
 
 
 ################################################
