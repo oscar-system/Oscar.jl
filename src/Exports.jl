@@ -270,6 +270,7 @@ export betti
 export betti_number
 export betti_numbers
 export betti_table
+export billera_lee_polytope
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid

@@ -808,6 +808,28 @@ this is given by McMullen's Upper-Bound-Theorem.
 """
 upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
 
+@doc raw"""
+    billera_lee_polytope(h::AbstractVector)
+
+Construct a simplicial polytope whose h-vector is $h$.
+The corresponding g-vector must be an M-sequence.
+The ambient dimension equals the length of $h$, and the polytope lives in codimension one.
+- [BL81](@cite)
+
+# Examples
+```jldoctest
+julia> BL = billera_lee_polytope([1,3,3,1])
+Polyhedron in ambient dimension 4
+
+julia> f_vector(BL)
+3-element Vector{ZZRingElem}:
+ 6
+ 12
+ 8
+
+```
+"""
+billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)))
 
 @doc raw"""
     polarize(P::Polyhedron)
