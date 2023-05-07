@@ -90,7 +90,7 @@ using Oscar: _integer_variables
         @testset "SubdivisionOfPoints" begin
             moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
             moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
-            MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
+            MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
             test_save_load_roundtrip(path, MOAE) do loaded
               @test loaded isa SubdivisionOfPoints
               @test Base.propertynames(MOAE) == Base.propertynames(loaded)

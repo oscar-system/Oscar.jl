@@ -34,8 +34,8 @@ vector, but if it does, it is called `regular`.
 
 
 ```@docs
-SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
+subdivision_of_points(::Type{T}, Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
+subdivision_of_points(::Type{T}, Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector) where T<:scalar_types
 ```
 
 From a subdivision of points one can construct the
