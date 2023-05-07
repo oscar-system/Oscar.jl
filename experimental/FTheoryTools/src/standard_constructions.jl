@@ -13,7 +13,7 @@ julia> global_tate_model_over_projective_space(3)
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_space(NormalToricVariety, d))
+global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_space(NormalToricVariety, d); completeness_check = false)
 
 
 @doc raw"""
@@ -27,7 +27,7 @@ julia> global_weierstrass_model_over_projective_space(3)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_projective_space(d::Int) = global_weierstrass_model(projective_space(NormalToricVariety, d))
+global_weierstrass_model_over_projective_space(d::Int) = global_weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
 
 
 #####################################################
@@ -45,7 +45,7 @@ julia> global_tate_model_over_hirzebruch_surface(1)
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch_surface(NormalToricVariety, r))
+global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
 
 
 @doc raw"""
@@ -59,7 +59,7 @@ julia> global_weierstrass_model_over_hirzebruch_surface(1)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_hirzebruch_surface(r::Int) = global_weierstrass_model(hirzebruch_surface(NormalToricVariety, r))
+global_weierstrass_model_over_hirzebruch_surface(r::Int) = global_weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
 
 
 #####################################################
@@ -77,7 +77,7 @@ julia> global_tate_model_over_del_pezzo_surface(3)
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_surface(NormalToricVariety, b))
+global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
 @doc raw"""
@@ -91,7 +91,7 @@ julia> global_weierstrass_model_over_del_pezzo_surface(3)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_del_pezzo_surface(b::Int) = global_weierstrass_model(del_pezzo_surface(NormalToricVariety, b))
+global_weierstrass_model_over_del_pezzo_surface(b::Int) = global_weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
 #####################################################

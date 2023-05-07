@@ -77,16 +77,23 @@ is that the so-constructed ambient space need not be smooth.
 
 ### A toric variety as base space
 
+We require that the provided toric base space is complete. Oftentimes, this is an expensive check.
+Therefore, we provide an optional argument which one can use to disable this check if desired.
+To this end, one passes the optional argument `completeness_check = false` as last argument to
+the constructor. The following examples demonstrate this:
 ```@docs
-global_weierstrass_model(base::AbstractNormalToricVariety)
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
+global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety; completeness_check::Bool = true)
 ```
 
 ### A toric scheme as base space
 
+Again, the toric base must be complete. Similar to toric varieties as bases, we can use the optional
+argument `completeness_check = false` to switch off the expensive completeness check. The
+following examples demonstrate this:
 ```@docs
-global_weierstrass_model(base::ToricCoveredScheme)
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme)
+global_weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
+global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme; completeness_check::Bool = true)
 ```
 
 ### A (covered) scheme as base space
