@@ -312,3 +312,16 @@ function Polyhedron{T}(first, second) where T<:scalar_types
 end
 @deprecate Polyhedron(A) polyhedron(A)
 @deprecate Polyhedron(A, b) polyhedron(A, b)
+
+# Cone -> positive_hull
+@deprecate Cone(R;kwargs...) positive_hull(R;kwargs...)
+@deprecate Cone(R,L;kwargs...) positive_hull(R,L;kwargs...)
+function Cone{T}(R, L; kwargs...) where T<:scalar_types
+  Base.depwarn("'Cone{$T}(x...)' is deprecated, use 'positive_hull($T, x...)' instead.", :Polyhedron)
+  return positive_hull(T, R, L; kwargs...)
+end
+function Cone{T}(R; kwargs...) where T<:scalar_types
+  Base.depwarn("'Cone{$T}(x...)' is deprecated, use 'positive_hull($T, x...)' instead.", :Polyhedron)
+  return positive_hull(T, R; kwargs...)
+end
+

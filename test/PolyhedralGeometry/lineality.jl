@@ -1,6 +1,6 @@
 @testset "Polyhedral objects with lineality" begin
     @testset "Cone" begin
-        C = Cone(QQFieldElem, [0 1], [1 0])
+        C = positive_hull(QQFieldElem, [0 1], [1 0])
         @test lineality_dim(C) == 1
         @test nrays(C) == 0
         @test length(rays(C)) == 0

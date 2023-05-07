@@ -6,8 +6,8 @@ const pm = Polymake
     Cone1=positive_hull(T, pts)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]
-    Cone2 = Cone{T}(R, L)
-    Cone3 = Cone{T}(R, L; non_redundant=true)
+    Cone2 = positive_hull(T, R, L)
+    Cone3 = positive_hull(T, R, L; non_redundant=true)
     Cone4 = positive_hull(T, R)
     Cone5 = positive_hull(T, [1 0 0; 1 1 0; 1 1 1; 1 0 1])
     Cone6 = positive_hull(T, [1//3 1//2; 4//5 2])
@@ -123,20 +123,20 @@ const pm = Polymake
         @test faces(Cone4, 1) isa SubObjectIterator{Cone{T}}
         @test length(faces(Cone4, 1)) == 2
         if T == QQFieldElem
-            @test faces(Cone2, 2) == Cone{T}.([[0 0 1], [1 0 0]], [[0 1 0]])
+            @test faces(Cone2, 2) == positive_hull.(T, [[0 0 1], [1 0 0]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
             @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
             @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[2], [1]])
-            @test faces(Cone4, 1) == Cone{T}.([[0 0 1], [1 0 0]])
+            @test faces(Cone4, 1) == positive_hull.(T, [[0 0 1], [1 0 0]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
             @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[2], [1]])
         else
-            @test faces(Cone2, 2) == Cone{T}.([[1 0 0], [0 0 1]], [[0 1 0]])
+            @test faces(Cone2, 2) == positive_hull.(T, [[1 0 0], [0 0 1]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
             @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
             @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[1], [2]])
-            @test faces(Cone4, 1) == Cone{T}.([[1 0 0], [0 0 1]])
+            @test faces(Cone4, 1) == positive_hull.(T, [[1 0 0], [0 0 1]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
             @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[1], [2]])

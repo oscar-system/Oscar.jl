@@ -200,9 +200,9 @@
 
         @test_throws ArgumentError IncidenceMatrix(lineality_space(Pos_poly))
         IM = IncidenceMatrix([[1]])
-        lincone = Cone([1 0 0], [0 1 0])
+        lincone = positive_hull([1 0 0], [0 1 0])
 
-        @test Cone(rays_modulo_lineality(lincone)...) == lincone
+        @test positive_hull(rays_modulo_lineality(lincone)...) == lincone
         @test ambient_dim(polyhedral_fan(rays_modulo_lineality(lincone)..., IM)) == 3
         
     end
