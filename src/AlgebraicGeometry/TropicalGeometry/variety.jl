@@ -277,7 +277,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     # 3.0.1: dehomogenize Groebner polyhedra
     zeroth_unit_vector_as_row_vector = zeros(Int,1,n)
     zeroth_unit_vector_as_row_vector[1,1] = 1
-    dehomogenising_hyperplane = Polyhedron((zeros(Int,0,n),zeros(Int,0)),
+    dehomogenising_hyperplane = polyhedron((zeros(Int,0,n),zeros(Int,0)),
                                            (zeroth_unit_vector_as_row_vector,[1]))
     for wCG in working_list_done
       wCG[2] = intersect(wCG[2],dehomogenising_hyperplane)

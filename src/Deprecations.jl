@@ -305,3 +305,10 @@ function SubdivisionOfPoints{T}(points, C) where T<:scalar_types
 end
 @deprecate SubdivisionOfPoints(p::Polymake.BigObject) subdivision_of_points(p)
 
+# Polyhedron -> polyhedron
+function Polyhedron{T}(first, second) where T<:scalar_types
+  Base.depwarn("'Polyhedron{$T}(x...)' is deprecated, use 'polyhedron($T, x...)' instead.", :Polyhedron)
+  return polyhedron(T, first, second)
+end
+@deprecate Polyhedron(A) polyhedron(A)
+@deprecate Polyhedron(A, b) polyhedron(A, b)

@@ -59,8 +59,10 @@ const pm = Polymake
                     @test facets(S, Cone1) == cone_from_inequalities.([[-1 0], [0 -1]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[-1, 0], [0, -1]])
-                else
+                elseif S == AffineHalfspace{T}
                     @test facets(S, Cone1) == S.([[-1 0], [0 -1]], [0])
+                else
+                    @test facets(S, Cone1) == polyhedron.(T, [[-1 0], [0 -1]], [0])
                 end
             else
                 @test linear_inequality_matrix(facets(S, Cone1)) == [0 -1; -1 0]
@@ -71,8 +73,10 @@ const pm = Polymake
                     @test facets(S, Cone1) == cone_from_inequalities.(T, [[0 -1], [-1 0]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[0, -1], [-1, 0]])
-                else
+                elseif S == AffineHalfspace{T}
                     @test facets(S, Cone1) == S.([[0 -1], [-1 0]], [0])
+                else
+                    @test facets(S, Cone1) == polyhedron.(T, [[0 -1], [-1 0]], [0])
                 end
             end
         end

@@ -10,8 +10,8 @@
     Q2 = convex_hull(T, pts, [1 1], [1 1])
     square = cube(T, 2)
     CR = cube(T, 2, 0, 3//2)
-    Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
-    L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
+    Pos = polyhedron(T, [-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
+    L = polyhedron(T, [-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
     # this is to make sure the order of some matrices below doesn't change
     Polymake.prefer("beneath_beyond") do
@@ -142,7 +142,11 @@
                 @test facets(S, Pos) == Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
             else
                 @test facets(S, Pos) isa SubObjectIterator{S}
-                @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                if S == Polyhedron{T}
+                  @test facets(S, Pos) == polyhedron.(T, [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                else
+                  @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                end
             end
             @test length(facets(S, Pos)) == 3
             if T == QQFieldElem
@@ -206,25 +210,25 @@
 
     @testset "standard_constructions" begin
         @test convex_hull(T, pts, nothing, [1 1]) == Q2
-        @test Polyhedron{T}(nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
+        @test polyhedron(T, nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
         nc = normal_cone(square, 1)
         @test nc isa Cone{T}
         @test rays(nc) == [[1, 0], [0, 1]]
         let H = LinearHalfspace{T}([1, 1, 0])
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}([1 1 0], 0)
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, [1 1 0], 0)
         end
         let H = AffineHalfspace{T}([1, 0, 1], 5)
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}([1 0 1], 5)
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, [1 0 1], 5)
         end
         let H = LinearHyperplane{T}([0, 1, 1])
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
         end
         let H = AffineHyperplane{T}([1, 1, 1], 7)
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
         end
         if T == QQFieldElem
             @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
@@ -238,7 +242,7 @@
                 C = catalan_solid("triakis_tetrahedron")
                 @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
             end
-            @test Polyhedron(facets(A)) == A
+            @test polyhedron(facets(A)) == A
             b1 = birkhoff_polytope(3)
             b2 = birkhoff_polytope(3, even = true)
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
@@ -300,7 +304,7 @@
             
             D = Polyhedron{T}(Polymake.polytope.dodecahedron())
             @test D isa Polyhedron{T}
-            @test Polyhedron(Polymake.polytope.dodecahedron()) == D
+            @test polyhedron(Polymake.polytope.dodecahedron()) == D
             
             @test nvertices(D) == 20
             @test vertices(D) == V
@@ -313,7 +317,11 @@
                         @test facets(S, D) == [Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}(A[i], b[i]) for i in 1:12]
                     else
                         @test facets(S, D) isa SubObjectIterator{S}
+                      if S == Polyhedron{T}
+                        @test facets(S, D) == [polyhedron(T, A[i], b[i]) for i in 1:12]
+                      else
                         @test facets(S, D) == [S(A[i], b[i]) for i in 1:12]
+                      end
                     end
                     @test length(facets(S, D)) == 12
                     @test affine_inequality_matrix(facets(S, D)) == hcat(-b, vcat(A...))

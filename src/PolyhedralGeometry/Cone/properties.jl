@@ -441,7 +441,9 @@ julia> f = facets(Halfspace, c)
 """
 facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
-_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-view(C.FACETS, [i], :), 0)
+_facet_cone(::Type{Polyhedron{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = polyhedron(T, -view(C.FACETS, [i], :), 0)
+
+_facet_cone(::Type{AffineHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = AffineHalfspace{T}(-view(C.FACETS, [i], :), 0)
 
 _facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
 

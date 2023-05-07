@@ -1143,7 +1143,7 @@ function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
   end
   push!(b, 2^16)
 
-  P = Polyhedron(AA, b)
+  P = polyhedron(AA, b)
   LP = MixedIntegerLinearProgram(P, c; convention = :min)
   s = optimal_solution(LP)
   if isnothing(s)

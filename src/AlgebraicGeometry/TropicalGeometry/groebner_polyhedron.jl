@@ -90,5 +90,5 @@ function groebner_polyhedron(GB::Vector{<:MPolyRingElem}, inGB::Vector{<:MPolyRi
     end
   end
 
-  return Polyhedron(A,b)
+  return polyhedron(A,b)
 end
