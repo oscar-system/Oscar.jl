@@ -15,7 +15,7 @@ julia> toric_scheme = ToricCoveredScheme(P2)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
 ```
 
-## Standard constructors
+## Special constructors
 
 We support constructors for a couple of famous geometries:
 ```@docs
