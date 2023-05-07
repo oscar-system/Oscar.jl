@@ -52,12 +52,13 @@ end
   weierstrass_polynomial::MPolyRingElem{QQFieldElem}
   base_space::ToricOrNonToricCoveredScheme
   ambient_space::ToricOrNonToricCoveredScheme
+  fiber_ambient_space::ToricOrNonToricCoveredScheme
   function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
                             weierstrass_g::MPolyRingElem{QQFieldElem},
                             weierstrass_polynomial::MPolyRingElem{QQFieldElem},
                             base_space::ToricOrNonToricCoveredScheme,
                             ambient_space::ToricOrNonToricCoveredScheme)
-    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space)
+    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space, weighted_projective_space(ToricCoveredScheme, [2,3,1]))
   end
 end
 
@@ -71,6 +72,7 @@ end
   tate_polynomial::MPolyRingElem{QQFieldElem}
   base_space::ToricOrNonToricCoveredScheme
   ambient_space::ToricOrNonToricCoveredScheme
+  fiber_ambient_space::ToricOrNonToricCoveredScheme
   function GlobalTateModel(tate_a1::MPolyRingElem{QQFieldElem},
                           tate_a2::MPolyRingElem{QQFieldElem},
                           tate_a3::MPolyRingElem{QQFieldElem},
@@ -79,7 +81,7 @@ end
                           tate_polynomial::MPolyRingElem{QQFieldElem},
                           base_space::ToricOrNonToricCoveredScheme,
                           ambient_space::ToricOrNonToricCoveredScheme)
-    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space)
+    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(ToricCoveredScheme, [2,3,1]))
   end
 end
 

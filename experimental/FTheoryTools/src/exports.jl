@@ -13,6 +13,7 @@ export base_fully_specified
 export base_space
 export calabi_yau_hypersurface
 export discriminant
+export fiber_ambient_space
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
 export global_tate_model_over_hirzebruch_surface

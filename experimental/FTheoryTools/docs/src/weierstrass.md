@@ -158,11 +158,12 @@ auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
 be accessed with the following functions:
 ```@docs
 base_space(w::GlobalWeierstrassModel)
-ambient_space(t::GlobalWeierstrassModel)
+ambient_space(w::GlobalWeierstrassModel)
+fiber_ambient_space(w::GlobalWeierstrassModel)
 ```
 The following method allows to tell if the base/ambient space is auxiliary or not:
 ```@docs
-base_fully_specified(t::GlobalWeierstrassModel)
+base_fully_specified(w::GlobalWeierstrassModel)
 ```
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.
