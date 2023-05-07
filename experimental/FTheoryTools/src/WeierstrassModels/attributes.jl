@@ -61,7 +61,7 @@ julia> weierstrass_polynomial(w);
 
 
 #####################################################
-# 1.3 Base and ambient space
+# 1.3 Base, ambient space and fiber ambient space
 #####################################################
 
 @doc raw"""
@@ -99,6 +99,22 @@ Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return w.ambient_space
 end
+
+
+@doc raw"""
+    fiber_ambient_space(w::GlobalWeierstrassModel)
+
+Return the fiber ambient space of the global Weierstrass model.
+
+```jldoctest
+julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Global Weierstrass model over a not fully specified base
+
+julia> fiber_ambient_space(w)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+```
+"""
+fiber_ambient_space(w::GlobalWeierstrassModel) = w.fiber_ambient_space
 
 
 

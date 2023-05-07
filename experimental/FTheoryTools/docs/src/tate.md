@@ -181,8 +181,9 @@ recall that we construct an auxiliary (toric) base space as well as an
 auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
 be accessed with the following functions:
 ```@docs
-base_space(w::GlobalTateModel)
+base_space(t::GlobalTateModel)
 ambient_space(t::GlobalTateModel)
+fiber_ambient_space(t::GlobalTateModel)
 ```
 The following method allows to tell if the base/ambient space is auxiliary or not:
 ```@docs

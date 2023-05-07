@@ -104,7 +104,7 @@ julia> tate_polynomial(t);
 
 
 #####################################################
-# 1.3 Base and ambient space
+# 1.3 Base, ambient space and fiber ambient space
 #####################################################
 
 @doc raw"""
@@ -143,6 +143,22 @@ Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return t.ambient_space
 end
+
+
+@doc raw"""
+    fiber_ambient_space(t::GlobalTateModel)
+
+Return the fiber ambient space of the global Tate model.
+
+```jldoctest
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
+
+julia> fiber_ambient_space(t)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+```
+"""
+fiber_ambient_space(t::GlobalTateModel) = t.fiber_ambient_space
 
 
 
