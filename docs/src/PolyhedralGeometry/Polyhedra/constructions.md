@@ -146,6 +146,7 @@ gelfand_tsetlin_polytope
 newton_polytope
 orbit_polytope
 rand_spherical_polytope
+rand_subpolytope
 ```
 
 ## Operations on polyhedra

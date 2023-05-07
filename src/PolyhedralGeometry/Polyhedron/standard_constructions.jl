@@ -1015,3 +1015,36 @@ end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
   rand_spherical_polytope(d, n; distribution=distribution, seed=rand(rng,Int64), precision=precision)
+
+@doc raw"""
+    rand_subpolytope(P::Polyhedron, n::Int; seed=nothing)
+
+Construct a subpolytope of $P$ as the convex hull of $n$ vertices, chosen uniformly at random.
+The polyhedron $P$ must be bounded, and the number $n$ must not exceed the number of vertices.
+
+# Keywords
+- `seed::Int64`:          Seed for random number generation.
+
+# Examples
+```jldoctest
+julia> nvertices(rand_subpolytope(cube(3), 5))
+5
+
+```
+"""
+function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
+  if !bounded(P)
+    throw(ArgumentError("rand_subpolytope: Polyhedron unbounded"))
+  end
+  nv = nvertices(P)
+  if n>nv
+    throw(ArgumentError("rand_subpolytope: number of vertices requested too high"))
+  end
+  opts = Dict{Symbol,Any}()
+  if seed != nothing
+    opts[:seed] = convert(Int64, seed)
+  end
+  pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
+  pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
+  return Polyhedron{T}(pm_obj)
+end

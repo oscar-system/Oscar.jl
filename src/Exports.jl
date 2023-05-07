@@ -1124,6 +1124,7 @@ export radical_membership
 export rand
 export rand_pseudo
 export rand_spherical_polytope
+export rand_subpolytope
 export random_affine_linear_polynomials
 export rank
 export rank_action
