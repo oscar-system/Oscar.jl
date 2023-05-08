@@ -156,6 +156,8 @@ _is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyRingElem{QQ
 
 _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
 
+_string_from_factor_count(poly::QQMPolyRingElem, string_list::Vector{String}) = string_list[_count_factors(poly)]
+
 function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
   f_ord = ords[1]
   g_ord = ords[2]
@@ -179,56 +181,29 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
     R = parent(f)
     S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
     ring_map = hom(R, S, gens(S)[2:end])
-    weierstrass_f = ring_map(f)
-    weierstrass_g = ring_map(g)
+    poly_f = ring_map(f)
+    poly_g = ring_map(g)
     poly_d = ring_map(d)
     locus = ring_map(gens(id)[1])
     
     if f_ord == 0 && g_ord == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(9 * weierstrass_g, [locus], [0]), evaluate(2 * weierstrass_f, [locus], [0]))
-      if _count_factors(monodromy_poly) == 2
-        kod_type = "Split I_$d_ord"
-      else
-        kod_type = "Non-split I_$d_ord"
-      end
+      monodromy_poly = _psi^2 + divexact(evaluate(9 * poly_g, [locus], [0]), evaluate(2 * poly_f, [locus], [0]))
+      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      monodromy_poly = _psi^2 - evaluate(divexact(weierstrass_g, locus^2), [locus], [0])
-      if _count_factors(monodromy_poly) == 2
-        kod_type = "Split IV"
-      else
-        kod_type = "Non-split IV"
-      end
+      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^2), [locus], [0])
+      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
     elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      monodromy_poly =  _psi^3 + _psi * evaluate(divexact(weierstrass_f, locus^2), [locus], [0]) + evaluate(divexact(weierstrass_g, locus^3), [locus], [0])
-      num_facs = _count_factors(monodromy_poly)
-      if num_facs == 3
-        kod_type = "Split I^*_0"
-      elseif num_facs == 2
-        kod_type = "Semi-split I^*_0"
-      else
-        kod_type = "Non-split I^*_0"
-      end
+      monodromy_poly =  _psi^3 + _psi * evaluate(divexact(poly_f, locus^2), [locus], [0]) + evaluate(divexact(poly_g, locus^3), [locus], [0])
+      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
     elseif f_ord == 2 && g_ord == 3 && d_ord >= 7 && d_ord % 2 == 1
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * weierstrass_f, locus^2)^3, [locus], [0]), 4 * evaluate(divexact(9 * weierstrass_g, locus^3), [locus], [0])^3)
-      if _count_factors(monodromy_poly) == 2
-        kod_type = "Split I^*_$(d_ord - 6)"
-      else
-        kod_type = "Non-split I^*_$(d_ord - 6)"
-      end
+      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^3, [locus], [0]), 4 * evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^3)
+      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
     elseif f_ord == 2 && g_ord == 3 && d_ord >= 8 && d_ord % 2 == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * weierstrass_f, locus^2)^2, [locus], [0]), evaluate(divexact(9 * weierstrass_g, locus^3), [locus], [0])^2)
-      if _count_factors(monodromy_poly) == 2
-        kod_type = "Split I^*_$(d_ord - 6)"
-      else
-        kod_type = "Non-split I^*_$(d_ord - 6)"
-      end
+      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^2, [locus], [0]), evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^2)
+      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      monodromy_poly = _psi^2 - evaluate(divexact(weierstrass_g, locus^4), [locus], [0])
-      if _count_factors(monodromy_poly) == 2
-        kod_type = "Split IV^*"
-      else
-        kod_type = "Non-split IV^*"
-      end
+      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^4), [locus], [0])
+      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
     else
       kod_type = "Unrecognized"
     end
