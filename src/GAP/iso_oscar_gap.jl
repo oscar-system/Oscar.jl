@@ -386,7 +386,9 @@ true
 @attr Map function iso_oscar_gap(R)
   iso = _iso_oscar_gap(R)
   S = codomain(iso)
-  GAP.Globals.SetIsoGapOscar(S, inv(iso))
+  f = inv(iso)
+  GAP.Globals.SetIsoGapOscar(S, f)
+  @assert GAP.Globals.IsoGapOscar(S) === f  # could differ if IsoGapOscar was set before
   return iso
 end
 
