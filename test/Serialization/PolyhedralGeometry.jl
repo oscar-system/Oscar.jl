@@ -60,7 +60,7 @@ using Oscar: _integer_variables
 
         @testset "LinearProgram" begin
             P = cube(3)
-            LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
+            LP = linear_program(P,[3,-2,4];k=2,convention = :min)
             test_save_load_roundtrip(path, LP) do loaded
               @test loaded isa LinearProgram
               @test Base.propertynames(LP) == Base.propertynames(loaded)

@@ -85,7 +85,7 @@ export LazyPoly
 export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
-export LinearProgram
+export LinearProgram, linear_program
 export Localization
 export MPolyComplementOfKPointIdeal
 export MPolyComplementOfPrimeIdeal

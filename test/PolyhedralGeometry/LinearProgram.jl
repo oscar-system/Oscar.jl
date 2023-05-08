@@ -17,9 +17,9 @@
   rsquare = cube(T, 2, QQFieldElem(-3,2), QQFieldElem(3,2))
 
   @testset "linear programs" begin
-    LP1 = LinearProgram(square,[1,3])
-    LP2 = LinearProgram(square,[2,2]; k=3, convention = :min)
-    LP3 = LinearProgram(Pos,[1,2,3])
+    LP1 = linear_program(square,[1,3])
+    LP2 = linear_program(square,[2,2]; k=3, convention = :min)
+    LP3 = linear_program(Pos,[1,2,3])
     @test LP1 isa LinearProgram{T}
     @test LP2 isa LinearProgram{T}
     @test LP3 isa LinearProgram{T}
@@ -55,8 +55,8 @@
     end
 
     @testset "LinearProgram: lp and mps files" begin
-      LP1 = LinearProgram(square,[1,3])
-      LP2 = LinearProgram(rsquare,[2,2]; k=3, convention = :min)
+      LP1 = linear_program(square,[1,3])
+      LP2 = linear_program(rsquare,[2,2]; k=3, convention = :min)
 
       buffer = IOBuffer()
       @test save_lp(buffer, LP2) === nothing

@@ -5,7 +5,7 @@ The mixed integer linear program on the feasible set `P` (a Polyhedron) with
 respect to the function x ↦ dot(c,x)+k, where $x_i\in\mathbb{Z}$ for all $i$ in
 `integer_variables`. If `integer_variables` is empty, or not specified, all
 entries of `x` are required to be integral. If this is not intended, consider
-using a [`LinearProgram`](@ref) instead.
+using a [`linear_program`](@ref) instead.
 """
 struct MixedIntegerLinearProgram{T}
    feasible_region::Polyhedron{T}

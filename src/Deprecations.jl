@@ -325,3 +325,23 @@ function Cone{T}(R; kwargs...) where T<:scalar_types
   return positive_hull(T, R; kwargs...)
 end
 
+# LinearProgram -> linear_program
+function LinearProgram(p::Polyhedron{T}, lp, c) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
+  return linear_program(p, lp, c)
+end
+function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
+  return linear_program(P, objective; k=k, convention=convention)
+end
+function LinearProgram(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
+  return linear_program(P, objective; k=k, convention=convention)
+end
+function LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
+  return linear_program(T, A, b, c; k=k, convention=convention)
+end
+
+
+

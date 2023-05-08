@@ -135,7 +135,7 @@ function load_mps(file::String)
   if Polymake.exists(poly, "LP")
     lp = poly.LP
     Polymake.attach(lp, "convention", "max")
-    return LinearProgram(polyhedron(poly), lp, :max)
+    return linear_program(polyhedron(poly), lp, :max)
   elseif Polymake.exists(poly, "MILP")
     milp = poly.MILP
     Polymake.attach(milp, "convention", "max")
@@ -157,7 +157,7 @@ function load_lp(file::String)
     lp = poly.LP
     convention = occursin("MAXIMIZE", String(Polymake.getdescription(lp))) ? :max : :min
     Polymake.attach(lp, "convention", String(convention))
-    return LinearProgram(polyhedron(poly), lp, convention)
+    return linear_program(polyhedron(poly), lp, convention)
   elseif Polymake.exists(poly, "MILP")
     milp = poly.MILP
     convention = occursin("MAXIMIZE", String(Polymake.getdescription(milp))) ? :max : :min

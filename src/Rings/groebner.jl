@@ -1468,11 +1468,11 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   for i in 1:ncols
     ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
-    L = LinearProgram(Pol, obj_func)
+    L = linear_program(Pol, obj_func)
     m, v = solve_lp(L)
     if isnothing(v)
       Pol_new = intersect(Pol, polyhedron(ei*K, [1]))
-      L = LinearProgram(Pol_new, obj_func)
+      L = linear_program(Pol_new, obj_func)
       v = optimal_vertex(L)
     end
     pos_vec += K*(v.p)

@@ -1239,7 +1239,7 @@ julia> ψ([1,2,3])
 """
 function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_types
     function h(ω::AbstractVector)
-        lp=LinearProgram{T}(P,ω; convention = convention)
+        lp=linear_program(P,ω; convention = convention)
         return solve_lp(lp)[1]
     end
     return h
