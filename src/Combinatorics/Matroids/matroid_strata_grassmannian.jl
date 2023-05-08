@@ -619,12 +619,17 @@ end
 
 function small_find_solution(v::RingElem, Igens::Vector{<:RingElem})
     
-    with_v_deg_1 = [g for g in Igens if (total_degree(g) == 1 && isone(degree(g,v)) )] 
-    length(with_v_deg_1) != 0 || return "can't isolate"
+#    v_deg_1_no_coef = [g for g in Igens if isone(degree(g,v)) && is_unit(coeff(g,[v],[1])) ]
+#    println("v_deg_1_no_coef: ", v_deg_1_no_coef)
+#    length(v_deg_1_no_coef) != 0 || return "can't isolate"
+#    f = first(v_deg_1_no_coef)
+#    return -coeff(f, [v], [0]) / coeff(f, [v], [1])
+        
+    with_v_deg_1 = [g for g in Igens if (total_degree(g) == 1 && is_unit(coeff(g,[v],[1])))] 
+    length(with_v_deg_1) == 0 && return "can't isolate"
     
     f = first(with_v_deg_1)
-    return -coeff(f, [v], [0])
-    
+    return -coeff(f, [v], [0])/coeff(f,[v],[1])
 end
 
 
@@ -660,11 +665,9 @@ function small_reduce_full_rec(Igens::Vector{<:RingElem},
     (Igens, phi, elim, fullyReduced) = output    
     !fullyReduced && return small_reduce_full_rec(Igens, phi, elim, fullyReduced)
     
-    
     R = domain(phi)
     x = gens(R)    
     cR = coefficient_ring(R)
-    
     
     if length(elim) == length(x)
         S = cR
@@ -684,7 +687,6 @@ function small_reduce_full_rec(Igens::Vector{<:RingElem},
     phi2 = hom(R, S, a->a, z)
     phif = phi*phi2
 
-    
     return phif
 end
 
@@ -707,6 +709,7 @@ function small_reduce(MRS::MatroidRealizationSpace)
     new_mat = phi.(collect(MRS.representation_matrix))
     new_mat = matrix(new_ring, new_mat)
     new_ineq = unique!(filter(x->!is_unit(x), phi.(MRS.inequations)))
+    new_ineq = gens_2_factors(new_ineq)
     
     return MatroidRealizationSpace(new_ideal, new_ineq, new_ring, new_mat, MRS.representable )
     
