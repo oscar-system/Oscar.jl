@@ -71,7 +71,7 @@ SpecOpen(X::AbsSpec) = SpecOpen(X, [one(ambient_coordinate_ring(X))], check=fals
 function product(U::SpecOpen, Y::AbsSpec)
   X = ambient_scheme(U)
   P, pX, pY = product(X, Y)
-  V = SpecOpen(P, lifted_numerator.(pullback(pX).(gens(U))))
+  V = SpecOpen(P, lifted_numerator.(pullback(pX).(complement_equations(U))))
   res_pX = restrict(pX, V, U, check=false)
   res_pY = restrict(pY, V, SpecOpen(Y), check=false)
   return V, res_pX, res_pY
@@ -79,6 +79,6 @@ end
   
 function subscheme(U::SpecOpen, I::Ideal)
   Z = subscheme(ambient_scheme(U), I) #Takes care of coercion and complains if necessary
-  return SpecOpen(Z, [g for g in gens(U) if !iszero(OO(Z)(g))])
+  return SpecOpen(Z, [g for g in complement_equations(U) if !iszero(OO(Z)(g))])
 end
 

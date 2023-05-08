@@ -348,6 +348,7 @@ export common_refinement
 export complement
 export complement_class_reps, has_complement_class_reps, set_complement_class_reps
 export complement_equation
+export complement_equations
 export complement_ideal
 export complement_of_point_ideal
 export complement_of_prime_ideal
@@ -1011,6 +1012,7 @@ export nullity
 export number_atlas_groups
 export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
 export number_moved_points, has_number_moved_points, set_number_moved_points
+export number_of_complement_equations
 export number_of_factors
 export number_of_partitions
 export number_perfect_groups, has_number_perfect_groups

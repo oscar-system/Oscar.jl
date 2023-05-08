@@ -545,10 +545,10 @@ identifications given by the glueings in the `default_covering`.
         for V in basic_patches(default_covering(X))
           G = C[U, V]
           A, B = glueing_domains(G)
-          for i in 1:ngens(A)
+          for i in 1:number_of_complement_equations(A)
             I(A[i]) == ideal(OOX(A[i]), I(V, A[i]).(gens(I(V)))) || error("ideals do not coincide on overlap")
           end
-          for i in 1:ngens(B)
+          for i in 1:number_of_complement_equations(B)
             I(B[i]) == ideal(OOX(B[i]), I(U, B[i]).(gens(I(U)))) || error("ideals do not coincide on overlap")
           end
         end
