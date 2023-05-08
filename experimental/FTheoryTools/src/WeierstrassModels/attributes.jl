@@ -22,7 +22,7 @@ Global Weierstrass model over a not fully specified base
 julia> weierstrass_section_f(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} weierstrass_section_f(w::GlobalWeierstrassModel) = w.weierstrass_f
+weierstrass_section_f(w::GlobalWeierstrassModel) = w.weierstrass_f
 
 
 @doc raw"""
@@ -38,7 +38,7 @@ Global Weierstrass model over a not fully specified base
 julia> weierstrass_section_g(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} weierstrass_section_g(w::GlobalWeierstrassModel) = w.weierstrass_g
+weierstrass_section_g(w::GlobalWeierstrassModel) = w.weierstrass_g
 
 
 #####################################################
@@ -57,7 +57,7 @@ Global Weierstrass model over a not fully specified base
 julia> weierstrass_polynomial(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.weierstrass_polynomial
+weierstrass_polynomial(w::GlobalWeierstrassModel) = w.weierstrass_polynomial
 
 
 #####################################################
@@ -76,7 +76,7 @@ Global Weierstrass model over a not fully specified base
 julia> base_space(w)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
 """
-@attr AbsCoveredScheme function base_space(w::GlobalWeierstrassModel)
+function base_space(w::GlobalWeierstrassModel)
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
   return w.base_space
 end
@@ -95,7 +95,7 @@ julia> ambient_space(w)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2]]
 ```
 """
-@attr AbsCoveredScheme function ambient_space(w::GlobalWeierstrassModel)
+function ambient_space(w::GlobalWeierstrassModel)
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return w.ambient_space
 end
