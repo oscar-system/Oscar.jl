@@ -1383,6 +1383,82 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
   end
 end
 
+@doc raw"""
+    small_generating_set(I::MPolyIdeal)
+
+Given a ideal `I` in a multivariate polynomial ring over a field,
+return an array containing a set of generators of `I`, which is usually
+smaller than the original one.
+If `I` is the zero ideal an empty list is returned.
+
+!!! note
+   Minimal generating sets exist only in the local and the homogeneous case. Beyond these cases, the best one can hope for is some small set of generators.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> small_generating_set(I)
+3-element Vector{QQMPolyRingElem}:
+ x
+ z^2
+ y^3
+
+julia> WW = [x-y^3,z-y^5,x^2-z^3, y^6-y^15]  # certainly not homogeneous
+4-element Vector{QQMPolyRingElem}:
+ x - y^3
+ -y^5 + z
+ x^2 - z^3
+ -y^15 + y^6
+
+julia> J = ideal(R,WW)
+ideal(x - y^3, -y^5 + z, x^2 - z^3, -y^15 + y^6)
+
+julia> small_generating_set(J)
+3-element Vector{QQMPolyRingElem}:
+ -x^2 + z^3
+ -x + y^3
+ x*y^2 - z
+```
+"""
+function small_generating_set(I::MPolyIdeal)
+  # For non-homogeneous ideals, we do not have a notion of minimal generating
+  # set, but Singular.mstd still provides a good heuristic to find a small
+  # generating set.
+
+  R = base_ring(I)
+
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+
+  if !isempty(I.gb)
+    # no need to recompute a GB on the Singular side, if it is already there
+    G = first(values(I.gb))
+    singular_assure(G, G.ord)
+    G.gens.S.isGB = true
+    _, sing_min = Singular.mstd(G.gens.S)
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    ring = I.gens.Ox
+    computed_gb = IdealGens(ring, sing_gb, true)
+    I.gb[computed_gb.ord] = computed_gb
+  end
+
+  # we do not have a notion of minimal generating set in this context!
+  # If we are unlucky, mstd can even produce a larger generating set
+  # than the original one!!!
+  return_value = filter(!iszero, (R).(gens(sing_min)))
+  if length(return_value) <= ngens(I)
+    return return_value
+  else
+    return gens(I)
+  end
+end
 ################################################################################
 #
 # Grassmann Pluecker Ideal
