@@ -404,12 +404,12 @@ biproduct(x::Vararg{LatWithIsom}) = biproduct(collect(x))
 @doc raw"""
     is_of_hermitian_type(Lf::LatWithIsom) -> Bool
 
-Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
-underlying isometry `f` is (irreducible) cyclotomic.
+Given a lattice with isometry $(L, f)$, return whether the minimal polynomial of
+the underlying isometry `f` is (irreducible) cyclotomic.
 
 Note that if $(L, f)$ is of hermitian type with `f` of order `n`, then `L` can
-be seen as a hermitian lattice over the order $\mathbb{Z}[\zeta_n]$ where $\zeta_n$
-is a primitive $n$-th root of unity.
+be seen as a hermitian lattice over the order $\mathbb{Z}[\zeta_n]$ where
+$\zeta_n$ is a primitive $n$-th root of unity.
 """
 function is_of_hermitian_type(Lf::LatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
@@ -424,9 +424,9 @@ end
     hermitian_structure(Lf::LatWithIsom) -> HermLat
 
 Given a lattice with isometry $(L, f)$ such that the minimal polynomial of the
-underlying isometry `f` is irreducible and cyclotomic, return the
-hermitian structure of the underlying lattice `L` over the $n$th cyclotomic
-field, where $n$ is the order of `f`.
+underlying isometry `f` is cyclotomic, return the hermitian structure of the
+underlying lattice `L` over the $n$th cyclotomic field, where $n$ is the
+order of `f`.
 
 If it exists, the hermitian structure is stored.
 """

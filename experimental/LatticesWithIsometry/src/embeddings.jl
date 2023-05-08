@@ -16,7 +16,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   D = A+B
   AinD = hom(A, D, TorQuadModuleElem[D(lift(a)) for a in gens(A)])
   BinD = hom(B, D, TorQuadModuleElem[D(lift(b)) for b in gens(B)])
-  @assert all(v -> AinD(v[1])*BinD(v[2]) == 0, Hecke.cartesian_product_iterator([gens(A), gens(B)], inplce=true))
+  @assert all(v -> AinD(v[1])*BinD(v[2]) == 0, Hecke.cartesian_product_iterator([gens(A), gens(B)], inplace=true))
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
@@ -274,12 +274,12 @@ function _subgroups_orbit_representatives_and_stabilizers(O::AutomorphismGroup{T
   coAgap = [sub(Agap, togap.(q.(j[2].(gens(j[1])))))[1] for j in it]
   OAgap = automorphism_group(Agap)
   OinOAgap, j = sub(OAgap, OAgap.([g.X for g in gens(O)]))
-  m = gset(OinOAgap, on_subgroup, coAgap)
+  m = gset(OinOAgap, _on_subgroup_automorphic, coAgap)
   orbs = orbits(m)
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
   for orb in orbs
     rep = representative(orb)
-    stab, _ = stabilizer(OinOAgap, rep, on_subgroup)
+    stab, _ = stabilizer(OinOAgap, rep, _on_subgroup_automorphic)
     _, rep = sub(q, TorQuadModuleElem[tooscar(Agap(g)) for g in gens(rep)])
     stab, _ = sub(O, O.([h.X for h in gens(stab)]))
     push!(res, (rep, stab))
@@ -307,19 +307,18 @@ end
 #
 # We follow the second definition of Nikulin, i.e. we classify up to the actions
 # of O(M) and O(N).
-function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadModule)
+function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadModule; GN = nothing, GM = nothing)
   @hassert :LatWithIsom 1 is_one(basis_matrix(N))
   @hassert :LatWithIsom 1 is_one(basis_matrix(M))
   results = Tuple{ZLat, ZLat, ZLat}[]
-  GN, _ = image_in_Oq(N)
-  GM, _ = image_in_Oq(M)
+  GN = GN === nothing ? image_in_Oq(N)[1] : GN
+  GM = GM === nothing ? image_in_Oq(M)[1] : GM
   qN = domain(GN)
   qM = domain(GM)
 
   D, inj = direct_sum(qN, qM)
   qNinD, qMinD = inj
   OD = orthogonal_group(D)
-
   subsN = _classes_automorphic_subgroups(GN, rescale(H, -1))
   @hassert :LatWithIsom 1 !isempty(subsN)
   subsM = _classes_automorphic_subgroups(GM, H)
@@ -370,71 +369,71 @@ function _isomorphism_classes_primitive_extensions(N::ZLat, M::ZLat, H::TorQuadM
   return results
 end
 
-function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::ZLat, H::TorQuadModule)
-  @hassert :LatWithIsom 1 is_one(basis_matrix(N))
-  @hassert :LatWithIsom 1 is_one(basis_matrix(M))
-  q = elementary_divisors(H)[end]
-  ok, p, _ = is_prime_power_with_data(q)
-  @hassert :LatWithIsom 1 ok
-  @hassert :LatWithIsom 1 is_elementary(M, p)
-  results = Tuple{ZLat, ZLat, ZLat}[]
-  GN, _ = image_in_Oq(N)
-  GM, _ = image_in_Oq(M)
-  qN = domain(GN)
-  qM = domain(GM)
-
-  D, inj = direct_sum(qN, qM)
-  qNinD, qMinD = inj
-  OD = orthogonal_group(D)
-  VN, VNinqN, _ = _get_V(N, qN, identity_matrix(QQ, rank(N)), id_hom(qN), minpoly(identity_matrix(QQ,1)), p)
-  subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, p)
-  filter!(HN -> is_anti_isometric_with_anti_isometry(domain(HN[1]), H), subsN)
-  @assert !isempty(subsN)
-  subsM = _subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qM), GM, p)
-  filter!(HM -> is_isometric_with_isometry(domain(HM[1]), H), subsM)
-  @assert !isempty(subsM)
-
-  for H1 in subsN, H2 in subsM
-    ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
-    @hassert :LatWithIsom 1 ok
-
-    HNinqN, stabN = H1
-    OHN = orthogonal_group(HN)
-
-    HMinqM, stabM = H2
-    OHM = orthogonal_group(HM)
-
-    actN = hom(stabN, OHN, [OHN(restrict_automorphism(x, HNinqN)) for x in gens(stabN)])
-
-    actM = hom(stabM, OHM, [OHM(restrict_automorphism(x, HMinqM)) for x in gens(stabM)])
-    imM, _ = image(actM)
-
-    stabNphi = AutomorphismGroupElem{TorQuadModule}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
-    stabNphi, _ = sub(OHM, stabNphi)
-    reps = double_cosets(OHM, stabNphi, imM)
-    @vprint :LatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions\n"
-    for g in reps
-      g = representative(g)
-      phig = compose(phi, hom(g))
-      _glue = Vector{QQFieldElem}[lift(qNinD(HNinqN(g))) + lift(qMinD(HMinqM(phig(g)))) for g in gens(domain(phig))]
-      z = zero_matrix(QQ, 0, degree(N)+degree(M))
-      glue = reduce(vcat, [matrix(QQ, 1, degree(N)+degree(M), g) for g in _glue], init = z)
-      glue = vcat(identity_matrix(QQ, rank(N)+rank(M)), glue)
-      glue = FakeFmpqMat(glue)
-      _B = hnf(glue)
-      _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
-      L = lattice(ambient_space(cover(D)), _B[end-rank(N)-rank(M)+1:end, :])
-      N2 = lattice_in_same_ambient_space(L, identity_matrix(QQ, rank(L))[1:rank(N),:])
-      @hassert :LatWithIsom 1 genus(N) == genus(N2)
-      M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
-      @hassert :LatWithIsom 1 genus(M) == genus(M2)
-      push!(results, (L, M2, N2))
-      @vprint :LatWithIsom 1 "Gluing done\n"
-      GC.gc()
-    end
-  end
-  return results
-end
+#function _isomorphism_classes_primitive_extensions_along_elementary(N::ZLat, M::ZLat, H::TorQuadModule)
+#  @hassert :LatWithIsom 1 is_one(basis_matrix(N))
+#  @hassert :LatWithIsom 1 is_one(basis_matrix(M))
+#  q = elementary_divisors(H)[end]
+#  ok, p, _ = is_prime_power_with_data(q)
+#  @hassert :LatWithIsom 1 ok
+#  @hassert :LatWithIsom 1 is_elementary(M, p)
+#  results = Tuple{ZLat, ZLat, ZLat}[]
+#  GN, _ = image_in_Oq(N)
+#  GM, _ = image_in_Oq(M)
+#  qN = domain(GN)
+#  qM = domain(GM)
+#
+#  D, inj = direct_sum(qN, qM)
+#  qNinD, qMinD = inj
+#  OD = orthogonal_group(D)
+#  VN, VNinqN, _ = _get_V(N, qN, identity_matrix(QQ, rank(N)), id_hom(qN), minpoly(identity_matrix(QQ,1)), p)
+#  subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, p)
+#  filter!(HN -> is_anti_isometric_with_anti_isometry(domain(HN[1]), H), subsN)
+#  @assert !isempty(subsN)
+#  subsM = _subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qM), GM, p)
+#  filter!(HM -> is_isometric_with_isometry(domain(HM[1]), H), subsM)
+#  @assert !isempty(subsM)
+#
+#  for H1 in subsN, H2 in subsM
+#    ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
+#    @hassert :LatWithIsom 1 ok
+#
+#    HNinqN, stabN = H1
+#    OHN = orthogonal_group(HN)
+#
+#    HMinqM, stabM = H2
+#    OHM = orthogonal_group(HM)
+#
+#    actN = hom(stabN, OHN, [OHN(restrict_automorphism(x, HNinqN)) for x in gens(stabN)])
+#
+#    actM = hom(stabM, OHM, [OHM(restrict_automorphism(x, HMinqM)) for x in gens(stabM)])
+#    imM, _ = image(actM)
+#
+#    stabNphi = AutomorphismGroupElem{TorQuadModule}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
+#    stabNphi, _ = sub(OHM, stabNphi)
+#    reps = double_cosets(OHM, stabNphi, imM)
+#    @vprint :LatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions\n"
+#    for g in reps
+#      g = representative(g)
+#      phig = compose(phi, hom(g))
+#      _glue = Vector{QQFieldElem}[lift(qNinD(HNinqN(g))) + lift(qMinD(HMinqM(phig(g)))) for g in gens(domain(phig))]
+#      z = zero_matrix(QQ, 0, degree(N)+degree(M))
+#      glue = reduce(vcat, [matrix(QQ, 1, degree(N)+degree(M), g) for g in _glue], init = z)
+#      glue = vcat(identity_matrix(QQ, rank(N)+rank(M)), glue)
+#      glue = FakeFmpqMat(glue)
+#      _B = hnf(glue)
+#      _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
+#      L = lattice(ambient_space(cover(D)), _B[end-rank(N)-rank(M)+1:end, :])
+#      N2 = lattice_in_same_ambient_space(L, identity_matrix(QQ, rank(L))[1:rank(N),:])
+#      @hassert :LatWithIsom 1 genus(N) == genus(N2)
+#      M2 = lattice_in_same_ambient_space(L, identity_matrix(QQ,rank(L))[rank(N)+1:end, :])
+#      @hassert :LatWithIsom 1 genus(M) == genus(M2)
+#      push!(results, (L, M2, N2))
+#      @vprint :LatWithIsom 1 "Gluing done\n"
+#      GC.gc()
+#    end
+#  end
+#  return results
+#end
 
 
 @doc raw"""
@@ -443,14 +442,17 @@ end
 
 Given a `p`-primary lattice `L`, unique in its genus, and a lattice `M`,
 compute representatives for all isomorphism classes of primitive embeddings
-of `M` in `L` up to the actions of $\bar{O}(M)$ and $O(L)$. Here
-$\bar{O}(M)$ denotes the image of $O(M)\to O(q_M)$.
+of `M` in `L` up to the actions of $\bar{O}(M)$ and $\bar{O}(L)$.
 
 The output is given in terms of triples `(L', M', N')` where `L'` is
 isometric to `L`, `M'` is a sublattice of `L'` isometric to `M` and
 `N'` is the orthogonal complement of `M'` in `L'`.
 """
-function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::AutomorphismGroup{TorQuadModule} = orthogonal_group(discriminant_group(L)); check::Bool = false)
+function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat; GL::AutomorphismGroup{TorQuadModule} = image_in_Oq(L)[1], GM::AutomorphismGroup{TorQuadModule} = image_in_Oq(M)[1], check::Bool = false)
+  pL, _, nL = signature_tuple(L)
+  pM, _, nM = signature_tuple(M)
+  @req (pL-pM >= 0 && nL-nM >= 0) "Impossible embedding"
+  @req rank(M) < rank(L) "M must be of smaller rank than L"
   bool, p = is_primary_with_prime(L)
   @req bool "L must be unimodular or primary"
   el = is_elementary(L, p)
@@ -458,30 +460,27 @@ function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::Automorph
     @req length(genus_representatives(L)) == 1 "L must be unique in its genus"
   end
   M = Zlattice(gram = gram_matrix(M))
+  qM = discriminant_group(M)
+  ok, phi = is_isometric_with_isometry(qM, domain(GM))
+  @assert ok
+  iphi = inv(phi)
+  GM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(compose(phi, compose(hom(g), iphi))) for g in unique(gens(GM))])
   results = Tuple{ZLat, ZLat, ZLat}[]
   qL = rescale(discriminant_group(L), -1)
   GL = Oscar._orthogonal_group(qL, matrix.(gens(GL)))
-  pL, _, nL = signature_tuple(L)
-  pM, _, nM = signature_tuple(M)
-  @req (pL-pM >= 0 && nL-nM >= 0) "Impossible embedding"
-  if ((pL, nL) == (pM, nM))
-    genus(M) != genus(L) && return results
-    return [(M, M, lattice_in_same_ambient_space(M, zero_matrix(QQ, 0, degree(M))))]
-  end
-  qM = discriminant_group(M)
   D, inj, proj = biproduct(qM, qL)
   qMinD, qLinD = inj
   if el
-    VM, VMinqM, _ = _get_V(M, qM, identity_matrix(QQ, rank(M)), id_hom(qM), minpoly(identity_matrix(QQ,1)), p)
+    VM, VMinqM, _ = _get_V(id_hom(qM), minpoly(identity_matrix(QQ,1)), p)
   else
     VM, VMinqM = primary_part(qM, p)
   end
-  for k  in divisors(gcd(order(VM), order(qL)))
+  for k in divisors(gcd(order(VM), order(qL)))
     @vprint :LatWithIsom 1 "Glue order: $(k)\n"
     if el
-      subsL = subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(GL), GL, k)
+      subsL = _subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qL), GL, k)
     else
-      subsL = subgroups_orbit_representatives_and_stabilizers(GL, order = k)
+      subsL = _subgroups_orbit_representatives_and_stabilizers(GL, order = k)
     end
     @vprint :LatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
     for H in subsL
@@ -499,17 +498,17 @@ function primitive_embeddings_in_primary_lattice(L::ZLat, M::ZLat, GL::Automorph
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
-      disc = rescale(disc, -1)
-      !is_genus(disc, (pL-pM, nL-nM))  && continue
-      G = genus(disc, (pL-pM, nL-nM))
-      @vprint :LatWithIsom 1 "We can glue: $G"
+      disc2 = rescale(disc, -1)
+      !is_genus(disc2, (pL-pM, nL-nM))  && continue
+      G = genus(disc2, (pL-pM, nL-nM))
+      @vprint :LatWithIsom 1 "We can glue: $G\n"
       Ns = representatives(G)
-      @vprint :LatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
+      @vprint :LatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)\n"
       Ns = lll.(Ns)
       Ns = ZLat[Zlattice(gram=gram_matrix(N)) for N in Ns]
-      qM2, _ = sub(qM, [proj[1](j(g)) for g in gens(perp)])
+      qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
-        append!(results, _isomorphism_classes_primitive_extensions(N, M, qM2))
+        append!(results, _isomorphism_classes_primitive_extensions(N, M, GM = GM, qM2))
         GC.gc()
       end
       GC.gc()
