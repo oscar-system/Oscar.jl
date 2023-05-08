@@ -47,8 +47,8 @@ normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 
 ```@docs
 affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
-del_pezzo_surface(b::Int; set_attributes::Bool = true)
-hirzebruch_surface(r::Int; set_attributes::Bool = true)
+del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
+hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
 projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
 weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 ```

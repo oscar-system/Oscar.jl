@@ -281,6 +281,14 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
     end
 end
 
+function IncidenceMatrix(iter::SubObjectIterator)
+    if hasmethod(_incidencematrix, Tuple{Val{iter.Acc}})
+        return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+    else
+        throw(ArgumentError("IncidenceMatrix not defined in this context."))
+    end
+end
+
 # primitive generators only for ray based iterators
 matrix(R::ZZRing, iter::SubObjectIterator{RayVector{QQFieldElem}}) =
     matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))

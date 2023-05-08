@@ -4,9 +4,7 @@
 Return `true` is the Weierstrass model has a concrete base space and `false` otherwise.
 
 ```jldoctest
-julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
-
-julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
 Global Weierstrass model over a not fully specified base
 
 julia> base_fully_specified(w)

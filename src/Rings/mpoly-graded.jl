@@ -41,16 +41,16 @@ GrpAb: Z
 """
 grading_group(R::MPolyDecRing) = R.D
 
-@doc raw"""
-    is_graded(R::MPolyDecRing)
-
-Return `true` if `R` is graded, `false` otherwise.
-"""
 function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
 
-is_graded(::MPolyRing) = false
+@doc raw"""
+    is_graded(R::MPolyRing)
+
+Return `true` if `R` is graded, `false` otherwise.
+"""
+is_graded(R::MPolyRing) = false
 
 is_filtered(R::MPolyDecRing) = isdefined(R, :lt)
 is_filtered(::MPolyRing) = false
@@ -86,11 +86,10 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 
-Given a vector `W` of `ngens(R)` integers, define a $\mathbb Z$-grading on `R` by creating 
-a free abelian group of type `GrpAbFinGen` given by one free generator, converting the entries 
-of `W` to elements of that group, and assigning these elements as weights 
-to the variables. Return the graded ring as an object of type `MPolyDecRing`, 
-together with the vector of variables.
+Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `GrpAbFinGen` 
+given by one free generator, and convert the entries of `W` to elements of that group. Then 
+create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables 
+of `R`, and return the new ring, together with the vector of variables.
 
     grade(R::MPolyRing)
 
@@ -133,10 +132,11 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
  
-Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, define a $\mathbb Z^m$-grading on `R` 
-by creating a free abelian group of type `GrpAbFinGen` given by `m` free generators, converting the vectors in
-`W` to elements of that group, and assigning these elements as weights to the variables. Return the graded
-ring as an object of type `MPolyDecRing`, together with the vector of variables.
+Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free 
+abelian group of type `GrpAbFinGen` given by `m` free generators, and convert the vectors in
+`W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group 
+elements as weights to the variables of `R`, and return the new ring, together with the vector
+of variables.
 
     grade(R::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
 
@@ -461,10 +461,9 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
 
-Given a vector `W` of `ngens(R)` elements of a group `G` of type `GrpAbFinGen`,  
-define a  `G`-grading on `R` by assigning weights to the variables according to the entries of `W`.
-Return the graded ring as an object of type `MPolyDecRing`, together with the
-vector of variables.
+Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a 
+`G`-graded ring by assigning the entries of `W` as weights to the variables of `R`. Return
+the new ring as an object of type `MPolyDecRing`, together with the vector of variables.
 
 # Examples
 ```jldoctest
@@ -1749,12 +1748,12 @@ function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}},
     weight_matrix::Matrix{Int},
     return_ring::Ring,
-    #alg=:generator
-    #alg=:custom
-    #alg=:gcd
-    #alg=:indeterminate
-    #alg=:cocoa
-    alg::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
+    #algorithm=:generator
+    #algorithm=:custom
+    #algorithm=:gcd
+    #algorithm=:indeterminate
+    #algorithm=:cocoa
+    algorithm::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
@@ -1762,17 +1761,17 @@ function _hilbert_numerator_from_leading_exponents(
   ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
   ret !== nothing && return ret
 
-  if alg == :BayerStillmanA
+  if algorithm == :BayerStillmanA
     return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
-  elseif alg == :custom
+  elseif algorithm == :custom
     return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
-  elseif alg == :gcd # see Remark 5.3.11
+  elseif algorithm == :gcd # see Remark 5.3.11
     return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
-  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
+  elseif algorithm == :generator # just choosing on random generator, cf. Remark 5.3.8
     return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
-  elseif alg == :indeterminate # see Remark 5.3.8
+  elseif algorithm == :indeterminate # see Remark 5.3.8
     return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
-  elseif alg == :cocoa # see Remark 5.3.14
+  elseif algorithm == :cocoa # see Remark 5.3.14
     return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
   end
   error("invalid algorithm")
@@ -2092,7 +2091,7 @@ end
 
 function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = symbols(R)
+  A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
@@ -2195,7 +2194,7 @@ function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUn
   V = homogenization(gens(I), W, var, pos)
   R = parent(V[1])
   IH = ideal(R, V)
-  Y = ideal(R, [gens(R)[i] for i = pos:(pos+size(W, 1)-1)])
+  Y = ideal(R, [gen(R, i) for i = pos:(pos+size(W, 1)-1)])
   return saturation(IH, Y)
 end
 
@@ -2390,7 +2389,7 @@ function dehomogenization(F::MPolyDecRingElem, pos::Int)
   m = ngens(G)
   @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
   A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
@@ -2406,7 +2405,7 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
   m = ngens(G)
   @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
   A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
@@ -2527,8 +2526,6 @@ end
 Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
-
-gens(A::MPolyDecRing, i::Int) = A[i]
 
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
 # TODO: This still seems to be not resolved!!!

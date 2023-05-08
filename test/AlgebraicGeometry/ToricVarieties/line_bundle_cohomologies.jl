@@ -4,8 +4,8 @@ using Test
 @testset "Line bundle cohomologies and vanishing sets (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     P2 = projective_space(NormalToricVariety, 2; set_attributes)
-    dP3 = del_pezzo_surface(3; set_attributes)
-    F5 = hirzebruch_surface(5; set_attributes)
+    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
+    F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
     
     l = toric_line_bundle(dP3, [1, 2, 3, 4])
     l2 = toric_line_bundle(divisor_of_character(F5, [1, 2]))

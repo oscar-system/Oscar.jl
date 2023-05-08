@@ -30,7 +30,7 @@ mutable struct FundamentalInvarsCache{PolyRingElemT, PolyRingT}
   invars::Vector{PolyRingElemT} # fundamental invariants
 
   # Graded polynomial ring in length(invars) variables such that
-  # deg(gens(S)[i]) == deg(invars[i])
+  # deg(gen(S, i)) == deg(invars[i])
   S::PolyRingT
 
   # Remember whether the fundamental invariants were computed from the primary

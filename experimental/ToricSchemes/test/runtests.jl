@@ -16,7 +16,7 @@ using Test
     @test nrows(hilbert_basis(affine_toric_scheme)) == 3
 end
   
-  S = hirzebruch_surface(3)
+  S = hirzebruch_surface(NormalToricVariety, 3)
   X = ToricCoveredScheme(S)
   
   @testset "Toric Scheme of Hirzebruch surface F3" begin

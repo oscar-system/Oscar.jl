@@ -136,6 +136,7 @@ regular_600_cell
 ## Other polytope constructions
 
 ```@docs
+billera_lee_polytope
 birkhoff_polytope
 cyclic_polytope
 del_pezzo_polytope
@@ -146,6 +147,7 @@ gelfand_tsetlin_polytope
 newton_polytope
 orbit_polytope
 rand_spherical_polytope
+rand_subpolytope
 ```
 
 ## Operations on polyhedra

@@ -115,7 +115,7 @@ end
   i = ideal(R, [x, y*z^2])
   for method in (:GTZ, :SY)
     j = ideal(R, [R(1)])
-    for (q, p) in primary_decomposition(i, alg=method)
+    for (q, p) in primary_decomposition(i, algorithm=method)
       j = intersect(j, q)
       @test is_primary(q)
       @test is_prime(p)
@@ -138,7 +138,7 @@ end
   @test length(l) == 2
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
 
-  l = minimal_primes(i, alg=:charSets)
+  l = minimal_primes(i, algorithm=:charSets)
   @test length(l) == 2
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
 

@@ -5,7 +5,7 @@ Return the quotient morphism from the Cox variety to the toric variety in questi
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_from_cox_variety(F4)
@@ -28,7 +28,7 @@ Return the Cox variety of the toric variety in question.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> cox_variety(F4)

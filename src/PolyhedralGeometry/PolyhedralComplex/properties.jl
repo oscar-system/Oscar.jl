@@ -232,6 +232,8 @@ _vertex_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL
 
 _ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES[:, _ray_indices_polyhedral_complex(PC)]
 
+_incidencematrix(::Val{_maximal_polyhedron}) = _vertex_and_ray_indices
+
 _vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES
 
 

@@ -133,13 +133,13 @@ reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) 
 ## Invariants of a Given Degree
 
 ```@docs
-basis(IR::InvRing, d::Int, algo::Symbol = :default)
+basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 ```
 
 ```@docs
-iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
+iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 ```
@@ -169,7 +169,7 @@ irreducible_secondary_invariants(IR::InvRing)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
+fundamental_invariants(IR::InvRing, algorithm::Symbol = :default; beta::Int = 0)
 ```
 
 ## Invariant Rings as Affine Algebras

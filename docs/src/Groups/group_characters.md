@@ -166,6 +166,7 @@ arithmetic operations:
 
 ```@docs
 scalar_product
+coordinates(chi::GAPGroupClassFunction)
 induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
 restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
 ```

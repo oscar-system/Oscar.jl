@@ -1,5 +1,12 @@
+###################################################################
+###################################################################
+# 1: Attributes that work the same tor toric and non-toric settings
+###################################################################
+###################################################################
+
+
 #####################################################
-# 1: The Tate sections
+# 1.1 Tate sections and Tate polynomial
 #####################################################
 
 @doc raw"""
@@ -14,7 +21,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a1(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a1(t::GlobalTateModel) = t.a1
+tate_section_a1(t::GlobalTateModel) = t.tate_a1
 
 
 @doc raw"""
@@ -29,7 +36,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a2(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a2(t::GlobalTateModel) = t.a2
+tate_section_a2(t::GlobalTateModel) = t.tate_a2
 
 
 @doc raw"""
@@ -44,7 +51,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a3(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a3(t::GlobalTateModel) = t.a3
+tate_section_a3(t::GlobalTateModel) = t.tate_a3
 
 
 @doc raw"""
@@ -59,7 +66,7 @@ Global Tate model over a not fully specified base
 julia> tate_section_a4(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a4(t::GlobalTateModel) = t.a4
+tate_section_a4(t::GlobalTateModel) = t.tate_a4
 
 
 @doc raw"""
@@ -74,11 +81,11 @@ Global Tate model over a not fully specified base
 julia> tate_section_a6(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_section_a6(t::GlobalTateModel) = t.a6
+tate_section_a6(t::GlobalTateModel) = t.tate_a6
 
 
 #####################################################
-# 2: The Tate polynomial
+# 1.2 Tate polynomial
 #####################################################
 
 @doc raw"""
@@ -93,56 +100,79 @@ Global Tate model over a not fully specified base
 julia> tate_polynomial(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} tate_polynomial(t::GlobalTateModel) = t.pt
+tate_polynomial(t::GlobalTateModel) = t.tate_polynomial
 
 
 #####################################################
-# 3: Toric spaces for Tate models over concrete bases
+# 1.3 Base, ambient space and fiber ambient space
 #####################################################
 
 @doc raw"""
-    toric_base_space(t::GlobalTateModel)
+    base_space(t::GlobalTateModel)
 
-Return the toric base space of the global Tate model.
+Return the base space of the global Tate model.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
-julia> toric_base_space(t)
-Normal toric variety without torusfactor
+julia> base_space(t)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
 ```
 """
-@attr AbstractNormalToricVariety function toric_base_space(t::GlobalTateModel)
+function base_space(t::GlobalTateModel)
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
-  return t.toric_base_space
+  return t.base_space
 end
 
 
 @doc raw"""
-    toric_ambient_space(t::GlobalTateModel)
+    ambient_space(t::GlobalTateModel)
 
-Return the toric ambient space of the global Tate model.
+Return the ambient space of the global Tate model.
 
 ```jldoctest
-julia> t = global_tate_model(test_base())
-Global Tate model over a concrete base
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
 
-julia> toric_ambient_space(t)
-Normal, simplicial toric variety
-
-julia> is_smooth(toric_ambient_space(t))
-false
+julia> ambient_space(t)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2]]
 ```
 """
-@attr AbstractNormalToricVariety function toric_ambient_space(t::GlobalTateModel)
+function ambient_space(t::GlobalTateModel)
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
-  return t.toric_ambient_space
+  return t.ambient_space
 end
 
 
+@doc raw"""
+    fiber_ambient_space(t::GlobalTateModel)
+
+Return the fiber ambient space of the global Tate model.
+
+```jldoctest
+julia> t = su5_tate_model_over_arbitrary_3d_base()
+Global Tate model over a not fully specified base
+
+julia> fiber_ambient_space(t)
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+```
+"""
+fiber_ambient_space(t::GlobalTateModel) = t.fiber_ambient_space
+
+
+
+
+
+###################################################################
+###################################################################
+# 2: Attributes that currently only works in toric settings
+###################################################################
+###################################################################
+
+
 #####################################################
-# 4: The CY hypersurface
+# 2.1 Calabi-Yau hypersurface
 #####################################################
 
 @doc raw"""
@@ -160,13 +190,14 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
+  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return t.calabi_yau_hypersurface
+  return closed_subvariety_of_toric_variety(underlying_toric_variety(ambient_space(t)), [tate_polynomial(t)])
 end
 
 
 #####################################################
-# 5: Turn global Tate model into a Weierstrass model
+# 2.2 Turn a Tate into a Weierstrass model
 #####################################################
 
 @doc raw"""
@@ -183,24 +214,24 @@ Global Weierstrass model over a not fully specified base
 ```
 """
 @attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
+  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Conversion of global Tate model into global Weierstrass model is currently only supported for toric varieties/schemes as base space"
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
   f = - 1//48 * (b2^2 - 24 * b4)
   g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
-  S = cox_ring(toric_ambient_space(t))
+  S = cox_ring(ambient_space(t))
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-  calabi_yau_hypersurface = closed_subvariety_of_toric_variety(toric_ambient_space(t), [pw])
-  model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), calabi_yau_hypersurface)
+  model = GlobalWeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
   set_attribute!(model, :base_fully_specified, base_fully_specified(t))
   return model
 end
 
 
 #####################################################
-# 6: Discriminant
+# 2.3 Discriminant and singular loci
 #####################################################
 
 @doc raw"""
@@ -213,10 +244,12 @@ julia> t = su5_tate_model_over_arbitrary_3d_base()
 Global Tate model over a not fully specified base
 
 julia> discriminant(t);
-
 ```
 """
-@attr MPolyRingElem{QQFieldElem} discriminant(t::GlobalTateModel) = discriminant(global_weierstrass_model(t))
+@attr MPolyRingElem{QQFieldElem} function discriminant(t::GlobalTateModel)
+  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
+  return discriminant(global_weierstrass_model(t))
+end
 
 
 @doc raw"""
@@ -278,4 +311,7 @@ julia> singular_loci(t)[2]
 (ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} singular_loci(t::GlobalTateModel) = singular_loci(global_weierstrass_model(t))
+@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
+  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
+  return singular_loci(global_weierstrass_model(t))
+end
