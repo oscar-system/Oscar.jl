@@ -93,6 +93,7 @@ of the complement of ``U``.
 """
 gens(U::SpecOpen) = U.gens::Vector{elem_type(ambient_coordinate_ring(ambient_scheme(U)))}
 ngens(U::SpecOpen) = length(U.gens)
+gen(U::SpecOpen, i::Int) = U.gens[i]::elem_type(ambient_coordinate_ring(ambient_scheme(U)))
 
 @doc raw"""
     affine_patch(U::SpecOpen, i::Int)
@@ -115,7 +116,7 @@ end
 
 function getindex(U::SpecOpen, i::Int, j::Int) 
   if !haskey(intersections(U), (i, j))
-    intersections(U)[(i, j)] = hypersurface_complement(U[i], gens(U)[j])
+    intersections(U)[(i, j)] = hypersurface_complement(U[i], gen(U, j))
     intersections(U)[(j, i)] = intersections(U)[(i, j)]
   end
   return intersections(U)[(i,j)]

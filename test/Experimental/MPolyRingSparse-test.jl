@@ -28,7 +28,7 @@
 
       for j = 1:num_vars
          @test isa(varlist[j], MPolyRingElem)
-         @test isa(gens(S)[j], MPolyRingElem)
+         @test isa(gen(S, j), MPolyRingElem)
       end
 
       f = rand(S, 0:5, 0:100, 0:0, -100:100)

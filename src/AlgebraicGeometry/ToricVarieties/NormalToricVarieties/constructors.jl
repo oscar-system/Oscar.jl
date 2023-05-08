@@ -574,7 +574,7 @@ Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
-    @req parent(gens(I)[1]) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
+    @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
     cone_list = cones(v)

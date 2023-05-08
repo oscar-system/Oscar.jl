@@ -84,12 +84,10 @@ function Base.getindex(tab::Tableau, I::Vararg{Int, 2})
 end
 
 
-
-
 @doc raw"""
     shape(tab::Tableau{T})
 
-Returns the shape of a tableau, i.e. the partition given by the lengths of the
+Return the shape of a tableau, i.e. the partition given by the lengths of the
 rows of the tableau.
 """
 function shape(tab::Tableau{T}) where T
@@ -207,7 +205,7 @@ end
 @doc raw"""
     semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
 
-Returns a list of all semistandard tableaux of given shape and filling
+Return a list of all semistandard tableaux of given shape and filling
 elements bounded by `max_val`. By default, `max_val` is equal to the sum
 of the shape partition (the number of boxes in the Young diagram). The
 list of tableaux is in lexicographic order from left to right and top
@@ -286,7 +284,7 @@ end
 @doc raw"""
     semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
 
-Returns a list of all semistandard tableaux consisting of `box_num`
+Return a list of all semistandard tableaux consisting of `box_num`
 boxes and filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
@@ -310,7 +308,7 @@ end
 @doc raw"""
     semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
 
-Returns a list of all semistandard tableaux with shape `s` and given weight. This
+Return a list of all semistandard tableaux with shape `s` and given weight. This
 requires that `sum(s) = sum(weight)`.
 """
 function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
@@ -480,7 +478,7 @@ end
     standard_tableaux(s::Partition)
     standard_tableaux(s::Vector{Integer})
 
-Returns a list of all standard tableaux of a given shape.
+Return a list of all standard tableaux of a given shape.
 """
 function standard_tableaux(s::Partition)
   tabs = Vector{Tableau}()
@@ -541,7 +539,7 @@ end
 @doc raw"""
     standard_tableaux(n::Integer)
 
-Returns a list of all standard tableaux with n boxes.
+Return a list of all standard tableaux with n boxes.
 """
 function standard_tableaux(n::Integer)
   @req n>=0 "n >= 0 required"
@@ -586,7 +584,7 @@ end
 @doc raw"""
     hook_lengths(lambda::Partition)
 
-Returns the tableau of shape ``λ`` in which the entry at position `(i,j)`
+Return the tableau of shape ``λ`` in which the entry at position `(i,j)`
 is equal to the hook length of the corresponding box.
 """
 function hook_lengths(lambda::Partition)
@@ -598,12 +596,10 @@ function hook_lengths(lambda::Partition)
 end
 
 
-
-
 @doc raw"""
     num_standard_tableaux(lambda::Partition)
 
-Returns the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
+Return the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
 
 $$f^λ = \frac{n!}{\prod_{i,j} h_λ(i,j)},$$
 

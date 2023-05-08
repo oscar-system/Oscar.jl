@@ -14,7 +14,7 @@
 # polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
 
-function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
+function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
   w = (v1, v...)
   str = _make_strings(w)
   strings = vcat(str...)
@@ -24,22 +24,12 @@ function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbo
   Rx, _collect_variables(c, w)...
 end
 
-# To print [1, 2, 3] or (1, 2, 3) as "1, 2, 3"
-function _print_comma_list(i)
-  s = IOBuffer()
-  print(s, i[1])
-  for j in 2:length(i)
-    print(s, ", ", i[j])
-  end
-  return String(take!(s))
-end
-
 # To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
 
 _make_variable(a, i) = _make_variable(String(a), i)
 
 function _make_variable(a::String, i)
-  ii = _print_comma_list(i)
+  ii = join(i, ", ")
   if occursin('#', a)
     aa = replace(a, '#' => "$ii")
   else
@@ -49,19 +39,19 @@ function _make_variable(a::String, i)
       aa = "$a[$ii]"
     end
   end
-  return aa
+  return Symbol(aa)
 end
 
 # Type stable recursive function to create strings from "a" => 1:2 or
 # "a" => (1:3, 1:3)
-function _make_strings(v::Pair{<:Union{String, Symbol}, <: Any})
+function _make_strings(v::Pair{<:VarName, <:Any})
   lv = last(v)
   if lv isa Tuple
     p = Iterators.product(lv...)
   else
     p = lv
   end
-  res = String[]
+  res = Symbol[]
   a = first(v)
   for i in p
     push!(res, _make_variable(a, i))
@@ -351,10 +341,13 @@ function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
   return A.gens[Val(:O), i]
 end
 
-function Base.getindex(A::IdealGens, i::Int)
+function gen(A::IdealGens, i::Int)
   oscar_assure(A)
   return A.gens.O[i]
 end
+
+Base.getindex(A::IdealGens, i::Int) = gen(A, i)
+
 
 function Base.length(A::IdealGens)
   return length(A.gens)
@@ -734,7 +727,7 @@ end
 @doc raw"""
     jacobi_matrix(f::MPolyRingElem)
 
-Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
+Given a polynomial $f$, return the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyRingElem)
   R = parent(f)
@@ -745,7 +738,7 @@ end
 @doc raw"""
     jacobi_ideal(f::MPolyRingElem)
 
-Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
+Given a polynomial $f$, return the Jacobian ideal of $f$.
 """
 function jacobi_ideal(f::MPolyRingElem)
   R = parent(f)
@@ -757,7 +750,7 @@ end
     jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
-this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
+return the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Vector{<:MPolyRingElem})
   @req length(g) > 0 "specify the common parent as first argument"

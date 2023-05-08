@@ -55,6 +55,21 @@ end
       end
    end
 
+   p = 257  # GAP regards the Conway polynomial for `GF(257, 1)` as not cheap.
+   @testset for F in [Nemo.fpField(UInt(257)), Nemo.FpField(ZZRingElem(257))]
+      f = Oscar.iso_oscar_gap(F)
+      oO = one(F)
+      oG = f(oO)
+      for a in F
+         @test f(a*a) == f(a)*f(a)
+         @test f(a-oO) == f(a)-oG
+      end
+      C = codomain(f)
+      for a in C
+         @test preimage(f, a*a) == preimage(f, a)*preimage(f, a)
+      end
+   end
+
    @testset for (p,d) in [(2, 1), (5, 1), (2, 4), (3, 3)]
       for F in [FqPolyRepField(ZZRingElem(p),d,:z), FqField(ZZRingElem(p),d,:z)]
          f = Oscar.iso_oscar_gap(F)

@@ -175,7 +175,7 @@ end
 function _iso_oscar_gap(FO::FinField)
    p = GAP.Obj(characteristic(FO))::GAP.Obj
    d = degree(FO)
-   if GAPWrap.IsCheapConwayPolynomial(p, d)
+   if d == 1 || GAPWrap.IsCheapConwayPolynomial(p, d)
      FG = GAPWrap.GF(p, d)
    else
      # Calling `GAPWrap.GF(p, d)` would throw a GAP error.

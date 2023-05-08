@@ -110,13 +110,13 @@ function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
 end
 
 function find_non_zero_divisor(U::SpecOpen)
-  n = length(gens(U))
+  n = ngens(U)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   n == 0 && return zero(R)
   kk = base_ring(X)
   coeff = elem_type(kk)[rand(kk, 0:100) for i in 1:n]
-  d = sum([coeff[i]*gens(U)[i] for i in 1:n])
+  d = sum([coeff[i]*gen(U, i) for i in 1:n])
   while !is_non_zero_divisor(d, U)
     d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
   end
