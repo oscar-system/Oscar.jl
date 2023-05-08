@@ -83,7 +83,7 @@ using Oscar: _integer_variables
               @test Base.propertynames(MILP) == Base.propertynames(loaded)
               @test objective_function(MILP) == objective_function(loaded)
               @test feasible_region(MILP) == feasible_region(loaded)
-              @test OSCAR._integer_variables(MILP) == OSCAR._integer_variables(loaded)
+              @test Oscar._integer_variables(MILP) == Oscar._integer_variables(loaded)
             end
         end
 

@@ -70,7 +70,7 @@ end
   Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
-  oscar.intersect_in_covering(U,V,Fc[1])
+  Oscar.intersect_in_covering(U,V,Fc[1])
 end
 
 @testset "Fermat lines" begin
@@ -81,7 +81,7 @@ end
   Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
-  oscar.intersect_in_covering(U,V,Fc[1]);
+  Oscar.intersect_in_covering(U,V,Fc[1]);
   SF = homogeneous_coordinate_ring(F)
   line = subscheme(F, ideal(SF, [SF[1]+a*SF[2],SF[3]+a*SF[4]]))
   groebner_basis(defining_ideal(line))
