@@ -190,7 +190,7 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: ToricCoveredScheme "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(underlying_toric_variety(ambient_space(t)), [tate_polynomial(t)])
 end
@@ -214,7 +214,7 @@ Global Weierstrass model over a not fully specified base
 ```
 """
 @attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
-  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Conversion of global Tate model into global Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: ToricCoveredScheme "Conversion of global Tate model into global Weierstrass model is currently only supported for toric varieties/schemes as base space"
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
@@ -246,8 +246,8 @@ Global Tate model over a not fully specified base
 julia> discriminant(t);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} function discriminant(t::GlobalTateModel)
-  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
+@attr MPolyRingElem function discriminant(t::GlobalTateModel)
+  @req typeof(base_space(t)) <: ToricCoveredScheme "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
   return discriminant(global_weierstrass_model(t))
 end
 
@@ -311,7 +311,7 @@ julia> singular_loci(t)[2]
 (ideal(w), (1, 2, 3), "III")
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
-  @req typeof(base_space(t)) === ToricCoveredScheme{QQField} "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
+  @req typeof(base_space(t)) <: ToricCoveredScheme "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
   return singular_loci(global_weierstrass_model(t))
 end

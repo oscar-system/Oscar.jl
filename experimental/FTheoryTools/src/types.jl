@@ -39,21 +39,21 @@ end
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
-  hypersurface_equation::MPolyRingElem{QQFieldElem}
-  HypersurfaceModel(base_space::AbsCoveredScheme, ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem{QQFieldElem}) = new(base_space, ambient_space, hypersurface_equation)
+  hypersurface_equation::MPolyRingElem
+  HypersurfaceModel(base_space::AbsCoveredScheme, ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, hypersurface_equation)
 end
 
 
 @attributes mutable struct GlobalWeierstrassModel
-  weierstrass_f::MPolyRingElem{QQFieldElem}
-  weierstrass_g::MPolyRingElem{QQFieldElem}
-  weierstrass_polynomial::MPolyRingElem{QQFieldElem}
+  weierstrass_f::MPolyRingElem
+  weierstrass_g::MPolyRingElem
+  weierstrass_polynomial::MPolyRingElem
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
   fiber_ambient_space::AbsCoveredScheme
-  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem{QQFieldElem},
-                            weierstrass_g::MPolyRingElem{QQFieldElem},
-                            weierstrass_polynomial::MPolyRingElem{QQFieldElem},
+  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem,
+                            weierstrass_g::MPolyRingElem,
+                            weierstrass_polynomial::MPolyRingElem,
                             base_space::AbsCoveredScheme,
                             ambient_space::AbsCoveredScheme)
     return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space, weighted_projective_space(ToricCoveredScheme, [2,3,1]))
@@ -62,21 +62,21 @@ end
 
 
 @attributes mutable struct GlobalTateModel
-  tate_a1::MPolyRingElem{QQFieldElem}
-  tate_a2::MPolyRingElem{QQFieldElem}
-  tate_a3::MPolyRingElem{QQFieldElem}
-  tate_a4::MPolyRingElem{QQFieldElem}
-  tate_a6::MPolyRingElem{QQFieldElem}
-  tate_polynomial::MPolyRingElem{QQFieldElem}
+  tate_a1::MPolyRingElem
+  tate_a2::MPolyRingElem
+  tate_a3::MPolyRingElem
+  tate_a4::MPolyRingElem
+  tate_a6::MPolyRingElem
+  tate_polynomial::MPolyRingElem
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
   fiber_ambient_space::AbsCoveredScheme
-  function GlobalTateModel(tate_a1::MPolyRingElem{QQFieldElem},
-                          tate_a2::MPolyRingElem{QQFieldElem},
-                          tate_a3::MPolyRingElem{QQFieldElem},
-                          tate_a4::MPolyRingElem{QQFieldElem},
-                          tate_a6::MPolyRingElem{QQFieldElem},
-                          tate_polynomial::MPolyRingElem{QQFieldElem},
+  function GlobalTateModel(tate_a1::MPolyRingElem,
+                          tate_a2::MPolyRingElem,
+                          tate_a3::MPolyRingElem,
+                          tate_a4::MPolyRingElem,
+                          tate_a6::MPolyRingElem,
+                          tate_polynomial::MPolyRingElem,
                           base_space::AbsCoveredScheme,
                           ambient_space::AbsCoveredScheme)
     return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(ToricCoveredScheme, [2,3,1]))

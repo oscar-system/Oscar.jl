@@ -146,7 +146,7 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::GlobalWeierstrassModel)
-  @req typeof(base_space(w)) === ToricCoveredScheme{QQField} "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: ToricCoveredScheme "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(underlying_toric_variety(ambient_space(w)), [weierstrass_polynomial(w)])
 end
@@ -175,8 +175,8 @@ Global Weierstrass model over a not fully specified base
 julia> discriminant(w);
 ```
 """
-@attr MPolyRingElem{QQFieldElem} function discriminant(w::GlobalWeierstrassModel)
-  @req typeof(base_space(w)) === ToricCoveredScheme{QQField} "Discriminant of global Weierstrass model is currently only supported for toric varieties/schemes as base space"
+@attr MPolyRingElem function discriminant(w::GlobalWeierstrassModel)
+  @req typeof(base_space(w)) <: ToricCoveredScheme "Discriminant of global Weierstrass model is currently only supported for toric varieties/schemes as base space"
   return 4 * w.weierstrass_f^3 + 27 * w.weierstrass_g^2
 end
 
@@ -210,13 +210,13 @@ julia> length(singular_loci(w))
 2
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
-  @req typeof(base_space(w)) === ToricCoveredScheme{QQField} "Discriminant of global Weierstrass model is currently only supported for toric varieties/schemes as base space"
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
+  @req typeof(base_space(w)) <: ToricCoveredScheme "Singular loci of global Weierstrass model is currently only supported for toric varieties/schemes as base space"
   
   B = irrelevant_ideal(base_space(w))
   
   d_primes = primary_decomposition(ideal([discriminant(w)]))
-  nontrivial_d_primes = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}[]
+  nontrivial_d_primes = Tuple{<:MPolyIdeal{<:MPolyRingElem}, <:MPolyIdeal{<:MPolyRingElem}}[]
   for k in 1:length(d_primes)
     if _is_nontrivial(d_primes[k][2], B)
       push!(nontrivial_d_primes, d_primes[k])
@@ -226,7 +226,7 @@ julia> length(singular_loci(w))
   f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
   g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
   
-  kodaira_types = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}[]
+  kodaira_types = Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}[]
   for d_prime in nontrivial_d_primes
     f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
     g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)

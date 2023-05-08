@@ -18,7 +18,7 @@ global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = t
 
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
+    global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -42,7 +42,7 @@ julia> t = global_tate_model([a1, a2, a3, a4, a6], base; completeness_check = fa
 Global Tate model over a concrete base
 ```
 """
-function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
+function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem}
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
@@ -77,7 +77,7 @@ global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true) = g
 
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
+    global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::ToricCoveredScheme)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -101,7 +101,7 @@ julia> t = global_tate_model([a1, a2, a3, a4, a6], base; completeness_check = fa
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}} = global_tate_model(ais, underlying_toric_variety(base); completeness_check = completeness_check)
+global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem} = global_tate_model(ais, underlying_toric_variety(base); completeness_check = completeness_check)
 
 
 ################################################
@@ -118,7 +118,7 @@ global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::
 ################################################
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
+    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -143,7 +143,7 @@ julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
 Global Tate model over a not fully specified base
 ```
 """
-function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
+function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"

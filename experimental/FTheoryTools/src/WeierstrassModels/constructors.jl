@@ -22,7 +22,7 @@ end
 
 
 @doc raw"""
-    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+    global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
 
 This method operates analogously to `global_weierstrass_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -40,7 +40,7 @@ julia> w = global_weierstrass_model(f, g, base; completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-function global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+function global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
@@ -75,7 +75,7 @@ global_weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = tr
 
 
 @doc raw"""
-    global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme; completeness_check::Bool = true)
+    global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true)
 
 This method operates analogously to `global_weierstrass_model(base::ToricCoveredScheme)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -93,7 +93,7 @@ julia> w = global_weierstrass_model(f, g, base; completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme; completeness_check::Bool = true) = global_weierstrass_model(f, g, underlying_toric_variety(base), completeness_check = completeness_check)
+global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true) = global_weierstrass_model(f, g, underlying_toric_variety(base), completeness_check = completeness_check)
 
 
 ################################################
