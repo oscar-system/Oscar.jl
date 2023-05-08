@@ -110,7 +110,7 @@ global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQField
 ################################################
 
 @doc raw"""
-    global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, weierstrass_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+    global_weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
 
 This method constructs a global Weierstrass model over a base space that is not
 fully specified. The following example illustrates this approach.
@@ -123,7 +123,7 @@ julia> w = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 Global Weierstrass model over a not fully specified base
 ```
 """
-function global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, weierstrass_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+function global_weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   @req (ngens(auxiliary_base_ring) >= d) "We expect at least as many base variables as the desired base dimension"
