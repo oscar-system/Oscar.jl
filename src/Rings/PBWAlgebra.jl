@@ -1144,7 +1144,7 @@ function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
   push!(b, 2^16)
 
   P = polyhedron(AA, b)
-  LP = MixedIntegerLinearProgram(P, c; convention = :min)
+  LP = mixed_integer_linear_program(P, c; convention = :min)
   s = optimal_solution(LP)
   if isnothing(s)
     return false, Int[]

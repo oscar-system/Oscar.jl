@@ -37,9 +37,9 @@
   if T == QQFieldElem
 
     @testset "mixed integer linear programs" begin
-      MILP1 = MixedIntegerLinearProgram(rsquare, [1,3], integer_variables=[1])
-      MILP2 = MixedIntegerLinearProgram(rsquare, [2,2]; k=3, convention = :min)
-      MILP3 = MixedIntegerLinearProgram(Pos, [1,2,3])
+      MILP1 = mixed_integer_linear_program(rsquare, [1,3], integer_variables=[1])
+      MILP2 = mixed_integer_linear_program(rsquare, [2,2]; k=3, convention = :min)
+      MILP3 = mixed_integer_linear_program(Pos, [1,2,3])
       @test MILP1 isa MixedIntegerLinearProgram{T}
       @test MILP2 isa MixedIntegerLinearProgram{T}
       @test MILP3 isa MixedIntegerLinearProgram{T}
@@ -74,8 +74,8 @@
                     x2 free
                   END
                   """
-      MILP1 = MixedIntegerLinearProgram(rsquare,[1,3], integer_variables=[1])
-      MILP2 = MixedIntegerLinearProgram(rsquare,[2,2]; k=3, convention = :max)
+      MILP1 = mixed_integer_linear_program(rsquare,[1,3], integer_variables=[1])
+      MILP2 = mixed_integer_linear_program(rsquare,[2,2]; k=3, convention = :max)
 
       @test save_mps(buffer, MILP1) === nothing
       @test String(take!(buffer)) ==

@@ -327,21 +327,37 @@ end
 
 # LinearProgram -> linear_program
 function LinearProgram(p::Polyhedron{T}, lp, c) where T<:scalar_types
-  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
   return linear_program(p, lp, c)
 end
-function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
-  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
-  return linear_program(P, objective; k=k, convention=convention)
+function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(P, objective; kwargs...)
 end
-function LinearProgram(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
-  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
-  return linear_program(P, objective; k=k, convention=convention)
+function LinearProgram(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(P, objective; kwargs...)
 end
-function LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types
-  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'LinearProgram(x...)' instead.", :LinearProgram)
-  return linear_program(T, A, b, c; k=k, convention=convention)
+function LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; kwargs...)  where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(T, A, b, c; kwargs...)
 end
 
 
-
+# MixedIntegerLinearProgram -> mixed_integer_linear_program
+function MixedIntegerLinearProgram(p::Polyhedron{T}, lp, c) where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(p, lp, c)
+end
+function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(P, objective; kwargs...)
+end
+function MixedIntegerLinearProgram(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(P, objective; kwargs...)
+end
+function MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; kwargs...)  where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(T, A, b, c; kwargs...)
+end

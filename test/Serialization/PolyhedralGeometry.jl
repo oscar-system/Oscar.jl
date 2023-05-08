@@ -71,7 +71,7 @@ using Oscar: _integer_variables
         
         @testset "MixedIntegerLinearProgram" begin
             P = cube(3)
-            MILP = MixedIntegerLinearProgram(
+            MILP = mixed_integer_linear_program(
                 P,
                 [3,-2,4];
                 k=2,

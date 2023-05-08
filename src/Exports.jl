@@ -111,7 +111,7 @@ export MPolyRingElemLoc
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
-export MixedIntegerLinearProgram
+export MixedIntegerLinearProgram, mixed_integer_linear_program
 export ModuleFP
 export ModuleFPElem
 export ModuleFPHom
