@@ -92,10 +92,14 @@ is that the so-constructed ambient space need not be smooth.
 
 ### A toric variety as base space
 
-We require that the provided toric base space is complete. Oftentimes, this is an expensive check.
-Therefore, we provide an optional argument which one can use to disable this check if desired.
-To this end, one passes the optional argument `completeness_check = false` as last argument to
-the constructor. The following examples demonstrate this:
+We require that the provided toric base space is complete. This is a technical limitation as of now.
+The functionality of OSCAR only allows us to compute a section basis (or a finite subset thereof)
+for complete toric varieties. In the future, this could be extended.
+
+However, completeness is an expensive check. Therefore, we provide an optional argument which
+ one can use to disable this check if desired. To this end, one passes the optional argument
+ `completeness_check = false` as last argument to the constructor. The following examples
+ demonstrate this:
 ```@docs
 global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
 global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
@@ -103,9 +107,9 @@ global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness
 
 ### A toric scheme as base space
 
-Again, the toric base must be complete. Similar to toric varieties as bases, we can use the optional
-argument `completeness_check = false` to switch off the expensive completeness check. The
-following examples demonstrate this:
+For the same reasons as above, the toric base must be complete. Similar to toric varieties as
+bases, we can use the optional argument `completeness_check = false` to switch off the
+expensive completeness check. The following examples demonstrate this:
 ```@docs
 global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true)
 global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
