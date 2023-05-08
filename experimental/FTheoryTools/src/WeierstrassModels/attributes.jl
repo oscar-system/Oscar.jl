@@ -76,7 +76,7 @@ Global Weierstrass model over a not fully specified base
 julia> base_space(w)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
 """
-@attr ToricOrNonToricCoveredScheme function base_space(w::GlobalWeierstrassModel)
+@attr AbsCoveredScheme function base_space(w::GlobalWeierstrassModel)
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
   return w.base_space
 end
@@ -95,7 +95,7 @@ julia> ambient_space(w)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2]]
 ```
 """
-@attr ToricOrNonToricCoveredScheme function ambient_space(w::GlobalWeierstrassModel)
+@attr AbsCoveredScheme function ambient_space(w::GlobalWeierstrassModel)
   base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return w.ambient_space
 end

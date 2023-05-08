@@ -120,7 +120,7 @@ julia> base_space(t)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
 ```
 """
-@attr ToricOrNonToricCoveredScheme function base_space(t::GlobalTateModel)
+@attr AbsCoveredScheme function base_space(t::GlobalTateModel)
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
   return t.base_space
 end
@@ -139,7 +139,7 @@ julia> ambient_space(t)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2]]
 ```
 """
-@attr ToricOrNonToricCoveredScheme function ambient_space(t::GlobalTateModel)
+@attr AbsCoveredScheme function ambient_space(t::GlobalTateModel)
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return t.ambient_space
 end
