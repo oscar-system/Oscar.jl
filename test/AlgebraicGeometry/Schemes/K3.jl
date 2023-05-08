@@ -17,40 +17,40 @@
   I = IdealSheaf(X, U, [ft])
 
   # The fabulous K3-surface. Almost.
-  inc_S = oscar.CoveredClosedEmbedding(X, I)
+  inc_S = Oscar.CoveredClosedEmbedding(X, I)
   @test I === image_ideal(inc_S)
   S = domain(inc_S)
 
-  I_sing = oscar.ideal_sheaf_of_singular_locus(S)
+  I_sing = Oscar.ideal_sheaf_of_singular_locus(S)
   I_sing_X = radical(pushforward(inc_S)(I_sing))
 
   @test scheme(I_sing) === S
   @test scheme(I_sing_X) === X
 
   prX = blow_up(I_sing_X)
-  E1 = oscar.exceptional_divisor(prX)
+  E1 = Oscar.exceptional_divisor(prX)
   X1 = domain(prX)
   Y1, inc_Y1, pr_Y1 = strict_transform(prX, inc_S)
 
-  I_sing_Y1 = oscar.ideal_sheaf_of_singular_locus(Y1)
+  I_sing_Y1 = Oscar.ideal_sheaf_of_singular_locus(Y1)
   I_sing_X1 = radical(pushforward(inc_Y1)(I_sing_Y1))
-  prX2 = blow_up(I_sing_X1, covering=oscar.simplified_covering(X1),
+  prX2 = blow_up(I_sing_X1, covering=Oscar.simplified_covering(X1),
                 var_name="t")
   E2 = exceptional_divisor(prX2)
   X2 = domain(prX2)
   Y2, inc_Y2, pr_Y2 = strict_transform(prX2, inc_Y1)
   simplify!(Y2)
   # @show has_attribute(Y2, :simplified_covering)
-  I_sing_Y2 = oscar.ideal_sheaf_of_singular_locus(Y2)
+  I_sing_Y2 = Oscar.ideal_sheaf_of_singular_locus(Y2)
   I_sing_X2 = radical(pushforward(inc_Y2)(I_sing_Y2))
-  prX3 = blow_up(I_sing_X2, covering=oscar.simplified_covering(X2),
+  prX3 = blow_up(I_sing_X2, covering=Oscar.simplified_covering(X2),
                 var_name="u")
   E3 = exceptional_divisor(prX3)
   X3 = domain(prX3)
   Y3, inc_Y3, pr_Y3 = strict_transform(prX3, inc_Y2)
   simplify!(Y3)
   # @show has_attribute(Y3, :simplified_covering)
-  I_sing_Y3 = oscar.ideal_sheaf_of_singular_locus(Y3)
+  I_sing_Y3 = Oscar.ideal_sheaf_of_singular_locus(Y3)
   I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
 
   # Now the singular locus consists of two points. 
@@ -61,8 +61,8 @@
   l = radical.([a for a in decomp])
 
   #@show "blowing up first center"
-  #@show gens.(l[1].(patches(oscar.simplified_covering(X3))))
-  prX41 = blow_up(l[1], covering=oscar.simplified_covering(X3),
+  #@show gens.(l[1].(patches(Oscar.simplified_covering(X3))))
+  prX41 = blow_up(l[1], covering=Oscar.simplified_covering(X3),
                 var_name="v")
   #@show "done blowing up"
   X41 = domain(prX41)
@@ -73,14 +73,14 @@
   simplify!(X41)
   #@show scheme(l2) === X41
   #@show "blowing up second center"
-  #@show gens.(l2.(patches(oscar.simplified_covering(X41))))
+  #@show gens.(l2.(patches(Oscar.simplified_covering(X41))))
   prX42 = blow_up(l2, var_name="vv")
- # prX42 = blow_up(l2, covering=oscar.simplified_covering(X41),
+ # prX42 = blow_up(l2, covering=Oscar.simplified_covering(X41),
  #               var_name="vv")
   E42 = exceptional_divisor(prX42)
   X42 = domain(prX42)
   Y42, inc_Y42, pr_Y42 = strict_transform(prX42, inc_Y41)
-  I_sing_Y42 = oscar.ideal_sheaf_of_singular_locus(Y42)
+  I_sing_Y42 = Oscar.ideal_sheaf_of_singular_locus(Y42)
   I_sing_X42 = radical(pushforward(inc_Y42)(I_sing_Y42))
 
 
@@ -112,7 +112,7 @@
   Y53, inc_Y53, prY53 = strict_transform(prX53, inc_Y52)
 
 # error()
-# U = patches(oscar.simplified_covering(X4))
+# U = patches(Oscar.simplified_covering(X4))
 # println("Some context on how the architecture of the refinement:")
 # @show gens.(I_sing_X4.(U))
 #
@@ -147,7 +147,7 @@
 # ref_patches = vcat(ref_patches, [V11, V12, V21, V22])
 #
 # ref = Covering(ref_patches)
-# oscar.inherit_glueings!(ref, oscar.simplified_covering(X4))
+# Oscar.inherit_glueings!(ref, Oscar.simplified_covering(X4))
 # push!(coverings(X4), ref)
 #
 # J = IdealSheaf(X4, id_dict, check=false)
@@ -156,7 +156,7 @@
 # X5 = domain(prX5)
 # E5 = exceptional_divisor(prX4)
 # simplify!(X5)
-# U = patches(oscar.simplified_covering(X5))
+# U = patches(Oscar.simplified_covering(X5))
 
   Y53 = domain(inc_Y53)
 
