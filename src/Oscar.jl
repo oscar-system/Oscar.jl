@@ -549,7 +549,7 @@ include("Rings/ReesAlgebra.jl")
 
 include("NumberTheory/NmbThy.jl")
 
-include("PolyhedralGeometry/main.jl")
+include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
