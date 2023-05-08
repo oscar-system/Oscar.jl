@@ -36,7 +36,7 @@ Normal, affine toric variety
 ```
 """
 function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
-    fan = PolyhedralFan(C)
+    fan = polyhedral_fan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = AffineNormalToricVariety(pmntv)
     
@@ -71,7 +71,7 @@ Normal, affine toric variety
 ```
 """
 function normal_toric_variety(C::Cone; set_attributes::Bool = true)
-    fan = PolyhedralFan(C)
+    fan = polyhedral_fan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv)
     
@@ -123,7 +123,7 @@ Normal toric variety
 ```
 """
 function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
-    fan = PolyhedralFan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
+    fan = polyhedral_fan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
     return normal_toric_variety(fan; set_attributes = set_attributes)
 end
 
@@ -234,7 +234,7 @@ Normal, affine, 2-dimensional toric variety
 """
 function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
     C = positive_hull(identity_matrix(ZZ, d))
-    fan = PolyhedralFan(C)
+    fan = polyhedral_fan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv)
     
@@ -342,7 +342,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
     tr,_ = pseudo_inv(lattice_gens)
     ray_gens = ray_gens * transpose(tr)
     mc = IncidenceMatrix(subsets(Vector{Int}(1:length(w)), length(w)-1))
-    variety = normal_toric_variety(PolyhedralFan(ray_gens, mc; non_redundant=true ))
+    variety = normal_toric_variety(polyhedral_fan(ray_gens, mc; non_redundant=true ))
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
@@ -381,7 +381,7 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 function hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
-    variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(polyhedral_fan(fan_rays, cones; non_redundant = true))
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
@@ -457,7 +457,7 @@ function del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::B
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
         cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
     end
-    variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(polyhedral_fan(fan_rays, cones; non_redundant = true))
     
     # make standard choice for weights of the cox ring
     if b == 1
@@ -754,7 +754,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attr
     max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
     
     # construct the varieties
-    return [normal_toric_variety(PolyhedralFan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
+    return [normal_toric_variety(polyhedral_fan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
 end
 
 

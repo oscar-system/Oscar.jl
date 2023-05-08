@@ -8,19 +8,19 @@
     
     @testset "constructors" begin
         
-        @test PolyhedralComplex{T}(I, P) isa PolyhedralComplex{T}
-        @test PolyhedralComplex{T}(I, P, F) isa PolyhedralComplex{T}
-        @test PolyhedralComplex{T}(I, P2, F, L) isa PolyhedralComplex{T}
-        @test PolyhedralComplex{T}(I, P2, F, L; non_redundant = true) isa PolyhedralComplex{T}
-        @test PolyhedralComplex{T}(I, P2, nothing, L) isa PolyhedralComplex{T}
+        @test polyhedral_complex(T, I, P) isa PolyhedralComplex{T}
+        @test polyhedral_complex(T, I, P, F) isa PolyhedralComplex{T}
+        @test polyhedral_complex(T, I, P2, F, L) isa PolyhedralComplex{T}
+        @test polyhedral_complex(T, I, P2, F, L; non_redundant = true) isa PolyhedralComplex{T}
+        @test polyhedral_complex(T, I, P2, nothing, L) isa PolyhedralComplex{T}
         
     end
     
-     PC = PolyhedralComplex{T}(I, P)
-     PCF = PolyhedralComplex{T}(I, -P, F)
-     PCFL = PolyhedralComplex{T}(I, P2, F, L)
-     PCFLN = PolyhedralComplex{T}(I, P2, F, L; non_redundant = true)
-     PCL = PolyhedralComplex{T}(I, P2, nothing, L)
+     PC = polyhedral_complex(T, I, P)
+     PCF = polyhedral_complex(T, I, -P, F)
+     PCFL = polyhedral_complex(T, I, P2, F, L)
+     PCFLN = polyhedral_complex(T, I, P2, F, L; non_redundant = true)
+     PCL = polyhedral_complex(T, I, P2, nothing, L)
      
      @test common_refinement(PC, PCF) isa PolyhedralComplex{T}
      PCR = common_refinement(PC, PCF)

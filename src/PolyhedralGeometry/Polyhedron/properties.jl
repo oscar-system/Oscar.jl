@@ -410,9 +410,13 @@ x₃ ≦ 1
 """
 facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
 
-function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S<:scalar_types, T<:Union{Polyhedron{S}, AffineHalfspace{S}, Pair{R, S}}}
+function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}}}
     h = decompose_hdata(view(P.FACETS, [_facet_index(P, i)], :))
     return T(h[1], h[2][])
+end
+function _facet_polyhedron(::Type{Polyhedron{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
+    h = decompose_hdata(view(P.FACETS, [_facet_index(P, i)], :))
+    return polyhedron(T, h[1], h[2][])
 end
 
 _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polymake.BigObject) = -_remove_facet_at_infinity(P)
@@ -792,7 +796,7 @@ Return the recession cone of `P`.
 
 # Examples
 ```jldoctest
-julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
+julia> P = polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
 julia> vertices(P)
 3-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -957,7 +961,7 @@ Check whether `P` is feasible, i.e. non-empty.
 
 # Examples
 ```jldoctest
-julia> P = Polyhedron([1 -1; -1 1; -1 0; 0 -1],[-1,-1,1,1]);
+julia> P = polyhedron([1 -1; -1 1; -1 0; 0 -1],[-1,-1,1,1]);
 
 julia> is_feasible(P)
 false
@@ -997,7 +1001,7 @@ Check whether the vector `v` is contained in the polyhedron `P`.
 # Examples
 The positive orthant only contains vectors with non-negative entries:
 ```jldoctest
-julia> PO = Polyhedron([-1 0; 0 -1], [0, 0]);
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
 
 julia> [1, 2] in PO
 true
@@ -1058,7 +1062,7 @@ Check whether `P` is bounded.
 
 # Examples
 ```jldoctest
-julia> P = Polyhedron([1 -3; -1 1; -1 0; 0 -1],[1,1,1,1]);
+julia> P = polyhedron([1 -3; -1 1; -1 0; 0 -1],[1,1,1,1]);
 
 julia> is_bounded(P)
 false
@@ -1235,7 +1239,7 @@ julia> ψ([1,2,3])
 """
 function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_types
     function h(ω::AbstractVector)
-        lp=LinearProgram{T}(P,ω; convention = convention)
+        lp=linear_program(P,ω; convention = convention)
         return solve_lp(lp)[1]
     end
     return h

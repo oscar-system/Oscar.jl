@@ -36,7 +36,7 @@ function homogeneity_space(I; compute_groebner_basis::Bool=false)
     end
   end
 
-  return Polyhedron((zeros(Int,0,n),zeros(Int,0)),(A,b))
+  return polyhedron((zeros(Int,0,n),zeros(Int,0)),(A,b))
 end
 
 

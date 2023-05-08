@@ -48,7 +48,7 @@ Print the object in LP format to stdout:
 julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
-julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
+julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program
 
 julia> save_lp(stdout, milp)
@@ -87,7 +87,7 @@ Print the object in MPS format to stdout:
 julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
-julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
+julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program
 
 julia> save_mps(stdout, milp)
@@ -135,11 +135,11 @@ function load_mps(file::String)
   if Polymake.exists(poly, "LP")
     lp = poly.LP
     Polymake.attach(lp, "convention", "max")
-    return LinearProgram(Polyhedron(poly), lp, :max)
+    return linear_program(polyhedron(poly), lp, :max)
   elseif Polymake.exists(poly, "MILP")
     milp = poly.MILP
     Polymake.attach(milp, "convention", "max")
-    return MixedIntegerLinearProgram(Polyhedron(poly), milp, :max)
+    return mixed_integer_linear_program(polyhedron(poly), milp, :max)
   else
     error("load_mps: cannot find LP or MILP subobject in polymake object")
   end
@@ -157,12 +157,12 @@ function load_lp(file::String)
     lp = poly.LP
     convention = occursin("MAXIMIZE", String(Polymake.getdescription(lp))) ? :max : :min
     Polymake.attach(lp, "convention", String(convention))
-    return LinearProgram(Polyhedron(poly), lp, convention)
+    return linear_program(polyhedron(poly), lp, convention)
   elseif Polymake.exists(poly, "MILP")
     milp = poly.MILP
     convention = occursin("MAXIMIZE", String(Polymake.getdescription(milp))) ? :max : :min
     Polymake.attach(milp, "convention", String(convention))
-    return MixedIntegerLinearProgram(Polyhedron(poly), milp, convention)
+    return mixed_integer_linear_program(polyhedron(poly), milp, convention)
   else
     error("load_lp: cannot find LP or MILP subobject in polymake object")
   end

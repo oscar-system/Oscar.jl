@@ -6,8 +6,8 @@ const pm = Polymake
     Cone1=positive_hull(T, pts)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]
-    Cone2 = Cone{T}(R, L)
-    Cone3 = Cone{T}(R, L; non_redundant=true)
+    Cone2 = positive_hull(T, R, L)
+    Cone3 = positive_hull(T, R, L; non_redundant=true)
     Cone4 = positive_hull(T, R)
     Cone5 = positive_hull(T, [1 0 0; 1 1 0; 1 1 1; 1 0 1])
     Cone6 = positive_hull(T, [1//3 1//2; 4//5 2])
@@ -59,8 +59,10 @@ const pm = Polymake
                     @test facets(S, Cone1) == cone_from_inequalities.([[-1 0], [0 -1]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[-1, 0], [0, -1]])
-                else
+                elseif S == AffineHalfspace{T}
                     @test facets(S, Cone1) == S.([[-1 0], [0 -1]], [0])
+                else
+                    @test facets(S, Cone1) == polyhedron.(T, [[-1 0], [0 -1]], [0])
                 end
             else
                 @test linear_inequality_matrix(facets(S, Cone1)) == [0 -1; -1 0]
@@ -71,8 +73,10 @@ const pm = Polymake
                     @test facets(S, Cone1) == cone_from_inequalities.(T, [[0 -1], [-1 0]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[0, -1], [-1, 0]])
-                else
+                elseif S == AffineHalfspace{T}
                     @test facets(S, Cone1) == S.([[0 -1], [-1 0]], [0])
+                else
+                    @test facets(S, Cone1) == polyhedron.(T, [[0 -1], [-1 0]], [0])
                 end
             end
         end
@@ -119,20 +123,20 @@ const pm = Polymake
         @test faces(Cone4, 1) isa SubObjectIterator{Cone{T}}
         @test length(faces(Cone4, 1)) == 2
         if T == QQFieldElem
-            @test faces(Cone2, 2) == Cone{T}.([[0 0 1], [1 0 0]], [[0 1 0]])
+            @test faces(Cone2, 2) == positive_hull.(T, [[0 0 1], [1 0 0]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
             @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
             @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[2], [1]])
-            @test faces(Cone4, 1) == Cone{T}.([[0 0 1], [1 0 0]])
+            @test faces(Cone4, 1) == positive_hull.(T, [[0 0 1], [1 0 0]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
             @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[2], [1]])
         else
-            @test faces(Cone2, 2) == Cone{T}.([[1 0 0], [0 0 1]], [[0 1 0]])
+            @test faces(Cone2, 2) == positive_hull.(T, [[1 0 0], [0 0 1]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
             @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
             @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[1], [2]])
-            @test faces(Cone4, 1) == Cone{T}.([[1 0 0], [0 0 1]])
+            @test faces(Cone4, 1) == positive_hull.(T, [[1 0 0], [0 0 1]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
             @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
             @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[1], [2]])

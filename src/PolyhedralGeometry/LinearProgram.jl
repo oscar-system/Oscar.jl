@@ -1,10 +1,3 @@
-@doc raw"""
-    LinearProgram(P, c; k = 0, convention = :max)
-
-The linear program on the feasible set `P` (a Polyhedron) with
-respect to the function x ↦ dot(c,x)+k.
-
-"""
 struct LinearProgram{T}
    feasible_region::Polyhedron{T}
    polymake_lp::Polymake.BigObject
@@ -14,9 +7,17 @@ struct LinearProgram{T}
 end
 
 # no default = `QQFieldElem` here; scalar type can be derived from the feasible region
-LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
+linear_program(p::Polyhedron{T}, lp, c) where T<:scalar_types = LinearProgram{T}(p, lp, c)
 
-function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
+
+@doc raw"""
+    linear_program(P, c; k = 0, convention = :max)
+
+The linear program on the feasible set `P` (a Polyhedron) with
+respect to the function x ↦ dot(c,x)+k.
+
+"""
+function linear_program(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
@@ -32,12 +33,10 @@ function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, co
    LinearProgram{T}(P, lp, convention)
 end
 
-LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types = LinearProgram{T}(Q, objective; k = k, convention = convention)
 
-LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
-   LinearProgram{T}(Polyhedron{T}(A, b), c;  k = k, convention = convention)
+linear_program(::Type{T}, A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
+   linear_program(polyhedron(T, A, b), c;  k = k, convention = convention)
 
-LinearProgram(x...) = LinearProgram{QQFieldElem}(x...)
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
 
@@ -119,7 +118,7 @@ obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
 julia> C=cube(3)
 Polyhedron in ambient dimension 3
 
-julia> LP=LinearProgram(C,[1,2,-3])
+julia> LP=linear_program(C,[1,2,-3])
 Linear program
    max{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and
@@ -161,7 +160,7 @@ obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 julia> C=cube(3)
 Polyhedron in ambient dimension 3
 
-julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
+julia> LP=linear_program(C,[1,2,-3]; convention = :min)
 Linear program
    min{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and

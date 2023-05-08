@@ -22,7 +22,7 @@ which is described by a vector and (optionally) a translation. One can select wh
 problem is to maximize or to minimize the objective function.
 
 ```@docs
-LinearProgram
+linear_program
 ```
 
 ## Solving a linear program - an example
@@ -35,7 +35,7 @@ Computationally, this means first defining a linear program:
 julia> P = cube(3)
 Polyhedron in ambient dimension 3
 
-julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
+julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min)
 Linear program
    min{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and
@@ -48,7 +48,7 @@ The information about the linear program `LP` can be easily extracted.
 ```jldoctest
 julia> P = cube(3);
 
-julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
+julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min);
 
 julia> c, k = objective_function(LP)
 (QQFieldElem[3, -2, 4], 2)
@@ -63,7 +63,7 @@ where the optimal value is `m`, and that value is attained at `v`.
 ```jldoctest
 julia> P = cube(3);
 
-julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
+julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min);
 
 julia> m, v = solve_lp(LP)
 (-7, QQFieldElem[-1, 1, -1])
@@ -84,7 +84,7 @@ The optimal value and an optimal vertex may be obtained individually as well.
 ```jldoctest
 julia> P = cube(3);
 
-julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
+julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min);
 
 julia> M = optimal_value(LP)
 -7

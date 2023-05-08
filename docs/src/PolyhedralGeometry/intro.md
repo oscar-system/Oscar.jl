@@ -125,7 +125,8 @@ row(i::IncidenceMatrix, n::Int)
 column(i::IncidenceMatrix, n::Int)
 ```
 
-A typical application is the assignment of rays to the cones of a polyhedral fan for its construction, see [`PolyhedralFan{T}`](@ref).
+A typical application is the assignment of rays to the cones of a polyhedral
+fan for its construction, see [`polyhedral_fan`](@ref).
 
 
 ## Visualization

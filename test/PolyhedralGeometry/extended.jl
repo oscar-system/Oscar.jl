@@ -91,7 +91,7 @@
         A[3, 2] = 4
         @test point_matrix(vertices(convex_hull(A))) == matrix(QQ, [1 0; 0 0; 0 4])
 
-        lhs, rhs = halfspace_matrix_pair(facets(Polyhedron(A, [1, 2, -3])))
+        lhs, rhs = halfspace_matrix_pair(facets(polyhedron(A, [1, 2, -3])))
         @test lhs == matrix(QQ, [1 0; 0 4])
         @test rhs == [1, -3]
     end
@@ -102,7 +102,7 @@
         A[3, 2] = 4
         @test point_matrix(vertices(convex_hull(A))) == matrix(QQ, [1 0; 0 0; 0 4])
 
-        lhs, rhs = halfspace_matrix_pair(facets(Polyhedron(A, [1, 2, -3])))
+        lhs, rhs = halfspace_matrix_pair(facets(polyhedron(A, [1, 2, -3])))
         @test lhs == matrix(QQ, [1 0; 0 4])
         @test rhs == [1, -3]
     end
@@ -136,48 +136,48 @@
         @test convex_hull([0, 0, 0], rays(Pos_poly)) == Pos_poly
         @test rays(positive_hull([1, 0, 0]))[] == [1, 0, 0]
         
-        @test Polyhedron(facets(Pos_poly)) == Pos_poly
-        @test Polyhedron(facets(Pos_cone)) == Pos_poly
+        @test polyhedron(facets(Pos_poly)) == Pos_poly
+        @test polyhedron(facets(Pos_cone)) == Pos_poly
         
         @test cone_from_inequalities(facets(Pos_poly)) == Pos_cone
         @test cone_from_inequalities(facets(Pos_cone)) == Pos_cone
         
-        @test Polyhedron(collect(facets(Pos_poly))) == Pos_poly
-        @test Polyhedron(collect(facets(Pos_cone))) == Pos_poly
+        @test polyhedron(collect(facets(Pos_poly))) == Pos_poly
+        @test polyhedron(collect(facets(Pos_cone))) == Pos_poly
         
         @test cone_from_inequalities(collect(facets(Pos_poly))) == Pos_cone
         @test cone_from_inequalities(collect(facets(Pos_cone))) == Pos_cone
         
         # testing correct dispatch and tuple processing for Polyhedron
-        @test Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
-        @test Polyhedron([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], QQFieldElem[0, 0, 0]) == Pos_poly
-        @test Polyhedron(matrix(ZZ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
-        @test Polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
+        @test polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
+        @test polyhedron([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], QQFieldElem[0, 0, 0]) == Pos_poly
+        @test polyhedron(matrix(ZZ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
+        @test polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
         
         # testing different input types
-        @test Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], Float64[0, 0, 0]) == Pos_poly
-        @test Polyhedron(Float64[-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
+        @test polyhedron([-1 0 0; 0 -1 0; 0 0 -1], Float64[0, 0, 0]) == Pos_poly
+        @test polyhedron(Float64[-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
         
         let y = convex_hull([0, 0, 0], [1, 0, 0], [[0, 1, 0], [0, 0, 1]])
-            @test Polyhedron([-1 0 0], [0]) == y
-            @test Polyhedron([-1 0 0], 0) == y
-            @test Polyhedron([-[1, 0, 0]], QQFieldElem[0]) == y
-            @test Polyhedron([-1, 0, 0], QQFieldElem[0]) == y
-            @test Polyhedron([[-1, 0, 0]], QQFieldElem(0)) == y
-            @test Polyhedron([-1, 0, 0], QQFieldElem(0)) == y
-            @test Polyhedron(matrix(ZZ, [-1 0 0]), [0]) == y
-            @test Polyhedron(matrix(QQ, [-1 0 0]), [0]) == y
+            @test polyhedron([-1 0 0], [0]) == y
+            @test polyhedron([-1 0 0], 0) == y
+            @test polyhedron([-[1, 0, 0]], QQFieldElem[0]) == y
+            @test polyhedron([-1, 0, 0], QQFieldElem[0]) == y
+            @test polyhedron([[-1, 0, 0]], QQFieldElem(0)) == y
+            @test polyhedron([-1, 0, 0], QQFieldElem(0)) == y
+            @test polyhedron(matrix(ZZ, [-1 0 0]), [0]) == y
+            @test polyhedron(matrix(QQ, [-1 0 0]), [0]) == y
         end
         
         let x = positive_hull([1 0 0; 0 1 0]), y = convex_hull([0 0 0], [1 0 0; 0 1 0])
-            @test Polyhedron(facets(y), affine_hull(y)) == y
-            @test Polyhedron(facets(y), linear_span(x)) == y
+            @test polyhedron(facets(y), affine_hull(y)) == y
+            @test polyhedron(facets(y), linear_span(x)) == y
             
             @test cone_from_inequalities(facets(y), affine_hull(y)) == x
             @test cone_from_inequalities(facets(x), linear_span(x)) == x
             
-            @test Polyhedron(facets(y), collect(affine_hull(y))) == y
-            @test Polyhedron(facets(x), collect(linear_span(x))) == y
+            @test polyhedron(facets(y), collect(affine_hull(y))) == y
+            @test polyhedron(facets(x), collect(linear_span(x))) == y
             
             @test cone_from_inequalities(facets(x), collect(affine_hull(y))) == x
             @test cone_from_inequalities(facets(y), collect(linear_span(x))) == x
@@ -189,7 +189,7 @@
         # Here the content of the SubObjectIterator does not fit the idea of the
         # methods; we want ArgumentErrors to be thrown
         @test_throws ArgumentError convex_hull(facets(Pos_poly))
-        @test_throws MethodError Polyhedron(vertices(Pos_poly)) #TODO
+        @test_throws MethodError polyhedron(vertices(Pos_poly)) #TODO
         @test_throws ArgumentError convex_hull(rays(Pos_poly))
         @test_throws ArgumentError convex_hull(rays(Pos_poly), [-1 -1 -1])
         @test_throws ArgumentError convex_hull([0 0 0], vertices(Pos_poly))
@@ -200,10 +200,10 @@
 
         @test_throws ArgumentError IncidenceMatrix(lineality_space(Pos_poly))
         IM = IncidenceMatrix([[1]])
-        lincone = Cone([1 0 0], [0 1 0])
+        lincone = positive_hull([1 0 0], [0 1 0])
 
-        @test Cone(rays_modulo_lineality(lincone)...) == lincone
-        @test ambient_dim(PolyhedralFan(rays_modulo_lineality(lincone)..., IM)) == 3
+        @test positive_hull(rays_modulo_lineality(lincone)...) == lincone
+        @test ambient_dim(polyhedral_fan(rays_modulo_lineality(lincone)..., IM)) == 3
         
     end
 

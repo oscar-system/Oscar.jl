@@ -82,7 +82,7 @@ function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSem
     pmpoly = Polymake.common.totropicalpolynomial(fstr...)
     pmhypproj = Polymake.tropical.Hypersurface{M}(POLYNOMIAL=pmpoly)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
-    Vf = TropicalHypersurface{M, true}(PolyhedralComplex(pmhyp))
+    Vf = TropicalHypersurface{M, true}(polyhedral_complex(pmhyp))
     w = pmhypproj.WEIGHTS
     set_attribute!(Vf,:polymake_bigobject,pmhypproj)
     set_attribute!(Vf,:tropical_polynomial,f)

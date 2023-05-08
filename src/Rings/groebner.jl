@@ -1462,17 +1462,17 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   # Here we try to find a vector with strictly positive entries in K
   # this method to find such a vector is taken from
   # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
-  Pol = Polyhedron(-K,  zeros(Int, ncols))
+  Pol = polyhedron(-K,  zeros(Int, ncols))
   !is_feasible(Pol) && return zeros(Int, ncols)
   pos_vec = zeros(Int, ncols)
   for i in 1:ncols
     ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
-    L = LinearProgram(Pol, obj_func)
+    L = linear_program(Pol, obj_func)
     m, v = solve_lp(L)
     if isnothing(v)
-      Pol_new = intersect(Pol, Polyhedron(ei*K, [1]))
-      L = LinearProgram(Pol_new, obj_func)
+      Pol_new = intersect(Pol, polyhedron(ei*K, [1]))
+      L = linear_program(Pol_new, obj_func)
       v = optimal_vertex(L)
     end
     pos_vec += K*(v.p)

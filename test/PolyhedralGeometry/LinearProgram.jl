@@ -6,8 +6,8 @@
   Q2 = convex_hull(T, pts, [1 1], [1 1])
   square = cube(T, 2)
   C1 = cube(T, 2, 0, 1)
-  Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
-  L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
+  Pos = polyhedron(T, [-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
+  L = polyhedron(T, [-1 0 0; 0 -1 0], [0,0])
   point = convex_hull(T, [0 1 0])
   # this is to make sure the order of some matrices below doesn't change
   Polymake.prefer("beneath_beyond") do
@@ -17,9 +17,9 @@
   rsquare = cube(T, 2, QQFieldElem(-3,2), QQFieldElem(3,2))
 
   @testset "linear programs" begin
-    LP1 = LinearProgram(square,[1,3])
-    LP2 = LinearProgram(square,[2,2]; k=3, convention = :min)
-    LP3 = LinearProgram(Pos,[1,2,3])
+    LP1 = linear_program(square,[1,3])
+    LP2 = linear_program(square,[2,2]; k=3, convention = :min)
+    LP3 = linear_program(Pos,[1,2,3])
     @test LP1 isa LinearProgram{T}
     @test LP2 isa LinearProgram{T}
     @test LP3 isa LinearProgram{T}
@@ -37,9 +37,9 @@
   if T == QQFieldElem
 
     @testset "mixed integer linear programs" begin
-      MILP1 = MixedIntegerLinearProgram(rsquare, [1,3], integer_variables=[1])
-      MILP2 = MixedIntegerLinearProgram(rsquare, [2,2]; k=3, convention = :min)
-      MILP3 = MixedIntegerLinearProgram(Pos, [1,2,3])
+      MILP1 = mixed_integer_linear_program(rsquare, [1,3], integer_variables=[1])
+      MILP2 = mixed_integer_linear_program(rsquare, [2,2]; k=3, convention = :min)
+      MILP3 = mixed_integer_linear_program(Pos, [1,2,3])
       @test MILP1 isa MixedIntegerLinearProgram{T}
       @test MILP2 isa MixedIntegerLinearProgram{T}
       @test MILP3 isa MixedIntegerLinearProgram{T}
@@ -55,8 +55,8 @@
     end
 
     @testset "LinearProgram: lp and mps files" begin
-      LP1 = LinearProgram(square,[1,3])
-      LP2 = LinearProgram(rsquare,[2,2]; k=3, convention = :min)
+      LP1 = linear_program(square,[1,3])
+      LP2 = linear_program(rsquare,[2,2]; k=3, convention = :min)
 
       buffer = IOBuffer()
       @test save_lp(buffer, LP2) === nothing
@@ -74,8 +74,8 @@
                     x2 free
                   END
                   """
-      MILP1 = MixedIntegerLinearProgram(rsquare,[1,3], integer_variables=[1])
-      MILP2 = MixedIntegerLinearProgram(rsquare,[2,2]; k=3, convention = :max)
+      MILP1 = mixed_integer_linear_program(rsquare,[1,3], integer_variables=[1])
+      MILP2 = mixed_integer_linear_program(rsquare,[2,2]; k=3, convention = :max)
 
       @test save_mps(buffer, MILP1) === nothing
       @test String(take!(buffer)) ==

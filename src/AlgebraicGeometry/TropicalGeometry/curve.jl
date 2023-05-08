@@ -82,7 +82,7 @@ end
 function TropicalCurve(graph::IncidenceMatrix, M::Union{typeof(min),typeof(max)}=min)
     # Columns correspond to nodes
     # Rows correpons to edges
-    empty = PolyhedralComplex(Polymake.fan.PolyhedralComplex())
+    empty = polyhedral_complex(Polymake.fan.PolyhedralComplex())
     result = TropicalCurve{M, false}(empty)
     set_attribute!(result, :graph, graph)
     return result

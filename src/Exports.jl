@@ -85,7 +85,7 @@ export LazyPoly
 export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
-export LinearProgram
+export LinearProgram, linear_program
 export Localization
 export MPolyComplementOfKPointIdeal
 export MPolyComplementOfPrimeIdeal
@@ -111,7 +111,7 @@ export MPolyRingElemLoc
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
-export MixedIntegerLinearProgram
+export MixedIntegerLinearProgram, mixed_integer_linear_program
 export ModuleFP
 export ModuleFPElem
 export ModuleFPHom
@@ -131,8 +131,8 @@ export PcGroupElem
 export PermGroup
 export PermGroupElem
 export PointVector
-export PolyhedralComplex
-export PolyhedralFan
+export PolyhedralComplex, polyhedral_complex
+export PolyhedralFan, polyhedral_fan
 export Polyhedron
 export Polymake
 export PrincipalOpenSubset
@@ -165,7 +165,7 @@ export SpecOpenRingElem
 export StdSpec
 export SubObjectIterator
 export SubQuoHom
-export SubdivisionOfPoints
+export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
 export SubquoModuleElem
 export ToricDivisor
@@ -1275,7 +1275,6 @@ export structure_tropical_jacobian
 export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
-export subdivision_of_vertices
 export subgroup_reps
 export subquo_type
 export subquotient

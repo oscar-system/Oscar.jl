@@ -37,7 +37,7 @@ using Oscar: _integer_variables
         @testset "PolyhedralComplex" begin
             IM = IncidenceMatrix([[1,2,3],[1,3,4]])
             vr = [0 0; 1 0; 1 1; 0 1]
-            PC = PolyhedralComplex(IM, vr)
+            PC = polyhedral_complex(IM, vr)
             test_save_load_roundtrip(path, PC) do loaded
               @test loaded isa PolyhedralComplex
               @test Base.propertynames(PC) == Base.propertynames(loaded)
@@ -60,7 +60,7 @@ using Oscar: _integer_variables
 
         @testset "LinearProgram" begin
             P = cube(3)
-            LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
+            LP = linear_program(P,[3,-2,4];k=2,convention = :min)
             test_save_load_roundtrip(path, LP) do loaded
               @test loaded isa LinearProgram
               @test Base.propertynames(LP) == Base.propertynames(loaded)
@@ -71,7 +71,7 @@ using Oscar: _integer_variables
         
         @testset "MixedIntegerLinearProgram" begin
             P = cube(3)
-            MILP = MixedIntegerLinearProgram(
+            MILP = mixed_integer_linear_program(
                 P,
                 [3,-2,4];
                 k=2,
@@ -90,7 +90,7 @@ using Oscar: _integer_variables
         @testset "SubdivisionOfPoints" begin
             moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
             moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
-            MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
+            MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
             test_save_load_roundtrip(path, MOAE) do loaded
               @test loaded isa SubdivisionOfPoints
               @test Base.propertynames(MOAE) == Base.propertynames(loaded)

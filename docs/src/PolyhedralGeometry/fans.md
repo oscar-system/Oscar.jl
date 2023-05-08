@@ -25,7 +25,7 @@ To construct a polyhedral fan, you must pass the rays of each cone in the fan,
 along with an `IncidenceMatrix` encoding which rays generate which cones.
 
 ```@docs
-PolyhedralFan
+polyhedral_fan
 polyhedral_fan_from_rays_action
 ```
 

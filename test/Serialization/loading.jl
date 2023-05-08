@@ -2,8 +2,8 @@
     
     @testset "loading Vector{LinearProgram}" begin
         c = cube(3)
-        LP0 = LinearProgram(c, [2,2,-3])
-        LP1 = LinearProgram(c, [2,2,4])
+        LP0 = linear_program(c, [2,2,-3])
+        LP1 = linear_program(c, [2,2,4])
         v = [LP0, LP1]
         loaded = load(joinpath(@__DIR__,"vlp.json"))
         @test length(v) == length(loaded)

@@ -37,7 +37,7 @@ julia> is_feasible(polyhedron(td2))
 false
 ```
 """
-@attr Polyhedron polyhedron(td::ToricDivisor) = Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
+@attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
 
 
 @doc raw"""

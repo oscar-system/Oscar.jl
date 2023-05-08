@@ -16,11 +16,11 @@ struct Cone{T} #a real polymake polyhedron
 end
 
 # default scalar type: `QQFieldElem`
-Cone(x...; kwargs...) = Cone{QQFieldElem}(x...; kwargs...)
+cone(x...; kwargs...) = Cone{QQFieldElem}(x...; kwargs...)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
-Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
+cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
 @doc raw"""
     positive_hull([::Type{T} = QQFieldElem,] R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types
@@ -71,9 +71,9 @@ end
 # Redirect everything to the above constructor, use QQFieldElem as default for the
 # scalar type T.
 positive_hull(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
-Cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
-Cone{T}(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types = positive_hull(T, R, L; non_redundant=non_redundant)
-Cone(::Type{T}, x...) where T<:scalar_types = positive_hull(T, x...)
+cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
+cone(::Type{T}, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types = positive_hull(T, R, L; non_redundant=non_redundant)
+cone(::Type{T}, x...) where T<:scalar_types = positive_hull(T, x...)
 
 
 function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types

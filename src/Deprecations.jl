@@ -234,5 +234,130 @@ end
 @deprecate blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
 @deprecate starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types star_subdivision(PF, n)
 
+# Deprecated after 0.12.1
 @deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r; set_attributes = set_attributes)
 @deprecate del_pezzo_surface(b::Int; set_attributes::Bool = true) del_pezzo_surface(NormalToricVariety, b; set_attributes = set_attributes)
+
+# PolyhedralComplex -> polyhedral_complex
+function PolyhedralComplex{T}(
+                polyhedra::IncidenceMatrix, 
+                vr::AbstractCollection[PointVector], 
+                far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                non_redundant::Bool = false
+            ) where T<:scalar_types
+  Base.depwarn("'PolyhedralComplex{$T}(x...)' is deprecated, use 'polyhedral_complex($T, x...)' instead.", :PolyhedralComplex)
+  return polyhedral_complex(T, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
+end
+function PolyhedralComplex(
+                polyhedra::IncidenceMatrix, 
+                vr::AbstractCollection[PointVector], 
+                far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                non_redundant::Bool = false
+            )
+  Base.depwarn("'PolyhedralComplex' is deprecated, use 'polyhedral_complex' instead.", :PolyhedralComplex)
+  return polyhedral_complex(QQFieldElem, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
+end
+function PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types
+  Base.depwarn("'PolyhedralComplex' is deprecated, use 'polyhedral_complex' instead.", :PolyhedralComplex)
+  return polyhedral_complex(iter)
+end
+@deprecate PolyhedralComplex(p::Polymake.BigObject) polyhedral_complex(p)
+
+# PolyhedralFan -> polyhedral_fan
+@deprecate PolyhedralFan(p::Polymake.BigObject) polyhedral_fan(p)
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], 
+                          LS::Union{AbstractCollection[RayVector], Nothing}, 
+                          Incidence::IncidenceMatrix; 
+                          non_redundant::Bool = false) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, LS, Incidence; non_redundant=non_redundant)
+end
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, Incidence; non_redundant=non_redundant)
+end
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
+function PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan' is deprecated, use 'polyhedral_fan' instead.", :PolyhedralFan)
+  return polyhedral_fan(itr)
+end
+function PolyhedralFan(C::Cone{T}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan' is deprecated, use 'polyhedral_fan' instead.", :PolyhedralFan)
+  return polyhedral_fan(C)
+end
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, LS, Incidence)
+end
+function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
+  return polyhedral_fan(T, Rays, Incidence)
+end
+
+# SubdivisionOfPoints -> subdivision_of_points
+@deprecate SubdivisionOfPoints(points, C) subdivision_of_points(points, C)
+function SubdivisionOfPoints{T}(points, C) where T<:scalar_types
+  Base.depwarn("'SubdivisionOfPoints{$T}(x...)' is deprecated, use 'subdivision_of_points($T, x...)' instead.", :SubdivisionOfPoints)
+  return subdivision_of_points(T, points, C)
+end
+@deprecate SubdivisionOfPoints(p::Polymake.BigObject) subdivision_of_points(p)
+
+# Polyhedron -> polyhedron
+function Polyhedron{T}(first, second) where T<:scalar_types
+  Base.depwarn("'Polyhedron{$T}(x...)' is deprecated, use 'polyhedron($T, x...)' instead.", :Polyhedron)
+  return polyhedron(T, first, second)
+end
+@deprecate Polyhedron(A) polyhedron(A)
+@deprecate Polyhedron(A, b) polyhedron(A, b)
+
+# Cone -> positive_hull
+@deprecate Cone(R;kwargs...) positive_hull(R;kwargs...)
+@deprecate Cone(R,L;kwargs...) positive_hull(R,L;kwargs...)
+function Cone{T}(R, L; kwargs...) where T<:scalar_types
+  Base.depwarn("'Cone{$T}(x...)' is deprecated, use 'positive_hull($T, x...)' instead.", :Polyhedron)
+  return positive_hull(T, R, L; kwargs...)
+end
+function Cone{T}(R; kwargs...) where T<:scalar_types
+  Base.depwarn("'Cone{$T}(x...)' is deprecated, use 'positive_hull($T, x...)' instead.", :Polyhedron)
+  return positive_hull(T, R; kwargs...)
+end
+
+# LinearProgram -> linear_program
+function LinearProgram(p::Polyhedron{T}, lp, c) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(p, lp, c)
+end
+function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(P, objective; kwargs...)
+end
+function LinearProgram(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(P, objective; kwargs...)
+end
+function LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; kwargs...)  where T<:scalar_types
+  Base.depwarn("'LinearProgram(x...)' is deprecated, use 'linear_program(x...)' instead.", :LinearProgram)
+  return linear_program(T, A, b, c; kwargs...)
+end
+
+
+# MixedIntegerLinearProgram -> mixed_integer_linear_program
+function MixedIntegerLinearProgram(p::Polyhedron{T}, lp, c) where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(p, lp, c)
+end
+function MixedIntegerLinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(P, objective; kwargs...)
+end
+function MixedIntegerLinearProgram(P::Polyhedron{T}, objective::AbstractVector; kwargs...) where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(P, objective; kwargs...)
+end
+function MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; kwargs...)  where T<:scalar_types
+  Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
+  return mixed_integer_linear_program(T, A, b, c; kwargs...)
+end
