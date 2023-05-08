@@ -97,8 +97,11 @@
          rmlPCFLN = rays_modulo_lineality(PCFLN)
          @test rmlPCFLN.rays_modulo_lineality == [P2[4, :]]
          @test lineality_space(PCFLN) == [L[1, :]]
-         # TODO: include when index methods have been been implemented
-         # @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
+         @test vertex_indices(maximal_polyhedra(PCFLN)) == I[:, 1:3]
+         @test ray_indices(maximal_polyhedra(PCFLN)) == I[:, 4:4]
+         @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
+         @test IncidenceMatrix(maximal_polyhedra(PCFLN)) == I
+         @test maximal_polyhedra(IncidenceMatrix, PCFLN) == I
          
      end
     

@@ -53,3 +53,16 @@ function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{nf_elem
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end
 end
+
+for fun in (
+    cones,
+    faces,
+    facets,
+    maximal_cones,
+    maximal_polyhedra,
+    rays,
+    vertices,
+    )
+    F = Symbol(fun)
+    @eval $F(::Type{IncidenceMatrix}, x...) = IncidenceMatrix($F(x...))
+end

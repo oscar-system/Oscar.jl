@@ -110,6 +110,24 @@ Type                                   | An `AffineHyperplane` corresponds to...
 `SubObjectIterator{<:Hyperplane}`      | an element of the iterator.
 
 
+## `IncidenceMatrix`
+
+Some methods will require input or return output in form of an `IncidenceMatrix`.
+
+```@docs
+IncidenceMatrix
+```
+
+From the example it can be seen that this type supports `julia`'s matrix functionality. There are also functions to retrieve specific rows or columns as a `Set` over the non-zero indices.
+
+```@docs
+row(i::IncidenceMatrix, n::Int)
+column(i::IncidenceMatrix, n::Int)
+```
+
+A typical application is the assignment of rays to the cones of a polyhedral fan for its construction, see [`PolyhedralFan{T}`](@ref).
+
+
 ## Visualization
 
 Lower dimensional polyhedral objects can be visualized through polymake's backend.

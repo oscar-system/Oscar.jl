@@ -338,6 +338,7 @@ export cohyperplanes
 export cokernel
 export collector
 export coloops
+export column
 export combinatorial_symmetries
 export comm
 export comm!
@@ -1188,6 +1189,7 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export row
 export saturated_ideal
 export saturation
 export saturation_with_index
