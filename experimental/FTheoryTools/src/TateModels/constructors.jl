@@ -43,11 +43,18 @@ Global Tate model over a concrete base
 ```
 """
 function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem}
+  @req length(ais) == 5 "We require exactly 5 Tate sections"
+  @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
+  
+  gens_base_names = [string(g) for g in gens(cox_ring(base))]
+  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+  end
+  
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
-  @req length(ais) == 5 "We require exactly 5 Tate sections"
-  @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
+  
   ambient_space = _ambient_space_from_base(base)
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
@@ -148,6 +155,10 @@ function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::In
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
+  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+  end
   
   # convert Tate sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
