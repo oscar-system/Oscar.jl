@@ -170,7 +170,13 @@ function Base.show(io::IO, x::MatrixGroup)
       if x.descr==:GU || x.descr==:SU
          print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
       else
-         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+         if x.ring isa Field
+            print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+         else
+            print(io, string(x.descr), "(",x.deg,",")
+            print(IOContext(io, :supercompact => true), x.ring)
+            print(io ,")")
+         end
       end
    else
       print(io, "Matrix group of degree ", x.deg, " over ")
@@ -858,8 +864,8 @@ julia> gens(H)
 ```
 """
 function unitary_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   fl, b, a = is_prime_power_with_data(q)
+   @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -884,8 +890,8 @@ julia> gens(H)
 ```
 """
 function special_unitary_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   fl, b, a = is_prime_power_with_data(q)
+   @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G
