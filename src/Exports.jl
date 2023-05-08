@@ -270,6 +270,7 @@ export betti
 export betti_number
 export betti_numbers
 export betti_table
+export billera_lee_polytope
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
@@ -1125,6 +1126,7 @@ export radical_membership
 export rand
 export rand_pseudo
 export rand_spherical_polytope
+export rand_subpolytope
 export random_affine_linear_polynomials
 export rank
 export rank_action

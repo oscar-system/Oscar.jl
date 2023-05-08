@@ -30,7 +30,7 @@ cells are given as an IncidenceMatrix, where the columns represent the points
 and the rows represent the cells.
 
 # Examples
-The following is the famous "mother of all examples" (moae) non-regular
+The following is the famous "mother of all examples" (MOAE) non-regular
 triangulation.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
