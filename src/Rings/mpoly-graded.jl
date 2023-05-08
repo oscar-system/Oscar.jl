@@ -2091,7 +2091,7 @@ end
 
 function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = symbols(R)
+  A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
