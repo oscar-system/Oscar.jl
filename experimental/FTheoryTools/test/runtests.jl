@@ -83,7 +83,7 @@ end
 # 2: Global Weierstrass models over generic base space
 #############################################################
 
-auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"]
+auxiliary_base_ring, (f, g, u) = QQ["f", "g", "u"]
 w2 = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 
 @testset "Attributes of global Weierstrass models over generic base space" begin
