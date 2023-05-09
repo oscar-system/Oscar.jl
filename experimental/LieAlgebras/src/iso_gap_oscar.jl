@@ -28,7 +28,7 @@ function _iso_gap_oscar_abstract_lie_algebra(
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
   iso = MapFromFunc(f, finv, LG, LO)
-  _set_iso_oscar_gap!(LO, inv(iso))
+  set_attribute!(LO, :iso_oscar_gap => inv(iso))
   return iso
 end
 
@@ -42,7 +42,7 @@ function _iso_gap_oscar_linear_lie_algebra(
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
   iso = MapFromFunc(f, finv, LG, LO)
-  _set_iso_oscar_gap!(LO, inv(iso))
+  set_attribute!(LO, :iso_oscar_gap => inv(iso))
   return iso
 end
 

@@ -10,7 +10,7 @@ function lie_algebra_highest_weight_module_struct_consts_gap(
   R = base_ring(L)
   isoR = Oscar.iso_oscar_gap(R)
 
-  gapL = codomain(_iso_oscar_gap(L))
+  gapL = codomain(Oscar.iso_oscar_gap(L))
   dimL = GAPWrap.Dimension(gapL)
   @assert dimL == dim(L)
   basisL = GAPWrap.Basis(gapL)
