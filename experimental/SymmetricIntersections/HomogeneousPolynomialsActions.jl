@@ -2,7 +2,6 @@ export is_invariant_ideal
 export is_semi_invariant_polynomial
 export projective_group_action
 export pullback
-export push_forward
 export symmetric_intersections
 export underlying_moduli_space_of_modules
 

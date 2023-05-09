@@ -65,9 +65,7 @@ function disc_log(a::T) where {T <: FinFieldElem}
 end
 
 export disc_log
-export generator
 
 end # module DiscLog
 
 export disc_log
-export generator

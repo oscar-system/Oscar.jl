@@ -1,4 +1,3 @@
-export AbsPrePreSheaf
 export PreSheafOnScheme
 export StructureSheafOfRings
 export restriction_map
