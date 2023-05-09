@@ -116,9 +116,6 @@ const is_dev = (function()
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
 const oscardir = Base.pkgdir(Oscar)
-const aadir = Base.pkgdir(AbstractAlgebra)
-const nemodir = Base.pkgdir(Nemo)
-const heckedir = Base.pkgdir(Hecke)
 
 function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
