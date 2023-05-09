@@ -49,7 +49,7 @@ end
 ########################################################################
 # Maximal extensions of rational functions on affine schemes           #
 ########################################################################
-@Markdown.doc """
+@doc raw"""
     maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
 
 Return the maximal extension of the restriction of ``f``
@@ -123,7 +123,7 @@ function maximal_extension(
   return R(g)
 end
 
-@Markdown.doc """
+@doc raw"""
     maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
 
 Return the extension of the restriction of the ``fᵢ`` as a
@@ -215,6 +215,11 @@ end
 function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
   all(x->(parent(x)==OO(U)), g) || error("elements do not belong to the correct ring")
   X = ambient_scheme(U)
-  Z = subscheme(X, vcat([[lifted_numerator(f[i]) for i in 1:ngens(U)] for f in g]...))
-  return SpecOpen(Z, gens(U))
+  gen_list = Vector{elem_type(OO(X))}()
+  for f in g
+    gen_list = vcat(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
+  end
+  Z = subscheme(X, gen_list)
+  return SpecOpen(Z, complement_equations(U))
 end
+

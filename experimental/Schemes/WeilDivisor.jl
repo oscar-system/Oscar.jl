@@ -1,12 +1,20 @@
-export WeilDivisor, weil_divisor
-export scheme_type, ideal_sheaf_type, coefficient_ring_type, coefficient_type
-export scheme, components, coefficient_dict, coefficient_ring
+export LinearSystem
+export WeilDivisor
+export coefficient_dict
+export coefficient_ring
+export coefficient_ring_type
+export coefficient_type
+export components
+export divisor
+export ideal_sheaf_type
 export in_linear_system
+export linear_system
+export scheme
+export scheme_type
+export subsystem
+export weil_divisor
 
-export LinearSystem, linear_system
-export divisor, subsystem
-
-@Markdown.doc """
+@doc raw"""
     WeilDivisor
 
 A Weil divisor on an integral separated `AbsCoveredScheme` ``X``; 
@@ -64,7 +72,7 @@ coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
 
-@Markdown.doc """
+@doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
 
 Return the zero `WeilDivisor` over `X` with coefficients 
@@ -80,14 +88,14 @@ function zero(W::WeilDivisor)
 end
 
 # provide non-camelcase methods
-@Markdown.doc """
+@doc raw"""
     weil_divisor(X::AbsCoveredScheme, R::Ring)
 
 See the documentation for `WeilDivisor`.
 """
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
-@Markdown.doc """
+@doc raw"""
     WeilDivisor(I::IdealSheaf, R::Ring)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
@@ -101,7 +109,7 @@ end
 
 weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
 
-@Markdown.doc """
+@doc raw"""
     WeilDivisor(I::IdealSheaf)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
@@ -187,11 +195,10 @@ end
 #  # TODO: Work out the intersection
 #end
 
-@Markdown.doc """
+@doc raw"""
     in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
 
-Returns `true` if the rational function `f` is in the linear system ``|D|``
-and `false` otherwise.
+Check if the rational function `f` is in the linear system ``|D|``.
 """
 function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
   X = scheme(D) 
@@ -212,7 +219,7 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bo
   return true
 end
 
-@Markdown.doc """
+@doc raw"""
     LinearSystem
 
 A linear system of a Weil divisor `D` on a variety `X`, 
@@ -240,7 +247,7 @@ end
 linear_system(f::Vector, D::WeilDivisor; check::Bool=true) = LinearSystem(f, D, check=check)
 
 ### essential getters 
-@Markdown.doc """
+@doc raw"""
     weil_divisor(L::LinearSystem)
 
 Return the divisor `D` of the linear system `L = |D|`.
@@ -250,7 +257,9 @@ function weil_divisor(L::LinearSystem)
 end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
-@Markdown.doc """
+gen(L::LinearSystem,i::Int) = L.f[i]
+
+@doc raw"""
     variety(L::LinearSystem)
 
 Return the variety on which `L` is defined.
@@ -259,11 +268,11 @@ variety(L::LinearSystem) = scheme(weil_divisor(L))
 # an alias for the user's convenience 
 scheme(L::LinearSystem) = variety(L)
 
-@Markdown.doc """
+@doc raw"""
     subsystem(L::LinearSystem, P::IdealSheaf, n::Int) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
-and an integer `n`, this returns a pair ``(K, A)`` consisting 
+and an integer `n`, return a pair ``(K, A)`` consisting
 of the subsystem of elements in ``|D + P|`` and the representing 
 matrix ``A`` for its inclusion into ``L`` on the given set 
 of generators.
@@ -306,7 +315,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   kk = base_ring(X)
-  A = zero(matrix_space(kk, ngens(L), length(all_mons)))
+  A = zero_matrix(kk, ngens(L), length(all_mons))
   for i in 1:ngens(L)
     for (c, m) in zip(coefficients(images[i]), monomials(images[i]))
       k = findfirst(x->(x==m), all_mons)
@@ -315,7 +324,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   r, K = left_kernel(A)
-  new_gens = [sum([K[i,j]*gens(L)[j] for j in 1:ncols(K)]) for i in 1:nrows(K)]
+  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:nrows(K)]
   return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P)), K
 end
 

@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["intro.md"]
-```
-
 
 # Introduction
 
@@ -16,7 +12,7 @@ and objects from commutative algebra and polyhedral geometry derived thereof. In
 we provide support for the following:
 - torus-invariant divisor (classes),
 - line bundles,
-- line bundle cohomology via `cohomCalg` (cf. [cohomCalg:Implementation](@cite)),
+- line bundle cohomology via `cohomCalg` (cf. [BJRR10*1](@cite)),
 - vanishing sets of line bundle cohomology (cf. `Appendix B` of [Bie18](@cite)),
 - cohomology ring and cohomology classes,
 - Chow ring, algebraic cycles and intersection theory,
@@ -30,7 +26,7 @@ This project is work-in-progress.
 
 ## Tutorial
 
-We provde a [tutorial for toric geometry in OSCAR ](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/ToricGeometryInOSCAR.ipynb).
+We provide a [tutorial for toric geometry in OSCAR](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/ToricGeometryInOSCAR.ipynb).
 
 
 ## Long term goals

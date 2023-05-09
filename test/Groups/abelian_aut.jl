@@ -1,18 +1,18 @@
 @testset "conversion" begin
   A = abelian_group([n for n in 1:6])
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=FPGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=FPGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=PermGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=PermGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
@@ -25,26 +25,26 @@
   @test all(defines_automorphism(domain(autA),matrix(f)) for f in gens(autA))
 
   A,_ = sub(A,[A[1],A[3],A[3]+A[2],A[2]-A[3]], false)
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=FPGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=FPGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=PermGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=PermGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
   autA = automorphism_group(A)
-  @test autA[1](A[1]) ==  oscar.apply_automorphism(autA[1],A[1]) ==  A[1]^autA[1]
+  @test autA[1](A[1]) ==  Oscar.apply_automorphism(autA[1],A[1]) ==  A[1]^autA[1]
   @test all(autA(hom(f)) == f for f in gens(autA))
   @test all(autA(matrix(f)) == f for f in gens(autA))
   @test all(defines_automorphism(domain(autA),matrix(f)) for f in gens(autA))
@@ -56,8 +56,8 @@ end
   L = Zlattice(gram=3*ZZ[2 1; 1 2])
   D = discriminant_group(L)
   G = orthogonal_group(D)
-  d = gens(D)[1]
-  f = gens(G)[1]
+  d = D[1]
+  f = gen(G, 1)
   f(d)
   @test G(matrix(f)) == f
   @test hom(f)(d) == f(d)
@@ -76,7 +76,7 @@ end
 
   L = root_lattice(:A, 2)
   q = discriminant_group(L)
-  T = orthogonal_sum(q, q)[1]
+  T = direct_sum(q, q)[1]
   OT = orthogonal_group(T)
   f = matrix(ZZ, 2, 2, [1 1;0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
@@ -136,5 +136,30 @@ end
   @test is_injective(f) && !is_surjective(f)
   @test order(domain(f)) == 12
   @test all(g -> order(f(g)) == order(g), domain(f))
+
+  U2 = hyperbolic_plane_lattice(2)
+  q = discriminant_group(U2)
+  qq, qqinq = sub(q, [q[1] + q[2]])
+  @test_throws ArgumentError embedding_orthogonal_group(qqinq)
+end
+
+@testset "Action on injections" begin
+  L = root_lattice(:A, 11)
+  T = discriminant_group(L)
+  T2, T2inT = primary_part(T, 2)
+  _, j = has_complement(T2inT)
+  OT = orthogonal_group(T)
+  @test is_invariant(OT, T2inT)
+  G, res = @inferred restrict_automorphism_group(OT, T2inT)
+  H, _ = kernel(res)
+  @test is_invariant(H, j)
+  I, res2 = restrict_automorphism_group(H, j)
+  K, _ = kernel(res2)
+  @test order(K) == 1
+
+  T = discriminant_group(hyperbolic_plane_lattice(2))
+  OT = orthogonal_group(T)
+  _, i = sub(T, [T[1]])
+  @test_throws ArgumentError restrict_automorphism_group(OT, i)
 end
 

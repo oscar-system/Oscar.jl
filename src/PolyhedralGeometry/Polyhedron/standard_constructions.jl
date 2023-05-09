@@ -3,7 +3,7 @@
 ### Standard constructions
 ###############################################################################
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     birkhoff_polytope(n::Integer, even::Bool = false)
 
 Construct the Birkhoff polytope of dimension $n^2$.
@@ -29,11 +29,11 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-birkhoff_polytope(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
+birkhoff_polytope(n::Integer; even::Bool = false) = polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     pyramid(P::Polyhedron, z::Number = 1)
 
 Make a pyramid over the given polyhedron `P`.
@@ -42,7 +42,6 @@ The pyramid is the convex hull of the input polyhedron `P` and a point `v`
 outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
 the affine span of `P` coincides with the vertex barycenter of `P`. The scalar `z`
 is the distance between the vertex barycenter and `v`.
-
 
 # Examples
 ```jldoctest
@@ -66,7 +65,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     bipyramid(P::Polyhedron, z::Number = 1, z_prime::Number = -z)
 
 Make a bipyramid over a pointed polyhedron `P`.
@@ -98,7 +97,7 @@ function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:
    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_cone(P::Polyhedron, i::Int64)
 
 Construct the normal cone to `P` at the `i`-th vertex of `P`.
@@ -129,15 +128,13 @@ julia> rays(nc)
 ```
 """
 function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
-    if(i<1 || i>nvertices(P))
-       throw(ArgumentError("Vertex index out of range"))
-    end
+    @req 1 <= i <= nvertices(P) "Vertex index out of range"
     bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
     return Cone{T}(bigobject)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
 
 Construct the convex hull of the orbit of one or several points (given row-wise
@@ -165,16 +162,14 @@ julia> vertices(P)
 """
 function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
    Vhom = stack(homogenized_matrix(V, 1), nothing)
-   if size(Vhom, 2) != degree(G) + 1
-      throw(ArgumentError("Dimension of points and group degree need to be the same."))
-   end
+   @req size(Vhom, 2) == degree(G) + 1 "Dimension of points and group degree need to be the same"
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
    return Polyhedron{QQFieldElem}(pmPolytope)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cube([::Type{T} = QQFieldElem,] d::Int , [l::Rational = -1, u::Rational = 1])
 
 Construct the $[l,u]$-cube in dimension $d$.
@@ -194,28 +189,28 @@ cube(d::Int) = cube(QQFieldElem, d)
 cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
 cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
-@doc Markdown.doc"""
+@doc raw"""
     tetrahedron()
 
 Construct the regular tetrahedron, one of the Platonic solids.
 """
-tetrahedron() = Polyhedron(Polymake.polytope.tetrahedron());
+tetrahedron() = polyhedron(Polymake.polytope.tetrahedron());
 
-@doc Markdown.doc"""
+@doc raw"""
     dodecahedron()
 
 Construct the regular dodecahedron, one out of two Platonic solids.
 """
-dodecahedron() = Polyhedron(Polymake.polytope.dodecahedron());
+dodecahedron() = polyhedron(Polymake.polytope.dodecahedron());
 
-@doc Markdown.doc"""
+@doc raw"""
     icosahedron()
 
 Construct the regular icosahedron, one out of two exceptional Platonic solids.
 """
-icosahedron() = Polyhedron(Polymake.polytope.icosahedron());
+icosahedron() = polyhedron(Polymake.polytope.icosahedron());
 
-@doc Markdown.doc"""
+@doc raw"""
     johnson_solid(i::Int)
 
 Construct the `i`-th proper Johnson solid.
@@ -223,28 +218,28 @@ Construct the `i`-th proper Johnson solid.
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
-johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
+johnson_solid(index::Int) = polyhedron(Polymake.polytope.johnson_solid(index));
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_24_cell()
 
 Construct the regular 24-cell, one out of three exceptional regular 4-polytopes.
 """
-regular_24_cell() = Polyhedron(Polymake.polytope.regular_24_cell());
+regular_24_cell() = polyhedron(Polymake.polytope.regular_24_cell());
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_120_cell()
 
 Construct the regular 120-cell, one out of three exceptional regular 4-polytopes.
 """
-regular_120_cell() = Polyhedron(Polymake.polytope.regular_120_cell());
+regular_120_cell() = polyhedron(Polymake.polytope.regular_120_cell());
 
-@doc Markdown.doc"""
+@doc raw"""
     regular_600_cell()
 
 Construct the regular 600-cell, one out of three exceptional regular 4-polytopes.
 """
-regular_600_cell() = Polyhedron(Polymake.polytope.regular_600_cell());
+regular_600_cell() = polyhedron(Polymake.polytope.regular_600_cell());
 
 """
     newton_polytope(poly::Polynomial)
@@ -275,15 +270,15 @@ function newton_polytope(f)
 end
 
 
-Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(normal_vector(H), negbias(H))
+polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(T, normal_vector(H), negbias(H))
 
-Polyhedron(H::Halfspace{Union{QQFieldElem, nf_elem}}) = Polyhedron{nf_elem}(normal_vector(H), negbias(H))
+polyhedron(H::Halfspace{Union{QQFieldElem, nf_elem}}) = polyhedron(nf_elem, normal_vector(H), negbias(H))
 
-Polyhedron(H::Hyperplane{T}) where T<:scalar_types = Polyhedron{T}(nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(T, nothing, (normal_vector(H), [negbias(H)]))
 
-Polyhedron(H::Hyperplane{Union{QQFieldElem, nf_elem}}) = Polyhedron{nf_elem}(nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Hyperplane{Union{QQFieldElem, nf_elem}}) = polyhedron(nf_elem, nothing, (normal_vector(H), [negbias(H)]))
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect(P::Polyhedron, Q::Polyhedron)
 
 Return the intersection $P \cap Q$ of `P` and `Q`.
@@ -305,11 +300,14 @@ julia> rays(PO)
  [0, 1]
 ```
 """
-function intersect(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
-   return Polyhedron{T}(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
+function intersect(P::Polyhedron{T}...) where T<:scalar_types
+    pmo = [pm_object(p) for p in P]
+    return Polyhedron{T}(Polymake.polytope.intersection(pmo...))
 end
+intersect(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = intersect(P...)
 
-@doc Markdown.doc"""
+
+@doc raw"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
 
 Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
@@ -341,9 +339,7 @@ end
 
 
 
-
-
-@doc Markdown.doc"""
+@doc raw"""
     product(P::Polyhedron, Q::Polyhedron)
 
 Return the Cartesian product of `P` and `Q`.
@@ -363,7 +359,7 @@ julia> length(vertices(product(T,S)))
 """
 product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)))
 
-@doc Markdown.doc"""
+@doc raw"""
     *(P::Polyhedron, Q::Polyhedron)
 
 Return the Cartesian product of `P` and `Q` (see also `product`).
@@ -383,7 +379,7 @@ julia> length(vertices(T*S))
 """
 *(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = product(P,Q)
 
-@doc Markdown.doc"""
+@doc raw"""
     convex_hull(P::Polyhedron, Q::Polyhedron)
 
 Return the convex_hull of `P` and `Q`.
@@ -405,13 +401,17 @@ julia> f_vector(T)
  4
 ```
 """
-convex_hull(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.conv(pm_object(P),pm_object(Q)))
+function convex_hull(P::Polyhedron{T}...) where T<:scalar_types
+    pmo = [pm_object(p) for p in P]
+    return Polyhedron{T}(Polymake.polytope.conv(pmo...))
+end
+convex_hull(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = convex_hull(P...)
 
 
 
 #TODO: documentation  + extend to different fields.
 
-@doc Markdown.doc"""
+@doc raw"""
     +(P::Polyhedron, Q::Polyhedron)
 
 Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q` (see also `minkowski_sum`).
@@ -436,7 +436,7 @@ julia> nvertices(M)
 
 #TODO: extend to different fields
 
-@doc Markdown.doc"""
+@doc raw"""
     *(k::Int, Q::Polyhedron)
 
 Return the scaled polyhedron $kQ = \{ kx\ |\ x∈Q\}$.
@@ -460,7 +460,7 @@ julia> volume(SC)//volume(C)
 *(k::Int, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     *(P::Polyhedron, k::Int)
 
 Return the scaled polyhedron $kP = \{ kx\ |\ x∈P\}$.
@@ -484,7 +484,7 @@ julia> volume(SC)//volume(C)
 *(P::Polyhedron{T},k::Int) where T<:scalar_types = k*P
 
 
-@doc Markdown.doc"""
+@doc raw"""
     +(P::Polyhedron, v::AbstractVector)
 
 Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
@@ -511,15 +511,12 @@ julia> vertices(S)
 ```
 """
 function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
-    if ambient_dim(P) != length(v)
-        throw(ArgumentError("Translation vector not correct dimension"))
-    else
-        return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{scalar_type_to_polymake[T]}(v)))
-    end
+    @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
+    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{scalar_type_to_polymake[T]}(v)))
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     +(v::AbstractVector, P::Polyhedron)
 
 Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
@@ -547,8 +544,7 @@ julia> vertices(S)
 """
 +(v::AbstractVector,P::Polyhedron{T}) where T<:scalar_types = P+v
 
-@doc Markdown.doc"""
-
+@doc raw"""
     simplex([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
@@ -592,8 +588,7 @@ simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polyto
 simplex(d::Int) = simplex(QQFieldElem, d)
 
 
-@doc Markdown.doc"""
-
+@doc raw"""
     cross_polytope([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
@@ -637,8 +632,7 @@ cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
 cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
-@doc Markdown.doc"""
-
+@doc raw"""
     platonic_solid(s)
 
 Construct a Platonic solid with the name given by String `s` from the list
@@ -667,10 +661,9 @@ julia> nfacets(T)
 20
 ```
 """
-platonic_solid(s::String) = Polyhedron(Polymake.polytope.platonic_solid(s))
+platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
 
-@doc Markdown.doc"""
-
+@doc raw"""
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
@@ -729,10 +722,9 @@ julia> nfacets(T)
 14
 ```
 """
-archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
+archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s))
 
-@doc Markdown.doc"""
-
+@doc raw"""
     catalan_solid(s::String)
 
 Construct a Catalan solid with the name `s` from the list
@@ -789,11 +781,10 @@ julia> nfacets(T)
 12
 ```
 """
-catalan_solid(s::String) = Polyhedron(Polymake.polytope.catalan_solid(s))
+catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
 
 
-@doc Markdown.doc"""
-
+@doc raw"""
     upper_bound_f_vector(d::Int, n::Int)
 
 Return the maximal f-vector of a `d`-polytope with `n` vertices;
@@ -801,8 +792,7 @@ this is given by McMullen's Upper-Bound-Theorem.
 """
 upper_bound_f_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).F_VECTOR)
 
-@doc Markdown.doc"""
-
+@doc raw"""
     upper_bound_g_vector(d::Int, n::Int)
 
 Return the maximal g-vector of a `d`-polytope with `n` vertices;
@@ -810,8 +800,7 @@ this is given by McMullen's Upper-Bound-Theorem.
 """
 upper_bound_g_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).G_VECTOR)
 
-@doc Markdown.doc"""
-
+@doc raw"""
     upper_bound_h_vector(d::Int, n::Int)
 
 Return the maximal h-vector of a `d`-polytope with `n` vertices;
@@ -819,8 +808,30 @@ this is given by McMullen's Upper-Bound-Theorem.
 """
 upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
 
+@doc raw"""
+    billera_lee_polytope(h::AbstractVector)
 
-@doc Markdown.doc"""
+Construct a simplicial polytope whose h-vector is $h$.
+The corresponding g-vector must be an M-sequence.
+The ambient dimension equals the length of $h$, and the polytope lives in codimension one.
+- [BL81](@cite)
+
+# Examples
+```jldoctest
+julia> BL = billera_lee_polytope([1,3,3,1])
+Polyhedron in ambient dimension 4
+
+julia> f_vector(BL)
+3-element Vector{ZZRingElem}:
+ 6
+ 12
+ 8
+
+```
+"""
+billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)))
+
+@doc raw"""
     polarize(P::Polyhedron)
 
 Return the polar dual of the polyhedron `P`, consisting of all linear functions
@@ -847,13 +858,13 @@ function polarize(P::Polyhedron{T}) where T<:scalar_types
 end
 
 
-@doc Markdown.doc"""
-
+@doc raw"""
     project_full(P::Polyhedron)
 
 Project the polyhedron down such that it becomes full dimensional in the new
 ambient space.
 
+# Examples
 ```jldoctest
 julia> P = convex_hull([1 0 0; 0 0 0])
 Polyhedron in ambient dimension 3
@@ -870,12 +881,12 @@ true
 """
 project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)))
 
-@doc Markdown.doc"""
-
+@doc raw"""
     gelfand_tsetlin_polytope(lambda::AbstractVector)
 
 Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
+# Examples
 ```jldoctest
 julia> P = gelfand_tsetlin_polytope([5,3,2])
 Polyhedron in ambient dimension 6
@@ -895,12 +906,13 @@ julia> volume(p)
 """
 gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
 
-@doc Markdown.doc"""
+@doc raw"""
     fano_simplex(d::Int)
 
 Construct a lattice simplex such that the origin is the unique interior lattice point.
 The normal toric variety associated with its face fan is smooth.
 
+# Examples
 ```jldoctest
 julia> S = fano_simplex(3)
 Polyhedron in ambient dimension 3
@@ -914,12 +926,13 @@ true
 """
 fano_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.fano_simplex(d))
 
-@doc Markdown.doc"""
+@doc raw"""
     del_pezzo_polytope(d::Int)
 
 Produce the d-dimensional del Pezzo polytope, which is the convex hull of
 the cross polytope together with the all-ones and minus all-ones vector.
 
+# Examples
 ```jldoctest
 julia> DP = del_pezzo_polytope(4)
 Polyhedron in ambient dimension 4
@@ -934,14 +947,11 @@ julia> f_vector(DP)
 """
 del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.delpezzo(d))
 
-
-
-@doc Markdown.doc"""
+@doc raw"""
     cyclic_polytope(d::Int, n::Int)
 
 Construct the cyclic polytope that is the convex hull of $n$ points on the
 moment curve in dimension $d$.
-
 
 # Examples
 ```jldoctest
@@ -952,11 +962,11 @@ julia> nvertices(cp)
 20
 ```
 """
-cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))
+cyclic_polytope(d::Int, n::Int) = polyhedron(Polymake.polytope.cyclic(d, n))
 
 # random constructions
 
-@doc Markdown.doc"""
+@doc raw"""
     rand_spherical_polytope([rng::AbstractRNG,] d::Int, n::Int;
     distribution=:uniform, precision=nothing, seed=nothing)
 
@@ -1027,3 +1037,36 @@ end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
   rand_spherical_polytope(d, n; distribution=distribution, seed=rand(rng,Int64), precision=precision)
+
+@doc raw"""
+    rand_subpolytope(P::Polyhedron, n::Int; seed=nothing)
+
+Construct a subpolytope of $P$ as the convex hull of $n$ vertices, chosen uniformly at random.
+The polyhedron $P$ must be bounded, and the number $n$ must not exceed the number of vertices.
+
+# Keywords
+- `seed::Int64`:          Seed for random number generation.
+
+# Examples
+```jldoctest
+julia> nvertices(rand_subpolytope(cube(3), 5))
+5
+
+```
+"""
+function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
+  if !bounded(P)
+    throw(ArgumentError("rand_subpolytope: Polyhedron unbounded"))
+  end
+  nv = nvertices(P)
+  if n>nv
+    throw(ArgumentError("rand_subpolytope: number of vertices requested too high"))
+  end
+  opts = Dict{Symbol,Any}()
+  if seed != nothing
+    opts[:seed] = convert(Int64, seed)
+  end
+  pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
+  pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
+  return Polyhedron{T}(pm_obj)
+end

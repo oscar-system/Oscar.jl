@@ -1,11 +1,3 @@
-export all_transitive_groups
-export has_number_transitive_groups
-export has_transitive_group_identification
-export has_transitive_groups
-export number_transitive_groups
-export transitive_group
-export transitive_group_identification
-
 """
     has_number_transitive_groups(deg::Int)
 
@@ -57,7 +49,7 @@ false
 ```
 """
 function has_transitive_groups(deg::Int)
-  deg >= 1 || throw(ArgumentError("degree must be positive, not $deg"))
+  @req deg >= 1 "degree must be positive, not $deg"
   return deg == 1 || GAP.Globals.TransitiveGroupsAvailable(deg)::Bool
 end
 
@@ -78,7 +70,7 @@ ERROR: ArgumentError: the number of transitive groups of degree 64 is not availa
 ```
 """
 function number_transitive_groups(deg::Int)
-  has_number_transitive_groups(deg) || throw(ArgumentError("the number of transitive groups of degree $(deg) is not available"))
+  @req has_number_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
   return GAP.Globals.NrTransitiveGroups(deg)::Int
 end
 
@@ -99,9 +91,9 @@ ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
 ```
 """
 function transitive_group(deg::Int, i::Int)
-  has_transitive_groups(deg) || throw(ArgumentError("transitive groups of degree $deg are not available"))
+  @req has_transitive_groups(deg) "transitive groups of degree $deg are not available"
   N = number_transitive_groups(deg)
-  i <= N || throw(ArgumentError("there are only $N transitive groups of degree $deg, not $i"))
+  @req i <= N "there are only $N transitive groups of degree $deg, not $i"
   return PermGroup(GAP.Globals.TransitiveGroup(deg,i), deg)
 end
 
@@ -138,19 +130,19 @@ julia> order(transitive_group(m...)) == order(S)
 true
 
 julia> transitive_group_identification(symmetric_group(64))
-ERROR: identification of transitive groups of degree 64 are not available
+ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
-ERROR: group is not transitive on its moved points
+ERROR: ArgumentError: group is not transitive on its moved points
 ```
 """
 function transitive_group_identification(G::PermGroup)
   moved = moved_points(G)
-  is_transitive(G, moved) || error("group is not transitive on its moved points")
+  @req is_transitive(G, moved) "group is not transitive on its moved points"
   deg = length(moved)
-  has_transitive_groups(deg) || error("identification of transitive groups of degree $(deg) are not available")
+  @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
   res = GAP.Globals.TransitiveIdentification(G.X)::Int
   return deg, res
 end

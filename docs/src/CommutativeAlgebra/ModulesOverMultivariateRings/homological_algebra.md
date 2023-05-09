@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["homological_algebra.md"]
-```
-
 # Homological Algebra
 
 Some OSCAR functions which are fundamental to homological algebra such as the `kernel` function
@@ -48,7 +40,7 @@ homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 ## Hom and Ext
 
 ```@docs
-hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
 ```
 
 ```@docs

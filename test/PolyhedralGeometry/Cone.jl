@@ -2,18 +2,31 @@ const pm = Polymake
 
 @testset "Cone{$T}" for T in [QQFieldElem, nf_elem]
     
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     Cone1=positive_hull(T, pts)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]
-    Cone2 = Cone{T}(R, L)
-    Cone3 = Cone{T}(R, L; non_redundant=true)
+    Cone2 = positive_hull(T, R, L)
+    Cone3 = positive_hull(T, R, L; non_redundant=true)
     Cone4 = positive_hull(T, R)
     Cone5 = positive_hull(T, [1 0 0; 1 1 0; 1 1 1; 1 0 1])
     Cone6 = positive_hull(T, [1//3 1//2; 4//5 2])
+    Cone7 = positive_hull(T, [0 1])
+    Cone8 = positive_hull(T, [1 1; 1 -1])
 
     @testset "core functionality" begin
         @test is_pointed(Cone1)
+        @test issubset(Cone7, Cone1)
+        @test !issubset(Cone1, Cone7)
+        @test [1, 0] in Cone1
+        @test !([-1, -1] in Cone1)
+        if T == QQFieldElem
+          @test !is_smooth(Cone2)
+          @test is_smooth(Cone7)
+          @test !is_smooth(Cone8)
+        end
+        @test is_simplicial(Cone7)
+        @test !is_simplicial(Cone5)
         @test is_fulldimensional(Cone1)
         if T == QQFieldElem
             @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
@@ -41,26 +54,33 @@ const pm = Polymake
                 @test linear_inequality_matrix(facets(S, Cone1)) == matrix(QQ, [-1 0; 0 -1])
                 @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [-1 0; 0 -1]
                 @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
+                @test IncidenceMatrix(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
                 if S == Cone{T}
                     @test facets(S, Cone1) == cone_from_inequalities.([[-1 0], [0 -1]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[-1, 0], [0, -1]])
-                else
+                elseif S == AffineHalfspace{T}
                     @test facets(S, Cone1) == S.([[-1 0], [0 -1]], [0])
+                else
+                    @test facets(S, Cone1) == polyhedron.(T, [[-1 0], [0 -1]], [0])
                 end
             else
                 @test linear_inequality_matrix(facets(S, Cone1)) == [0 -1; -1 0]
                 @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [0 -1; -1 0]
                 @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
+                @test IncidenceMatrix(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
                 if S == Cone{T}
                     @test facets(S, Cone1) == cone_from_inequalities.(T, [[0 -1], [-1 0]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[0, -1], [-1, 0]])
-                else
+                elseif S == AffineHalfspace{T}
                     @test facets(S, Cone1) == S.([[0 -1], [-1 0]], [0])
+                else
+                    @test facets(S, Cone1) == polyhedron.(T, [[0 -1], [-1 0]], [0])
                 end
             end
         end
+        @test facets(IncidenceMatrix, Cone1) == IncidenceMatrix(T == QQFieldElem ? [[2], [1]] : [[1], [2]])
         @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace{T}}
         @test facets(Cone1) isa SubObjectIterator{LinearHalfspace{T}}
         @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane{T}}
@@ -103,16 +123,25 @@ const pm = Polymake
         @test faces(Cone4, 1) isa SubObjectIterator{Cone{T}}
         @test length(faces(Cone4, 1)) == 2
         if T == QQFieldElem
-            @test faces(Cone2, 2) == Cone{T}.([[0 0 1], [1 0 0]], [[0 1 0]])
+            @test faces(Cone2, 2) == positive_hull.(T, [[0 0 1], [1 0 0]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
-            @test faces(Cone4, 1) == Cone{T}.([[0 0 1], [1 0 0]])
+            @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
+            @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[2], [1]])
+            @test faces(Cone4, 1) == positive_hull.(T, [[0 0 1], [1 0 0]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
+            @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
+            @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[2], [1]])
         else
-            @test faces(Cone2, 2) == Cone{T}.([[1 0 0], [0 0 1]], [[0 1 0]])
+            @test faces(Cone2, 2) == positive_hull.(T, [[1 0 0], [0 0 1]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
-            @test faces(Cone4, 1) == Cone{T}.([[1 0 0], [0 0 1]])
+            @test IncidenceMatrix(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
+            @test faces(IncidenceMatrix, Cone2, 2) == IncidenceMatrix([[1], [2]])
+            @test faces(Cone4, 1) == positive_hull.(T, [[1 0 0], [0 0 1]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
+            @test IncidenceMatrix(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
+            @test faces(IncidenceMatrix, Cone4, 1) == IncidenceMatrix([[1], [2]])
         end
+        @test IncidenceMatrix(faces(Cone5, 1)) == IncidenceMatrix([[1], [2], [3], [4]])
         @test isnothing(faces(Cone2, 1))
 
         @test f_vector(Cone5) == [4, 4]
@@ -128,5 +157,6 @@ const pm = Polymake
         @test cone_from_inequalities(T, [-1 0 0; 0 0 -1]; non_redundant = true) == Cone2
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4)) == Cone4
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
+        @test cone_from_equations(T, [0 1 0]) == cone_from_inequalities(T, Matrix{Int}(undef, 0, 3), linear_span(Cone4))
     end
 end

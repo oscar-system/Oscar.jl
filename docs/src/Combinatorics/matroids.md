@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["matroids.md"]
-```
-
 # Matroids
 
 ## Introduction

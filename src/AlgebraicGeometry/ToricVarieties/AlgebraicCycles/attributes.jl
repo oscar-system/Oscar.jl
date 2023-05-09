@@ -3,7 +3,7 @@
 ###########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(ac::RationalEquivalenceClass)
 
 Return the normal toric variety of a rational
@@ -11,7 +11,7 @@ equivalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -27,7 +27,7 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 toric_variety(ac::RationalEquivalenceClass) = ac.v
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(ac::RationalEquivalenceClass)
 
 On a simplicial and complete toric variety, the Chow ring
@@ -37,7 +37,7 @@ rational equivalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -53,7 +53,7 @@ julia> polynomial(ac)
 polynomial(ac::RationalEquivalenceClass) = ac.p
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
 
 On a simplicial and complete toric variety, the Chow ring
@@ -66,7 +66,7 @@ ring if desired.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -114,14 +114,14 @@ end
 ###########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     representative(ac::RationalEquivalenceClass)
 
 Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -147,14 +147,14 @@ julia> representative(ac*ac)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(ac::RationalEquivalenceClass)
 
 Return the coefficients of `polynomial(ac)`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -176,7 +176,7 @@ julia> coefficients(ac*ac)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     components(ac::RationalEquivalenceClass)
 
 Turn each monomial of `representative(ac)` into a
@@ -189,7 +189,7 @@ class is identical to the one given to this method.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -219,15 +219,15 @@ end
 ###########################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_class(ac::RationalEquivalenceClass)
 
-Returns the cohomology class of a rational
+Return the cohomology class of a rational
 equilvalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])

@@ -10,14 +10,13 @@ struct SLPolyRing{T<:RingElement,R<:Ring}  <: Ring
     end
 end
 
-SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
-                             AbstractVector{<:AbstractChar}}; cached::Bool = false) =
+SLPolyRing(r::Ring, s::AbstractVector{<:VarName}; cached::Bool = false) =
                                  SLPolyRing(r, Symbol.(s), cached = cached)
 
 SLPolyRing(r::Ring, n::Base.Integer; cached::Bool = false) = SLPolyRing(r, [Symbol("x$i") for i=1:n], cached = cached)
 
 # cf. mpoly.jl in Oscar
-SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
+SLPolyRing(r::Ring, v::Pair{<:VarName,
                             <:AbstractVector{<:Base.Integer}}...; cached::Bool = false) =
     SLPolyRing(r, [Symbol(s, n) for (s, ns) in v for n in ns], cached = cached)
 
@@ -49,7 +48,7 @@ function SLPolynomialRing(R::Ring, s; cached::Bool = false)
     S, gens(S)
 end
 
-function SLPolynomialRing(R::Ring, v::Pair{<:Union{String,Symbol},
+function SLPolynomialRing(R::Ring, v::Pair{<:VarName,
                                          <:AbstractVector{<:Base.Integer}}...; cached::Bool = false)
     S = SLPolyRing(R, v...; cached = cached)
 
@@ -121,7 +120,7 @@ SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, SLProgram{T}())
 isvalid(p::SLPoly) = !SLP.hasmultireturn(p.slprogram)
 
 function assert_valid(p::SLPoly)
-    isvalid(p) || throw(ArgumentError("SLPoly is in an invalid state"))
+    @req isvalid(p) "SLPoly is in an invalid state"
     p
 end
 
@@ -130,13 +129,12 @@ parent(p::SLPoly) = p.parent
 parent_type(::Type{SLPoly{T,SLPR}}) where {T,SLPR} = SLPR
 
 function check_parent(p::SLPoly, q::SLPoly)
-    p.parent === q.parent ||
-        throw(ArgumentError("incompatible parents"))
+    @req p.parent === q.parent "incompatible parents"
     p.parent
 end
 
 function (S::SLPolyRing{T})(p::SLPoly{T}) where T <: RingElement
-    parent(p) != S && throw(ArgumentError("unable to coerce polynomial"))
+    @req parent(p) == S "unable to coerce polynomial"
     p
 end
 
@@ -369,8 +367,7 @@ end
 
 function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     # TODO: currently handles only default ordering
-    symbols(R) == symbols(parent(p)) ||
-        throw(ArgumentError("incompatible symbols"))
+    @req symbols(R) == symbols(parent(p)) "incompatible symbols"
     q = SLPoly(R)
     @assert lastindex(p.coeffs) < SLP.cstmark
     qcs = SLP.constants(q)
@@ -462,8 +459,7 @@ end
 ## conversion SLPoly -> MPoly
 
 function Base.convert(R::MPolyRing, p::SLPoly)
-    symbols(R) == symbols(parent(p)) ||
-        throw(ArgumentError("incompatible symbols"))
+    @req symbols(R) == symbols(parent(p)) "incompatible symbols"
     assert_valid(p)
     evaluate(p, gens(R))
 end

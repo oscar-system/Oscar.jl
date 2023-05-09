@@ -1,4 +1,4 @@
-@alias has_is_finite has_isfinite
+@alias has_isfinite has_is_finite
 @alias SymmetricGroup symmetric_group
 
 # make some Julia names compatible with our naming conventions
@@ -6,10 +6,11 @@
 @alias is_valid isvalid
 
 # for backwards compatibility
+@alias hall_subgroups_representatives hall_subgroup_reps
 @alias hasrelshp has_relshp
 @alias hastorusfactor has_torusfactor
 @alias inner_automorphisms_group inner_automorphism_group
-@alias isabsolutely_irreducible is_absolutely_irreducible
+#@alias isabsolutely_irreducible is_absolutely_irreducible
 @alias isaffine is_affine
 @alias isalmostsimple is_almostsimple
 @alias isalternating_form is_alternating_form
@@ -22,7 +23,7 @@
 @alias iscomplete is_complete
 @alias iscongruent is_congruent
 @alias isconjugate_subgroup is_conjugate_subgroup
-@alias isdecomposable is_decomposable
+#@alias isdecomposable is_decomposable
 @alias isdecorated is_decorated
 @alias isdihedral_group is_dihedral_group
 @alias isfano is_fano
@@ -75,8 +76,7 @@
 @alias iswelldefined is_welldefined
 
 # Allow backwards compatibility after removal of Oscar.Graphs module.
-Graphs = Oscar
-export Graphs
+const Graphs = Oscar
 
 # Compatibility with pre-0.12.x
 @alias MPolyElem_dec MPolyDecRingElem

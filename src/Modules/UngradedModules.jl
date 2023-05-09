@@ -1,46 +1,17 @@
-export presentation, coordinates, repres, cokernel, index_of_gen, sub,
-      quo, presentation, present_as_cokernel, is_equal_with_morphism, 
-      standard_basis, groebner_basis, reduced_groebner_basis, leading_module, 
-      reduce, hom_tensor, hom_product, coordinates, 
-      represents_element, free_resolution, free_resolution_via_kernels,
-      element_to_homomorphism, homomorphism_to_element, generator_matrix, 
-      restrict_codomain, restrict_domain, direct_product, tensor_product, 
-      free_module, tor, ext, lift_homomorphism_contravariant, 
-      lift_homomorphism_covariant, hom_without_reversing_direction, transport, 
-      find_morphism, find_morphisms, is_canonically_isomorphic, 
-      is_canonically_isomorphic_with_map, register_morphism!, dense_row,
-      show_subquo, show_morphism, show_morphism_as_map,
-      simplify_light, simplify_with_same_ambient_free_module,
-      matrix_kernel, simplify, map, is_injective,
-      is_surjective, is_bijective, is_welldefined, subquotient,
-      multiplication_morphism, multiplication_induced_morphism,
-      ambient_free_module, ambient_module, ambient_representative,
-      ambient_representatives_generators, relations, img_gens, is_complete,
-      chain_complex, cochain_complex
-
-# TODO replace asserts by error messages?
-
-#TODO: "fix" to allow QuoElem s as well...
-# this requires
-#  re-typeing of FreeModule
-#  typing of BiModArray
-# ... and all the rest.
-# parametrization has to be by elem_type(coeff_ring) and not, like currently, the bottom coeff ring
-# Also: qring is a Singular native. So it needs to be added to the ring creation
 
 ###############################################################################
 # FreeMod constructors
 ###############################################################################
 
-@doc Markdown.doc"""
-    FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+@doc raw"""
+    FreeMod(R::Ring, n::Int, name::VarName = :e; cached::Bool = false)
 
 Construct a free module over the ring `R` with rank `n`.
 Additionally one can provide names for the generators. If one does 
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
+function FreeMod(R::Ring, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
@@ -52,14 +23,11 @@ function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
-@doc Markdown.doc"""
-    free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
-
-    free_module(R::MPolyQuoRing, p::Int, name::String = "e"; cached::Bool = false)
-
-    free_module(R::MPolyLocRing, p::Int, name::String = "e"; cached::Bool = false)
-
-    free_module(R::MPolyQuoLocRing, p::Int, name::String = "e"; cached::Bool = false)
+@doc raw"""
+    free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false)
+    free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false)
+    free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false)
+    free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false)
 
 Return the free $R$-module $R^p$, created with its basis of standard unit vectors.
 
@@ -104,10 +72,10 @@ julia> RQL(x)*FRQL[1]
 x*h[1]
 ```
 """
-free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
-free_module(R::MPolyQuoRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
-free_module(R::MPolyLocRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
-free_module(R::MPolyQuoLocRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
@@ -122,15 +90,66 @@ function (F::FreeMod)()
   return FreeModElem(sparse_row(base_ring(F)), F)
 end
 
+#by the magic of @show_name, this function will ensure that a 
+# un-named free module over a named ring X will acquire the name 
+# X^r
+function AbstractAlgebra.extra_name(F::FreeMod)
+  AbstractAlgebra.set_name!(F)
+  s = get_attribute(F, :name)
+  s !== nothing && return
+  AbstractAlgebra.set_name!(base_ring(F))
+  s = get_attribute(base_ring(F), :name)
+  if s !== nothing
+    AbstractAlgebra.set_name!(F, "$s^$(rank(F))")
+  end
+  return get_attribute(F, :name)
+end
+
 function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  if is_graded(F)
+      if !compact
+        print(io, "Graded free module ")
+      end
+      i = 1
+      while i <= dim(F)
+          d = F.d[i]
+          j = 1
+          while i+j <= dim(F) && d == F.d[i+j]
+              j += 1
+          end
+          print(io_compact, base_ring(F), "^$j")
+          print(io_compact, "(", -d, ")")
+          if i+j <= dim(F)
+              print(io, " + ")
+          end
+          i += j
+      end
 
-  print(io, "Free module of rank $(F.n) over ")
-  print(IOContext(io, :compact =>false), F.R)
+      if rank(F)==0
+        print(io_compact, base_ring(F), "^0")
+      end
+
+      if !compact
+          print(io," of rank $(rank(F)) over ")
+          print(io_compact, base_ring(F))
+      end
+  else
+      if !compact
+          #Todo: Use once the printing of rings is fixed
+          #print(io_compact, "Free module ", base_ring(F), "^$(F.n) of rank $(F.n) over ")
+          print(io_compact, "Free module of rank $(F.n) over ")
+          print(io_compact, F.R)
+      else
+          print(io_compact, base_ring(F), "^$(F.n)")
+      end
+  end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     rank(F::FreeMod)
     ngens(F::AbstractFreeMod)
     dim(F::AbstractFreeMod)
@@ -141,35 +160,67 @@ dim(F::AbstractFreeMod) = rank(F)
 rank(F::FreeMod) = F.n
 ngens(F::AbstractFreeMod) = rank(F)
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(F::FreeMod, G::FreeMod)
 
 Return  `true` if `F` and `G` are equal, `false` otherwise.
 
-Here, `F` and `G` are equal iff their base rings, ranks, and names for printing the basis elements are equal.
+Here, `F` and `G` are equal iff either 
+- both modules are ungraded and their base rings, ranks, and names for printing the basis elements are equal, 
+or else 
+- both modules are graded, the equalities above hold, and the degrees of the basis elements are equal.
 """
 function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
+  is_graded(F) == is_graded(G) || return false
+  if is_graded(F) && is_graded(G) 
+    return F.R == G.R && F.d == G.d && F.S == G.S
+  end
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
 end
 
 function hash(F::FreeMod, h::UInt)
+  is_graded(F) && return hash((base_ring(F), rank(F), F.S, F.d), h)
   return hash((base_ring(F), rank(F), F.S), h)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_isomorphic(F::FreeMod, G::FreeMod)
 
 Return  `true` if `F` and `G` are isomorphic, `false` otherwise.
 
 Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
+
+# Examples
+```jldoctest
+julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z)=grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, [1,1,3,2]);
+
+julia> G1 = graded_free_module(Rg, [1,1,2,3]);
+
+julia> is_isomorphic(F, G1)
+true
+
+julia> G2 = graded_free_module(Rg, [1,1,5,6]);
+
+julia> is_isomorphic(F, G2)
+false
+
+```
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
+  is_graded(F) == is_graded(G) || return false
+  is_graded(F) && return MSet(F.d) == MSet(G.d)
   return F.R == G.R && rank(F) == rank(G)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(F::AbstractFreeMod)
 
 Return `true` if `F` is the zero module, `false` otherwise.
@@ -178,7 +229,7 @@ function is_zero(F::AbstractFreeMod)
   return rank(F) == 0
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T})
 
 For `F` and `G` which have equal rank (otherwise an error is thrown)
@@ -186,15 +237,43 @@ return the canonical isomorphism, that is map the i-th basis vector of the
 canonical basis of `F` to the i-th basis vector of the canonical basis of `G`.
 """
 function canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
-  @assert rank(F) == rank(G)
+  if F == G
+     return hom(F, G, [G[i] for i in 1:ngens(G)])
+  end
+  @assert is_isomorphic(F, G)
+  if is_graded(F) && is_graded(G)
+    b = get_multiset_bijection(F.d, G.d, true)
+    if length(b)==1
+      b1 = b[1]
+      return hom(F, G, [G[b1[i]] for i in 1:length(b1)])
+    else
+      error("there is no canonical isomorphism")
+    end
+    h = hom(F, G, [G[b[i]] for i in 1:length(b)])
+    return h
+  end
+  if is_graded(F) != is_graded(G)
+    error("there is no canonical isomorphism")
+  end
   return hom(F, G, gens(G))
 end
+
+function isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+  @assert is_isomorphic(F, G)
+  (!is_graded(F) && !is_graded(G)) && (return hom(F, G, gens(G)))
+  if is_graded(F) != is_graded(G)
+    error("there is no isomorphism")
+  end
+  b = get_multiset_bijection(F.d, G.d)
+  h = hom(F, G, [G[b[i]] for i in 1:length(b)])
+  return h
+ end
 
 ###############################################################################
 # FreeModElem constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T
 
 Return the element of `F` whose coefficients with respect to the basis of
@@ -202,7 +281,7 @@ standard unit vectors of `F` are given by the entries of `c`.
 """
 FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T = FreeModElem{T}(c, parent)
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
 
 Return the element of `F` whose coefficients with respect to the basis of
@@ -214,7 +293,7 @@ function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
   return FreeModElem{T}(sparse_coords,parent)
 end
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    (F::FreeMod{T})(c::SRow{T}) where T
 #
 #Return the element of `F` whose coefficients with respect to the basis of
@@ -224,7 +303,7 @@ function (F::FreeMod{T})(c::SRow{T}) where T
   return FreeModElem(c, F)
 end
 
-#@doc Markdown.doc"""
+#@doc raw"""
 #    (F::FreeMod{T})(c::Vector{T}) where T
 #
 #Return the element of `F` whose coefficients with respect to the basis of
@@ -265,7 +344,7 @@ function in(v::AbstractFreeModElem, M::SubquoModule)
   return represents_element(v, M)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(v::AbstractFreeModElem)
 
 Return the entries (with respect to the standard basis) of `v` as a sparse row.
@@ -291,7 +370,7 @@ end
 
 #########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     repres(v::AbstractFreeModElem)
 
 Return just `v`. This function exists for compatibility (with subquotient elements) reasons.
@@ -326,7 +405,7 @@ function expressify(e::AbstractFreeModElem; context = nothing)
 end
 @enable_all_show_via_expressify FreeModElem
 
-@doc Markdown.doc"""
+@doc raw"""
     Vector(e::FreeModElem)
 
 Return the coordinates of `e` as a Vector.
@@ -335,7 +414,7 @@ function Vector(e::FreeModElem)
    return [e[i] for i in 1:rank(parent(e))]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     basis(F::AbstractFreeMod)
 
 Return the standard basis of `F`.
@@ -350,14 +429,14 @@ function basis(F::AbstractFreeMod)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     gens(F::AbstractFreeMod)
 
 Return the (canonical) generators of the free module `F`.
 """
 gens(F::AbstractFreeMod) = basis(F)
 
-@doc Markdown.doc"""
+@doc raw"""
     basis(F::AbstractFreeMod, i::Int)
 
     gen(F::AbstractFreeMod, i::Int)
@@ -376,7 +455,7 @@ function getindex(F::AbstractFreeMod, i::Int)
   return gen(F, i)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(F::AbstractFreeMod)
 
 Return the underlying ring of `F`.
@@ -435,21 +514,21 @@ end
 *(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
 *(a::QQFieldElem, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
 
-@doc Markdown.doc"""
+@doc raw"""
     zero(F::AbstractFreeMod)
 
 Return the zero element of  `F`.
 """
 zero(F::AbstractFreeMod) = FreeModElem(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]), F)
 
-@doc Markdown.doc"""
+@doc raw"""
     parent(a::AbstractFreeModElem)
 
 Return the free module where `a` lives in.
 """
 parent(a::AbstractFreeModElem) = a.parent
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(f::AbstractFreeModElem)
 
 Return `true` if `f` is zero, `false` otherwise.
@@ -460,7 +539,7 @@ is_zero(f::AbstractFreeModElem) = iszero(coordinates(f))
 # ModuleGens constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where T
 
 Construct `ModuleGens` from an array of free module elements, specifying the free module 
@@ -469,14 +548,14 @@ This function is only useful indirectly.
 """
 ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where T = ModuleGens{T}(O, F, SF)
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S}
 
 Construct `ModuleGens` from a given Singular submodule.
 """
 ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S} = ModuleGens{S}(F, s)
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens(O::Vector{<:FreeModElem})
 
 Construct `ModuleGens` from an array of free module elements.
@@ -493,7 +572,7 @@ function ModuleGens(O::Vector{<:FreeModElem})
   return ModuleGens(O, parent(O[1]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
 
 Construct `ModuleGens` from an array of free module elements, specifying the free module.
@@ -507,7 +586,7 @@ function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
   return ModuleGens{T}(O, F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}, ordering::ModuleOrdering) where {T}
 
 Construct `ModuleGens` from an array of free module elements, specifying the free module.
@@ -524,7 +603,7 @@ function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}, ordering::ModuleOrd
   return M
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ModuleGens(O::Vector{<:FreeModElem}, SF::Singular.FreeMod)
 
 Construct `ModuleGens` from an array of free module elements, specifying the Singular free module.
@@ -537,7 +616,7 @@ function ModuleGens(O::Vector{<:FreeModElem}, SF::Singular.FreeMod)
   return ModuleGens{elem_type(base_ring(parent(O[1])))}(O, parent(O[1]), SF)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(M::ModuleGens)
 
 Return the base ring of `M` (that is, if `M` is an `R`-module, return `R`).
@@ -546,7 +625,7 @@ function base_ring(M::ModuleGens)
   return base_ring(M.F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_generators(M::ModuleGens)
 
 Return the generators of `M` from Singular side.
@@ -556,7 +635,7 @@ function singular_generators(M::ModuleGens)
   return M.S
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     oscar_generators(M::ModuleGens)  
 
 Return the generators of `M` from the Oscar side.
@@ -566,13 +645,14 @@ function oscar_generators(M::ModuleGens)
   return M.O
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     iszero(M::ModuleGens)
 
 Check if `M` is zero.
 """
 function iszero(M::ModuleGens)
-  return iszero(singular_generators(M))
+  oscar_assure(M)
+  return all(iszero, M.O)
 end
 
 function show(io::IO, F::ModuleGens)
@@ -588,7 +668,7 @@ function show(io::IO, F::ModuleGens)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     length(F::ModuleGens)
 
 Return the number of elements of the module generating set.
@@ -599,7 +679,7 @@ Return the number of elements of the module generating set.
 """
 length(F::ModuleGens) = length(oscar_generators(F))
 
-@doc Markdown.doc"""
+@doc raw"""
     ngens(F::ModuleGens)
 
 Return the number of elements of the module generating set.
@@ -625,7 +705,7 @@ function getindex(F::ModuleGens, ::Val{:S}, i::Int)
   return F.S[i]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     oscar_assure(F::ModuleGens)
 
 If fields of `F` from the Oscar side are not defined, they
@@ -637,7 +717,7 @@ function oscar_assure(F::ModuleGens)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_assure(F::ModuleGens)
 
 If fields of `F` from the Singular side are not defined, they
@@ -661,7 +741,7 @@ end
 # i-th entry of module generating set (taken from Oscar side)
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 
-@doc Markdown.doc"""
+@doc raw"""
     union(M::ModuleGens, N::ModuleGens)
 
 Compute the union of `M` and `N`.
@@ -672,7 +752,7 @@ function union(M::ModuleGens, N::ModuleGens)
   return ModuleGens(M.F, O)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_module(F::FreeMod)
 
 Create a Singular module from a given free module.
@@ -682,7 +762,7 @@ function singular_module(F::FreeMod)
   return Singular.FreeModule(Sx, dim(F))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     singular_module(F::FreeMod, ordering::ModuleOrdering)
 
 Create a Singular module from a given free module over the given Singular polynomial ring.
@@ -692,7 +772,7 @@ function singular_module(F::FreeMod, ordering::ModuleOrdering)
   return Singular.FreeModule(Sx, dim(F))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (SF::Singular.FreeMod)(m::FreeModElem)
 
 Convert a free module element to the Singular side.
@@ -707,7 +787,7 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   return e
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (F::FreeMod)(s::Singular.svector)
 
 Convert a Singular vector to a free module element.
@@ -734,7 +814,7 @@ end
 # FreeModuleHom constructors
 ###############################################################################
 
-#=@doc Markdown.doc"""
+#=@doc raw"""
     FreeModuleHom(F::FreeMod{T}, G::S, a::Vector) where {T, S}
 
 Construct the morphism $F \to G$ where `F[i]` is mapped to `a[i]`.
@@ -742,7 +822,7 @@ In particular, `ngens(F) == length(a)` must hold.
 """
 FreeModuleHom(F::AbstractFreeMod{T}, G::S, a::Vector) where {T, S} = FreeModuleHom{T,S}(F, G, a)
 
-@doc Markdown.doc"""
+@doc raw"""
     FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
 
 Construct the morphism $F \to G$ corresponding to the matrix `mat`.
@@ -759,7 +839,7 @@ base_ring_map(f::SubQuoHom) = f.ring_map
     return identity_map(base_ring(domain(f)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(a::FreeModuleHom)
 
 Given a homomorphism `a : F → M` of type  `FreeModuleHom`, 
@@ -806,7 +886,7 @@ end
 
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 
 Given a vector `V` of `rank(F)` elements of `M`, 
@@ -865,6 +945,110 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> a == b
 true
 ```
+
+```jldoctest
+julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, 3)
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G1 = graded_free_module(Rg, 2)
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V1 = [y*G1[1], (x+y)*G1[1]+y*G1[2], z*G1[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> a1 = hom(F1, G1, V1)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> F2 = graded_free_module(Rg, [1,1,1])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G2 = graded_free_module(Rg, [0,0])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V2 = [y*G2[1], (x+y)*G2[1]+y*G2[2], z*G2[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> a2 = hom(F2, G2, V2)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> B = Rg[y 0; x+y y; 0 z]
+[    y   0]
+[x + y   y]
+[    0   z]
+
+julia> b = hom(F2, G2, B)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-1]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 == b
+true
+
+```
 """
 function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
@@ -875,7 +1059,7 @@ function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T
   return FreeModuleHom(F, M, A)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType}
 
 Given a vector `V` of `rank(F)` elements of `M` and a ring map `h`
@@ -893,7 +1077,7 @@ the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
 
-@doc Markdown.doc"""
+@doc raw"""
     identity_map(M::ModuleFP)
 
 Return the identity map $id_M$.
@@ -932,11 +1116,43 @@ function morphism_type(
   return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
+function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  if is_graded(fmh)  
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:ngens(domain(fmh))
+        print(io, domain(fmh)[i], " -> ")
+        print(io_compact, fmh(domain(fmh)[i]))
+        print(io, "\n")
+      end
+      A = grading_group(fmh)
+      if degree(fmh) == A[0]
+        print(io, "Homogeneous module homomorphism")
+      else
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
+      end
+    end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    println(io, codomain(fmh))
+  end
+end
 
 ###############################################################################
 # SubModuleOfFreeModule
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(F::FreeMod{R}, gens::Vector{<:FreeModElem}) where {R}
 
 Construct the submodule of `F` generated by the elements of `gens` (the elements of 
@@ -947,7 +1163,7 @@ function SubModuleOfFreeModule(F::FreeMod{R}, gens::Vector{<:FreeModElem}) where
   return SubModuleOfFreeModule(F, ModuleGens(gens, F))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(F::FreeMod{R}, gens::Vector{<:FreeModElem}, default_ordering::ModuleOrdering) where {R}
 
 Construct the submodule of `F` generated by the elements of `gens` (the elements of 
@@ -963,7 +1179,7 @@ function SubModuleOfFreeModule(F::FreeMod{R}, singular_module::Singular.smodule)
   return SubModuleOfFreeModule(F, ModuleGens(F, singular_module))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(F::FreeMod{R}, gens::ModuleGens{R}) where {R}
 
 Construct the submodule of `F` generated by `gens`.
@@ -974,7 +1190,7 @@ function SubModuleOfFreeModule(F::FreeMod{R}, gens::ModuleGens{R}) where {R}
   return subModule
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L}
 
 Construct the submodule generated by the rows of `A`. The embedding free
@@ -988,12 +1204,12 @@ function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L}
   return subModule
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}, default_ordering::ModuleOrdering) where {L}
 
 Construct the submodule generated by the rows of `A`. The embedding free
 module is `F`. In particular, `rank(F) == ncols(A)` must hold.
-Morevoer, set the default ordering to `default_ordering`.
+Moreover, set the default ordering to `default_ordering`.
 """
 function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}, default_ordering::ModuleOrdering) where {L} 
   subModule = SubModuleOfFreeModule{L}(F)
@@ -1003,7 +1219,7 @@ function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}, default_ordering::M
   return subModule
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(A::MatElem{L}) where {L} 
 
 Construct the submodule generated by the rows of `A`.
@@ -1021,7 +1237,7 @@ function SubModuleOfFreeModule(A::MatElem{L}) where {L}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     SubModuleOfFreeModule(A::MatElem{L}, default_ordering::ModuleOrdering) where {L} 
 
 Construct the submodule generated by the rows of `A`.
@@ -1042,7 +1258,7 @@ function getindex(M::SubModuleOfFreeModule, i::Int)
   return oscar_generators(M.gens)[i]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     iszero(M::SubModuleOfFreeModule)
 
 Check if `M` is zero.
@@ -1051,7 +1267,7 @@ function iszero(M::SubModuleOfFreeModule)
   return iszero(M.gens)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(M::SubModuleOfFreeModule)
 
 Return the base ring of `M`.
@@ -1060,7 +1276,7 @@ function base_ring(M::SubModuleOfFreeModule)
   return base_ring(M.F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_free_module(M::SubModuleOfFreeModule)
 
 Return the ambient free module of `M`.
@@ -1069,7 +1285,7 @@ function ambient_free_module(M::SubModuleOfFreeModule)
   return M.F
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     default_ordering(M::SubModuleOfFreeModule)
 
 Get the default ordering of `M`.
@@ -1083,7 +1299,7 @@ function default_ordering(M::SubModuleOfFreeModule)
   return M.default_ordering
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 
 Set the default ordering in `M` to `ord`.
@@ -1092,7 +1308,7 @@ function set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
   M.default_ordering = ord
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a standard basis of `submod` with respect to the given `odering``.
@@ -1105,7 +1321,7 @@ function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering 
   return gb
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a Gröbner of `submod` with respect to the given `ordering`.
@@ -1116,7 +1332,7 @@ function groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering 
   return standard_basis(submod, ordering=ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a reduced Gröbner basis with respect to the given `ordering`. The return type is `ModuleGens`.
@@ -1138,7 +1354,7 @@ function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering 
   return SubModuleOfFreeModule(submod.F, leading_monomials(gb))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     compute_standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod), reduced::Bool=false)
 
 Compute a standard basis of `submod` with respect to the given ordering.
@@ -1199,7 +1415,7 @@ function show_relative_groebner_basis(io::IO, sub::ModuleGens, quo::ModuleGens, 
   print(io, sub.ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     generator_matrix(submod::SubModuleOfFreeModule)
 
 Return the generators of `submod` in matrix-form, that is the rows of the 
@@ -1217,7 +1433,7 @@ function generator_matrix(submod::SubModuleOfFreeModule)
   return submod.matrix
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_generated_by_standard_unit_vectors(M::SubModuleOfFreeModule)
 
 Check if `M` is generated by the standard unit vectors.
@@ -1227,14 +1443,27 @@ function is_generated_by_standard_unit_vectors(M::SubModuleOfFreeModule)
 end
 
 function show(io::IO, M::SubModuleOfFreeModule)
-  if ngens(M) == 1
-    print(io, "Submodule with ", ngens(M), " generator")
-  else
-    print(io, "Submodule with ", ngens(M), " generators")
+  @show_name(io, M)
+  @show_special(io, M)
+  io_compact = IOContext(io, :compact => true)
+  compact = get(io, :compact, false)
+  if !compact
+    if is_graded(M)
+      print(io_compact, "Graded submodule of ", M.F)
+    else
+      #Todo: Use again once the printing of rings is fixed
+      #print(io_compact, "Submodule of ", M.F)
+      print(io_compact, "Submodule")
+    end
+    if ngens(M) == 1
+      print(io, " with ", ngens(M), " generator")
+    else
+      print(io, " with ", ngens(M), " generators")
+    end
   end
   for i=1:ngens(M)
     if isassigned(M.gens.O, i)
-      print(io, "\n", i, " -> ", M[i])
+        print(io, "\n", i, " -> ", M[i])
     end
   end
 end
@@ -1244,7 +1473,7 @@ function length(M::SubModuleOfFreeModule)
   return length(M.gens)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ngens(M::SubModuleOfFreeModule)
 
 Return the number of generators of `M`.
@@ -1253,7 +1482,7 @@ function ngens(M::SubModuleOfFreeModule)
   return ngens(M.gens)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     gens(M::SubModuleOfFreeModule)
 
 Return the generators of `M` as an array of `FreeModElem`s.
@@ -1262,7 +1491,7 @@ function gens(M::SubModuleOfFreeModule)
   return oscar_generators(M.gens)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     gen(M::SubModuleOfFreeModule, i::Int)
 
 Return the `i`th generator of `M`.
@@ -1271,7 +1500,7 @@ function gen(M::SubModuleOfFreeModule, i::Int)
   return oscar_generators(M.gens)[i]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
 Compute $M+N$.
@@ -1281,7 +1510,7 @@ function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
 Check if `M` is a subset of `N`. For this their embedding free modules must be 
@@ -1295,7 +1524,7 @@ function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return iszero(M_mod_N)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
 Check for equality. For two submodules of free modules to be equal their embedding 
@@ -1315,7 +1544,7 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
 Check if `M` are canonically isomorphic. This means that if `F = ambient_free_module(M)` is 
@@ -1338,7 +1567,7 @@ end
 # SubquoModule constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(sub::SubModuleOfFreeModule{R}) where {R}
 
 Construct the module `sub` as a subquotient.
@@ -1350,7 +1579,7 @@ function SubquoModule(sub::SubModuleOfFreeModule{R}) where {R}
   return subquo
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
 
 Construct the subquotient module $\texttt{sub} + texttt{quo} / \texttt{quo}$. 
@@ -1366,7 +1595,7 @@ function SubquoModule(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{
   return subquo
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(F::FreeMod{R}, O::Vector{<:FreeModElem}) where {R}
 
 Construct the module generated by the elements of `O` as a subquotient.
@@ -1398,7 +1627,7 @@ function SubquoModule(F::FreeMod{R}, O::Vector{<:FreeModElem}) where {R}
   return SubquoModule(sub)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(S::SubquoModule{L}, O::Vector{<:FreeModElem}) where {L}
 
 Construct a subquotient where the generators are those of `S` and the relations are 
@@ -1429,7 +1658,7 @@ function SubquoModule(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) w
   return subquo
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
 
 Given matrices `A` and `B` with entries in a ring `R` representing maps 
@@ -1441,7 +1670,7 @@ function SubquoModule(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
   return SubquoModule(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(A::MatElem{R}, B::MatElem{R}) where {R}
 
 Given matrices `A` and `B` with entries in a ring `R` 
@@ -1487,7 +1716,7 @@ function SubquoModule(A::MatElem{R}, B::MatElem{R}) where {R}
   return SubquoModule(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
 
 Construct the subquotient with ambient free module `F`, generators `g`
@@ -1498,7 +1727,7 @@ function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeMo
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     subquotient(a::FreeModuleHom, b::FreeModuleHom)
 
 Given homomorphisms `a` and `b` between free modules such that 
@@ -1616,6 +1845,102 @@ by Submodule with 3 generators
 2 -> 0
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> V2 = [z*G[2]+y*G[1]]
+1-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1] + z*e[2]
+
+julia> a1 = hom(F1, G, V1)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1])
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 = hom(F2, G, V2)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1])
+e[1] -> y*e[1] + z*e[2]
+Homogeneous module homomorphism
+
+julia> V = subquotient(a1,a2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1]) generated by
+1 -> y*e[1]
+2 -> (x + y)*e[1] + y*e[2]
+3 -> z*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1]) generated by
+1 -> y*e[1] + z*e[2]
+
+julia> A1 = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+
+julia> A2 = Rg[x^3 x^2*y; (2*x^2+x*y)*x (2*y^3+y*x^2)]
+[          x^3           x^2*y]
+[2*x^3 + x^2*y   x^2*y + 2*y^3]
+
+julia> B = Rg[4*x*y^3 (2*x+y)^4]
+[4*x*y^3   16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4]
+
+julia> F2 = graded_free_module(Rg,[0,0])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> M1 = SubQuo(F2, A1, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> 4*x*y^3*e[1] + (16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4)*e[2]
+
+```
 """
 function subquotient(a::FreeModuleHom, b::FreeModuleHom)
   F = codomain(a)
@@ -1631,17 +1956,37 @@ subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubquoModule(A, B)
 function show(io::IO, SQ::SubquoModule)
   @show_name(io, SQ)
   @show_special(io, SQ)
+  io_compact = IOContext(io, :compact => true)
 
-  if isdefined(SQ, :quo)
-    print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
+  if is_graded(SQ)
+      if isdefined(SQ, :quo) && !iszero(SQ.quo)
+          print(io, "Graded subquotient")
+          print(io_compact, " of submodule of ", SQ.F, " generated by", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
+      else
+          print(io_compact, "Graded submodule of ", SQ.F)
+          print(io_compact, SQ.sub, "\n")
+          print(io, "represented as subquotient with no relations")
+      end
   else
-    #println(io, "Subquotient by ", SQ.sub)
-    print(io, SQ.sub, "\n")
-    print(io, "represented as subquotient with no relations.")
+      # Todo: Use again once the printing of rings is fixed
+      # if isdefined(SQ, :quo) && !iszero(SQ.quo)
+      #     print(io, "Subquotient")
+      #     print(io_compact, " of submodule of ", SQ.F, " generated by", SQ.sub, "\nby submodule of ", SQ.F, " generated by", SQ.quo)
+      # else
+      #     print(io_compact, "Submodule of ", SQ.F)
+      #     print(io_compact, SQ.sub, "\n")
+      #     print(io, "represented as subquotient with no relations")
+      # end
+      if isdefined(SQ, :quo) && !iszero(SQ.quo)
+        print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
+      else
+        print(io, SQ.sub, "\n")
+        print(io, "represented as subquotient with no relations.")
+      end
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     show_subquo(SQ::SubquoModule)
 
 Show `SQ` as a subquotient of *matrices* `A` and `B`.
@@ -1649,24 +1994,40 @@ Show `SQ` as a subquotient of *matrices* `A` and `B`.
 function show_subquo(SQ::SubquoModule)
   #@show_name(io, SQ)
   #@show_special(io, SQ)
-
+  io_compact = IOContext(stdout, :compact => true)
   if isdefined(SQ, :quo)
     if is_generated_by_standard_unit_vectors(SQ.sub)
-      println("Cokernel of")
+      if is_graded(SQ)
+        println("Graded cokernel of")
+      else
+        println("Cokernel of")
+      end
       display(generator_matrix(SQ.quo))
     else
-      println("Subquotient with of image of")
+      if is_graded(SQ)
+        println("Graded subquotient of")
+      else
+        println("Subquotient of")
+      end
       display(generator_matrix(SQ.sub))
       println("by image of")
       display(generator_matrix(SQ.quo))
     end
   else
-    println("Image of")
+    if is_graded(SQ)
+      println("Graded image of")
+    else
+      println("Image of")
+    end
     display(generator_matrix(SQ.sub))
   end
+  print(io_compact, "with ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
+  io_compact = IOContext(stdout, :compact => true)
+  print(io_compact, domain(f), " -> ", codomain(f))
+  print("\n")
   D = domain(f)
   for i in 1:ngens(D)
     generator = gen(D, i)
@@ -1678,10 +2039,21 @@ function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
       end
     end
   end
-  return
+  print("\n")
+  if is_graded(f)
+    A = grading_group(f)
+    if degree(f)==A[0] 
+      print("Homogeneous homomorphism")
+    else
+      print(io_compact,"Graded homomorphism of degree ", degree(f))
+    end
+  else
+    print("Homomorphism")
+  end
+return
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cokernel(a::ModuleFPHom)
 
 Return the cokernel of `a` as an object of type `SubquoModule`.
@@ -1754,20 +2126,265 @@ by Submodule with 5 generators
 4 -> x*y^2*e[1]
 5 -> x*y*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> W = Rg[y 0; x y; 0 z]
+[y   0]
+[x   y]
+[0   z]
+
+julia> a = hom(F, G, W)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> M = cokernel(a)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+
+```
 """
 function cokernel(f::ModuleFPHom)
   return quo(codomain(f), image(f)[1], :module)
 end
 
+@doc raw"""
+    cokernel(F::FreeMod{R}, A::MatElem{R}) where R
+
+Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(F, A)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+julia> ambient_free_module(M) === F
+true
+
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, [8,8])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> A = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(F, A)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+julia> ambient_free_module(M) === F
+true
+
+julia> degrees_of_generators(M)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z
+with components [8]
+ Element of
+GrpAb: Z
+with components [8]
+
+```
+"""
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
-  return cokernel(map(F,A))
+  return is_graded(F) ? cokernel(graded_map(F, A)) : cokernel(map(F, A))
 end
 
+@doc raw"""
+    cokernel(A::MatElem)
+
+Return the cokernel of `A` as an object of type `SubquoModule`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(A)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+```
+"""
 function cokernel(A::MatElem)
   return cokernel(map(A))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
+    image(F::FreeMod{R}, A::MatElem{R}) where R
+
+Return the image of `A` as an object of type `SubquoModule` with ambient free module `F`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(F, A)
+Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations.
+
+julia> ambient_free_module(M) === F
+true
+
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg, [8,8])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> A = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(F, A)
+Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-8])
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations
+
+julia> ambient_free_module(M) === F
+true
+
+julia> degrees_of_generators(M)
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+GrpAb: Z
+with components [9]
+ Element of
+GrpAb: Z
+with components [10]
+
+```
+"""
+function image(F::FreeMod{R}, A::MatElem{R}) where R
+  return is_graded(F) ? image(graded_map(F, A))[1] : image(map(F, A))[1]
+end
+
+@doc raw"""
+    cokernel(A::MatElem)
+
+Return the cokernel of `A` as an object of type `SubquoModule`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(A)
+Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations.
+
+```
+"""
+function image(A::MatElem)
+  return image(map(A))[1]
+end
+
+@doc raw"""
     default_ordering(M::SubquoModule)    
 
 Return the default ordering of `M`.
@@ -1781,7 +2398,7 @@ function default_ordering(M::SubquoModule)
   return default_ordering(M.sub)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     set_default_ordering!(M::SubquoModule, ord::ModuleOrdering)
 
 Set the default ordering in `M` to `ord`.
@@ -1863,7 +2480,7 @@ function leading_module(M::SubquoModule, ord::ModuleOrdering = default_ordering(
   return SubquoModule(leading_module(M.sub, ord))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
 
 Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
@@ -1916,6 +2533,59 @@ by Submodule with 3 generators
 julia> is_subset(M, N)
 true
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg,2);
+
+julia> O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia> O1a = [x*F[1],y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia> M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> is_subset(M1,M2)
+true
+
+julia> is_subset(M2,M1)
+true
+
+julia> M1 == M2
+true
+```
 """
 function is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
   if !isdefined(M, :quo) 
@@ -1949,7 +2619,7 @@ function compare_helper(M::SubquoModule{T}, N::SubquoModule{T}, comparer::Functi
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ==(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
 
 Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
@@ -2007,17 +2677,130 @@ by Submodule with 3 generators
 julia> M == N
 false
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+
+julia> F = graded_free_module(Rg,2);
+
+julia> O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia> O1a = [x*F[1],y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia> M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1] + y*e[2]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x*e[1]
+2 -> y*e[2]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M1 == M2
+true
+```
 """
 function (==)(M::SubquoModule{T}, N::SubquoModule{T}) where {T} # TODO replace implementation by two inclusion checks?
   return compare_helper(M, N, (==))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
 
 Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
 Return `false` if the ambient free modules are not isomorphic.
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y) = grade(R, [Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg,[2,3, 4])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
+[          x^3             x^2     x]
+[2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
+
+julia> M1 = image(F1, A1)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4])
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations
+
+julia> F2 = graded_free_module(Rg,[2,4, 3])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
+[          x^3     x             x^2]
+[2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
+
+julia> M2 = image(F2, A2)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3])
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+
+julia> is_canonically_isomorphic(M1, M2)
+true
+
+```
 """
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
@@ -2028,13 +2811,100 @@ function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where
   return compare_helper(M, N, is_canonically_isomorphic)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
 
 Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
 Moreover, if `M` and `N` are canonically isomorphic then return also the isomorphism, 
 otherwise return the zero map.
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y) = grade(R, [Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg,[2,3, 4])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
+[          x^3             x^2     x]
+[2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
+
+julia> M1 = image(F1, A1)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4])
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations
+
+julia> F2 = graded_free_module(Rg,[2,4, 3])
+Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]
+
+julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
+[          x^3     x             x^2]
+[2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
+
+julia> M2 = image(F2, A2)
+Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3])
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+
+julia> is_canonically_isomorphic_with_map(M1, M2)
+(true, Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4])
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations -> Graded submodule of Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-2]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-4]) + Multivariate Polynomial Ring in x, y over Rational Field graded by
+  x -> [1]
+  y -> [1]^1([-3])
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+x^3*e[1] + x^2*e[2] + x*e[3] -> x^3*e[1] + x*e[2] + x^2*e[3]
+(2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3] -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+Homogeneous module homomorphism)
+
+```
 """
 function is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   is_canonically_iso = is_canonically_isomorphic(M, N)
@@ -2050,7 +2920,7 @@ function is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sum(M::SubquoModule{T},N::SubquoModule{T}) where T
 
 Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
@@ -2150,6 +3020,118 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> sum(M, N)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*e[1]
+Homogeneous module homomorphism, Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+y*e[1] -> y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
   @assert ambient_free_module(M) === ambient_free_module(N)
@@ -2178,7 +3160,7 @@ function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
   return SQ_simplified, iM*s_proj, iN*s_proj
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     +(M::SubquoModule{T},N::SubquoModule{T}) where T
 
 Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
@@ -2234,12 +3216,74 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> M + N
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+```
 """
 function +(M::SubquoModule{T},N::SubquoModule{T}) where T
   return sum(M,N)[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 
 Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
@@ -2312,7 +3356,8 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1], Map with following data
+3 -> z^4*e[1]
+, Map with following data
 Domain:
 =======
 Subquotient of Submodule with 2 generators
@@ -2329,7 +3374,122 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1])
+3 -> z^4*e[1]
+)
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> intersect(M, N)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+-x*y*e[1] -> -x*y*e[1]
+x*z^4*e[1] -> x*z^4*e[1]
+Homogeneous module homomorphism, Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+-x*y*e[1] -> x*y*e[1]
+x*z^4*e[1] -> 0
+Homogeneous module homomorphism)
+
 ```
 """
 function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
@@ -2369,14 +3529,14 @@ end
 # SubquoModuleElem constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModuleElem(v::SRow{R}, SQ::SubquoModule) where {R}
 
 Return the element $\sum_i v[i] \cdot SQ[i]$.
 """
 SubquoModuleElem(v::SRow{R}, SQ::SubquoModule) where {R} = SubquoModuleElem{R}(v, SQ)
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule) where {R}
 
 Construct an element $v \in SQ$ that is represented by $a$.
@@ -2393,7 +3553,7 @@ function in(v::SubquoModuleElem, M::SubquoModule)
   return represents_element(repres(v), M)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     getindex(v::SubquoModuleElem, i::Int)
 
 Let $v \in M$ with $v = \sum_i a[i] \cdot M[i]$. Return $a[i]$
@@ -2406,7 +3566,7 @@ function getindex(v::SubquoModuleElem, i::Int)
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(m::SubquoModuleElem)
 
 Given an element `m` of a subquotient $M$ over a ring $R$, say,
@@ -2443,7 +3603,7 @@ Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
 coordinates(m::SubquoModuleElem) = m.coeffs
 #########################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     repres(v::SubquoModuleElem)
 
 Return a free module element that is a representative of `v`.
@@ -2453,7 +3613,7 @@ function repres(v::SubquoModuleElem)
 end
 
 #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     ambient_representative(m::SubquoModuleElem)
 
 Given an element `m` of a subquotient $M$, say, return 
@@ -2497,7 +3657,7 @@ ambient_representative(a::FreeModElem) = a
 
 #######################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Vector(v::SubquoModuleElem)
 
 Return the coefficients of a representative of `v` as a Vector.
@@ -2506,7 +3666,7 @@ function Vector(v::SubquoModuleElem)
   return Vector(repres(v))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
 
 Return a standard basis of `F` as an object of type `ModuleGens`.
@@ -2524,7 +3684,7 @@ function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPoly
   return ModuleGens(F.F, Singular.std(singular_generators(F), complete_reduction=reduced))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
 
 Return a standard basis `G` of `F` as an object of type `ModuleGens` along with 
@@ -2543,7 +3703,7 @@ function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
   return mg, mat
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
 
 Return a standard basis `G` of `F` with respect to the given `ordering`
@@ -2557,7 +3717,7 @@ function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyR
   return mg, mat
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_monomials(F::ModuleGens)
 
 Return the leading monomials of `F` as an object of type `ModuleGens`.
@@ -2579,14 +3739,14 @@ function show(io::IO, b::SubquoModuleElem)
   print(io, b.repres)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     parent(b::SubquoModuleElem)
 
 Let $b \in M$. Return $M$.
 """
 parent(b::SubquoModuleElem) = b.parent
 
-@doc Markdown.doc"""
+@doc raw"""
     (M::SubquoModule{T})(f::FreeModElem{T}) where T
 
 Given an element `f` of the ambient free module of `M` which represents an element of `M`, 
@@ -2600,7 +3760,7 @@ function (M::SubquoModule{T})(f::FreeModElem{T}) where T
   return SubquoModuleElem(coords, M)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (M::SubquoModule{T})(c::SRow{T}) where T   
 
 Return the subquotient element $\sum_i a[i] \cdot M[i]\in M$.
@@ -2609,7 +3769,7 @@ function (R::SubquoModule)(a::SRow)
   return SubquoModuleElem(a, R)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     SubquoModuleElem(c::Vector{T}, parent::SubquoModule{T}) where T
     
 Return the element of  `parent`  defined as a linear combination
@@ -2622,7 +3782,7 @@ function SubquoModuleElem(c::Vector{T}, parent::SubquoModule{T}) where T
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     (M::SubquoModule{T})(c::Vector{T}) where T
 
 Return the element of `M` defined as a linear combination
@@ -2632,7 +3792,7 @@ function (M::SubquoModule{T})(c::Vector{T}) where T
  return SubquoModuleElem(c, M)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     (R::SubquoModule)(a::SubquoModuleElem)
 
 Return `a` if it lives in `R`.
@@ -2644,7 +3804,7 @@ function (R::SubquoModule)(a::SubquoModuleElem)
   error("illegal coercion")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     index_of_gen(v::SubquoModuleElem)
 
 Let $v \in G$ with $v$ the `i`th generator of $G$. Return `i`.
@@ -2699,7 +3859,7 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   return iszero(a-b)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 
 Given a vector `V` of elements of `F`, return the submodule of `F` generated by these elements.
@@ -2721,7 +3881,7 @@ function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_mo
   return return_sub_wrt_task(s, emb, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T} 
 
 Given a matrix `A`, return the submodule of `F` generated by the rows of `A`.
@@ -2738,14 +3898,14 @@ If `task = :only_morphism`, return only the inclusion map.
 """
 function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
   M = SubquoModule(SubModuleOfFreeModule(F, A)) 
-  #M = SubquoModule(F, A, zero(matrix_space(base_ring(F), 1, rank(F))))
+  #M = SubquoModule(F, A, zero_matrix(base_ring(F), 1, rank(F)))
   emb = hom(M, F, ambient_representatives_generators(M))
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
   return return_sub_wrt_task(M, emb, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
 
 Return `S` as a submodule of `F`, where `S` is generated by `O`.
@@ -2761,7 +3921,7 @@ function sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :wi
   return sub(F, s, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) where T
 
 Return `s` as a submodule of `F`, that is the embedding free module of `s` must 
@@ -2781,7 +3941,7 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) w
   return return_sub_wrt_task(s, emb, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
 
 Given a vector `V` of elements of `M`, return the submodule of `M` generated by these elements.
@@ -2808,7 +3968,7 @@ function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol 
   return return_sub_wrt_task(t, emb, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
 
 Given a vector `V` of elements of `M`, return the submodule of `M` generated by these elements.
@@ -2858,7 +4018,7 @@ function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_
  error("sub is not implemented for the given types.")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     return_sub_wrt_task(M::SubquoModule, emb::SubQuoHom, task::Symbol)
 
 This helper function returns `M`, `emb` or both according
@@ -2872,7 +4032,7 @@ function return_sub_wrt_task(M::SubquoModule, emb::SubQuoHom, task::Symbol)
   error("No valid option for task.")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 
 Given a vector `V` of elements of `F`, return the quotient of `F` by the submodule of `F` which is generated by these elements.
@@ -2894,7 +4054,7 @@ function quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_mo
   return return_quo_wrt_task(F, Q, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
 
 Given a matrix `A`, return the quotient of `F` by the submodule of `F` which is generated by 
@@ -2911,13 +4071,13 @@ Additionally, if `N` denotes this object,
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
-  E = one(matrix_space(base_ring(F), rank(F), rank(F)))
+  E = identity_matrix(base_ring(F), rank(F))
   Q = SubquoModule(F, E, A)
 
   return return_quo_wrt_task(F, Q, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
 
 Compute $F / T$, where $T$ is generated by $O$.
@@ -2935,7 +4095,7 @@ function quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :wi
   return return_quo_wrt_task(F, Q, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 
 Compute $F / T$, where $T$ is generated by $O$.
@@ -2961,7 +4121,7 @@ function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}, task::Symbol = :wi
   return return_quo_wrt_task(F, Q, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
 
 Given a vector `V` of elements of `M`, return the quotient of `M` by the submodule of `M` which is generated by these elements.
@@ -2980,7 +4140,7 @@ function quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol 
   return quo(M, [x.repres for x = V], task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
 
 Given a vector `V` of elements of `M`, return the quotient of `M` by the submodule of `M` which is generated by these elements.
@@ -3033,7 +4193,7 @@ function quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where T
 
 Return the quotient $M / U$.
@@ -3056,7 +4216,7 @@ function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphi
   return return_quo_wrt_task(M, Q, task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     quo(F::FreeMod{R}, T::SubquoModule{R}, task::Symbol = :with_morphism) where R
 
 Compute $F / T$.
@@ -3071,7 +4231,7 @@ function quo(F::FreeMod{R}, T::SubquoModule{R}, task::Symbol = :with_morphism) w
   return quo(F, gens(T), task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
 
 This helper function returns the module `Q = M / N` for some `N` 
@@ -3089,7 +4249,7 @@ function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
 """
 function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(oscar_generators(F)))) where {T <: MPolyRingElem}
@@ -3099,7 +4259,7 @@ function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(os
   return SubquoModule(sub, s)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     gens(M::SubquoModule{T}) where T
 
 Return the generators of `M`.
@@ -3108,7 +4268,7 @@ function gens(M::SubquoModule{T}) where T
   return SubquoModuleElem{T}[gen(M,i) for i=1:ngens(M)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     gen(M::SubquoModule{T}, i::Int) where T
 
 Return the `i`th generator of `M`.
@@ -3121,28 +4281,28 @@ function gen(M::SubquoModule{T}, i::Int) where T
   return SubquoModuleElem{T}(v, M)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ngens(M::SubquoModule)
 
 Return the number of generators of `M`.
 """
 ngens(M::SubquoModule) = ngens(M.sub)
 
-@doc Markdown.doc"""
+@doc raw"""
     base_ring(M::SubquoModule)
 
 Given an `R`-module `M`, return `R`.
 """
 base_ring(M::SubquoModule) = base_ring(M.F)
 
-@doc Markdown.doc"""
+@doc raw"""
     zero(M::SubquoModule)
 
 Return the zero element of `M`.
 """
 zero(M::SubquoModule) = SubquoModuleElem(SRow(base_ring(M)), M)
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(M::SubquoModule)
 
 Return `true` if `M` is the zero module, `false` otherwise.
@@ -3179,7 +4339,7 @@ function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     getindex(F::SubquoModule, i::Int)
 
 Return the `i`th generator of `F`.
@@ -3212,7 +4372,7 @@ end
 ### Chain Complexes
 ####################
 
-@doc Markdown.doc"""
+@doc raw"""
     chain_complex(V::ModuleFPHom...; seed::Int = 0)
 
 Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
@@ -3243,7 +4403,7 @@ end
 ### Cochain Complexes
 ####################
 
-@doc Markdown.doc"""
+@doc raw"""
     cochain_complex(V::ModuleFPHom...; seed::Int = 0)
 
 Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
@@ -3270,7 +4430,7 @@ end
 
 ####################
 
-@doc Markdown.doc"""
+@doc raw"""
     presentation(M::SubquoModule)
 
 Return a free presentation of `M`. 
@@ -3279,7 +4439,13 @@ function presentation(SQ::SubquoModule)
   #A+B/B is generated by A and B
   #the relations are A meet B? written wrt to A
   R = base_ring(SQ)
-  F = FreeMod(R, ngens(SQ.sub))
+  if is_graded(SQ)
+    h_F_SQ = graded_map(SQ, gens(SQ))
+    F = domain(h_F_SQ)
+  else
+    F = FreeMod(R, ngens(SQ.sub))
+    h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
+  end
   set_attribute!(F,  :name => "br^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
@@ -3287,7 +4453,11 @@ function presentation(SQ::SubquoModule)
       q = [FreeModElem(coordinates(g), F) for g in gens(SQ.quo)]
     end
   else
-    s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
+    if is_graded(SQ)
+      s, _ = kernel(graded_map(ambient_free_module(SQ), gens(SQ.sum)))
+    else
+      s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
+    end
     #s = syzygy_module(SQ.sum.gens)
     #TODO: wait for Hans to release Modulo(A, B) that does exactly this
     c = collect(s.sub.gens)
@@ -3316,29 +4486,40 @@ function presentation(SQ::SubquoModule)
   #              R^a           1
   # so 0 has index -2, hence seed has to be -2
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
-  G = FreeMod(R, length(q))
+  if is_graded(SQ)
+    h_G_F = graded_map(F, q)
+    G = domain(h_G_F)
+  else
+    G = FreeMod(R, length(q))
+    h_G_F = hom(G, F, q)
+  end
   set_attribute!(G, :name => "br^$(length(q))")
-  h_G_F = hom(G, F, q)
-  h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
-
-  Z = FreeMod(F.R, 0)
+  if is_graded(SQ)
+    Z = graded_free_module(F.R, 0)
+  else
+    Z = FreeMod(F.R, 0)
+  end
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
   return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     presentation(F::FreeMod)
 
 Return a free presentation of $F$.
 """
 function presentation(F::FreeMod)
-  Z = FreeMod(F.R, 0)
+  if is_graded(F)
+    Z = graded_free_module(F.R, 0)
+  else
+    Z = FreeMod(F.R, 0)
+  end
   set_attribute!(Z, :name => "0")
   return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     presentation(M::ModuleFP)
 
 Return a free presentation of $M$.
@@ -3361,12 +4542,214 @@ julia> rank(P[1])
 julia> rank(P[0])
 2
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, [1,2,2]);
+
+julia> p = presentation(F)
+C_1 ----> C_0 ----> C_-1 ----> C_-2
+
+julia> p[-2]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^0 of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> p[-1]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> p[0]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> p[1]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^0 of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> map(p,-1)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) -> 0
+e[1] -> 0
+e[2] -> 0
+e[3] -> 0
+Homogeneous module homomorphism
+
+julia> map(p,0)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2])
+e[1] -> e[1]
+e[2] -> e[2]
+e[3] -> e[3]
+Homogeneous module homomorphism
+
+julia> map(p,1)
+0 -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2])
+Homogeneous module homomorphism
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> P = presentation(M)
+C_1 ----> C_0 ----> C_-1 ----> C_-2
+
+julia> P[-2]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^0 of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> P[-1]
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> P[0]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-1]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> P[1]
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-5]) of rank 5 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> map(P,-1)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> 0
+x*e[1] -> 0
+y*e[1] -> 0
+Homogeneous module homomorphism
+
+julia> map(P,0)
+br^2 -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+e[1] -> x*e[1]
+e[2] -> y*e[1]
+Homogeneous module homomorphism
+
+julia> map(P,1)
+br^5 -> br^2
+e[1] -> x*e[1]
+e[2] -> -y*e[1] + x*e[2]
+e[3] -> y^2*e[2]
+e[4] -> z^4*e[1]
+e[5] -> z^4*e[2]
+Homogeneous module homomorphism
+
+```
 """
 function presentation(M::ModuleFP)
  error("presentation is not implemented for the given types.")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
 
 Return a subquotient $M = R^n / im(f) $, i.e. $M = \text{coker}(f)$, such that
@@ -3377,6 +4760,56 @@ If `task` is set to `:cache_morphism` then the isomorphism is cached.
 If `task` is set to `:only_morphism` then return only the isomorphism.
 
 # Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> present_as_cokernel(M, :all)
+(Graded subquotient of submodule of br^2 generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of br^2 generated by
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2], Graded subquotient of submodule of br^2 generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of br^2 generated by
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+e[1] -> x*e[1]
+e[2] -> y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   chainComplex = presentation(SQ)
@@ -3403,13 +4836,61 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   return presentation_module, isomorphism
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
 
 If $M = N$ (mathematically, but with (possibly) different generating systems), return $\phi : M \to N$ 
 which is mathematically the identity. 
 If `task == :inverse` also the inverse map is computed and cached (in the morphism).
 If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> is_equal_with_morphism(M, M)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*e[1]
+y*e[1] -> y*e[1]
+Homogeneous module homomorphism
+
+```
 """
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
   @assert M == N
@@ -3434,7 +4915,7 @@ end
 # SubQuoHom constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where T
 
 Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
@@ -3443,7 +4924,7 @@ In particular, `length(im) == ngens(D)` must hold.
 SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
 SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
 
-@doc Markdown.doc"""
+@doc raw"""
     SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T})
 
 Return the morphism $D \to C$ corresponding to the given matrix, where $D$ is a subquotient.
@@ -3461,9 +4942,44 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
   end
 end
 
+function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  domain_gens = gens(domain(fmh))
+  if is_graded(fmh)
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:length(domain_gens)
+        print(io, domain_gens[i], " -> ")
+        print(io_compact, fmh(domain_gens[i]))
+        print(io, "\n")
+      end
+      A = grading_group(fmh)
+      if degree(fmh) == A[0]
+        print(io, "Homogeneous module homomorphism")
+      else
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
+      end
+    end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    println(io, codomain(fmh))
+  end
+end
+
+
 ###################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 
 Given a vector `V` of `ngens(M)` elements of `N`, 
@@ -3579,6 +5095,148 @@ julia> c = hom(M, N, W);
 julia> is_welldefined(c)
 false
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_welldefined(a)
+true
+
+julia> W = Rg[y^2 0; 0 x^2]
+[y^2     0]
+[  0   x^2]
+
+julia> b = hom(M, N, W)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> a == b
+true
+
+julia> W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia> c = hom(M, N, W)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y*e[1]
+y*e[1] -> x*y*e[1]
+Graded module homomorphism of degree [1]
+
+julia> is_welldefined(c)
+false
+
+```
 """
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {RingMapType, T} = SubQuoHom(M, N, V, h) 
@@ -3611,7 +5269,7 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
 end
 ###################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(a::SubQuoHom)
 
 Given a homomorphism `a` of type  `SubQuoHom` with domain `M`
@@ -3657,6 +5315,74 @@ julia> A = matrix(a)
 julia> a(M[1])
 x*y^2*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> matrix(a)
+[y^2     0]
+[  0   x^2]
+
+```
 """
 function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
@@ -3676,7 +5402,7 @@ function show_morphism(f::ModuleFPHom)
   display(matrix(f))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
 
 Given modules `M`, `N` which are tensor products with the same number of factors,
@@ -3707,7 +5433,7 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
   return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
 
 Given modules `M`, `N` which are products with the same number of factors,  
@@ -3758,7 +5484,7 @@ function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRin
   return sparse_row(Rx, s[1], 1:ngens(generators))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(a::FreeModElem{T}, generators::ModuleGens{T})
 
 Compute a sparse row `r` such that `a = sum([r[i]*gen(generators,i) for i in 1:ngens(generators)])`.
@@ -3772,7 +5498,7 @@ function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: M
   return lift(a, generators)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
 
 Let `generators` be a Gröbner basis and let `A*M = generators`.
@@ -3807,7 +5533,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   return mul(coords_wrt_groebner_basis,sparse_matrix(A))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)
 
 Compute a sparse row `r` such that `a = sum([r[i]*gen(M,i) for i in 1:ngens(M)])`.
@@ -3868,7 +5594,7 @@ function lift_std(M::SubModuleOfFreeModule)
   return gb, transform
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coordinates(a::FreeModElem, SQ::SubquoModule, task::Symbol = :auto)
 
 Compute a sparse row `r` such that `a` is a representative of `SubquoModuleElem(r, SQ)`.
@@ -3887,7 +5613,7 @@ function coordinates(a::FreeModElem, SQ::SubquoModule, task::Symbol = :auto)
   return coords[1:ngens(SQ)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     in(a::FreeModElem, M::SubModuleOfFreeModule)
 
 Check if `a` is an element of `M`.
@@ -3897,7 +5623,7 @@ function in(a::FreeModElem, M::SubModuleOfFreeModule)
   return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     represents_element(a::FreeModElem, SQ::SubquoModule)
 
 Check if `a` represents an element `SQ`.
@@ -3906,7 +5632,7 @@ function represents_element(a::FreeModElem, SQ::SubquoModule)
   return in(a, SQ.sum)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_form(M::ModuleGens, GB::ModuleGens)
 
 Compute a normal form of `M` (that is of each element of `M`) with respect to the Gröbner basis `GB`.
@@ -3926,7 +5652,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
   return res
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_form_with_unit(M::ModuleGens, GB::ModuleGens)
 
 Compute a normal form of `M` (that is of each element of `M`) with respect to the Gröbner basis `GB`.
@@ -3957,7 +5683,7 @@ function normal_form_with_unit_and_coefficients(M::ModuleGens{T}, GB::ModuleGens
   error("Not yet implemented")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_form(v::AbstractFreeModElem, GB::ModuleGens)
 
 Compute a normal_form of `v` with respect to the Gröbner basis `GB`.
@@ -3967,7 +5693,7 @@ function normal_form(v::AbstractFreeModElem, GB::ModuleGens)
   return normal_form(ModuleGens([v], parent(v)), GB).O[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_form_with_unit(v::AbstractFreeModElem, GB::ModuleGens)
 
 Compute a normal form of `v` with respect to the Gröbner basis `GB`.
@@ -3982,7 +5708,7 @@ function normal_form_with_unit(v::AbstractFreeModElem, GB::ModuleGens)
   return red[1], unit[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reduce(M::ModuleGens, GB::ModuleGens)
 
 Reduce `M` with respect to the Gröbner basis `GB`.
@@ -4007,7 +5733,7 @@ function normal_form(v::AbstractFreeModElem{T}, N::SubModuleOfFreeModule{T}) whe
   error("Not yet implemented")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reduce(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
 Reduce `M` with respect to `N`, that is with respect to a Gröbner basis of `N` (the Gröbner basis is computed for this).
@@ -4016,7 +5742,7 @@ function reduce(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return SubModuleOfFreeModule(M.F, reduce(M.gens, groebner_basis(N, default_ordering(M))))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reduce(v::FreeModElem, GB::ModuleGens)
 
 Reduce the element `v` with respect to the Gröbner basis `GB`.
@@ -4027,7 +5753,7 @@ function reduce(v::AbstractFreeModElem, GB::ModuleGens)
   return normal_form(v, GB)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reduce(v::FreeModElem, N::SubModuleOfFreeModule)
 
 Reduce the element `v` with respect to a Gröbner basis of `N`.
@@ -4036,7 +5762,7 @@ function reduce(v::AbstractFreeModElem, N::SubModuleOfFreeModule)
   return reduce(v, groebner_basis(N))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     reduce(v::FreeModElem, N::SubquoModule)
 
 Let `N` be a submodule of a free module (that is, `N` has no quotient).
@@ -4047,7 +5773,7 @@ function reduce(v::AbstractFreeModElem, N::SubquoModule)
   return reduce(v, groebner_basis(N))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     image(a::SubQuoHom, m::SubquoModuleElem)
 
 Return the image $a(m)$.
@@ -4074,7 +5800,7 @@ function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModul
   return i
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     image(f::SubQuoHom, a::FreeModElem)
 
 Return $f(a)$. `a` must represent an element in the domain of `f`.
@@ -4087,7 +5813,7 @@ function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::FreeModElem
   return image(f, SubquoModuleElem(a, domain(f)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     preimage(f::SubQuoHom, a::Union{SubquoModuleElem,FreeModElem})
 
 Compute a preimage of `a` under `f`.
@@ -4120,7 +5846,7 @@ end
 (f::SubQuoHom)(a::FreeModElem) = image(f, SubquoModuleElem(a, domain(f)))
 (f::SubQuoHom)(a::SubquoModuleElem) = image(f, a)
 
-@doc Markdown.doc"""
+@doc raw"""
     is_zero(m::SubquoModuleElem)
 
 Return `true` if `m` is zero, `false` otherwise.
@@ -4157,6 +5883,54 @@ false
 julia> is_zero(x*M[1])
 true
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1)
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> A = Rg[x; y]
+[x]
+[y]
+
+julia> B = Rg[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> is_zero(M[1])
+false
+
+julia> is_zero(x*M[1])
+true
+
+```
 """
 function is_zero(m::SubquoModuleElem)
   is_zero(ambient_representative(m)) && return true
@@ -4173,15 +5947,144 @@ function iszero(m::SubquoModuleElem{<:MPolyRingElem})
   return iszero(x)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(F::FreeMod, G::FreeMod)
 
-Return a subquotient $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
+Return a free module $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
 that converts elements from $S$ into morphisms $F \to G$.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> F2 = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> V, f = hom(F1, F2)
+(hom of (Multivariate Polynomial Ring in x, y, z over Rational Field^3, Multivariate Polynomial Ring in x, y, z over Rational Field^2), Map from
+hom of (Multivariate Polynomial Ring in x, y, z over Rational Field^3, Multivariate Polynomial Ring in x, y, z over Rational Field^2) to Set of all homomorphisms from Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field to Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field defined by a julia-function with inverse)
+
+julia> f(V[1])
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [1,2,2])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> F2 = graded_free_module(Rg, [3,5])
+Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V, f = hom(F1, F2)
+(hom of (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]), Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5])), Map from
+hom of (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]), Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5])) to Set of all homomorphisms from Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] to Graded free module Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5]) of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse)
+
+julia> f(V[1])
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-1]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([-2]) -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-3]) + Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([-5])
+e[1] -> e[1]
+e[2] -> 0
+e[3] -> 0
+Graded module homomorphism of degree [2]
+
+```
 """
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
-  GH = FreeMod(F.R, rank(F) * rank(G))
+  @assert is_graded(F) == is_graded(G)
+  if is_graded(F)
+    d = [y - x for x in degrees(F) for y in degrees(G)]
+    GH = graded_free_module(F.R, d)
+  else
+    GH = FreeMod(F.R, rank(F) * rank(G))
+  end
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
 
   #list is g1 - f1, g2-f1, g3-f1, ...
@@ -4209,7 +6112,7 @@ function hom(F::FreeMod, G::FreeMod)
   return GH, to_hom_map
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel(a::FreeModuleHom)
 
 Return the kernel of `a` as an object of type `SubquoModule`.
@@ -4242,7 +6145,49 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+)
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> kernel(a)
+(Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0])
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0])
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0])
+x*z*e[1] - y*z*e[2] + y^2*e[3] -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+Homogeneous module homomorphism)
+
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -4275,7 +6220,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   return k, hom(k, parent(c[1]), c)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     image(a::FreeModuleHom)
 
 Return the image of `a` as an object of type `SubquoModule`.
@@ -4312,7 +6257,55 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+)
+```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> image(a)
+(Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations, Graded submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations -> Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+y*e[1] -> y*e[1]
+x*e[1] + y*e[2] -> x*e[1] + y*e[2]
+z*e[2] -> z*e[2]
+Homogeneous module homomorphism)
+
 ```
 """
 function image(h::FreeModuleHom)
@@ -4321,7 +6314,7 @@ function image(h::FreeModuleHom)
   return s, hom(s, codomain(h), si)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     image(a::SubQuoHom)
 
 Return the image of `a` as an object of type `SubquoModule`.
@@ -4334,7 +6327,7 @@ function image(h::SubQuoHom)
   return s, hom(s, codomain(h), h_image_vector)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     image(a::ModuleFPHom)
 
 Return the image of `a` as an object of type `SubquoModule`.
@@ -4443,12 +6436,124 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> image(a)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*y^2*e[1] -> x*y^2*e[1]
+x^2*y*e[1] -> x^2*y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function image(a::ModuleFPHom)
- error("kernel is not implemented for the given types.")
+ error("image is not implemented for the given types.")
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel(a::SubQuoHom)
 
 Return the kernel of `a` as an object of type `SubquoModule`.
@@ -4469,7 +6574,7 @@ function kernel(h::SubQuoHom)
   return k, hom(k, D, im)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     kernel(a::ModuleFPHom)
 
 Return the kernel of `a` as an object of type `SubquoModule`.
@@ -4576,12 +6681,131 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+
+julia> Z = abelian_group(0)
+GrpAb: Z
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> kernel(a)
+(Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+-y*e[1] -> -y*e[1]
+(x^2 - y^2)*e[1] -> (x^2 - y^2)*e[1]
+-x*y*e[1] -> -x*y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function kernel(a::ModuleFPHom)
  error("kernel is not implemented for the given types.")
 end
 
-@doc Markdown.doc"""
+function map(FR::FreeResolution, i::Int)
+  return map(FR.C, i)
+end
+
+@doc raw"""
     free_resolution(F::FreeMod)
 
 Return a free resolution of `F`.
@@ -4591,10 +6815,10 @@ Return a free resolution of `F`.
 function free_resolution(F::FreeMod)
   res = presentation(F)
   #set_attribute!(res, :show => Hecke.free_show, :free_res => F)
-  return res
+  return FreeResolution(res)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_complete(FR::FreeResolution)
 
 Return `true` if the free resolution `fr` is complete, otherwise return `false`.
@@ -4646,6 +6870,23 @@ true
 """
 is_complete(FR::FreeResolution) = FR.C.complete
 
+function chain_range(FR::FreeResolution)
+  return Hecke.range(FR.C)
+end
+
+function map_range(FR::FreeResolution)
+  return Hecke.map_range(FR.C)
+end
+
+function chain_range(C::ComplexOfMorphisms)
+  return Hecke.range(C)
+end
+
+function map_range(C::ComplexOfMorphisms)
+  return Hecke.map_range(C)
+end
+
+
 #= Fill functions (and helpers) for Hecke ComplexOfMorphismses in terms of free resolutions =#
 function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
@@ -4692,11 +6933,19 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   j   = 2
 
   while j <= Singular.length(res)
-    codom = dom
-    dom   = free_module(br, Singular.ngens(res[j]))
-    SM    = SubModuleOfFreeModule(codom, res[j])
-    generator_matrix(SM)
-    map = hom(dom, codom, SM.matrix)
+    if is_graded(dom)
+      codom = dom
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      map = graded_map(codom, SM.matrix)
+      dom = domain(map)
+    else
+      codom = dom
+      dom   = free_module(br, Singular.ngens(res[j]))
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      map = hom(dom, codom, SM.matrix)
+    end
     pushfirst!(cc, map) 
     j += 1
   end
@@ -4710,7 +6959,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   return map(cc, idx)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_resolution(M::SubquoModule{<:MPolyRingElem}; 
         ordering::ModuleOrdering = default_ordering(M),
         length::Int=0, algorithm::Symbol=:fres
@@ -4793,6 +7042,14 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
+
+  if ngens(kernel_entry) == 0
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+    cc.fill     = _extend_free_resolution
+    cc.complete = true
+    return FreeResolution(cc)
+  end
+
   singular_free_module  = singular_module(ambient_free_module(kernel_entry))
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
@@ -4819,18 +7076,34 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   dom = domain(pm.maps[1])
   j   = 2
   while j <= Singular.length(res)
-    codom = dom
-    rk    = Singular.ngens(res[j])
-    dom   = free_module(br, rk)
-    SM    = SubModuleOfFreeModule(codom, res[j])
-    generator_matrix(SM)
-    set_attribute!(dom, :name => "br^$rk")
-    insert!(maps, 1, hom(dom, codom, SM.matrix))
-    j += 1
+    if is_graded(dom)
+      codom = dom
+      rk    = Singular.ngens(res[j])
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      ff = graded_map(codom, SM.matrix)
+      dom = domain(ff)
+      set_attribute!(dom, :name => "br^$rk")
+      insert!(maps, 1, ff)
+      j += 1
+    else
+      codom = dom
+      rk    = Singular.ngens(res[j])
+      dom   = free_module(br, rk)
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      set_attribute!(dom, :name => "br^$rk")
+      insert!(maps, 1, hom(dom, codom, SM.matrix))
+      j += 1
+    end
   end
   if cc_complete == true
     # Finalize maps.
-    Z = FreeMod(br, 0)
+    if is_graded(domain(maps[1]))
+      Z = graded_free_module(br, 0)
+    else
+      Z = FreeMod(br, 0)
+    end
     set_attribute!(Z, :name => "0")
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
   end
@@ -4852,7 +7125,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
     # TODO: Use official getter and setter methods instead 
     # of messing manually with the internals of the complex.
-    for i in first(range(C)):k-1
+    for i in first(chain_range(C)):k-1
       N = domain(map(C, i))
 
       if iszero(N) # Fill up with zero maps
@@ -4875,7 +7148,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
 
 Return a free resolution of `M`.
@@ -4892,25 +7165,33 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
-      Z = FreeMod(base_ring(M), 0)
-      set_attribute!(Z, :name => "0")
-      h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+      if is_graded(domain(mp[1]))
+        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+      else
+        Z = FreeMod(base_ring(M), 0)
+        set_attribute!(Z, :name => "0")
+        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+      end
       insert!(mp, 1, h)
       break
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeMod(base_ring(M), length(nz))
-    g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
+    if is_graded(codomain(mk))
+      g = graded_map(codomain(mk), collect(k.sub.gens)[nz])
+    else
+      F = FreeMod(base_ring(M), length(nz))
+      g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
+    end
     insert!(mp, 1, g)
   end
-  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false)
+  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
-  return C
+  return FreeResolution(C)
 end
 
 function Hecke.ring(I::MPolyIdeal)
-  return parent(gen(I, 1))
+  return base_ring(I)
 end
 
 # We can not use the signature with T because the MPolyQuoIdeals are 
@@ -4918,10 +7199,10 @@ end
 #function *(I::Ideal{T}, M::ModuleFP{T}) where {T<:RingElem}
 function *(I::Ideal, M::ModuleFP)
   base_ring(I) === base_ring(M) || error("ideal and module are not defined over the same ring")
-  return sub(M, [g*e for g in gens(I) for e in gens(M)])
+  return sub(M, elem_type(M)[g*e for g in gens(I) for e in gens(M)])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_to_module(I::MPolyIdeal{T}, F::FreeMod{T})
 
 Convert the ideal `I` into a submodule of `F`. If the rank of `F`
@@ -4932,7 +7213,7 @@ function ideal_to_module(I::MPolyIdeal{T}, F::FreeMod{T}) where T
   return sub(F, [x*gen(F,1) for x in gens(I)], :module)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ideal_to_module(I::MPolyIdeal)
 
 Convert the ideal `I` into a submodule.
@@ -4942,7 +7223,7 @@ function ideal_to_module(I::MPolyIdeal)
   return ideal_to_module(I, F)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_resolution(I::MPolyIdeal)
 
 Compute a free resolution of `I`.
@@ -4950,7 +7231,11 @@ Compute a free resolution of `I`.
 # Examples
 """
 function free_resolution(I::MPolyIdeal)
-  F = free_module(Hecke.ring(I), 1)
+  if is_graded(I)
+    F = graded_free_module(Hecke.ring(I), 1)
+  else
+    F = free_module(Hecke.ring(I), 1)
+  end
   S = sub(F, [x * gen(F, 1) for x = gens(I)], :module)
   n = Hecke.find_name(I)
   if n !== nothing
@@ -4959,7 +7244,7 @@ function free_resolution(I::MPolyIdeal)
   return free_resolution(S)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     free_resolution(Q::MPolyQuoRing)
 
 Compute a free resolution of `Q`.
@@ -4967,8 +7252,13 @@ Compute a free resolution of `Q`.
 # Examples
 """
 function free_resolution(Q::MPolyQuoRing)
-  F = FreeMod(Q, 1)
-  q = quo(F, [Q(x) * gen(F, 1) for x = gens(Q.I)], :module)
+  br = base_ring(Q)
+  if is_graded(Q)
+    F = graded_free_module(br, 1)
+  else
+    F = free_module(br, 1)
+  end
+  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)], :module)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
@@ -4976,7 +7266,7 @@ function free_resolution(Q::MPolyQuoRing)
   return free_resolution(q)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     iszero(f::ModuleFPHom)
 
 Return true iff `f` is the zero map.
@@ -4985,7 +7275,7 @@ function iszero(f::ModuleFPHom)
   return all(iszero, map(f, gens(domain(f))))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(M::ModuleFP, N::ModuleFP)
 
 Return the module `Hom(M,N)` as an object of type `SubquoModule`.
@@ -5009,15 +7299,15 @@ by Submodule with 2 generators
 2 -> y^2*e[2]
 
 julia> H = hom(M, M)[1]
-hom of (Subquotient of Submodule with 2 generators
+hom of (Subquotient of
 1 -> e[1]
 2 -> e[2]
-by Submodule with 2 generators
+by
 1 -> x*e[1]
-2 -> y^2*e[2], Subquotient of Submodule with 2 generators
+2 -> y^2*e[2], Subquotient of
 1 -> e[1]
 2 -> e[2]
-by Submodule with 2 generators
+by
 1 -> x*e[1]
 2 -> y^2*e[2])
 
@@ -5034,9 +7324,12 @@ julia> relations(H)
  y^2*(e[2] -> e[2])
 ```
 """
-function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  if alg == :matrices && M isa SubquoModule && N isa SubquoModule
+  if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
+    if is_graded(M) && is_graded(N)
+      error("This algorithm is not implemented for graded modules.")
+    end
     return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
@@ -5087,7 +7380,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
   return H_simplified, to_hom_map
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     element_to_homomorphism(f::ModuleFPElem)
 
 If `f` is an element of a module created via `hom(M,N)`, for some modules `M` and `N`, 
@@ -5153,7 +7446,7 @@ function element_to_homomorphism(f::ModuleFPElem)
   return to_hom_map(f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
 
 If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
@@ -5210,7 +7503,7 @@ function homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
   return map_to_hom(a)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     multiplication_morphism(a::RingElem, M::ModuleFP)
 
 Return the multiplication by `a` as an endomorphism on `M`.
@@ -5220,7 +7513,7 @@ function multiplication_morphism(a::RingElem, M::ModuleFP)
   return hom(M, M, [a*v for v in gens(M)])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     multiplication_morphism(a::FreeModElem, M::ModuleFP)
 
 Return the multiplication by `a` as an endomorphism on `M`. For this,
@@ -5231,7 +7524,7 @@ function multiplication_morphism(a::FreeModElem, M::ModuleFP)
   return multiplication_morphism(a[1], M)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
 
 Let `H` be the module of endomorphisms on a module `M`. (If this is not
@@ -5252,7 +7545,7 @@ end
 #  replace the +/- for the homs by proper constructors for homs and direct sums
 #  relshp to store the maps elsewhere
 
-@doc Markdown.doc"""
+@doc raw"""
     *(a::ModuleFPHom, b::ModuleFPHom)
 
 Return the composition `b` $\circ$ `a`.
@@ -5320,7 +7613,7 @@ function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     restrict_codomain(H::ModuleFPHom, M::SubquoModule)
 
 Return, if possible, a homomorphism, which is mathematically identical to `H`,
@@ -5331,7 +7624,7 @@ function restrict_codomain(H::ModuleFPHom, M::SubquoModule)
   return hom(D, M, map(v -> SubquoModuleElem(v, M), map(x -> repres(H(x)), gens(D))))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     restrict_domain(H::SubQuoHom, M::SubquoModule)
 
 Restrict the morphism `H` to `M`. For this `M` has to be a submodule
@@ -5352,7 +7645,7 @@ function restrict_domain(H::SubQuoHom, M::SubquoModule)
   return i*H
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     induced_map(f::FreeModuleHom, M::SubquoModule, check::Bool = true)
 
 Return the map which sends an element `v` of `M` to `f(repres(v))`.
@@ -5367,7 +7660,7 @@ function induced_map(f::FreeModuleHom, M::SubquoModule, check::Bool = true)
   return ind_f
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     inv(a::ModuleFPHom)
 
 If `a` is bijective, return its inverse.
@@ -5390,7 +7683,7 @@ end
 ##################################################
 # direct product
 ##################################################
-@doc Markdown.doc"""
+@doc raw"""
     direct_product(F::FreeMod{T}...; task::Symbol = :prod) where T
 
 Given free modules $F_1\dots F_n$, say, return the direct product $\prod_{i=1}^n F_i$.
@@ -5404,6 +7697,10 @@ Additionally, return
 function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   R = base_ring(F[1])
   G = FreeMod(R, sum([rank(f) for f = F]))
+  all_graded = all(is_graded, F)
+  if all_graded
+    G.d = vcat([f.d for f in F]...)
+  end
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -5455,7 +7752,7 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
 
 Given modules $M_1\dots M_n$, say, return the direct product $\prod_{i=1}^n M_i$.
@@ -5519,7 +7816,7 @@ end
 ##################################################
 # direct sum
 ##################################################
-@doc Markdown.doc"""
+@doc raw"""
     direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where T
 
 Given modules $M_1\dots M_n$, say, return the direct sum $\bigoplus_{i=1}^n M_i$.  
@@ -5549,7 +7846,7 @@ end
 ⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     Hecke.canonical_injection(G::ModuleFP, i::Int)
 
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
@@ -5570,7 +7867,7 @@ function Hecke.canonical_injection(G::ModuleFP, i::Int)
   return emb
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Hecke.canonical_projection(G::ModuleFP, i::Int)
 
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
@@ -5595,7 +7892,7 @@ end
 # Tensor
 ##################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     tensor_product(F::FreeMod...; task::Symbol = :none)
 
 Given a collection of free modules, say, $F_1, \dots, F_n$ over a ring $R$, return $F_1\otimes_R \cdots \otimes_R F_n$.
@@ -5604,6 +7901,10 @@ Given a collection of free modules, say, $F_1, \dots, F_n$ over a ring $R$, retu
 If `task = :map`, additionally return the map which sends a tuple $(f_1,\dots, f_n)$ of elements $f_i\in F_i$ to the pure tensor $f_1\otimes\dots\otimes f_n$.
 """
 function tensor_product(G::FreeMod...; task::Symbol = :none)
+  gs = [is_graded(g) for g in G]
+  if !all(gs) && !all(!x for x in gs)
+    error("All factors must either be graded or all must be ungraded.")
+  end
   s = G[1].S
   t = [[x] for x = 1:ngens(G[1])]
   for H = G[2:end]
@@ -5649,6 +7950,11 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
 
+  if all(is_graded(g) for g in G)
+    tensor_degrees = [sum(G[i].d[tplidx[i]] for i in 1:length(G)) for tplidx in t] 
+    F.d = tensor_degrees
+  end
+
   if task == :none
     return F
   end
@@ -5658,7 +7964,7 @@ end
 
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_free_module(F::FreeMod)
 
 Just return `F`. This function exists only for compatibility reasons.
@@ -5667,7 +7973,7 @@ function ambient_free_module(F::FreeMod)
   return F
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_module(F::FreeMod, task = :none)
 
 Just return `F`. This function exists only for compatibility reasons.
@@ -5682,7 +7988,7 @@ function ambient_module(F::FreeMod, task = :none)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_free_module(M::SubquoModule)
 
 Return the ambient free module of `M`.
@@ -5691,7 +7997,7 @@ function ambient_free_module(M::SubquoModule)
   return M.F
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_module(M::SubquoModule, task = :none)
 
 If $M = (P + Q) / Q$ then return $F / Q$ where `F == ambient_free_module(M)`.
@@ -5717,7 +8023,7 @@ function ambient_module(M::SubquoModule, task = :none)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_representatives_generators(F::FreeMod)
 
 Return the generators of `F`. This function exists only for 
@@ -5729,7 +8035,7 @@ end
 
 rels(F::FreeMod) = elem_type(F)[]
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_representatives_generators(M::SubquoModule)
 
 Return elements of the ambient free module of `M` which represent the generators of `M`.
@@ -5740,21 +8046,21 @@ function ambient_representatives_generators(M::SubquoModule)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     rels(M::SubquoModule)
 
 Return the relations of `M`.
 """
 rels(M::SubquoModule) = isdefined(M, :quo) ? collect(M.quo.gens) : elem_type(M.F)[]
 
-@doc Markdown.doc"""
+@doc raw"""
     relations(M::SubquoModule)
 
 Return the relations of `M`.
 """
 relations(M::SubquoModule) = rels(M)
 
-@doc Markdown.doc"""
+@doc raw"""
     tensor_product(M::ModuleFP...; task::Symbol = :none)
 
 Given a collection of modules, say, $M_1, \dots, M_n$ over a ring $R$, return $M_1\otimes_R \cdots \otimes_R M_n$.
@@ -5849,7 +8155,7 @@ end
 #############################
 # Tor
 #############################
-@doc Markdown.doc"""
+@doc raw"""
     tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 
 Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
@@ -5857,7 +8163,7 @@ Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
-  tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
+  tensor_modules = [tensor_product(P, domain(map(C,first(chain_range(C)))), task=:cache_morphism)[1]]
   append!(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in Hecke.map_range(C)])
 
   for i in 1:length(Hecke.map_range(C))
@@ -5871,7 +8177,12 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-@doc Markdown.doc"""
+function tensor_product(M::ModuleFP, F::FreeResolution)
+  return tensor_product(M, F.C)
+end
+
+
+@doc raw"""
     tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
@@ -5895,7 +8206,11 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-@doc Markdown.doc"""
+function tensor_product(F::FreeResolution, M::ModuleFP)
+  return tensor_product(F.C, M)
+end
+
+@doc raw"""
     tor(M::ModuleFP, N::ModuleFP, i::Int)
 
 Return $\text{Tor}_i(M,N)$.
@@ -5939,7 +8254,7 @@ represented as subquotient with no relations.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
-  lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
+  lifted_resolution = tensor_product(free_res.C[first(chain_range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
@@ -5952,7 +8267,7 @@ simplify_light(F::FreeMod) = F
 #################################################
 #
 #################################################
-@doc Markdown.doc"""
+@doc raw"""
     lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, a::ModuleFPHom)
 
 Given modules of homomorphism, say, `Hom_MP` $= \text{Hom}(M,P)$ and `Hom_NP` $= \text{Hom}(N,P)$, 
@@ -5976,7 +8291,7 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
   return phi_lifted
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, a::ModuleFPHom)
 
 Given modules of homomorphism, say, `Hom_PM` $= \text{Hom}(P,M)$ and `Hom_PN` $= \text{Hom}(P,N)$,
@@ -6003,7 +8318,7 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
   return phi_lifted
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 
 Return the complex obtained by applying $\text{Hom}($`M`, $-)$ to `C`.
@@ -6026,7 +8341,11 @@ function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   return Hecke.ComplexOfMorphisms(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
 end
 
-@doc Markdown.doc"""
+function hom(M::ModuleFP, F::FreeResolution)
+  return hom(M, F.C)
+end
+
+@doc raw"""
     hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
@@ -6080,7 +8399,11 @@ function hom(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
   return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
 end
 
-@doc Markdown.doc"""
+function hom(F::FreeResolution, M::ModuleFP)
+  return hom(F.C, M)
+end
+
+@doc raw"""
     hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
@@ -6118,23 +8441,28 @@ function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, 
   #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
-  chain_range = Hecke.map_range(C)
-  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  m_range = Hecke.map_range(C)
+  hom_modules = [hom(domain(map(C,first(m_range))),P)]
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in m_range])
 
-  for i=1:length(chain_range)
+  for i=1:length(m_range)
     A = hom_modules[i][1]
     B = hom_modules[i+1][1]
 
-    j = chain_range[i]
+    j = m_range[i]
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(range(C)), typ=C.typ)
+  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(chain_range(C)), typ=C.typ)
 end
 
+function hom_without_reversing_direction(F::FreeResolution, M::ModuleFP)
+  return hom_without_reversing_direction(F.C, M)
+end
+
+
 #############################
-@doc Markdown.doc"""
+@doc raw"""
     homology(C::ComplexOfMorphisms{<:ModuleFP})
 
 Return the homology of `C`.
@@ -6177,7 +8505,12 @@ function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
   return [homology(C,i) for i in Hecke.range(C)]
 end
 
-@doc Markdown.doc"""
+function homology(C::FreeResolution)
+  return homology(C.C)
+end
+
+
+@doc raw"""
     homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 
 Return the `i`-th homology module of `C`.
@@ -6229,7 +8562,7 @@ end
 #############################
 # Ext
 #############################
-@doc Markdown.doc"""
+@doc raw"""
     ext(M::ModuleFP, N::ModuleFP, i::Int)
 
 Return $\text{Ext}^i(M,N)$.
@@ -6289,7 +8622,7 @@ end
 #############################
 # TODO ?
 #############################
-@doc Markdown.doc"""
+@doc raw"""
     find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
 
 Compute a path from `N` to `M` in the graph of cached (canonical) morphisms.
@@ -6308,7 +8641,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
     for H in A.incoming_morphisms
       B = domain(H)
       if B!==A # on trees "B!==A" is enough!
-        if findfirst(x->x===B,modules) == nothing #if !(B in modules) doesn't work since it uses == instead of ===
+        if findfirst(x->x===B,modules) === nothing #if !(B in modules) doesn't work since it uses == instead of ===
           parent_hom[B] = H
           push!(modules,B)
         end
@@ -6335,7 +8668,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   return morphisms
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     transport(M::SubquoModule, v::SubquoModuleElem)
 
 Map the element `v` to an element of the module `M` using cached 
@@ -6349,7 +8682,7 @@ function transport(M::SubquoModule, v::SubquoModuleElem)
   return foldl((x,f) -> f(x), morphisms; init=v)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     find_morphism(M::SubquoModule, N::SubquoModule)
 
 Find a morphism from `M` to `N` in the graph of cached (canonical) morphisms
@@ -6361,7 +8694,7 @@ function find_morphism(M::SubquoModule, N::SubquoModule)
   return reduce(*, morphisms)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     find_morphisms(N::SubquoModule, M::SubquoModule)
 
 Traverse the graph of all cached morphisms originating in `N` and 
@@ -6402,7 +8735,7 @@ end
 # Useful functions
 #############################
 
-@doc Markdown.doc"""
+@doc raw"""
     register_morphism!(f::ModuleFPHom)
 
 Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
@@ -6456,7 +8789,7 @@ function getindex(a::Hecke.SRow, b::AbstractVector{Int})
   return b
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     sparse_row(A::MatElem)
 
 Convert `A` to a sparse row. 
@@ -6470,7 +8803,7 @@ function sparse_row(A::MatElem)
   return Hecke.sparse_matrix(A)[1]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     dense_row(r::Hecke.SRow, n::Int)
 
 Convert `r[1:n]` to a dense row, that is an AbstractAlgebra matrix.
@@ -6516,7 +8849,7 @@ end
 ######################################
 # Migrating test
 ######################################
-@doc Markdown.doc"""
+@doc raw"""
     projection(F::FreeMod, indices::AbstractArray)
 
 Return the canonical projection from $F = R^I$ to $R^(\texttt{indices})$ where $\texttt{indices} \subset I$.
@@ -6529,7 +8862,7 @@ function projection(F::FreeMod, indices::AbstractArray)
   return hom(F, G, Vector{elem_type(G)}([i in indices ? G[findfirst(x->x==i,indices)] : zero(G) for i=1:ngens(F)]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
 
 Return the preimage of the submodule `N` under the morphism `H` 
@@ -6545,7 +8878,7 @@ function preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {
   return preimage(H,elems,task)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol = :none) where {T}
 
 Return the preimage of the submodule generated by the Elements `elems` under $H$
@@ -6574,7 +8907,7 @@ function preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol 
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix_kernel(A::MatElem)
 
 Compute the kernel of `A` where `A` is considered as the corresponding morphism
@@ -6590,7 +8923,7 @@ function matrix_kernel(A::MatElem)
   return matrix(inclusion)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify_light(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
@@ -6620,7 +8953,7 @@ function simplify_light(M::SubquoModule)
   return N, inj, proj
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify_with_same_ambient_free_module(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
@@ -6634,7 +8967,7 @@ function simplify_with_same_ambient_free_module(M::SubquoModule)
   #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
@@ -6645,6 +8978,7 @@ zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubquoModule)
+  respect_grading = is_graded(M)
   function standard_unit_vector_in_relations(i::Int, M::SubquoModule)
     F = ambient_free_module(M)
     return in(F[i], M.quo)
@@ -6681,7 +9015,7 @@ function simplify(M::SubquoModule)
     return A
   end
 
-  function rows_to_delete(A::MatElem, max_index::Int)
+  function rows_to_delete(A::MatElem, max_index::Int, M::SubquoModule, respect_grading::Bool=false)
     to_delete_indices::Vector{Int} = []
     corresponding_row_index::Vector{Int} = []
     if max_index < nrows(A)
@@ -6692,6 +9026,7 @@ function simplify(M::SubquoModule)
       K = hcat(K[:,(ncols(K)-max_index+1):ncols(K)],K[:,1:(ncols(K)-max_index)])
     end
     for i=1:size(K)[1], j=1:max_index
+      #if is_unit(K[i,j]) && (!respect_grading || degree(M.sub.O[j]) == degree(M.quo.O[i]))
       if is_unit(K[i,j])
         deletion_possible = true
         for k in to_delete_indices
@@ -6725,20 +9060,19 @@ function simplify(M::SubquoModule)
   new_generators = delete_columns(M_generators, to_delete)
   new_relations = delete_columns(M_relations, to_delete)
 
-  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)),size(new_relations)[2])
+  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)), size(new_relations)[2], M, respect_grading)
 
   new_generators = delete_columns(new_generators, to_delete)
   new_relations = delete_columns(new_relations, to_delete)
 
   #remove rows
   #simplify relations
-  to_delete,_,_ = rows_to_delete(new_relations, size(new_relations)[1])
+  to_delete,_,_ = rows_to_delete(new_relations, size(new_relations)[1], M, respect_grading)
 
   new_relations = delete_rows(new_relations, to_delete)
 
   #simplify generators
-  to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1])
-
+  to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1], M, respect_grading)
 
   injection_matrix = delete_rows(identity_matrix(R, size(M_generators)[1]), to_delete)
   projection_matrix = zero_matrix(R, size(M_generators)[1], size(K_gen)[2]-length(to_delete))
@@ -6775,15 +9109,18 @@ function simplify(M::SubquoModule)
 end
 
 ######################################
-# Not only for testing
+# Matrix to morphism
 ######################################
-@doc Markdown.doc"""
+@doc raw"""
     map(F::FreeMod{T}, A::MatrixElem{T}) where T
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$, 
 with `rank(F) == m`.
 """
 function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
+  if is_graded(F) 
+    return graded_map(F,A)
+  end
   R = base_ring(F)
   F_domain = FreeMod(R, nrows(A))
 
@@ -6791,7 +9128,7 @@ function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
   return phi
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     map(A::MatElem)
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to R^m$.
@@ -6802,7 +9139,7 @@ function map(A::MatElem)
   return map(F_codomain,A)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_injective(f::ModuleFPHom)
 
 Test if `f` is injective.
@@ -6811,7 +9148,7 @@ function is_injective(f::ModuleFPHom)
   return iszero(kernel(f)[1])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_surjective(f::ModuleFPHom)
 
 Test if `f` is surjective.
@@ -6820,7 +9157,7 @@ function is_surjective(f::ModuleFPHom)
   return image(f)[1] == codomain(f)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_bijective(f::ModuleFPHom)
 
 Test if `f` is bijective.
@@ -6841,8 +9178,7 @@ function copy_and_reshape(M::MatElem, n, m)
   julia_matrix = to_julia_matrix(M)
   julia_matrix = reshape(julia_matrix, n, m)
   R = base_ring(M)
-  mat_space = matrix_space(R, n, m)
-  return mat_space(julia_matrix)
+  return matrix(R, n, m, julia_matrix)
 end
 
 function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
@@ -6901,7 +9237,7 @@ end
 # differ a lot e.g. in the data structures. As a result performance differs depending 
 # on the example favoring the one or the other. So it makes sense to offer both. 
 # With option :matrices in hom() hom_matrices is used.
-@doc Markdown.doc"""
+@doc raw"""
     hom_matrices(M::SubquoModule{T},N::SubquoModule{T}) where T
 
 Return a subquotient $S$ such that $\text{Hom}(M,N) \cong S$
@@ -6990,7 +9326,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubquoModule) where
 end
 
 ### Duals of modules
-@Markdown.doc """
+@doc raw"""
     dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
@@ -7000,37 +9336,65 @@ a homomorphism ``M → R``.
 The optional argument allows to specify a free module of rank ``1`` 
 for the codomain of the dualizing functor.
 """
-function dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
-  base_ring(cod) === base_ring(M) && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
+function dual(M::ModuleFP; cod::Union{FreeMod, Nothing}=nothing)
+  R = base_ring(M)
+  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
+  base_ring(cod) === R && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
   return hom(M, cod)
 end
 
-@Markdown.doc """
+@doc raw"""
     double_dual(M::ModuleFP)
 
 For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
 map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
 """
-function double_dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+  R = base_ring(M)
+  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
   M_dual, _ = dual(M, cod=cod)
   M_double_dual, _ = dual(M_dual, cod=cod)
-  psi = hom(M, M_double_dual, 
-            [homomorphism_to_element(M_double_dual, 
-                                     hom(M_dual, cod,
-                                         [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]
-                                        )
-                                    )
-             for x in gens(M)
-            ]
-           )
+  if length(gens(M_dual)) == 0
+    psi_gens = [zero(M_double_dual) for _ in gens(M)]
+  else
+    psi_gens = [
+      homomorphism_to_element(
+        M_double_dual,
+        FreeModuleHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+      )
+      for x in gens(M)
+    ]
+  end
+  psi = FreeModuleHom(M, M_double_dual, psi_gens)
   return M_double_dual, psi
 end
 
-@Markdown.doc """
+function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+  R = base_ring(M)
+  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
+  M_dual, _ = dual(M, cod=cod)
+  M_double_dual, _ = dual(M_dual, cod=cod)
+  if length(gens(M_dual)) == 0
+    psi_gens = [zero(M_double_dual) for _ in gens(M)]
+  else
+    psi_gens = [
+      homomorphism_to_element(
+        M_double_dual,
+        SubQuoHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+      )
+      for x in gens(M)
+    ]
+  end
+  psi = SubQuoHom(M, M_double_dual, psi_gens)
+  return M_double_dual, psi
+end
+
+
+@doc raw"""
     dual(f::ModuleFPHom; cod::FreeMod)
 
-For a morphism of modules ``f : M → N`` this returns the morphism 
+Given a morphism of modules ``f : M → N``, return the morphism
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
 
 The optional argument allows to specify a free module of rank one over the 

@@ -1,7 +1,3 @@
-export invariant_ring, affine_algebra
-export coefficient_ring, polynomial_ring, action, group
-export is_modular
-export reynolds_operator, molien_series
 
 ################################################################################
 #
@@ -29,7 +25,7 @@ function invariant_ring(K::Field, M::Vector{<: MatrixElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     invariant_ring(G::MatrixGroup)
     invariant_ring(K::Field = QQ, G::PermGroup)
 
@@ -49,7 +45,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring of
@@ -146,7 +142,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
   return IR.reynolds_operator
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
 In the non-modular case, return the image of `f` under the Reynolds operator
@@ -167,7 +163,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -199,7 +195,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [2   0   0]
 [0   0   2]
 
-julia> G = MatrixGroup(3, GF(3), [M])
+julia> G = matrix_group(M)
 Matrix group of degree 3 over Galois field with characteristic 3
 
 julia> IR = invariant_ring(G)
@@ -271,7 +267,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
   return MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
        where {FldT, GrpT, T <: MPolyRingElem}
 
@@ -295,7 +291,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
@@ -341,15 +337,15 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
-     basis(IR::InvRing, d::Int, algo::Symbol = :default)
+@doc raw"""
+     basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
-Setting `algo = :linear_algebra` means that plain linear algebra is used.
-The default option `algo = :default` asks to select the heuristically best algorithm.
+The optional argument `algorithm` specifies the algorithm to be used.
+If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 See also [`iterate_basis`](@ref).
 
@@ -368,7 +364,7 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   a        0]
 [0   0   -a - 1]
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
+julia> G = matrix_group(M1, M2)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
@@ -389,7 +385,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [2   0   0]
 [0   0   2]
 
-julia> G = MatrixGroup(3, GF(3), [M])
+julia> G = matrix_group(M)
 Matrix group of degree 3 over Galois field with characteristic 3
 
 julia> IR = invariant_ring(G)
@@ -409,9 +405,9 @@ julia> basis(IR, 3)
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
-basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
+basis(IR::InvRing, d::Int, algorithm::Symbol = :default) = collect(iterate_basis(IR, d, algorithm))
 
-@doc Markdown.doc"""
+@doc raw"""
     basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
@@ -433,7 +429,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 
@@ -544,7 +540,7 @@ function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{G
   return num//den
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     molien_series([S::PolyRing], I::InvRing, [chi::GAPGroupClassFunction])
 
 In the non-modular case, return the Molien series of `I` as a rational function.
@@ -565,7 +561,7 @@ julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
 julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [M1, M2]);
+julia> G = matrix_group(M1, M2);
 
 julia> IR = invariant_ring(G);
 

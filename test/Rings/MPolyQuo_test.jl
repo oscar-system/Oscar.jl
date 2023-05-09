@@ -45,6 +45,26 @@ end
   Kx, = quo(Kx, I)
   x = Kx(x)
   @test K(2) * x == Kx(2) * x
+
+  # simplify
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  I = ideal(R, [x^2])
+  Q, q = quo(R,I)
+
+  z = one(Q)
+  simplify(z)
+  mul!(z, z, Q(x))
+  mul!(z, z, Q(x))
+  @test iszero(z)
+
+  R, (x,) = polynomial_ring(QQ, ["x"])
+  I = ideal(R, [x])
+  Q, q = quo(R,I)
+
+  z = zero(Q)
+  simplify(z)
+  addeq!(z, Q(x))
+  @test iszero(z)
 end
 
 @testset "MPolyQuoRing.ideals" begin
@@ -89,12 +109,16 @@ end
   @test (I == J) == false
   @test dim(J)  == 1
   @test dim(J)  == J.dim  # test case if dim(J) is already set
+  K = ideal(Q, [ x*y+1 ])
+  @test intersect(I,J,K) == ideal(Q, [y+1, x])
+  @test intersect(I,J,K) == intersect([I,J,K])
 
   R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
-  @test minimal_generating_set(J) == [ Q(y), Q(x^2 + y) ]
+  @test minimal_generating_set(J) == [ Q(y), Q(x^2) ]
+  @test isdefined(J, :gb)
   @test minimal_generating_set(ideal(Q, [ Q() ])) == elem_type(Q)[]
 
   # 1530
@@ -178,3 +202,28 @@ end
   @test Q isa MPolyQuoRing
 end
 
+@testset "#2119/wrong promotion" begin
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, x)
+  Q, _ = quo(R, I)
+  P, (u, v) = Q["u", "v"]
+  J = ideal(P, u)
+  A, _ = quo(P, J)
+  @test iszero(x * u)
+  @test iszero(u * x)
+  @test iszero(Q(x) * u)
+  @test iszero(u * Q(x))
+  @test iszero(Q(x) * A(u))
+  @test iszero(A(u) * A(u))
+  @test iszero(A(x)*u)
+end
+
+@testset "issue #2292" begin
+  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+  A, p = quo(R, ideal(R, [x-y]))
+  V = [x, z^2, x^3+y^3, y^4, y*z^5]
+  a = ideal(A, V)
+  dim(a) # cashes a.gb
+  gens(a.gb)
+  @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
+end

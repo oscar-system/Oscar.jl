@@ -1,20 +1,27 @@
 # Detinko, Flannery, O'Brien "Recognizing finite matrix groups over infinite
 # fields", Section 4.2
-function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}
+function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}
    @assert !isempty(matrices)
 
-   # One should probably check whether all matrices are n by n (and invertible
-   # and such ...)
-
    K = base_ring(matrices[1])
+   n = nrows(matrices[1])
+   if check
+      # Check whether all matrices have the same base ring,
+      # are square of the same size, and invertible.
+      for mat in matrices
+         @req K == base_ring(mat) "matrices are not over the same base ring"
+         @req is_unit(det(mat)) "matrices must be invertible"
+         @req size(mat) == (n, n) "matrices must be square of the same size"
+      end
+   end
+
    if K isa ZZRing
       K = QQ
    end
-   n = nrows(matrices[1])
 
    Fq, matrices_Fq, OtoFq = good_reduction(matrices, 2)
 
-   G = MatrixGroup(n, Fq, matrices_Fq)
+   G = matrix_group(n, Fq, matrices_Fq)
    N = order(G)
    if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
       error("Group is not finite")
@@ -46,10 +53,9 @@ function good_reduction(matrices::Vector{<:MatrixElem{T}}, p::Int = 2) where T <
 end
 
 # Small helper function to make the reduction call uniform
-function _reduce(M::MatrixElem{nf_elem}, OtoFq::Hecke.NfOrdToFqMor)
-  O = domain(OtoFq)
-  Fq = codomain(OtoFq)
-  return matrix(Fq, [ OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))) for a in M])
+function _reduce(M::MatrixElem{nf_elem}, OtoFq)
+  e = extend(OtoFq, nf(domain(OtoFq)))
+  return map_entries(e, M)
 end
 
 function _reduce(M::MatrixElem{QQFieldElem}, Fp)
@@ -142,13 +148,13 @@ end
 function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem}
    @assert length(matrices) != 0
    K = base_ring(matrices[1])
-   matrices_Fq = Vector{FqPolyRepMatrix}(undef, length(matrices))
+   matrices_Fq = Vector{FqMatrix}(undef, length(matrices))
    if p == 2
-      return false, FiniteField(ZZRingElem(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    O = EquationOrder(K)
    if mod(discriminant(O), p) == 0
-      return false, FiniteField(ZZRingElem(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    for M in matrices
       for i = 1:nrows(M)
@@ -158,7 +164,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
             end
 
             if mod(denominator(M[i, j]), p) == 0
-               return false, FiniteField(ZZRingElem(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
+               return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
             end
          end
       end
@@ -168,6 +174,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    # have to work in the maximal order here.
    P = prime_ideals_over(O, p)
    Fq, OtoFq = residue_field(O, P[1])
+   matrices_Fq = Vector{dense_matrix_type(elem_type(Fq))}(undef, length(matrices))
    # I don't want to invert everything in char 0, so I just check whether the
    # matrices are still invertible mod p.
    for i = 1:length(matrices)

@@ -68,18 +68,7 @@ function encodeType(::Type{T}) where T
 end
 
 function decodeType(input::String)
-    if haskey(reverseTypeMap, input)
-        return reverseTypeMap[input]
-    else
-        # As a default, parse the type from the string.
-        #
-        # WARNING: Never deserialize data from an untrusted source, as this
-        # parsing is insecure and potentially malicious code could be
-        # entered here. (also computationally expensive)
-        # Standard Oscar tests should never pass this line
-        @warn "Serialization: Generic Decoding of type $input"
-        eval(Meta.parse(input))
-
+    get(reverseTypeMap, input) do
         error("unsupported type '$input' for decoding")
     end
 end
@@ -141,7 +130,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # A file without version number is treated as the "first" version
     if dict[:type] == string(backref_sym)
         backref = s.objs[UUID(dict[:id])]
-        backref isa T || throw(ErrorException("Backref of incorrect type encountered: $backref !isa $T"))
+        backref isa T || error("Backref of incorrect type encountered: $backref !isa $T")
         return backref
     end
 
@@ -154,7 +143,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
     # these checks later on, depending on what we actually need...
     U = decodeType(dict[:type])
-    U <: T || U >: T || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T"))
+    U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
     Base.issingletontype(T) && return T()
 
@@ -326,13 +315,13 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-    haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
+    @req haskey(jsondict, :_ns) "Namespace is missing"
     _ns = jsondict[:_ns]
     if haskey(_ns, :polymake)
         # If this is a polymake file
         return load_from_polymake(jsondict)
     end
-    haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
+    @req haskey(_ns, :Oscar) "Not an Oscar object"
 
     file_version = get_file_version(jsondict)
 

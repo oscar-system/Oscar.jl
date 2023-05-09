@@ -5,7 +5,7 @@
 ###############################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     points(SOP::SubdivisionOfPoints)
 
 Return the points of the subdivision of points, `SOP`.
@@ -17,7 +17,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
 
-julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0);
 
 julia> points(MOAE)
 6-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -27,6 +27,7 @@ julia> points(MOAE)
  [2, 1, 1]
  [1, 2, 1]
  [1, 1, 2]
+```
 """
 function points(SOP::SubdivisionOfPoints)
     return SubObjectIterator{PointVector{QQFieldElem}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))
@@ -42,7 +43,7 @@ _matrix_for_polymake(::Val{_point}) = _point_matrix
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_cells(SOP::SubdivisionOfPoints)
 
 Return an iterator over the maximal cells of `SOP`.
@@ -70,7 +71,7 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 [1, 4, 6]
 
 
-julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0);
 
 julia> maximal_cells(MOAE)
 7-element SubObjectIterator{Vector{Int64}}:
@@ -110,7 +111,7 @@ If all points have the same weight, there is only one cell.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> n_maximal_cells(SOP)
 1
@@ -129,7 +130,7 @@ The ambient dimension of the MOAE is 3, independent of the subdivision chosen.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> ambient_dim(SOP)
 3
@@ -138,7 +139,7 @@ julia> ambient_dim(SOP)
 ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM::Int - 1
 
 
-@doc Markdown.doc"""
+@doc raw"""
     npoints(SOP::SubdivisionOfPoints)
 
 Return the number of points of a `SubdivisionOfPoints`.
@@ -147,7 +148,7 @@ Return the number of points of a `SubdivisionOfPoints`.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> npoints(SOP)
 6
@@ -161,7 +162,7 @@ npoints(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
 ## Points properties
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     min_weights(SOP::SubdivisionOfPoints)
 
 Return the minimal weights inducing a subdivision of points. This method will
@@ -172,7 +173,7 @@ If all points have the same weight, then the 0-vector is minimal.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> min_weights(SOP)
 6-element Vector{Int64}:
@@ -184,12 +185,10 @@ julia> min_weights(SOP)
  0
 ```
 """
-function min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
-   Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
-end
+min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types = Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     maximal_cells(IncidenceMatrix, SOP::SubdivisionOfPoints)
 
 Return the maximal cells of `SOP` as an incidence matrix.
@@ -210,7 +209,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
  1  2  1
  1  1  2
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1])
 Subdivision of points in ambient dimension 3
 
 julia> maximal_cells(IncidenceMatrix, SOP)
@@ -218,9 +217,8 @@ julia> maximal_cells(IncidenceMatrix, SOP)
 [1, 2, 3, 4, 5, 6]
 ```
 """
-function maximal_cells(::Type{IncidenceMatrix}, SOP::SubdivisionOfPoints)
-    pm_object(SOP).MAXIMAL_CELLS
-end
+maximal_cells(::Type{IncidenceMatrix}, SOP::SubdivisionOfPoints) = pm_object(SOP).MAXIMAL_CELLS
+
 
 ###############################################################################
 ## Boolean properties
@@ -239,12 +237,12 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
 
-julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0);
 
 julia> is_regular(MOAE)
 false
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> is_regular(SOP)
 true

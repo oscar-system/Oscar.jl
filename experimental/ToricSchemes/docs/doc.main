@@ -1,0 +1,7 @@
+[
+   "Toric Schemes" => [
+      "introduction.md",
+      "affine_toric_schemes.md",
+      "normal_toric_schemes.md",
+   ],
+]

@@ -210,8 +210,8 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: Hecke.NfRelNSElem},
                                    dict::Dict,
                                    parent_field::Hecke.NfRelNS)
-    ngens = length(gens(parent_field))
-    parent_polynomial_ring, _ = polynomial_ring(base_field(parent_field), ngens)
+    n = ngens(parent_field)
+    parent_polynomial_ring, _ = polynomial_ring(base_field(parent_field), n)
     polynomial = load_unknown_type(s, dict[:polynomial]; parent=parent_polynomial_ring)
     polynomial = evaluate(polynomial, gens(parent_field))
 
@@ -358,7 +358,7 @@ function save_internal(s::SerializerState, r::arb)
     arb_unsafe_str = unsafe_string(c_str)
 
     # free memory
-    ccall((:flint_free, Nemo.FLINT_jll.libflint), Nothing, (Ptr{UInt8},), c_str)
+    ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),

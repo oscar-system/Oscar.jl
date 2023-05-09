@@ -1,13 +1,10 @@
-export solve_non_negative, solve_mixed, solve_ineq
-
-
 function solve_mixed(as::Type{SubObjectIterator{PointVector{ZZRingElem}}}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix)
-    ncols(A) == ncols(C) || throw(ArgumentError("solve_mixed(A,b,C,d): A and C must have the same number of columns."))
-    nrows(A) == nrows(b) || throw(ArgumentError("solve_mixed(A,b,C,d): A and b must have the same number of rows."))
-    nrows(C) == nrows(d) || throw(ArgumentError("solve_mixed(A,b,C,d): C and d must have the same number of rows."))
-    ncols(b) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): b must be a matrix with a single column."))
-    ncols(d) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): d must be a matrix with a single column."))
-    P = Polyhedron((-C, vec(-d)), (A, vec(b)))
+    @req ncols(A) == ncols(C) "solve_mixed(A,b,C,d): A and C must have the same number of columns."
+    @req nrows(A) == nrows(b) "solve_mixed(A,b,C,d): A and b must have the same number of rows."
+    @req nrows(C) == nrows(d) "solve_mixed(A,b,C,d): C and d must have the same number of rows."
+    @req ncols(b) == 1 "solve_mixed(A,b,C,d): b must be a matrix with a single column."
+    @req ncols(d) == 1 "solve_mixed(A,b,C,d): d must be a matrix with a single column."
+    P = polyhedron((-C, vec(-d)), (A, vec(b)))
     return lattice_points(P)
 end
 
@@ -17,7 +14,7 @@ function solve_mixed(as::Type{ZZMatrix}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, 
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) where {T}
 
 Solve $Ax = b$ under $Cx >= d$, assumes a finite solution set.
@@ -59,7 +56,7 @@ solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) whe
 solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) = solve_mixed(ZZMatrix, A, b, C, d)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T}
 
 Solve $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
@@ -101,7 +98,7 @@ solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) = solve_mixed(ZZMatrix, A, b,
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 
 Solve $Ax<=b$, assumes finite set of solutions.
@@ -141,7 +138,7 @@ solve_ineq(A::ZZMatrix, b::ZZMatrix) = solve_ineq(ZZMatrix, A, b)
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 
 Find all solutions to $Ax = b$, $x>=0$. Assumes a finite set of solutions.

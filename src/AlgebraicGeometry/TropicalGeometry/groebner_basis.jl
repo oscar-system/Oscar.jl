@@ -11,21 +11,6 @@
 
 
 #=======
-returns true if f is homogeneous (w.r.t. total degree),
-returns false otherwise
-=======#
-function _is_homogeneous(f::MPolyRingElem)
-  leadexpv,tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(f))
-  d = sum(leadexpv)
-  for tailexpv in tailexpvs
-    if d!=sum(tailexpv)
-      return false
-    end
-  end
-  return true
-end
-
-#=======
 returns true if I has homogeneous generators,
 returns false otherwise
 =======#
@@ -37,7 +22,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis(I::Ideal, val::TropicalSemiringMap, w::Vector; complete_reduction::Bool, return_lead::Bool)
 
 Compute a Groebner basis of `I` over a field with valuation `val` with respect

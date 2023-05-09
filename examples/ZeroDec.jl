@@ -11,7 +11,7 @@
 ######################################### zerodecomp ####################################################################################################
 
 #Implementation of Algorithm 4.2.7
-@doc Markdown.doc"""
+@doc raw"""
     zerodecomp(I::Singular.sideal, outputReduced::Bool = false)
 
 Compute the primary decomposition of a zero-dimensional Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
@@ -308,7 +308,7 @@ function vdim_internal(I::Singular.sideal, usefglm::Bool = false)
   primary = Vector{Singular.sideal}(undef, 0)
 
   #Compute ideal I without the first element for easier computation
-  I_without_I1 = Singular.Ideal(R, gens(I)[2:length(gens(I))])
+  I_without_I1 = Singular.Ideal(R, gens(I)[2:end])
   for k in 1:length(gi)
        I_without_I1 = Singular.deepcopy(I_without_I1)
        prm = addGenerator(I_without_I1, gi[k]^g[gi[k]])

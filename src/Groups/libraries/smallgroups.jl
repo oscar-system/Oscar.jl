@@ -1,12 +1,3 @@
-export all_small_groups
-export has_number_small_groups
-export has_small_group_identification
-export has_small_groups
-export number_small_groups
-export small_group
-export small_group_identification
-
-
 ###################################################################
 # Small groups
 ###################################################################
@@ -26,7 +17,7 @@ false
 ```
 """
 function has_number_small_groups(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.NumberSmallGroupsAvailable(GAP.Obj(n))
 end
 
@@ -46,7 +37,7 @@ false
 ```
 """
 function has_small_groups(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.SmallGroupsAvailable(GAP.Obj(n))
 end
 
@@ -66,7 +57,7 @@ false
 ```
 """
 function has_small_group_identification(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.IdGroupsAvailable(GAP.Obj(n))
 end
 
@@ -104,7 +95,7 @@ end
 
 function _small_group(n::IntegerUnion, m::IntegerUnion)
   N = number_small_groups(n)
-  m <= N || throw(ArgumentError("There are only $N groups of order $n, up to isomorphism."))
+  @req m <= N "There are only $N groups of order $n, up to isomorphism."
   return GAP.Globals.SmallGroup(GAP.Obj(n), GAP.Obj(m))
 end
 
@@ -120,12 +111,12 @@ julia> small_group_identification(alternating_group(5))
 (60, 5)
 
 julia> small_group_identification(symmetric_group(20))
-ERROR: identification is not available for groups of order 2432902008176640000
+ERROR: ArgumentError: identification is not available for groups of order 2432902008176640000
 ```
 """
 function small_group_identification(G::GAPGroup)
-   isfinite(G) || error("group is not finite")
-   has_small_group_identification(order(G)) || error("identification is not available for groups of order $(order(G))")
+   @req is_finite(G) "group is not finite"
+   @req has_small_group_identification(order(G)) "identification is not available for groups of order $(order(G))"
    res = GAP.Globals.IdGroup(G.X)
    return Tuple{ZZRingElem,ZZRingElem}(res)
 end
@@ -142,14 +133,14 @@ julia> number_small_groups(8)
 5
 
 julia> number_small_groups(4096)
-ERROR: the number of groups of order 4096 is not available
+ERROR: ArgumentError: the number of groups of order 4096 is not available
 
 julia> number_small_groups(next_prime(ZZRingElem(2)^64))
 1
 ```
 """
 function number_small_groups(n::IntegerUnion)
-  has_number_small_groups(n) || error("the number of groups of order $n is not available")
+  @req has_number_small_groups(n) "the number of groups of order $n is not available"
   return ZZRingElem(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
 end
 
@@ -209,7 +200,7 @@ julia> all_small_groups(1:10, !is_abelian)
 ```
 """
 function all_small_groups(L...)
-   !isempty(L) || throw(ArgumentError("must specify at least one filter"))
+   @req !isempty(L) "must specify at least one filter"
    if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
       L = (order => L[1], L[2:end]...)
    end

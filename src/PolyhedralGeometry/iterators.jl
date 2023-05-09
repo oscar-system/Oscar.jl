@@ -102,7 +102,7 @@ abstract type Halfspace{T} end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Halfspace(a, b)
 
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
@@ -141,7 +141,7 @@ abstract type Hyperplane{T} end
 
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     AffineHyperplane(a, b)
 
 One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
@@ -206,7 +206,7 @@ end
 ######## SubObjectIterator
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SubObjectIterator(Obj, Acc, n, [options])
 
 An iterator over a designated property of `Obj::Polymake.BigObject`.
@@ -252,7 +252,7 @@ Base.size(iter::SubObjectIterator) = (iter.n,)
 ################################################################################
 
 # Incidence matrices
-for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
+for (sym, name) in (("facet_indices", "Incidence matrix resp. facets"), ("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
@@ -281,6 +281,14 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
     end
 end
 
+function IncidenceMatrix(iter::SubObjectIterator)
+    if hasmethod(_incidencematrix, Tuple{Val{iter.Acc}})
+        return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+    else
+        throw(ArgumentError("IncidenceMatrix not defined in this context."))
+    end
+end
+
 # primitive generators only for ray based iterators
 matrix(R::ZZRing, iter::SubObjectIterator{RayVector{QQFieldElem}}) =
     matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
@@ -294,7 +302,7 @@ function linear_matrix_for_polymake(iter::SubObjectIterator)
         return _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
     elseif hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
         res = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-        iszero(res[:, 1]) || throw(ArgumentError("Input not linear."))
+        @req iszero(res[:, 1]) "Input not linear."
         return res[:, 2:end]
     end
     throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))
@@ -314,28 +322,20 @@ Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where T =
 Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) = assure_matrix_polymake(matrix_for_polymake(iter; homogenized=true))
 
 function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number = 1)
-    if v != 1
-        throw(ArgumentError("PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first."))
-    end
+    @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
     return matrix_for_polymake(x; homogenized=true)
 end
 function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
-    if v != 0
-        throw(ArgumentError("RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first."))
-    end
+    @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
     return matrix_for_polymake(x; homogenized=true)
 end
 
 function homogenized_matrix(x::AbstractVector{<:PointVector}, v::Number = 1)
-    if v != 1
-        throw(ArgumentError("PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first."))
-    end
+    @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
     return stack((homogenize(x[i], v) for i in 1:length(x))...)
 end
 function homogenized_matrix(x::AbstractVector{<:RayVector}, v::Number = 0)
-    if v != 0
-        throw(ArgumentError("RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first."))
-    end
+    @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
     return stack((homogenize(x[i], v) for i in 1:length(x))...)
 end
 
@@ -370,7 +370,7 @@ for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
     end
 end
 
-for f in ("_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
+for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
     M = Symbol(f)
     @eval begin
         $M(::Val{_empty_access}, P::Polymake.BigObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))

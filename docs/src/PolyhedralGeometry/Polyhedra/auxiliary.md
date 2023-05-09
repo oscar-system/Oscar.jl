@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["auxiliary.md"]
-```
-
 # Auxiliary functions
 
 ## Geometric data
@@ -27,6 +19,7 @@ codim(P::Polyhedron)
 is_bounded(P::Polyhedron)
 is_feasible(P::Polyhedron)
 is_fulldimensional(P::Polyhedron)
+is_lattice_polytope(P::Polyhedron{QQFieldElem})
 lineality_dim(P::Polyhedron)
 lineality_space(P::Polyhedron{T}) where T<:scalar_types
 recession_cone(P::Polyhedron{T}) where T<:scalar_types
@@ -58,7 +51,8 @@ automorphism_group_generators(IM::IncidenceMatrix)
 ```@docs
 all_triangulations
 boundary_lattice_points(P::Polyhedron{QQFieldElem})
-contains(P::Polyhedron, v::AbstractVector)
+Base.in(v::AbstractVector, P::Polyhedron)
+Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
 ehrhart_polynomial(P::Polyhedron{QQFieldElem})
 ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
 h_star_polynomial(P::Polyhedron{QQFieldElem})

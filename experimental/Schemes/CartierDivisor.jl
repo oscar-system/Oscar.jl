@@ -1,4 +1,5 @@
 export CartierDivisor
+export EffectiveCartierDivisor
 export trivializing_covering
 
 @attributes mutable struct EffectiveCartierDivisor{
@@ -157,20 +158,62 @@ function ==(C::CartierDivisor, D::CartierDivisor)
 end
 
 
-function effective_cartier_divisor(IP::AbsProjectiveScheme, f::MPolyDecRingElem)
-  parent(f) === ambient_coordinate_ring(IP) || error("element does not belong to the correct ring")
-  d = total_degree(f)
+function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
+  parent(f) === homogeneous_coordinate_ring(IP) || error("element does not belong to the correct ring")
+  d = degree(f)
   X = covered_scheme(IP)
   triv_dict = IdDict{AbsSpec, RingElem}()
   for U in affine_charts(X)
-    triv_dict[U] = dehomogenize(IP, U)(f)
+    triv_dict[U] = dehomogenization_map(IP, U)(f)
   end
   C = EffectiveCartierDivisor(X, triv_dict, trivializing_covering=default_covering(X))
   return C
 end
 
-function cartier_divisor(IP::AbsProjectiveScheme, f::MPolyDecRingElem)
+function cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
   return one(ZZ)*effective_cartier_divisor(IP, f)
+end
+
+### Decompostion of an effective Cartier Divisor into irreducible components
+### (specialized variant of associated_points, using pure codimension 1
+###  and taking multiplicities into account)
+@doc raw"""
+    irreducible_decomposition(C::EffectiveCartierDivisor)
+
+Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `IdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
+"""
+function irreducible_decomposition(C::EffectiveCartierDivisor)
+  X = scheme(C)
+  cov = default_covering(X)
+  OOX = OO(X)
+
+  charts_todo = copy(patches(cov))
+  I = ideal_sheaf(C)
+  associated_primes_temp = Vector{Tuple{typeof(I), Int}}()  ## already identified components
+
+  # run through all charts and collect further irreducible components
+  while length(charts_todo) > 0
+    U = pop!(charts_todo)
+    !is_one(I(U)) || continue                                ## supp(C) might not meet all charts
+    I_temp=I(U)
+
+    for (J,_) in associated_primes_temp
+      !is_one(J(U)) || continue
+      I_temp=saturation(I_temp,J(U))                         ## kick out known components
+      !is_one(I_temp) || break                               ## break if nothing left
+    end
+
+    !is_one(I_temp) || break                                 ## break if nothing left
+    components_here = minimal_primes(I_temp)
+    for comp in components_here
+      I_temp, saturation_index = saturation_with_index(I_temp, comp)
+      temp_dict=IdDict{AbsSpec,Ideal}()
+      temp_dict[U] = comp
+      I_sheaf_temp = IdealSheaf(X, extend!(cov, temp_dict), check=false)
+      push!(associated_primes_temp, (I_sheaf_temp, saturation_index))
+    end
+  end
+  return(associated_primes_temp)
 end
 
 ### Conversion into WeilDivisors
@@ -178,29 +221,13 @@ function weil_divisor(C::EffectiveCartierDivisor)
   X = scheme(C)
   OOX = OO(X)
 
-  decomp = primary_decomposition(ideal_sheaf(C))
-
-  n = length(decomp)
-  primary_components = [a for (a, _) in decomp]
-  prime_components = [b for (_, b) in decomp]
-  
+  decomp = irreducible_decomposition(C)
   result = WeilDivisor(X, ZZ)
-  for i in 1:n
-    P = prime_components[i]
-    Q = primary_components[i]
-    k = ZZ(0)
-    for U in affine_charts(X)
-      isone(P(U)) && continue
-      R = base_ring(P(U))
-      L, phi = localization(R, complement_of_prime_ideal(P(U)))
-      F = FreeMod(L, 1)
-      QF, _ = phi(Q(U))*F
-      M, _ = quo(F, QF)
-      k = length(M)
-      break
-    end
-    result = result + k*WeilDivisor(P, ZZ)
+
+  for (I,k) in decomp
+    result = result + k*WeilDivisor(I,ZZ)
   end
+
   return result
 end
 
@@ -269,3 +296,34 @@ end
 dim(C::EffectiveCartierDivisor) = dim(scheme(C))-1
 dim(C::CartierDivisor) = dim(scheme(C))-1
 
+###########################################################################
+## show functions for Cartier divisors
+########################################################################### 
+function Base.show(io::IO, C::EffectiveCartierDivisor)
+  I = ideal_sheaf(C)
+  X = C.X
+  covering = C.C
+  n = npatches(covering)
+
+  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts")
+end
+
+function show_details(C::EffectiveCartierDivisor)
+   show_details(stdout,C)
+end
+
+function show_details(io::IO,C::EffectiveCartierDivisor)
+  I = ideal_sheaf(C)
+  X = C.X
+
+  covering = C.C
+  n = npatches(covering)
+
+  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts:\n")
+
+  for (i,U) in enumerate(patches(covering))
+    println(io,"Chart $i:")
+    println(io,"   $(I(U))")
+    println(io," ")
+  end
+end

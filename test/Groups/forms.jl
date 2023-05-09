@@ -109,8 +109,8 @@ end
    end
    end
 
-   @test_throws AssertionError Q(V[1],V[5])
-   @test_throws AssertionError f(V[2])
+   @test_throws ArgumentError Q(V[1],V[5])
+   @test_throws ArgumentError f(V[2])
 
    g = rand(GL(6,F))
    v = rand(V)
@@ -227,13 +227,13 @@ end
    y = zero_matrix(F,6,6)
    y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError is_congruent(f,g)
+   @test_throws ArgumentError is_congruent(f,g)
 
    F = GF(3,1)
    y = zero_matrix(F,8,8)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError is_congruent(f,g)
+   @test_throws ArgumentError is_congruent(f,g)
 
    #hermitian
    F,a = FiniteField(3,2,"a")
@@ -609,33 +609,32 @@ end
       @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
       # Odd dimensional orthogonal groups in char. 2 are not irreducible.
       @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
-      @test orthogonal_sign(general_linear_group(4, 2)) == nothing
+      @test orthogonal_sign(general_linear_group(4, 2)) === nothing
       # If the abs. irred. module preserves an antisymmetric invariant
       # bilinear form then there is no nondegenerate quadratic form.
       F = GF(7)
-      G = MatrixGroup(6, F)
       mats = [matrix(F, [0 1 0 0 0 0; 1 0 0 0 0 0; 0 0 0 1 0 0;
                          0 0 1 0 0 0; 5 5 2 2 6 0; 3 3 4 4 0 6]),
               matrix(F, [4 0 0 0 0 0; 0 0 1 0 0 0; 0 6 1 0 0 0;
                          0 0 0 0 1 0; 0 0 0 0 0 1; 6 0 0 2 4 3])]
-      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      G = matrix_group(mats)
       @test describe(G) == "PSU(3,3)"
-      @test orthogonal_sign(G) == nothing
+      @test orthogonal_sign(G) === nothing
    end
 end
 
 @testset "Orthogonal groups of ZZ-lattices" begin
   N1 = root_lattice(:A, 2)
   N2 = rescale(N1, 4)
-  N,_,_ = Hecke.orthogonal_sum(N1,N2)
+  N,_ = direct_sum(N1,N2)
   @test order(orthogonal_group(N))==144
 
   L = Zlattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
   G = orthogonal_group(L)
   @test order(G)==32
-  @test order(oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
-  @test order(oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
-  @test order(oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
+  @test order(Oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
+  @test order(Oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
+  @test order(Oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
 
   gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
   L = Zlattice(gram=gram)

@@ -2,7 +2,6 @@
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
 
-export is_congruent
 
 ###############################################################################################################
 
@@ -384,8 +383,8 @@ exist, then return (`false`, `nothing`).
 """
 function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
-   @assert base_ring(f)==base_ring(g) "The forms have not the same base ring"
-   @assert nrows(gram_matrix(f))==nrows(gram_matrix(g)) "The forms act on vector spaces of different dimensions"
+   @req base_ring(f)==base_ring(g) "The forms have not the same base ring"
+   @req nrows(gram_matrix(f))==nrows(gram_matrix(g)) "The forms act on vector spaces of different dimensions"
    f.descr==g.descr || return false, nothing
    n = nrows(gram_matrix(f))
    F = base_ring(f)

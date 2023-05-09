@@ -37,7 +37,7 @@ function Base.indexin(U::AbsSpec, C::Covering)
 #      V = affine_refinements(C)[C[i]]
 #      for j in 1:length(V)
 #        (W, a) = V[j]
-#        for k in 1:length(gens(W))
+#        for k in 1:ngens(W)
 #          U === W[k] && return (i, j, k)
 #        end
 #      end
@@ -159,7 +159,7 @@ function Base.length(C::Covering)
     result = result + 1
     if haskey(affine_refinements(C), U)
       for W in affine_refinements(C)[U]
-        result = result + length(gens(W))
+        result = result + ngens(W)
       end
     end
   end
@@ -190,7 +190,7 @@ Base.eltype(C::Covering) = AbsSpec
 ########################################################################
 # Building a Covering                                                  #
 ########################################################################
-@Markdown.doc """
+@doc raw"""
     add_glueing!(C::Covering, G::AbsGlueing)
 
 Add a glueing `G` to the covering `C`. 
@@ -249,7 +249,7 @@ end
 # Refinements                                                          #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     common_refinement(C::Covering, D::Covering)
 
 For two `Covering`s `C` and `D`, calculate a common refinement 

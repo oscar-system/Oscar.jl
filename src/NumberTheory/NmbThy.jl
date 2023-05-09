@@ -1,5 +1,3 @@
-export norm_equation_fac_elem, norm_equation, irreducibles, factorisations
-
 function norm_equation_fac_elem(R::NfAbsOrd, k::ZZRingElem; abs::Bool = false)
   @assert Hecke.is_maximal(R)
   lp = factor(k)
@@ -122,7 +120,7 @@ function is_irreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   return nrows(pt) == 0
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}}) -> Vector{NfAbsOrdElem}
 
 Return all irreducibles whose support is contained in $S$.
@@ -184,7 +182,7 @@ end
 
 =#
 
-@doc Markdown.doc"""
+@doc raw"""
     factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem}) -> Vector{Fac{OrdElem}}
 
 Return all factorisations of $a$ into irreducibles.
@@ -239,7 +237,7 @@ end
 #
 #   disc_log
 #
-@doc Markdown.doc"""
+@doc raw"""
     disc_log(b::T, x::T) where {T <: FinFieldElem}
 
 Return an integer `s` such that $b^s = x$.

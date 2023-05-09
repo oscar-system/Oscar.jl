@@ -1,11 +1,3 @@
-export weight, decorate, is_homogeneous, homogeneous_components, filtrate
-export grade, graded_polynomial_ring, homogeneous_component, jacobi_matrix, jacobi_ideal
-export HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading
-export homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
-export MPolyDecRing, MPolyDecRingElem, is_homogeneous, is_graded
-export forget_decoration
-export forget_grading
-
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
@@ -30,7 +22,7 @@ export forget_grading
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grading_group(R::MPolyDecRing)
 
 If `R` is, say, `G`-graded, return `G`.
@@ -49,15 +41,20 @@ GrpAb: Z
 """
 grading_group(R::MPolyDecRing) = R.D
 
-@doc Markdown.doc"""
-    is_graded(R::MPolyDecRing)
-
-Return `true` if `R` is graded, `false` otherwise.
-"""
 function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
+
+@doc raw"""
+    is_graded(R::MPolyRing)
+
+Return `true` if `R` is graded, `false` otherwise.
+"""
+is_graded(R::MPolyRing) = false
+
 is_filtered(R::MPolyDecRing) = isdefined(R, :lt)
+is_filtered(::MPolyRing) = false
+
 
 function show(io::IO, W::MPolyDecRing)
   Hecke.@show_name(io, W)
@@ -86,14 +83,13 @@ function decorate(R::MPolyRing)
   return S, map(R, gens(R))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 
-Given a vector `W` of `ngens(R)` integers, define a $\mathbb Z$-grading on `R` by creating 
-a free abelian group of type `GrpAbFinGen` given by one free generator, converting the entries 
-of `W` to elements of that group, and assigning these elements as weights 
-to the variables. Return the graded ring as an object of type `MPolyDecRing`, 
-together with the vector of variables.
+Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `GrpAbFinGen` 
+given by one free generator, and convert the entries of `W` to elements of that group. Then 
+create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables 
+of `R`, and return the new ring, together with the vector of variables.
 
     grade(R::MPolyRing)
 
@@ -133,13 +129,14 @@ function grade(R::MPolyRing)
   return S, map(S, gens(R))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
  
-Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, define a $\mathbb Z^m$-grading on `R` 
-by creating a free abelian group of type `GrpAbFinGen` given by `m` free generators, converting the vectors in
-`W` to elements of that group, and assigning these elements as weights to the variables. Return the graded
-ring as an object of type `MPolyDecRing`, together with the vector of variables.
+Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free 
+abelian group of type `GrpAbFinGen` given by `m` free generators, and convert the vectors in
+`W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group 
+elements as weights to the variables of `R`, and return the new ring, together with the vector
+of variables.
 
     grade(R::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
 
@@ -186,7 +183,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     is_standard_graded(R::MPolyDecRing)
 
 Return `true` if `R` is standard $\mathbb Z$-graded, `false` otherwise.
@@ -220,7 +217,9 @@ function is_standard_graded(R::MPolyDecRing)
   return true
 end
 
-@doc Markdown.doc"""
+is_standard_graded(::MPolyRing) = false
+
+@doc raw"""
     is_z_graded(R::MPolyDecRing)
 
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
@@ -251,7 +250,9 @@ function is_z_graded(R::MPolyDecRing)
   return ngens(A) == 1 && rank(A) == 1 && is_free(A)
 end
 
-@doc Markdown.doc"""
+is_z_graded(::MPolyRing) = false
+
+@doc raw"""
     is_zm_graded(R::MPolyDecRing)
 
 Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
@@ -308,7 +309,9 @@ function is_zm_graded(R::MPolyDecRing)
   return is_free(A) && ngens(A) == rank(A)
 end
 
-@doc Markdown.doc"""
+is_zm_graded(::MPolyRing) = false
+
+@doc raw"""
     is_positively_graded(R::MPolyDecRing)
 
 Return `true` if `R` is positively graded, `false` otherwise.
@@ -377,18 +380,21 @@ function is_positively_graded(R::MPolyDecRing)
   return true
 end
 
-@doc Markdown.doc"""
-    graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
+is_positively_graded(::MPolyRing) = false
 
-Create a multivariate polynomial ring with coefficient ring `C` and variables which
-print according to the strings in `V`, and grade this ring according to the
-data provided by `W` (see the documentation of the `grade`-function for what is
-possible). Return the graded ring as an object of type `MPolyDecRing`, together 
-with the vector of variables.
+@doc raw"""
+    graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
+    graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T<:VarName
 
-    graded_polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex)
+Create a multivariate [`polynomial_ring`](@ref polynomial_ring(R, [:x])) with
+coefficient ring `C` and variables which print according to the variable names
+in `V` (respectively as "\$(s)1" up to "\$s\$n"), and [`grade`](@ref) this ring
+according to the data provided by `W`. Return the graded ring as an object of
+type `MPolyDecRing`, together with the vector of variables.
 
-As above, where the grading is the standard $\mathbb Z$-grading. 
+    graded_polynomial_ring(C::Ring, V; ordering=:lex)
+
+As above, where the grading is the standard $\mathbb Z$-grading.
 
 # Examples
 ```jldoctest
@@ -399,32 +405,35 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
-  x[1] -> [1 0]
-  x[2] -> [0 1]
-  x[3] -> [1 0]
-  x[4] -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
+julia> R, x = graded_polynomial_ring(QQ, 4, :x, W)
+(Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field graded by
+  x1 -> [1 0]
+  x2 -> [0 1]
+  x3 -> [1 0]
+  x4 -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1, x2, x3, x4])
 
-julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
   z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 ```
 """
-function graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
-   return grade(polynomial_ring(C, V; ordering = ordering)[1], W)
+function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
+      W=ones(Int, length(V)); ordering=:lex) where
+      T<:VarName
+   return grade(polynomial_ring(C, V; ordering)[1], W)
 end
-function graded_polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex)
-   W = ones(Int, length(V))
-   return graded_polynomial_ring(C, V, W; ordering = ordering)
+
+function graded_polynomial_ring(C::Ring, n::Int, s::VarName,
+      W=ones(Int, n); ordering=:lex)
+   return grade(polynomial_ring(C, n, s; ordering)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
@@ -449,13 +458,12 @@ function filtrate(R::MPolyRing, v::Vector{GrpAbFinGenElem}, lt)
   return S, map(S, gens(R))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
 
-Given a vector `W` of `ngens(R)` elements of a group `G` of type `GrpAbFinGen`,  
-define a  `G`-grading on `R` by assigning weights to the variables according to the entries of `W`.
-Return the graded ring as an object of type `MPolyDecRing`, together with the
-vector of variables.
+Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a 
+`G`-graded ring by assigning the entries of `W` as weights to the variables of `R`. Return
+the new ring as an object of type `MPolyDecRing`, together with the vector of variables.
 
 # Examples
 ```jldoctest
@@ -745,7 +753,19 @@ function addeq!(a::MPolyDecRingElem, b::MPolyDecRingElem)
 end
 
 length(a::MPolyDecRingElem) = length(forget_decoration(a))
+
+@doc raw"""
+    total_degree(f::MPolyDecRingElem)
+
+Return the total degree of `f`.
+
+Given a set of variables ``x = \{x_1, \ldots, x_n\}``, the *total degree* of a monomial ``x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)`` is the sum of the ``\alpha_i``. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials. 
+
+!!! note
+    The notion of total degree does not dependent on weights given to the variables.
+"""
 total_degree(a::MPolyDecRingElem) = total_degree(forget_decoration(a))
+
 AbstractAlgebra.monomial(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.monomial(forget_decoration(a), i))
 AbstractAlgebra.coeff(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.coeff(forget_decoration(a), i)
 AbstractAlgebra.term(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.term(forget_decoration(a), i))
@@ -756,17 +776,17 @@ AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int, ::Type{T}) where T
 
 function has_weighted_ordering(R::MPolyDecRing)
   grading_to_ordering = false
-  w_ord = degrevlex(gens(forget_decoration(R))) # dummy, not used
+  w_ord = degrevlex(gens(R)) # dummy, not used
   # This is not meant to be exhaustive, there a probably more gradings which one
   # can meaningfully translate into a monomial ordering
   # However, we want to stick to global orderings.
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
-      w_ord = degrevlex(gens(forget_decoration(R)))
+      w_ord = degrevlex(gens(R))
       grading_to_ordering = true
     elseif all(x -> x > 0, w)
-      w_ord = wdegrevlex(gens(forget_decoration(R)), w)
+      w_ord = wdegrevlex(gens(R), w)
       grading_to_ordering = true
     end
   end
@@ -812,19 +832,6 @@ function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   return parent(M.poly)(f)
 end
 
-# constructor for ideals#######################################################
-
-function ideal(g::Vector{T}) where {T <: MPolyDecRingElem}
-  @assert length(g) > 0
-  @assert all(x->parent(x) == parent(g[1]), g)
-  if is_graded(parent(g[1]))
-     if !(all(is_homogeneous, g))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-     end
-  end
-  return MPolyIdeal(parent(g[1]), g)
-end
-
 function jacobi_matrix(f::MPolyDecRingElem)
   R = parent(f)
   n = nvars(R)
@@ -844,7 +851,7 @@ function jacobi_matrix(g::Vector{<:MPolyDecRingElem})
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     degree(f::MPolyDecRingElem)
 
 Given a homogeneous element `f` of a graded multivariate ring, return the degree of `f`.
@@ -968,7 +975,7 @@ function degree(::Type{Vector{Int}}, a::MPolyDecRingElem)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_homogeneous(f::MPolyDecRingElem)
 
 Given an element `f` of a graded multivariate ring, return `true` if `f` is homogeneous, `false` otherwise.
@@ -1023,7 +1030,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 
 Given an element `f` of a graded multivariate ring, return the homogeneous components of `f`.
@@ -1111,7 +1118,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
   return hhh
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
 
 Given an element `f` of a graded multivariate ring, and given an element 
@@ -1240,7 +1247,7 @@ function show_homo_comp(io::IO, M)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem) 
 
 Given a polynomial ring `R` over a field which is graded by a free
@@ -1356,9 +1363,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
-  if !(coefficient_ring(W) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-  end
+  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   D = W.D
   is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), W.d)
@@ -1499,24 +1504,14 @@ mutable struct HilbertData
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
     R = base_ring(I)
-    if !((R isa Oscar.MPolyDecRing) && is_graded(R))
-      throw(ArgumentError("The base ring must be graded."))
-    end
+    @req is_graded(R) "The base ring must be graded"
 
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     
-    if !(minimum(W)>0)
-       throw(ArgumentError("The weights must be positive."))
-    end
-    
-    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring must be a field."))
-    end
-
-    if !(all(is_homogeneous, gens(I)))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-    end
+    @req minimum(W) > 0 "The weights must be positive"
+    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+    @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
     
     G = groebner_assure(I)
     h = Singular.hilbert_series(G.S, W)
@@ -1545,7 +1540,7 @@ end
 #Decker-Lossen, p23/24
 function hilbert_polynomial(H::HilbertData)
 
-  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
+  @req all(isone, H.weights) "All weights must be 1"
   
   q, dn = hilbert_series(H, 2)
   a = QQFieldElem[]
@@ -1570,7 +1565,7 @@ end
 
 function Oscar.degree(H::HilbertData)
 
-  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
+  @req all(isone, H.weights) "All weights must be 1"
   
   P = hilbert_polynomial(H)
   if iszero(P)
@@ -1753,12 +1748,12 @@ function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}},
     weight_matrix::Matrix{Int},
     return_ring::Ring,
-    #alg=:generator
-    #alg=:custom
-    #alg=:gcd
-    #alg=:indeterminate
-    #alg=:cocoa
-    alg::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
+    #algorithm=:generator
+    #algorithm=:custom
+    #algorithm=:gcd
+    #algorithm=:indeterminate
+    #algorithm=:cocoa
+    algorithm::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
@@ -1766,17 +1761,17 @@ function _hilbert_numerator_from_leading_exponents(
   ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
   ret !== nothing && return ret
 
-  if alg == :BayerStillmanA
+  if algorithm == :BayerStillmanA
     return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
-  elseif alg == :custom
+  elseif algorithm == :custom
     return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
-  elseif alg == :gcd # see Remark 5.3.11
+  elseif algorithm == :gcd # see Remark 5.3.11
     return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
-  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
+  elseif algorithm == :generator # just choosing on random generator, cf. Remark 5.3.8
     return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
-  elseif alg == :indeterminate # see Remark 5.3.8
+  elseif algorithm == :indeterminate # see Remark 5.3.8
     return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
-  elseif alg == :cocoa # see Remark 5.3.14
+  elseif algorithm == :cocoa # see Remark 5.3.14
     return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
   end
   error("invalid algorithm")
@@ -2094,19 +2089,19 @@ function _homogenization(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int = 1)
    return finish(F)
 end
 
-function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::String, pos::Int = 1)
+function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
-     insert!(A, pos, var)
+     insert!(A, pos, Symbol(var))
   else
-     for i = 1:(size(W, 1))
+     for i = 1:size(W, 1)
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
-  L, _ = polynomial_ring(R.base_ring, A)
+  L, _ = polynomial_ring(base_ring(R), A)
   Lgens = gens(L)
   ###ff = evaluate(f, vcat(Lgens[1:pos-1], Lgens[pos + size(W, 1):end]))
   G = abelian_group(zeros(Int, size(W, 1)))
@@ -2116,13 +2111,13 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::String, pos::Int = 
   return _homogenization(f, S, pos)
 end
 
-function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::String, pos::Int = 1)
+function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::VarName, pos::Int = 1)
    W = matrix(ZZ, W)
    return _homogenization(f, W, var, pos)
 end
 
-@doc Markdown.doc"""
-    homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+@doc raw"""
+    homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
 
 If $m$ is the number of rows of `W`, extend the parent polynomial ring of `f` by inserting $m$ extra variables, starting at position `pos`.
 Correspondingly, extend the integer matrix `W` by inserting the standard unit vectors of size $m$ as new columns, starting at column `pos`.
@@ -2131,12 +2126,12 @@ as weights to the variables. Homogenize `f` with respect to the induced $\mathbb
 variables. Return the result as an element of the extended ring with its $\mathbb Z^m$-grading. If $m=1$, the extra variable prints as `var`. Otherwise,
 the extra variables print as `var[`$i$`]`, for $i = 1 \dots m$.
 
-    homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+    homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
 
 Given a vector `V` of elements in a common polynomial ring, create an extended ring with $\mathbb Z^m$-grading as above.
 Homogenize the elements of `V` correspondingly,  and return the vector of homogenized elements.
 
-    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
+    homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
 
 Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading as above.
 
@@ -2169,24 +2164,24 @@ Multivariate Polynomial Ring in x, y, z[1], z[2] over Rational Field graded by
   z[2] -> [0 1]
 ```
 """
-function homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+function homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
    return _homogenization(f, W, var, pos)
 end
 
-function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
-     insert!(A, pos, var)
+     insert!(A, pos, Symbol(var))
   else
      for i = 1:(size(W, 1))
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
-  L, _ = polynomial_ring(R.base_ring, A)
+  L, _ = polynomial_ring(base_ring(R), A)
   G = abelian_group(zeros(Int, size(W, 1)))
   WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
   S, _ = grade(L, [G(WH[:, i]) for i = 1:size(WH, 2)])
@@ -2194,21 +2189,21 @@ function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
 
-function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
   # TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
   V = homogenization(gens(I), W, var, pos)
   R = parent(V[1])
   IH = ideal(R, V)
-  Y = ideal(R, [gens(R)[i] for i = pos:(pos+size(W, 1)-1)])
+  Y = ideal(R, [gen(R, i) for i = pos:(pos+size(W, 1)-1)])
   return saturation(IH, Y)
 end
 
-@doc Markdown.doc"""
-    homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
+@doc raw"""
+    homogenization(f::MPolyRingElem, var::VarName, pos::Int = 1)
 
-    homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+    homogenization(V::Vector{T}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
 
-    homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
+    homogenization(I::MPolyIdeal{T}, var::VarName, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyRingElem}
 
 Homogenize `f`, `V`, or `I` with respect to the standard $\mathbb Z$-grading using a homogenizing variable printing as `var`.
 Return the result as an element of a graded polynomial ring with the homogenizing variable at position `pos`.
@@ -2264,29 +2259,31 @@ julia> homogenization(I, "w", ordering = deglex(gens(base_ring(I))))
 ideal(x*z - y^2, -w*z + x*y, -w*y + x^2, -w*z^2 + y^3)
 ```
 """
-function homogenization(f::MPolyRingElem, var::String, pos::Int = 1)
+function homogenization(f::MPolyRingElem, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
-  insert!(A, pos, var)
-  L, _ = polynomial_ring(R.base_ring, A)
+  @req pos in 1:l+1 "Index out of range."
+  insert!(A, pos, Symbol(var))
+  L, _ = polynomial_ring(base_ring(R), A)
   S, = grade(L)
   return _homogenization(f, S, pos)
 end
-function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyRingElem}
+
+function homogenization(V::Vector{T}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
-  A = String.(symbols(R))
+  A = copy(symbols(R))
   l = length(A)
-  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
-  insert!(A, pos, var)
-  L, _ = polynomial_ring(R.base_ring, A)
+  @req pos in 1:l+1 "Index out of range."
+  insert!(A, pos, Symbol(var))
+  L, _ = polynomial_ring(base_ring(R), A)
   S, = grade(L)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
-function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
+
+function homogenization(I::MPolyIdeal{T}, var::VarName, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
   # TODO: Adjust as soon as new GB concept is implemented
   return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var, pos))
 end
@@ -2314,7 +2311,7 @@ function _dehomogenization(F::MPolyDecRingElem, R::MPolyRing, pos::Int, m::Int)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     dehomogenization(F::MPolyDecRingElem, pos::Int)
 
 Given an element `F` of a $\mathbb Z^m$-graded ring, where the generators of $\mathbb Z^m$
@@ -2390,11 +2387,11 @@ function dehomogenization(F::MPolyDecRingElem, pos::Int)
   l = ngens(S)
   G = grading_group(S)
   m = ngens(G)
-  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
-  A = String.(symbols(S))
+  A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
   R, _ = polynomial_ring(base_ring(S), A)
   return _dehomogenization(F, R, pos, m)
@@ -2406,11 +2403,11 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
   l = ngens(S)
   G = grading_group(S)
   m = ngens(G)
-  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
+  @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
-  A = String.(symbols(S))
+  A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
   R, _ = polynomial_ring(base_ring(S), A)
   l = length(V)
@@ -2442,6 +2439,10 @@ function AbstractAlgebra.promote_rule(::Type{MPolyDecRingElem{S, T}}, ::Type{U})
   end
 end
 
+function AbstractAlgebra.promote_rule(::Type{MPolyDecRingElem{S, T}}, ::Type{MPolyDecRingElem{S, T}}) where {S, T}
+  return MPolyDecRingElem{S, T}
+end
+
 ################################################################################
 #
 #  Random homogeneous polynomials
@@ -2450,7 +2451,7 @@ end
 
 #create homogeneous polynomials in graded rings
 #TODO: make this work for non-standard gradings
-@doc Markdown.doc"""
+@doc raw"""
     rand(S::MPolyDecRing, term_range, deg_range, v...)
 
 Create a random homogeneous polynomial with a random number of
@@ -2481,35 +2482,35 @@ end
 #
 ################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_decoration(R::MPolyDecRing)
 
 Return the underlying undecorated ring.
 """
 forget_decoration(R::MPolyDecRing) = R.R
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_grading(R::MPolyDecRing)
 
 Return the ungraded undecorated ring.
 """
 forget_grading(R::MPolyDecRing) = forget_decoration(R)
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_decoration(f::MPolyDecRingElem)
 
 Return the element in the underlying undecorated ring.
 """
 forget_decoration(f::MPolyDecRingElem) = f.f
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_grading(f::MPolyDecRingElem)
 
 Return the element in the underlying ungraded ring.
 """
 forget_grading(f::MPolyDecRingElem) = forget_decoration(f)
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_decoration(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Return the ideal in the underlying undecorated ring.
@@ -2519,9 +2520,13 @@ function forget_decoration(I::MPolyIdeal{<:MPolyDecRingElem})
   return ideal(R, map(forget_decoration, gens(I)))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     forget_grading(I::MPolyIdeal{<:MPolyDecRingElem})
 
 Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
+
+### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
+# TODO: This still seems to be not resolved!!!
+Generic.ordering(S::MPolyDecRing) = :degrevlex

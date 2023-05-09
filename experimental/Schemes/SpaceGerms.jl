@@ -1,14 +1,13 @@
-export SpaceGerm, germ_at_point
-
-export representative, point
-
+export SpaceGerm
 export ambient_germ
-
+export germ_at_point
+export point
 export rational_point_coordinates
+export representative
 
 import AbstractAlgebra: Ring
 
-@Markdown.doc """
+@doc raw"""
     AbsSpaceGerm{BaseRingType<:Ring,RingType<:Ring}
 
 A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`` of type `RingType` over a coefficient field ``k`` of type `BaseRingType`.
@@ -32,7 +31,7 @@ GermAtGeometricPoint = Spec{<:Field,
 ## start of the definition of space germ functionality
 ###################################################################
 
-@Markdown.doc """
+@doc raw"""
     SpaceGerm{BaseRingType, RingType, SpecType}
 A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
@@ -96,10 +95,10 @@ end
 # allow user to specify point also as ideal
 ############################################################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     rational_point_coordinates(I::MPolyIdeal)
 
-Returns the $k$-coordinates of the point corresponding to a maximal ideal 
+Return the $k$-coordinates of the point corresponding to a maximal ideal
 $I \in k[x_1,\dots,x_n]$, which describes a $k$-point. If $I$ is not maximal
 or does not describe a point with coordinates in the field $k$, an error 
 exception results.
@@ -143,7 +142,7 @@ function _vdim_hack(I::MPolyIdeal)
   M = ideal(R,gens(R))
   result=[R(1)]
   J = ideal(R,normal_form(gens(M),I))
-  while dim(J) != length(gens(R))
+  while dim(J) != ngens(R)
     Jtemp = leer
     JN=gens(J)
     for i in 1:length(JN)

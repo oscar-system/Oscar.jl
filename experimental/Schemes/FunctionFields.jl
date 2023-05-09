@@ -1,7 +1,9 @@
-export function_field, FunctionField
-export representative_patch, variety, representative_field
-
+export FunctionField
+export function_field
 export representative
+export representative_field
+export representative_patch
+export variety
 
 
 ########################################################################
@@ -24,7 +26,7 @@ coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
 
 ### user facing constructors 
-@doc Markdown.doc"""
+@doc raw"""
     function_field(X::CoveredScheme)
 
 Return the function field of the irreducible variety `X`.
@@ -38,7 +40,7 @@ function_field(X::CoveredScheme;
               ) = VarietyFunctionField(X,check=check,representative_patch=representative_patch)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     FunctionField(X::CoveredScheme; kw...)
 
 Return the function field of the irreducible variety `X`.
@@ -177,7 +179,7 @@ function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::B
                                   )
 end
 
-@Markdown.doc """
+@doc raw"""
     function move_representative(
         a::MPolyRingElem, b::MPolyRingElem,
         V::AbsSpec, U::AbsSpec,
@@ -310,7 +312,7 @@ end
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
 
-@Markdown.doc """
+@doc raw"""
     is_regular(f::VarietyFunctionFieldElem, U::Scheme)
 
 Return whether ``f ∈ K(X)`` restricts to a regular function 

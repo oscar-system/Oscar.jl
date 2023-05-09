@@ -2,14 +2,14 @@
 # Attributes
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(tvs::ToricVanishingSet)
 
 Return the toric variety of the vanishing set `tvs`.
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo_surface(1)
+julia> dP1 = del_pezzo_surface(NormalToricVariety, 1)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)
@@ -22,45 +22,41 @@ julia> toric_variety(vs[3])
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function toric_variety(tvs::ToricVanishingSet)
-    return tvs.toric_variety::AbstractNormalToricVariety
-end
+toric_variety(tvs::ToricVanishingSet) = tvs.toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polyhedra(tvs::ToricVanishingSet)
 
 Return the vector of the polyhedra whose complement defines the vanishing set `tvs`.
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo_surface(1)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP1 = del_pezzo_surface(NormalToricVariety, 1)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)
 3-element Vector{ToricVanishingSet}:
- A toric vanishing set for cohomology index 0
- A toric vanishing set for cohomology index 1
- A toric vanishing set for cohomology index 2
+ Toric vanishing set for cohomology index 0
+ Toric vanishing set for cohomology index 1
+ Toric vanishing set for cohomology index 2
 
 julia> polyhedra(vs[3])
-1-element Vector{Polyhedra{QQFieldElem}}:
- A polyhedron in ambient dimension 2
-
+1-element Vector{Polyhedron{QQFieldElem}}:
+ Polyhedron in ambient dimension 2
+```
 """
-function polyhedra(tvs::ToricVanishingSet)
-    return tvs.ps::Vector{Polyhedron{QQFieldElem}}
-end
+polyhedra(tvs::ToricVanishingSet) = tvs.ps
 
 
-@doc Markdown.doc"""
+@doc raw"""
     cohomology_index(tvs::ToricVanishingSet)
 
 Return the cohomology index of the toric vanishing set `tvs`.
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo_surface(1)
+julia> dP1 = del_pezzo_surface(NormalToricVariety, 1)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)
@@ -73,6 +69,4 @@ julia> cohomology_index(vs[3])
 2
 ```
 """
-function cohomology_index(tvs::ToricVanishingSet)
-    return tvs.i::Int
-end
+cohomology_index(tvs::ToricVanishingSet) = tvs.i

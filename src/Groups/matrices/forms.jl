@@ -1,20 +1,6 @@
 # TODO: in this file are used many methods TEMPORARILY defined in files matrix_manipulation.jl and stuff_field_gen.jl
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
-export alternating_form
-export corresponding_bilinear_form
-export corresponding_quadratic_form
-export hermitian_form
-export is_alternating_form
-export is_degenerate
-export is_hermitian_form
-export is_quadratic_form
-export is_singular
-export is_symmetric_form
-export quadratic_form
-export SesquilinearForm
-export symmetric_form
-export witt_index
 
 
 
@@ -204,7 +190,7 @@ end
 Given a quadratic form `Q`, return the bilinear form `B` defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
 """
 function corresponding_bilinear_form(B::SesquilinearForm)
-   B.descr==:quadratic || throw(ArgumentError("The form must be a quadratic form"))
+   @req B.descr==:quadratic "The form must be a quadratic form"
    M = gram_matrix(B)+transpose(gram_matrix(B))
    if characteristic(base_ring(B))==2 return alternating_form(M)
    else return symmetric_form(M)
@@ -218,8 +204,8 @@ Given a symmetric form `f`, returns the quadratic form `Q` defined by `Q(v) = f(
 It is defined only in odd characteristic.
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
-   B.descr==:symmetric || throw(ArgumentError("The form must be a symmetric form"))
-   characteristic(base_ring(B))!=2 || throw(ArgumentError("Corresponding quadratic form not uniquely determined"))
+   @req B.descr==:symmetric "The form must be a symmetric form"
+   @req characteristic(base_ring(B))!=2 "Corresponding quadratic form not uniquely determined"
    M = deepcopy(gram_matrix(B))
    l = inv(base_ring(B)(2))
    for i in 1:nrows(M)
@@ -247,7 +233,7 @@ Return the Gram matrix of a sesquilinear or quadratic form `B`.
 function gram_matrix(f::SesquilinearForm)
    isdefined(f,:matrix) && return f.matrix
 
-   @assert f.descr==:quadratic && isdefined(f,:pol) "Cannot determine Gram matrix"
+   @req f.descr==:quadratic && isdefined(f,:pol) "Cannot determine Gram matrix"
    d = nvars(parent(f.pol))
    B = zero_matrix( base_ring(f.pol), d, d )
    V = collect(AbstractAlgebra.exponent_vectors(f.pol))
@@ -280,7 +266,7 @@ Return the polynomial that defines the quadratic form `f`.
 function defining_polynomial(f::SesquilinearForm)
    isdefined(f,:pol) && return f.pol
 
-   @assert f.descr == :quadratic "Polynomial defined only for quadratic forms"
+   @req f.descr == :quadratic "Polynomial defined only for quadratic forms"
    R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix) )[1]
    p = zero(R)
    for i in 1:nrows(f.matrix), j in i:nrows(f.matrix)
@@ -327,8 +313,8 @@ end
 ########################################################################
 
 function Base.:*(f::SesquilinearForm, l::FieldElem)
-   l !=0 || throw(ArgumentError("Zero is not admitted"))
-   parent(l)==base_ring(f) || throw(ArgumentError("The scalar does not belong to the base ring of the form"))
+   @req l != 0 "Zero is not admitted"
+   @req parent(l)==base_ring(f) "The scalar does not belong to the base ring of the form"
    if !isdefined(f,:matrix)
       return SesquilinearForm(l*f.pol, f.descr)
    else
@@ -341,8 +327,8 @@ end
 Base.:*(l::FieldElem, f::SesquilinearForm) = f*l
 
 function Base.:^(f::SesquilinearForm{T}, x::MatElem{T}; check=false) where T <: RingElem
-   @assert base_ring(f)==base_ring(x) "Incompatible base rings"
-   @assert nrows(gram_matrix(f))==nrows(x) "Incompatible dimensions"
+   @req base_ring(f)==base_ring(x) "Incompatible base rings"
+   @req nrows(gram_matrix(f))==nrows(x) "Incompatible dimensions"
 
    if check @assert rank(x)==nrows(x) "Matrix not invertible" end
    if f.descr==:hermitian
@@ -356,7 +342,7 @@ end
 Base.:^(f::SesquilinearForm{T}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^x.elm
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
-   @assert f.descr!=:quadratic "Quadratic forms requires only one argument"
+   @req f.descr!=:quadratic "Quadratic forms requires only one argument"
 
    if f.descr==:hermitian
       return v*gram_matrix(f)*map( y->frobenius(y,div(degree(base_ring(w)),2)),w)
@@ -366,10 +352,9 @@ function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w
 end
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
-   @assert f.descr==:quadratic "Sesquilinear forms requires two arguments"
+   @req f.descr==:quadratic "Sesquilinear forms requires two arguments"
    return v*gram_matrix(f)*v
 end
-
 
 
 
@@ -424,7 +409,7 @@ end
 For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero radical.
 """
 function is_singular(f::SesquilinearForm{T}) where T
-   f.descr != :quadratic && throw(ArgumentError("The form is not quadratic"))
+   @req f.descr == :quadratic "The form is not quadratic"
    return GAPWrap.IsSingularForm(f.X)
 end
 

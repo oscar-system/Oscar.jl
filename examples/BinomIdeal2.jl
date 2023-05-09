@@ -230,7 +230,7 @@ end
 
 function removeSomeRedundancies(A::Vector{Any}, B::Vector{Any})
         #input:two Array of ideals, the first are primary ideals, the second the corresponding associated primes
-        #output:Arrays of ideals consisting of some ideals less which give the same interseciton as
+        #output:Arrays of ideals consisting of some ideals less which give the same intersections as
         #all ideals before
 
         Result1=A
@@ -1092,9 +1092,9 @@ function associated_primes(I::MPolyIdeal)
   return [MPolyIdeal(I.gens.Ox, x) for x = a]
 end
 
-function decomposition(I::MPolyIdeal; algo::Symbol = :auto)
+function decomposition(I::MPolyIdeal; algorithm::Symbol = :auto)
   singular_assure(I)
-  if algo == :auto
+  if algorithm == :auto
     C = cellularDecomp(I.gens.S)
   else
     C = cellularDecompMacaulay(I.gens.S)

@@ -1,10 +1,3 @@
-@doc Markdown.doc"""
-    LinearProgram(P, c; k = 0, convention = :max)
-
-The linear program on the feasible set `P` (a Polyhedron) with
-respect to the function x ↦ dot(c,x)+k.
-
-"""
 struct LinearProgram{T}
    feasible_region::Polyhedron{T}
    polymake_lp::Polymake.BigObject
@@ -14,9 +7,17 @@ struct LinearProgram{T}
 end
 
 # no default = `QQFieldElem` here; scalar type can be derived from the feasible region
-LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
+linear_program(p::Polyhedron{T}, lp, c) where T<:scalar_types = LinearProgram{T}(p, lp, c)
 
-function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
+
+@doc raw"""
+    linear_program(P, c; k = 0, convention = :max)
+
+The linear program on the feasible set `P` (a Polyhedron) with
+respect to the function x ↦ dot(c,x)+k.
+
+"""
+function linear_program(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
@@ -32,12 +33,10 @@ function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, co
    LinearProgram{T}(P, lp, convention)
 end
 
-LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types = LinearProgram{T}(Q, objective; k = k, convention = convention)
 
-LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
-   LinearProgram{T}(Polyhedron{T}(A, b), c;  k = k, convention = convention)
+linear_program(::Type{T}, A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
+   linear_program(polyhedron(T, A, b), c;  k = k, convention = convention)
 
-LinearProgram(x...) = LinearProgram{QQFieldElem}(x...)
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
 
@@ -70,7 +69,7 @@ end
 ###############################################################################
 ###############################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     objective_function(LP::LinearProgram; as = :pair)
 
 Return the objective function x ↦ dot(c,x)+k of the linear program LP.
@@ -91,7 +90,7 @@ function objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:s
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     feasible_region(lp::LinearProgram)
 
 Return the feasible region of the linear program `lp`, which is a `Polyhedron`.
@@ -106,7 +105,7 @@ feasible_region(lp::LinearProgram) = lp.feasible_region
 ###############################################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     optimal_vertex(LP::LinearProgram)
 
 Return either a point of the feasible region of `LP` which optimizes the objective
@@ -119,7 +118,7 @@ obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
 julia> C=cube(3)
 Polyhedron in ambient dimension 3
 
-julia> LP=LinearProgram(C,[1,2,-3])
+julia> LP=linear_program(C,[1,2,-3])
 Linear program
    max{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and
@@ -148,7 +147,7 @@ function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     optimal_value(LP::LinearProgram)
 
 Return, if it exists, the optimal value of the objective function of `LP` over the feasible region
@@ -161,7 +160,7 @@ obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 julia> C=cube(3)
 Polyhedron in ambient dimension 3
 
-julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
+julia> LP=linear_program(C,[1,2,-3]; convention = :min)
 Linear program
    min{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and
@@ -184,7 +183,7 @@ function optimal_value(lp::LinearProgram{T}) where T<:scalar_types
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     solve_lp(LP::LinearProgram)
 
 Return a pair `(m,v)` where the optimal value `m` of the objective
@@ -192,6 +191,4 @@ Return a pair `(m,v)` where the optimal value `m` of the objective
  is not attained, `m` may be `inf` or `-inf` in which case `v` is
  `nothing`.
 """
-function solve_lp(lp::LinearProgram)
-   return optimal_value(lp),optimal_vertex(lp)
-end
+solve_lp(lp::LinearProgram) = optimal_value(lp),optimal_vertex(lp)

@@ -1,11 +1,5 @@
-export reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
-       standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
-       groebner_basis_with_transformation_matrix,
-       leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
-       groebner_basis_hilbert_driven
-
 # groebner stuff #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
     groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
@@ -60,7 +54,7 @@ function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_red
     end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _compute_standard_basis(B::IdealGens; ordering::MonomialOrdering,
                             complete_reduction::Bool = false)
 
@@ -105,7 +99,7 @@ function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, compl
 end
 
 # standard basis for non-global orderings #############################
-@doc Markdown.doc"""
+@doc raw"""
     standard_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false, algorithm::Symbol = :buchberger,
@@ -121,7 +115,7 @@ The keyword `algorithm` can be set to
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
-    and `f4` in the OSCAR documention for some more details and for restrictions    
+    and `f4` in the OSCAR documentation for some more details and for restrictions    
     on the input data when using these versions of the standard basis algorithm.
 
 !!! note
@@ -185,12 +179,12 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
-    f4(I, complete_reduction=complete_reduction)
+    groebner_basis_f4(I, complete_reduction=complete_reduction)
   end
   return I.gb[ordering]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
@@ -205,7 +199,7 @@ The keyword `algorithm` can be set to
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
-    and `f4` in the OSCAR documention for some more details and for restrictions    
+    and `f4` in the OSCAR documentation for some more details and for restrictions    
     on the input data when using these versions of the standard basis algorithm.
 
 !!! note
@@ -284,8 +278,8 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
 
-@doc Markdown.doc"""
-	f4(I::MPolyIdeal, <keyword arguments>)
+@doc raw"""
+	groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -310,7 +304,7 @@ julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
-julia> f4(I)
+julia> groebner_basis_f4(I)
 Gröbner basis with elements
 1 -> x + 2*y + 2*z + 100
 2 -> y*z + 82*z^2 + 10*y + 40*z
@@ -318,12 +312,9 @@ Gröbner basis with elements
 4 -> z^3 + 28*z^2 + 64*y + 13*z
 with respect to the ordering
 degrevlex([x, y, z])
-
-julia> isdefined(I, :gb)
-true
 ```
 """
-function f4(
+function groebner_basis_f4(
         I::MPolyIdeal;
         initial_hts::Int=17,
         nr_thrds::Int=1,
@@ -352,7 +343,7 @@ function f4(
     return I.gb[ord]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
@@ -397,7 +388,7 @@ function _compute_standard_basis_with_transform(B::IdealGens, ordering::Monomial
    return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     standard_basis_with_transformation_matrix(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool=false)
@@ -432,7 +423,7 @@ function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 	return G, m
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis_with_transformation_matrix(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool=false)
@@ -467,7 +458,7 @@ function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 end
 
 # syzygies #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     syzygy_generators(G::Vector{<:MPolyRingElem})
 
 Return generators for the syzygies on the polynomials given as elements of `G`.
@@ -494,7 +485,7 @@ function syzygy_generators(a::Vector{<:MPolyRingElem})
 end
 
 # leading ideal #######################################################
-@doc Markdown.doc"""
+@doc raw"""
     leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) 
                                 where T <: MPolyRingElem
 
@@ -525,7 +516,7 @@ function leading_ideal(I::IdealGens{T}, ordering::MonomialOrdering) where T <: M
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 
 Return the leading ideal of `I` with respect to `ordering`.
@@ -550,7 +541,7 @@ function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_order
   return ideal(base_ring(I), [leading_monomial(g; ordering = ordering) for g in G])
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
 
 **Note**: Internal function, subject to change, do not use.
@@ -596,7 +587,7 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 	reduce(I::IdealGens, J::IdealGens; 
           ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
@@ -642,7 +633,7 @@ function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default
 	return [J.gens.Ox(x) for x = gens(res)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 	reduce(g::T, F::Vector{T}; 
            ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
@@ -696,7 +687,7 @@ function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default
 	return reduce(I, J, ordering=ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 	reduce_with_quotients_and_unit(g::T, F::Vector{T};
            ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
@@ -758,7 +749,7 @@ function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::Mo
 	return _reduce_with_quotients_and_unit(I, J, ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
         reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; 
           ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
@@ -812,7 +803,7 @@ function reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; ordering::Mo
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
         reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
@@ -869,7 +860,7 @@ function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrd
     return q, r
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 	reduce_with_quotients(g::T, F::Vector{T}; 
            ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 
@@ -947,7 +938,7 @@ function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::M
 	return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     normal_form(g::T, I::MPolyIdeal; 
       ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyRingElem
 
@@ -1011,7 +1002,7 @@ function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=def
     normal_form_internal(I, J, ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
 
 Tests if a given IdealGens `F` is a standard basis w.r.t. the given monomial ordering `ordering`.
@@ -1061,7 +1052,7 @@ function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_orde
 	end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_groebner_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
 
 Tests if a given IdealGens `F` is a Gröbner basis w.r.t. the given monomial ordering `ordering`.
@@ -1094,7 +1085,7 @@ function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_or
 	return is_standard_basis(F, ordering=ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _fglm(G::IdealGens; ordering::MonomialOrdering)
 
 Converts a Gröbner basis `G` w.r.t. a given global monomial ordering for `<G>`
@@ -1146,7 +1137,7 @@ function _fglm(G::IdealGens, ordering::MonomialOrdering)
 	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
                         destination_ordering::MonomialOrdering)
 
@@ -1187,7 +1178,7 @@ julia> leading_coefficient(G[8])
 ```
 """
 function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
-	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	if !haskey(I.gb, start_ordering)
@@ -1201,7 +1192,7 @@ function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering
 	return I.gb[destination_ordering]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     _compute_groebner_basis_using_fglm(I::MPolyIdeal, destination_ordering::MonomialOrdering)
 
 Computes a reduced Gröbner basis for `I` w.r.t. `destination_ordering` using the FGLM algorithm.
@@ -1243,7 +1234,7 @@ degrevlex([x, y])
 """
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	destination_ordering::MonomialOrdering)
-	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	is_global(destination_ordering) || error("Destination ordering must be global.")
 	G = groebner_assure(I, true, true)
@@ -1252,18 +1243,18 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis_hilbert_driven(I::MPolyIdeal{P}; destination_ordering::MonomialOrdering,
                     complete_reduction::Bool = false,
                     weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
-                    hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) 
-                    where {P <: MPolyElem}
+                    hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) 
+                    where {P <: MPolyRingElem}
 
 Return a Gröbner basis of `I` with respect to `destination_ordering`.
 
 !!! note
     The function implements a version of the Hilbert driven Gröbner basis algorithm.
-    See the correspending section of the OSCAR documentation for some details.
+    See the corresponding section of the OSCAR documentation for some details.
 
 !!! note
     All weights must be positive. If no weight vector is entered by the user, all weights 
@@ -1311,10 +1302,24 @@ julia> I = ideal(R, [f1, f2,f3]);
 
 julia> W = [10, 1, 1];
 
-julia> GB1 = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W);
 
-julia> length(GB1)
+julia> length(GB)
 40
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(GF(32003), ["x", "y", "z"]);
+
+julia> f1 = x^2*y+169*y^21+151*x*y*z^10;
+
+julia> f2 = 6*x^2*y^4+x*z^14+3*z^24;
+
+julia> f3 = 11*x^3+5*x*y^10*z^10+2*y^20*z^10+y^10*z^20;
+
+julia> I = ideal(R, [f1, f2,f3]);
+
+julia> W = [10, 1, 1];
 
 julia> S, t = polynomial_ring(ZZ, "t")
 (Univariate Polynomial Ring in t over Integer Ring, t)
@@ -1322,20 +1327,20 @@ julia> S, t = polynomial_ring(ZZ, "t")
 julia> hn = -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 
-julia> GB2 = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
+julia> GB = groebner_basis_hilbert_driven(I, destination_ordering = lex(R), weights = W, hilbert_numerator = hn);
 
-julia> gens(GB1) == gens(GB2)
-true
+julia> length(GB)
+40
 ```
 """
 function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        destination_ordering::MonomialOrdering,
                                        complete_reduction::Bool = false,
                                        weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
-                                       hilbert_numerator::Union{Nothing, fmpz_poly} = nothing) where {P <: MPolyElem}
+                                       hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
   
   all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
-  isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
+  isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
   ordering = destination_ordering
   is_global(ordering) || error("Destination ordering must be global.")
   haskey(I.gb, ordering) && return I.gb[ordering]
@@ -1370,6 +1375,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   if isdefined(GB, :S)
     GB.S.isGB  = true
   end
+  I.gb[destination_ordering] = GB
   return GB
 end
 
@@ -1399,7 +1405,7 @@ function _mod_rand_prime(I::MPolyIdeal)
     p = Hecke.next_prime(p)
     
     base_field = GF(p)
-    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)))
     I_mod_p_gens =
       try
         [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
@@ -1419,18 +1425,27 @@ end
 
 # check homogeneity w.r.t. some weights
 
-function _is_homogeneous(f::MPolyElem, weights::Vector{Int})
-  all([sum(weights .* e) == sum(weights .* first(exponents(f)))
-       for e in exponents(f)])
+function _is_homogeneous(f::MPolyRingElem, weights::Vector{Int})
+  w = sum(weights .* first(exponents(f)))
+  all(sum(weights .* e) == w for e in exponents(f))
 end
 
-function _is_homogeneous(f::MPolyElem)
-  _is_homogeneous(f, ones(Int, ngens(parent(f))))
+
+# check homogeneity w.r.t. total degree
+function _is_homogeneous(f::MPolyRingElem)
+  leadexpv,tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(f))
+  d = sum(leadexpv)
+  for tailexpv in tailexpvs
+    if d!=sum(tailexpv)
+      return false
+    end
+  end
+  return true
 end
   
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
-function _find_weights(F::Vector{P}) where {P <: MPolyElem}
+function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
 
   if all(_is_homogeneous, F)
     return ones(Int, ngens(parent(F[1])))
@@ -1438,27 +1453,26 @@ function _find_weights(F::Vector{P}) where {P <: MPolyElem}
 
   nrows = sum((length).(F)) - length(F)
   ncols = ngens(parent(first(F)))
-  mat_space = MatrixSpace(QQ, nrows, ncols)
 
   exp_diffs = permutedims(reduce(hcat, [e[i] - e[1] for e in
                                           (collect).((exponents).(F))
                                           for i in 2:length(e)]))
-  K = kernel(mat_space(exp_diffs))[2]
+  K = kernel(matrix(QQ, nrows, ncols, exp_diffs))[2]
   isempty(K) && return zeros(Int, ncols)
   # Here we try to find a vector with strictly positive entries in K
   # this method to find such a vector is taken from
   # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
-  Pol = Polyhedron(-K,  zeros(Int, ncols))
+  Pol = polyhedron(-K,  zeros(Int, ncols))
   !is_feasible(Pol) && return zeros(Int, ncols)
   pos_vec = zeros(Int, ncols)
   for i in 1:ncols
     ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
-    L = LinearProgram(Pol, obj_func)
+    L = linear_program(Pol, obj_func)
     m, v = solve_lp(L)
     if isnothing(v)
-      Pol_new = intersect(Pol, Polyhedron(ei*K, [1]))
-      L = LinearProgram(Pol_new, obj_func)
+      Pol_new = intersect(Pol, polyhedron(ei*K, [1]))
+      L = linear_program(Pol_new, obj_func)
       v = optimal_vertex(L)
     end
     pos_vec += K*(v.p)

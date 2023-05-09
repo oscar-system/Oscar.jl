@@ -1,21 +1,3 @@
-export acting_domain
-export double_coset
-export double_cosets
-export GroupCoset
-export GroupDoubleCoset
-export is_bicoset
-export is_left
-export is_right
-export left_acting_group
-export left_coset
-export left_cosets
-export left_transversal
-export representative
-export right_acting_group
-export right_coset
-export right_cosets
-export right_transversal
-
 # T=type of the group, S=type of the element
 """
     GroupCoset{T<: Group, S <: GAPGroupElem}
@@ -65,9 +47,7 @@ Sym( [ 1 .. 3 ] )
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
-   if !GAPWrap.IsSubset(parent(g).X, H.X)
-      throw(ArgumentError("H is not a subgroup of parent(g)"))
-   end
+   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
 
@@ -94,9 +74,7 @@ Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
-   if !GAPWrap.IsSubset(parent(g).X, H.X)
-      throw(ArgumentError("H is not a subgroup of parent(g)"))
-   end
+   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
 end
 
@@ -147,9 +125,7 @@ function Base.:*(y::GAPGroupElem, c::GroupCoset)
 end
 
 function Base.:*(c::GroupCoset, d::GroupCoset)
-   if c.side != :right || d.side != :left
-      throw(ArgumentError("Wrong input"))
-   end
+   @req (c.side == :right && d.side == :left) "Wrong input"
    return double_coset(c.H, c.repr*d.repr, d.H)
 end
 
@@ -320,9 +296,7 @@ julia> right_transversal(G,H)
 ```
 """
 function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   if check && ! GAPWrap.IsSubset(G.X, H.X)
-     throw(ArgumentError("H is not a subgroup of G"))
-   end
+   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
    L = GAP.Globals.RightTransversal(G.X,H.X)
 #TODO: The object returned by GAP tries to avoid the overhead of explicitly
 #      listing all elements.
@@ -411,7 +385,7 @@ end
     double_coset(H::Group, x::GAPGroupElem, K::Group)
     *(H::Group, x::GAPGroupElem, K::Group)
 
-returns the double coset `HxK`.
+Return the double coset `HxK`.
 
 # Examples
 ```jldoctest
@@ -432,12 +406,8 @@ Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
 ```
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
-   if !GAPWrap.IsSubset(parent(g).X,G.X)
-      throw(ArgumentError("G is not a subgroup of parent(g)"))
-   end
-   if !GAPWrap.IsSubset(parent(g).X,H.X)
-      throw(ArgumentError("H is not a subgroup of parent(g)"))
-   end
+   @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
+   @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
 end
 
@@ -510,21 +480,21 @@ end
 """
     representative(C::GroupDoubleCoset)
 
-if `C` = `HxK`, returns `x`.
+Return a representative `x` of the double coset `C` = `HxK`.
 """
 representative(C::GroupDoubleCoset) = C.repr
 
 """
     left_acting_group(C::GroupDoubleCoset)
 
-if `C` = `HxK`, returns `H`
+Given a double coset `C` = `HxK`, return `H`.
 """
 left_acting_group(C::GroupDoubleCoset) = C.H
 
 """
     right_acting_group(C::GroupDoubleCoset)
 
-if `C` = `HxK`, returns `K`
+Given a double coset `C` = `HxK`, return `K`.
 """
 right_acting_group(C::GroupDoubleCoset) = C.K
 

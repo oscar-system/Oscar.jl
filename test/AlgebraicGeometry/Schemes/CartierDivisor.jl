@@ -1,6 +1,6 @@
 @testset "pullbacks of Cartier divisors" begin 
   P = projective_space(QQ, 2)
-  SP = ambient_coordinate_ring(P)
+  SP = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(SP)
 
   A = [1 2 4; 1 3 9; 1 5 25]
@@ -14,10 +14,10 @@
   D = IdDict{AbsSpec, RingElem}()
   H = x^2 + y^2 + z^2
   for U in affine_charts(X)
-    D[U] = dehomogenize(P, U)(H)
+    D[U] = dehomogenization_map(P, U)(H)
   end
 
-  C = oscar.EffectiveCartierDivisor(X, D)
+  C = Oscar.EffectiveCartierDivisor(X, D)
   D = pullback(g_cov)(C)
   for U in patches(trivializing_covering(D))
     @test length(D(U)) == 1
@@ -43,14 +43,16 @@ end
 
 @testset "Arithmetic of CartierDivisors" begin
   IP = projective_space(QQ, 3)
-  (x,y,z,w) = gens(ambient_coordinate_ring(IP))
+  (x,y,z,w) = gens(homogeneous_coordinate_ring(IP))
   f = x^4 + y^4 + z^4 + w^4
   IPX = subscheme(IP, f)
+  S = homogeneous_coordinate_ring(IPX)
+  (x, y, z, w) = gens(S)
   X = covered_scheme(IPX)
   h = (x+y+z+w)^3
   u = (x-y+4*w)
-  C = oscar.cartier_divisor(IPX, h)
-  D = oscar.cartier_divisor(IPX, u)
+  C = Oscar.cartier_divisor(IPX, h)
+  D = Oscar.cartier_divisor(IPX, u)
   @test 2*C == C+C
   @test iszero(D-D)
   @test 3*(C + D) == 3*C + 3*D
@@ -58,11 +60,11 @@ end
 
 @testset "conversion of Cartier to Weil divisors" begin
   IP2 = projective_space(QQ, ["x", "y", "z"])
-  S = ambient_coordinate_ring(IP2)
+  S = homogeneous_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, x^2*y^3*(x+y+z))
-  C = oscar.effective_cartier_divisor(IP2, gens(I)[1])
-  CW = oscar.weil_divisor(C)
+  C = Oscar.effective_cartier_divisor(IP2, gen(I, 1))
+  CW = Oscar.weil_divisor(C)
   @test length(components(CW)) == 3
   @test 1 in collect(values(CW.C.coefficients))
   @test 2 in collect(values(CW.C.coefficients))

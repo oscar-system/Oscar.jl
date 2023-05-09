@@ -1,6 +1,6 @@
 module SolveRadical
 
-using Oscar, Markdown
+using Oscar
 import Oscar: AbstractAlgebra, Hecke, GaloisGrp.GaloisCtx
 
 function __init__()
@@ -54,7 +54,7 @@ end
 #
 # now suppose SubField is given (fixed_field of U) and V is a (maximal) subgroup
 # the fixed_field(V) is a (minimal) extension of U, given via some invariant I
-# (if I is U-relative V-inv, then I is "a" generic primtive element)
+# (if I is U-relative V-inv, then I is "a" generic primitive element)
 # goal is to write minpoly(I) as exact elements of SubField.
 # conjugates (relative) of I are U//V operating on I
 #  we might need a tschirni to make them different...
@@ -265,14 +265,14 @@ function _fixed_field(C::GaloisCtx, s::Vector{PermGroup}; invar=nothing, max_pre
   return k
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     fixed_field(C::GaloisCtx, s::Vector{PermGroup})
 
 Given a descending chain of subgroups, each being maximal in the previous
 one, compute the corresponding subfields as a tower.
 
 # Examples
-```julia
+```jldoctest
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-3*x+17)
@@ -285,9 +285,8 @@ julia> d = derived_series(G)
  Group(())
 
 julia> fixed_field(C, d)
-(Relative number field over with defining polynomial x^3 - 3*x + 17
+(Relative number field with defining polynomial x^3 - 3*x + 17
  over Number field over Rational Field with defining polynomial x^2 + 7695, a2)
-
 ```
 """
 function Oscar.fixed_field(C::GaloisCtx, s::Vector{PermGroup})
@@ -307,7 +306,14 @@ function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldEl
   if degree(S.fld) == 1
     return ceil(ZZRingElem, abs(x))
   end
+  if iszero(x)
+    return ZZRingElem(1)
+  end
   f = parent(defining_polynomial(S.fld))(x)
+  if iszero(f)
+    return fmpz(1)
+  end
+
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val
   return sum(length_bound(C, S.coeff_field, coeff(f, i))*B^i for i=0:degree(f))
 end
@@ -395,7 +401,7 @@ function Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
   return solve(numerator(f), max_prec = max_prec)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int))
     Oscar.solve(f::QQPolyRingElem; max_prec::Int=typemax(Int))
 
@@ -466,7 +472,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   end
   S = slpoly_ring(ZZ, degree(G))[1]
   @vprint :SolveRadical 1 "computing tower...\n"
-  @vtime :SolveRadical 1 All = _fixed_field(C, s, invar = gens(S)[pp], max_prec = max_prec)
+  @vtime :SolveRadical 1 All = _fixed_field(C, s, invar = gen(S, pp), max_prec = max_prec)
                     #here one could actually specify the invariant
                           #at least for the cyclos
 
@@ -490,7 +496,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
     fld_arr[i+1].fld.S = Symbol("z_$(lp[i])")
   end
   @vprint :SolveRadical 1 "find roots...\n"
-  @vtime :SolveRadical 1 R = recognise(C, All, gens(S)[rt])
+  @vtime :SolveRadical 1 R = recognise(C, All, gen(S, rt))
   R = R .// scale
   #now, rewrite as radicals..
   #the cyclos are fine:

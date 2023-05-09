@@ -13,7 +13,7 @@
     @test nmp == n
     @test nmp isa Int
 
-    @test isfinite(G)
+    @test is_finite(G)
 
     @test order(G) isa ZZRingElem
     @test order(G) == factorial(n)
@@ -36,7 +36,7 @@
 
     @test gens(G) isa Vector{PermGroupElem}
     @test gens(A) isa Vector{PermGroupElem}
-    @test ngens(G) == length(gens(G))
+    @test ngens(G) == ngens(G)
   end
 
   @test_throws ArgumentError symmetric_group(0)
@@ -76,13 +76,18 @@ end
   @test_throws ArgumentError cyclic_group(-1)
   @test_throws ArgumentError cyclic_group(PermGroup, -1)
 
-  for p in [next_prime(2^62), next_prime(ZZRingElem(2)^66)]
+  @test_throws ArgumentError cyclic_generator(symmetric_group(3))
+
+  for p in [1, next_prime(2^62), next_prime(ZZRingElem(2)^66)]
     g = cyclic_group(p)
     @test is_cyclic(g)
+    @test order(cyclic_generator(g)) == order(g)
     @test !is_dihedral_group(g)
     @test is_finite(g)
     @test order(g) == p
+  end
 
+  for p in [next_prime(2^62), next_prime(ZZRingElem(2)^66)]
     n = 2*ZZRingElem(p)
     g = dihedral_group(n)
     @test !is_cyclic(g)
@@ -111,7 +116,7 @@ end
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
 #=
   H = free_abelian_group(2)
-  @test !isfinite(H)
+  @test !is_finite(H)
   @test is_abelian(H)
 =#
   
@@ -127,17 +132,17 @@ end
   F = free_group("x","y")
   @test F isa FPGroup
   @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
-  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
-  @test !isfinite(F)
+  @test !is_finite(F)
   @test !is_abelian(F)
 
   F = free_group(:x,:y)
   @test F isa FPGroup
   @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
-  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
-  @test !isfinite(F)
+  @test !is_finite(F)
   @test !is_abelian(F)
 
   F = free_group("x",:y)

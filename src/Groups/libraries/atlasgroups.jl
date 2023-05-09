@@ -1,9 +1,3 @@
-export all_atlas_group_infos
-export atlas_group
-export atlas_program
-export atlas_subgroup
-export number_atlas_groups
-
 ###################################################################
 # Groups from the Atlas of Group Representations
 ###################################################################
@@ -28,12 +22,12 @@ julia> atlas_group("M11")  # Mathieu group M11
 Group([ (2,10)(4,11)(5,7)(8,9), (1,4,3,8)(2,5,6,9) ])
 
 julia> atlas_group("M")  # Monster group M
-ERROR: the group atlas does not provide a representation for M
+ERROR: ArgumentError: the group atlas does not provide a representation for M
 ```
 """
 function atlas_group(name::String)
   G = GAP.Globals.AtlasGroup(GapObj(name))
-  G === GAP.Globals.fail && error("the group atlas does not provide a representation for $name")
+  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $name"
   T = _get_type(G)
   return T(G)
 end
@@ -44,7 +38,7 @@ function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, Matrix
   else
     G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
   end
-  G === GAP.Globals.fail && error("the group atlas does not provide a representation of type $T for $name")
+  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation of type $T for $name"
   TT = _get_type(G)
   return TT(G)
 end
@@ -72,9 +66,9 @@ function atlas_group(info::Dict)
   gapname = info[:name]
   l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GapObj(gapname))::GapObj
   pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GAP.GapObj}(l))
-  pos === nothing && error("no Atlas group for $info")
+  @req (pos !== nothing) "no Atlas group for $info"
   G = GAP.Globals.AtlasGroup(l[pos])
-  G === GAP.Globals.fail && error("the group atlas does not provide a representation for $info")
+  @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $info"
 
   if haskey(info, :base_ring_iso)
     # make sure that the given ring is used
@@ -134,9 +128,9 @@ Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
-  GAP.Globals.HasAtlasRepInfoRecord(G.X) || error("$G was not constructed with atlas_group")
+  @req GAP.Globals.HasAtlasRepInfoRecord(G.X) "$G was not constructed with atlas_group"
   info = GAP.Globals.AtlasRepInfoRecord(G.X)
-  info.groupname == info.identifier[1] || error("$G was not constructed with atlas_group")
+  @req (info.groupname == info.identifier[1]) "$G was not constructed with atlas_group"
   H = GAP.Globals.AtlasSubgroup(G.X, nr)
   if H === GAP.Globals.fail
     name = string(info.groupname)
@@ -213,9 +207,9 @@ function all_atlas_group_infos(name::String, L...)
       # handle e.g. `is_primitive => false`
       func = arg[1]
       data = arg[2]
-      haskey(_atlas_group_filter_attrs, func) || throw(ArgumentError("Function not supported"))
+      @req haskey(_atlas_group_filter_attrs, func) "Function not supported"
       expected_type, gapfunc, _ = _atlas_group_filter_attrs[func]
-      data isa expected_type || throw(ArgumentError("bad argument $(data) for function $(func)"))
+      @req data isa expected_type "bad argument $(data) for function $(func)"
       if func === base_ring
         # we will need the isomorphism later on
         iso = iso_oscar_gap(data)
@@ -229,9 +223,9 @@ function all_atlas_group_infos(name::String, L...)
     elseif arg isa Function
       # handle e.g. `is_primitive` or `! is_primitive`
       func = arg
-      haskey(_atlas_group_filter_attrs, func) || throw(ArgumentError("Function not supported"))
+      @req haskey(_atlas_group_filter_attrs, func) "Function not supported"
       expected_type, gapfunc, default = _atlas_group_filter_attrs[func]
-      default !== nothing || throw(ArgumentError("missing argument for function $(func)"))
+      @req default !== nothing "missing argument for function $(func)"
       push!(gapargs, gapfunc, default)
     else
       throw(ArgumentError("expected a function or a pair, got $arg"))

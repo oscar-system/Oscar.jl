@@ -71,7 +71,7 @@
   G = symmetric_group(4)
   omega = [1, 2]
   Omega = gset(G, Set([omega]))  # action on ordered pairs
-  g = gens(G)[1]
+  g = gen(G, 1)
   x = Omega(omega)
   @test x in Omega
   @test unwrap(x) == omega
@@ -81,7 +81,7 @@
 
   omega = [0,1,0,1]
   Omega = gset(G, permuted, Set([omega]))
-  g = gens(G)[1]
+  g = gen(G, 1)
   x = Omega(omega)
   @test x in Omega
   @test unwrap(x) == omega
@@ -110,7 +110,7 @@
   # permutation
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  g = gens(G)[1]
+  g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
@@ -249,7 +249,7 @@ end
 
   # permutation
   Omega = gset(G)
-  g = gens(G)[1]
+  g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
@@ -304,4 +304,14 @@ end
     end
   end
 
+end
+
+@testset "G-sets of matrix groups in characteristic zero" begin
+
+  # natural constructions (determined by the types of the seeds)
+  G = matrix_group(permutation_matrix(QQ,[3,1,2]))
+  R, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+  f = x^2 + y
+  orb = orbit(G, f)
+  @test length(orb) == 3
 end

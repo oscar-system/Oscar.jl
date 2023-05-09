@@ -1,16 +1,40 @@
 module Orderings
 
-using Oscar, Markdown
+using Oscar
 import Oscar: Ring, MPolyRing, MPolyRingElem, weights, IntegerUnion, base_ring,
        support, matrix
-export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
-       neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
-       negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
-       isweighted, is_global, is_local, is_mixed, is_total,
-       permutation_of_terms, index_of_leading_term,
-       weight_ordering, canonical_matrix,
-       MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
-       is_elimination_ordering, induced_ring_ordering
+
+export ModuleOrdering
+export MonomialOrdering
+export anti_diagonal
+export canonical_matrix
+export deglex
+export degrevlex
+export index_of_leading_term
+export induce
+export induced_ring_ordering
+export is_elimination_ordering
+export is_global
+export is_local
+export is_mixed
+export is_total
+export isweighted
+export lex
+export matrix_ordering
+export monomial_ordering
+export negdeglex
+export negdegrevlex
+export neglex
+export negrevlex
+export negwdeglex
+export negwdegrevlex
+export opposite_ordering
+export permutation_of_terms
+export revlex
+export singular
+export wdeglex
+export wdegrevlex
+export weight_ordering
 
 abstract type AbsOrdering end
 
@@ -36,9 +60,8 @@ struct WSymbOrdering{S} <: AbsGenOrdering
   function WSymbOrdering(S::Symbol, v, w::Vector{Int})
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
-    length(v) == length(w) ||
-        throw(ArgumentError("number of variables should match the number of weights"))
-    all(>(0), v) || throw(ArgumentError("all weights should be positive"))
+    @req length(v) == length(w) "number of variables should match the number of weights"
+    @req all(>(0), v) "all weights should be positive"
     return new{S}(v, w)
   end
 end
@@ -50,18 +73,14 @@ struct MatrixOrdering <: AbsGenOrdering
   matrix::ZZMatrix
   fullrank::Bool
   function MatrixOrdering(v, m::ZZMatrix, fullrank::Bool)
-    length(v) == ncols(m) ||
-        throw(ArgumentError("number of variables should match the number of columns"))
+    @req length(v) == ncols(m) "number of variables should match the number of columns"
     if fullrank
       if nrows(m) > ncols(m)
         m = _canonical_matrix(m)
       end
-      if nrows(m) < ncols(m)
-        throw(ArgumentError("weight matrix is rank deficient"))
-      else
-        @assert nrows(m) == ncols(m)
-        !iszero(det(m)) || throw(ArgumentError("weight matrix is not invertible"))
-      end
+      @req nrows(m) >= ncols(m) "weight matrix is rank deficient"
+      @assert nrows(m) == ncols(m)
+      @req !iszero(det(m)) "weight matrix is not invertible"
     end
     return new(v, m, fullrank)
   end
@@ -120,7 +139,7 @@ end
 
 Base.:*(a::AbsGenOrdering, b::AbsGenOrdering) = ProdOrdering(a, b)
 
-@doc Markdown.doc"""
+@doc raw"""
     anti_diagonal(R::Ring, n::Int)
 
 A square matrix with `1` on the anti-diagonal.
@@ -163,7 +182,7 @@ end
 
 base_ring(a::MonomialOrdering) = a.R
 
-@doc Markdown.doc"""
+@doc raw"""
     support(o::MonomialOrdering)
 
 Return the vector of variables on which `o` is defined.
@@ -172,7 +191,7 @@ function support(o::MonomialOrdering)
   return [gen(base_ring(o), i) for i in _support_indices(o.o)]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     *(o1::MonomialOrdering, o2::MonomialOrdering)
 
 The product ordering `M*N` tries to order by `M` first, and in the case of a
@@ -189,7 +208,7 @@ function _support_indices(o::SymbOrdering)
   return o.vars
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     monomial_ordering(v::AbstractVector{<:MPolyRingElem}, s::Symbol)
 
 Defines an ordering to be applied to the variables in `v`. The symbol `s`
@@ -207,7 +226,7 @@ end
 
 #### lex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     lex(R::MPolyRing) -> MonomialOrdering
 
 Return the lexicographical ordering on the set of monomials in the variables of `R`.
@@ -271,7 +290,7 @@ end
 
 #### deglex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     deglex(R::MPolyRing) -> MonomialOrdering
 
 Return the degree lexicographical ordering on the set of monomials in the variables of `R`.
@@ -343,7 +362,7 @@ end
 
 #### degrevlex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     degrevlex(R::MPolyRing) -> MonomialOrdering
 
 Return the degree reverse lexicographical ordering on the set of monomials in the variables of `R`.
@@ -415,7 +434,7 @@ end
 
 #### revlex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     revlex(R::MPolyRing) -> MonomialOrdering
 
 Return the reverse lexicographical ordering on the set of monomials in the variables of `R`.
@@ -479,7 +498,7 @@ end
 
 #### neglex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     neglex(R::MPolyRing) -> MonomialOrdering
 
 Return the negative lexicographical ordering on the set of monomials in the variables of `R`.
@@ -543,7 +562,7 @@ end
 
 #### negrevlex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     negrevlex(R::MPolyRing) -> MonomialOrdering
 
 Return the negative reverse lexicographical ordering  on the set of monomials in the variables of `R`.
@@ -607,7 +626,7 @@ end
 
 #### negdegrevlex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     negdegrevlex(R::MPolyRing) -> MonomialOrdering
 
 Return the negative degree reverse lexicographical ordering on the set of monomials in the variables of `R`.
@@ -679,7 +698,7 @@ end
 
 #### negdeglex ####
 
-@doc Markdown.doc"""
+@doc raw"""
     negdeglex(R::MPolyRing) -> MonomialOrdering
 
 Return the negative degree lexicographical ordering on the set of monomials in the variables of `R`.
@@ -755,7 +774,7 @@ function _support_indices(o::WSymbOrdering)
   return o.vars
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     monomial_ordering(v::AbstractVector{<:MPolyRingElem}, s::Symbol, w::Vector{Int})
     monomial_ordering(R::MPolyRing, s::Symbol, w::Vector{Int}) -> MonomialOrdering
 
@@ -785,7 +804,7 @@ end
 
 #### wdeglex, Wp ####
 
-@doc Markdown.doc"""
+@doc raw"""
     wdeglex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
 
 If `W` is a vector of positive integers, return the corresponding weighted 
@@ -854,7 +873,7 @@ end
 
 #### wdegrevlex, wp ####
 
-@doc Markdown.doc"""
+@doc raw"""
     wdegrevlex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
 
 If `W` is a vector of positive integers, return the corresponding weighted reverse 
@@ -923,7 +942,7 @@ end
 
 #### negwdeglex, Ws ####
 
-@doc Markdown.doc"""
+@doc raw"""
     negwdeglex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
 
 If `W` is a vector of positive integers, return the corresponding negative weighted 
@@ -992,7 +1011,7 @@ end
 
 #### negwdegrevlex, ws ####
 
-@doc Markdown.doc"""
+@doc raw"""
     negwdegrevlex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
 
 If `W` is a vector of positive integers, return the corresponding negative weighted
@@ -1065,13 +1084,13 @@ function _support_indices(o::MatrixOrdering)
   return o.vars
 end
 
-@doc Markdown.doc"""
-    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T -> MonomialOrdering
+@doc raw"""
+    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T -> MonomialOrdering
 
 Given an integer matrix `M` such that `nvars(R) = ncols(M) = rank(M)`, 
 return the matrix ordering on the set of variables of `R` which is defined by `M`.
 
-    matrix_ordering(V::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T -> MonomialOrdering
+    matrix_ordering(V::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T -> MonomialOrdering
 
 Given a vector `V` of variables and an integer matrix `M` such that `length(V) = ncols(M) = rank(M)`, 
 return the matrix ordering on the set of monomials in the given variables which is defined by `M`.
@@ -1120,16 +1139,16 @@ julia> canonical_matrix(o3)
 [0   0   0   -1]
 ```
 """
-function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
   return MonomialOrdering(R, MatrixOrdering(1:nvars(R), ZZMatrix(M), check))
 end
 
-function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, ZZMatrix(M), check))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     weight_ordering(W::Vector{Int}, ord::MonomialOrdering) -> MonomialOrdering
 
 Given an integer vector `W` and a monomial ordering `ord` on a set of monomials in
@@ -1223,7 +1242,7 @@ end
 
 ###################################
 
-@doc Markdown.doc"""
+@doc raw"""
     matrix(ord::MonomialOrdering)
 
 Return a matrix defining `ord` as a matrix ordering.
@@ -1254,7 +1273,7 @@ function matrix(M::MonomialOrdering)
   return _matrix(nvars(base_ring(M)), M.o)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     simplify(M::MonomialOrdering) -> MonomialOrdering
 
 Returns a matrix ordering with a unique weight matrix.
@@ -1268,7 +1287,7 @@ function canonical_matrix(nvars::Int, M::AbsOrdering)
   return _canonical_matrix(_matrix(nvars, M))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     canonical_matrix(ord::MonomialOrdering)
 
 Return the canonical matrix defining `ord` as a matrix ordering.
@@ -1315,7 +1334,7 @@ function _cmp_var(M, j::Int)
   return 0
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_global(ord::MonomialOrdering)
 
 Return `true` if `ord` is global, `false` otherwise.
@@ -1341,7 +1360,7 @@ function is_global(ord::MonomialOrdering)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_local(ord::MonomialOrdering)
 
 Return `true` if `ord` is local, `false` otherwise.
@@ -1367,7 +1386,7 @@ function is_local(ord::MonomialOrdering)
   return true
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_mixed(ord::MonomialOrdering)
 
 Return `true` if `ord` is mixed, `false` otherwise.
@@ -1401,7 +1420,7 @@ function is_mixed(ord::MonomialOrdering)
   return false
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_total(ord::MonomialOrdering)
 
 Return `true` if `ord` is total ordering, `false` otherwise.
@@ -1415,7 +1434,7 @@ function is_total(ord::MonomialOrdering)
   return ord.is_total
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cmp(ord::MonomialOrdering, a::MPolyRingElem, b::MPolyRingElem)
 
     cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyRingElem
@@ -1477,7 +1496,7 @@ function _elimination_data(n::Int, sigmaC::Vector)
   return varmap, sigma, sigmaC
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_elimination_ordering(ord::MonomialOrdering, V::Vector{<:MPolyRingElem})
 
 Given a vector `V` of polynomials which are variables, return `true` if `ord` is an elimination ordering for the variables in `V`.
@@ -1562,6 +1581,52 @@ function is_elimination_ordering(o::MonomialOrdering, sigmaC::Vector{Int})
     end
   end
   return true
+end
+
+function induce(vars::Vector{Int}, o::SymbOrdering{S}) where S
+  return SymbOrdering(S, vars)
+end
+
+function induce(vars::Vector{Int}, o::WSymbOrdering{S}) where S
+  @req length(vars) == length(o.vars) "Number of variables must coincide"
+  return WSymbOrdering(S, vars, o.weights)
+end
+
+function induce(vars::Vector{Int}, o::MatrixOrdering)
+  @req length(vars) == length(o.vars) "Number of variables must coincide"
+  return MatrixOrdering(vars, o.matrix, o.fullrank)
+end
+
+function induce(vars::Vector{Int}, o::ProdOrdering)
+  m = length(_support_indices(o.a))
+  n = length(_support_indices(o.b))
+  @req m + n == length(vars) "Number of variables must coincide"
+  return induce(vars[1:m], o.a)*induce(vars[m + 1:end], o.b)
+end
+
+@doc raw"""
+    induce(vars::AbstractVector{<:MPolyRingElem}, ord::ModuleOrdering)
+
+Return the monomial ordering on the variables `vars` induced by transfering
+the ordering `ord`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> S, (a, b, c) = polynomial_ring(GF(5), ["a", "b", "c"]);
+
+julia> ord = degrevlex([x, y])*neglex([z]);
+
+julia> induce([a, b, c], ord)
+degrevlex([a, b])*neglex([c])
+```
+"""
+function induce(vars::AbstractVector{<: MPolyRingElem}, o::MonomialOrdering)
+  @assert !isempty(vars)
+  v = _unique_var_indices(vars)
+  o2 = induce(v, o.o)
+  return MonomialOrdering(parent(vars[1]), o2, false, false)
 end
 
 ###################################################
@@ -1667,7 +1732,7 @@ function Base.:*(M::MonomialOrdering, N::ModuleOrdering)
    return ModuleOrdering(N.M, M.o*N.o)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     induced_ring_ordering(ord::ModuleOrdering)
 
 Return the ring ordering induced by `ord`.  
@@ -1708,7 +1773,7 @@ function induced_ring_ordering(o::ModProdOrdering)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     is_global(M::ModuleOrdering)
 
 Return `true` if the given ordering is global, i.e. if the
@@ -1719,7 +1784,7 @@ function is_global(M::ModuleOrdering)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     permutation_of_terms(f::MPolyRingElem, ord::MonomialOrdering)
 
 Return the permutation that puts the terms of `f` in the order `ord`.
@@ -1730,7 +1795,7 @@ function permutation_of_terms(f::MPolyRingElem, ord::MonomialOrdering)
   return p
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
 
 Return the index of the leading term of `f` with repsect to the order `ord`. The
@@ -1738,7 +1803,7 @@ returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
   n = length(f)
-  n > 0 || throw(ArgumentError("zero polynomial does not have a leading term"))
+  @req n > 0 "zero polynomial does not have a leading term"
   res = 1
   for i in 2:n
     if Orderings._cmp_monomials(f, res, f, i, ord.o) < 0
@@ -1813,7 +1878,7 @@ function _opposite_ordering(n::Int, o::ProdOrdering)
   return ProdOrdering(_opposite_ordering(n, o.a), _opposite_ordering(n, o.b))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     opposite_ordering(R::MPolyRing, o::MonomialOrdering)
 
 Return an ordering on `R` whose weight matrix is the column-wise reverse of the
@@ -1973,7 +2038,7 @@ function _convert_sblock(nvars::Int, o::Singular.sorder_block, lastvar::Int)
   end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     monomial_ordering(R::MPolyRing, ord::Singular.sordering)
 
 Return an ordering on `R` equivalent to the Singular.jl ordering `ord`.
@@ -1991,3 +2056,5 @@ function monomial_ordering(R::MPolyRing, ord::Singular.sordering)
 end
 
 end  # module Orderings
+
+import Oscar.Orderings: induce # needed at least for group characters

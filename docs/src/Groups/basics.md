@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["basics.md"]
-```
-
 # Basics
 
 ## [Elements of groups](@id elements_of_groups)
@@ -74,7 +66,9 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 ## Properties of groups
 
 ```@docs
-Base.isfinite(G::GAPGroup)
+is_finite(G::GAPGroup)
+is_trivial(G::GAPGroup)
+is_cyclic(G::GAPGroup)
 is_abelian(G::GAPGroup)
 is_elementary_abelian
 is_pgroup
@@ -95,6 +89,7 @@ is_finitelygenerated
 
 ```@docs
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
+cyclic_generator(G::GAPGroup)
 exponent(G::GAPGroup)
 describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)

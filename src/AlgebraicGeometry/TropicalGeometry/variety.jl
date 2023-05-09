@@ -53,7 +53,7 @@ end
 # ---------------------
 ###
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalVariety()
 
 Construct the embedded tropical variety of a polynomial ideal over a (possibly trivially) valued field
@@ -68,7 +68,7 @@ Construct the embedded tropical variety of a polynomial ideal over a (possibly t
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     TropicalVariety{M,EMB}(Sigma::PolyhedralComplex)
 
 Construct the abstract tropical variety from a polyhedral complex
@@ -81,7 +81,7 @@ julia> VR = [0 0; 1 0; 0 1; -1 -1];
 
 julia> far_vertices = [2,3,4];
 
-julia> Sigma = PolyhedralComplex(IM, VR, far_vertices);
+julia> Sigma = polyhedral_complex(IM, VR, far_vertices);
 
 julia> tropicalLine = TropicalVariety{min,true}(Sigma)
 """
@@ -277,7 +277,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     # 3.0.1: dehomogenize Groebner polyhedra
     zeroth_unit_vector_as_row_vector = zeros(Int,1,n)
     zeroth_unit_vector_as_row_vector[1,1] = 1
-    dehomogenising_hyperplane = Polyhedron((zeros(Int,0,n),zeros(Int,0)),
+    dehomogenising_hyperplane = polyhedron((zeros(Int,0,n),zeros(Int,0)),
                                            (zeroth_unit_vector_as_row_vector,[1]))
     for wCG in working_list_done
       wCG[2] = intersect(wCG[2],dehomogenising_hyperplane)
@@ -294,7 +294,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     incidence_vector = Vector{Int}()
     for vert in vertices(C)
       i = findfirst(isequal(vert),verts_rays)
-      if i == nothing
+      if i === nothing
         # if vert does not occur in verts_rays
         # add it to verts_rays
         push!(verts_rays,vert)
@@ -305,7 +305,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
     end
     for ray in rays(C)
       i = findfirst(isequal(ray),verts_rays)
-      if i == nothing || !(i in far_vertices)
+      if i === nothing || !(i in far_vertices)
         # if ray does not occur in verts_rays or if it occurs but not as a ray,
         # add it to verts_rays
         push!(verts_rays,ray)
@@ -333,7 +333,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
 
 
 
-  PC = PolyhedralComplex(IncidenceMatrix(incidence_matrix),
+  PC = polyhedral_complex(IncidenceMatrix(incidence_matrix),
   verts_rays_matrix,
   far_vertices,
   lineality_space_gens)

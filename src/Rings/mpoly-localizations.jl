@@ -1,27 +1,6 @@
-export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
-export prime_ideal
-export rand, sets, issubset, units_of, simplify!, is_trivial
 import Base: issubset
 
-export MPolyLocRing
-export ambient_ring, point_coordinates, inverted_set, denominators, gens
-
-export MPolyLocRingElem
-export numerator, denominator, fraction, parent, is_unit, divexact
-export reduce_fraction
-
-export MPolyLocalizedIdeal
-export gens, base_ring, saturated_ideal, intersect, quotient
-
-export Localization, ideal
-export bring_to_common_denominator, write_as_linear_combination
-
-export MPolyLocalizedRingHom
-export domain, codomain, images
-
 import AbstractAlgebra: Ring, RingElem
-
-export complement_of_prime_ideal, complement_of_point_ideal, powers_of_element
 
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #
@@ -37,7 +16,7 @@ abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 # Powers of elements                                                   #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     MPolyPowersOfElement{
         BaseRingType,
         BaseRingElemType, 
@@ -148,7 +127,7 @@ end
 # Complements of prime ideals                                          #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     MPolyComplementOfPrimeIdeal{
         BaseRingType, 
         BaseRingElemType,
@@ -234,7 +213,7 @@ end
 # Complements of maximal ideals corresponding to 𝕜-points              #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     MPolyComplementOfKPointIdeal{
         BaseRingType,
         BaseRingElemType, 
@@ -267,7 +246,7 @@ mutable struct MPolyComplementOfKPointIdeal{
   a::Vector{BaseRingElemType}
 
   function MPolyComplementOfKPointIdeal(R::RingType, a::Vector{T}) where {RingType<:MPolyRing, T<:RingElement}
-    length(a) == length(gens(R)) || error("the number of variables in the ring does not coincide with the number of coordinates")
+    length(a) == ngens(R) || error("the number of variables in the ring does not coincide with the number of coordinates")
     n = length(a)
     kk = coefficient_ring(R)
     b = kk.(a) # fails if the input is not compatible
@@ -276,7 +255,7 @@ mutable struct MPolyComplementOfKPointIdeal{
   end
 end
 
-@doc Markdown.doc"""  
+@doc raw"""  
     complement_of_point_ideal(R::MPolyRing, a::Vector)
 
 Given a polynomial ring ``R``, say ``R = K[x_1,\dots, x_n]``, and given a vector 
@@ -285,6 +264,7 @@ closed subset ``R\setminus m``, where ``m`` is the maximal ideal
 
 $$m = \langle x_1-a_1,\dots, x_n-a_n\rangle \subset R.$$
 
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
@@ -295,7 +275,7 @@ complement of maximal ideal corresponding to point with coordinates QQFieldElem[
 """
 complement_of_point_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdeal(R, a)
 
-@doc Markdown.doc"""
+@doc raw"""
     complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false)
 
 Given a prime ideal ``P`` of a polynomial ring ``R``, say,
@@ -319,7 +299,7 @@ complement of ideal(x)
 """
 complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false) = MPolyComplementOfPrimeIdeal(P; check)
 
-@doc Markdown.doc"""  
+@doc raw"""  
     powers_of_element(f::MPolyRingElem)
 
 Given an element `f` of a polynomial ring, return the multiplicatively 
@@ -376,7 +356,7 @@ function rand(rng::Random.AbstractRNG, S::MPolyComplementOfKPointIdeal, v1::Unit
 end
 
 
-@Markdown.doc """
+@doc raw"""
     MPolyProductOfMultSets{
         BaseRingType,
         BaseRingElemType, 
@@ -470,7 +450,7 @@ end
 # Localization associated to a monomial ordering                       #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     MPolyLeadingMonOne{
         BaseRingType,
         BaseRingElemType,
@@ -582,7 +562,7 @@ function issubset(
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(T)
   for i in 1:length(a)
-    (gens(R)[i]- R(a[i])) in prime_ideal(U) || return false
+    (gen(R, i)- R(a[i])) in prime_ideal(U) || return false
   end
   return true
 end
@@ -702,7 +682,7 @@ end
 
 *(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = product(T, U)
 
-@Markdown.doc """
+@doc raw"""
     product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 
 Return the product of the multiplicative subsets `T` and `U`. 
@@ -920,7 +900,7 @@ end
 # Localizations of polynomial rings over admissible fields             #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     MPolyLocRing{
         BaseRingType,
         BaseRingElemType,
@@ -972,7 +952,7 @@ gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
 ngens(W::MPolyLocRing) = ngens(base_ring(W))
 
 ### required extension of the localization function
-@Markdown.doc """
+@doc raw"""
 
     localization(R::MPolyRing, U::AbsMPolyMultSet)   
 
@@ -1079,7 +1059,7 @@ end
 # Elements of localized polynomial rings                               #
 ########################################################################
 
-@Markdown.doc """
+@doc raw"""
     MPolyLocRingElem{
         BaseRingType, 
         BaseRingElemType,
@@ -1316,7 +1296,7 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocRingElem}
   return W(m, n, check=false)
 end
 
-@Markdown.doc """
+@doc raw"""
     is_unit(f::MPolyLocRingElem)
 
 Return `true`, if `f` is a unit of `parent(f)`, `false` otherwise.
@@ -1370,14 +1350,6 @@ end
 is_domain_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
-### promotion rules
-AbstractAlgebra.promote_rule(::Type{MPolyLocRingElem{RT, RET, MST}}, ::Type{MPolyLocRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = MPolyLocRingElem{RT, RET, MST}
-
-function AbstractAlgebra.promote_rule(::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}, ::Type{T}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
-  AbstractAlgebra.promote_rule(RET, T) == RET && return MPolyLocRingElem{BRT, BRET, RT, RET, MST}
-  return AbstractAlgebra.promote_rule(BRET, T) == BRET ? MPolyLocRingElem{BRT, BRET, RT, RET, MST} : Union{}
-end
-
 @attr function base_ring_shifts(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
   a = point_coordinates(inverted_set(L))
   R = base_ring(L)
@@ -1404,7 +1376,7 @@ end
 # Since computation of the saturated ideal might be expensive, 
 # we usually only cache a 'pre-saturated ideal' I' ⊂ J ⊂ I': U.
 
-@Markdown.doc """
+@doc raw"""
     MPolyLocalizedIdeal{
         LocRingType<:MPolyLocRing, 
         LocRingElemType<:MPolyLocRingElem
@@ -1466,7 +1438,7 @@ end
  
 ### required getter functions
 gens(I::MPolyLocalizedIdeal) = copy(I.gens)
-gens(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
+gen(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
 getindex(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyLocalizedIdeal) = I.W
 
@@ -1487,7 +1459,7 @@ function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   is_saturated(I) && return false
   R = base_ring(L)
   J = pre_saturated_ideal(I)
-  (success, x, u) = has_solution(generator_matrix(J), matrix_space(R, 1, 1)([b]), inverted_set(L))
+  (success, x, u) = has_solution(generator_matrix(J), matrix(R, 1, 1, [b]), inverted_set(L))
   !success && return false
   # cache the intermediate result
   extend_pre_saturated_ideal!(I, b, x, u, check=false)
@@ -1500,14 +1472,70 @@ end
 end
 
 ### Additional constructors
+@doc raw"""
+    intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
+    intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal...)
+    intersect(VI::Vector{<:MPolyLocalizedIdeal{T}}) where T
+Return the intersection of two or more ideals.
+
+# Examples
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> f = x+y+z+w-1;
+
+julia> T = MPolyPowersOfElement(f);
+
+julia> RL,phiL = Localization(R,T);
+
+julia> I=ideal(RL,RL.([x+y+z,w-1]))
+ideal in localization of Multivariate Polynomial Ring in x, y, z, w over Rational Field at the powers of QQMPolyRingElem[x + y + z + w - 1] generated by [x + y + z, w - 1]
+
+julia> is_one(I)
+true
+
+julia> J=ideal(RL,RL.([x^2,y]))
+ideal in localization of Multivariate Polynomial Ring in x, y, z, w over Rational Field at the powers of QQMPolyRingElem[x + y + z + w - 1] generated by [x^2, y]
+
+julia> K=ideal(RL,RL.([x]))
+ideal in localization of Multivariate Polynomial Ring in x, y, z, w over Rational Field at the powers of QQMPolyRingElem[x + y + z + w - 1] generated by [x]
+
+julia> intersect(J,K)
+ideal in localization of Multivariate Polynomial Ring in x, y, z, w over Rational Field at the powers of QQMPolyRingElem[x + y + z + w - 1] generated by [x*y, x^2]
+
+julia> intersect(I,J,K)
+ideal in localization of Multivariate Polynomial Ring in x, y, z, w over Rational Field at the powers of QQMPolyRingElem[x + y + z + w - 1] generated by [x*y, x^2]
+
+julia> intersect([I,J,K])
+ideal in localization of Multivariate Polynomial Ring in x, y, z, w over Rational Field at the powers of QQMPolyRingElem[x + y + z + w - 1] generated by [x*y, x^2]
+```
+"""
 function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
   L = base_ring(I)
   L == base_ring(J) || error("ideals must be defined in the same ring")
-  preI = Oscar.pre_saturated_ideal(I)
-  preJ = Oscar.pre_saturated_ideal(J) 
-  R = base_ring(L)
+  preI = pre_saturated_ideal(I)
+  preJ = pre_saturated_ideal(J)
   K = intersect(I, J)
   return L(K)
+end
+
+function intersect(I::MPolyLocalizedIdeal,J::MPolyLocalizedIdeal...) 
+  L = base_ring(I)
+  erg = pre_saturated_ideal(I)
+  for K in J
+    base_ring(K) == L || error("base rings must match")
+    erg = intersect(erg,pre_saturated_ideal(K))
+  end
+  return L(erg)
+end
+
+function intersect(VI::Vector{<:MPolyLocalizedIdeal{T}}) where T
+  @assert length(VI)!=0
+  L = base_ring(VI[1])
+  all(J -> base_ring(J) == L,VI) || error("base rings must match")
+  VIpre = [pre_saturated_ideal(J) for J in VI]
+  erg = Base.intersect(VIpre)
+  return L(erg)
 end
 
 ### Further functionality
@@ -1527,7 +1555,7 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
     # multiplications sparse*dense have to be carried out this way round.
     return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
   else
-    (success, x, u) = has_solution(generator_matrix(J), matrix_space(R, 1, 1)([p]), inverted_set(L), check=false)
+    (success, x, u) = has_solution(generator_matrix(J), matrix(R, 1, 1, [p]), inverted_set(L), check=false)
     !success && error("check for membership was disabled, but element is not in the ideal")
     # cache the intermediate result
     #result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
@@ -1555,9 +1583,9 @@ function coordinates(
   return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
 end
 
-generator_matrix(J::MPolyIdeal) = matrix_space(base_ring(J), ngens(J), 1)(gens(J))
+generator_matrix(J::MPolyIdeal) = matrix(base_ring(J), ngens(J), 1, gens(J))
 
-@Markdown.doc """
+@doc raw"""
     saturated_ideal(I::MPolyLocalizedIdeal)
 
 Given an ideal `I` of a localization, say, `Rloc` of a multivariate polynomial ring, say, `R`,
@@ -1611,12 +1639,12 @@ function pre_saturated_ideal(I::MPolyLocalizedIdeal)
   if !isdefined(I, :pre_saturated_ideal)
     W = base_ring(I)
     I.pre_saturated_ideal = ideal(base_ring(W), numerator.(gens(I)))
-    r = length(gens(I))
+    r = ngens(I)
     A = zero_matrix(SMat, W, 0, r)
-    #A = zero(matrix_space(W, r, r))
+    #A = zero_matrix(W, r, r)
     for i in 1:r
-      push!(A, sparse_row(W, [(i, W(denominator(gens(I)[i])))]))
-      #A[i, i] = denominator(gens(I)[i])
+      push!(A, sparse_row(W, [(i, W(denominator(gen(I, i))))]))
+      #A[i, i] = denominator(gen(I, i))
     end
     I.pre_saturation_data = A
   end
@@ -1806,7 +1834,7 @@ function saturated_ideal(
             end
           end
           if length(cache) > 0
-            #A = zero(matrix_space(L, ngens(Jsat), ngens(I)))
+            #A = zero_matrix(L, ngens(Jsat), ngens(I))
 
             #for i in 1:length(cache)
             #  (g, a, dttk) = cache[i]
@@ -1852,7 +1880,7 @@ function saturated_ideal(
         if length(cache) > 0
           # We completely overwrite the pre_saturated_ideal with the generators 
           # of the saturated ideal
-          #A = zero(matrix_space(L, ngens(Jsat), ngens(I)))
+          #A = zero_matrix(L, ngens(Jsat), ngens(I))
           #for i in 1:length(cache)
           #  (g, a, dttk) = cache[i]
           #  A[i, :] = L(one(dttk), dttk, check=false)*change_base_ring(L, a)*pre_saturation_data(I)
@@ -1885,18 +1913,18 @@ function saturated_ideal(
   return I.saturated_ideal
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     saturated_ideal(I::MPolyLocalizedIdeal)
     saturated_ideal(I::MPolyQuoLocalizedIdeal)
     saturated_ideal(I::MPolyIdeal)
     saturated_ideal(I::MPolyQuoIdeal)
 
-Returns the largest ideal in $R$ mapping to $I$ under the canonical map $R \longrightarrow S$ for an ideal $I \in S$, where $S$ may be any of the
+Return the largest ideal in $R$ mapping to $I$ under the canonical map $R \longrightarrow S$ for an ideal $I \in S$, where $S$ may be any of the
 types 'MPolyLocRing', 'MPolyQuoLocRing', 'MPolyRing' and 'MPolyQuoRing' and $R$ is the underlying ring of type 'MPolyRing'.
 Note that the last two variants are only provided to allow a coherent usage.  
 
 # Examples
-``` jldoctest
+```jldoctest
 julia> R, (x, y) = QQ["x", "y"]
 (Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 
@@ -1974,7 +2002,16 @@ end
 
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, W.(gens(I)))
+  result = MPolyLocalizedIdeal(W, W.(gens(I)))
+  # Make sure we keep previously computed groebner and standard bases.
+  result.pre_saturated_ideal = I
+  r = ngens(I)
+  A = zero_matrix(SMat, W, 0, r)
+  for i in 1:r
+    push!(A, sparse_row(W, [(i, one(W))]))
+  end
+  result.pre_saturation_data = A
+  return result
 end
 
 ### required constructors 
@@ -1984,7 +2021,7 @@ function ideal(
   return MPolyLocalizedIdeal(W, [W(f)])
 end
 
-@doc Markdown.doc"""    
+@doc raw"""    
     ideal(Rloc::MPolyLocRing, V::Vector)
 
 Given a localization `Rloc` of a multivariate polynomial ring, and given a vector `V` of 
@@ -2035,14 +2072,14 @@ Base.:(:)(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = q
 
 
 function Base.show(io::IO, I::MPolyLocalizedIdeal) 
-  if length(gens(I)) == 0
+  if ngens(I) == 0
     print(io, "zero ideal in $(base_ring(I))")
     return
   end
   print(io, "ideal in $(base_ring(I)) generated by [") 
-  n = length(gens(I))
+  n = ngens(I)
   for i in (1:n-1)
-    print(io, "$(gens(I, i)), ")
+    print(io, "$(gen(I, i)), ")
   end
   print(io, last(gens(I)))
   print(io, "]")
@@ -2261,7 +2298,7 @@ function coordinates(
                                     change_base_ring(L, x))))
 end
 
-@Markdown.doc """
+@doc raw"""
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocRingElem}
 
 Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
@@ -2290,7 +2327,7 @@ end
 write_as_linear_combination(f::MPolyLocRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
 
 # return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
-@Markdown.doc """
+@doc raw"""
     as_affine_algebra(
       L::MPolyLocRing{BRT, BRET, RT, RET, 
       MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
@@ -2402,7 +2439,7 @@ function Base.show(io::IO, phi::MPolyLocalizedRingHom)
   return
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     hom(Rloc::MPolyLocRing, S::Ring, phi::Map)
 
 Given a localized ring `Rloc`of type `MPolyLocRing`, say `Rloc` is the localization 
@@ -2469,7 +2506,7 @@ hom(W::MPolyLocRing, S::Ring, a::Vector{RET}; check::Bool=true) where {RET<:Ring
 domain(PHI::MPolyLocalizedRingHom) = PHI.W
 codomain(PHI::MPolyLocalizedRingHom) = PHI.S
 
-@doc Markdown.doc"""
+@doc raw"""
     restricted_map(PHI::MPolyLocalizedRingHom)
 
     restricted_map(PHI::MPolyQuoLocalizedRingHom)
@@ -2550,7 +2587,7 @@ function divides(a::MPolyLocRingElem, b::MPolyLocRingElem)
   W = parent(a)
   W == parent(b) || error("elements do not belong to the same ring")
   F = FreeMod(W, 1)
-  A = matrix_space(W, 1, 1)([b])
+  A = matrix(W, 1, 1, [b])
   M, _ = sub(F, A)
   represents_element(a*F[1], M) || return (false, zero(W))
   x = coordinates(a*F[1], M)
@@ -2626,7 +2663,7 @@ end
 ### For introducing in Function to docu
 ########################################
 
-@Markdown.doc """
+@doc raw"""
 
     in(f::MPolyRingElem, U::AbsMPolyMultSet)   
 

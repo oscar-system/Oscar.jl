@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["miscellaneous.md"]
-```
-
 # Some Special Ideals
 
 This page is still in its development stage. Currently, it only contains the function below:

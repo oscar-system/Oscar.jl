@@ -2,14 +2,14 @@
 # Attributes of cohomology classes
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(c::CohomologyClass)
 
 Return the normal toric variety of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -25,14 +25,14 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 toric_variety(c::CohomologyClass) = c.v
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(c::CohomologyClass)
 
 Return the coefficients of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -51,14 +51,14 @@ julia> coefficients(cc)
 coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in AbstractAlgebra.coefficients(polynomial(c).f)]
 
 
-@doc Markdown.doc"""
+@doc raw"""
     exponents(c::CohomologyClass)
 
 Return the exponents of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -73,10 +73,16 @@ julia> exponents(cc)
 [0   0   0   0   1]
 ```
 """
-exponents(c::CohomologyClass) = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
+function exponents(c::CohomologyClass) 
+  simplify!(c)
+  matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
+end
 
+function simplify!(c::CohomologyClass)
+  c.p = simplify(c.p)
+end
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(c::CohomologyClass)
 
 Return the polynomial in the cohomology ring of the normal
@@ -84,7 +90,7 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -100,15 +106,15 @@ julia> polynomial(cc)
 polynomial(c::CohomologyClass) = c.p
 
 
-@doc Markdown.doc"""
+@doc raw"""
     polynomial(c::CohomologyClass, ring::MPolyQuoRing)
 
-Returns the polynomial in `ring` corresponding
+Return the polynomial in `ring` corresponding
 to the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])

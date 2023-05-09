@@ -1,10 +1,9 @@
-export is_basic_serialization_type
 ################################################################################
 # Saving and loading vectors
 
 @registerSerializationType(Vector)
 
-@doc Markdown.doc"""
+@doc raw"""
     is_basic_serialization_type(::Type)
 
 During the serialization of types of the form `Vector{T}`, entries

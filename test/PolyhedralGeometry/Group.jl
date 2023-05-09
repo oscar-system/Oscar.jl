@@ -23,7 +23,7 @@
         C0 = cube(2)
         G0 = linear_symmetries(C0)
         @test degree(G0) == 4
-        P = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
+        P = polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
         @test_throws ArgumentError linear_symmetries(P)
     end
 
@@ -31,7 +31,7 @@
         C = cube(3)
         A = automorphism_group(C; action = :on_facets)
         @test degree(A) == 6
-        P = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
+        P = polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
         @test_throws ArgumentError automorphism_group(P; action = :on_facets)
     end
 
@@ -39,7 +39,7 @@
         C = cube(3)
         A = combinatorial_symmetries(C)
         @test degree(A) == 8
-        P = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
+        P = polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
         @test_throws ArgumentError combinatorial_symmetries(P)
     end
 

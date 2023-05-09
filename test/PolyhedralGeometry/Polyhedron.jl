@@ -2,24 +2,29 @@
 
 @testset "Polyhedron{$T}" for T in [QQFieldElem, nf_elem]
 
-    pts = [1 0 0; 0 0 1]'
+    pts = [1 0; 0 0; 0 1]
     @test convex_hull(T, pts) isa Polyhedron{T}
     Q0 = convex_hull(T, pts)
     @test convex_hull(T, pts; non_redundant = true) == Q0
     Q1 = convex_hull(T, pts, [1 1])
     Q2 = convex_hull(T, pts, [1 1], [1 1])
     square = cube(T, 2)
-    C1 = cube(T, 2, 0, 1)
-    Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
-    L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
+    CR = cube(T, 2, 0, 3//2)
+    Pos = polyhedron(T, [-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
+    L = polyhedron(T, [-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
     # this is to make sure the order of some matrices below doesn't change
     Polymake.prefer("beneath_beyond") do
         affine_hull(point)
     end
     s = simplex(T, 2)
+    R,x = polynomial_ring(QQ, "x")
 
     @testset "core functionality" begin
+        @test issubset(Q0, Q1)
+        @test !issubset(Q1, Q0)
+        @test [1, 0] in Q0
+        @test !([-1, -1] in Q0)
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
         if T == QQFieldElem
@@ -39,6 +44,15 @@
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
             @test is_smooth(Q0)
             @test is_normal(Q0)
+            @test is_lattice_polytope(Q0)
+            @test is_very_ample(square)
+            @test is_smooth(square)
+            @test ehrhart_polynomial(R, square) == 4*x^2 + 4*x + 1
+            @test h_star_polynomial(R, CR) == x^4 + 3*x^3 + 10*x^2 + 3*x + 1
+            @test is_normal(square)
+            @test_throws ArgumentError ehrhart_polynomial(CR)
+            @test_throws ArgumentError is_normal(CR)
+            @test_throws ArgumentError is_smooth(Q1)
         end
         @test is_feasible(Q0)
         @test is_bounded(Q0)
@@ -46,6 +60,11 @@
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
+        Ps = [Q0,Q0,Q0]
+        @test intersect(Ps) isa Polyhedron{T}
+        @test intersect(Ps...) isa Polyhedron{T}
+        @test intersect(Ps) == Q0
+        @test intersect(Ps...) == Q0
         @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
@@ -90,6 +109,12 @@
         @test faces(square, 1) == convex_hull.(T, [[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]])
         @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
+        @test vertex_and_ray_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
+        @test IncidenceMatrix(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
+        @test faces(IncidenceMatrix, square, 1) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
+        @test facet_indices(vertices(square)) == IncidenceMatrix([[1, 3],[2, 3],[1, 4],[2, 4]])
+        @test IncidenceMatrix(vertices(square)) == IncidenceMatrix([[1, 3], [2, 3], [1, 4], [2, 4]])
+        @test vertices(IncidenceMatrix, square) == IncidenceMatrix([[1, 3], [2, 3], [1, 4], [2, 4]])
         @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(Pos, 1)) == 3
         if T == QQFieldElem
@@ -99,6 +124,9 @@
         end
         @test vertex_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [1], [1]])
         @test ray_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [2], [3]])
+        @test vertex_and_ray_indices(faces(Pos, 1)) == IncidenceMatrix([[1, 4], [2, 4], [3, 4]])
+        @test IncidenceMatrix(faces(Pos, 1)) == IncidenceMatrix([[1, 4], [2, 4], [3, 4]])
+        @test faces(IncidenceMatrix, Pos, 1) == IncidenceMatrix([[1, 4], [2, 4], [3, 4]])
         @test isnothing(faces(Q2, 0))
         v = vertices(minkowski_sum(Q0, square))
         @test length(v) == 5
@@ -114,20 +142,35 @@
                 @test facets(S, Pos) == Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
             else
                 @test facets(S, Pos) isa SubObjectIterator{S}
-                @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                if S == Polyhedron{T}
+                  @test facets(S, Pos) == polyhedron.(T, [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                else
+                  @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                end
             end
             @test length(facets(S, Pos)) == 3
             if T == QQFieldElem
                 @test affine_inequality_matrix(facets(S, Pos)) == matrix(QQ, [0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
                 @test halfspace_matrix_pair(facets(S, Pos)).A == matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]) && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                 @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3], [1, 3], [1, 2]])
+                @test vertex_and_ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3, 4], [1, 3, 4], [1, 2, 4]])
+                @test IncidenceMatrix(facets(S, Pos)) == IncidenceMatrix([[2, 3, 4], [1, 3, 4], [1, 2, 4]])
             else
                 @test affine_inequality_matrix(facets(S, Pos)) == [0 -1 0 0; 0 0 -1 0; 0 0 0 -1]
                 @test halfspace_matrix_pair(facets(S, Pos)).A == [-1 0 0; 0 -1 0; 0 0 -1] && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                 @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
+                @test vertex_and_ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3, 4], [2, 3, 4], [1, 2, 4]])
+                @test IncidenceMatrix(facets(S, Pos)) == IncidenceMatrix([[1, 3, 4], [2, 3, 4], [1, 2, 4]])
             end
             @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
         end
+        @test facets(IncidenceMatrix, Pos) == IncidenceMatrix(T == QQFieldElem ? [[2, 3, 4], [1, 3, 4], [1, 2, 4]] : [[1, 3, 4], [2, 3, 4], [1, 2, 4]])
+        @test facet_indices(vertices(Pos)) == IncidenceMatrix([[1,2,3]])
+        @test IncidenceMatrix(vertices(Pos)) == IncidenceMatrix([[1, 2, 3]])
+        @test vertices(IncidenceMatrix, Pos) == IncidenceMatrix([[1, 2, 3]])
+        @test  facet_indices(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
+        @test IncidenceMatrix(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
+        @test rays(IncidenceMatrix, Pos) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
         if T == nf_elem
             @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
         else
@@ -167,25 +210,25 @@
 
     @testset "standard_constructions" begin
         @test convex_hull(T, pts, nothing, [1 1]) == Q2
-        @test Polyhedron{T}(nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
+        @test polyhedron(T, nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
         nc = normal_cone(square, 1)
         @test nc isa Cone{T}
         @test rays(nc) == [[1, 0], [0, 1]]
         let H = LinearHalfspace{T}([1, 1, 0])
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}([1 1 0], 0)
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, [1 1 0], 0)
         end
         let H = AffineHalfspace{T}([1, 0, 1], 5)
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}([1 0 1], 5)
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, [1 0 1], 5)
         end
         let H = LinearHyperplane{T}([0, 1, 1])
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
         end
         let H = AffineHyperplane{T}([1, 1, 1], 7)
-            @test Polyhedron(H) isa Polyhedron{T}
-            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
+            @test polyhedron(H) isa Polyhedron{T}
+            @test polyhedron(H) == polyhedron(T, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
         end
         if T == QQFieldElem
             @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
@@ -199,7 +242,7 @@
                 C = catalan_solid("triakis_tetrahedron")
                 @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
             end
-            @test Polyhedron(facets(A)) == A
+            @test polyhedron(facets(A)) == A
             b1 = birkhoff_polytope(3)
             b2 = birkhoff_polytope(3, even = true)
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
@@ -261,7 +304,7 @@
             
             D = Polyhedron{T}(Polymake.polytope.dodecahedron())
             @test D isa Polyhedron{T}
-            @test Polyhedron(Polymake.polytope.dodecahedron()) == D
+            @test polyhedron(Polymake.polytope.dodecahedron()) == D
             
             @test nvertices(D) == 20
             @test vertices(D) == V
@@ -274,17 +317,30 @@
                         @test facets(S, D) == [Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}(A[i], b[i]) for i in 1:12]
                     else
                         @test facets(S, D) isa SubObjectIterator{S}
+                      if S == Polyhedron{T}
+                        @test facets(S, D) == [polyhedron(T, A[i], b[i]) for i in 1:12]
+                      else
                         @test facets(S, D) == [S(A[i], b[i]) for i in 1:12]
+                      end
                     end
                     @test length(facets(S, D)) == 12
                     @test affine_inequality_matrix(facets(S, D)) == hcat(-b, vcat(A...))
                     @test halfspace_matrix_pair(facets(S, D)).A == vcat(A...) && halfspace_matrix_pair(facets(S, D)).b == b
                     @test ray_indices(facets(S, D)) == IncidenceMatrix(12, 0)
                     @test vertex_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
-                end
+                    @test vertex_and_ray_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
+                    @test IncidenceMatrix(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
+                    end
                 
             end
-            
+
+            @test facets(IncidenceMatrix, D) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
+            @test facet_indices(rays(D))==IncidenceMatrix(0,12)
+            @test IncidenceMatrix(rays(D)) == IncidenceMatrix(0, 12)
+            @test rays(IncidenceMatrix, D) == IncidenceMatrix(0, 12)
+            @test facet_indices(vertices(D))==IncidenceMatrix([[1, 2, 3],[2, 3, 6],[1, 2, 7],[2, 6, 8],[1, 3, 5],[2, 7, 8],[3, 6, 10],[3, 5, 10],[1, 7, 11],[1, 5, 11],[4, 6, 8],[4, 6, 10],[7, 8, 9],[7, 9, 11],[5, 10, 12],[4, 8, 9],[5, 11, 12],[4, 10, 12],[9, 11, 12],[4, 9, 12]])
+            @test IncidenceMatrix(vertices(D)) == IncidenceMatrix([[1, 2, 3],[2, 3, 6],[1, 2, 7],[2, 6, 8],[1, 3, 5],[2, 7, 8],[3, 6, 10],[3, 5, 10],[1, 7, 11],[1, 5, 11],[4, 6, 8],[4, 6, 10],[7, 8, 9],[7, 9, 11],[5, 10, 12],[4, 8, 9],[5, 11, 12],[4, 10, 12],[9, 11, 12],[4, 9, 12]])
+            @test vertices(IncidenceMatrix, D) == IncidenceMatrix([[1, 2, 3],[2, 3, 6],[1, 2, 7],[2, 6, 8],[1, 3, 5],[2, 7, 8],[3, 6, 10],[3, 5, 10],[1, 7, 11],[1, 5, 11],[4, 6, 8],[4, 6, 10],[7, 8, 9],[7, 9, 11],[5, 10, 12],[4, 8, 9],[5, 11, 12],[4, 10, 12],[9, 11, 12],[4, 9, 12]])
             @test is_feasible(D)
             @test is_bounded(D)
             @test is_fulldimensional(D)

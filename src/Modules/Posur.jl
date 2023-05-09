@@ -1,5 +1,3 @@
-export kernel, cokernel, image, coordinates, represents_element
-export syz, has_nonempty_intersection, base_ring_module
 
 ########################################################################
 # 
@@ -12,7 +10,7 @@ export syz, has_nonempty_intersection, base_ring_module
 #
 
 # For an m×n-matrix A with entries aᵢⱼ in a localized ring S = R[U⁻¹] 
-# this returns a pair of matrices (B, D) ∈ Rᵐˣⁿ × Uⁿˣⁿ where D is a 
+# this returns a pair of matrices (B, D) ∈ Rᵐˣⁿ × Uᵐˣᵐ where D is a 
 # diagonal matrix such that D ⋅ A = B
 function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
   m = nrows(A)
@@ -20,8 +18,17 @@ function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, Matri
   S = base_ring(A)
   R = base_ring(S)
   D = zero_matrix(SMat, R, 0, m)
-  #D = zero(matrix_space(R, m, m))
-  B = zero(matrix_space(R, m, n))
+  #D = zero_matrix(R, m, m)
+  B = zero_matrix(R, m, n)
+
+  # Catching a shortcut case
+  if iszero(m) || iszero(n)
+    for i in 1:m
+      push!(D, sparse_row(R, [(i, one(R))]))
+    end
+    return B, D
+  end
+
   for i in 1:m
     d = lcm(vec(denominator.(A[i,:])))
     push!(D, sparse_row(R, [(i, d)]))
@@ -88,7 +95,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-@doc Markdown.doc"""
+@doc raw"""
     syz(A::MatrixElem)
 
 For a matrix ``A ∈ Rᵐˣⁿ`` over a ring ``R`` this returns a matrix 
@@ -127,7 +134,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-@doc Markdown.doc"""
+@doc raw"""
     has_nonempty_intersection(U::AbsMultSet, I::Ideal)
 
 For a finitely generated ideal ``I ⊂ R`` and a multiplicative 
@@ -177,7 +184,7 @@ function has_solution(
   B, D = clear_denominators(A)
   c, u = clear_denominators(b)
   (success, y, v) = has_solution(B, c, inverted_set(S), check=check)
-  success || return (false, zero(matrix_space(S, 1, ncols(b))))
+  success || return (false, zero_matrix(S, 1, ncols(b)))
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D to be the solution x of x ⋅ A = b.
@@ -203,7 +210,7 @@ function has_solution(
   L = syz(Aext)
   I = ideal(R, vec(L[:, 1]))
   (success, u, a) = has_nonempty_intersection(U, I, check=check)
-  success || return (false, zero(matrix_space(R, 1, ngens(I))), zero(R))
+  success || return (false, zero_matrix(R, 1, ngens(I)), zero(R))
   l = a*L 
   return (success, l[1, 2:end], l[1,1])
 end
@@ -216,7 +223,7 @@ end
 
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the module F♭ ≅ Rʳ.
-@doc Markdown.doc"""
+@doc raw"""
     base_ring_module(M::ModuleFP{T}) where {T<:AbsLocalizedRingElem}
 
 For a finitely presented module ``M`` over a localized ring ``S = R[U⁻¹]`` 
@@ -348,7 +355,7 @@ function generator_matrix(M::SubquoModule)
                                             # Try to implement this with more low-level getters.
   r = length(g)
   n = rank(ambient_free_module(M))
-  A = zero(matrix_space(R, r, n))
+  A = zero_matrix(R, r, n)
   for i in 1:r
     for j in 1:n
       A[i, j] = g[i][j]
@@ -364,7 +371,7 @@ function relations_matrix(M::SubquoModule)
                    # Try to implement this with more low-level getters.
   r = length(g)
   n = rank(ambient_free_module(M))
-  A = zero(matrix_space(R, r, n))
+  A = zero_matrix(R, r, n)
   for i in 1:r
     for j in 1:n
       A[i, j] = g[i][j]
@@ -376,7 +383,7 @@ end
 function as_matrix(v::FreeModElem)
   R = base_ring(parent(v))
   n = rank(parent(v))
-  A = zero(matrix_space(R, 1, n))
+  A = zero_matrix(R, 1, n)
   for i in 1:n
     A[1, i] = v[i]
   end
@@ -388,8 +395,8 @@ function as_matrix(F::FreeMod, v::Vector{T}) where {T<:FreeModElem}
   R = base_ring(F)
   n = rank(F)
   m = length(v)
-  m == 0 && return zero(matrix_space(R, m, n))
-  A = zero(matrix_space(R, m, n))
+  m == 0 && return zero_matrix(R, m, n)
+  A = zero_matrix(R, m, n)
   for i in 1:m
     for j in 1:n
       A[i, j] = v[i][j]
@@ -401,7 +408,7 @@ end
 as_matrix(F::FreeMod, v::Vector{T}) where {T<:SubquoModuleElem} = as_matrix(F, repres.(v))
 
 function as_matrix(v::SRow{T}, n::Int) where {T<:RingElem} 
-  w = zero(matrix_space(base_ring(v), 1, n))
+  w = zero_matrix(base_ring(v), 1, n)
   for (i, a) in v
     w[1, i] = a
   end
@@ -550,7 +557,7 @@ function kernel(
   S = base_ring(F)
   A = generator_matrix(domain(f))
   H = FreeMod(S, nrows(A))
-  h = hom(H, domain(f), one(matrix_space(S, rank(H), rank(H))))
+  h = hom(H, domain(f), identity_matrix(S, rank(H)))
   K, iK = kernel(hom(H, codomain(f), representing_matrix(f)))
   result = SubquoModule(F, representing_matrix(iK)*generator_matrix(domain(f)), relations_matrix(domain(f)))
   return result, hom(result, domain(f), representing_matrix(iK))

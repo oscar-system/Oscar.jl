@@ -13,8 +13,12 @@
    @test [f(x) for x in gens(H)]==gens(H)
    @test (H,f)==(K,g)
    @test is_subset(K, G)
-   @test g == is_subgroup(K, G)[2]
+   flag, emb = is_subgroup(K, G)
+   @test flag
+   @test g == emb
    @test g == embedding(K, G)
+   @test K === domain(emb)
+   @test G === codomain(emb)
    @test is_normal_subgroup(H, G)
    H,f=sub(G,[x,z])
    @test H==G
@@ -365,7 +369,7 @@ end
    @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
-   @test radical_subgroup(S)[1]==S
+   @test solvable_radical(S)[1]==S
    S = symmetric_group(5)
-   @test radical_subgroup(S)==sub(S,[one(S)])
+   @test solvable_radical(S)==sub(S,[one(S)])
 end

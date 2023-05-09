@@ -10,7 +10,7 @@ function Orderings.revlex(F::ModuleFP)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :revlex))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyRingElem
 
 Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
@@ -51,7 +51,7 @@ function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) whe
   return c
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
 
 Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
@@ -67,7 +67,7 @@ end
 
 function Orderings.index_of_leading_term(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
   p = Orderings.permutation_of_terms(f, ord)
-  isempty(p) && throw(ArgumentError("zero element does not have a leading term"))
+  @req !isempty(p) "zero element does not have a leading term"
   return p[1]
 end
 
@@ -100,7 +100,7 @@ function expressify(a::OscarPair{<:FreeModElem{<:MPolyRingElem}, <:ModuleOrderin
 end
 @enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyRingElem}, <:ModuleOrdering}
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return an iterator for the coefficients of `f` with respect to the order `ordering`.
@@ -120,7 +120,7 @@ function Base.eltype(a::GeneralPermutedIterator{:coefficients, T}) where T <: Fr
   return C
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients_and_exponents(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return an iterator whose elements are tuples of coefficients of `f` and exponent
@@ -141,7 +141,7 @@ function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, T})
   return Tuple{C, Tuple{Vector{Int}, Int}}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     exponents(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return an iterator for the exponents of `f` with respect to the order
@@ -163,7 +163,7 @@ function Base.eltype(a::GeneralPermutedIterator{:exponents, T}) where T <: FreeM
   return Tuple{Vector{Int}, Int}
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     terms(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return an iterator for the terms of `f` with respect to the order `ordering`.
@@ -183,7 +183,7 @@ function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: FreeModEl
   return T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     monomials(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return an iterator for the monomials of `f` with respect to the order `ordering`.
@@ -203,7 +203,7 @@ function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: FreeM
   return T
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_coefficient(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return the leading coefficient and exponent of `f` with respect to the order `ordering`.
@@ -213,7 +213,7 @@ function leading_coefficient(f::FreeModElem; ordering::ModuleOrdering = default_
   return coeff(f[i], j)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_coefficient_and_exponent(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return the leading coefficient and exponent of `f` with respect to the order `ordering`.
@@ -223,7 +223,7 @@ function leading_coefficient_and_exponent(f::FreeModElem; ordering::ModuleOrderi
   return (coeff(f[i], j), (exponent_vector(f[i], j), i))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_exponent(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return the leading exponent vector (as `Vector{Int}`) of `f` with
@@ -234,7 +234,7 @@ function leading_exponent(f::FreeModElem; ordering::ModuleOrdering = default_ord
   return (exponent_vector(f[i], j), i)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_monomial(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return the leading monomial of `f` with respect to the order `ordering`.
@@ -244,7 +244,7 @@ function leading_monomial(f::FreeModElem; ordering::ModuleOrdering = default_ord
   return monomial(f[i], j)*parent(f)[i]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     leading_term(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return the leading term of `f` with respect to the order `ordering`.
@@ -254,7 +254,7 @@ function leading_term(f::FreeModElem; ordering::ModuleOrdering = default_orderin
   return term(f[i], j)*parent(f)[i]
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     tail(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
 
 Return the tail of `f` with respect to the order `ordering`.

@@ -3,8 +3,8 @@ using Test
 
 @testset "Torus-invariant divisor classes (set_attributes = $set_attributes)" for set_attributes in [true, false]
 
-    F5 = hirzebruch_surface(5; set_attributes)
-    dP3 = del_pezzo_surface(3; set_attributes)
+    F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
+    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
     P2 = projective_space(NormalToricVariety, 2; set_attributes)
     
     DC = toric_divisor_class(F5, [ZZRingElem(0), ZZRingElem(0)])

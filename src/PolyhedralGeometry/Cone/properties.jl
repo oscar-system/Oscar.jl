@@ -16,7 +16,7 @@ _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 _rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
-@doc Markdown.doc"""
+@doc raw"""
     rays(C::Cone)
 
 Return the rays of `C`.
@@ -60,7 +60,7 @@ rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 _rays(C::Cone{T}) where T<:scalar_types = _rays(RayVector{T}, C)
 
 
-@doc Markdown.doc"""                                                 
+@doc raw"""                                                 
     rays_modulo_lineality(as, C::Cone)
 
 Return the rays of the cone of `C` up to lineality as a `NamedTuple` with two
@@ -120,7 +120,7 @@ end
 rays_modulo_lineality(as::Type{RayVector}, C::Cone) = _rays(C)
     
 
-@doc Markdown.doc"""
+@doc raw"""
     faces(C::Cone, face_dim::Int)
 
 Return an iterator over the faces of `C` of dimension `face_dim`.
@@ -162,6 +162,10 @@ end
 
 _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
+_incidencematrix(::Val{_face_cone}) = _ray_indices
+
+_incidencematrix(::Val{_face_cone_facet}) = _ray_indices
+
 ###############################################################################
 ###############################################################################
 ### Access properties
@@ -171,7 +175,7 @@ _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 ###############################################################################
 ## Scalar properties
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
     nfacets(C::Cone)
 
 Return the number of facets of a cone `C`.
@@ -188,7 +192,7 @@ julia> nfacets(C)
 """
 nfacets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     nrays(C::Cone)
 
 Return the number of rays of `C`.
@@ -207,7 +211,7 @@ julia> nrays(PO)
 nrays(C::Cone) = lineality_dim(C) == 0 ? _nrays(C) : 0
 _nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     dim(C::Cone)
 
 Return the dimension of `C`.
@@ -215,7 +219,7 @@ Return the dimension of `C`.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> dim(C)
 2
@@ -223,7 +227,7 @@ julia> dim(C)
 """
 dim(C::Cone) = pm_object(C).CONE_DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     ambient_dim(C::Cone)
 
 Return the ambient dimension of `C`.
@@ -231,7 +235,7 @@ Return the ambient dimension of `C`.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> ambient_dim(C)
 3
@@ -239,7 +243,7 @@ julia> ambient_dim(C)
 """
 ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM::Int
 
-@doc Markdown.doc"""
+@doc raw"""
     codim(C::Cone)
 
 Return the codimension of `C`.
@@ -247,7 +251,7 @@ Return the codimension of `C`.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> codim(C)
 1
@@ -256,7 +260,7 @@ julia> codim(C)
 codim(C::Cone) = ambient_dim(C)-dim(C)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     f_vector(C::Cone)
 
 Compute the vector $(f₁,f₂,...,f_{(dim(C)-1))$` where $f_i$ is the number of
@@ -289,7 +293,7 @@ function f_vector(C::Cone)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_dim(C::Cone)
 
 Compute the dimension of the lineality space of $C$, i.e. the largest linear
@@ -307,7 +311,7 @@ true
 julia> lineality_dim(C)
 0
 
-julia> C1 = Cone([1 0],[0 1; 0 -1])
+julia> C1 = positive_hull([1 0],[0 1; 0 -1])
 Polyhedral cone in ambient dimension 2
 
 julia> is_pointed(C1)
@@ -324,7 +328,55 @@ lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-@doc Markdown.doc"""
+@doc raw"""
+    is_simplicial(C::Cone)
+
+Determine whether `C` is simplicial, i.e. whether the number of ray generators
+is the same as the dimension of the cone modulo lineality.
+
+# Examples
+```jldoctest
+julia> C0 = positive_hull([0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> is_simplicial(C0)
+true
+
+julia> C1 = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+Polyhedral cone in ambient dimension 3
+
+julia> is_simplicial(C1)
+false
+```
+"""
+is_simplicial(C::Cone) = pm_object(C).SIMPLICIAL_CONE::Bool
+
+
+@doc raw"""
+    is_smooth(C::Cone{QQFieldElem})
+
+Determine whether `C` is smooth, i.e. whether its ray generators form part of a
+lattice basis.
+
+# Examples
+```jldoctest
+julia> C0 = positive_hull([0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> is_smooth(C0)
+true
+
+julia> C1 = positive_hull([1 1; 1 -1])
+Polyhedral cone in ambient dimension 2
+
+julia> is_smooth(C1)
+false
+```
+"""
+is_smooth(C::Cone{QQFieldElem}) = pm_object(C).SMOOTH_CONE::Bool
+
+
+@doc raw"""
     is_pointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
@@ -332,12 +384,12 @@ Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
 # Examples
 A cone with lineality is not pointed, but a cone only consisting of a single ray is.
 ```jldoctest
-julia> C = Cone([1 0], [0 1]);
+julia> C = positive_hull([1 0], [0 1]);
 
 julia> is_pointed(C)
 false
 
-julia> C = Cone([1 0]);
+julia> C = positive_hull([1 0]);
 
 julia> is_pointed(C)
 true
@@ -345,7 +397,7 @@ true
 """
 is_pointed(C::Cone) = pm_object(C).POINTED::Bool
 
-@doc Markdown.doc"""
+@doc raw"""
     is_fulldimensional(C::Cone)
 
 Determine whether `C` is full-dimensional.
@@ -353,7 +405,7 @@ Determine whether `C` is full-dimensional.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> is_fulldimensional(C)
 false
@@ -366,14 +418,14 @@ is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 ###############################################################################
 
 # TODO: facets as `Vector`? or `Matrix`?
-@doc Markdown.doc"""
+@doc raw"""
     facets(as::Type{T} = LinearHalfspace, C::Cone)
 
 Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
 * `Halfspace`,
-* `Cone.
+* `Cone`.
 
 # Examples
 ```jldoctest
@@ -389,7 +441,9 @@ julia> f = facets(Halfspace, c)
 """
 facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
-_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-view(C.FACETS, [i], :), 0)
+_facet_cone(::Type{Polyhedron{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = polyhedron(T, -view(C.FACETS, [i], :), 0)
+
+_facet_cone(::Type{AffineHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = AffineHalfspace{T}(-view(C.FACETS, [i], :), 0)
 
 _facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
 
@@ -401,11 +455,13 @@ _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
 _ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
+_incidencematrix(::Val{_facet_cone}) = _ray_indices
+
 facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
 facets(::Type{Halfspace}, C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
-@doc Markdown.doc"""
+@doc raw"""
     lineality_space(C::Cone)
 
 Return a basis of the lineality space of `C`.
@@ -414,7 +470,7 @@ Return a basis of the lineality space of `C`.
 Three rays are used here to construct the upper half-plane. Actually, two of these rays point in opposite directions.
 This gives us a 1-dimensional lineality.
 ```jldoctest
-julia> UH = Cone([1 0; 0 1; -1 0]);
+julia> UH = positive_hull([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
 1-element SubObjectIterator{RayVector{QQFieldElem}}:
@@ -429,7 +485,7 @@ _generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=fal
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
-@doc Markdown.doc"""
+@doc raw"""
     linear_span(C::Cone)
 
 Return the (linear) hyperplanes generating the linear span of `C`.
@@ -438,7 +494,7 @@ Return the (linear) hyperplanes generating the linear span of `C`.
 This 2-dimensional cone in $\mathbb{R}^3$ lives in exactly one hyperplane $H$, with
 $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 ```jldoctest
-julia> c = Cone([1 0 0; 0 1 0]);
+julia> c = positive_hull([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
 1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the Hyperplanes of R^3 described by:
@@ -453,7 +509,7 @@ _linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_S
 
 _linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
-@doc Markdown.doc"""
+@doc raw"""
     hilbert_basis(C::Cone{QQFieldElem})
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
@@ -461,7 +517,7 @@ Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 # Examples
 This (non-smooth) cone in the plane has a hilbert basis with three elements.
 ```jldoctest; filter = r".*"
-julia> C = Cone([1 0; 1 2])
+julia> C = positive_hull([1 0; 1 2])
 A polyhedral cone in ambient dimension 2
 
 julia> matrix(ZZ, hilbert_basis(C))
@@ -472,11 +528,8 @@ julia> matrix(ZZ, hilbert_basis(C))
 ```
 """
 function hilbert_basis(C::Cone{QQFieldElem})
-   if is_pointed(C)
-      return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
-   else
-      throw(ArgumentError("Cone not pointed."))
-   end
+   @req is_pointed(C) "Cone not pointed"
+   return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
 end
 
 _hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(view(C.HILBERT_BASIS_GENERATORS[1], i, :))
@@ -486,21 +539,53 @@ _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
 
-@doc Markdown.doc"""
-    contains(C::Cone, v::AbstractVector)
+@doc raw"""
+    issubset(C0::Cone, C1::Cone)                           
+    
+Check whether `C0` is a subset of the cone `C1`.
+                                             
+# Examples                 
+```jldoctest                                                                                
+julia> C0 = positive_hull([1 1])
+Polyhedral cone in ambient dimension 2
 
-Check whether `C` contains `v`.
+julia> C1 = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> issubset(C0, C1)
+true
+
+julia> issubset(C1, C0)
+false
+```
+"""
+Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(C0), pm_object(C1))::Bool
+
+
+@doc raw"""
+    in(v::AbstractVector, C::Cone)
+
+Check whether the vector `v` is contained in the cone `C`.
 
 # Examples
 The positive orthant only contains vectors with non-negative entries:
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1]);
 
-julia> contains(C, [1, 2])
+julia> [1, 2] in C
 true
 
-julia> contains(C, [1, -2])
+julia> [1, -2] in C
 false
 ```
 """
-contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool
+Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v)::Bool
+
+
+@doc raw"""
+    relative_interior_point(C::Cone)
+
+Compute a point in the relative interior point of `C`, i.e. a point in `C` not
+contained in any facet.
+"""
+relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(Polymake.common.dense(pm_object(C).REL_INT_POINT))

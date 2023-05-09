@@ -1,7 +1,12 @@
+include("JuLie.jl")
+
+for pkg in Oscar.exppkgs
+  include("$pkg/src/$pkg.jl")
+end
+
 include("GaloisGrp.jl")
 include("Rings.jl")
 include("ModStd.jl")
-include("PlaneCurve.jl")
 include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
@@ -9,7 +14,6 @@ include("SymmetricIntersections.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
-include("Schemes/ProjectiveSchemes.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Schemes/ProjectiveModules.jl")
@@ -28,6 +32,5 @@ include("Schemes/LazyGlueing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
-include("Schemes/ToricSchemes/include.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

@@ -35,7 +35,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     save_lp(target::Union{String, IO}, lp::Union{MixedIntegerLinearProgram,LinearProgram})
 
 Save a (mixed integer) linear program to an `.lp` file using the LP file format.
@@ -48,8 +48,8 @@ Print the object in LP format to stdout:
 julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
-julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
+Mixed integer linear program
 
 julia> save_lp(stdout, milp)
 MAXIMIZE
@@ -74,7 +74,7 @@ function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{Q
                     lp.convention == :max)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     save_mps(target::String, lp::Union{MixedIntegerLinearProgram,LinearProgram})
 
 Save a (mixed integer) linear program to an `.mps` file using the MPS file format.
@@ -87,8 +87,8 @@ Print the object in MPS format to stdout:
 julia> c = cube(2, -1//2, 3//2)
 Polyhedron in ambient dimension 2
 
-julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
-A mixed integer linear program
+julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
+Mixed integer linear program
 
 julia> save_mps(stdout, milp)
 * Class:	MIP
@@ -125,7 +125,7 @@ function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{
                      pm_object(lp))
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     load_mps(file::String)
 
 Load a (mixed integer) linear program from an `.mps` file using the MPS file format.
@@ -135,18 +135,18 @@ function load_mps(file::String)
   if Polymake.exists(poly, "LP")
     lp = poly.LP
     Polymake.attach(lp, "convention", "max")
-    return LinearProgram(Polyhedron(poly), lp, :max)
+    return linear_program(polyhedron(poly), lp, :max)
   elseif Polymake.exists(poly, "MILP")
     milp = poly.MILP
     Polymake.attach(milp, "convention", "max")
-    return MixedIntegerLinearProgram(Polyhedron(poly), milp, :max)
+    return mixed_integer_linear_program(polyhedron(poly), milp, :max)
   else
-    throw(ErrorException("load_mps: cannot find LP or MILP subobject in polymake object"))
+    error("load_mps: cannot find LP or MILP subobject in polymake object")
   end
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     load_lp(file::String)
 
 Load a (mixed integer) linear program from an `.lp` file using the LP file format.
@@ -157,14 +157,14 @@ function load_lp(file::String)
     lp = poly.LP
     convention = occursin("MAXIMIZE", String(Polymake.getdescription(lp))) ? :max : :min
     Polymake.attach(lp, "convention", String(convention))
-    return LinearProgram(Polyhedron(poly), lp, convention)
+    return linear_program(polyhedron(poly), lp, convention)
   elseif Polymake.exists(poly, "MILP")
     milp = poly.MILP
     convention = occursin("MAXIMIZE", String(Polymake.getdescription(milp))) ? :max : :min
     Polymake.attach(milp, "convention", String(convention))
-    return MixedIntegerLinearProgram(Polyhedron(poly), milp, convention)
+    return mixed_integer_linear_program(polyhedron(poly), milp, convention)
   else
-    throw(ErrorException("load_lp: cannot find LP or MILP subobject in polymake object"))
+    error("load_lp: cannot find LP or MILP subobject in polymake object")
   end
 end
 

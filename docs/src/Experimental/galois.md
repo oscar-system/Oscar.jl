@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["galois.md"]
-```
-
 # Galois Theory
 
 Let `K` be a finite (separable) field extension of `k`. Then, in contrast to most of 

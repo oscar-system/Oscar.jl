@@ -53,13 +53,13 @@ end
 @testset "ideal sheaves II" begin
   IP2 = projective_space(QQ, 2)
   X = covered_scheme(IP2)
-  S = ambient_coordinate_ring(IP2)
+  S = homogeneous_coordinate_ring(IP2)
   (u,v,w) = gens(S)
   Ihom = ideal(S, u^2 - v*w)
   I = IdealSheaf(IP2, Ihom)
   @test is_prime(I)
   I2 = IdealSheaf(IP2, gens(Ihom))
-  I3 = IdealSheaf(IP2, gens(Ihom)[1])
+  I3 = IdealSheaf(IP2, gen(Ihom, 1))
   @test I == I2 == I3
   U = patches(default_covering(X))
   @test I(U[1]) isa Oscar.Ideal 
@@ -85,13 +85,13 @@ end
 
 @testset "pullbacks of ideal sheaves" begin
   P = projective_space(QQ, 2)
-  SP = ambient_coordinate_ring(P)
+  SP = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(SP)
   m = ideal(SP, gens(SP))
   m3 = m^3
   n = ngens(m3)
   Q = projective_space(QQ, n-1)
-  SQ = ambient_coordinate_ring(Q)
+  SQ = homogeneous_coordinate_ring(Q)
   phi = hom(SQ, SP, gens(m3))
   f = ProjectiveSchemeMor(P, Q, phi)
   f_cov = covered_scheme_morphism(f)
@@ -102,7 +102,7 @@ end
   g = ProjectiveSchemeMor(P, P, psi)
   g_cov = covered_scheme_morphism(g)
 
-  II = IdealSheaf(Q, [gens(SQ)[1]+gens(SQ)[2]])
+  II = IdealSheaf(Q, [gen(SQ, 1)+gen(SQ, 2)])
   pbII = pullback(f_cov)(II)
   X = covered_scheme(P)
   U = affine_charts(X)
@@ -110,30 +110,4 @@ end
   @test !haskey(pbII.I.obj_cache, U[2])
   @test pbII(U[2]) isa Ideal
   @test haskey(pbII.I.obj_cache, U[2])
-end
-
-@testset "primary decomposition of ideal sheaves" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
-  S = ambient_coordinate_ring(IP2)
-  (x,y,z) = gens(S)
-  I = ideal(S, x^2*y^3*(x+y+z))
-  II = IdealSheaf(IP2, I)
-  X = scheme(II)
-  l = primary_decomposition(II)
-  @test length(l) == 3
-  for i in 1:3
-    for j in 1:2
-      @test all(x->ngens(l[i][j](x))==1, affine_charts(X))
-    end
-  end
-
-  J = ideal(S, [y^2*(x+y+z), x*(x+y+z), x*y^2])
-  JJ = IdealSheaf(IP2, J)
-  l = primary_decomposition(JJ)
-  @test length(l) == 3
-  for i in 1:3
-    for j in 1:2
-      @test all(x->dim(l[i][j](x))<=0, affine_charts(X))
-    end
-  end
 end

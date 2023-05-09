@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["quotients.md"]
-```
-
 # GR-Algebras: Quotients of PBW-Algebras
 
 In analogy to the affine algebras section in the commutative algebra chapter, we describe OSCAR
@@ -39,15 +31,14 @@ quo(A::PBWAlgRing, I::PBWAlgIdeal)
 
 The *$n$-th exterior algebra over a field $K$* is the quotient of the PBW-algebra
 
-$A=K \langle e_1,\dots, e_n \mid e_ie_j = - e_je_i \ \text { for }\ i\neq j\rangle$
+$A=K \langle e_1,\dots, e_n \mid e_i e_j = - e_j e_i \ \text { for }\ i\neq j\rangle$
 
 modulo the two-sided ideal
 
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+    exterior_algebra
 ```
 
 ## Data Associated to Affine GR-Algebras
@@ -107,7 +98,7 @@ field over which the GR-algebra is defined (the type `S` is added for internal u
 ### Creating Elements of GR-Algebras
 
 Elements of a GR-algebra $Q = A/I$ are created as images of elements of $A$ under the projection map
-or by directly coercing elements of $A$ into $Q$. The function `simplify!` reduces a given element
+or by directly coercing elements of $A$ into $Q$. The function `simplify` reduces a given element
 with regard to the modulus $I$.
 
 ###### Examples
@@ -131,7 +122,7 @@ julia> f = q(y*x+z^2)
 julia> typeof(f)
 PBWAlgQuoElem{QQFieldElem, Singular.n_Q}
 
-julia> simplify!(f);
+julia> simplify(f);
 
 julia> f
 -x*y

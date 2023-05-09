@@ -29,6 +29,9 @@ echo "Setting version to $relvers, released $reldate_iso"
 # update version in several files
 perl -pi -e 's;version = "[^"]+";version = "'$relvers'";' Project.toml
 perl -pi -e "s;Version [^ }]+;Version $relvers;" README.md
+perl -pi -e 's;Date := "[^"]+",;Date := "'$reldate'",;' gap/OscarInterface/PackageInfo.g
+perl -pi -e 's;Version := "[^"]+",;Version := "'$relvers'",;' gap/OscarInterface/PackageInfo.g
+
 
 # commit it
-git commit -m "Version $relvers" Project.toml README.md
+git commit -m "Version $relvers" Project.toml README.md gap/OscarInterface/PackageInfo.g

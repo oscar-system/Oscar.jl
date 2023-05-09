@@ -166,7 +166,7 @@ end
 
 	N = SubquoModule(R[x+2*x^2; x+y], R[z^4;])
 	tensor_resolution = tensor_product(N,free_res)
-	@test range(tensor_resolution) == range(free_res)
+	@test chain_range(tensor_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
 		f = map(free_res,i)
 		M_i = domain(f)
@@ -180,7 +180,7 @@ end
 
 	N = SubquoModule(R[x+2*x^2*z; x+y-z], R[z^4;])
 	tensor_resolution = tensor_product(free_res,N)
-	@test range(tensor_resolution) == range(free_res)
+	@test chain_range(tensor_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
 		f = map(free_res,i)
 		M_i = domain(f)
@@ -194,7 +194,7 @@ end
 
 	N = SubquoModule(R[x+2*x^2; x+y], R[z^4;])
 	hom_resolution = hom(N,free_res)
-	@test range(hom_resolution) == range(free_res)
+	@test chain_range(hom_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(hom_resolution)
 		f = map(free_res,i)
 		hom_f = map(hom_resolution,i)
@@ -206,8 +206,8 @@ end
 
 	N = SubquoModule(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
 	hom_resolution = hom(free_res,N)
-	@test last(range(hom_resolution)) == first(range(free_res))
-	@test first(range(hom_resolution)) == last(range(free_res))
+	@test last(chain_range(hom_resolution)) == first(chain_range(free_res))
+	@test first(chain_range(hom_resolution)) == last(chain_range(free_res))
 	for i in Hecke.map_range(hom_resolution)
                 f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
                 hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
@@ -218,11 +218,11 @@ end
 	end
 
 	hom_hom_resolution = hom(hom_resolution,N)
-	@test range(hom_hom_resolution) == range(free_res)
+	@test chain_range(hom_hom_resolution) == chain_range(free_res)
 
 	hom_resolution = hom_without_reversing_direction(free_res,N)
-	@test last(range(hom_resolution)) == -first(range(free_res))
-	@test first(range(hom_resolution)) == -last(range(free_res))
+	@test last(chain_range(hom_resolution)) == -first(chain_range(free_res))
+	@test first(chain_range(hom_resolution)) == -last(chain_range(free_res))
 	for i in Hecke.map_range(hom_resolution)
 		f = map(free_res,-i+1)
 		hom_f = map(hom_resolution,i)
@@ -232,7 +232,7 @@ end
 		end
 	end
 	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
-	@test range(hom_hom_resolution) == range(free_res)
+	@test chain_range(hom_hom_resolution) == chain_range(free_res)
 end
 
 @testset "Ext, Tor" begin
@@ -1011,10 +1011,10 @@ end
   R, (x,y,z) = QQ["x", "y", "z"]
   F1 = FreeMod(R, 1)
   F2 = FreeMod(R, 2)
-  F2v, ev = oscar.dual(F2, cod=F1)
+  F2v, ev = Oscar.dual(F2, cod=F1)
   @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
 
-  FF, psi = oscar.double_dual(F2)
+  FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
   @test_broken is_surjective(psi) # fails! Why?
   
@@ -1023,7 +1023,7 @@ end
   Mv, ev = dual(M, cod=F1)
   @test ev(Mv[1])(M[1]) == x*F1[1]
 
-  Mvv, psi = oscar.double_dual(M, cod=F1)
+  Mvv, psi = Oscar.double_dual(M, cod=F1)
   @test matrix(psi) == R[x; y]
   
   ### Quotient rings
@@ -1033,17 +1033,29 @@ end
 
   F1 = FreeMod(Q, 1)
   F2 = FreeMod(Q, 2)
-  F2v, ev = oscar.dual(F2, cod=F1)
+  F2v, ev = Oscar.dual(F2, cod=F1)
   @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
   
-  FF, psi = oscar.double_dual(F2)
+  FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
   @test_broken is_surjective(psi) # fails! Why?
 
   M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
-  Mv, ev = oscar.dual(M, cod=F1)
-  Mvv, psi = oscar.double_dual(M, cod=F1)
+  Mv, ev = Oscar.dual(M, cod=F1)
+  Mvv, psi = Oscar.double_dual(M, cod=F1)
   @test is_injective(psi) 
   @test is_surjective(psi) # works correctly!
 end
 
+@testset "free resolution in case of no relations" begin
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  Z = abelian_group(0)
+  F = free_module(R, 3)
+  G = free_module(R, 2)
+  V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+  a = hom(F, G, V)
+  Mk = kernel(a)
+  Mk1 = Mk[1]
+  fr = free_resolution(Mk1)
+  @test rank(domain(map(fr.C,1))) == 0
+end

@@ -1,27 +1,32 @@
 function PermGroup_to_polymake_array(G::PermGroup)
    generators = gens(G)
    d = degree(G)
-   result = Polymake.Array{Polymake.Array{Polymake.to_cxx_type(Int)}}(length(generators))
-   i = 1
-   for g in generators
-      array = Polymake.Array{Polymake.to_cxx_type(Int)}(d)
-      for j in 1:d
-         array[j] = g(j)-1
-      end
-      result[i] = array
-      i = i+1
-   end
-   return result
+   return _group_generators_to_pm_arr_arr(generators, d)
 end
 
 
-function _gens_to_group(gens:: Vector{PermGroupElem})
-    if length(gens) == 0
-        throw(ArgumentError("List of generators empty, could not deduce degree."))
-    else
-        S = parent(gens[1])
-        return sub(S, gens)[1]
+function _group_generators_to_pm_arr_arr(generators::AbstractVector{PermGroupElem}, d::Int)
+    if length(generators) == 0
+        generators = elements(trivial_subgroup(symmetric_group(d))[1])
     end
+    result = Polymake.Array{Polymake.Array{Polymake.to_cxx_type(Int)}}(length(generators))
+    i = 1
+    for g in generators
+        array = Polymake.Array{Polymake.to_cxx_type(Int)}(d)
+        for j in 1:d
+            array[j] = g(j)-1
+        end
+        result[i] = array
+        i = i+1
+    end
+    return result
+end
+
+
+function _gens_to_group(gens::Vector{PermGroupElem})
+    @req length(gens) > 0 "List of generators empty, could not deduce degree"
+    S = parent(gens[1])
+    return sub(S, gens)[1]
 end
 function _gens_to_group(gens::Dict{Symbol,  Vector{PermGroupElem}})
     return Dict{Symbol, PermGroup}([k => _gens_to_group(v) for (k,v) in gens])
@@ -41,7 +46,7 @@ function _pm_arr_arr_to_group_generators(M, n)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     combinatorial_symmetries(P::Polyhedron)
 
 Compute the combinatorial symmetries (i.e., automorphisms of the face lattice)
@@ -69,11 +74,10 @@ julia> order(G)
 2
 ```
 """
-function combinatorial_symmetries(P::Polyhedron)
-    return automorphism_group(P; type=:combinatorial, action=:on_vertices)
-end
+combinatorial_symmetries(P::Polyhedron) = automorphism_group(P; type=:combinatorial, action=:on_vertices)
 
-@doc Markdown.doc"""
+
+@doc raw"""
     linear_symmetries(P::Polyhedron)
 
 Get the group of linear symmetries on the vertices of a polyhedron. These are
@@ -107,12 +111,10 @@ julia> order(G)
 2
 ```
 """
-function linear_symmetries(P::Polyhedron)
-    return automorphism_group(P; type=:linear, action=:on_vertices)
-end
+linear_symmetries(P::Polyhedron) = automorphism_group(P; type=:linear, action=:on_vertices)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
 
 Compute generators of the group of automorphisms of a polyhedron.
@@ -182,7 +184,7 @@ Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
 ```
 """
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
-    is_bounded(P) || throw(ArgumentError("Automorphism groups not supported for unbounded polyhedra."))
+    @req is_bounded(P) "Automorphism groups not supported for unbounded polyhedra."
     if type == :combinatorial
         IM = vertex_indices(facets(P))
         if action == :all
@@ -207,7 +209,7 @@ function automorphism_group_generators(P::Polyhedron; type = :combinatorial, act
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group_generators(IM::IncidenceMatrix; action = :all)
 
 Compute the generators of the group of automorphisms of an IncidenceMatrix. 
@@ -299,7 +301,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
 
 Compute the group of automorphisms of a polyhedron. The parameters and return
@@ -313,7 +315,7 @@ function automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     automorphism_group(IM::IncidenceMatrix; action = :all)
 
 Compute the group of automorphisms of an IncidenceMatrix. The parameters and

@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
@@ -23,15 +23,53 @@ using Preferences
 
 include("imports.jl")
 
-# to allow access to the cornerstones! Otherwise, not even import or using from the
-# user level will work as none of them will have been "added" by the user.
-# possibly all should add a doc string to the module?
-export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
-
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
                         "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
+
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+# We don't want to interfere with existing stuff in experimental though.
+const expdir = joinpath(@__DIR__, "../experimental")
+const oldexppkgs = [
+  "ExteriorAlgebra",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
+]
+# DEVELOPER OPTION:
+# The following lines ensure that ToricSchemes is loaded before FTheoryTools.
+# DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
+# For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
+const orderedpkgs = [
+  "ToricSchemes",
+  "FTheoryTools",
+]
+exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
+append!(exppkgs, orderedpkgs)
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
+
+# force trigger recompile when folder changes
+include_dependency("../experimental")
+
 
 # When a specific branch is loaded via `]add Package#branch` julia will only
 # create a checkout and keep a bare git repo in a separate directory.
@@ -89,7 +127,7 @@ function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit=false, full=false)
 
 Print the versions of all Oscar-related dependencies.
@@ -139,14 +177,14 @@ end
 # precompilation
 const rng_seed = Ref{UInt32}(rand(UInt32))
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seed()
 
 Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
 """
 get_seed() = return rng_seed[]
 
-@doc Markdown.doc"""
+@doc raw"""
     set_seed!(s::Integer)
 
 Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
@@ -155,7 +193,7 @@ function set_seed!(s::Integer)
   rng_seed[] = convert(UInt32, s)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seeded_rng()
 
 Return a new random number generator object of type MersenneTwister which is
@@ -203,19 +241,30 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
+    # make Oscar module accessible from GAP (it may not be available as
+    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
-    GAP.Packages.load("ctbllib")
-    GAP.Packages.load("forms")
-    GAP.Packages.load("wedderga") # provides a function to compute Schur indices
-    GAP.Packages.load("repsn")
-    __init_IsoGapOscar()
+    for pkg in ["ctbllib",
+                "forms",
+                "wedderga", # provides a function to compute Schur indices
+                "repsn",
+               ]
+      GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
+    end
     __init_group_libraries()
-    __init_JuliaData()
-    __init_PcGroups()
+
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
+
+    add_verbose_scope(:GlobalTateModel)
+    add_verbose_scope(:GlobalWeierstrassModel)
+
+    add_verbosity_scope(:LinearQuotients)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -279,8 +328,8 @@ function open_doc()
 end
 
 
-@doc Markdown.doc"""
-    build_doc(; doctest=false, strict=false)
+@doc raw"""
+    build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -291,14 +340,17 @@ The optional parameter `doctest` can take three values:
   - `:fix`: Run the doctests and replace the output in the manual with
     the output produced by Oscar. Please use this option carefully.
 
-In github actions the Julia version used for building the manual and
-running the doctests is 1.6. Using a different Julia version will produce
+In GitHub Actions the Julia version used for building the manual is 1.8 and
+doctests are run with >= 1.7. Using a different Julia version may produce
 errors in some parts of Oscar, so please be careful, especially when setting
 `doctest=:fix`.
 
 The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
 and if set to `true` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
+
+To prevent the opening of the browser at the end, set the optional parameter
+`open_browser` to `false`.
 
 When working on the manual the `Revise` package can significantly sped
 up running `build_doc`. First, install `Revise` in the following way:
@@ -312,10 +364,10 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
-function build_doc(; doctest=false, strict=false)
-  versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
+function build_doc(; doctest=false, strict=false, open_browser=true)
+  versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = 
-"The Julia reference version for the doctests is 1.6, but you are using
+"The Julia reference version for the doctests is 1.7 or later, but you are using
 $(VERSION). Running the doctests will produce errors that you do not expect."
   if doctest != false && !versioncheck
     @warn versionwarn
@@ -326,13 +378,14 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
-  open_doc()
+  if open_browser
+    open_doc()
+  end
   if doctest != false && !versioncheck
     @warn versionwarn
   end
 end
 
-export build_doc
 # This can be used in
 #
 # module A
@@ -363,44 +416,56 @@ function build()
 end
 
 
-@doc Markdown.doc"""
-    test_module(x, new::Bool = true)
+@doc raw"""
+    test_module(file::AbstractString; new::Bool = true)
 
-Run the Oscar tests in the file `x.jl` where `x` is a string.
+Run the Oscar tests in the file `test/<file>.jl` where `file` may be a path.
 
-If `x == "all"` run the entire testsuite.
+The optional parameter `new` takes the values `false` and `true` (default). If
+`true`, then the tests are run in a new session, otherwise the currently active
+session is used.
+
+For experimental modules, use [`test_experimental_module`](@ref) instead.
+"""
+function test_module(file::AbstractString; new::Bool=true)
+  julia_exe = Base.julia_cmd()
+  rel_test_file = normpath("test", "$file.jl")
+  test_file = joinpath(oscardir, rel_test_file)
+
+  if new
+    cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
+    @info("spawning ", `$julia_exe -e \"$cmd\"`)
+    run(`$julia_exe -e $cmd`)
+  else
+    @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
+    @info("Running tests for $rel_test_file in same session")
+    Base.include(Base.Main, test_file)
+  end
+end
+
+@doc raw"""
+    test_experimental_module(project::AbstractString; file::AbstractString="runtests", new::Bool = true)
+
+Run the Oscar tests in the file `experimental/<project>/test/<file>.jl`
+where `file` may be a path.
+The default is to run the entire test suite of the module `project`.
 
 The optional parameter `new` takes the values `false` and `true` (default). If
 `true`, then the tests are run in a new session, otherwise the currently active
 session is used.
 """
-function test_module(x::AbstractString, new::Bool = true)
-   julia_exe = Base.julia_cmd()
-   if x == "all"
-     test_file = joinpath(oscardir, "test/runtests.jl")
-   else
-     test_file = joinpath(oscardir, "test/$x.jl")
-   end
-
-   if new
-     cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
-     @info("spawning ", `$julia_exe -e \"$cmd\"`)
-     run(`$julia_exe -e $cmd`)
-   else
-     @info("Running tests for $x in same session")
-     try
-       include(test_file)
-     catch e
-       if isa(e, LoadError)
-         println("You need to do \"using Test\"")
-       else
-         rethrow(e)
-       end
-     end
-   end
+function test_experimental_module(
+  project::AbstractString; file::AbstractString="runtests", new::Bool=true
+)
+  test_file = "../experimental/$project/test/$file"
+  test_module(test_file; new)
 end
 
 include("Exports.jl")
+
+# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
+@alias characteristic_polynomial charpoly  # FIXME
+@alias minimal_polynomial minpoly  # FIXME
 
 include("printing.jl")
 include("fallbacks.jl")
@@ -426,7 +491,6 @@ include("Groups/spinor_norms.jl")
 include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
-include("Rings/rational.jl")
 include("Rings/orderings.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly_types.jl")
@@ -467,6 +531,7 @@ include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 include("GAP/iso_gap_oscar.jl")
 include("GAP/iso_oscar_gap.jl")
+include("../gap/OscarInterface/julia/alnuth.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 include("Groups/action.jl")  # needs some PolynomialRings functionality
@@ -496,11 +561,13 @@ include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
+include("NumberTheory/GalThy.jl")
 
 include("AlgebraicGeometry/Schemes/main.jl")
 include("AlgebraicGeometry/ToricVarieties/JToric.jl")
 include("AlgebraicGeometry/TropicalGeometry/main.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+include("AlgebraicGeometry/Surfaces/SurfacesP4.jl")
 include("AlgebraicGeometry/Miscellaneous/basics.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
@@ -527,7 +594,7 @@ include("Deprecations.jl")
 const global OSCAR = Oscar
 const global oscar = Oscar
 
-@doc Markdown.doc"""
+@doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   ?Nemo
   ?Hecke
@@ -535,10 +602,6 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   for more information
 """
 module ANTIC
-using Markdown
 end
-export ANTIC
-
-export OSCAR, oscar
 
 end # module

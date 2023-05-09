@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     polyhedron(td::ToricDivisor)
 
 Construct the polyhedron $P_D$ of a torus invariant divisor $D:=td$ as in 4.3.2
@@ -12,7 +12,7 @@ moving hyperplanes. One direction moves the hyperplane away from the origin,
 the other moves it across. In the latter case there are no global sections
 anymore and the polyhedron becomes empty.
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td0 = toric_divisor(F4, [0,0,0,0])
@@ -37,17 +37,17 @@ julia> is_feasible(polyhedron(td2))
 false
 ```
 """
-@attr Polyhedron polyhedron(td::ToricDivisor) = Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
+@attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(td::ToricDivisor)
 
 Identify the coefficients of a toric divisor in the group of torus invariant Weil divisors.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> D = toric_divisor(F4, [1, 2, 3, 4])
@@ -61,19 +61,17 @@ julia> coefficients(D)
  4
 ```
 """
-function coefficients(td::ToricDivisor)
-    return td.coeffs
-end
+coefficients(td::ToricDivisor) = td.coeffs
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(td::ToricDivisor)
 
 Return the toric variety of a torus-invariant Weil divisor.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4);
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4);
 
 julia> D = toric_divisor(F4, [1, 2, 3, 4]);
 
@@ -81,6 +79,4 @@ julia> toric_variety(D)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function toric_variety(td::ToricDivisor)
-    return td.toric_variety
-end
+toric_variety(td::ToricDivisor) = td.toric_variety

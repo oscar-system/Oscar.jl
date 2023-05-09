@@ -55,6 +55,21 @@ end
       end
    end
 
+   p = 257  # GAP regards the Conway polynomial for `GF(257, 1)` as not cheap.
+   @testset for F in [Nemo.fpField(UInt(257)), Nemo.FpField(ZZRingElem(257))]
+      f = Oscar.iso_oscar_gap(F)
+      oO = one(F)
+      oG = f(oO)
+      for a in F
+         @test f(a*a) == f(a)*f(a)
+         @test f(a-oO) == f(a)-oG
+      end
+      C = codomain(f)
+      for a in C
+         @test preimage(f, a*a) == preimage(f, a)*preimage(f, a)
+      end
+   end
+
    @testset for (p,d) in [(2, 1), (5, 1), (2, 4), (3, 3)]
       for F in [FqPolyRepField(ZZRingElem(p),d,:z), FqField(ZZRingElem(p),d,:z)]
          f = Oscar.iso_oscar_gap(F)
@@ -178,6 +193,29 @@ end
    K, a = cyclotomic_field(10, "a")
    phi = Oscar.iso_oscar_gap(K)
    @test phi(-a^3 + a^2 + 1) == GAP.evalstr("-E(5)^2-E(5)^3")
+end
+
+@testset "quadratic number fields" begin
+   # for computing random elements of the fields in question
+   my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
+   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+
+   @testset for N in [ 5, -3, 12, -8 ]
+      F, z = quadratic_field(N)
+      f = Oscar.iso_oscar_gap(F)
+      @test f === Oscar.iso_oscar_gap(F)  # test that everything gets cached
+      for i in 1:10
+         a = my_rand_bits(F, 5)
+         for j in 1:10
+            b = my_rand_bits(F, 5)
+            @test f(a*b) == f(a)*f(b)
+            @test f(a - b) == f(a) - f(b)
+         end
+      end
+
+      m = matrix([z z; z z])
+      @test map_entries(inv(f), map_entries(f, m)) == m
+   end
 end
 
 @testset "number fields" begin

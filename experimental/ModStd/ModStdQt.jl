@@ -1,6 +1,6 @@
 module ModStdQt
 
-using Oscar, Markdown
+using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
 
@@ -176,6 +176,8 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
     set_status!(M, :OK)
     return true, Val.G
   end
+
+  set_status!(M, :univariate_failed)
 
   if !isdefined(Val, :nd) || length(Val.nd) < length(Val.v)
     nd = []
@@ -530,7 +532,33 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
   return rk
 end
 
-@doc Markdown.doc"""
+#to, basically, make the doctest stable
+function _cmp(f::MPolyRingElem, g::MPolyRingElem)
+  mf = leading_term(f)
+  mg = leading_term(g)
+  while exponent_vector(mf, 1) == exponent_vector(mg, 1)
+    f -= mf
+    g -= mg
+    if iszero(f) && iszero(g)
+      return 0
+    end
+    if iszero(f)
+      return -1
+    end
+    if iszero(g)
+      return 1
+    end
+    mf = leading_term(f)
+    mg = leading_term(g)
+  end
+  if isless(mf, mg)
+    return -1
+  else
+    return 1
+  end
+end
+
+@doc raw"""
     factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute
@@ -539,21 +567,19 @@ algebraic closure of Q(A).
 
 The return value is an array 
 - first entry is a leading coefficient
-- the others are tuples, one for each irreducible factor of the input, either
+- the others are tuples, one for each irreducible factor of the input, namely
 
-  - two polynomials over a finite extension of Q(A) given as a residue field,
+  two polynomials and an integer: the polynomials are 
+      over a finite extension of Q(A) given as a residue field,
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
-      extension, the lst entry is the multiplicity.
-      In this case, there are degree(h(t)) many abs. irreducible factors, but they
-      are all conjugate to th e1st tuple entry. The 2nd entry is the product of all the
-      other conjugates,
-
-  - one polynomial over Q(A) - indicating that this factor is abs. irreducible 
-      and the multiplicity
+      extension, the last entry (the integer) is the multiplicity.
+      Since there are degree(h(t)) many abs. irreducible factors, which 
+      are all conjugate to the 1st tuple entry, we return the product of the 
+      remaining degree - 1 many as the 2nd entry.
 
 # Examples     
 
-```julia
+```jldoctest
 julia> Qa, a = polynomial_ring(QQ, :a=>1:2);
 
 julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
@@ -562,7 +588,7 @@ julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
  (X[1] + t*X[2], X[1] - t*X[2], 1)
- (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
+ (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1, 1)
 
 julia> parent(f[3][1])
 Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
@@ -582,10 +608,10 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   push!(an, Qtx(cont)*Oscar._restore_numerators(Qtx, lF.unit))
   K = base_ring(f)
   Kt, t = polynomial_ring(K, "t", cached = false)
-  for (k, e) = lF.fac
+  for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) <= 0)
     res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
     if res === nothing
-      push!(an, (Oscar._restore_numerators(Qtx, k), e))
+      push!(an, (Oscar._restore_numerators(Qtx, k), parent(k)(1), e))
       continue
     end
     p, c, ex = res
@@ -609,6 +635,12 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
     push!(an, (bb, divexact(kk, bb), e))
   end
   return an
+end
+
+function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
+  lf = factor_absolute(f)
+  @assert length(lf) > 1
+  return length(lf) == 2 && lf[2][end] == 1 && is_one(lf[2][2]) 
 end
 
 function Oscar.monomial(R::MPolyRing, v::Vector{Int})
@@ -649,8 +681,8 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
   end
 
   frst = true
-  lst = []
   do_z = true
+  lst = []
   local lst
 
   res = elem_type(F)[]
@@ -694,8 +726,14 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
 
       @vtime :ModStdQt 2 MM = g(v...)
       fg = factor_absolute(MM)
-      if length(fg) > 2
-        return nothing #bad evaluation
+      if length(fg) > 2 #TODO: think how to avoid the complete restart
+        @vprint :ModStdQt 2 "bad evaluation point, restarting...\n"
+        frst = true
+        do_z = true
+        empty!(lst)
+        empty!(res)
+        P = MPolyPt(n)
+        break
       end
       @assert length(fg) == 2
       if isa(base_ring(fg[2][1][1]), QQField)
@@ -725,9 +763,12 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
     end
     
     @vprint :ModStdQt 1 "starting interpolation...\n"
+    if length(lst) == 0 # after a bad point, we restart, thus nothing
+      continue          # to interpolate
+    end
     MI = MPolyInterpolateCtx(F, P)
 
-    local fl = true
+    local fl = length(res) > 0
     @vtime :ModStdQt 2 for Fi = length(res)+1:length(lst)
       local F
       F = lst[Fi]

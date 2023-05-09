@@ -2,7 +2,7 @@
 # Attributes
 ############################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(c::ClosedSubvarietyOfToricVariety)
 
 When constructing a closed subvariety, a toric variety
@@ -14,7 +14,7 @@ in different non-isomorphic toric varieties.
 
 # Examples
 ```jldoctest
-julia> f2 = hirzebruch_surface(2);
+julia> f2 = hirzebruch_surface(NormalToricVariety, 2);
 
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 
@@ -25,12 +25,10 @@ julia> toric_variety(c) == f2
 true
 ```
 """
-@attr AbstractNormalToricVariety function toric_variety(c::ClosedSubvarietyOfToricVariety)
-    return c.toric_variety
-end
+@attr AbstractNormalToricVariety toric_variety(c::ClosedSubvarietyOfToricVariety) = c.toric_variety
 
 
-@doc Markdown.doc"""
+@doc raw"""
     defining_ideal(c::ClosedSubvarietyOfToricVariety)
 
 When constructing a closed subvariety, an ideal in the
@@ -39,7 +37,7 @@ This method returns this initially provided ideal.
 
 # Examples
 ```jldoctest
-julia> f2 = hirzebruch_surface(2);
+julia> f2 = hirzebruch_surface(NormalToricVariety, 2);
 
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 
@@ -50,12 +48,10 @@ julia> defining_ideal(c) == ideal([t1])
 true
 ```
 """
-@attr MPolyIdeal function defining_ideal(c::ClosedSubvarietyOfToricVariety)
-    return c.defining_ideal
-end
+@attr MPolyIdeal defining_ideal(c::ClosedSubvarietyOfToricVariety) = c.defining_ideal
 
 
-@doc Markdown.doc"""
+@doc raw"""
     radical(c::ClosedSubvarietyOfToricVariety)
 
 When constructing a closed subvariety, an ideal in the
@@ -65,7 +61,7 @@ ideal.
 
 # Examples
 ```jldoctest
-julia> f2 = hirzebruch_surface(2);
+julia> f2 = hirzebruch_surface(NormalToricVariety, 2);
 
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 

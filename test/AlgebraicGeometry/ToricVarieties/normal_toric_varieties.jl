@@ -8,7 +8,7 @@ using Test
     ntv2 = normal_toric_variety(Oscar.cube(2); set_attributes)
     ntv3 = normal_toric_varieties_from_glsm(matrix(ZZ, [[1, 1, 1]]); set_attributes)
     ntv4 = normal_toric_varieties_from_star_triangulations(convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1]); set_attributes)
-    ntv5 = normal_toric_variety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))); set_attributes)
+    ntv5 = normal_toric_variety(polarize(polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))); set_attributes)
     
     @testset "Basic properties" begin
         @test is_complete(ntv) == true
