@@ -213,15 +213,13 @@ include("printing.jl")
 include("fallbacks.jl")
 
 
+include("Rings/Rings.jl")
 include("Groups/Groups.jl")
 
-include("Rings/Rings.jl")
 include("GAP/GAP.jl")
 
 include("../gap/OscarInterface/julia/alnuth.jl")
 
-include("Groups/group_characters.jl")  # needs some Rings functionality
-include("Groups/action.jl")  # needs some PolynomialRings functionality
 
 include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
