@@ -481,15 +481,7 @@ include("../gap/OscarInterface/julia/alnuth.jl")
 include("Groups/group_characters.jl")  # needs some Rings functionality
 include("Groups/action.jl")  # needs some PolynomialRings functionality
 
-include("Modules/ModuleTypes.jl")
-include("Modules/UngradedModules.jl")
-include("Modules/homological-algebra.jl")
-include("Modules/FreeModElem-orderings.jl")
-#include("Modules/FreeModules-graded.jl")
-include("Modules/ModulesGraded.jl")
-include("Modules/module-localizations.jl")
-include("Modules/local_rings.jl")
-include("Modules/mpolyquo.jl")
+include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
