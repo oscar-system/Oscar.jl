@@ -470,17 +470,12 @@ include("exports.jl")
 include("printing.jl")
 include("fallbacks.jl")
 
-include("GAP/wrappers.jl")
 
 include("Groups/Groups.jl")
 
 include("Rings/Rings.jl")
+include("GAP/GAP.jl")
 
-include("GAP/customize.jl")
-include("GAP/gap_to_oscar.jl")
-include("GAP/oscar_to_gap.jl")
-include("GAP/iso_gap_oscar.jl")
-include("GAP/iso_oscar_gap.jl")
 include("../gap/OscarInterface/julia/alnuth.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
@@ -495,7 +490,7 @@ include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
 include("Modules/mpolyquo.jl")
-include("Rings/ReesAlgebra.jl")
+include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
 
@@ -509,8 +504,8 @@ include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
-include("Rings/lazypolys.jl")
-include("Rings/slpolys.jl")
+include("Rings/lazypolys.jl") # uses StraightLinePrograms
+include("Rings/slpolys.jl") # uses StraightLinePrograms
 include("NumberTheory/GalThy.jl")
 
 include("AlgebraicGeometry/AlgebraicGeometry.jl")
@@ -518,6 +513,7 @@ include("AlgebraicGeometry/AlgebraicGeometry.jl")
 include("InvariantTheory/InvariantTheory.jl")
 
 include("../experimental/Experimental.jl")
+
 include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
 
 if is_dev
