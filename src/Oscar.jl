@@ -529,12 +529,7 @@ include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 include("NumberTheory/GalThy.jl")
 
-include("AlgebraicGeometry/Schemes/main.jl")
-include("AlgebraicGeometry/ToricVarieties/JToric.jl")
-include("AlgebraicGeometry/TropicalGeometry/main.jl")
-include("AlgebraicGeometry/Surfaces/K3Auto.jl")
-include("AlgebraicGeometry/Surfaces/SurfacesP4.jl")
-include("AlgebraicGeometry/Miscellaneous/basics.jl")
+include("AlgebraicGeometry/AlgebraicGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
