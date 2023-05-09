@@ -461,7 +461,7 @@ function test_experimental_module(
   test_module(test_file; new)
 end
 
-include("Exports.jl")
+include("exports.jl")
 
 # HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
 @alias characteristic_polynomial charpoly  # FIXME
@@ -549,7 +549,7 @@ include("Rings/ReesAlgebra.jl")
 
 include("NumberTheory/NmbThy.jl")
 
-include("PolyhedralGeometry/main.jl")
+include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
@@ -587,9 +587,9 @@ end
 
 include("Serialization/main.jl")
 
-include("Aliases.jl")
+include("aliases.jl")
 
-include("Deprecations.jl")
+include("deprecations.jl")
 
 const global OSCAR = Oscar
 const global oscar = Oscar
