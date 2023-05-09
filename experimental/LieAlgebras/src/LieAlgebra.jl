@@ -195,24 +195,6 @@ end
 
 ###############################################################################
 #
-#   Isomorphism to GAP accessors
-#
-###############################################################################
-
-# currently, the user should only use _iso_oscar_gap(LO) to get the isomorphism
-
-function _get_iso_oscar_gap!(f, LO::LieAlgebra{C}) where {C<:RingElement}
-  get_attribute!(f, LO, :iso_oscar_gap)::Map{typeof(LO),GAP.GapObj}
-end
-
-function _set_iso_oscar_gap!(
-  LO::LieAlgebra{C}, iso::Map{<:LieAlgebra{C},GAP.GapObj}
-) where {C<:RingElement}
-  set_attribute!(LO, :iso_oscar_gap => iso)
-end
-
-###############################################################################
-#
 #   Constructor
 #
 ###############################################################################
