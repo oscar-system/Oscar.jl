@@ -2189,13 +2189,41 @@ function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
 
+
+# To homogenize an ideal we look for some additional simple elements
+# (as redundant generators), and then apply the standard algorithm.
+
+# Internal function: used only in gens_for_homog (immediately below)
+function num_terms(f)
+    return length(collect(coefficients(f)));
+end;
+
+# Internal function: used only in homogenization (immediately below)
+# This function is an "empirical hack": usually makes homogenization faster.
+# Return gens(I) and some further "small" polys in I
+function gens_for_homog(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
+    @req  !is_zero(I)  "Ideal must be non-zero"
+    OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
+    # Next few lines: we adjoin some more small, redundant gens
+    AveNumTerms = sum([num_terms(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
+    GB1 = elements(groebner_basis(I, ordering=degrevlex(OrigR)))
+    GB1 = filter(f -> (num_terms(f) < 2*AveNumTerms), GB1)
+    GB2 = elements(groebner_basis(I, ordering=deglex(OrigR)))  # or degrevlex with vars in reverse order?
+    GB2 = filter(f -> (num_terms(f) < 2*AveNumTerms), GB2)
+    return vcat(gens(I), GB1, GB2)
+end
+
 function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
-  # TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
-  V = homogenization(gens(I), W, var, pos)
-  R = parent(V[1])
-  IH = ideal(R, V)
-  Y = ideal(R, [gen(R, i) for i = pos:(pos+size(W, 1)-1)])
-  return saturation(IH, Y)
+    if is_zero(I)  return I; end
+    # DONE???  # TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
+    Hgens = homogenization(gens_for_homog(I), W, var, pos)
+    R = parent(Hgens[1])
+    prod_h = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
+    IH = saturation(ideal(R, Hgens), ideal(R,prod_h))
+    return IH
+######  There is a problem/bug with Singular.satstd: so disable this version
+######  Y = ideal(R, [gens(R)[i]  for i = pos:(pos+size(W, 1)-1)])
+######  singular_assure(IH); singular_assure(Y); return Singular.satstd(IH.gens.S,Y.gens.S)
 end
 
 @doc raw"""
