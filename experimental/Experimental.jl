@@ -1,3 +1,45 @@
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+# We don't want to interfere with existing stuff in experimental though.
+const expdir = joinpath(@__DIR__, "../experimental")
+const oldexppkgs = [
+  "ExteriorAlgebra",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
+]
+# DEVELOPER OPTION:
+# The following lines ensure that ToricSchemes is loaded before FTheoryTools.
+# DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
+# For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
+const orderedpkgs = [
+  "ToricSchemes",
+  "FTheoryTools",
+]
+exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
+append!(exppkgs, orderedpkgs)
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
+
+# force trigger recompile when folder changes
+include_dependency(".")
+
 include("JuLie.jl")
 
 for pkg in Oscar.exppkgs
