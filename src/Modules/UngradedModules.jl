@@ -488,7 +488,7 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return hash(tuple(parent(a), coordinates(a)), h)
+  return xor(hash(tuple(parent(a), coordinates(a)), h), hash(typeof(a)))
 end
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
@@ -497,17 +497,17 @@ end
 
 # scalar multiplication with polynomials, integers
 function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
-  if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
-  end
+  @req parent(a) === base_ring(parent(b)) "elements not compatible"
   return parent(b)(a*coordinates(b))
 end
+
 function *(a::MPolyRingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return parent(b)(a*coordinates(b))
 end
+
 function *(a::RingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
@@ -3820,7 +3820,7 @@ function index_of_gen(v::SubquoModuleElem)
   return coordinates(v).pos[1]
 end
 
-# function to check whether a free module element is in a particular free module
+# function to check whether two module elements are in the same module
 function check_parent(a::Union{AbstractFreeModElem,SubquoModuleElem}, b::Union{AbstractFreeModElem,SubquoModuleElem})
   if parent(a) !== parent(b)
     error("elements not compatible")
