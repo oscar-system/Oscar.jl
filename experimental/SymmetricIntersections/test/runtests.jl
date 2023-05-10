@@ -1,4 +1,5 @@
-using Oscar.SymInt
+using Test
+using Oscar
 
 @testset "Elevators" begin
   R, _ = polynomial_ring(QQ, 10, cached=false)
@@ -123,7 +124,7 @@ end
   @test underlying_group(prep) === G
   @test associated_schur_cover(prep) === p
   @test representation_ring_linear_lift(prep) === RR
-  @test dimension_linear_lift(prep) == 4
+  @test dimension_representation(prep) == 4
 
   chi = @inferred character_linear_lift(prep)
   @test is_projective(chi, p)
@@ -141,8 +142,8 @@ end
   @test codomain(f) isa MatrixGroup
   @test character_representation(RR, f) == chi
 
-  n = @inferred dimension_linear_lift(prep)
-  mr = @inferred matrix_representation_linear_lift(prep)
+  n = @inferred dimension_representation(prep)
+  mr = @inferred matrix_representation(prep)
   @test all(m -> size(m) == (n,n), mr)
   mg = matrix_group(mr)
   Z, _ = center(mg)
@@ -154,21 +155,21 @@ end
   @test associated_schur_cover(prepv) === p
   @test representation_ring_linear_lift(prepv) === RR
   @test underlying_group(prepv) === G
-  @test dimension_linear_lift(prepv) == dimension_linear_lift(prep)
+  @test dimension_representation(prepv) == dimension_representation(prep)
   @test character_linear_lift(prepv) == conj(chi)
 
   prepsq = @inferred prep + prep
   @test associated_schur_cover(prepsq) === p
   @test representation_ring_linear_lift(prepsq) === RR
   @test underlying_group(prepsq) === G
-  @test dimension_linear_lift(prepsq) == 2*dimension_linear_lift(prep)
+  @test dimension_representation(prepsq) == 2*dimension_representation(prep)
   @test character_linear_lift(prepsq) == 2*chi
 
   prepv3 = @inferred symmetric_power_representation(prepv, 2)
   @test associated_schur_cover(prepv3) === p
   @test representation_ring_linear_lift(prepv3) === RR
   @test underlying_group(prepsq) === G
-  @test dimension_linear_lift(prepv3) == binomial(5, 2)
+  @test dimension_representation(prepv3) == binomial(5, 2)
   @test character_linear_lift(prepv3) == symmetric_power(conj(chi), 2)
   cds = @inferred character_decomposition(prepv3)
   B = @inferred basis_isotypical_component(linear_lift(prepv3), cds[1][2])
@@ -185,7 +186,7 @@ end
   @test associated_schur_cover(prep2) === p
   @test representation_ring_linear_lift(prep2) === RR
   @test underlying_group(prep2) === G
-  @test dimension_linear_lift(prep2) == 6
+  @test dimension_representation(prep2) == 6
   @test character_linear_lift(prep2) == exterior_power(chi, 2)
   pd, B = @inferred to_equivalent_block_representation(prep2)
   @test is_similar(prep2, pd)

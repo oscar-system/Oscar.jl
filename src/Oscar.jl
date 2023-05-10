@@ -44,7 +44,6 @@ const oldexppkgs = [
   "MPolyRingSparse",
   "Rings",
   "Schemes",
-  "SymmetricIntersections",
 ]
 # DEVELOPER OPTION:
 # The following lines ensure that ToricSchemes is loaded before FTheoryTools.

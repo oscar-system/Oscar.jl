@@ -1,22 +1,3 @@
-import AbstractAlgebra: is_empty
-
-import Oscar: defining_ideal, describe, irreducible_components
-
-export character_grassmannian
-export determinant_grassmannian
-export invariant_grassmannian
-export irreducible_component
-export isotypical_factor
-export isotypical_factors
-export isotypical_grassmannian
-export module_representation
-export parametrization_data
-export projective_dimension
-export standard_element
-export submodule_character
-export submodule_determinant_character
-export submodule_dimension
-
 ###############################################################################
 #
 # Accessors/Attributes
@@ -371,71 +352,6 @@ function defining_ideal(M::InvGrass)
   r = module_representation(M)
   t = submodule_dimension(M)
   return _defining_ideal_invariant_grassmannian(r, t)
-end
-
-###############################################################################
-#
-# I/O Printing
-#
-###############################################################################
-
-### Isotypical Grassmannian
-
-function Base.show(io::IO, ::MIME"text/plain", M::IsotGrass)
-  chi = submodule_character(M)
-  println(io, "Symmetric Grassmannian of $(degree(chi))-dimensional submodules of")
-  println(io, module_representation(M))
-  println(io, "with isotypical character")
-  print(io, chi)
-end
-
-function Base.show(io::IO, M::IsotGrass)
-  print(io, "Isotypical Grassmannian of dimension $(projective_dimension(M))")
-end
-
-###############################################################################
-
-### Character Grassmannian
-
-function Base.show(io::IO, ::MIME"text/plain", M::CharGrass)
-  chi = submodule_character(M)
-  println(io, "Symmetric Grassmannian of $(degree(chi))-dimensional submodules of")
-  println(io, module_representation(M))
-  println(io, "with character")
-  print(io, chi)
-end
-
-function Base.show(io::IO, M::CharGrass)
-  print(io, "Character Grassmannian of dimension $(projective_dimension(M))")
-end
-
-###############################################################################
-
-### Determinant Grassmannian
-
-function Base.show(io::IO, ::MIME"text/plain", M::DetGrass)
-  chi = submodule_determinant_character(M)
-  println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules of")
-  println(io, module_representation(M))
-  println(io, "with determinant character")
-  print(io, chi)
-end
-
-function Base.show(io::IO, M::DetGrass)
-  print(io, "Determinant Grassmannian of dimension $(projective_dimension(M))")
-end
-
-###############################################################################
-
-### Invariant Grassmannian
-
-function Base.show(io::IO, ::MIME"text/plain", M::InvGrass)
-  println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules of")
-  print(io, module_representation(M))
-end
-
-function Base.show(io::IO, M::InvGrass)
-  print(io, "Invariant Grassmannian of dimension $(projective_dimension(M))")
 end
 
 ###############################################################################
