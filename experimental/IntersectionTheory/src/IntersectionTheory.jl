@@ -11,9 +11,8 @@ export a_hat_genus
 export abstract_bundle
 export abstract_flag_variety
 export abstract_grassmannian
-export abstract_projective_bundle
+export abstract_projective_space
 export abstract_projective_variety
-export abstract_variety
 export abstract_variety
 export betti
 export bundles
