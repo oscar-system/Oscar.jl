@@ -26,6 +26,7 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 [compat]
 AbstractAlgebra = "0.29.3"
 AlgebraicSolving = "0.3.0"
+Aqua = "0.6"
 DocStringExtensions = "0.8, 0.9"
 GAP = "0.9.4"
 Hecke = "0.18.9"
@@ -36,13 +37,16 @@ Preferences = "1"
 RandomExtensions = "0.4.3"
 RecipesBase = "1.2.1"
 Singular = "0.18.2"
+TOPCOM_jll = "0.17.8"
+cohomCalg_jll = "0.32.0"
 julia = "1.6"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Documenter", "PrettyTables", "Printf"]
+test = ["Test", "Aqua", "Documenter", "PrettyTables", "Printf"]
