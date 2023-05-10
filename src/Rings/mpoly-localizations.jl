@@ -2331,7 +2331,7 @@ write_as_linear_combination(f::MPolyLocRingElem, g::Vector) = write_as_linear_co
     as_affine_algebra(
       L::MPolyLocRing{BRT, BRET, RT, RET, 
       MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
-      inverse_name::String="θ"
+      inverse_name::VarName=:0
     ) where {BRT, BRET, RT, RET}
 
 For a localized polynomial ring ``L = 𝕜[x₁,…,xₙ][f⁻¹]`` this returns a 
@@ -2346,10 +2346,10 @@ quintuple ``(A, I, d, ϕ, θ)`` consisting of
 function as_affine_algebra(
     L::MPolyLocRing{BRT, BRET, RT, RET, 
 			     MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
-    inverse_name::String="θ"
+    inverse_name::VarName=:_0
   ) where {BRT, BRET, RT, RET}
   R = base_ring(L)
-  A, phi, t = _add_variables_first(R, [inverse_name])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
   I = ideal(A, [one(A)-theta*phi(f)])

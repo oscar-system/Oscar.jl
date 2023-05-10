@@ -421,7 +421,7 @@ function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA
       isoinv = hom(G, H, V)
       W = R.d
       W = [isoinv(W[i]) for i = 1:length(W)]
-      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
+      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
       change = hom(R, S, gens(S))
       I = change(A.I)
       R = S
@@ -473,7 +473,7 @@ end
 #      isoinv = hom(G, H, V)
 #      W = R.d
 #      W = [isoinv(W[i]) for i = 1:length(W)]
-#      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
+#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
 #      change = hom(R, S, gens(S))
 #      I = change(A.I)
 #      R = S
@@ -511,7 +511,7 @@ end
 #   else
 #      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
 #     if minMI<0
-#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
+#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), Matrix(transpose(MI)))
 #         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
 #      end
 #      p = _numerator_monomial_multi_hilbert_series(LI, S)
