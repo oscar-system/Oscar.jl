@@ -4,6 +4,9 @@
     # to avoid unnecessary failures we skip the timing tests
     haskey(ENV, "JULIA_PKGEVAL") && return
 
+    # this test fails with many workers
+    # TODO: deal with this
+
     using Oscar
 
     # macos on github actions is very slow

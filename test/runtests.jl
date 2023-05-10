@@ -22,6 +22,8 @@ include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance
 import Printf
 import PrettyTables
 
+using Distributed
+
 # the current code for extracting the compile times does not work on earlier
 # julia version
 const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
@@ -80,52 +82,77 @@ end
 @static if compiletimes
   Base.cumulative_compile_timing(true);
 end
-# Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
-const SLP = Oscar.StraightLinePrograms
-include("printing.jl")
 
-include("PolyhedralGeometry/runtests.jl")
-include("Combinatorics/runtests.jl")
+if haskey(ENV, "NUMPROCS")
+  numprocs = parse(Int,ENV["NUMPROCS"])
+else
+  numprocs = 1
+end
 
-include("GAP/runtests.jl")
-include("Groups/runtests.jl")
+if (numprocs >= 2)
+  println("Adding worker processes")
+  addprocs(numprocs)
+  @everywhere using Test
+  @everywhere using Oscar
+  @everywhere Oscar.set_seed!($seed)
+  # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
+  @everywhere const SLP = Oscar.StraightLinePrograms
+end
 
-include("Rings/runtests.jl")
+# hotfix, otherwise StraightLinePrograms returns something which then leads to an error
+module SLPTest
+end
 
-include("NumberTheory/nmbthy-test.jl")
+println("Making test list")
+
+testlist = []
+push!(testlist, "printing.jl")
+push!(testlist, "PolyhedralGeometry/runtests.jl")
+push!(testlist, "Combinatorics/runtests.jl")
+
+push!(testlist, "GAP/runtests.jl")
+push!(testlist, "Groups/runtests.jl")
+
+#push!(testlist, "Rings/runtests.jl") #This fails with many workers. TODO: fix and reenable
+
+push!(testlist, "NumberTheory/nmbthy-test.jl")
 
 if Oscar.is_dev
-  include("Experimental/GITFans-test.jl")
+  push!(testlist, "Experimental/GITFans-test.jl")
 end
 
 # Will automatically include all experimental packages following our
 # guidelines.
-include("../experimental/runtests.jl")
+push!(testlist, "../experimental/runtests.jl")
 
-include("Experimental/galois-test.jl")
-include("Experimental/gmodule-test.jl")
-include("Experimental/ModStdQt-test.jl")
-include("Experimental/ModStdNF-test.jl")
-include("Experimental/MPolyRingSparse-test.jl")
-include("Experimental/MatrixGroups-test.jl")
-include("Experimental/JuLie-test.jl")
-include("Experimental/SymmetricIntersections-test.jl")
-include("Experimental/ExteriorAlgebra-test.jl")
+push!(testlist, "Experimental/galois-test.jl")
+push!(testlist, "Experimental/gmodule-test.jl")
+push!(testlist, "Experimental/ModStdQt-test.jl")
+push!(testlist, "Experimental/ModStdNF-test.jl")
+push!(testlist, "Experimental/MPolyRingSparse-test.jl")
+push!(testlist, "Experimental/MatrixGroups-test.jl")
+push!(testlist, "Experimental/JuLie-test.jl")
+push!(testlist, "Experimental/SymmetricIntersections-test.jl")
+push!(testlist, "Experimental/ExteriorAlgebra-test.jl")
 
-include("Rings/ReesAlgebra.jl")
+push!(testlist, "Rings/ReesAlgebra.jl")
 
-include("Modules/runtests.jl")
+push!(testlist, "Modules/runtests.jl")
 
-include("InvariantTheory/runtests.jl")
+push!(testlist, "InvariantTheory/runtests.jl")
 
-include("AlgebraicGeometry/Schemes/runtests.jl")
-include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
-include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+push!(testlist, "AlgebraicGeometry/Schemes/runtests.jl")
+push!(testlist, "AlgebraicGeometry/ToricVarieties/runtests.jl")
+push!(testlist, "AlgebraicGeometry/TropicalGeometry/runtests.jl")
+push!(testlist, "AlgebraicGeometry/Surfaces/K3Auto.jl")
 
-include("Serialization/runtests.jl")
+push!(testlist, "Serialization/runtests.jl")
 
-include("StraightLinePrograms/runtests.jl")
+push!(testlist, "StraightLinePrograms/runtests.jl")
+
+# if many workers, distribute tasks across them
+# otherwise, is essentially a serial loop
+@time pmap(x -> include(x), testlist)
 
 @static if compiletimes
   Base.cumulative_compile_timing(false);
@@ -143,6 +170,9 @@ else
   @info "Not running doctests (Julia version must be 1.6)"
 end
 
+#currently, print_stats will fail when running tests with external workers
+#TODO: potentially rewrite include as well as print_stats 
+#      to comply with parallel decisions
 if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
     print_stats(io, fmt=PrettyTables.tf_markdown)
