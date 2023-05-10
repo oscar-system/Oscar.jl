@@ -41,6 +41,12 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 	matrices. Here, by convention, vectors are row vectors, and matrices operate by
 	multiplication on the right.
 
+!!! note
+    Over a graded ring $R$, we work with graded free modules $R^s$, $R^p$, $R^t$ and graded
+    homomorphisms $a$, $b$. As a consequence, every module involved in the construction of
+	the subquotient defined by $a$ and $b$ carries an induced grading. In particular, the
+	subquotient itself carries an induced grading.
+
 ## Types
 
 All OSCAR types for the finitely presented modules considered here belong to the
