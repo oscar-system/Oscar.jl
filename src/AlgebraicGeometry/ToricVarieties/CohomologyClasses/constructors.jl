@@ -145,11 +145,16 @@ Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(t
 
 
 ########################
-# 5: Equality
+# 5: Equality and hash
 ########################
 
 Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass) = toric_variety(cc1) === toric_variety(cc2) && iszero(polynomial(cc1-cc2))
 
+function Base.hash(cc::CohomologyClass, h::UInt) 
+  b = 0x4de32042e67d89c8 % UInt
+  h = hash(toric_variety(cc), h)
+  return xor(h, b)
+end
 
 ######################
 # 6: Display
