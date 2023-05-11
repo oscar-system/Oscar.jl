@@ -4820,6 +4820,15 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   end
   return true
 end
+
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return xor(h, b)
+end
+
 ###################################################################
 
 @doc raw"""
