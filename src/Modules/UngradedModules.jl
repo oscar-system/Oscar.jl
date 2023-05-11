@@ -181,8 +181,12 @@ function (==)(F::FreeMod, G::FreeMod)
 end
 
 function hash(F::FreeMod, h::UInt)
-  is_graded(F) && return hash((base_ring(F), rank(F), F.S, F.d), h)
-  return hash((base_ring(F), rank(F), F.S), h)
+  b = is_graded(F) ? (0x2d55d561d3f7e215 % UInt) : (0x62ca4181ff3a12f4 % UInt)
+  h = hash(base_ring(F), h)
+  h = hash(rank(F), h)
+  h = hash(F.S, h)
+  is_graded(F) && (h = hash(F.d, h))
+  return xor(h, b)
 end
 
 @doc raw"""
@@ -490,7 +494,11 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return xor(hash(tuple(parent(a), coordinates(a)), h), hash(typeof(a)))
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  h = hash(coordinates(a), h)
+  return xor(h, b)
 end
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
