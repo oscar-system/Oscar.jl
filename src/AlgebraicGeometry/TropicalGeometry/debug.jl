@@ -65,7 +65,7 @@ end
 # Step 1.2: compute standard basis in Singular
 vvw = -w
 pushfirst!(vvw,-1)
-S,_ = Singular.polynomial_ring(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(vvw)*Singular.ordering_dp())
+S,_ = Singular.polynomial_ring(singular_ring(base_ring(Rtx)), symbols(Rtx); ordering = Singular.ordering_a(vvw)*Singular.ordering_dp())
 SI = Singular.Ideal(S, [S(g) for g in vvG])
 vvGB = Singular.gens(Singular.satstd(SI,Singular.MaximalIdeal(S,1)))
 vvGB = [Rtx(g) for g in vvGB]
