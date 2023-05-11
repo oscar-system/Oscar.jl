@@ -674,6 +674,13 @@ function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   return (issubset(T, U) && issubset(U, T))
 end
 
+function Base.hash(T::AbsMPolyMultSet, h::UInt)
+  b = 0x7ce51a28c47ec5e1 % UInt
+  h = hash(typeof(T), h)
+  h = hash(ambient_ring(T), h)
+  return xor(h, b)
+end
+
 function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
