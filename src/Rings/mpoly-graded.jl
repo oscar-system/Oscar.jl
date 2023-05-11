@@ -2200,11 +2200,13 @@ end;
 
 # Internal function: used only in homogenization (immediately below)
 # This function is an "empirical hack": usually makes homogenization faster.
-# Return gens(I) and some further "small" polys in I
+# Return gens(I) and some further "small" polys in I.
 function gens_for_homog(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
     @req  !is_zero(I)  "Ideal must be non-zero"
+    @req  !is_one(I)   "Ideal must not be whole ring"
     OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
-    # Next few lines: we adjoin some more small, redundant gens
+    # Next few lines: we adjoin some more small, redundant gens.
+    # !!HEURISTIC!!  We use AveNumTerms as size limit for redundant gens we shall adjoin.
     AveNumTerms = sum([num_terms(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
     GB1 = elements(groebner_basis(I, ordering=degrevlex(OrigR)))
     GB1 = filter(f -> (num_terms(f) < 2*AveNumTerms), GB1)
@@ -2214,8 +2216,11 @@ function gens_for_homog(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
 end
 
 function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
-    if is_zero(I)  return I; end
-    # DONE???  # TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
+    if is_zero(I) || is_one(I)
+        return I
+    end
+    # SLUG:  should check if W is a row of 1s; if so, delegate to standard graded code (presumably faster)
+    ### ??? How to check if W is a row of 1s ???
     Hgens = homogenization(gens_for_homog(I), W, var, pos)
     R = parent(Hgens[1])
     prod_h = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
