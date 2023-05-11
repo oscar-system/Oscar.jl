@@ -3523,37 +3523,50 @@ function +(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)+coordinates(b), a.parent)
 end
+
 function -(a::SubquoModuleElem, b::SubquoModuleElem) 
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
 end
+
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
+
 function *(a::MPolyDecRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::MPolyRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::RingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 *(a::Int, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
+
 function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
   if parent(a) !== parent(b)
     return false
   end
   return iszero(a-b)
+end
+
+function Base.hash(a::SubquoModuleElem, h::UInt)
+  b = 0x0361a2f6467e4200 % UInt
+  h = hash(parent(a), h)
+  return xor(h, b)
 end
 
 function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
