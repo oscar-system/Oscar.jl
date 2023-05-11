@@ -100,11 +100,17 @@ Base.:*(c::T, tdc::ToricDivisorClass) where {T <: IntegerUnion} = toric_divisor_
 
 
 ########################
-# 5: Equality
+# 5: Equality and hash
 ########################
 
 function Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
     return toric_variety(tdc1) === toric_variety(tdc2) && iszero(divisor_class(tdc1) - divisor_class(tdc2))
+end
+
+function Base.hash(tdc::ToricDivisorClass, h::UInt)
+    b = 0x118eb1fba136490c % UInt
+    h = hash(toric_variety(tdc), h)
+    return xor(h, b)
 end
 
 
