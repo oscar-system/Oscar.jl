@@ -2897,6 +2897,13 @@ function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom)
   return true
 end
 
+function Base.hash(f::MPolyLocalizedRingHom, h::UInt)
+  b = 0xe29cdc1ecb68b7a0 % UInt
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return xor(h, b)
+end
+
 function divides(a::MPolyLocRingElem, b::MPolyLocRingElem)
   W = parent(a)
   W == parent(b) || error("elements do not belong to the same ring")
