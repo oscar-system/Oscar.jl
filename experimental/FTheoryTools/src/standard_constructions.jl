@@ -120,7 +120,7 @@ julia> v2 = blow_up(v,I)
 Normal toric variety
 
 julia> cox_ring(v2)
-Multivariate Polynomial Ring in 10 variables a10, a21, a32, a43, ..., e over Rational Field graded by 
+Multivariate polynomial ring in 10 variables over QQ graded by
   a10 -> [0 0]
   a21 -> [0 0]
   a32 -> [0 0]

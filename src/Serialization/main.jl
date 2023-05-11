@@ -286,7 +286,7 @@ julia> load("/tmp/fourtitwo.json"; type=Int64)
 42
 
 julia> R, x = QQ["x"]
-(Univariate Polynomial Ring in x over Rational Field, x)
+(Univariate polynomial ring in x over QQ, x)
 
 julia> p = x^2 - x + 1
 x^2 - x + 1

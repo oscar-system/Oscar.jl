@@ -24,7 +24,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> chow_ring(P2)
-Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1 - x3, x2 - x3, x1*x2*x3)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1 - x3, x2 - x3, x1*x2*x3)
 
 julia> (x1, x2, x3) = gens(chow_ring(P2))
 3-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:

@@ -39,7 +39,7 @@ Construct a tropical linear space from a degree 1 polynomial ideal `I` and a map
 
 ```jldoctest
 julia> R,(x1,x2,x3,x4,x5,x6) = polynomial_ring(ZZ,6)
-(Multivariate Polynomial Ring in 6 variables x1, x2, x3, x4, ..., x6 over Integer Ring, ZZMPolyRingElem[x1, x2, x3, x4, x5, x6])
+(Multivariate polynomial ring in 6 variables over ZZ, ZZMPolyRingElem[x1, x2, x3, x4, x5, x6])
 
 julia> I = ideal(R,[-x1+x3+x4,-x2+x3+x5,-x1+x2+x6])
 ideal(-x1 + x3 + x4, -x2 + x3 + x5, -x1 + x2 + x6)

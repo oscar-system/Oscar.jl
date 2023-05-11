@@ -66,21 +66,21 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> affine_algebra(IR)
-(Quotient of Multivariate Polynomial Ring in y1, y2, y3, y4 over Cyclotomic field of order 3 graded by
+(Quotient of Multivariate polynomial ring in 4 variables over cyclotomic field of order 3 graded by
   y1 -> [3]
   y2 -> [3]
   y3 -> [6]
   y4 -> [9] by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2), Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in y1, y2, y3, y4 over Cyclotomic field of order 3 graded by
+Quotient of Multivariate polynomial ring in 4 variables over cyclotomic field of order 3 graded by
   y1 -> [3]
   y2 -> [3]
   y3 -> [6]
   y4 -> [9] by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2)
 Codomain:
 =========
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1])

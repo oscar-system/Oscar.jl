@@ -148,7 +148,7 @@ julia> v = resolve(t, 1)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2], [0, 0, 0, 1, 0, 0, -1, -2], [0, 0, 0, 1, 0, 0, -1, -1], [0, 0, 0, 1, 0, 0, 0, -1], [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1]]
 
 julia> cox_ring(v)
-Multivariate Polynomial Ring in 14 variables a10, a21, a32, a43, ..., s over Rational Field graded by 
+Multivariate polynomial ring in 14 variables over QQ graded by
   a10 -> [0 0 0 0 0 0]
   a21 -> [0 0 0 0 0 0]
   a32 -> [0 0 0 0 0 0]

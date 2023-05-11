@@ -28,10 +28,12 @@ For convenience, `QQ` is already defined to be the field of rational numbers.
 
 ```jldoctest
 julia> S = fraction_field(ZZ)
-Rational Field
+Fraction field
+  of integer Ring
 
 julia> QQ
-Rational Field
+Fraction field
+  of integer Ring
 
 ```
 

@@ -59,19 +59,19 @@ Here are some illustrating OSCAR examples:
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> default_ordering(R)
 degrevlex([x, y, z])
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> default_ordering(F)
 degrevlex([x, y, z])*lex([gen(1), gen(2)])
 
 julia> S, _ = grade(R, [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [2]
   z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -87,7 +87,7 @@ more from a given polynomial.
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*z^3+2*x*y+1
 2*x*y + 3*z^3 + 1
@@ -140,10 +140,10 @@ julia> tail(f)
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> f = (5*x*y^2-y^10+3)*F[1]+(4*x^3+2*y) *F[2]+16*x*F[3]
 (5*x*y^2 - y^10 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]

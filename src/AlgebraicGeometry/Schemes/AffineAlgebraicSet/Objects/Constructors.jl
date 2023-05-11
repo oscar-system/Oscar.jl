@@ -31,7 +31,7 @@ julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = vanishing_locus(ideal([y^2+y+x^3+1,x]))
 Vanishing locus
-  in Affine 2-space over Galois field with characteristic 2
+  in Affine 2-space over GF(2)
   of ideal(x, y^2 + y + 1)
 
 ```
@@ -61,14 +61,14 @@ julia> R, (x,y) = QQ[:x,:y];
 
 julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
 Vanishing locus
-  in Affine 2-space over Rational Field
+  in Affine 2-space over QQ
   of ideal(x^4 + x*y^2 + x*y + x)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
 Vanishing locus
-  in Affine 2-space over Galois field with characteristic 2
+  in Affine 2-space over GF(2)
   of ideal(x^4 + x*y^2 + x*y + x)
 
 ```

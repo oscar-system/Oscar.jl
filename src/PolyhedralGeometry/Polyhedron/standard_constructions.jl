@@ -249,7 +249,7 @@ Compute the Newton polytope of the multivariate polynomial `poly`.
 # Examples
 ```jldoctest
 julia> S, (x, y) = polynomial_ring(ZZ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Integer Ring, ZZMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over ZZ, ZZMPolyRingElem[x, y])
 
 julia> f = x^3*y + 3x*y^2 + 1
 x^3*y + 3*x*y^2 + 1
