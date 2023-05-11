@@ -3,9 +3,9 @@ using Test
 
 @testset "Torus-invariant divisors (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
-    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
-    P2 = projective_space(NormalToricVariety, 2; set_attributes)
+    F5 = hirzebruch_surface(ToricCoveredScheme, 5; set_attributes)
+    dP3 = del_pezzo_surface(ToricCoveredScheme, 3; set_attributes)
+    P2 = projective_space(ToricCoveredScheme, 2; set_attributes)
     
     D=toric_divisor(F5, [0, 0, 0, 0])
     D2 = divisor_of_character(F5, [1, 2])

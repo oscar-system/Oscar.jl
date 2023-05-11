@@ -36,3 +36,7 @@ end
     @test length(values(glueings(default_covering(Y)))) == 16
   end
 end
+
+@testset "Toric divisors" begin
+  # outsourced by modifying the tests for toric_divisor.jl in the ToricVarieties.
+end
