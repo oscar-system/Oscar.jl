@@ -6,7 +6,12 @@ function Base.show(io::IO, x::GAPGroupHomomorphism)
 end
 
 function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S where T
-   return f.map == g.map
+  return f.map == g.map
+end
+
+function Base.hash(f::GAPGroupHomomorphism{S,T}, h::UInt) where S where T
+  b = 0xdc777737af4c0c7b % UInt
+  return xor(hash(f.map, hash((S, T), h)), b)
 end
 
 Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(f, g)
