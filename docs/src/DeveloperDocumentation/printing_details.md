@@ -5,7 +5,7 @@ Oscar's 2+1 printing modes. The specifications and a minimal example may be
 found in the [Developer Style Guide](@ref).
 
 
-### Implementing show functions
+## Implementing show functions
 
 Here is the translation between `:detail`, `one line` and `:supercompact`.
 
@@ -17,9 +17,9 @@ print(IOContext(:supercompact => true), x) # supercompact printing
 
 For reference, string interpolation `"$(x)"` will also use `print(io, x)`.
 
-#### Mockup
+### Mockup
 
-##### Detailed printing with a new line.
+#### Detailed printing with a new line
 
 ```julia
 struct NewRing
@@ -67,7 +67,7 @@ julia> [R,R]
 
 ```
 
-##### Detailed printing in a single line.
+#### Detailed printing in a single line
 
 This version needs to be used in case the detailed
 printing does not contain newlines.
@@ -106,7 +106,7 @@ julia> print(IOContext(Base.stdout, :supercompact => true) ,R)
 supercompact printing of newring
 ```
 
-##### The following is not working as expected and should not be used
+#### The following is not working as expected and should not be used
 
 This example does not work correctly because the `detailed` printing does not
 include a newline, which is expected by the Julia printing system. To correctly
@@ -145,6 +145,52 @@ julia> [R,R]  # one line printing is ignored
 
 julia> print(Base.stdout, R)
 one line printing of newring with supercompact QQ
+```
+
+## Advanced printing functionality
+
+To facilitate printing of nested mathematical structures, we provide a modified
+`IOCustom` object, that supports indendation and decapitalization.
+
+### Example
+
+We illustrate this with an example
+
+```
+struct A{T}
+  x::T
+end
+
+function Base.show(io::IO, a::A)
+  io = AbstractAlgebra.pretty(io)
+  println(io, "Something of type A")
+  print(io, AbstractAlgebra.Indent(), "over ", AbstractAlgebra.Lowercase(), a.x)
+  print(io, AbstractAlgebra.Dedent()) # don't forget to undo the indentation!
+end
+
+struct B
+end
+
+function Base.show(io::IO, b::B)
+  io = AbstractAlgebra.pretty(io)
+  print(io, LowercaseOff(), "Hilbert thing")
+end
+```
+
+At the REPL, this will then be printed as follows:
+```
+julia> A(2)
+Something of type A
+  over 2
+
+julia> A(A(2))
+Something of type A
+  over something of type A
+    over 2
+
+julia> A(B())
+Something of type A
+  over Hilbert thing
 ```
 
 ## LaTeX and Unicode printing
