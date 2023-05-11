@@ -17,11 +17,11 @@ const oldexppkgs = [
   "SymmetricIntersections",
 ]
 # DEVELOPER OPTION:
-# The following lines ensure that ToricSchemes is loaded before FTheoryTools.
+# The following lines allow to ensure that one package in the experimental section 
+# is loaded before another in order to satisfy eventual dependencies. 
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
-  "ToricSchemes",
   "FTheoryTools",
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))

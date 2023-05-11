@@ -167,11 +167,13 @@ export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
 export SubquoModuleElem
+export ToricCoveredScheme, toric_covered_scheme
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export ToricSpec, toric_spec
 export TropicalCurve
 export TropicalHypersurface
 export TropicalLinearSpace
@@ -1320,6 +1322,7 @@ export underlying_morphism
 export underlying_polyhedral_complex
 export underlying_quotient
 export underlying_scheme
+export underlying_toric_variety
 export uniform_matroid
 export unit
 export unitary_group
