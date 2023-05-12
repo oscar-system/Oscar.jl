@@ -16,6 +16,14 @@ function divisor_of_character(X::ToricCoveredScheme, character::Vector{T}) where
   return divisor_of_character(underlying_toric_variety(X), character)
 end
 
+# Later, we shall return an instance of a new wrapper-type which has the 
+# full functionality of a `ToricDivisor`:
+
+#function divisor_of_character(X::ToricCoveredScheme, character::Vector{T}) where {T<:Integer}
+#  td = divisor_of_character(underlying_toric_variety(X), character)
+#  return ToricDivisorOnScheme(X, td)
+#end
+
 function toric_divisor(X::ToricCoveredScheme, coeffs::Vector{T}) where {T<:IntegerUnion}
   return toric_divisor(underlying_toric_variety(X), coeffs)
 end

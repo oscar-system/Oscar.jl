@@ -66,6 +66,7 @@ include("Schemes/IdealSheaves.jl")
 include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
+include("Schemes/ToricDivisorOnScheme.jl")
 
 include("Matrix/matrix.jl")
 include("Schemes/SimplifiedSpec.jl")
