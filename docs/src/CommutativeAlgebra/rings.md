@@ -119,8 +119,7 @@ Gröbner and standard bases are implemented for multivariate polynomial rings ov
 
 ```jldoctest
 julia> QQ
-Fraction field
-  of integer Ring
+Rational field
 
 ```
 ### Finite fields $\mathbb{F_p}$, $p$ a prime
