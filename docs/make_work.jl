@@ -71,7 +71,8 @@ Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
 # Since the entries of a `doc.main` vary in type, we have split this up into
 # three functions.
 add_prefix_to_experimental_docs(Oscar::Module, docs::String, prefix::String) = joinpath(prefix, docs)
-add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], add_prefix_to_experimental_docs(Oscar, docs[2], prefix))
+add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String,String}, prefix::String) = Pair{String,String}(docs.first, add_prefix_to_experimental_docs(Oscar, docs.second, prefix))
+add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs.first, add_prefix_to_experimental_docs(Oscar, docs.second, prefix))
 add_prefix_to_experimental_docs(Oscar::Module, docs::Vector{T}, prefix::String) where T = T[add_prefix_to_experimental_docs(Oscar, entry, prefix) for entry in docs]
 
 
@@ -92,9 +93,9 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   if !ispath(symlink_link)
     symlink(symlink_target, symlink_link)
   elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
-      error("$symlink_link already exists, but is not a symlink to $symlink_target
-Please investigate the contents of $symlink_link,
-optionally move them somewhere else and delete the directory once you are done.")
+      error("""$symlink_link already exists, but is not a symlink to $symlink_target
+      Please investigate the contents of $symlink_link,
+      optionally move them somewhere else and delete the directory once you are done.""")
   end
 
   # Read doc.main of package
@@ -145,7 +146,7 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
 
       for (root, dirs, files) in walkdir(srcbase)
           for dir in dirs
-              d = normpath(joinpath(dstbase, relpath(root, srcbase), dir))
+              d = normpath(dstbase, relpath(root, srcbase), dir)
               mkpath(d)
           end
           for file in files
@@ -155,8 +156,8 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
               if file == "references.md"
                 continue
               end
-              src = normpath(joinpath(root, file))
-              dst = normpath(joinpath(dstbase, relpath(root, srcbase), file))
+              src = normpath(root, file)
+              dst = normpath(dstbase, relpath(root, srcbase), file)
               cp(src, dst; force = true)
               chmod(dst, 0o644)
           end
