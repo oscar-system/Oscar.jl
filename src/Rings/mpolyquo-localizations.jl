@@ -1006,7 +1006,7 @@ function MPolyQuoLocalizedRingHom(
   return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
-hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, a, check=check)
+hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, res, check=check)
 
 function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
   R = base_ring(L)
