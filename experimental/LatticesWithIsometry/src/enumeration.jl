@@ -48,7 +48,7 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::Hecke.IntegerUnion, even = true; pos::Int = -1)
+function _find_L(pG::Int, nG::Int, r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p::Hecke.IntegerUnion, even = true; pos::Int = -1)
   L = ZGenus[]
   if r == 0 && d == 1
     return ZGenus[genus(Zlattice(gram = matrix(QQ, 0, 0, [])))]
@@ -60,7 +60,7 @@ function _find_L(r::Int, d::Hecke.RationalUnion, s::ZZRingElem, l::ZZRingElem, p
     filter!(G -> Hecke.divides(p*l, numerator(level(G)))[1], gen)
     append!(L, gen)
   else
-    for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
+    for (s1,s2) in [(s,t) for s=0:pG for t=0:nG if s+t==r]
       gen = Zgenera((s1,s2), d, even=even)
       filter!(G -> Hecke.divides(numerator(scale(G)), s)[1], gen)
       filter!(G -> Hecke.divides(p*l, numerator(level(G)))[1], gen)
@@ -164,8 +164,8 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
     end
   
     ABr = direct_sum(Ar, Br)
-    
-    for i = 1:l
+
+    for i = 0:l-1
       s1 = symbol(ABr, i)
       s2 = symbol(Cp, i)
       if s1[2] != s2[2]
@@ -221,7 +221,7 @@ function admissible_triples(G::ZGenus, p::Int64; pA::Int = -1, pB::Int = -1)
   @req is_prime(p) "p must be a prime number"
   @req is_integral(G) "G must be a genus of integral lattices"
   n = rank(G)
-  pG, _ = signature_pair(G)
+  pG, nG = signature_pair(G)
   if pA >= 0
     @req pA <= pG "Wrong restrictions"
     if pB >= 0
@@ -248,8 +248,8 @@ function admissible_triples(G::ZGenus, p::Int64; pA::Int = -1, pB::Int = -1)
     m = min(ep, r1) 
     D = _find_D(d, m, p)
     for (d1, dp) in D
-      L1 = _find_L(r1, d1, numerator(scale(G)), numerator(level(G)), p, even, pos = pA)
-      Lp = _find_L(rp, dp, numerator(scale(G)), numerator(level(G)), p, even, pos = pB)
+      L1 = _find_L(pG, nG, r1, d1, numerator(scale(G)), numerator(level(G)), p, even, pos = pA)
+      Lp = _find_L(pG, nG, rp, dp, numerator(scale(G)), numerator(level(G)), p, even, pos = pB)
       for (A, B) in [(A, B) for A in L1 for B in Lp]
         if is_admissible_triple(A, B, G, p)
           push!(L, (A, B))
@@ -402,7 +402,6 @@ function representatives_of_hermitian_type(Lf::LatWithIsom, m::Int = 1)
   @vprint :LatWithIsom 1 "We have the different\n"
 
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
-  println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
   @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))\n"
@@ -492,7 +491,6 @@ function _representative(t::Dict; check::Bool = true)
   DE = EabstoE(different(maximal_order(Eabs)))
 
   ndE = d*inv(QQ(absolute_norm(DE)))^rk
-  println(ndE)
   detE = _ideals_of_norm(E, ndE)
 
   @vprint :LatWithIsom 1 "All possible ideal dets: $(length(detE))\n"
