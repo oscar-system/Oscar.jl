@@ -181,3 +181,26 @@ end
   X = Spec(R, I)
   @test !is_smooth(X)
 end
+
+@testset "reduction mod p" begin
+  IA2 = affine_space(ZZ, 2)
+  P = OO(IA2)
+  x, y = gens(P)
+
+  X = subscheme(IA2, x^2 + y^2)
+
+  U = hypersurface_complement(IA2, x)
+
+  V = hypersurface_complement(X, x)
+
+  kk, pr = quo(ZZ, 5)
+  IA2_red, phi1 = oscar.change_base(pr, IA2)
+  X_red, phi2 = oscar.change_base(pr, X)
+  U_red, phi3 = oscar.change_base(pr, U)
+  V_red, phi4 = oscar.change_base(pr, V)
+
+  m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
+  m2 = compose(phi4, inclusion_morphism(V, IA2));
+  @test m1 == m2
+end
+
