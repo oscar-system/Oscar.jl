@@ -17,7 +17,7 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
         println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
         println(io, "avoiding the zero loci of the polynomials\n", RS.inequations)
     end
-end
+end 
 
 #=
 
@@ -430,6 +430,8 @@ function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
 end
 =#
 
+
+
 function new_realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring)
     # prepare the combinatorial data
     
@@ -649,6 +651,7 @@ function small_reduce_one_step(Igens::Vector{<:RingElem}, phi::Oscar.MPolyAnyMap
     return (Igens, phi, elim, true)
 end
 
+
 function small_reduce_full_rec(Igens::Vector{<:RingElem}, 
                                phi::Union{<:Oscar.MPolyAnyMap,Nothing} = nothing, 
                                elim::Vector{<:RingElem} = Vector{RingElem}(), 
@@ -733,12 +736,9 @@ end
 
 
 
-
-
-
-
-
-
+#####################
+# full reduction    #
+#####################
 
 # computes the coefficient of v in monomial m. 
 function coefficient_monomial(v::RingElem, m::RingElem)
@@ -829,42 +829,83 @@ end
 
 
 
-function reduce_ideal_one_step(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::Ring, 
-                               xs::Vector{<:RingElem}, elim::Vector{<:RingElem}, fullyReduced::Bool)
-    
-    if R(0) in Sgens
-        return "Not realizable 0 in Semigroup"
-    else
-        Ivars = ideal_vars(Igens); 
-        
-        
-        for x in Ivars 
-           t = find_solution_v(x, Igens, Sgens, R)
-            if t isa String
-                continue
-            else 
-                Sgens_new = n_new_Sgens(x, t, Sgens, R, xs);
-                Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs);
-                push!(elim, x)
-                return (Igens_new, Sgens_new, R, xs, elim, fullyReduced)
-            end
-   
-        end
-    return (Igens, Sgens, R, xs, elim, true)
-    end 
+function matrix_clear_den_in_col(X::Oscar.MatElem, c::Int)
+
+    Xc = [denominator(f) for f in X[:, c]]
+    t = lcm(Xc)
+    return multiply_column!(X, t, c)
+
 end
 
+
+
+function matrix_clear_den(X::Oscar.MatElem)
+    rs, cs = size(X)
+    for c in 1:cs
+        X = matrix_clear_den_in_col(X, c)
+    end
+    return X
+end
+
+
+function reduce_ideal_one_step(MRS::MatroidRealizationSpace, 
+                               elim::Vector{<:RingElem}, 
+                               fullyReduced::Bool)
+
+    Igens = gens(MRS.defining_ideal)
+    Sgens = MRS.inequations
+    R = MRS.ambient_ring
+    FR = FractionField(R)
+    xs = gens(R)
+    X = MRS.representation_matrix
+    nr, nc = size(X)
     
-function reduce_ideal_full_rec(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing, 
-                           xs::Vector{<:RingElem}, elim::Vector{RingElem} = Vector{RingElem}(), 
-                           fullyReduced::Bool = false) 
+    Ivars = ideal_vars(Igens);
+
+    for x in Ivars 
+        t = find_solution_v(x, Igens, Sgens, R)
+        t isa String && continue
+        
+        phi = sub_map(x, t, R, xs)
+        
+	Sgens_new = n_new_Sgens(x, t, Sgens, R, xs);
+        Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs);
+        push!(elim, x)
+        
+        phiX = matrix(FR, [phi(X[i,j]) for i in 1:nr, j in 1:nc  ] )
+        nX_FR = matrix_clear_den(phiX)
+        nX = matrix(R, [numerator(nX_FR[i,j])  for i in 1:nr, j in 1:nc ])
+        
+        MRS_new = MatroidRealizationSpace(ideal(R, Igens_new), Sgens_new, R, nX, MRS.representable )
+        
+        return (MRS_new, elim, fullyReduced)
+    end
+
+    return (MRS, elim, true)
+
+end
+
+
+function reduce_ideal_full(MRS::MatroidRealizationSpace,
+                               elim::Vector{RingElem} = Vector{RingElem}(), 
+                               fullyReduced::Bool = false) 
     
     
-    output = reduce_ideal_one_step(Igens, Sgens, R, xs, elim, fullyReduced)
+    output = reduce_ideal_one_step(MRS, elim, fullyReduced)
     output isa String && return "Not Realizable 0 in Semigroup"
-    (Igens, Sgens, R, xs, elim, fullyReduced) = output    
+    (MRS, elim, fullyReduced) = output    
     
-    !fullyReduced && return reduce_ideal_full_rec(Igens, Sgens, R, xs, elim, fullyReduced)
+    !fullyReduced && return reduce_ideal_full(MRS, elim, fullyReduced)
+    
+    
+    R = MRS.ambient_ring
+    xs = gens(R)
+    cR = coefficient_ring(R)
+    X = MRS.representation_matrix
+    nr, nc = size(X)
+    Igens = gens(MRS.defining_ideal)
+    Sgens = MRS.inequations
+
     
     zero_elim = []        
     for i in 1:length(xs)
@@ -877,39 +918,184 @@ function reduce_ideal_full_rec(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingEl
         
     xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
     
-    cR = coefficient_ring(R)
     
     if length(xnew_str) == 0
-        
         phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
-        return (phi.(Igens), phi.(Sgens), cR)
-   
-    end
+    else
+        Rnew, xnew = PolynomialRing(coefficient_ring(R), xnew_str) 
     
-
-    Rnew, xnew = PolynomialRing(coefficient_ring(R), xnew_str) 
-    
-    zero_elim_var = []
-    j=1
-    for i in 1:length(zero_elim)
-        if xs[i] in elim
-            push!(zero_elim_var, Rnew(0))
-        else
-            push!(zero_elim_var, xnew[j] ) 
-            j+=1
+        zero_elim_var = []
+        j=1
+        for i in 1:length(zero_elim)
+            if xs[i] in elim
+                push!(zero_elim_var, Rnew(0))
+            else
+                push!(zero_elim_var, xnew[j] ) 
+                j+=1
+            end
         end
-    end
         
     phi = hom(R, Rnew, a->a, zero_elim_var)
     
-    return (phi.(Igens), phi.(Sgens), Rnew)
+    end
+    
+    ambR = codomain(phi)
+    Inew = ideal(ambR, phi.(Igens))
+    Sgens_new = phi.(Sgens)
+
+    Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
+
+    MRS_new = MatroidRealizationSpace(Inew, Sgens_new, ambR, Xnew, MRS.representable)
+
+    return MRS_new
 end
 
-function reduce_ideal_full(MRS::MatroidRealizationSpace)
-    R= MRS.ambient_ring
-    xs=gens(R)
-    return reduce_ideal_full_rec(gens(MRS.defining_ideal), MRS.inequations, R, xs)
 
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############
+# Old      #
+############
+
+
+
+#function reduce_ideal_one_step(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::Ring, 
+#                               xs::Vector{<:RingElem}, elim::Vector{<:RingElem}, fullyReduced::Bool)
+    
+#    if R(0) in Sgens
+#        return "Not realizable 0 in Semigroup"
+#    else
+#        Ivars = ideal_vars(Igens); 
+        
+        
+#        for x in Ivars 
+#           t = find_solution_v(x, Igens, Sgens, R)
+#            if t isa String
+#                continue
+#            else 
+#                Sgens_new = n_new_Sgens(x, t, Sgens, R, xs);
+#                Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs);
+#                push!(elim, x)
+#                return (Igens_new, Sgens_new, R, xs, elim, fullyReduced)
+#            end
+   
+#        end
+#    return (Igens, Sgens, R, xs, elim, true)
+#    end 
+#end
+
+
+#function reduce_ideal_full_rec(Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing, 
+#                           xs::Vector{<:RingElem}, elim::Vector{RingElem} = Vector{RingElem}(), 
+#                           fullyReduced::Bool = false) 
+    
+    
+#    output = reduce_ideal_one_step(Igens, Sgens, R, xs, elim, fullyReduced)
+#    output isa String && return "Not Realizable 0 in Semigroup"
+#    (Igens, Sgens, R, xs, elim, fullyReduced) = output    
+    
+#    !fullyReduced && return reduce_ideal_full_rec(Igens, Sgens, R, xs, elim, fullyReduced)
+    
+#    zero_elim = []        
+#    for i in 1:length(xs)
+#        if xs[i] in elim
+#            push!(zero_elim, 0)
+#        else
+#            push!(zero_elim, "x"*string(i) ) 
+#        end
+#    end
+        
+#    xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
+    
+#    cR = coefficient_ring(R)
+    
+#    if length(xnew_str) == 0
+        
+#        phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
+#        return (phi.(Igens), phi.(Sgens), cR)
+   
+#    end
+    
+
+#    Rnew, xnew = PolynomialRing(coefficient_ring(R), xnew_str) 
+    
+#    zero_elim_var = []
+#    j=1
+#    for i in 1:length(zero_elim)
+#        if xs[i] in elim
+#            push!(zero_elim_var, Rnew(0))
+#        else
+#            push!(zero_elim_var, xnew[j] ) 
+#            j+=1
+#        end
+#    end
+        
+#    phi = hom(R, Rnew, a->a, zero_elim_var)
+    
+#    return (phi.(Igens), phi.(Sgens), Rnew)
+#end
+
+#function reduce_ideal_full(MRS::MatroidRealizationSpace)
+#    R= MRS.ambient_ring
+#    xs=gens(R)
+#    return reduce_ideal_full_rec(gens(MRS.defining_ideal), MRS.inequations, R, xs)
+
+#end
 
 
