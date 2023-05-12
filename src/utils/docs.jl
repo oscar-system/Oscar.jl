@@ -14,7 +14,10 @@ function doc_init(;path=mktempdir())
   end
   Pkg.activate(docsproject) do
     # we dev all packages with the paths from where they are currently loaded
-    for dir in [aadir, nemodir, heckedir, oscardir]
+    #
+    # The order has to be reversed: To make the situation work, where an upstream package
+    # has a version, which is not compatible with Oscar (yet), Oscar has to be dev'ed first.
+    for dir in reverse([aadir, nemodir, heckedir, oscardir])
       Pkg.develop(path=dir)
     end
     Pkg.instantiate()
