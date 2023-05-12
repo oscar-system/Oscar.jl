@@ -216,8 +216,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by
-ideal(u^2 + v^2) graded by
+(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
@@ -255,8 +254,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by
-ideal(u^2 + v^2) graded by
+(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
@@ -267,8 +265,7 @@ julia> affine_cone(P)
 (Spec of Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2), Map with following data
 Domain:
 =======
-Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by
-ideal(u^2 + v^2) graded by
+Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1]
@@ -391,8 +388,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by
-ideal(u^2 + v^2) graded by
+(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])

@@ -882,7 +882,7 @@ julia> I = ideal(R, [x-y,x^3-1,z*y^2-z])
 ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
-[39;49m(B[m[53;1H[?1049l[?1l>[?1049h[1;53r[?12l[?25h[39;49m(B[m[4l[?7h[H[2J3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}}:
+3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}}:
  (ideal(z, y - ζ(3), x - ζ(3)), ideal(y - ζ(3), x - ζ(3), z))
  (ideal(z, y + ζ(3) + 1, x + ζ(3) + 1), ideal(y + ζ(3) + 1, x + ζ(3) + 1, z))
  (ideal(y - 1, x - 1), ideal(y - 1, x - 1, x*y - 1))
