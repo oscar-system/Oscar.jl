@@ -465,7 +465,7 @@ Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
   y -> [1]
   z -> [1]
 
-julia> degrees(F)
+julia> degrees_of_generators(F)
 2-element Vector{GrpAbFinGenElem}:
  graded by [0]
  graded by [0]
@@ -630,7 +630,7 @@ end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
   @assert is_zm_graded(parent(f))
-  d = degree(f)
+  d = degree(f)isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
@@ -791,6 +791,7 @@ function is_graded(M::SubModuleOfFreeModule)
   is_graded(M.F) && all(is_homogeneous, M.gens)
 end
 
+
 function degrees_of_generators(M::SubModuleOfFreeModule{T}) where T
   return map(gen -> degree(gen), gens(M))
 end
@@ -823,6 +824,85 @@ end
 # Graded subquotients
 ###############################################################################
 
+@doc raw"""
+    grading_group(M::SubquoModule)
+
+Return the grading group of `base_ring(M)`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> grading_group(M)
+GrpAb: Z
+```
+"""
+function grading_group(M::SubquoModule)
+  return grading_group(base_ring(M))
+end
+
+@doc raw"""
+    degrees_of_generators(M::SubquoModule)
+
+Return the degrees of the generators of `M`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> degrees_of_generators(M)
+3-element Vector{GrpAbFinGenElem}:
+ Element of Z with components [2]
+ Element of Z with components [2]
+ Element of Z with components [2]
+
+julia> gens(M)
+3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+```
+"""
 function degrees_of_generators(M::SubquoModule{T}) where T
   return map(gen -> degree(repres(gen)), gens(M))
 end
@@ -831,18 +911,87 @@ end
 # Graded subquotient elements
 ###############################################################################
 
+ @doc raw"""
+    is_homogeneous(m::SubquoModuleElem)
+
+Return  `true` if `m` is homogeneous, `false` otherwise.
+"""
+function is_homogeneous(el::SubquoModuleElem)
+  error("Not implemented yet.")
+end
+###Will be fixed by Janko
 
 # function degree(el::SubquoModuleElem)
 #   return degree(repres(el))
 # end
 
+@doc raw"""
+    degree(m::SubquoModuleElem)
+
+Given a homogeneous element `m` of a graded subquotient, return the degree of `m`.
+
+    degree(::Type{Vector{Int}}, m::SubquoModuleElem)
+
+Given a homogeneous element `m` of a $\mathbb Z^m$-graded subquotient, return the degree of `m`, converted to a vector of integer numbers.
+
+    degree(::Type{Int}, m::SubquoModuleElem)
+
+Given a homogeneous element `m` of a $\mathbb Z$-graded subquotient, return the degree of `m`, converted to an integer number.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> m = x*y*z*M[1]
+x*y^2*z*e[1]
+
+julia> degree(m)
+Element of Z with components [5]
+
+julia> degree(Int, m)
+5
+```
+"""
 function degree(el::SubquoModuleElem)
+  ###isa(degree(ambient_representative(el)), GrpAbFinGenElem) || error("The specified element is not homogeneous.")
   if !iszero(el.coeffs)
       return determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
   else
       return degree(repres(el))
   end
 end
+
+function degree(::Type{Vector{Int}}, el::SubquoModuleElem)
+  @assert is_zm_graded(parent(el))
+  d = degree(el)
+  return Int[d[i] for i=1:ngens(parent(d))]
+end
+
+function degree(::Type{Int}, el::SubquoModuleElem)
+  @assert is_z_graded(parent(el))
+  return Int(degree(el)[1])
+end
+
 
 ###############################################################################
 # Graded subquotient homomorphisms functions

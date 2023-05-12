@@ -331,7 +331,7 @@ mutable struct SubQuoHom{
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
-    @assert is_graded(D) == is_graded(C)
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -344,7 +344,7 @@ mutable struct SubQuoHom{
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
-    @assert is_graded(D) == is_graded(C)
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -357,7 +357,7 @@ mutable struct SubQuoHom{
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
-    @assert is_graded(D) == is_graded(C)
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -376,7 +376,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
-    @assert is_graded(D) == is_graded(C)
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -395,7 +395,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
-    @assert is_graded(D) == is_graded(C)
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -414,7 +414,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
-    @assert is_graded(D) == is_graded(C)
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -515,7 +515,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
     ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
-    @assert is_graded(F) == is_graded(G)
+    ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
@@ -538,7 +538,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType
     ) where {T2, ModuleElemType<:ModuleFPElem, RingMapType}
-    @assert is_graded(F) == is_graded(G)
+    ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     @assert h(one(base_ring(F))) == one(base_ring(G))

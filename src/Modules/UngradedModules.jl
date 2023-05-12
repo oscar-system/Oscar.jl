@@ -907,9 +907,8 @@ homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to
 the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 
 !!! note
-    The module `M` may be of type `FreeMod` or `SubquoMod`.
-    It is required that `F` and `M` are either both ungraded or both graded. In the
-    graded case, the data must define a graded module homomorphism of some degree.
+    The module `M` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `F` and `M` are graded, the data must define a graded module homomorphism of some degree.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a homogeneous module homomorphism.
 
@@ -1086,13 +1085,12 @@ basis vector of `F` to the `i`-th entry of `V`, and the scalars in
 Given a matrix `A` over `base_ring(M)` with `rank(F)` rows and `ngens(M)` columns
 and a ring map `h` from `base_ring(F)` to `base_ring(M)`, return the
 `base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
-the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`, , and the 
+the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`, and the 
 scalars in `base_ring(F)` to their images under `h`.
 
 !!! note
-    The module `M` may be of type `FreeMod` or `SubquoMod`.
-    It is required that `F` and `M` are either both ungraded or both graded. In the
-    graded case, the data must define a graded module homomorphism of some degree.
+    The module `M` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `F` and `M` are graded, the data must define a graded module homomorphism of some degree.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
@@ -4963,6 +4961,18 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
   end
 end
 
+function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+  @assert nrows(mat) == ngens(D)
+  @assert ncols(mat) == ngens(C)
+  if C isa FreeMod
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  else
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  end
+end
+
 function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
@@ -5014,9 +5024,8 @@ homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to
 the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
 
 !!! note
-    The module `N` may be of type `FreeMod` or `SubquoMod`.
-    It is required that `M` and `N` are either both ungraded or both graded. In the
-    graded case, the data must define a graded module homomorphism of some degree.
+    The module `N` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `M` and `N` are graded, the data must define a graded module homomorphism of some degree.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 
@@ -5266,8 +5275,48 @@ false
 ```
 """
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {RingMapType, T} = SubQuoHom(M, N, V, h) 
 hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
+
+
+@doc raw"""
+    hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+
+Given a vector `V` of `ngens(M)` elements of `N`, 
+return the homomorphism `M` $\to$ `N` which sends the `i`-th
+generator `M[i]` of `M` to the `i`-th entry of `V`, and the 
+scalars in `base_ring(M)` to their images under `h`.
+
+    hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+
+Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`,
+and the scalars in `base_ring(M)` to their images under `h`.
+
+!!! note
+    The module `N` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `M` and `N` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
+
+!!! warning
+    The functions do not check whether the resulting homomorphism is well-defined,
+    that is, whether it sends the relations of `M` into the relations of `N`. 
+
+If you are uncertain with regard to well-definedness, use the function below.
+Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
+
+    is_welldefined(a::ModuleFPHom)
+
+Return `true` if `a` is well-defined, and `false` otherwise.
+
+# Examples
+```jldoctest
+```
+"""
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, V, h)
+hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, A, h)
+
 function is_welldefined(H::ModuleFPHom)
   if H isa Union{FreeModuleHom,FreeModuleHom_dec}
     return true
@@ -6105,7 +6154,7 @@ Graded module homomorphism of degree [2]
 """
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
-  @assert is_graded(F) == is_graded(G)
+  ###@assert is_graded(F) == is_graded(G)
   if is_graded(F)
     d = [y - x for x in degrees(F) for y in degrees(G)]
     GH = graded_free_module(F.R, d)
@@ -6590,7 +6639,9 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `do
 function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
-  F = FreeMod(R, ngens(D))
+  F = ambient_free_module(D)
+  ###F = FreeMod(R, ngens(D))
+  ###is_graded(h) ? F = graded_free_module(R, ngens(D)) : F = FreeMod(R, ngens(D))
   hh = hom(F, codomain(h), Vector{elem_type(codomain(h))}(map(h, gens(D))))
   k = kernel(hh)
   @assert domain(k[2]) === k[1]
