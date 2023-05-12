@@ -106,6 +106,12 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   return result
 end
 
+# Lists all files in `doc`, recursively.
+list_doc_files(doc::String) = doc
+list_doc_files(doc::Pair{String, String}) = list_doc_files(doc.second)
+list_doc_files(doc::Pair{String, Vector{T}}) where T = list_doc_files(doc.second)
+list_doc_files(doc::Vector{T}) where T = vcat([list_doc_files(entry) for entry in doc]...)
+
 function doit(
   Oscar::Module;
   strict::Bool=true,
@@ -137,14 +143,19 @@ function doit(
   )
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra
+  s_add = read(joinpath(Oscar.oscardir, "docs", "doc_additional.main"), String)
+  doc_add = eval(Meta.parse(s_add))
+  doc_files = vcat(list_doc_files(doc), list_doc_files(doc_add))
+
   other_packages = [
     (Oscar.Hecke, Oscar.heckedir),
     (Oscar.Nemo, Oscar.nemodir),
     (Oscar.AbstractAlgebra, Oscar.aadir),
   ]
   for (pkg, pkgdir) in other_packages
+    pkgname = string(nameof(pkg))
     srcbase = normpath(pkgdir, "docs", "src")
-    dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
+    dstbase = normpath(Oscar.oscardir, "docs", "src", pkgname)
 
     # clear the destination directory first
     rm(dstbase; recursive=true, force=true)
@@ -155,16 +166,12 @@ function doit(
         mkpath(d)
       end
       for file in files
-        # HACK: delete Hecke's bibliography, to avoid warnings of the
-        # form "Warning: 'Eis95' is not unique" which actually turn into
-        # errors down the road
-        if file == "references.md"
-          continue
+        if normpath(pkgname, relpath(root, srcbase), file) in doc_files
+          src = normpath(root, file)
+          dst = normpath(dstbase, relpath(root, srcbase), file)
+          cp(src, dst; force=true)
+          chmod(dst, 0o644)
         end
-        src = normpath(root, file)
-        dst = normpath(dstbase, relpath(root, srcbase), file)
-        cp(src, dst; force=true)
-        chmod(dst, 0o644)
       end
     end
   end
