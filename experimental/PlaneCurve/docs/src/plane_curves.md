@@ -74,8 +74,7 @@ the projective plane as follows, where `K` is the base ring:
 
 ```jldoctest plane_curves
 julia> K = QQ
-Fraction field
-  of integer Ring
+Rational field
 
 julia> PP = proj_space(K, 2)
 (Projective space of dim 2 over Rational field

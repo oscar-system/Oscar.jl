@@ -60,8 +60,7 @@ with generators
 PermGroupElem[(1,2,3), (1,2)]
 
 julia> coefficient_ring(IRp)
-Fraction field
-  of integer Ring
+Rational field
 ```
 """
 function invariant_ring(G::MatrixGroup)

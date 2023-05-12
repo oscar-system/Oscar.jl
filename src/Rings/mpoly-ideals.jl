@@ -1105,8 +1105,7 @@ julia> I = ideal(R, [x, y])^2
 ideal(x^2, x*y, y^2)
 
 julia> coefficient_ring(I)
-Fraction field
-  of integer Ring
+Rational field
 ```
 """
 coefficient_ring(I::MPolyIdeal) = coefficient_ring(base_ring(I))

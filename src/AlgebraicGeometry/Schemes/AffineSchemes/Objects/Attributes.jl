@@ -295,8 +295,7 @@ Affine space of dimension 3
   over Rational field
 
 julia> base_ring(X)
-Fraction field
-  of integer Ring
+Rational field
 ```
 """
 function base_ring(X::AbsSpec{BRT, RT}) where {BRT, RT}

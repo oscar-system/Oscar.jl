@@ -302,8 +302,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> coefficient_ring(R)
-Fraction field
-  of integer Ring
+Rational field
 
 julia> gens(R)
 3-element Vector{QQMPolyRingElem}:

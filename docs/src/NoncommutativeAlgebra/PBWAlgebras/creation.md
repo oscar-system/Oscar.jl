@@ -81,8 +81,7 @@ julia> REL = strictly_upper_triangular_matrix(L);
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 
 julia> coefficient_ring(A)
-Fraction field
-  of integer Ring
+Rational field
 
 julia> gens(A)
 3-element Vector{PBWAlgElem{QQFieldElem, Singular.n_Q}}:
