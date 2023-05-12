@@ -892,9 +892,15 @@ julia> M = subquotient(a1,a2);
 
 julia> degrees_of_generators(M)
 3-element Vector{GrpAbFinGenElem}:
- Element of Z with components [2]
- Element of Z with components [2]
- Element of Z with components [2]
+ Element of
+GrpAb: Z
+with components [2]
+ Element of
+GrpAb: Z
+with components [2]
+ Element of
+GrpAb: Z
+with components [2]
 
 julia> gens(M)
 3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -966,7 +972,9 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of Z with components [5]
+Element of
+GrpAb: Z
+with components [5]
 
 julia> degree(Int, m)
 5
