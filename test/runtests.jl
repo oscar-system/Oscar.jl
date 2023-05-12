@@ -1,5 +1,6 @@
 using Oscar
 using Test
+using Aqua
 using Documenter
 
 import Random
@@ -78,10 +79,14 @@ function include(str::String)
 end
 
 @static if compiletimes
-  Base.cumulative_compile_timing(true);
+  Base.cumulative_compile_timing(true)
 end
+
 # Used in both Rings/slpolys.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
+
+include("Aqua.jl")
+
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
