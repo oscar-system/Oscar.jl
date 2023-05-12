@@ -203,6 +203,13 @@ end
 # Base change and reduction modulo p
 ########################################################################
 
+@doc raw"""
+    change_base(phi::Any, X::AbsSpec)
+
+For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism 
+``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair 
+`(Y, psi)` where `psi` is the canonical map ``Y → X``.
+"""
 function change_base(phi::Any, X::AbsSpec)
   kk = base_ring(X)
   kk_red = parent(phi(zero(kk)))
