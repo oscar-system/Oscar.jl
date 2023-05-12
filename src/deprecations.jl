@@ -361,3 +361,6 @@ function MixedIntegerLinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b,
   Base.depwarn("'MixedIntegerLinearProgram(x...)' is deprecated, use 'mixed_integer_linear_program(x...)' instead.", :MixedIntegerLinearProgram)
   return mixed_integer_linear_program(T, A, b, c; kwargs...)
 end
+
+# see https://github.com/oscar-system/Oscar.jl/pull/2368
+@deprecate FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec FreeModElem_dec(coords, parent)

@@ -423,7 +423,7 @@ function basis(F::AbstractFreeMod)
   bas = elem_type(F)[]
   for i=1:dim(F)
     s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
-    push!(bas, FreeModElem(s, F))
+    push!(bas, F(s))
   end
   return bas
 end
@@ -446,7 +446,7 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
   s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
-  return FreeModElem(s, F)
+  return F(s)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
@@ -465,18 +465,18 @@ base_ring(F::FreeMod) = F.R
 #TODO: Parent - checks everywhere!!!
 
 # the negative of a free module element
--(a::AbstractFreeModElem) = FreeModElem(-coordinates(a), parent(a))
+-(a::AbstractFreeModElem) = parent(a)(-coordinates(a))
 
 # Addition of free module elements
 function +(a::AbstractFreeModElem, b::AbstractFreeModElem)
    check_parent(a, b)
-   return FreeModElem(coordinates(a)+coordinates(b), parent(a))
+   return parent(a)(coordinates(a)+coordinates(b))
 end
 
 # Subtraction of free module elements
 function -(a::AbstractFreeModElem, b::AbstractFreeModElem)
     check_parent(a,b)
-    return FreeModElem(coordinates(a)-coordinates(b), parent(a))
+    return parent(a)(coordinates(a)-coordinates(b))
 end
 
 # Equality of free module elements
@@ -488,42 +488,43 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return hash(tuple(parent(a), coordinates(a)), h)
+  return xor(hash(tuple(parent(a), coordinates(a)), h), hash(typeof(a)))
 end
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
-  return FreeModElem(deepcopy_internal(coordinates(a), dict), parent(a))
+  return parent(a)(deepcopy_internal(coordinates(a), dict))
 end
 
 # scalar multiplication with polynomials, integers
 function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
-  if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
-  end
-  return FreeModElem(a*coordinates(b), parent(b))
+  @req parent(a) === base_ring(parent(b)) "elements not compatible"
+  return parent(b)(a*coordinates(b))
 end
+
 function *(a::MPolyRingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return FreeModElem(a*coordinates(b), parent(b))
+  return parent(b)(a*coordinates(b))
 end
+
 function *(a::RingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return FreeModElem(a*coordinates(b), parent(b))
+  return parent(b)(a*coordinates(b))
 end
-*(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coordinates(b), parent(b))
-*(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
-*(a::QQFieldElem, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
+
+*(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
+*(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+*(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 
 @doc raw"""
     zero(F::AbstractFreeMod)
 
 Return the zero element of  `F`.
 """
-zero(F::AbstractFreeMod) = FreeModElem(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]), F)
+zero(F::AbstractFreeMod) = F(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]))
 
 @doc raw"""
     parent(a::AbstractFreeModElem)
@@ -3819,7 +3820,7 @@ function index_of_gen(v::SubquoModuleElem)
   return coordinates(v).pos[1]
 end
 
-# function to check whether a free module element is in a particular free module
+# function to check whether two module elements are in the same module
 function check_parent(a::Union{AbstractFreeModElem,SubquoModuleElem}, b::Union{AbstractFreeModElem,SubquoModuleElem})
   if parent(a) !== parent(b)
     error("elements not compatible")

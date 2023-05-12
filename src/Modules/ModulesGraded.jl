@@ -1317,16 +1317,6 @@ function (F::FreeMod_dec)()
 end
 
 @doc raw"""
-    FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
-
-Return the element of `F` whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
-function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
-  return FreeModElem_dec{T}(coords, parent)
-end
-
-@doc raw"""
     FreeModElem_dec(v::FreeModElem{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
 
 Lift `v` to the decorated module `parent`.
