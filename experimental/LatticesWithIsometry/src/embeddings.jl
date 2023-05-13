@@ -687,8 +687,7 @@ function admissible_equivariant_primitive_extensions(A::LatWithIsom,
         _glue = Vector{QQFieldElem}[lift(qAinD(SAinqA(g))) + lift(qBinD(SBinqB(phig(g)))) for g in gens(SA)]
         z = zero_matrix(QQ,0,degree(cover(D)))
         glue = reduce(vcat, [matrix(QQ, 1, degree(cover(D)),g) for g in _glue], init=z)
-        AB = lattice_in_same_ambient_space(cover(D), basis_matrix(A)*matrix(qAinD)) + lattice_in_same_ambient_space(cover(D), basis_matrix(B)*matrix(qBinD))
-        glue = vcat(basis_matrix(AB), glue)
+        glue = vcat(block_diagonal_matrix(basis_matrix.([A, B])), glue)
         glue = FakeFmpqMat(glue)
         _B = hnf(glue)
         _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
