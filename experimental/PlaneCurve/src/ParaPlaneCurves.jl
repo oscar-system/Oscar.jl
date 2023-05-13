@@ -19,14 +19,14 @@ end
 
 function _fromsingular_ring(R::Singular.PolyRing)
     Kx = base_ring(R)
-    if typeof(Kx) == Singular.N_AlgExtField
+    if Kx isa Singular.N_AlgExtField
         FF, t = RationalFunctionField(QQ, "t")
         f = numerator(FF(Kx.minpoly))
         K, _ = number_field(f, "a")
     else
         K = QQ
     end
-    newring, _ = polynomial_ring(K, [string(x) for x in gens(R)])
+    newring, _ = polynomial_ring(K, symbols(R))
     return newring
 end
 

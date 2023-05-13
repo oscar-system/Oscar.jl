@@ -1085,7 +1085,7 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
     end
     set_attribute!(f, :minimal_denominators, minimal_denominators)
 
-    help_ring, help_kappa, theta = _add_variables(S, ["θ"])
+    help_ring, help_kappa, theta = _add_variables(S, [:θ])
     set_attribute!(f, :helper_ring, help_ring)
     kappa = help_kappa
     set_attribute!(f, :kappa, help_kappa)
@@ -1154,10 +1154,10 @@ end
 # return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
 function as_affine_algebra(
     L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
-    inverse_name::String="θ"
+    inverse_name::VarName=:_0
   )
   R = base_ring(L)
-  A, phi, t = _add_variables_first(R, [inverse_name])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
@@ -1169,10 +1169,10 @@ end
 # return the isomorphism L -> SomeAffineAlgebra
 function _as_affine_algebra(
     L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
-    inverse_name::String="θ"
+    inverse_name::VarName=:_0
   )
   R = base_ring(L)
-  A, phi, t = _add_variables_first(R, [inverse_name])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
@@ -1208,8 +1208,8 @@ function is_isomorphism(
   end
   K = domain(phi)
   L = codomain(phi)
-  A, I, d1, inc1, theta1 = as_affine_algebra(K, inverse_name="s")
-  B, J, d2, inc2, theta2 = as_affine_algebra(L, inverse_name="t")
+  A, I, d1, inc1, theta1 = as_affine_algebra(K, inverse_name=:s)
+  B, J, d2, inc2, theta2 = as_affine_algebra(L, inverse_name=:t)
 
   # write the denominators of the images of the variables xᵢ of K as 
   # polynomials in the variables yⱼ of L and the localization variable t:
@@ -1258,11 +1258,11 @@ function is_isomorphism(
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
-  C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
+  C, j1, B_vars = _add_variables_first(A, symbols(B))
   j2 = hom(B, C, B_vars)
   G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
-				  String.(symbols(C)),  
+				  symbols(C),
 				  ordering=Singular.ordering_dp(1)
 				  *Singular.ordering_dp(nvars(B)-1)
 				  *Singular.ordering_dp(1)
@@ -1324,14 +1324,14 @@ end
 ### adds the variables with names specified in v to the polynomial 
 # ring R and returns a triple consisting of the new ring, the embedding 
 # of the original one, and a list of the new variables. 
-function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
+function _add_variables(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1:n])
   return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
-function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
+function _add_variables_first(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
   n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])

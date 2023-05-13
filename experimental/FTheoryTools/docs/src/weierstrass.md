@@ -87,7 +87,7 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  demonstrate this:
 ```@docs
 global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
 ```
 
 ### A toric scheme as base space
@@ -97,7 +97,7 @@ bases, we can use the optional argument `completeness_check = false` to switch o
 expensive completeness check. The following examples demonstrate this:
 ```@docs
 global_weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::ToricCoveredScheme; completeness_check::Bool = true)
+global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true)
 ```
 
 ### A (covered) scheme as base space
@@ -125,23 +125,27 @@ the predictions from such an analysis are not limited to the world of toric vari
 
 For constructions along these lines, we support the following constructor:
 ```@docs
-global_weierstrass_model(weierstrass_f::MPolyRingElem{QQFieldElem}, weierstrass_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+global_weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
 ```
 
 ### Standard constructions
+
+We provide convenient constructions of global Weierstrass models
+over famous base spaces. Currently, we support the following:
+```@docs
+global_weierstrass_model_over_projective_space(d::Int)
+global_weierstrass_model_over_hirzebruch_surface(r::Int)
+global_weierstrass_model_over_del_pezzo_surface(b::Int)
+```
+
+
+### Literature models
 
 Certain Weierstrass models have been studied in the physics literature over and over again.
 Thereby, these constructions became famous and some were given special names. We aim
 to provide support for such standard constructions. Currently, we provide support for the following:
 ```@docs
 su5_weierstrass_model_over_arbitrary_3d_base()
-```
-In addition, we should of course also provide convenient constructions of global Weierstrass
-models over famous base spaces. Currently, we support the following:
-```@docs
-global_weierstrass_model_over_projective_space(d::Int)
-global_weierstrass_model_over_hirzebruch_surface(r::Int)
-global_weierstrass_model_over_del_pezzo_surface(b::Int)
 ```
 
 
@@ -179,15 +183,15 @@ More background information is available
 
 The following attributes are currently only supported in a toric setting:
 ```@docs
-calabi_yau_hypersurface(t::GlobalWeierstrassModel)
+calabi_yau_hypersurface(w::GlobalWeierstrassModel)
 ```
 Note that for applications in F-theory, *singular* elliptic fibrations are key
 (cf. [Wei18](@cite) and references therein). Consequently the discriminant
 locus as well as the singular loci of the fibration in question are of ample
 importance:
 ```@docs
-discriminant(t::GlobalWeierstrassModel)
-singular_loci(t::GlobalWeierstrassModel)
+discriminant(w::GlobalWeierstrassModel)
+singular_loci(w::GlobalWeierstrassModel)
 ```
 
 ## Methods

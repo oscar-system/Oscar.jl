@@ -266,7 +266,7 @@ function Base.getproperty(idealgens::IdealGens, name::Symbol)
   elseif name == :keep_ordering
     return getfield(idealgens, name)
   else
-    error("undefined property: ", string(name))
+    error("undefined property: ", name)
   end
 end
 
@@ -276,7 +276,7 @@ function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
   elseif name == :gens || name == :isGB || name == :isReduced|| name == :ord || name == :keep_ordering
     setfield!(idealgens, name, x)
   else
-    error("undefined property: ", string(name))
+    error("undefined property: ", name)
   end
 end
 
@@ -446,7 +446,7 @@ function singular_coeff_ring(K::AnticNumberField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
-  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, map(String, symbols(Qa)))
+  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, symbols(Qa))
   Sminpoly = SQa(coeff(minpoly, 0))
   for i in 1:degree(minpoly)
     Sminpoly += SQa(coeff(minpoly, i))*Sa^i
@@ -460,7 +460,7 @@ function singular_coeff_ring(F::fqPolyRepField)
   minpoly = modulus(F)
   Fa = parent(minpoly)
   SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                                    map(String, symbols(Fa)))
+                                                    symbols(Fa))
   Sminpoly = SFa(coeff(minpoly, 0))
   for i in 1:degree(minpoly)
     Sminpoly += SFa(coeff(minpoly, i))*Sa^i
@@ -503,33 +503,33 @@ end
 function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               cached = false)[1]
   end
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = singular(ord),
               cached = false)[1]
 end

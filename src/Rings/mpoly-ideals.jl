@@ -621,7 +621,7 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
     setcoeff!(minpoly, e[nvars(Qxa)], QQ(c))
   end
   R, a = number_field(minpoly)
-  Rx, _ = polynomial_ring(R, String.(symbols(Qx)))
+  Rx, _ = polynomial_ring(R, symbols(Qx))
   return _map_last_var(Rx, I, 2, a)
 end
 

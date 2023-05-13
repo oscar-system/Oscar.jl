@@ -46,7 +46,6 @@ export Covering
 export CoveringMorphism
 export CyclicQuotientSingularity
 export DirectProductGroup
-export DirectProductOfElem
 export Directed
 export DivisorOnTropicalCurve
 export Edge
@@ -204,7 +203,6 @@ export affine_inequality_matrix
 export affine_normal_toric_variety
 export affine_open_covering
 export affine_patch
-export affine_patch_type
 export affine_patches
 export affine_space
 export alexander_dual
@@ -222,7 +220,6 @@ export all_triangulations
 export allow_unicode
 export alternating_form
 export alternating_group
-export ambient
 export ambient_coordinate_ring
 export ambient_coordinates
 export ambient_dim
@@ -257,7 +254,6 @@ export base_ring_elem_type
 export base_ring_module
 export base_ring_type
 export base_scheme
-export base_scheme_type
 export bases
 export basic_patches
 export basis_of_global_sections
@@ -344,7 +340,7 @@ export comm!
 export common_denominator
 export common_refinement
 export complement
-export complement_class_reps, has_complement_class_reps, set_complement_class_reps
+export complement_class_reps
 export complement_equation
 export complement_equations
 export complement_ideal
@@ -386,7 +382,6 @@ export corank
 export core
 export corresponding_bilinear_form
 export corresponding_quadratic_form
-export coset_decomposition
 export covered_projection_to_base
 export covered_scheme
 export covered_scheme_morphism
@@ -462,7 +457,6 @@ export dual_continued_fraction_hirzebruch_jung
 export dual_matroid
 export dual_subdivision
 export dualgraph
-export dualsubdivision
 export edgegraph
 export edges
 export ehrhart_polynomial
@@ -603,7 +597,6 @@ export hom
 export hom_product
 export hom_tensor
 export hom_without_reversing_direction
-export homogeneity_space
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
@@ -653,7 +646,6 @@ export integral_basis
 export integrate
 export interior_lattice_points
 export intersect
-export intersect_stably
 export intersection_form
 export intersections
 export inv
@@ -876,7 +868,6 @@ export link_subcomplex
 export load
 export load_lp
 export load_mps
-export load_simplicialcomplex
 export localized_ring
 export loops
 export low_index_subgroup_reps
@@ -998,7 +989,6 @@ export normal_toric_variety
 export normal_vector
 export normalization
 export normalization_with_delta
-export normalize
 export normalize!
 export normalized_volume
 export normalizer
@@ -1062,7 +1052,6 @@ export permutation_matrix
 export permutation_of_terms
 export permuted
 export picard_group
-export pivots
 export platonic_solid
 export point_coordinates
 export point_matrix
@@ -1198,7 +1187,6 @@ export saturation_with_index
 export save
 export save_lp
 export save_mps
-export save_simplicialcomplex
 export scalar_product
 export scheme
 export schur_index
@@ -1214,7 +1202,6 @@ export set_commutator!
 export set_conjugate!
 export set_coordinate_names
 export set_coordinate_names_of_torus
-export set_degrees
 export set_grading
 export set_name!
 export set_power!
@@ -1241,7 +1228,6 @@ export singular_coeff_ring
 export singular_locus
 export singular_locus_reduced
 export singular_poly_ring
-export slope
 export slpoly_ring
 export small_generating_set
 export small_generating_set, has_small_generating_set, set_small_generating_set
@@ -1322,7 +1308,6 @@ export trivial_divisor
 export trivial_divisor_class
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
-export tropical_link
 export tropical_points
 export tropical_polynomial
 export tropical_variety

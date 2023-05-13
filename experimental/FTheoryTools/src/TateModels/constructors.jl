@@ -18,7 +18,7 @@ global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = t
 
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
+    global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -42,12 +42,19 @@ julia> t = global_tate_model([a1, a2, a3, a4, a6], base; completeness_check = fa
 Global Tate model over a concrete base
 ```
 """
-function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
+function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem}
+  @req length(ais) == 5 "We require exactly 5 Tate sections"
+  @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
+  
+  gens_base_names = [string(g) for g in gens(cox_ring(base))]
+  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+  end
+  
   if completeness_check
     @req is_complete(base) "Base space must be complete"
   end
-  @req length(ais) == 5 "We require exactly 5 Tate sections"
-  @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
+  
   ambient_space = _ambient_space_from_base(base)
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
@@ -77,7 +84,7 @@ global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true) = g
 
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}}
+    global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::ToricCoveredScheme)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -101,7 +108,7 @@ julia> t = global_tate_model([a1, a2, a3, a4, a6], base; completeness_check = fa
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem{QQFieldElem}} = global_tate_model(ais, underlying_toric_variety(base); completeness_check = completeness_check)
+global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem} = global_tate_model(ais, underlying_toric_variety(base); completeness_check = completeness_check)
 
 
 ################################################
@@ -118,7 +125,7 @@ global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::
 ################################################
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
+    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -143,11 +150,15 @@ julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
 Global Tate model over a not fully specified base
 ```
 """
-function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem{QQFieldElem}}
+function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
+  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+  end
   
   # convert Tate sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
@@ -169,9 +180,20 @@ end
 ################################################
 
 function Base.show(io::IO, t::GlobalTateModel)
+  properties_string = ["Global Tate model over a"]
   if base_fully_specified(t)
-    print(io, "Global Tate model over a concrete base")
+    push!(properties_string, "concrete base")
   else
-    print(io, "Global Tate model over a not fully specified base")
+    push!(properties_string, "not fully specified base")
   end
+  if has_attribute(t, :description)
+    push!(properties_string, "-- " * string(get_attribute(t, :description)))
+  end
+  if has_attribute(t, :arxiv_id)
+    push!(properties_string, "based on arxiv paper " * string(get_attribute(t, :arxiv_id)))
+  end
+  if has_attribute(t, :equ_nr)
+    push!(properties_string, "(equ. " * string(get_attribute(t, :equ_nr)) * ")")
+  end
+  join(io, properties_string, " ")
 end
