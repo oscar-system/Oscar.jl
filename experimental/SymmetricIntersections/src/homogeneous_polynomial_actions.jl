@@ -54,7 +54,7 @@ function linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem
     @req ok && is_constant(k) "Polynomial is not semi-invariant"
     push!(coll, matrix(base_ring(R),1,1,[collect(coefficients(k))[1]])::eltype(matrix_representation(rep)))
   end
-  return Oscar.SymInt._linear_representation(representation_ring(rep), coll)
+  return Oscar._linear_representation(representation_ring(rep), coll)
 end
 
 @doc raw"""
