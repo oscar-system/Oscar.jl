@@ -914,7 +914,10 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
         nX_FR = matrix_clear_den(phiX)
         nX = matrix(R, [numerator(nX_FR[i,j])  for i in 1:nr, j in 1:nc ])
         
-        MRS_new = MatroidRealizationSpace(ideal(R, Igens_new), Sgens_new, R, nX, MRS.representable, MRS.F, MRS.char, MRS.q)
+        GBnew = collect(groebner_basis(ideal(R, Igens_new)))         
+        
+        MRS_new = MatroidRealizationSpace(ideal(R, GBnew), Sgens_new, R, nX, MRS.representable, MRS.F, MRS.char, MRS.q )
+
         
         return (MRS_new, elim, fullyReduced)
     end
@@ -979,11 +982,15 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
     ambR = codomain(phi)
     Inew = ideal(ambR, phi.(Igens))
     Sgens_new = phi.(Sgens)
+    
+    normal_Sgens = gens_2_factors([normal_form(g, Inew) for g in Sgens_new])
+    unique!(normal_Sgens)
+
 
     Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
 
-    MRS_new = MatroidRealizationSpace(Inew, Sgens_new, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
-
+    MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
+    
     return MRS_new
 end
 
