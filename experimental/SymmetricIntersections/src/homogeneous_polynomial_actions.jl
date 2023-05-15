@@ -70,7 +70,7 @@ function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDec
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
-  gene = minimal_generating_set(I)
+  gene = gens(I)
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
   for f in gene for m in matrix_representation(repd)
@@ -95,7 +95,7 @@ function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPoly
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficients of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
-  gene = minimal_generating_set(I)
+  gene = gens(I)
   d = Int(degree(gene[1]).coeff[1])
   @req all(f -> degree(f) == degree(gene[1]), gene) "All generators of I should have same total degree"
   @req is_invariant_ideal(rep, I) "I is not invariant"

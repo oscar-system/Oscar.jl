@@ -422,7 +422,7 @@ function projective_representation(rep::LinRep{S, T, U}, p::V; check::Bool = tru
   RR = representation_ring(rep)
   if check
     @req underlying_group(RR) === domain(p) "Incompatible representation ring and cover"
-    @req is_projective(lr, p) "rep is not p-projective"
+    @req is_projective(rep, p) "rep is not p-projective"
   end
   return ProjRep{S, T, U, V}(rep, p)
 end
