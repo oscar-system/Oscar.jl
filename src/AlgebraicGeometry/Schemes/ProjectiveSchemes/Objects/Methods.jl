@@ -69,12 +69,12 @@ Return the restriction morphism from the graded coordinate ring of ``X`` to `ð’
 julia> P = projective_space(QQ, ["x0", "x1", "x2"])
 Projective space of dimension 2
   with homogeneous coordinates x0 x1 x2
-  over Rational Field
+  over Rational field
 
 julia> X = covered_scheme(P);
 
 julia> U = first(affine_charts(X))
-Spec of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0) over Rational Field by ideal()
+Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal()
 
 julia> phi = dehomogenization_map(P, U);
 
@@ -180,13 +180,13 @@ julia> A, _ = QQ["u", "v"];
 julia> P = projective_space(A, ["x0", "x1", "x2"])
 Projective space of dimension 2
   with homogeneous coordinates x0 x1 x2
-  over Multivariate Polynomial Ring in u, v over Rational Field
+  over Multivariate polynomial ring in 2 variables over QQ
 
 julia> X = covered_scheme(P);
 
 
 julia> U = first(affine_charts(X))
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0), u, v over Rational Field by ideal() at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal() at the multiplicative set powers of QQMPolyRingElem[1]
 
 julia> phi = homogenization_map(P, U);
 

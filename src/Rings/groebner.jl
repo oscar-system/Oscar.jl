@@ -14,7 +14,7 @@ accessing `I.gb.S`.
 # Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
@@ -68,7 +68,7 @@ returned in `B.S`.
 # Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
@@ -299,7 +299,7 @@ See [Fau99](@cite) for more information.
 # Examples
 ```jldoctest
 julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
-(Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, fpMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over GF(101), fpMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
@@ -356,7 +356,7 @@ and the transformation matrix from the ideal to the standard basis. Return value
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
@@ -466,7 +466,7 @@ Return generators for the syzygies on the polynomials given as elements of `G`.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
 3-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -494,7 +494,7 @@ Return the leading ideal of `G` with respect to `ordering`.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(R))
 ideal(x*y^2, y^5)
@@ -524,7 +524,7 @@ Return the leading ideal of `I` with respect to `ordering`.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
 ideal(x*y^2 - 3*x, x^3 - 14*y^5)
@@ -556,7 +556,7 @@ This may take some time.
 # Examples
 ```jldoctest
 julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, QQMPolyRingElem[a, b, c])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[a, b, c])
 
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
@@ -952,7 +952,7 @@ Return a `Vector` which contains for each element `g` of `G` a normal form as ab
 # Examples
 ```jldoctest
 julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, QQMPolyRingElem[a, b, c])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[a, b, c])
 
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
@@ -966,7 +966,7 @@ julia> normal_form(-1+c+b+a^3, J)
 a^3
 
 julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, QQMPolyRingElem[a, b, c])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[a, b, c])
 
 julia> A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
 3-element Vector{QQMPolyRingElem}:
@@ -1010,7 +1010,7 @@ Tests if a given IdealGens `F` is a standard basis w.r.t. the given monomial ord
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2+y,x*y-y])
 ideal(x^2 + y, x*y - y)
@@ -1060,7 +1060,7 @@ Tests if a given IdealGens `F` is a Gröbner basis w.r.t. the given monomial ord
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2+y,x*y-y])
 ideal(x^2 + y, x*y - y)
@@ -1096,7 +1096,7 @@ to a Gröbner basis `H` w.r.t. another monomial ordering `ordering` for `<G>`.
 # Examples
 ```jldoctest
 julia> R, (x1, x2, x3, x4) = polynomial_ring(GF(101), ["x1", "x2", "x3", "x4"])
-(Multivariate Polynomial Ring in x1, x2, x3, x4 over Galois field with characteristic 101, fpMPolyRingElem[x1, x2, x3, x4])
+(Multivariate polynomial ring in 4 variables over GF(101), fpMPolyRingElem[x1, x2, x3, x4])
 
 julia> J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
        x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
@@ -1202,7 +1202,7 @@ Computes a reduced Gröbner basis for `I` w.r.t. `destination_ordering` using th
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x^2+y,x*y-y])
 ideal(x^2 + y, x*y - y)
@@ -1322,7 +1322,7 @@ julia> I = ideal(R, [f1, f2,f3]);
 julia> W = [10, 1, 1];
 
 julia> S, t = polynomial_ring(ZZ, "t")
-(Univariate Polynomial Ring in t over Integer Ring, t)
+(Univariate polynomial ring in t over ZZ, t)
 
 julia> hn = -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1
 -t^75 + t^54 + t^51 + t^45 - t^30 - t^24 - t^21 + 1

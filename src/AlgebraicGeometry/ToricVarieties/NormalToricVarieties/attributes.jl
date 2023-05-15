@@ -223,7 +223,7 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> R, _ = polynomial_ring(QQ, 3);
 
 julia> cox_ring(R, p2)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
+Multivariate polynomial ring in 3 variables over QQ graded by
   x1 -> [1]
   x2 -> [1]
   x3 -> [1]
@@ -249,7 +249,7 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
 
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in y1, y2, y3 over Rational Field graded by
+Multivariate polynomial ring in 3 variables over QQ graded by
   y1 -> [1]
   y2 -> [1]
   y3 -> [1]
@@ -536,7 +536,7 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> set_coordinate_names_of_torus(p2, ["y1", "y2"])
 
 julia> coordinate_ring_of_torus(p2)
-Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field by ideal(y1*y1_ - 1, y2*y2_ - 1)
+Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::AbstractNormalToricVariety)

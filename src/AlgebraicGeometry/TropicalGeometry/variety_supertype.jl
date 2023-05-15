@@ -59,7 +59,7 @@ julia> RR = TropicalSemiring(min)
 Tropical semiring (min)
 
 julia> S,(x,y) = RR["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
+(Multivariate polynomial ring in 2 variables over tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 julia> f1 = x+y+1
 x + y + (1)

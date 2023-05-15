@@ -84,7 +84,7 @@ julia> T = TropicalSemiring()
 Tropical semiring (min)
 
 julia> Tx,(x1,x2) = polynomial_ring(T,3)
-(Multivariate Polynomial Ring in x1, x2, x3 over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x1, x2, x3])
+(Multivariate polynomial ring in 3 variables over tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x1, x2, x3])
 
 julia> f = x1 + -1*x2 + 0
 x1 + (-1)*x2 + (0)

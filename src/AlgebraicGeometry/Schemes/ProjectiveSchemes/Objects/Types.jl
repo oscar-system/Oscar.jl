@@ -19,7 +19,7 @@ julia> Sgr, _ = grade(S);
 julia> P = ProjectiveScheme(Sgr)
 Projective space of dimension 2
   with homogeneous coordinates x y z
-  over Rational Field
+  over Rational field
 
 julia> (x, y, z) = gens(Sgr);
 
@@ -29,7 +29,7 @@ julia> Q, _ = quo(Sgr, I);
 
 julia> C = ProjectiveScheme(Q)
 Projective scheme
-  over Rational Field
+  over Rational field
   defined by ideal(x^3 + y^3 + z^3)
 ```
 """
