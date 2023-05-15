@@ -194,10 +194,10 @@ end
   V = hypersurface_complement(X, x)
 
   kk, pr = quo(ZZ, 5)
-  IA2_red, phi1 = oscar.change_base(pr, IA2)
-  X_red, phi2 = oscar.change_base(pr, X)
-  U_red, phi3 = oscar.change_base(pr, U)
-  V_red, phi4 = oscar.change_base(pr, V)
+  IA2_red, phi1 = oscar.base_change(pr, IA2)
+  X_red, phi2 = oscar.base_change(pr, X)
+  U_red, phi3 = oscar.base_change(pr, U)
+  V_red, phi4 = oscar.base_change(pr, V)
 
   m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
   m2 = compose(phi4, inclusion_morphism(V, IA2));
@@ -205,16 +205,16 @@ end
 
   # Testing morphisms 
   inc_U = inclusion_morphism(V, X)
-  (a, b, c) = oscar.change_base(pr, inc_U)
+  (a, b, c) = oscar.base_change(pr, inc_U)
   @test compose(a, inc_U) == compose(b, c)
 
   # Behaviour for special types
   U = PrincipalOpenSubset(IA2, y)
-  UU, f = oscar.change_base(pr, U)
+  UU, f = oscar.base_change(pr, U)
   @test UU isa PrincipalOpenSubset
 
   W = SpecOpen(IA2, [x, y])
-  WW, f = oscar.change_base(pr, W)
+  WW, f = oscar.base_change(pr, W)
   @test WW isa SpecOpen
 end
 

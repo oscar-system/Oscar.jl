@@ -52,9 +52,9 @@ end
 ########################################################################
 # Base change
 ########################################################################
-function change_base(phi::Any, f::CoveringMorphism;
-    domain_map::CoveringMorphism=change_base(phi, domain(f))[2],
-    codomain_map::CoveringMorphism=change_base(phi, codomain(f))[2]
+function base_change(phi::Any, f::CoveringMorphism;
+    domain_map::CoveringMorphism=base_change(phi, domain(f))[2],
+    codomain_map::CoveringMorphism=base_change(phi, codomain(f))[2]
   )
   D = domain(f)
   C = codomain(f)
@@ -66,7 +66,7 @@ function change_base(phi::Any, f::CoveringMorphism;
     V = codomain(f[U])
     g_V = first(maps_with_given_codomain(codomain_map, V)) # The result must be unique as it arises 
                                                            # from a base change.
-    _, ff, _ = change_base(phi, f[U], domain_map=domain_map[UU], codomain_map=g_V)
+    _, ff, _ = base_change(phi, f[U], domain_map=domain_map[UU], codomain_map=g_V)
     mor_dict[UU] = ff
   end
 

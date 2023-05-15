@@ -327,9 +327,9 @@ end
 ########################################################################
 # Base change
 ########################################################################
-function change_base(phi::Any, C::Covering)
+function base_change(phi::Any, C::Covering)
   U = patches(C)
-  patch_change = [change_base(phi, V) for V in U]
+  patch_change = [base_change(phi, V) for V in U]
 
   glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for i in 1:length(U)
@@ -337,7 +337,7 @@ function change_base(phi::Any, C::Covering)
     for j in 1:length(U)
       (B, map_B) = patch_change[j]
       G = C[U[i], U[j]] # the glueing
-      GG = change_base(phi, G, patch_change1=map_A, patch_change2=map_B)
+      GG = base_change(phi, G, patch_change1=map_A, patch_change2=map_B)
       glueing_dict[A, B] = GG
     end
   end

@@ -128,7 +128,7 @@ end
   IP1 = covered_scheme(projective_space(ZZ, 1))
   C = default_covering(IP1)
   G = first(values(glueings(C)))
-  GG = oscar.change_base(pr, G)
+  GG = oscar.base_change(pr, G)
   @test underlying_glueing(GG) isa SimpleGlueing
 end
 

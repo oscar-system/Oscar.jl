@@ -43,8 +43,8 @@ end
 # Base change
 ########################################################################
 
-function change_base(phi::Any, U::PrincipalOpenSubset;
-    ambient_map::AbsSpecMor=change_base(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+function base_change(phi::Any, U::PrincipalOpenSubset;
+    ambient_map::AbsSpecMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
   )
   Y = domain(ambient_map)
   pbf = pullback(ambient_map)

@@ -124,9 +124,9 @@ end
 ########################################################################
 
 @doc raw"""
-    change_base(phi::Any, f::AbsSpecMor)
-        domain_map::AbsSpecMor=change_base(phi, domain(f))[2],
-        codomain_map::AbsSpecMor=change_base(phi, codomain(f))[2]
+    base_change(phi::Any, f::AbsSpecMor)
+        domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
+        codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
       )
 
 For a morphism ``f : X → Y`` between two schemes over a `base_ring` ``𝕜`` 
@@ -140,9 +140,9 @@ and a ring homomorphism ``φ : 𝕜 → 𝕂`` this returns a triple
              F
 ```
 """
-function change_base(phi::Any, f::AbsSpecMor; 
-    domain_map::AbsSpecMor=change_base(phi, domain(f))[2],
-    codomain_map::AbsSpecMor=change_base(phi, codomain(f))[2]
+function base_change(phi::Any, f::AbsSpecMor; 
+    domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
   )
   X = domain(f)
   Y = codomain(f)

@@ -221,7 +221,7 @@ end
 @testset "base change" begin
   kk, pr = quo(ZZ, 5)
   IP1 = covered_scheme(projective_space(ZZ, 1))
-  IP1_red, red_map = oscar.change_base(pr, IP1)
+  IP1_red, red_map = oscar.base_change(pr, IP1)
   
   IP2 = projective_space(ZZ, 2)
   S = homogeneous_coordinate_ring(IP2)
@@ -231,6 +231,6 @@ end
   II = IdealSheaf(IP2, I)
 
   inc_X = oscar.CoveredClosedEmbedding(IP2_cov, II)
-  (a, b, c) = oscar.change_base(pr, inc_X)
+  (a, b, c) = oscar.base_change(pr, inc_X)
   @test compose(a, inc_X) == compose(b, c)
 end

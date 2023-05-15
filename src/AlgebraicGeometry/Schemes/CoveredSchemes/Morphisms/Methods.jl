@@ -81,14 +81,14 @@ end
 ########################################################################
 # Base change
 ########################################################################
-function change_base(phi::Any, f::AbsCoveredSchemeMorphism;
-    domain_map::AbsCoveredSchemeMorphism=change_base(phi, domain(f))[2],
-    codomain_map::AbsCoveredSchemeMorphism=change_base(phi, codomain(f))[2]
+function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
+    domain_map::AbsCoveredSchemeMorphism=base_change(phi, domain(f))[2],
+    codomain_map::AbsCoveredSchemeMorphism=base_change(phi, codomain(f))[2]
   )
   f_cov = covering_morphism(f)
   dom_cov = covering_morphism(domain_map)
   cod_cov = covering_morphism(codomain_map)
-  _, ff_cov_map, _ = change_base(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
+  _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
   X = domain(f)
   Y = codomain(f)
   XX = domain(domain_map)
