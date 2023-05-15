@@ -77,10 +77,10 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -101,7 +101,8 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> base_ring(M)
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables x, y, z
+  over rational field
 
 julia> F === ambient_free_module(M)
 true
@@ -162,10 +163,10 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -218,10 +219,10 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -269,7 +270,7 @@ julia> parent(fm) === ambient_free_module(M)
 true
 
 julia> F = ambient_free_module(M)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> f = x*F[1]
 x*e[1]

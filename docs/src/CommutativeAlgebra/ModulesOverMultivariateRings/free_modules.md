@@ -148,7 +148,7 @@ julia> f = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
 
 julia> parent(f)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> coordinates(f)
 Sparse row with positions [1, 3] and values QQMPolyRingElem[x, y]

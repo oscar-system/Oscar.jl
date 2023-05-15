@@ -238,7 +238,7 @@ Given a vector `V` of variables, return the lexicographical ordering on the set 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = lex(R)
 lex([w, x, y, z])
@@ -302,7 +302,7 @@ Given a vector `V` of variables, return the degree lexicographical ordering on t
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = deglex(R)
 deglex([w, x, y, z])
@@ -374,7 +374,7 @@ Given a vector `V` of variables, return the degree reverse lexicographical order
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex(R)
 degrevlex([w, x, y, z])
@@ -446,7 +446,7 @@ Given a vector `V` of variables, return the reverse lexicographical ordering on 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = revlex(R)
 revlex([w, x, y, z])
@@ -510,7 +510,7 @@ Given a vector `V` of variables, return the negative lexicographical ordering on
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = neglex(R)
 neglex([w, x, y, z])
@@ -574,7 +574,7 @@ Given a vector `V` of variables, return the negative reverse lexicographical ord
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negrevlex(R)
 negrevlex([w, x, y, z])
@@ -638,7 +638,7 @@ Given a vector `V` of variables, return the negative degree reverse lexicographi
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negdegrevlex(R)
 negdegrevlex([w, x, y, z])
@@ -710,7 +710,7 @@ Given a vector `V` of variables, return the negative degree lexicographical orde
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negdeglex(R)
 negdeglex([w, x, y, z])
@@ -818,7 +818,7 @@ lexicographical ordering on the set of monomials in the given variables.
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = wdeglex(R, [1, 2, 3, 4])
 wdeglex([w, x, y, z], [1, 2, 3, 4])
@@ -887,7 +887,7 @@ lexicographical ordering on the set of monomials in the given variables.
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = wdegrevlex(R, [1, 2, 3, 4])
 wdegrevlex([w, x, y, z], [1, 2, 3, 4])
@@ -956,7 +956,7 @@ negative weighted lexicographical ordering on the set of monomials in the given 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negwdeglex(R, [1, 2, 3, 4])
 negwdeglex([w, x, y, z], [1, 2, 3, 4])
@@ -1025,7 +1025,7 @@ weighted reverse lexicographical ordering on the set of monomials in the given v
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = negwdegrevlex(R, [1, 2, 3, 4])
 negwdegrevlex([w, x, y, z], [1, 2, 3, 4])
@@ -1457,7 +1457,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 1
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> cmp(lex(R)*revlex(F), F[1], F[2])
 -1
@@ -1742,7 +1742,7 @@ Return the ring ordering induced by `ord`.
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
 julia> o = revlex(gens(F))*degrevlex(R)
 revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])

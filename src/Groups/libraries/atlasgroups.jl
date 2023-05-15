@@ -16,7 +16,7 @@ julia> atlas_group("A5")  # alternating group A5
 Group([ (1,2)(3,4), (1,3,5) ])
 
 julia> atlas_group(MatrixGroup, "A5")
-Matrix group of degree 4 over Finite field of degree 1 over F_2
+Matrix group of degree 4 over Finite field of degree 1 over GF(2)
 
 julia> atlas_group("M11")  # Mathieu group M11
 Group([ (2,10)(4,11)(5,7)(8,9), (1,4,3,8)(2,5,6,9) ])
@@ -119,7 +119,7 @@ julia> h2, emb = atlas_subgroup("M11", 1);  h2
 Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
 
 julia> h3, emb = atlas_subgroup(MatrixGroup, "M11", 1 );  h3
-Matrix group of degree 10 over Finite field of degree 1 over F_2
+Matrix group of degree 10 over Finite field of degree 1 over GF(2)
 
 julia> info = all_atlas_group_infos("M11", degree => 11);
 
@@ -193,7 +193,7 @@ julia> info = all_atlas_group_infos("A5", dim => 4, characteristic => 3)
  Dict(:dim => 4, :repname => "A5G1-f3r4B0", :name => "A5")
 
 julia> atlas_group(info[1])
-Matrix group of degree 4 over Finite field of degree 1 over F_3
+Matrix group of degree 4 over Finite field of degree 1 over GF(3)
 
 ```
 """
