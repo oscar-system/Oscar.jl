@@ -601,7 +601,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
         
     representable = !(isone(def_ideal))
 
-    !representable && return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
+    !representable && return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false, F, char, q)
 
 #    if !representable
 #        return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
@@ -990,7 +990,7 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
     Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
 
     MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
-    
+
     return MRS_new
 end
 
