@@ -217,3 +217,8 @@ end
       @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
   end
 end
+
+@testset "base change" begin
+  IP1 = covered_scheme(projective_space(ZZ, 1))
+  IP1_red, red_map = oscar.change_base(pr, IP1)
+end
