@@ -43,11 +43,13 @@ end
 # Base change
 ########################################################################
 
-function change_base(phi::Any, U::PrincipalOpenSubset)
-  Y, f = change_base(phi, ambient_scheme(U))
-  pbf = pullback(f)
+function change_base(phi::Any, U::PrincipalOpenSubset;
+    ambient_map::AbsSpecMor=change_base(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+  )
+  Y = domain(ambient_map)
+  pbf = pullback(ambient_map)
   h = pbf(complement_equation(U))
   UU = PrincipalOpenSubset(Y, h)
-  return UU, restrict(f, UU, U, check=true) # TODO: Set to false after testing
+  return UU, restrict(ambient_map, UU, U, check=true) # TODO: Set to false after testing
 end
 

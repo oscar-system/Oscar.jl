@@ -291,7 +291,7 @@ end
 
 @attr function affine_cone(
     P::AbsProjectiveScheme{RT, <:MPolyQuoRing}
-  ) where {RT<:Field}
+  ) where {RT<:Union{Field, ZZRing}}
   S = homogeneous_coordinate_ring(P)
   PS = base_ring(S)
   PP = forget_grading(PS) # the ungraded polynomial ring
@@ -305,7 +305,7 @@ end
 
 @attr function affine_cone(
     P::AbsProjectiveScheme{RT, <:MPolyDecRing}
-  ) where {RT<:Field}
+  ) where {RT<:Union{Field, ZZRing}}
   S = homogeneous_coordinate_ring(P)
   PP = forget_grading(S) # the ungraded polynomial ring
   phi = hom(S, PP, gens(PP))
