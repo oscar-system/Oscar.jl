@@ -144,3 +144,14 @@ function Base.show(io::IO, U::SpecOpen)
   print(io, "complement of zero locus of $(complement_equations(U)) in $(ambient_scheme(U))")
 end
 
+########################################################################
+# Base change
+########################################################################
+function change_base(phi::Any, U::SpecOpen)
+  Y, f = change_base(phi, ambient_scheme(U))
+  pbf = pullback(f)
+  h = pbf.(complement_equations(U))
+  UU = SpecOpen(Y, h)
+  return UU, restrict(f, UU, U, check=true) # TODO: Set to false after testing
+end
+

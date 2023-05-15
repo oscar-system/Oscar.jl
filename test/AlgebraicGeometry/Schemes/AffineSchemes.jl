@@ -207,5 +207,14 @@ end
   inc_U = inclusion_morphism(V, X)
   (a, b, c) = oscar.change_base(pr, inc_U)
   @test compose(a, inc_U) == compose(b, c)
+
+  # Behaviour for special types
+  U = PrincipalOpenSubset(IA2, y)
+  UU, f = oscar.change_base(pr, U)
+  @test UU isa PrincipalOpenSubset
+
+  W = SpecOpen(IA2, [x, y])
+  WW, f = oscar.change_base(pr, W)
+  @test WW isa SpecOpen
 end
 
