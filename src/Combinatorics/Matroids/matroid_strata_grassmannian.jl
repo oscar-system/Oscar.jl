@@ -918,11 +918,10 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
         
     xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
     
-    
     if length(xnew_str) == 0
         phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
     else
-        Rnew, xnew = PolynomialRing(coefficient_ring(R), xnew_str) 
+        Rnew, xnew = polynomial_ring(coefficient_ring(R), length(xnew_str)) 
     
         zero_elim_var = []
         j=1
@@ -935,7 +934,7 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
             end
         end
         
-    phi = hom(R, Rnew, a->a, zero_elim_var)
+        phi = hom(R, Rnew, a->a, zero_elim_var)
     
     end
     
