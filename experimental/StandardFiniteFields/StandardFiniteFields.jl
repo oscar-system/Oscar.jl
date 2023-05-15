@@ -1,19 +1,19 @@
 using Oscar
 
-IntegerUnion   = Union{Integer, ZZRingElem}
-PrimeField     = Union{Nemo.fpField, Nemo.FpField}
-PrimeFieldElem = Union{fpFieldElem, FpFieldElem}
-PrimeFieldMatrix = Union{FpMatrix, fpMatrix}
+const IntegerUnion     = Oscar.IntegerUnion
+const PrimeField       = Union{Nemo.fpField, Nemo.FpField}
+const PrimeFieldElem   = Union{fpFieldElem, FpFieldElem}
+const PrimeFieldMatrix = Union{FpMatrix, fpMatrix}
 
 # NOTE: These give missing features to OSCAR/Nemo that will likely be added in the near future.
 
 # TODO : Should be fixed in Nemo
 function (k::Nemo.FpField)(a::Vector)
-  @assert length(a) == 1
-  return k(a[1])
+    @assert length(a) == 1
+    return k(a[1])
 end
 function (k::FqPolyRepField)(a::Vector)
-  return k(polynomial(GF(ZZ(characteristic(k))), a))
+    return k(polynomial(GF(ZZ(characteristic(k))), a))
 end
 
 
@@ -25,33 +25,34 @@ function coords(x::PrimeFieldElem)
     return [x]
 end
 
-# TODO : this should be pushed to Nemo.jl/src/flint/gfp_fmpz_mat.jl
-# BUG the fact that this is missing is a major performance problem
+# TODO : this is pushed to Nemo, once changes go through it can be removed.
 import Base: inv
 using FLINT_jll
 const libflint = FLINT_jll.libflint
 function inv(a::FpMatrix)
-  !is_square(a) && error("Matrix must be a square matrix")
-  z = similar(a)
-  r = ccall((:fmpz_mod_mat_inv, libflint), Int,
-          (Ref{FpMatrix}, Ref{FpMatrix}), z, a)
-  !Bool(r) && error("Matrix not invertible")
-  return z
+    !is_square(a) && error("Matrix must be a square matrix")
+    z = similar(a)
+    r = ccall((:fmpz_mod_mat_inv, libflint), Int,
+               (Ref{FpMatrix}, Ref{FpMatrix}), z, a)
+    !Bool(r) && error("Matrix not invertible")
+    return z
 end
 
-# TODO : this just makes sense for writing general code
-import Base: big
-big(a::ZZRingElem) = a
 
+function largest_factor(n::IntegerUnion)
+    nfactorization = factor(ZZ(n))
+    return maximum(nfactorization)
+end
 
 # _attributes = [
-    # :is_standard_finite_field      - bool
-    # :is_standard_prime_field       - bool
+    # :is_standard_finite_field        - bool
+    # :is_standard_prime_field         - bool
     # :primitive_powers_in_tower_basis - Matrix{FinFieldElem}
-    # :tower_basis                  - Matrix{FFieldElem} = inv(:primitive_powers_in_tower_basis)
-    # NOTE I guess we used ZZ ring elements for these instead of Int; does it matter?
-    # :steinitz_prime_degree         - Dict{Int, Dict{Int, Int}}
-    # :standard_extensions          - Dict{Int, FinField} ]
+    # :tower_basis                     - Matrix{FFieldElem}
+    #                                       = inv(:primitive_powers_in_tower_basis)
+    # :steinitz_prime_degree           - Dict{Int, Dict{Int, ZZRingElem}}
+    # :standard_extensions             - Dict{Int, FinField}
+    # ]
 function set_standard_prime_field!(F::PrimeField)
     get_attribute!(F, :is_standard_prime_field) do
         set_attribute!(F, :standard_extensions, Dict{ZZRingElem, FinField}(1 => F))
@@ -66,18 +67,8 @@ function set_primitive_powers_in_tower_basis!(F::FinField, M::PrimeFieldMatrix)
     set_attribute!(F, :primitive_powers_in_tower_basis, M)
     set_attribute!(F, :tower_basis, inv(M))
 end
-function set_steinitz_prime_degree!(F::FinField, r::IntegerUnion, k::IntegerUnion, nr::IntegerUnion)
-    spd = get_attribute!(F, :steinitz_prime_degree, Dict{ZZRingElem, Dict{ZZRingElem, ZZRingElem}}())
-    spdr = get!(spd, r, Dict{ZZRingElem, ZZRingElem})
-    spdr[k] = nr
-end
-function set_steinitz_prime_degree!(f::Function, F::FinField, r::IntegerUnion, k::IntegerUnion)
-    spd = get_attribute!(F, :steinitz_prime_degree, Dict{ZZRingElem, Dict{ZZRingElem, ZZRingElem}}())
-    spdr = get!(spd, r, Dict{ZZRingElem, ZZRingElem})
-    spd[r][k] = f()
-end
 function set_standard_extension!(F::PrimeField, n::IntegerUnion, K::FinField)
-    ext = get_attribute!(F, :standard_extensions, Dict{ZZRingElem, FinField}())
+    ext = get_attribute!(F, :standard_extensions, Dict{Int, FinField}())
     ext[n] = K
 end
 
@@ -100,27 +91,29 @@ function get_steinitz_prime_degree(F::FinField, r::IntegerUnion, k::IntegerUnion
     get(spdr, k, nothing)
 end
 function get_steinitz_prime_degree!(f::Function, F::FinField, r::IntegerUnion, k::IntegerUnion)
-    spd = get_attribute!(F, :steinitz_prime_degree, Dict{ZZRingElem, Dict{ZZRingElem, ZZRingElem}}() )
-    spdr = get!(spd, r, Dict{ZZRingElem, ZZRingElem}())
+    spd = get_attribute!(F, :steinitz_prime_degree, Dict{Int, Dict{Int, ZZRingElem}}() )
+    spdr = get!(spd, r, Dict{Int, ZZRingElem}())
     get!(spdr, k, f())
 end
 function get_standard_extensions(F::PrimeField)
-  get_attribute(F, :standard_extensions, nothing)
+    get_attribute(F, :standard_extensions, nothing)
 end
 function get_standard_extensions!(F::PrimeField)
-  get_attribute(F, :standard_extensions, Dict{ZZRingElem, FinField}())
+    get_attribute!(F, :standard_extensions) do
+        Dict{Int, FinField}()
+    end
 end
 function get_standard_extension(F::PrimeField, k::IntegerUnion)
-  ext = get_attribute(F, :standard_extensions, nothing)
-  get(ext, k, nothing)
+    ext = get_standard_extensions(F)
+    get(ext, k, nothing)
 end
 function get_standard_extension!(F::PrimeField, k::IntegerUnion, L::FinField)
-  ext = get_attribute!(F, :standard_extensions, Dict{ZZRingElem, FinField}())
-  get!(ext, k, L)
+    ext = get_standard_extensions!(F)
+    get!(ext, k, L)
 end
 function get_standard_extension!(f::Function, F::PrimeField, k::IntegerUnion)
-  ext = get_attribute!(F, :standard_extensions, Dict{ZZRingElem, FinField}())
-  get!(f, ext, k)
+    ext = get_standard_extensions!(F)
+    get!(f, ext, k)
 end
 
 
@@ -142,17 +135,13 @@ end
 function element_from_steinitz_number(F::FinField, n::IntegerUnion)
     p = characteristic(F)
     q = order(F)
-    if n < 0 || n > q
-        error("We need to have 0 <= n <= q")
-    end
-    if n == 0
-        return zero(F)
-    else
-        # this forms a linear combo of F.towervasis rows using vectorrep as coefficients,
-        # and then convert this vector to an element of F.
-        vectorrep = digits(n, base = Int(p))
-        return F(vectorrep * @view tower_basis(F)[1:length(vectorrep), :])
-    end
+    @req 0 <= n <= q "We need to have 0 <= n <= q"
+    n == 0 && return zero(F)
+
+    # this forms a linear combo of F.towervasis rows using vectorrep as coefficients,
+    # and then convert this vector to an element of F.
+    vectorrep = digits(n, base = Int(p))
+    return F(vectorrep * @view tower_basis(F)[1:length(vectorrep), :])
 end
 
 # Returns an element a in F that is NOT an rth root of unity
@@ -200,7 +189,7 @@ function standard_irreducible_coefficient_list(F::FinField, r::IntegerUnion, a::
         end
         # q can be very very large so Int is not big enough...
         st = digits(standard_affine_shift(qq,count), base = BigInt(q), pad = d-1)
-        # TODO: we can remove this while loop when digits bug for n = 0 is fixed
+        # TODO: we can remove this while loop when fix for n = 0 is live
         while length(st) < d-1
             push!(st, 0)
         end
@@ -224,7 +213,7 @@ function steinitz_number_for_prime_degree(p::IntegerUnion, r::IntegerUnion, k::I
             # Artin-Schreier case
             # k = 1 we get [(Xr[1])^p - (Xr[1]) -1]
             # k > 1 we get (Xr[k])^p - (Xr[k]) - (prod(Xr[j] : j in [1..k-1]))^(p-1))
-            q = big(p)^(p^(k-1))
+            q = ZZ(p)^(p^(k-1))
             return (p-1)*(q + div(q,p))
         elseif r == 2 && mod(p,4) == 3
             if k == 1
@@ -236,7 +225,7 @@ function steinitz_number_for_prime_degree(p::IntegerUnion, r::IntegerUnion, k::I
                 return steinitz_number(-a)
             else
                 # Xr[i]^2 - Xr[i-1]
-                return (p-1)*big(p)^(r^(k-2))
+                return (p-1)*ZZ(p)^(r^(k-2))
             end
         elseif r == 2
             if k == 1
@@ -245,7 +234,7 @@ function steinitz_number_for_prime_degree(p::IntegerUnion, r::IntegerUnion, k::I
                 return steinitz_number(-a)
             else
                 # Xr[j]^r - Xr[j-1]
-                return (p-1)*big(p)^(r^(k-2))
+                return (p-1)*ZZ(p)^(r^(k-2))
             end
         else
             # Here we use pseudo-random polynomials...
@@ -289,17 +278,15 @@ function standard_monomial(n::IntegerUnion)
     error("not implemented")
 end
 # just return degrees
-function standard_monomial_degrees(n::IntegerUnion)
+function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
     if n == 1
         return [1]
     end
     # need the largest prime factor a of n
-    nfactorization = factor(ZZ(n))
-    nfactors = sort([r for (r,e) in nfactorization])
-    a = Int(nfactors[end])
+    a, k = largest_factor(n)
     res = standard_monomial_degrees(div(n,a))
-    k = a^nfactorization[a]
-    new = map( x -> lcm(x, k), res)
+    m = a^k
+    new = map( x -> lcm(x, m), res)
     for i = 1:a-1
         append!(res, new)
     end
@@ -432,31 +419,25 @@ end
 
 
 # TODO: this should work also if p is an integer
-function standard_finite_field(p::T, n::IntegerUnion) where T<:IntegerUnion
-    if !isprime(p)
-        error()
-    end
+function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
+    @req isprime(p) "first argment must be a prime"
     F = GF(p)
     set_standard_prime_field!(F)
     get_standard_extension!(F, n) do
-      nfactorization = factor(ZZ(n));
-      nfactors = sort([r for (r,e) in nfactorization]);
-      lastfactor = nfactors[end]
-      nK = div(n,lastfactor)
-      K = standard_finite_field(p, nK)
+        lastfactor, k = largest_factor(n)
+        nK = div(n,lastfactor)
+        K = standard_finite_field(p, nK)
+        stn = steinitz_number_for_prime_degree(p, lastfactor, k)
+        n1 = ZZ(lastfactor)^(k-1)
+        q1 = ZZ(p)^n1
 
-      stn = steinitz_number_for_prime_degree(p, Int(lastfactor), nfactorization[lastfactor])
-      n1 = big(lastfactor)^(nfactorization[lastfactor]-1)
-      # BUG this overflows if p is an Int64
-      q1 = big(p)^T(n1)
+        # for each element y in this list, we want to
+        # 1. call EmbedSteinitz(p, n1, nK, y)
+        # 2. this should give a number, we want to use ElementSteinitzNumber to get an element of K.
+        l = digits(stn, base = BigInt(q1))
+        c = map(y -> element_from_steinitz_number(K, embed_steinitz(p, n1, nK, y)), l)
+        b = element_from_steinitz_number(K, p^( findfirst(x -> x == div(nK, n1), standard_monomial_degrees(nK))-1))
 
-      # for each element y in this list, we want to
-      # 1. call EmbedSteinitz(p, n1, nK, y)
-      # 2. this should give a number, we want to use ElementSteinitzNumber to get an element of K.
-      l = digits(stn, base = BigInt(q1))
-      c = map(y -> element_from_steinitz_number(K, embed_steinitz(p, n1, nK, y)), l)
-      b = element_from_steinitz_number(K, p^( findfirst(x -> x == div(nK, n1), standard_monomial_degrees(nK))-1))
-
-      _extension_with_tower_basis(K, lastfactor, c, b)
+        _extension_with_tower_basis(K, lastfactor, c, b)
     end
 end
