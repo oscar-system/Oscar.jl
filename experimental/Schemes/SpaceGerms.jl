@@ -106,7 +106,7 @@ exception results.
 # Examples
 ```jldoctest
 julia> R, (x, y) = QQ["x","y"]
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x-1,y-3])
 ideal(x - 1, y - 3)

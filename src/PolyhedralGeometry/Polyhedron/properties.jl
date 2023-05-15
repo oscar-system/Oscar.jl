@@ -844,7 +844,7 @@ Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 # Examples
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, "x")
-(Univariate Polynomial Ring in x over Rational Field, x)
+(Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
 Polyhedron in ambient dimension 3
@@ -888,7 +888,7 @@ Compute the $h^*$ polynomial of `P` and return it as a polynomial in `R`.
 # Examples
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, "x")
-(Univariate Polynomial Ring in x over Rational Field, x)
+(Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
 Polyhedron in ambient dimension 3

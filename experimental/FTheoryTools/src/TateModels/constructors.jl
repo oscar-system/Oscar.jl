@@ -180,9 +180,20 @@ end
 ################################################
 
 function Base.show(io::IO, t::GlobalTateModel)
+  properties_string = ["Global Tate model over a"]
   if base_fully_specified(t)
-    print(io, "Global Tate model over a concrete base")
+    push!(properties_string, "concrete base")
   else
-    print(io, "Global Tate model over a not fully specified base")
+    push!(properties_string, "not fully specified base")
   end
+  if has_attribute(t, :description)
+    push!(properties_string, "-- " * string(get_attribute(t, :description)))
+  end
+  if has_attribute(t, :arxiv_id)
+    push!(properties_string, "based on arxiv paper " * string(get_attribute(t, :arxiv_id)))
+  end
+  if has_attribute(t, :equ_nr)
+    push!(properties_string, "(equ. " * string(get_attribute(t, :equ_nr)) * ")")
+  end
+  join(io, properties_string, " ")
 end

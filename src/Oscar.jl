@@ -23,54 +23,7 @@ using Preferences
 
 include("imports.jl")
 
-const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
-const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
-                        "libpolymake_julia_jll", "libsingular_julia_jll",
-                        "polymake_jll", "Singular_jll"];
-
-# We read experimental and filter out all packages that follow our desired
-# scheme. Remember those packages to avoid doing this all over again for docs
-# and test.
-# We don't want to interfere with existing stuff in experimental though.
-const expdir = joinpath(@__DIR__, "../experimental")
-const oldexppkgs = [
-  "ExteriorAlgebra",
-  "GaloisGrp",
-  "GITFans",
-  "GModule",
-  "JuLie",
-  "Matrix",
-  "ModStd",
-  "MPolyRingSparse",
-  "Rings",
-  "Schemes",
-  "SymmetricIntersections",
-]
-# DEVELOPER OPTION:
-# The following lines ensure that ToricSchemes is loaded before FTheoryTools.
-# DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
-# For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
-const orderedpkgs = [
-  "ToricSchemes",
-  "FTheoryTools",
-]
-exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
-append!(exppkgs, orderedpkgs)
-
-# Error if something is incomplete in experimental
-for pkg in exppkgs
-  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
-    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
-  end
-  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
-    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
-  end
-end
-
-# force trigger recompile when folder changes
-include_dependency("../experimental")
-
-include("utils.jl")
+include("utils/utils.jl")
 
 # More helpful error message for users on Windows.
 windows_error() = error("""
@@ -84,40 +37,6 @@ if Sys.iswindows()
   windows_error()
 end
 
-# global seed value for oscar to allow creating deterministic random number
-# generators
-# we initialize this here with a random value as well to allow use during
-# precompilation
-const rng_seed = Ref{UInt32}(rand(UInt32))
-
-@doc raw"""
-    get_seed()
-
-Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
-"""
-get_seed() = return rng_seed[]
-
-@doc raw"""
-    set_seed!(s::Integer)
-
-Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
-"""
-function set_seed!(s::Integer)
-  rng_seed[] = convert(UInt32, s)
-end
-
-@doc raw"""
-    get_seeded_rng()
-
-Return a new random number generator object of type MersenneTwister which is
-seeded with the global seed value `Oscar.rng_seed`. This can be used for
-the testsuite to get more stable output and running times. Using a separate RNG
-object for each testset (or file) makes sure previous uses don't affect later
-testcases. It could also be useful for some randomized algorithms.
-The seed will be initialized with a random value during OSCAR startup but can
-be set to a fixed value with `Oscar.set_seed!` as it is done in `runtests.jl`.
-"""
-get_seeded_rng() = return MersenneTwister([get_seed()])
 
 
 function __init__()
@@ -197,9 +116,6 @@ const is_dev = (function()
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
 const oscardir = Base.pkgdir(Oscar)
-const aadir = Base.pkgdir(AbstractAlgebra)
-const nemodir = Base.pkgdir(Nemo)
-const heckedir = Base.pkgdir(Hecke)
 
 function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
@@ -247,15 +163,13 @@ include("printing.jl")
 include("fallbacks.jl")
 
 
+include("Rings/Rings.jl")
 include("Groups/Groups.jl")
 
-include("Rings/Rings.jl")
 include("GAP/GAP.jl")
 
 include("../gap/OscarInterface/julia/alnuth.jl")
 
-include("Groups/group_characters.jl")  # needs some Rings functionality
-include("Groups/action.jl")  # needs some PolynomialRings functionality
 
 include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP

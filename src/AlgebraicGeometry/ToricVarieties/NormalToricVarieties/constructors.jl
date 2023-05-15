@@ -565,7 +565,7 @@ julia> bP3 = blow_up(P3, I)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
+Multivariate polynomial ring in 5 variables over QQ graded by
   x1 -> [1 0]
   x2 -> [0 1]
   x3 -> [0 1]
@@ -621,7 +621,7 @@ julia> bP3 = blow_up(P3, 5)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
+Multivariate polynomial ring in 5 variables over QQ graded by
   x1 -> [1 0]
   x2 -> [0 1]
   x3 -> [0 1]
@@ -633,9 +633,14 @@ function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String 
     new_fan = star_subdivision(fan(v), n)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
-    old_vars = [string(x) for x in gens(cox_ring(v))]
-    @req findfirst(x->occursin(coordinate_name, x), old_vars) === nothing "The name for the blowup coordinate is already taken"
-    new_vars = [if new_rays[i] in rays(fan(v)) old_vars[findfirst(x->x==new_rays[i], rays(fan(v)))] else coordinate_name end for i in 1:length(new_rays)]
+    old_rays = rays(fan(v))
+    old_vars = string.(symbols(cox_ring(v)))
+    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
+    new_vars = Vector{String}(undef, length(new_rays))
+    for i in 1:length(new_rays)
+        j = findfirst(==(new_rays[i]), old_rays)
+        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
+    end
     set_attribute!(new_variety, :coordinate_names, new_vars)
     return new_variety
 end
@@ -675,7 +680,7 @@ julia> v1 = P2 * P2
 Normal toric variety
 
 julia> cox_ring(v1)
-Multivariate Polynomial Ring in 6 variables xx1, xx2, xx3, yx1, ..., yx3 over Rational Field graded by
+Multivariate polynomial ring in 6 variables over QQ graded by
   xx1 -> [1 0]
   xx2 -> [1 0]
   xx3 -> [1 0]
@@ -689,7 +694,7 @@ Normal toric variety
 julia> set_coordinate_names(v2, ["x1", "x2", "x3", "y1", "y2", "y3"])
 
 julia> cox_ring(v2)
-Multivariate Polynomial Ring in 6 variables x1, x2, x3, y1, ..., y3 over Rational Field graded by
+Multivariate polynomial ring in 6 variables over QQ graded by
   x1 -> [1 0]
   x2 -> [1 0]
   x3 -> [1 0]

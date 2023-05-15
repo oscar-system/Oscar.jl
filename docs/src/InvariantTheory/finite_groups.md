@@ -103,10 +103,11 @@ julia> group(IR)
 Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> coefficient_ring(IR)
-Cyclotomic field of order 3
+Number field with defining polynomial _$^2 + _$ + 1
+  over rational field
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]

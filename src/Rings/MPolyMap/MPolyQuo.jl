@@ -69,10 +69,10 @@ julia> F = hom(A, S, [s, s^2, s^3])
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z)
 Codomain:
 =========
-Multivariate Polynomial Ring in s, t over Rational Field
+Multivariate polynomial ring in 2 variables over QQ
 ```
 """
 function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)

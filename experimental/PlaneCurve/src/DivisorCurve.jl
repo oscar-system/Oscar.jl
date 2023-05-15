@@ -29,7 +29,7 @@ Given a curve `C` which is assumed to be smooth and irreducible, return the divi
 # Examples
 ```jldoctest
 julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
 Affine plane curve defined by x^2 + y^2 + y
@@ -81,10 +81,10 @@ Given a curve `C` which is assumed to be smooth and irreducible, return the divi
 # Examples
 ```jldoctest
 julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -93,7 +93,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
@@ -262,7 +262,7 @@ Return `true` if `D` is an effective divisor, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^2 + y + x^2)
 Affine plane curve defined by x^2 + y^2 + y
@@ -302,10 +302,10 @@ Return the multiplicity of the rational function `phi` on the curve `C` at the p
 # Examples
 ```jldoctest
 julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -314,7 +314,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
@@ -449,10 +449,10 @@ Return the divisor defined by the rational function `phi` on the curve `C`.
 # Examples
 ```jldoctest
 julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -461,7 +461,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> phi = T(x)//T(y)
@@ -597,10 +597,10 @@ Return a set of generators of the global sections of the sheaf associated to the
 # Examples
 ```jldoctest
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -609,7 +609,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
@@ -696,10 +696,10 @@ otherwise
 # Examples
 ```jldoctest
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -708,7 +708,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
@@ -740,10 +740,10 @@ Return `true` if the divisor `D` is principal, and `false` otherwise
 # Examples
 ```jldoctest
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -752,7 +752,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
@@ -782,10 +782,10 @@ is linearly equivalent to the divisor defined by `phi`.
 # Examples
 ```jldoctest
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -794,7 +794,7 @@ julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])

@@ -44,7 +44,7 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degr
   p = iterate(ps)[1]
   Qt = base_ring(I)
   Q = base_ring(Qt)
-  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, symbols(Qt), cached = false)[1]
   max_stable = 2
   stable = max_stable
 
@@ -61,7 +61,7 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degr
     @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
     R = residue_ring(ZZ, Int(p)) #fpMPolyRingElem missing...
-    Rt, t = polynomial_ring(R, [string(s) for s = symbols(Qt)], cached = false)
+    Rt, t = polynomial_ring(R, symbols(Qt), cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp = Oscar.exp_groebner_basis(Ip, ord = ord, complete_reduction = true)
     Jp = map(x->lift(Zt, x), Gp)
@@ -127,7 +127,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord
   p = iterate(ps)[1]
   Qt = base_ring(I)
   Q = base_ring(Qt)
-  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, symbols(Qt), cached = false)[1]
   max_stable = 2
   stable = max_stable
 
@@ -146,7 +146,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord
     @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
     R = GF(p)
-    Rt, t = polynomial_ring(R, [string(s) for s = symbols(Qt)], cached = false)
+    Rt, t = polynomial_ring(R, symbols(Qt), cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp, Tp = Oscar._compute_standard_basis_with_transform(Ip, ord, complete_reduction)
     length_gc = length(Gp)

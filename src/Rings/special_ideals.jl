@@ -38,7 +38,7 @@ Return the Katsura ideal in the given polynomial ring `R`.
 # Examples
 ```jldoctest
 julia> R, _ = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> katsura(R)
 ideal(x + 2*y + 2*z - 1, x^2 - x + 2*y^2 + 2*z^2, 2*x*y + 2*y*z - y)

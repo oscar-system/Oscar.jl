@@ -70,10 +70,10 @@ where `x₀,…,xₙ` is a list of variable names.
 julia> projective_space(QQ, [:x, :PPP, :?])
 Projective space of dimension 2
   with homogeneous coordinates x PPP ?
-  over Rational Field
+  over Rational field
 
 julia> homogeneous_coordinate_ring(ans)
-Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by 
+Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   PPP -> [1]
   ? -> [1]

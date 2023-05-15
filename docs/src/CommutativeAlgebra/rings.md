@@ -39,7 +39,7 @@ order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner base
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
 julia> typeof(R)
 ZZMPolyRing
@@ -48,10 +48,10 @@ julia> typeof(x)
 ZZMPolyRingElem
 
 julia> S, (a, b, c) = polynomial_ring(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
 julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
 julia> R === S === T
 true
@@ -59,19 +59,19 @@ true
 
 ```jldoctest
 julia> R1, x = polynomial_ring(QQ, ["x"])
-(Multivariate Polynomial Ring in x over Rational Field, QQMPolyRingElem[x])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[x])
 
 julia> typeof(x)
 Vector{QQMPolyRingElem} (alias for Array{QQMPolyRingElem, 1})
 
 julia> R2, (x,) = polynomial_ring(QQ, ["x"])
-(Multivariate Polynomial Ring in x over Rational Field, QQMPolyRingElem[x])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[x])
 
 julia> typeof(x)
 QQMPolyRingElem
 
 julia> R3, x = polynomial_ring(QQ, "x")
-(Univariate Polynomial Ring in x over Rational Field, x)
+(Univariate polynomial ring in x over QQ, x)
 
 julia> typeof(x)
 QQPolyRingElem
@@ -119,17 +119,17 @@ Gröbner and standard bases are implemented for multivariate polynomial rings ov
 
 ```jldoctest
 julia> QQ
-Rational Field
+Rational field
 
 ```
 ### Finite fields $\mathbb{F_p}$, $p$ a prime
 
 ```jldoctest
 julia> GF(3)
-Galois field with characteristic 3
+Finite field of characteristic 3
 
 julia> GF(ZZ(2)^127 - 1)
-Galois field with characteristic 170141183460469231731687303715884105727
+Finite field of characteristic 170141183460469231731687303715884105727
 
 ```
 
@@ -137,7 +137,7 @@ Galois field with characteristic 170141183460469231731687303715884105727
 
 ```jldoctest
 julia> FiniteField(2, 70, "a")
-(Finite field of degree 70 over F_2, a)
+(Finite field of degree 70 over GF(2), a)
 
 ```
 
@@ -145,19 +145,19 @@ julia> FiniteField(2, 70, "a")
 
 ```jldoctest
 julia> T, t = polynomial_ring(QQ, "t")
-(Univariate Polynomial Ring in t over Rational Field, t)
+(Univariate polynomial ring in t over QQ, t)
 
 julia> K, a = number_field(t^2 + 1, "a")
-(Number field over Rational Field with defining polynomial t^2 + 1, a)
+(Number field of degree 2 over QQ, a)
 
 julia> F = GF(3)
-Galois field with characteristic 3
+Finite field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
-(Univariate Polynomial Ring in t over Galois field with characteristic 3, t)
+(Univariate polynomial ring in t over GF(3), t)
 
 julia> K, a = FiniteField(t^2 + 1, "a")
-(Finite field of degree 2 over F_3, a)
+(Finite field of degree 2 over GF(3), a)
 
 ```
 
@@ -165,21 +165,24 @@ julia> K, a = FiniteField(t^2 + 1, "a")
 
 ```jldoctest
 julia> T, t = polynomial_ring(QQ, "t")
-(Univariate Polynomial Ring in t over Rational Field, t)
+(Univariate polynomial ring in t over QQ, t)
 
 julia> QT = fraction_field(T)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
 julia> parent(t)
-Univariate Polynomial Ring in t over Rational Field
+Univariate polynomial ring in t over QQ
 
 julia> parent(1//t)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
 julia> T, (s, t) = polynomial_ring(GF(3), ["s", "t"]);
 
 julia> QT = fraction_field(T)
-Fraction field of Multivariate Polynomial Ring in s, t over Galois field with characteristic 3
+Fraction field
+  of multivariate polynomial ring in 2 variables over GF(3)
 
 ```
 
@@ -296,10 +299,10 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> coefficient_ring(R)
-Rational Field
+Rational field
 
 julia> gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -344,7 +347,7 @@ basic arithmetic as shown below:
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
 3*x^2 + y*z
@@ -353,7 +356,7 @@ julia> typeof(f)
 QQMPolyRingElem
 
 julia> S, (x, y, z) = grade(R)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -382,7 +385,7 @@ with exponent vectors given by the elements of `e`.
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
 3*x^2 + y*z
@@ -399,10 +402,10 @@ An often more effective way to create polynomials is to use the `MPoly` build co
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of Multivariate Polynomial Ring in x, y over Rational Field
+Builder for an element of Multivariate polynomial ring in 2 variables over QQ
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
@@ -436,7 +439,7 @@ subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bas
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Galois field with characteristic 5, fpMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over GF(5), fpMPolyRingElem[x, y])
 
 julia> c = map(GF(5), [1, 2, 3])
 3-element Vector{fpFieldElem}:
@@ -454,7 +457,8 @@ julia> f = R(c, e)
 x^3*y^2 + 2*x + 3*y
 
 julia> parent(f)
-Multivariate Polynomial Ring in x, y over Galois field with characteristic 5
+Multivariate polynomial ring in 2 variables x, y
+  over finite field of characteristic 5
 
 julia> total_degree(f)
 5

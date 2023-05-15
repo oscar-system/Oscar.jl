@@ -60,7 +60,7 @@ with generators
 PermGroupElem[(1,2,3), (1,2)]
 
 julia> coefficient_ring(IRp)
-Rational Field
+Rational field
 ```
 """
 function invariant_ring(G::MatrixGroup)
@@ -173,7 +173,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -196,16 +196,16 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 with generators
 fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3 graded by
+Multivariate polynomial ring in 3 variables over GF(3) graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -386,11 +386,11 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 with generators
 fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
@@ -569,7 +569,8 @@ julia> MS = molien_series(IR)
 (-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
 
 julia> parent(MS)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
 julia> S2 = symmetric_group(2);
 

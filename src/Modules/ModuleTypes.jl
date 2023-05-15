@@ -100,10 +100,10 @@ which specifies its coordinates with respect to the basis of standard unit vecto
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
@@ -259,7 +259,7 @@ combination of the generators of $M$ which defines $f$.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]

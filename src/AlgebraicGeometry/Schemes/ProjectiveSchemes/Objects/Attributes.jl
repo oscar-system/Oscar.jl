@@ -34,11 +34,11 @@ julia> I = ideal(S, S[1] + S[2]);
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational Field
+  over Rational field
   defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1] by ideal(x + y)
@@ -62,7 +62,7 @@ ideal(x + y)
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational Field
+  over Rational field
   defined by ideal(x + y)
 
 julia> relative_ambient_dimension(X)
@@ -93,7 +93,7 @@ homogeneous ideal ``I`` this returns ``P``.
 # Example
 ```jldoctest
 julia> S, _ = grade(QQ["x", "y", "z"][1])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -103,11 +103,11 @@ ideal(x + y)
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational Field
+  over Rational field
   defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1] by ideal(x + y)
@@ -216,7 +216,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
@@ -254,7 +254,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
@@ -262,16 +262,16 @@ julia> S, _ = grade(Q["x", "y", "z"][1])
 julia> P = projective_scheme(S);
 
 julia> affine_cone(P)
-(Spec of Quotient of Multivariate Polynomial Ring in x, y, z, u, v over Rational Field by ideal(u^2 + v^2), Map with following data
+(Spec of Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2), Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1]
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in x, y, z, u, v over Rational Field by ideal(u^2 + v^2))
+Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2))
 
 ```
 """
@@ -388,7 +388,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate Polynomial Ring in x, y, z over Quotient of Multivariate Polynomial Ring in u, v over Rational Field by ideal(u^2 + v^2) graded by
+(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
