@@ -4,6 +4,9 @@ struct MatroidRealizationSpace
     ambient_ring::Union{Oscar.MPolyRing, Ring, Nothing}
     representation_matrix::Union{Oscar.MatElem,Nothing}
     representable::Bool
+    F::AbstractAlgebra.Ring
+    char::Union{Int,Nothing}
+    q::Union{Int,Nothing}
 end
 
 function Base.show(io::IO, RS::MatroidRealizationSpace)
@@ -17,7 +20,12 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
         println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
         println(io, "avoiding the zero loci of the polynomials\n", RS.inequations)
     end
-end 
+end
+
+function is_representable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
+    RS = new_realization_space(M, char=char, q=q)
+    return RS.representable
+end
 
 #=
 
@@ -499,7 +507,31 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
  end
 
  function new_realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
-    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false)::MatroidRealizationSpace
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, 
+    char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::MatroidRealizationSpace
+
+    if char!=nothing && !isprime(char) && char!=0
+        error("The characteristic has to be 0 or a prime number.")
+    end
+
+    #Construct the base ring as F_p if q=p^k
+    if q!=nothing
+        isprimepower, p, k = is_prime_power_with_data(q)
+        if !isprimepower
+            error("The given q has to be a prime power.")
+        end
+        if char!=nothing && char!=p
+            error("The given characteristic doesn't match q.")
+        else
+            char = p
+        end
+    end
+
+    if char == 0
+        F = QQ
+    elseif char != nothing
+        F = GF(char)
+    end
 
     rk = rank(M)
     n = length(M)
@@ -547,6 +579,12 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
         
     end
 
+    if q != nothing
+        for x_elem in x
+            push!(eqs, x_elem^q-x_elem)
+        end
+    end
+
     def_ideal = ideal(polyR,eqs)
     def_ideal = ideal(groebner_basis(def_ideal))
 #    if !iszero(def_ideal)
@@ -569,7 +607,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
 #        return MatroidRealizationSpace(def_ideal, nothing, nothing, nothing, false)
 #    end
 
-    return MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, representable)
+    return MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, representable, F, char, q)
 end
 
 # A heuristic function that tries to find a sensible basis for the moduli space computation for which the defining ideal is not too complicated
@@ -714,7 +752,7 @@ function small_reduce(MRS::MatroidRealizationSpace)
     new_ineq = unique!(filter(x->!is_unit(x), phi.(MRS.inequations)))
     new_ineq = gens_2_factors(new_ineq)
     
-    return MatroidRealizationSpace(new_ideal, new_ineq, new_ring, new_mat, MRS.representable )
+    return MatroidRealizationSpace(new_ideal, new_ineq, new_ring, new_mat, MRS.representable, MRS.F, MRS.char, MRS.q)
     
 end
 
@@ -876,7 +914,7 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
         nX_FR = matrix_clear_den(phiX)
         nX = matrix(R, [numerator(nX_FR[i,j])  for i in 1:nr, j in 1:nc ])
         
-        MRS_new = MatroidRealizationSpace(ideal(R, Igens_new), Sgens_new, R, nX, MRS.representable )
+        MRS_new = MatroidRealizationSpace(ideal(R, Igens_new), Sgens_new, R, nX, MRS.representable, MRS.F, MRS.char, MRS.q)
         
         return (MRS_new, elim, fullyReduced)
     end
@@ -944,7 +982,7 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
 
     Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
 
-    MRS_new = MatroidRealizationSpace(Inew, Sgens_new, ambR, Xnew, MRS.representable)
+    MRS_new = MatroidRealizationSpace(Inew, Sgens_new, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
 
     return MRS_new
 end
