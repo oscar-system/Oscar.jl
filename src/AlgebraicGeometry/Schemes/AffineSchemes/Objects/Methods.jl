@@ -260,6 +260,6 @@ function _change_base_ring(phi::Any,
   I = modulus(L)
   I_red = ideal(W_red, Phi_W.(gens(I)))
   L_red, pr = quo(W_red, I_red)
-  res = MapFromFunc(x->L_red(phi(x)),R, L_red) 
+  res = compose(restricted_map(Phi_W), pr)
   return L_red, hom(L, L_red, res, check=false)
 end

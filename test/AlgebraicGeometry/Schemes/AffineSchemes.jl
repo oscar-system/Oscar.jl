@@ -202,5 +202,10 @@ end
   m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
   m2 = compose(phi4, inclusion_morphism(V, IA2));
   @test m1 == m2
+
+  # Testing morphisms 
+  inc_U = inclusion_morphism(V, X)
+  (a, b, c) = oscar.change_base(pr, inc_U)
+  @test compose(a, inc_U) == compose(b, c)
 end
 
