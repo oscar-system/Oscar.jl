@@ -79,8 +79,8 @@ julia> dim(toric_base_space(w))
 ```
 """
 @attr AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
-    return w.toric_base_space
+  base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
+  return w.toric_base_space
 end
 
 
@@ -100,8 +100,8 @@ julia> dim(toric_ambient_space(w))
 ```
 """
 @attr AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
-    return w.toric_ambient_space
+  base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
+  return w.toric_ambient_space
 end
 
 
@@ -126,8 +126,8 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::GlobalWeierstrassModel)
-    base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-    return w.calabi_yau_hypersurface
+  base_fully_specified(w) || @vprint :GlobalWeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  return w.calabi_yau_hypersurface
 end
 
 
@@ -193,31 +193,29 @@ julia> length(singular_loci(w))
 ```
 """
 @attr Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::GlobalWeierstrassModel)
-    B = irrelevant_ideal(toric_base_space(w))
-
-    d_primes = primary_decomposition(ideal([discriminant(w)]))
-    nontrivial_d_primes = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}[]
-    for k in 1:length(d_primes)
-        if _is_nontrivial(d_primes[k][2], B)
-            push!(nontrivial_d_primes, d_primes[k])
-        end
+  B = irrelevant_ideal(toric_base_space(w))
+  
+  d_primes = primary_decomposition(ideal([discriminant(w)]))
+  nontrivial_d_primes = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}[]
+  for k in 1:length(d_primes)
+    if _is_nontrivial(d_primes[k][2], B)
+      push!(nontrivial_d_primes, d_primes[k])
     end
-
-    f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
-    g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
-
-    kodaira_types = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}[]
-    for d_prime in nontrivial_d_primes
-        f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
-        g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)
-
-        f_order = !isnothing(f_index) ? saturation_with_index(f_primes[f_index][1], d_prime[2])[2] : 0
-        g_order = !isnothing(g_index) ? saturation_with_index(g_primes[g_index][1], d_prime[2])[2] : 0
-        d_order = saturation_with_index(d_prime[1], d_prime[2])[2]
-        ords = (f_order, g_order, d_order)
-
-        push!(kodaira_types, (d_prime[2], ords, _kodaira_type(d_prime[2], weierstrass_section_f(w), weierstrass_section_g(w), discriminant(w), ords)))
-    end
-    
-    return kodaira_types
+  end
+  
+  f_primes = primary_decomposition(ideal([weierstrass_section_f(w)]))
+  g_primes = primary_decomposition(ideal([weierstrass_section_g(w)]))
+  
+  kodaira_types = Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, Tuple{Int64, Int64, Int64}, String}[]
+  for d_prime in nontrivial_d_primes
+    f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
+    g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)
+    f_order = !isnothing(f_index) ? saturation_with_index(f_primes[f_index][1], d_prime[2])[2] : 0
+    g_order = !isnothing(g_index) ? saturation_with_index(g_primes[g_index][1], d_prime[2])[2] : 0
+    d_order = saturation_with_index(d_prime[1], d_prime[2])[2]
+    ords = (f_order, g_order, d_order)
+    push!(kodaira_types, (d_prime[2], ords, _kodaira_type(d_prime[2], weierstrass_section_f(w), weierstrass_section_g(w), discriminant(w), ords)))
+  end
+  
+  return kodaira_types
 end

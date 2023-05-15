@@ -438,7 +438,7 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
        end
    end
    if m == 1
-      VAR = ["t"]
+      VAR = [:t]
    else
       VAR = [_make_variable("t", i) for i = 1:m]
    end

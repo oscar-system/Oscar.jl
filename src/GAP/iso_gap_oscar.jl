@@ -29,39 +29,11 @@ end
 #
 ################################################################################
 
-# Compute the isomorphism between the GAP domain `F`
-# and a corresponding Oscar object.
-function _iso_gap_oscar(F::GAP.GapObj)
-   if GAPWrap.IsField(F)
-     if GAPWrap.IsFinite(F)
-       return _iso_gap_oscar_field_finite(F)
-     else
-       if GAPWrap.IsRationals(F)
-         return _iso_gap_oscar_field_rationals(F)
-       elseif GAPWrap.IsCyclotomicCollection(F)
-         if GAPWrap.IsCyclotomicField(F)
-           return _iso_gap_oscar_field_cyclotomic(F)
-         elseif F === GAP.Globals.Cyclotomics
-           return _iso_gap_oscar_abelian_closure(F)
-         elseif GAPWrap.DegreeOverPrimeField(F) == 2
-           return _iso_gap_oscar_field_quadratic(F)
-         elseif GAPWrap.IsNumberField(F)
-           return _iso_gap_oscar_number_field(F)
-         end
-       elseif GAPWrap.IsAlgebraicExtension(F)
-         return _iso_gap_oscar_number_field(F)
-       end
-     end
-   elseif GAPWrap.IsZmodnZObjNonprimeCollection(F)
-     return _iso_gap_oscar_residue_ring(F)
-   elseif GAPWrap.IsIntegers(F)
-     return _iso_gap_oscar_ring_integers(F)
-   elseif GAPWrap.IsUnivariatePolynomialRing(F)
-     return _iso_gap_oscar_univariate_polynomial_ring(F)
-   elseif GAPWrap.IsPolynomialRing(F)
-     return _iso_gap_oscar_multivariate_polynomial_ring(F)
-   end
-
+function _iso_gap_oscar_field_of_cyclotomics(F::GAP.GapObj)
+   GAPWrap.IsCyclotomicField(F) && return _iso_gap_oscar_field_cyclotomic(F)
+   F === GAP.Globals.Cyclotomics && return _iso_gap_oscar_abelian_closure(F)
+   GAPWrap.DegreeOverPrimeField(F) == 2 && return _iso_gap_oscar_field_quadratic(F)
+   GAPWrap.IsNumberField(F) && return _iso_gap_oscar_number_field(F)
    error("no method found")
 end
 
@@ -277,6 +249,24 @@ true
 ```
 """
 iso_gap_oscar(F::GAP.GapObj) = GAP.Globals.IsoGapOscar(F)
+
+
+# Compute the isomorphism between a GAP domain
+# and a corresponding Oscar object.
+# In order to admit adding new types of GAP objects,
+# we let GAP's method selection decide which Julia function shall do the work.
+# The methods must be installed in GAP at runtime,
+# this will be done in the OscarInterface package.
+const _iso_gap_oscar_methods = []
+
+push!(_iso_gap_oscar_methods, "IsField and IsFinite" => _iso_gap_oscar_field_finite)
+push!(_iso_gap_oscar_methods, "IsRationals" => _iso_gap_oscar_field_rationals)
+push!(_iso_gap_oscar_methods, "IsField and IsCyclotomicCollection" => _iso_gap_oscar_field_of_cyclotomics)
+push!(_iso_gap_oscar_methods, "IsField and IsAlgebraicExtension" => _iso_gap_oscar_number_field)
+push!(_iso_gap_oscar_methods, "IsIntegers" => _iso_gap_oscar_ring_integers)
+push!(_iso_gap_oscar_methods, "IsRing and IsZmodnZObjNonprimeCollection" => _iso_gap_oscar_residue_ring)
+push!(_iso_gap_oscar_methods, "IsUnivariatePolynomialRing" => _iso_gap_oscar_univariate_polynomial_ring)
+push!(_iso_gap_oscar_methods, "IsPolynomialRing" => _iso_gap_oscar_multivariate_polynomial_ring)
 
 
 ################################################################################

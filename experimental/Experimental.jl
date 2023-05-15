@@ -1,3 +1,5 @@
+include("JuLie.jl")
+
 for pkg in Oscar.exppkgs
   include("$pkg/src/$pkg.jl")
 end
@@ -9,8 +11,6 @@ include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
 include("SymmetricIntersections.jl")
-
-include("JuLie.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")

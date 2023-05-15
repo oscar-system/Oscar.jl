@@ -57,7 +57,7 @@ end
 @doc raw"""
     gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
 
-Returns a list of generators of the Chow ring of a
+Return a list of generators of the Chow ring of a
 complete, simplicial toric variety.
 
 Recall that the cones of a complete, simplicial toric variety
@@ -91,7 +91,7 @@ end
 @doc raw"""
     map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
 
-Returns a dictionary which maps the generators of the chow
+Return a dictionary which maps the generators of the chow
 ring to monomials in the Cox ring. This dictionary involves
 a choice, i.e. is not unique.
 

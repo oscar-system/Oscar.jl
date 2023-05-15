@@ -109,7 +109,7 @@ polynomial(c::CohomologyClass) = c.p
 @doc raw"""
     polynomial(c::CohomologyClass, ring::MPolyQuoRing)
 
-Returns the polynomial in `ring` corresponding
+Return the polynomial in `ring` corresponding
 to the cohomology class `c`.
 
 # Examples

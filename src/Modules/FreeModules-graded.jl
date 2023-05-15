@@ -26,15 +26,15 @@ const RingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRi
   end
 end
 
-function FreeModule(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) 
+function FreeModule(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) 
   return FreeModule_dec([grading_group(R)[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
-free_module(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
+free_module(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false)
+function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
-free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
+free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
