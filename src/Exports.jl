@@ -895,6 +895,7 @@ export mathieu_group
 export matrix_group
 export matrix_kernel
 export matrix_ordering
+export matroid_base_polytope
 export matroid_from_bases
 export matroid_from_circuits
 export matroid_from_hyperplanes
@@ -928,6 +929,7 @@ export minimal_subalgebra_generators
 export minkowski_sum
 export minor
 export modulus
+export moebius_kantor_matroid
 export moebius_mu
 export molien_series
 export monomial_ordering
@@ -1052,6 +1054,7 @@ export pc_group
 export pcore
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
+export perles_matroid
 export perm
 export permutation
 export permutation_group
@@ -1110,6 +1113,7 @@ export quadratic_form
 export quaternion_group
 export quo
 export quotient
+export R10_matroid
 export radical
 export radical_membership
 export rand

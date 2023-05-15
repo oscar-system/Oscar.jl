@@ -741,12 +741,37 @@ Construct the Pappus matroid.
 """
 pappus_matroid() = Matroid(Polymake.matroid.pappus_matroid())
 
+
+"""
+    moebius_kantor_matroid() 
+
+Construct the Möbius-Kantor matroid.
+"""
+moebius_kantor_matroid() = matroid_from_revlex_basis_encoding("0******0******0**********0********0*******0****0**0*****", 3, 8)
+
+"""
+    perles_matroid() 
+
+Construct the Perles matroid.
+"""
+
+perles_matroid() = matroid_from_revlex_basis_encoding("0000************0**********0****0**********0****0****************0*****0******0*****", 3, 9)
+
+
 """
     vamos_matroid()
 
 Construct the Vamos matroid.
 """
 vamos_matroid() = Matroid(Polymake.matroid.vamos_matroid())
+
+"""
+    R10_matroid() 
+
+Construct the R10 matroid.
+"""
+
+R10_matroid() = matroid_from_revlex_basis_encoding("0000000********0****00********0****00000*0**0**0**0*****0********0****0****00*0**0*0*0*00*******00**0***000**00*0**0*0*0**0*0*0********0****0*******000*00**0**00****0*0*0*00*0**00***0**0**0*00*0**0000**00****00********00**0**0*00****00***00*0**0*******", 5, 10)
 
 """
     all_subsets_matroid(r)
