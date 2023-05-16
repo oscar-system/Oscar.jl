@@ -3,8 +3,8 @@
   mktempdir() do path
 
 
-    @testset "ZLat" begin
-      L = Zlattice(ZZ[1 2;],gram=ZZ[0 1;1 0])
+    @testset "ZZLat" begin
+      L = integer_lattice(ZZ[1 2;],gram=ZZ[0 1;1 0])
       V = ambient_space(L)
 
       test_save_load_roundtrip(path, L) do loaded
