@@ -45,10 +45,10 @@ Addition and multiplication by an integer of a point on an elliptic curve can be
 
 ```jldoctest
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
@@ -57,7 +57,7 @@ julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
 Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
 
 julia> PP = Oscar.proj_space(E)
-Projective space of dim 2 over Rational Field
+Projective space of dim 2 over Rational field
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP, [QQ(2), QQ(2), QQ(1)])
 (2 : 2 : 1)
@@ -121,10 +121,10 @@ julia> A = residue_ring(ZZ, ZZ(n))
 Integers modulo 4453
 
 julia> S, (x,y,z) = polynomial_ring(A, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453, AbstractAlgebra.Generic.MPoly{ZZModRingElem}[x, y, z])
+(Multivariate polynomial ring in 3 variables over ZZ/(4453), AbstractAlgebra.Generic.MPoly{ZZModRingElem}[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
+(Multivariate polynomial ring in 3 variables over ZZ/(4453) graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x, y, z])

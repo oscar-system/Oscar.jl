@@ -17,7 +17,7 @@ julia> K = PadicField(7, 2)
 Field of 7-adic numbers
 
 julia> Kxy, (x,y) = K["x", "y"]
-(Multivariate Polynomial Ring in x, y over Field of 7-adic numbers, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+(Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{padic}[x, y])
 
 julia> f = 7*x+y+49
 (7^1 + O(7^3))*x + y + 7^2 + O(7^4)
@@ -64,10 +64,10 @@ returns the tropicalization of `f` as a polynomial over the tropical semiring.
 # Examples
 ```jldoctest
 julia> R, (x,y) = polynomial_ring(QQ,["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> val = TropicalSemiringMap(QQ,7)
-The 7-adic valuation on Rational Field
+The 7-adic valuation on Rational field
 
 julia> f = 7*x+y+49
 7*x + y + 49

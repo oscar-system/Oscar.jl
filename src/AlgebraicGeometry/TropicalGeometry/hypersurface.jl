@@ -64,7 +64,7 @@ julia> T = TropicalSemiring(min)
 Tropical semiring (min)
 
 julia> Txy,(x,y) = T["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
+(Multivariate polynomial ring in 2 variables over tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 julia> f = x+y+1
 x + y + (1)
@@ -128,7 +128,7 @@ return the tropical hypersurface of `f` under the convention specified by `M`.
 julia> K = PadicField(7, 2);
 
 julia> Kxy, (x,y) = K["x", "y"]
-(Multivariate Polynomial Ring in x, y over Field of 7-adic numbers, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+(Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{padic}[x, y])
 
 julia> f = 7*x+y+49;
 
@@ -158,10 +158,10 @@ tropical semiring `val`.
 # Examples
 ```jldoctest
 julia> Kx, (x1,x2) = polynomial_ring(QQ,2)
-(Multivariate Polynomial Ring in x1, x2 over Rational Field, QQMPolyRingElem[x1, x2])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])
 
 julia> val = TropicalSemiringMap(QQ,7)
-The 7-adic valuation on Rational Field
+The 7-adic valuation on Rational field
 
 julia> f = 7*x1+x2+49;
 

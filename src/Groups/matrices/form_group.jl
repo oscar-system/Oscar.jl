@@ -676,7 +676,7 @@ The transformations are represented with respect to the ambient space of `L`.
    return G
 end
 
-@attr MatrixGroup{QQFieldElem,QQMatrix} function isometry_group(L::ZLat)
+@attr MatrixGroup{QQFieldElem,QQMatrix} function isometry_group(L::ZZLat)
   # corner case
   if rank(L) == 0
      return matrix_group(identity_matrix(QQ,degree(L)))
@@ -693,11 +693,11 @@ end
 end
 
 """
-    _isometry_group_via_decomposition(L::ZLat) -> Tuple{MatrixGroup, Vector{QQMatrix}}
+    _isometry_group_via_decomposition(L::ZZLat) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
 """
-function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
+function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
   # TODO: adapt the direct decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
   # but in some examples it is also slower ... up to a factor of 15
@@ -804,7 +804,7 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   return G, sv
 end
 
-function on_lattices(L::ZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   V = ambient_space(L)
   return lattice(V, basis_matrix(L) * matrix(g), check=false)
 end
@@ -859,7 +859,7 @@ end
 
 automorphism_group(L::Hecke.AbstractLat) = isometry_group(L)
 
-orthogonal_group(L::Hecke.ZLat) = isometry_group(L)
+orthogonal_group(L::Hecke.ZZLat) = isometry_group(L)
 
 orthogonal_group(L::Hecke.QuadLat) = isometry_group(L)
 

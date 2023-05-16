@@ -2,7 +2,7 @@
 # QuadSpace
 @registerSerializationType(Hecke.QuadSpace)
 
-@registerSerializationType(ZLat)
+@registerSerializationType(ZZLat)
 
 function save_internal(s::SerializerState, V::Hecke.QuadSpace)
     return Dict(
@@ -20,14 +20,14 @@ end
 
 # We should move this somewhere else at some point, maybe when there is a section
 # on modules
-function save_internal(s::SerializerState, L::ZLat)
+function save_internal(s::SerializerState, L::ZZLat)
     return Dict(
         :basis => save_type_dispatch(s, basis_matrix(L)),
         :ambient_space => save_type_dispatch(s, ambient_space(L))
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{ZLat}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{ZZLat}, dict::Dict)
     B = load_type_dispatch(s, QQMatrix, dict[:basis])
     V = load_type_dispatch(s, Hecke.QuadSpace{QQField, QQMatrix}, dict[:ambient_space])
     return lattice(V, B)

@@ -53,7 +53,7 @@ end
 
 @testset "Orthogonal groups of torsion quadratic modules" begin
 
-  L = Zlattice(gram=3*ZZ[2 1; 1 2])
+  L = integer_lattice(gram=3*ZZ[2 1; 1 2])
   D = discriminant_group(L)
   G = orthogonal_group(D)
   d = D[1]
@@ -64,10 +64,10 @@ end
   @test G(hom(f)) == f
 
 
-  L = Zlattice(gram=3*ZZ[2 1 0; 1 2 0; 0 0 1])
+  L = integer_lattice(gram=3*ZZ[2 1 0; 1 2 0; 0 0 1])
   @test order(orthogonal_group(discriminant_group(L))) == 72
 
-  L = Zlattice(gram=ZZ[0 1; 1 2])
+  L = integer_lattice(gram=ZZ[0 1; 1 2])
   # the trivial group
   D = discriminant_group(L)
   G = orthogonal_group(D)
@@ -84,13 +84,13 @@ end
   T = discriminant_group(root_lattice(:D, 13))
   Tsub, _ = sub(T, 4*gens(T))
   @test order(orthogonal_group(Tsub)) == 1
-  L = Zlattice(gram=ZZ[1 0 0; 0 0 2; 0 2 0])
+  L = integer_lattice(gram=ZZ[1 0 0; 0 0 2; 0 2 0])
   @test order(orthogonal_group(discriminant_group(L)))==6
   # a test for odd lattices
 end
 
 @testset "Orthogonal groups of non-semiregular torquadmod" begin
-  L = Zlattice(gram=matrix(ZZ, [[2, -1, 0, 0, 0, 0],[-1, 2, -1, -1, 0, 0],[0, -1, 2, 0, 0, 0],[0, -1, 0, 2, 0, 0],[0, 0, 0, 0, 6, 3],[0, 0, 0, 0, 3, 6]]))
+  L = integer_lattice(gram=matrix(ZZ, [[2, -1, 0, 0, 0, 0],[-1, 2, -1, -1, 0, 0],[0, -1, 2, 0, 0, 0],[0, -1, 0, 2, 0, 0],[0, 0, 0, 0, 6, 3],[0, 0, 0, 0, 3, 6]]))
   T = discriminant_group(L)
   Tsub, _ = sub(T, [2*T[1], 3*T[2]])
   TT = direct_sum(Tsub, Tsub)[1]
@@ -120,7 +120,7 @@ end
 end
 
 @testset "Embedding of orthogonal groups" begin
-  L = Zlattice(gram=matrix(ZZ, 6, 6, [ 2 -1  0  0  0  0;
+  L = integer_lattice(gram=matrix(ZZ, 6, 6, [ 2 -1  0  0  0  0;
                                       -1  2 -1 -1  0  0;
                                        0 -1  2  0  0  0;
                                        0 -1  0  2  0  0;
