@@ -127,19 +127,17 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
                        dict::Dict)
-    K = load_unknown_type(s, dict[:parent])
-    polynomial = load_unknown_type(s, dict[:polynomial])
-    return K(polynomial)
+    parents = load_parents(s, dict[:parents])
+    return load_terms(s, parents[1:end], dict[:terms], parents[end])
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
                                    dict::Dict,
                                    parent_field::Union{fqPolyRepField, SimpleNumField})
-    polynomial_parent = parent(defining_polynomial(parent_field))
-    polynomial = load_unknown_type(s, dict[:polynomial]; parent=polynomial_parent)
-
-    return parent_field(polynomial)
+    parents = get_parents(parent(defining_polynomial(parent_field)))
+    terms = load_terms(s, parents, dict[:terms], parents[end])
+    return parent_field(terms)
 end
 
 ################################################################################
@@ -342,15 +340,19 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
     return  parent_ring(loaded_num) // parent_ring(loaded_den)
 end
 
+function load_internal(s::DeserializerState,
+                       ::Type{<: FracElem},
+                       dict::Dict)
+    parents = load_parents(s, dict[:parents])
+    return load_terms(s, parents, dict[:terms], parents[end])
+end
+
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: FracElem},
                                    dict::Dict,
                                    parent:: FracField)
-    parts_parent = base_ring(parent)
-    num = load_unknown_type(s, dict[:num]; parent=parts_parent)
-    den = load_unknown_type(s, dict[:den]; parent=parts_parent)
-    
-    return parent(num, den)
+    parents = get_parents(parent)
+    return load_terms(s, parents, dict[:terms], parents[end])
 end
 
 ################################################################################
@@ -413,14 +415,8 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
                        dict::Dict)
-    R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
-    # There is no official way to get the underlying polynomial ring of a rational function field.
-    # So we do the detour via the fraction_field object, of which the rational function field is build from.
-    parent = base_ring(AbstractAlgebra.Generic.fraction_field(R))
-    num = load_unknown_type(s, dict[:num]; parent=parent)
-    den = load_unknown_type(s, dict[:den]; parent=parent)
-
-    return R(num, den)
+    parents = load_parents(dict[:parents])
+    return load_terms(s, parents, dict[:terms], parents[end])
 end
 
 function load_internal_with_parent(s::DeserializerState,

@@ -1,4 +1,26 @@
-function get_parents(parent_ring)
+################################################################################
+# utility functions for parent tree
+
+# loads parent tree
+function load_parents(s::DeserializerState, parents::Vector)
+    parent_ids = [parent[:id] for parent in parents]
+    loaded_parents = []
+    
+    for id in parent_ids
+        if haskey(s.objs, UUID(id))
+            loaded_parent = s.objs[UUID(id)]
+        else
+            parent_dict = s.refs[Symbol(id)]
+            parent_dict[:id] = id
+            loaded_parent = load_unknown_type(s, parent_dict)
+        end            
+        push!(loaded_parents, loaded_parent)
+    end
+    return loaded_parents
+end
+
+# builds parent tree
+function get_parents(parent_ring::Ring)
     parents = Any[parent_ring]
     base = base_ring(parent_ring)
     
@@ -179,6 +201,10 @@ end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::PolyRing)
+    if isempty(terms)
+        return parent_ring(0)
+    end
+    
     # shift so constant starts at 1
     degree = max(map(x->x[1] + 1, terms)...)
     base = base_ring(parent_ring)
@@ -223,22 +249,6 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
     return finish(polynomial)
 end
 
-function load_parents(s::DeserializerState, parents::Vector)
-    parent_ids = [parent[:id] for parent in parents]
-    loaded_parents = []
-    
-    for id in parent_ids
-        if haskey(s.objs, UUID(id))
-            loaded_parent = s.objs[UUID(id)]
-        else
-            parent_dict = s.refs[Symbol(id)]
-            parent_dict[:id] = id
-            loaded_parent = load_unknown_type(s, parent_dict)
-        end            
-        push!(loaded_parents, loaded_parent)
-    end
-    return loaded_parents
-end
 
 function load_internal(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict)
@@ -299,7 +309,7 @@ function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
                        dict::Dict)
     entries_ring = load_unknown_type(s, dict[:base_ring])
-    mat = load_type_dispatch(s, Matrix, dict[:matrix])
+    mat = load_type_dispatch(s, Matrix, dict[:matrix]; parent=entries_ring)
 
     return matrix(entries_ring, mat)
 end
