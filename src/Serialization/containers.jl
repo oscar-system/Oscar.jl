@@ -14,7 +14,6 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
 end
 
 function save_internal(s::SerializerState, vec::Vector{T}) where T <: Tuple
-    println("hello")
     d = Dict{Symbol, Any}(
         :vector => [],
         :entry_type => encodeType(T)
@@ -22,7 +21,6 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T <: Tuple
     
     for tup in vec
         encoded_tup = save_type_dispatch(s, tup)[:data]
-        println(encoded_tup)
         d[:field_types] = encoded_tup[:field_types]
         push!(d[:vector], encoded_tup[:content])
     end
