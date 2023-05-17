@@ -138,6 +138,9 @@ and a ring homomorphism ``φ : 𝕜 → 𝕂`` this returns a triple
     ↑ b₁          ↑ b₂
   X×ₖSpec(𝕂) → Y×ₖSpec(𝕂)
              F
+
+The optional arguments `domain_map` and `codomain_map` can be used 
+to specify the morphisms `b₁` and `b₂`, respectively. 
 ```
 """
 function base_change(phi::Any, f::AbsSpecMor; 
