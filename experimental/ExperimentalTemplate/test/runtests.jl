@@ -1,4 +1,4 @@
 @testset "Experimental template tests" begin
-  S = oscar.ExampleStruct(5)
-  @test 5 == oscar.content(S)
+  S = Oscar.ExampleStruct(5)
+  @test 5 == Oscar.my_access_func(S)
 end

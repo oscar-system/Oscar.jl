@@ -5,11 +5,11 @@ mutable struct ExampleStruct
 end
 
 @doc raw"""
-    content(S::ExampleStruct)
+    my_access_func(S::ExampleStruct)
 
 This is a dummy sample function to teach the use of docstrings.
 """
-function content(S::ExampleStruct)
+function my_access_func(S::ExampleStruct)
   return S.i
 end
 
