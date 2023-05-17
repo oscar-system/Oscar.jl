@@ -157,8 +157,12 @@ function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_space(X::Spec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+@attr function ambient_space(X::Spec{BRT,RT}) where {BRT<:Field, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return affine_variety(Spec(ambient_coordinate_ring(X)), check=false)
+end
+
+@attr function ambient_space(X::Spec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+  return Spec(ambient_coordinate_ring(X))
 end
 
 @attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}

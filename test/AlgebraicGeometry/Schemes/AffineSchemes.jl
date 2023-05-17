@@ -181,3 +181,40 @@ end
   X = Spec(R, I)
   @test !is_smooth(X)
 end
+
+@testset "reduction mod p" begin
+  IA2 = affine_space(ZZ, 2)
+  P = OO(IA2)
+  x, y = gens(P)
+
+  X = subscheme(IA2, x^2 + y^2)
+
+  U = hypersurface_complement(IA2, x)
+
+  V = hypersurface_complement(X, x)
+
+  kk, pr = quo(ZZ, 5)
+  IA2_red, phi1 = base_change(pr, IA2)
+  X_red, phi2 = base_change(pr, X)
+  U_red, phi3 = base_change(pr, U)
+  V_red, phi4 = base_change(pr, V)
+
+  m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
+  m2 = compose(phi4, inclusion_morphism(V, IA2));
+  @test m1 == m2
+
+  # Testing morphisms 
+  inc_U = inclusion_morphism(V, X)
+  (a, b, c) = base_change(pr, inc_U)
+  @test compose(a, inc_U) == compose(b, c)
+
+  # Behaviour for special types
+  U = PrincipalOpenSubset(IA2, y)
+  UU, f = base_change(pr, U)
+  @test UU isa PrincipalOpenSubset
+
+  W = SpecOpen(IA2, [x, y])
+  WW, f = base_change(pr, W)
+  @test WW isa SpecOpen
+end
+
