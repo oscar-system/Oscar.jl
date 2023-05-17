@@ -10,27 +10,40 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
     if is_basic_serialization_type(T)
         d[:entry_type] = encodeType(T)
     end
-    return d
-end
 
-function save_internal(s::SerializerState, vec::Vector{T}) where T <: Tuple
-    d = Dict{Symbol, Any}(
-        :vector => [],
-        :entry_type => encodeType(T)
-    )
-    
-    for tup in vec
-        encoded_tup = save_type_dispatch(s, tup)[:data]
-        d[:field_types] = encoded_tup[:field_types]
-        push!(d[:vector], encoded_tup[:content])
+    if !(T <: RingElem)
+        return d
     end
+
+    entry_parent = parent(vec[1])
+    if has_elem_basic_encoding(entry_parent)
+        d[:vector] = [v[:data] for v in d[:vector]]
+        d[:parent] = save_type_dispatch(s, entry_parent)
+    else
+        d[:parents] = d[:vector][1][:data][:parents]
+        d[:vector] = [v[:data][:terms] for v in d[:vector]]
+    end
+
     return d
 end
 
 # deserialize with specific content type
-function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
+function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where {T}
     if isconcretetype(T)
-      return Vector{T}([load_type_dispatch(s, T, x) for x in dict[:vector]])
+        if haskey(dict, :parent)
+            parent_ring = load_unknown_type(s, dict[:parent])
+            return [
+                load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring) for
+                    x in dict[:vector]
+                    ]
+        elseif haskey(dict, :parents)
+            parents = load_parents(s, dict[:parents])
+            return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
+        elseif haskey(dict, :entry_type)
+            return [load_type_dispatch(s, T, x) for x in dict[:vector]]
+        end
+
+        return Vector{T}([load_type_dispatch(s, T, x) for x in dict[:vector]])
     end
     return Vector{T}([load_unknown_type(s, x) for x in dict[:vector]])
 end
@@ -47,11 +60,20 @@ end
 
 # deserialize without specific content type
 function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
-    if haskey(dict, :entry_type)
+
+    if haskey(dict, :parent)
+        parent_ring = load_unknown_type(s, dict[:parent])
+        return [load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring) for
+                    x in dict[:vector]]
+    elseif haskey(dict, :parents)
+        parents = load_parents(s, dict[:parents])
+        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
+    elseif haskey(dict, :entry_type)
         T = decodeType(dict[:entry_type])
         
         return [load_type_dispatch(s, T, x) for x in dict[:vector]]
     end
+    
     return [load_unknown_type(s, x) for x in dict[:vector]]
 end
 
@@ -59,11 +81,18 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{Vector},
                                    dict::Dict,
                                    parent)
-    if haskey(dict, :entry_type)
+    if haskey(dict, :parent)
+        return [load_internal_with_parent(s, elem_type(parent), x, parent) for
+                    x in dict[:vector]]
+    elseif haskey(dict, :parents)
+        parents = get_parents(parent)
+        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
+    elseif haskey(dict, :entry_type)
         T = decodeType(dict[:entry_type])
         
         return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
     end
+    
     return [load_unknown_type(s, x; parent=parent) for x in dict[:vector]]
 end
 

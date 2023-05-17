@@ -68,7 +68,8 @@ function registerSerializationType(ex::Any,
             encodeType(::Type{<:$ex}) = $str
             # use_id is necessary for now since has_elem_basic_encoding is false for all types
             # and not just parent types, this will have to be reworked in future
-            serialize_with_id(obj::T) where T <: $ex = !has_elem_basic_encoding(obj) && $uses_id 
+            serialize_with_id(obj::T) where T <: $ex = !has_elem_basic_encoding(obj) && $uses_id
+            serialize_with_id(T::Type{<:$ex}) = $uses_id && !has_elem_basic_encoding(T)
         end)
 end
 
@@ -129,6 +130,7 @@ end
 has_elem_basic_encoding(obj::T) where T = false
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 has_elem_basic_encoding(obj::Nemo.fpField) = true
+has_elem_basic_encoding(obj::Nemo.FpField) = true
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 has_elem_basic_encoding(obj::FlintPadicField) = true
 has_elem_basic_encoding(obj::TropicalSemiring) = true
@@ -289,6 +291,53 @@ function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) wher
         end
     end
     return T(fields...)
+end
+
+################################################################################
+# utility functions for parent tree
+
+# loads parent tree
+function load_parents(s::DeserializerState, parents::Vector)
+    parent_ids = [parent[:id] for parent in parents]
+    loaded_parents = []
+    
+    for id in parent_ids
+        if haskey(s.objs, UUID(id))
+            loaded_parent = s.objs[UUID(id)]
+        else
+            parent_dict = s.refs[Symbol(id)]
+            parent_dict[:id] = id
+            loaded_parent = load_unknown_type(s, parent_dict)
+        end            
+        push!(loaded_parents, loaded_parent)
+    end
+    return loaded_parents
+end
+
+# builds parent tree
+function get_parents(parent_ring::Ring)
+    parents = Any[parent_ring]
+    base = base_ring(parent_ring)
+    
+    while (!has_elem_basic_encoding(base))
+        if base isa Field && !(typeof(base) <: Union{FracField, AbstractAlgebra.Generic.RationalFunctionField})
+            if absolute_degree(base) == 1
+                break
+            end
+            if typeof(base) <: Union{NfAbsNS, NfRelNS}
+                pushfirst!(parents, base)
+                ngens = length(gens(base))
+                base = polynomial_ring(base_field(base), ngens)[1]
+            else
+                pushfirst!(parents, base)
+                base = parent(defining_polynomial(base))
+            end
+            continue
+        end
+        pushfirst!(parents, base)
+        base = base_ring(base)
+    end
+    return parents
 end
 
 ################################################################################

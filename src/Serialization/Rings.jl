@@ -1,49 +1,3 @@
-################################################################################
-# utility functions for parent tree
-
-# loads parent tree
-function load_parents(s::DeserializerState, parents::Vector)
-    parent_ids = [parent[:id] for parent in parents]
-    loaded_parents = []
-    
-    for id in parent_ids
-        if haskey(s.objs, UUID(id))
-            loaded_parent = s.objs[UUID(id)]
-        else
-            parent_dict = s.refs[Symbol(id)]
-            parent_dict[:id] = id
-            loaded_parent = load_unknown_type(s, parent_dict)
-        end            
-        push!(loaded_parents, loaded_parent)
-    end
-    return loaded_parents
-end
-
-# builds parent tree
-function get_parents(parent_ring::Ring)
-    parents = Any[parent_ring]
-    base = base_ring(parent_ring)
-    
-    while (!has_elem_basic_encoding(base))
-        if base isa Field && !(typeof(base) <: Union{FracField, AbstractAlgebra.Generic.RationalFunctionField})
-            if absolute_degree(base) == 1
-                break
-            end
-            if typeof(base) <: Union{NfAbsNS, NfRelNS}
-                pushfirst!(parents, base)
-                ngens = length(gens(base))
-                base = polynomial_ring(base_field(base), ngens)[1]
-            else
-                pushfirst!(parents, base)
-                base = parent(defining_polynomial(base))
-            end
-            continue
-        end
-        pushfirst!(parents, base)
-        base = base_ring(base)
-    end
-    return parents
-end
 
 ################################################################################
 # ring of integers (singleton type)
@@ -280,7 +234,7 @@ end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
     parent_ring = load_unknown_type(s, dict[:parent])
-    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
+    gens = load_type_dispatch(s, Vector, dict[:gens])
 
     return ideal(parent_ring, gens)
 end
