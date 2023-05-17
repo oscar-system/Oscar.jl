@@ -40,10 +40,10 @@ function _ambient_space(base::AbstractNormalToricVariety, fiber_ambient_space::A
   fiber_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_ambient_space)))
   
   # Compute the u-matrix
-  weights = transpose(vcat([elem.coeff for elem in cox_ring(base).d]))
+  base_weights = transpose(vcat([elem.coeff for elem in cox_ring(base).d]))
   m1 = transpose(vcat([divisor_class(D1).coeff, divisor_class(D2).coeff]))
   m2 = fiber_rays[1:2,:]
-  u_matrix = solve(weights,(-1)*m1*m2)
+  u_matrix = solve(base_weights,(-1)*m1*m2)
   
   # Form the rays of the toric ambient space
   new_base_rays = hcat(base_rays, u_matrix)
@@ -60,9 +60,42 @@ function _ambient_space(base::AbstractNormalToricVariety, fiber_ambient_space::A
   end
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
-  # Construct and return the ambient space
+  # Construct the ambient space
   ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  
+  # Compute torusinvariant weil divisor group and the class group
+  ambient_space_torusinvariant_weil_divisor_group = free_abelian_group(nrows(ambient_space_rays))
+  ambient_space_class_group = free_abelian_group(nrows(base_weights) + rank(class_group(fiber_ambient_space)))
+  
+  # Construct grading matrix of ambient space
+  ambient_space_grading = zero_matrix(ZZ,rank(ambient_space_torusinvariant_weil_divisor_group),rank(ambient_space_class_group))
+  for i in 1:ncols(base_weights)
+    for j in 1:nrows(base_weights)
+      ambient_space_grading[i,j] = base_weights[j,i]
+    end
+  end
+  fiber_weights = transpose(vcat([elem.coeff for elem in cox_ring(fiber_ambient_space).d]))
+  for i in 1:ncols(fiber_weights)
+    for j in 1:nrows(fiber_weights)
+      ambient_space_grading[i + nrows(base_rays),j + nrows(base_weights)] = fiber_weights[j,i]
+    end
+  end
+  for i in 1:ncols(divisor_class(D1).coeff)
+    ambient_space_grading[1 + nrows(base_rays),i] = divisor_class(D1).coeff[i]
+  end
+  for i in 1:ncols(divisor_class(D2).coeff)
+    ambient_space_grading[2 + nrows(base_rays),i] = divisor_class(D2).coeff[i]
+  end
+  
+  # Construct the grading map for the ambient space
+  ambient_space_grading = hom(ambient_space_torusinvariant_weil_divisor_group, ambient_space_class_group, ambient_space_grading)
+  
   set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], [string(k) for k in gens(cox_ring(fiber_ambient_space))]))
+  set_attribute!(ambient_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, ambient_space_grading)
+  set_attribute!(ambient_space, :class_group, ambient_space_class_group)
+  set_attribute!(ambient_space, :torusinvariant_weil_divisor_group, ambient_space_torusinvariant_weil_divisor_group)
+  
+  # Return the constructed space
   return ambient_space
   
 end

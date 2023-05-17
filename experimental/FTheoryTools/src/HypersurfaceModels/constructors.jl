@@ -59,7 +59,7 @@ function hypersurface_model(base::AbstractNormalToricVariety, fiber_ambient_spac
   # Consistency checks
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
-  if length(findall(in(gens_base_names), gens_fiber_names)) != 0
+  if intersect(Set(gens_base_names), Set(gens_fiber_names)) != Set()
     @vprint :HypersurfaceModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   if completeness_check
@@ -146,55 +146,127 @@ hypersurface_model(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredSc
 
 
 @doc raw"""
-    hypersurface_model(p::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
+    hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
 
 This method constructs a hypersurface model over a base space that is not
-fully specified. The following example exemplifies this approach.
+fully specified. In the background, we construct an auxiliary toric base space.
+This method requires the following information:
+1. The names of the homogeneous coordinates of the auxiliary toric base space.
+2. The grading of the Cox ring of the auxiliary toric base space.
+3. The weights corresponding to the divisor class `D_1` of the auxiliary toric base space under which the first fiber coordinate transforms.
+4. The weights corresponding to the divisor class `D_2` of the auxiliary toric base space under which the first fiber coordinate transforms.
+5. The dimension of the auxiliary toric base space.
+6. The fiber ambient space.
+7. The hypersurface equation.
+The following example exemplifies this constructor.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_vars = ["a1", "a21", "a32", "a43", "a65", "w"]
+6-element Vector{String}:
+ "a1"
+ "a21"
+ "a32"
+ "a43"
+ "a65"
+ "w"
 
-julia> a1 = a10;
+julia> auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
+2×6 Matrix{Int64}:
+ 1   2   3   4   6  0
+ 0  -1  -2  -3  -5  1
 
-julia> a2 = a21 * w;
+julia> D1 = [4,0]
+2-element Vector{Int64}:
+ 4
+ 0
 
-julia> a3 = a32 * w^2;
+julia> D2 = [6,0]
+2-element Vector{Int64}:
+ 6
+ 0
 
-julia> a4 = a43 * w^3;
+julia> d = 3
+3
 
-julia> a6 = a65 * w^5;
+julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
 
-julia> ais = [a1, a2, a3, a4, a6];
+julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
-julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
-Global Tate model over a not fully specified base
+julia> auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ["a1", "a21", "a32", "a43", "a65", "w", "x", "y", "z"]
+(Multivariate polynomial ring in 9 variables over QQ, QQMPolyRingElem[a1, a21, a32, a43, a65, w, x, y, z])
+
+julia> p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 + x * z^4 * a43 * w^3 + z^6 * a65 * w^5
+-a1*x*y*z + a21*w*x^2*z^2 - a32*w^2*y*z^3 + a43*w^3*x*z^4 + a65*w^5*z^6 + x^3 - y^2
+
+julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p)
+Hypersurface model over a not fully specified base
 ```
 """
-function hypersurface_model(p::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
-  # Do something cool!
-  #=
-  @req length(ais) == 5 "We expect exactly 5 Tate sections"
-  @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
-  @req d > 0 "The dimension of the base space must be positive"
-  @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
-  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
-  end
+function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
   
-  # convert Tate sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
-  S = cox_ring(auxiliary_base_space)
-  ring_map = hom(auxiliary_base_ring, S, gens(S))
-  (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
+  # Compute simple information
+  gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
+  set_base_vars = Set(auxiliary_base_vars)
+  set_fiber_vars = Set(gens_fiber_names)
+  gens_p = gens(parent(p))
+  set_p_vars = Set([string(g) for g in gens(parent(p))])
+  
+  # Conduct simple consistency checks
+  @req d > 0 "The dimension of the base space must be positive"
+  @req length(auxiliary_base_vars) >= d "We expect at least as many base variables as the desired base dimension"
+  @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
+  @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
+  @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
+  
+  # Find candidate base spaces and perform consistency checks
+  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
+  @req length(candidates) > 0 "Could not find a full regular star triangulation"
+  f = fan(candidates[1])
+  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
+  
+  # Construct base space of desired dimension
+  fan_rays = matrix(ZZ, rays(f))
+  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
+  fan_max_cone_matrix = matrix(ZZ, cones(f))
+  new_max_cones = Vector{Int}[]
+  for k in 1:nrows(fan_max_cone_matrix)
+    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
+    if length(indices) == d
+      push!(new_max_cones, indices)
+    end
+  end
+  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
+  set_coordinate_names(auxiliary_base_space, auxiliary_base_vars)
+  G1 = free_abelian_group(ncols(auxiliary_base_grading))
+  G2 = free_abelian_group(nrows(auxiliary_base_grading))
+  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
+  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+  set_attribute!(auxiliary_base_space, :class_group, G2)
+  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
+  
+  # Construct ambient space
+  D1_class = ToricDivisorClass(auxiliary_base_space, D1)
+  D2_class = ToricDivisorClass(auxiliary_base_space, D2)
+  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1_class, D2_class)
+  
+  # Map p to cox ring of ambient space
+  S = cox_ring(auxiliary_ambient_space)
+  gens_S = gens(S)
+  image_list = Vector{MPolyRingElem}()
+  for g in gens_p
+    index = findfirst(u -> string(u) == string(g), gens(S))
+    push!(image_list, gens(S)[index])
+  end
+  ring_map = hom(parent(p), S, image_list)
+  hypersurface_equation = ring_map(p)
   
   # construct model
-  auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
-  pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
+  model = HypersurfaceModel(toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space), toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
   set_attribute!(model, :base_fully_specified, false)
-  return model=#
+  return model
+  
 end
 
 
