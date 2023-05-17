@@ -51,23 +51,23 @@ end
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{Vector{T}},
                                    dict::Dict,
-                                   parent) where T
+                                   parent_ring) where T
     if isconcretetype(T)
         if haskey(dict, :parent)
             return [
-                load_internal_with_parent(s, elem_type(parent_ring), x, parent) for
+                load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring) for
                     x in dict[:vector]
                     ]
         elseif haskey(dict, :parents)
-            parents = get_parents(parent)
+            parents = get_parents(parent_ring)
             return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
         elseif haskey(dict, :entry_type)
-            return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
+            return [load_type_dispatch(s, T, x; parent=parent_ring) for x in dict[:vector]]
         end
 
         return Vector{T}([load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]])
     end
-    return Vector{T}([load_unknown_type(s, x; parent=parent) for x in dict[:vector]])
+    return Vector{T}([load_unknown_type(s, x; parent=parent_ring) for x in dict[:vector]])
 end
 
 # deserialize without specific content type
