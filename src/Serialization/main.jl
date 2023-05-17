@@ -130,7 +130,7 @@ end
 function has_basic_encoding(obj::T) where T <: RingElem
     return has_elem_basic_encoding(parent(obj))
 end
-has_basic_encoding(obj::T) where T = false
+has_basic_encoding(obj::T) where T = is_basic_serialization_type(T)
 
 has_elem_basic_encoding(obj::T) where T = false
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1

@@ -379,7 +379,7 @@ function load_internal(s::DeserializerState,
         symbol = load_type_dispatch(s, Symbol, dict[:symbols])
         return RationalFunctionField(R, symbol, cached=false)[1]
     end
-    
+
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
     return RationalFunctionField(R, symbols, cached=false)[1]
 end
