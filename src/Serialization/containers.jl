@@ -17,7 +17,7 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
 
     entry_parent = parent(vec[1])
     if has_elem_basic_encoding(entry_parent)
-        d[:vector] = [v[:data] for v in d[:vector]]
+        d[:vector] = [v for v in d[:vector]]
         d[:parent] = save_type_dispatch(s, entry_parent)
     else
         d[:parents] = d[:vector][1][:data][:parents]
@@ -53,6 +53,18 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent) where T
     if isconcretetype(T)
+        if haskey(dict, :parent)
+            return [
+                load_internal_with_parent(s, elem_type(parent_ring), x, parent) for
+                    x in dict[:vector]
+                    ]
+        elseif haskey(dict, :parents)
+            parents = get_parents(parent)
+            return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
+        elseif haskey(dict, :entry_type)
+            return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
+        end
+
         return Vector{T}([load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]])
     end
     return Vector{T}([load_unknown_type(s, x; parent=parent) for x in dict[:vector]])

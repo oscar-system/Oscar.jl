@@ -127,6 +127,11 @@ function has_elem_basic_encoding(obj::T) where T <: Ring
     return is_basic_serialization_type(elem_type(obj))
 end
 
+function has_basic_encoding(obj::T) where T <: RingElem
+    return has_elem_basic_encoding(parent(obj))
+end
+has_basic_encoding(obj::T) where T = false
+
 has_elem_basic_encoding(obj::T) where T = false
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 has_elem_basic_encoding(obj::Nemo.fpField) = true
@@ -170,9 +175,9 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    # this is only used when serializing basic types like "3//4"
-    # file should know it belongs to QQ somehow
-    if is_basic_serialization_type(T) && s.depth != 0
+    # this is used when serializing basic types like "3//4"
+    # when s.depth == 0 file should know it belongs to QQ
+    if s.depth != 0 && has_basic_encoding(obj)
         return save_internal(s, obj)
     end
 
