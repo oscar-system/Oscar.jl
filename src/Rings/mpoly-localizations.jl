@@ -2901,6 +2901,9 @@ function Base.hash(f::MPolyLocalizedRingHom, h::UInt)
   b = 0xe29cdc1ecb68b7a0 % UInt
   h = hash(domain(f), h)
   h = hash(codomain(f), h)
+  for x in gens(base_ring(domain(f)))
+    h = hash(f(x), h)
+  end
   return xor(h, b)
 end
 
