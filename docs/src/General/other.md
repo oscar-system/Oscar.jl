@@ -2,12 +2,17 @@
 
 ## General differences
 
-- TODO: ``2^{100}`` is evaluated to 0; write ``ZZRingElem(2)^{100}`` to get
-  a long
+- Julia evaluates `2^100` to `0` because `2` is regarded as a 64 bit integer.
+  Write `ZZRingElem(2)^100` to get a long.
+
+- TODO: add more hints of this kind
+
 
 ## Notes for GAP users
 
 This section describes differences between GAP and Oscar.
+(Hints about using GAP in Oscar can be found in the section about
+[GAP Integration](@ref).)
 
 - The syntax of the languages is slightly different.
 
@@ -63,7 +68,7 @@ This section describes differences between GAP and Oscar.
   contrary to most global GAP variables.
   Thus there is always the danger that assignments overwrite Julia functions.
   For example, it is tempting to use `gens`, `hom`, and `map` as names for
-  variables, but Julia or Oscar define them are already.
+  variables, but Julia or Oscar define them already.
 
   (Also copying some lines of code from an Oscar function into a Julia session
   can be dangerous in this sense,
