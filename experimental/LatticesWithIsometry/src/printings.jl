@@ -2,9 +2,9 @@ function Base.show(io::IO,  ::MIME"text/plain", Lf::LatWithIsom)
   println(io, lattice(Lf))
   n = order_of_isometry(Lf)
   if is_finite(n)
-    println(io, "with Isometry of finite order $n")
+    println(io, "with isometry of finite order $n")
   else
-    println(io, "with Isometry of infinite order")
+    println(io, "with isometry of infinite order")
   end
   println(io, "given by")
   print(IOContext(io, :compact => true), isometry(Lf))

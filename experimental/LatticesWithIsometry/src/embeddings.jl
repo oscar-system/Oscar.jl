@@ -206,13 +206,14 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
                                                                      G::AutomorphismGroup{TorQuadModule},
                                                                      ord::Hecke.IntegerUnion,
                                                                      f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(Vinq)),
-                                                                     l::Hecke.IntegerUnion = 0)
+                                                                     l::Hecke.IntegerUnion = -1)
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
   q = codomain(Vinq)
   p = elementary_divisors(V)[1]
   pq, pqtoq = primary_part(q, p)
+  l = l < 0 ? valuation(order(pq), p) : l
   g = valuation(ord, p)
 
   if ord == 1
