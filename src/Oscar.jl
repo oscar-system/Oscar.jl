@@ -192,6 +192,8 @@ include("NumberTheory/GalThy.jl")
 
 include("AlgebraicGeometry/AlgebraicGeometry.jl")
 
+include("TropicalGeometry/TropicalGeometry.jl")
+
 include("InvariantTheory/InvariantTheory.jl")
 
 include("../experimental/Experimental.jl")
