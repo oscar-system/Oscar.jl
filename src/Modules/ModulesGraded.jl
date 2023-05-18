@@ -57,8 +57,24 @@ function graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading
   return M
 end
 
+function graded_free_module(R::Ring, p::Int, W::Vector{Any}, name::String="e")
+  @assert length(W) == p
+  @assert is_graded(R)
+  p == 0 || error("W should be either an empty array or a Vector{GrpAbFinGenElem}")
+  W = GrpAbFinGenElem[]
+  return graded_free_module(R, p, W, name)
+end
+
 function graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e")
   p = length(W)
+  return graded_free_module(R, p, W, name)
+end
+
+function graded_free_module(R::Ring, W::Vector{Any}, name::String="e")
+  p = length(W)
+  @assert is_graded(R)
+  p == 0 || error("W should be either an empty array or a Vector{GrpAbFinGenElem}")
+  W = GrpAbFinGenElem[]
   return graded_free_module(R, p, W, name)
 end
 
@@ -910,7 +926,7 @@ julia> gens(M)
 ```
 """
 function degrees_of_generators(M::SubquoModule{T}) where T
-  return map(gen -> degree(repres(gen)), gens(M))
+  isempty(gens(M)) ? GrpAbFinGenElem[] : map(gen -> degree(repres(gen)), gens(M))
 end
 
 ###############################################################################
