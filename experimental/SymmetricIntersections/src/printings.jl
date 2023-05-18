@@ -23,9 +23,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", LR::LinRep)
   println(io, "Linear representation")
-  println(io, "  of ", underlying_group(LR))
-  println(io, "  over ", base_field(representation_ring(LR)))
-  print(io, "of dimension ", dimension_representation(LR))
+  io = AbstractAlgebra.pretty(io)
+  println(io, AbstractAlgebra.Indent(), "of ", underlying_group(LR))
+  println(io, "over ", AbstractAlgebra.Lowercase(), base_field(representation_ring(LR)))
+  print(io, AbstractAlgebra.Dedent(), "of dimension ", dimension_representation(LR))
 end 
 
 function Base.show(io::IO, LR::LinRep)
@@ -40,9 +41,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", PR::ProjRep)
   println(io, "Projective representation")
-  println(io, "  of ", underlying_group(PR))
-  println(io, "  over ", base_field(representation_ring_linear_lift(PR)))
-  print(io, "of dimension ", dimension_representation(PR))
+  io = AbstractAlgebra.pretty(io)
+  println(io, AbstractAlgebra.Indent(), "of ", underlying_group(PR))
+  println(io, "over ", AbstractAlgebra.Lowercase(), base_field(representation_ring_linear_lift(PR)))
+  print(io, AbstractAlgebra.Dedent(), "of dimension ", dimension_representation(PR))
 end
 
 function Base.show(io::IO, PR::ProjRep)
@@ -57,8 +59,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", RR::RepRing)
   println(io, "Representation ring")
-  println(io, "  of ", underlying_group(RR))
-  print(io, "  over ", base_field(RR))
+  io = AbstractAlgebra.pretty(io)
+  println(io, AbstractAlgebra.Indent(), "of ", underlying_group(RR))
+  print(io, "over ", AbstractAlgebra.Lowercase(), base_field(RR))
+  print(io, AbstractAlgebra.Dedent())
 end
 
 function Base.show(io::IO, RR::RepRing)
@@ -80,8 +84,9 @@ end
 function Base.show(io::IO, ::MIME"text/plain", M::IsotGrass)
   chi = submodule_character(M)
   println(io, "Symmetric Grassmannian of $(degree(chi))-dimensional submodules")
-  println(io, "  of ", module_representation(M))
-  println(io, "with isotypical character")
+  io = AbstractAlgebra.pretty(io)
+  println(io, AbstractAlgebra.Indent(), "of ", AbstractAlgebra.Lowercase(), module_representation(M))
+  println(io, AbstractAlgebra.Dedent(), "with isotypical character")
   print(io, chi)
 end
 
@@ -98,8 +103,10 @@ end
 function Base.show(io::IO, ::MIME"text/plain", M::CharGrass)
   chi = submodule_character(M)
   println(io, "Symmetric Grassmannian of $(degree(chi))-dimensional submodules")
-  println(io, "  of ", module_representation(M))
-  println(io, "with character")
+  io = AbstractAlgebra.pretty(io)
+  print(io, AbstractAlgebra.Indent(), "of ", AbstractAlgebra.Lowercase(), module_representation(M))
+  println(io)
+  println(io, AbstractAlgebra.Dedent(), "with character")
   print(io, chi)
 end
 
@@ -116,8 +123,9 @@ end
 function Base.show(io::IO, ::MIME"text/plain", M::DetGrass)
   chi = submodule_determinant_character(M)
   println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules")
-  println(io, "  of ", module_representation(M))
-  println(io, "with determinant character")
+  io = AbstractAlgebra.pretty(io)
+  println(io, AbstractAlgebra.Indent(), "of ", AbstractAlgebra.Lowercase(), module_representation(M))
+  println(io, AbstractAlgebra.Dedent(), "with determinant character")
   print(io, chi)
 end
 
@@ -133,7 +141,9 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", M::InvGrass)
   println(io, "Symmetric Grassmannian of $(M.d)-dimensional submodules")
-  print(io, "  of ", module_representation(M))
+  io = AbstractAlgebra.pretty(io)
+  print(io, AbstractAlgebra.Indent(), "of ", AbstractAlgebra.Lowercase(), module_representation(M))
+  print(io, AbstractAlgebra.Dedent())
 end
 
 function Base.show(io::IO, M::InvGrass)
@@ -170,10 +180,14 @@ function Base.show(io::IO, ::MIME"text/plain", symci::SymInter)
     end
     ty *= "$d)"
   end
-  println(io, "Parameter space for intersections of type $(ty)")
-  println(io, "  in the $(n-1)-dimensional projective space")
-  println(io, "    over ", F)
-  print(io, "preserved under the action of ", G)
+  io = AbstractAlgebra.pretty(io)
+  println(io, "Parameter space for intersections")
+  println(io, AbstractAlgebra.Indent(), "of type $(ty)")
+  println(io, "in projective $(n-1)-space")
+  print(io, AbstractAlgebra.Indent(), "over ", AbstractAlgebra.Lowercase())
+  Base.show(IOContext(io, :supercompact => true), F)
+  println(io)
+  print(io, AbstractAlgebra.Dedent(), AbstractAlgebra.Dedent(), "preserved under the action of ", AbstractAlgebra.Lowercase(), G)
 end
 
 function Base.show(io::IO, symci::SymInter)

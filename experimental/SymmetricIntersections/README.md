@@ -14,7 +14,7 @@ The project is experimental. The names of the functions, the functionalities
 available, the extent of the content as well as the existence of this project
 may vary in the coming months.
 
-Moreover, the current implementation of representations theory of finite groups
+Moreover, the current implementation of representation theory of finite groups
 available throughout *should not be taken as a standard* for Oscar: it is a
 temporary solution for the purpose of this project. This part of the code was
 not written by an expert on representation theory, and some of the expensive
@@ -28,7 +28,7 @@ Here is a list of what kind of functionalities are available:
 
 ### Linear representations of finite groups
 
-Basics manipulations of linear representations of finite groups over fields of
+Basics functions for linear representations of finite groups over fields of
 characteristic zero, as well as some complements to character theory, are
 available. Namely, one should be able to create and manipulate linear
 representations of a given finite group over a big enough field *of
@@ -36,8 +36,8 @@ characteristic zero*.
 
 For instance, one can compute the direct sum of representations, the dual
 representation, the symmetric/exterior powers of a representation, but also
-bases for the isotypical components. Finally, few things have been added to
-characters, namely the possibility to switch between characters and
+bases for the *isotypical components*. Finally, few things have been added for
+characters, namely the possibility of switching between characters and
 representations, and enumerating constituents of a given degree.
 
 ### Projective representations
@@ -56,22 +56,26 @@ available for projective representations.
 
 ### Symmetric Grassmannians
 
-We call here *Symmetric Grassmannians* spaces which parametrize submodules of a
+We call here *symmetric Grassmannians* spaces which parametrize submodules of a
 given group algebra modules. In some sense, we add a group action to the usual
 Grassmannian variety, and look for invariant subspaces of a fixed vector space
 on which a group acts.
+
 Even though some functionalities about them are available, the naming
-"Symmetric Grassmannians" is not standard and the usage is quite limited. This
+"symmetric Grassmannians" is not standard and the usage is quite limited. This
 is why the content related to them is not directly exported to the user:
-one may used "Oscar.bla(arguments, of, bla)" to call the corresponding function
+one may use "Oscar.bla(arguments, of, bla)" to call the corresponding function
 "bla".
 
-Given a group algebra modules $M$, represented by a linear representation of a
+Given a group algebra module $M$, represented by a linear representation of a
 finite group, one can create the space parametrising submodules $M$ of a given
 dimension, with given character or with given determinant character. Once
-created, it is possible to ask for a *general element*, some parametrization
-data, a defining ideal of the corresponding variety (these space of modules are
+created, it is possible to ask for a *standard element*, some parametrization
+data, a defining ideal of the corresponding variety (these spaces of modules are
 projective varieties) as well as the dimension as a projective variety.
+
+Here by standard element we mean the submodule obtained by setting
+all the parameters to 1.
 
 ### Parameter space for symmetric intersections
 
