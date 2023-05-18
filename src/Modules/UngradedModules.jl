@@ -5310,9 +5310,6 @@ Note, however, that the check performed by the function requires a Gröbner basi
 
 Return `true` if `a` is well-defined, and `false` otherwise.
 
-# Examples
-```jldoctest
-```
 """
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, V, h)
 hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, A, h)
