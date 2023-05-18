@@ -374,6 +374,10 @@ function elements(I::IdealGens)
   return collect(I)
 end
 
+function ordering(G::Oscar.IdealGens)
+    return G.ord
+end
+
 ##############################################################################
 #
 # Conversion to and from Singular: in particular, some Rings are
@@ -386,7 +390,7 @@ end
 #
 # Singular's polynomial rings are not recursive:
 # 1. singular_poly_ring(R::Ring) tries to create a Singular.PolyRing (with
-#    elements of type Singular.spoly) isomorphic to R 
+#    elements of type Singular.spoly) isomorphic to R
 # 2. singular_coeff_ring(R::Ring) tries to create a ring isomorphic to R that is
 #    acceptable to Singular.jl as 'coefficients'
 #
@@ -1154,14 +1158,14 @@ end
 
 ################################################################################
 
-function _is_integral_domain(R::MPolyRing) 
+function _is_integral_domain(R::MPolyRing)
   return true
 end
 
 @doc raw"""
     total_degree(f::MPolyRingElem, w::Vector{Int})
 
-Given a multivariate polynomial `f` and a weight vector `w` 
+Given a multivariate polynomial `f` and a weight vector `w`
 return the total degree of `f` with respect to the weights `w`.
 """
 function weighted_degree(f::MPolyRingElem, w::Vector{Int})
