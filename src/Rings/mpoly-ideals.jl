@@ -1432,20 +1432,15 @@ function small_generating_set(I::MPolyIdeal)
   # generating set.
 
   R = base_ring(I)
-
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  if !isempty(I.gb)
-    # no need to recompute a GB on the Singular side, if it is already there
-    G = first(values(I.gb))
-    singular_assure(G, G.ord)
-    G.gens.S.isGB = true
-    _, sing_min = Singular.mstd(G.gens.S)
-  else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
-    ring = I.gens.Ox
-    computed_gb = IdealGens(ring, sing_gb, true)
+  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
+  singular_assure(I)
+  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  ring = I.gens.Ox
+  computed_gb = IdealGens(ring, sing_gb, true)
+  if !haskey(I.gb,computed_gb.ord)
+  # if not yet present, store gb for later use
     I.gb[computed_gb.ord] = computed_gb
   end
 
@@ -1459,6 +1454,10 @@ function small_generating_set(I::MPolyIdeal)
     return gens(I)
   end
 end
+
+# in graded rings, reusing a cached gb makes sense, so use minimal_generating_set there
+small_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}) = minimal_generating_set(I)
+
 ################################################################################
 #
 # Grassmann Pluecker Ideal

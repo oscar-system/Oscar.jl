@@ -1620,12 +1620,10 @@ function small_generating_set(I::MPolyQuoIdeal)
 
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-  if isdefined(I, :gb)
-    singular_assure(I.gb)
-    _, sing_min = Singular.mstd(I.gb.gens.S)
-  else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
+  singular_assure(I)
+  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  if !isdefined(I, :gb)
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
   end
@@ -1640,6 +1638,10 @@ function small_generating_set(I::MPolyQuoIdeal)
     return gens(I)
   end
 end
+
+# in the graded case, reusing a cached gb makes sense, so use minimal_generating set there
+small_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})=minimal_generating_set(I)
+
 ################################################################################
 #
 #  Promote rule
