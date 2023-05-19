@@ -960,10 +960,22 @@ is graded of degree `zero(G)`.
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(R, 3)
-Graded free module R^3([0]) of rank 3 over R
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
 
 julia> G = graded_free_module(R, 2)
-Graded free module R^2([0]) of rank 2 over R
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -972,7 +984,13 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-F -> G
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
 e[1] -> y*e[1]
 e[2] -> x*e[1] + y*e[2]
 e[3] -> z*e[2]
