@@ -425,7 +425,7 @@ function tighten_simulation(f::MPolyRingElem,val::TropicalSemiringMap)
   # return f if f = p-t or t-p
   Rtx = parent(f)
   p = val.uniformizer_ring
-  pt = p - gens(Rtx)[1]
+  pt = p - gen(Rtx, 1)
   if f==pt || f==-pt
     return f
   end

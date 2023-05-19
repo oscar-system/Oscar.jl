@@ -341,10 +341,13 @@ function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
   return A.gens[Val(:O), i]
 end
 
-function Base.getindex(A::IdealGens, i::Int)
+function gen(A::IdealGens, i::Int)
   oscar_assure(A)
   return A.gens.O[i]
 end
+
+Base.getindex(A::IdealGens, i::Int) = gen(A, i)
+
 
 function Base.length(A::IdealGens)
   return length(A.gens)

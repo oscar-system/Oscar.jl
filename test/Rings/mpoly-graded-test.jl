@@ -176,7 +176,7 @@ end
   R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
-  @test parent(Q(gens(R.R)[1])) === Q
+  @test parent(Q(gen(R.R, 1))) === Q
 end
 
 @testset "Evaluation" begin
@@ -320,4 +320,14 @@ end
   I = ideal(S, [ f ])
   @test forget_decoration(I) == ideal(R, [ x + y ])
   @test forget_grading(I) == ideal(R, [ x + y ])
+end
+
+@testset "Verify homogenization bugfix" begin
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  @test symbols(R) == [ :x, :y ]
+
+  f = x^3+x^2*y+x*y^2+y^3
+  W = [1 2; 3 4]
+  F = homogenization(f, W, "z", 3)
+  @test symbols(R) == [ :x, :y ]
 end

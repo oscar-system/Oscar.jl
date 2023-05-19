@@ -37,7 +37,7 @@ function Base.indexin(U::AbsSpec, C::Covering)
 #      V = affine_refinements(C)[C[i]]
 #      for j in 1:length(V)
 #        (W, a) = V[j]
-#        for k in 1:length(gens(W))
+#        for k in 1:ngens(W)
 #          U === W[k] && return (i, j, k)
 #        end
 #      end
@@ -159,7 +159,7 @@ function Base.length(C::Covering)
     result = result + 1
     if haskey(affine_refinements(C), U)
       for W in affine_refinements(C)[U]
-        result = result + length(gens(W))
+        result = result + ngens(W)
       end
     end
   end

@@ -444,7 +444,7 @@ Computes the radical.
 end
 #######################################################
 @doc raw"""
-    primary_decomposition(I::MPolyIdeal; alg = :GTZ, cache=true)
+    primary_decomposition(I::MPolyIdeal; algorithm = :GTZ, cache=true)
 
 Return a minimal primary decomposition of `I`. If `I` is the unit ideal, return `[ideal(1)]`.
 
@@ -455,8 +455,8 @@ the $Q_i$ is `I`.
 # Implemented Algorithms
 
 If the base ring of `I` is a polynomial ring over a field, the algorithm of Gianni, Trager, and Zacharias
-is used by default (`alg = :GTZ`). Alternatively, the algorithm by Shimoyama and Yokoyama can be used
-by specifying `alg = :SY`.  For polynomial rings over the integers, the algorithm proceeds as suggested by
+is used by default (`algorithm = :GTZ`). Alternatively, the algorithm by Shimoyama and Yokoyama can be used
+by specifying `algorithm = :SY`.  For polynomial rings over the integers, the algorithm proceeds as suggested by
 Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cite).
 
 !!! warning
@@ -481,7 +481,7 @@ julia> L = primary_decomposition(I)
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
  (ideal(y, x^2), ideal(x, y))
 
-julia> L = primary_decomposition(I, alg = :SY, cache=false)
+julia> L = primary_decomposition(I, algorithm = :SY, cache=false)
 3-element Vector{Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}}}:
  (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
@@ -511,20 +511,20 @@ julia> L = primary_decomposition(I)
  (ideal(9, 3*d^5, d^10), ideal(3, d))
 ```
 """
-function primary_decomposition(I::T; alg=:GTZ, cache=true) where {T<:MPolyIdeal}
-  !cache && return _compute_primary_decomposition(I, alg=alg)
+function primary_decomposition(I::T; algorithm::Symbol=:GTZ, cache::Bool=true) where {T<:MPolyIdeal}
+  !cache && return _compute_primary_decomposition(I, algorithm=algorithm)
   return get_attribute!(I, :primary_decomposition) do
-    return _compute_primary_decomposition(I, alg=alg)
+    return _compute_primary_decomposition(I, algorithm=algorithm)
   end::Vector{Tuple{T,T}}
 end
 
-function _compute_primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
-    if alg == :GTZ
+    if algorithm == :GTZ
       L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
-    elseif alg == :SY
+    elseif algorithm == :SY
       L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
     else
       error("algorithm invalid")
@@ -642,7 +642,7 @@ end
 
 #######################################################
 @doc raw"""
-    minimal_primes(I::MPolyIdeal; alg = :GTZ)
+    minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 
 Return a vector containing the minimal associated prime ideals of `I`.
 If `I` is the unit ideal, return `[ideal(1)]`.
@@ -650,8 +650,8 @@ If `I` is the unit ideal, return `[ideal(1)]`.
 # Implemented Algorithms
 
 If the base ring of `I` is a polynomial ring over a field, the algorithm of
-Gianni, Trager, and Zacharias is used by default (`alg = :GTZ`). Alternatively, characteristic sets can be
-used by specifying `alg = :charSets`. For polynomial rings over the integers,
+Gianni, Trager, and Zacharias is used by default (`algorithm = :GTZ`). Alternatively, characteristic sets can be
+used by specifying `algorithm = :charSets`. For polynomial rings over the integers,
 the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel.
 See [GTZ88](@cite) and [PSS11](@cite).
 
@@ -671,7 +671,7 @@ julia> L = minimal_primes(I)
  ideal(x - y - 1)
  ideal(x^3 - x - y^2)
 
-julia> L = minimal_primes(I, alg = :charSets)
+julia> L = minimal_primes(I, algorithm = :charSets)
 2-element Vector{MPolyIdeal{QQMPolyRingElem}}:
  ideal(x - y - 1)
  ideal(x^3 - x - y^2)
@@ -698,13 +698,13 @@ julia> L = minimal_primes(I)
  ideal(17, a)
 ```
 """
-function minimal_primes(I::MPolyIdeal; alg = :GTZ)
+function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   R = base_ring(I)
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
-    if alg == :GTZ
+    if algorithm == :GTZ
       l = Singular.LibPrimdec.minAssGTZ(I.gens.Sx, I.gens.S)
-    elseif alg == :charSets
+    elseif algorithm == :charSets
       l = Singular.LibPrimdec.minAssChar(I.gens.Sx, I.gens.S)
     else
       error("algorithm invalid")

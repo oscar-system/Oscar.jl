@@ -168,13 +168,11 @@ export SubQuoHom
 export SubdivisionOfPoints
 export SubquoModule
 export SubquoModuleElem
-export ToricCoveredScheme
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
-export ToricSpec
 export TropicalCurve
 export TropicalHypersurface
 export TropicalLinearSpace
@@ -270,6 +268,7 @@ export betti
 export betti_number
 export betti_numbers
 export betti_table
+export billera_lee_polytope
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
@@ -338,6 +337,7 @@ export cohyperplanes
 export cokernel
 export collector
 export coloops
+export column
 export combinatorial_symmetries
 export comm
 export comm!
@@ -346,6 +346,7 @@ export common_refinement
 export complement
 export complement_class_reps, has_complement_class_reps, set_complement_class_reps
 export complement_equation
+export complement_equations
 export complement_ideal
 export complement_of_point_ideal
 export complement_of_prime_ideal
@@ -1009,6 +1010,7 @@ export nullity
 export number_atlas_groups
 export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
 export number_moved_points, has_number_moved_points, set_number_moved_points
+export number_of_complement_equations
 export number_of_factors
 export number_of_partitions
 export number_perfect_groups, has_number_perfect_groups
@@ -1021,6 +1023,7 @@ export nvertices
 export objective_function
 export omega_group
 export on_indeterminates
+export on_lines
 export on_sets
 export on_sets_sets
 export on_tuples
@@ -1097,10 +1100,18 @@ export proj_space
 export project_full
 export projection
 export projection_to_base
+export projective_general_linear_group
 export projective_geometry
+export projective_orthogonal_group
+export projective_omega_group
 export projective_plane
 export projective_scheme
 export projective_space
+export projective_special_linear_group
+export projective_special_orthogonal_group
+export projective_special_unitary_group
+export projective_symplectic_group
+export projective_unitary_group
 export projective_variety
 export projective_algebraic_set
 export pullback
@@ -1115,6 +1126,7 @@ export radical_membership
 export rand
 export rand_pseudo
 export rand_spherical_polytope
+export rand_subpolytope
 export random_affine_linear_polynomials
 export rank
 export rank_action
@@ -1179,6 +1191,7 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export row
 export saturated_ideal
 export saturation
 export saturation_with_index

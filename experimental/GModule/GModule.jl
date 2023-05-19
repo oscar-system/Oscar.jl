@@ -1083,7 +1083,7 @@ end
 #otherwise, this gives a basis of the symmetric matrices, stabilized
 #by the group - but possibly not pos. definite
 #
-#to always get pos. def. one needs a different algo
+#to always get pos. def. one needs a different algorithm
 # - sum over group
 # - approximate reynolds as in invar thy (for number fields and Q/ Z)
 function invariant_forms(C::GModule{<:Any, <:Generic.FreeModule})

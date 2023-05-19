@@ -162,6 +162,10 @@ end
 
 _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
+_incidencematrix(::Val{_face_cone}) = _ray_indices
+
+_incidencematrix(::Val{_face_cone_facet}) = _ray_indices
+
 ###############################################################################
 ###############################################################################
 ### Access properties
@@ -448,6 +452,8 @@ _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
 _ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
+
+_incidencematrix(::Val{_facet_cone}) = _ray_indices
 
 facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 

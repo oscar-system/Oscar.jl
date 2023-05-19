@@ -29,16 +29,16 @@
   Rp = polynomial_ring(RGp)
   Rm = polynomial_ring(RGm)
 
-  @test reynolds_operator(RG0, gens(R0)[3]^3) == gens(R0)[3]^3
-  @test reynolds_operator(RG0, gens(R0)[1]) == zero(R0)
+  @test reynolds_operator(RG0, gen(R0, 3)^3) == gen(R0, 3)^3
+  @test reynolds_operator(RG0, gen(R0, 1)) == zero(R0)
 
-  @test reynolds_operator(RG0, gens(R0)[3]^3) == reynolds_operator(RG0, gens(R0)[3]^3, trivial_character(group(RG0)))
-  @test reynolds_operator(RG0, gens(R0)[1]) == reynolds_operator(RG0, gens(R0)[1], trivial_character(group(RG0)))
+  @test reynolds_operator(RG0, gen(R0, 3)^3) == reynolds_operator(RG0, gen(R0, 3)^3, trivial_character(group(RG0)))
+  @test reynolds_operator(RG0, gen(R0, 1)) == reynolds_operator(RG0, gen(R0, 1), trivial_character(group(RG0)))
 
-  @test reynolds_operator(RGp, gens(Rp)[3]^2) == gens(Rp)[3]^2
-  @test reynolds_operator(RGp, gens(Rp)[1]) == zero(Rp)
+  @test reynolds_operator(RGp, gen(Rp, 3)^2) == gen(Rp, 3)^2
+  @test reynolds_operator(RGp, gen(Rp, 1)) == zero(Rp)
 
-  @test_throws AssertionError reynolds_operator(RGm, gens(Rm)[1])
+  @test_throws AssertionError reynolds_operator(RGm, gen(Rm, 1))
 
   @test length(basis(RG0, 1)) == 0
   @test length(basis(RG0, 1, :reynolds)) == 0

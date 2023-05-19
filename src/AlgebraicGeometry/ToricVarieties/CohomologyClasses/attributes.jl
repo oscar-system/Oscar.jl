@@ -9,7 +9,7 @@ Return the normal toric variety of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -32,7 +32,7 @@ Return the coefficients of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -58,7 +58,7 @@ Return the exponents of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -90,7 +90,7 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -114,7 +114,7 @@ to the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])

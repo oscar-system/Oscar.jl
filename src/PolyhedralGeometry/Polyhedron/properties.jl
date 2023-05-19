@@ -48,6 +48,12 @@ function _ray_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1
     return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _ray_indices(P)]
 end
 
+function _vertex_and_ray_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
+    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))
+end
+
+_incidencematrix(::Val{_face_polyhedron}) = _vertex_and_ray_indices
+
 function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     pface = P.VERTICES_IN_FACETS[_facet_index(P, i), :]
     return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
@@ -56,6 +62,10 @@ end
 _vertex_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
 
 _ray_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
+
+_vertex_and_ray_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), :], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, :])
+
+_incidencematrix(::Val{_face_polyhedron_facet}) = _vertex_and_ray_indices
 
 function _isray(P::Polyhedron, i::Base.Integer)
     return in(i, _ray_indices(pm_object(P)))
@@ -201,6 +211,8 @@ _vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertic
 
 _facet_indices(::Val{_vertex_polyhedron}, P::Polymake.BigObject)=P.FACETS_THRU_VERTICES[_vertex_indices(P),_facet_indices(P)]
 
+_incidencematrix(::Val{_vertex_polyhedron}) = _facet_indices
+
 function _facet_indices(P::Polymake.BigObject)
     vi = Polymake.get_attachment(P, "_facet_indices")
     if isnothing(vi)
@@ -310,6 +322,8 @@ _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false)
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
+_incidencematrix(::Val{_ray_polyhedron}) = _facet_indices
+
 rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = rays(RayVector{T}, P)
 _rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = _rays(RayVector{T}, P)
 
@@ -408,6 +422,10 @@ _affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matri
 _vertex_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
 
 _ray_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
+
+_vertex_and_ray_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), :], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, :])
+
+_incidencematrix(::Val{_facet_polyhedron}) = _vertex_and_ray_indices
 
 facets(::Type{Pair}, P::Polyhedron{T}) where T<:scalar_types = facets(Pair{Matrix{T}, T}, P)
 

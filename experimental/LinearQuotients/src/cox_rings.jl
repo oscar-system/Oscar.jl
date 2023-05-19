@@ -337,7 +337,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
   R = codomain(RVGtoR)
   SAbG = base_ring(RVG) # RVG is a quotient ring graded by Ab(G)
   S = forget_grading(SAbG)
-  StoR = hom(S, R, [ RVGtoR(gens(RVG)[i]) for i in 1:ngens(RVG) ])
+  StoR = hom(S, R, [ RVGtoR(x) for x in gens(RVG) ])
   I = forget_grading(modulus(RVG))
 
   Sdeg, _ = grade(S, [ degree(StoR(x)) for x in gens(S) ])
@@ -538,10 +538,10 @@ function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDec
   end
 
   @vprint :LinearQuotients "Phase 2: Setting up quotient ring\n"
-  Ilk = Ihom*ideal(T, gens(T)[ngens(S) + 1]) + Ihom*ideal(T, gens(T)[ngens(S) + 2])
+  Ilk = Ihom*ideal(T, gen(T, ngens(S) + 1)) + Ihom*ideal(T, gen(T, ngens(S) + 2))
   Q, TtoQ = quo(T, Ilk)
   IhomQ = ideal(Q, [ TtoQ(x) for x in gens(Ihom) ])
-  tlkQ = ideal(Q, [ TtoQ(gens(T)[ngens(S) + 1]), TtoQ(gens(T)[ngens(S) + 2]) ])
+  tlkQ = ideal(Q, [ TtoQ(gen(T, ngens(S) + 1)), TtoQ(gen(T, ngens(S) + 2)) ])
   @vprint :LinearQuotients "Phase 2: Computing intersection\n"
   J = intersect(IhomQ, tlkQ)
   @vprint :LinearQuotients "Phase 2: Simplifying\n"
@@ -590,7 +590,7 @@ function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector
 
   gensI = gens(SoldtoS(Iold))
   for i in 1:length(new_gens)
-    push!(gensI, SoldtoS(new_gens[i]) - gens(S)[ngens(Sold) + i])
+    push!(gensI, SoldtoS(new_gens[i]) - gen(S, ngens(Sold) + i))
   end
   I = ideal(S, gensI)
 

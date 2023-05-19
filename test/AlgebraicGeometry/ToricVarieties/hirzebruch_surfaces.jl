@@ -3,8 +3,8 @@ using Test
 
 @testset "Hirzebruch surfaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    F0 = hirzebruch_surface(0; set_attributes)
-    F5 = hirzebruch_surface(5; set_attributes)
+    F0 = hirzebruch_surface(NormalToricVariety, 0; set_attributes)
+    F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
     
     @testset "F0" begin
         @test is_fano(F0) == true

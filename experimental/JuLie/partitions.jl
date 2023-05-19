@@ -268,37 +268,36 @@ end
 
 
 @doc raw"""
-    ascending_partitions(n::IntegerUnion;alg="ks")
+    ascending_partitions(n::IntegerUnion; algorithm::Symbol=:ks)
 
 Instead of encoding a partition of an integer ``n ≥ 0`` as a *descending*
 sequence (which is our convention), one can also encode it as an *ascending*
 sequence. In the papers Kelleher & O'Sullivan (2014) and Merca (2012) it is
 said that generating the list of all ascending partitions is more efficient
-than generating descending ones. To test this, I have implemented the
+than generating descending ones. To test this, we have implemented the
 algorithms given in the papers:
-1. "ks" (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
-2. "m" is Algorithm 6 in [Mer12](@cite). This is actually similar to "ks".
+1. `:ks` (*default*) is the algorithm "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
+2. `:m` is Algorithm 6 in [Mer12](@cite). This is actually similar to `:ks`.
 
 The ascending partitions are stored here as arrays and are not of type
-`Partition` since the latter are descending by our convention. I am using "ks"
-as default since it looks slicker and I believe there is a tiny mistake in the
-publication of "m" (which I fixed).
+`Partition` since the latter are descending by our convention. We are using `:ks`
+as default since it looks slicker.
 
 # Comparison
 
-I don't see a significant speed difference to the descending encoding:
+We don't see a significant speed difference to the descending encoding:
 ```julia-repl
 julia> @btime partitions(Int8(90));
 3.376 s (56634200 allocations: 6.24 GiB)
 
-julia> @btime ascending_partitions(Int8(90),alg="ks");
+julia> @btime ascending_partitions(Int8(90), algorithm=:ks);
 3.395 s (56634200 allocations: 6.24 GiB)
 
-julia> @btime ascending_partitions(Int8(90),alg="m");
+julia> @btime ascending_partitions(Int8(90), algorithm=:m);
 3.451 s (56634200 allocations: 6.24 GiB)
 ```
 """
-function ascending_partitions(n::IntegerUnion; alg="ks")
+function ascending_partitions(n::IntegerUnion; algorithm::Symbol="ks")
 
   #Argument checking
   @req n >= 0 "n >= 0 required"
@@ -314,7 +313,7 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
   end
 
   # Now, the algorithm starts
-  if alg=="ks"
+  if algorithm === :ks
     P = Vector{T}[]    #this will be the array of all partitions
     a = zeros(T, n)
     k = 2
@@ -341,7 +340,7 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
     end
     return P
 
-  elseif alg=="m"
+  elseif algorithm === :m
     P = Vector{T}[]    #this will be the array of all partitions
     a = zeros(T, n)
     k = 1
@@ -398,7 +397,7 @@ function ascending_partitions(n::IntegerUnion; alg="ks")
     end
     return P
   else
-    error("alg must be either ks or m")
+    error("algorithm must be either :ks or :m")
   end
 
 end

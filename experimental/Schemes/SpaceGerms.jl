@@ -142,7 +142,7 @@ function _vdim_hack(I::MPolyIdeal)
   M = ideal(R,gens(R))
   result=[R(1)]
   J = ideal(R,normal_form(gens(M),I))
-  while dim(J) != length(gens(R))
+  while dim(J) != ngens(R)
     Jtemp = leer
     JN=gens(J)
     for i in 1:length(JN)

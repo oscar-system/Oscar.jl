@@ -216,7 +216,7 @@ function gens(a::MPolyQuoIdeal)
   return map(a.gens.Ox, a.gens.O)
 end
 
-gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
 getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""
@@ -241,7 +241,8 @@ julia> ngens(a)
 ```
 """
 function ngens(a::MPolyQuoIdeal)
-  return length(gens(a))
+  oscar_assure(a)
+  return length(a.gens.O)
 end
 
 

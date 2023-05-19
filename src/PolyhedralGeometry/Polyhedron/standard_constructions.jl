@@ -808,6 +808,28 @@ this is given by McMullen's Upper-Bound-Theorem.
 """
 upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
 
+@doc raw"""
+    billera_lee_polytope(h::AbstractVector)
+
+Construct a simplicial polytope whose h-vector is $h$.
+The corresponding g-vector must be an M-sequence.
+The ambient dimension equals the length of $h$, and the polytope lives in codimension one.
+- [BL81](@cite)
+
+# Examples
+```jldoctest
+julia> BL = billera_lee_polytope([1,3,3,1])
+Polyhedron in ambient dimension 4
+
+julia> f_vector(BL)
+3-element Vector{ZZRingElem}:
+ 6
+ 12
+ 8
+
+```
+"""
+billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)))
 
 @doc raw"""
     polarize(P::Polyhedron)
@@ -1015,3 +1037,36 @@ end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
   rand_spherical_polytope(d, n; distribution=distribution, seed=rand(rng,Int64), precision=precision)
+
+@doc raw"""
+    rand_subpolytope(P::Polyhedron, n::Int; seed=nothing)
+
+Construct a subpolytope of $P$ as the convex hull of $n$ vertices, chosen uniformly at random.
+The polyhedron $P$ must be bounded, and the number $n$ must not exceed the number of vertices.
+
+# Keywords
+- `seed::Int64`:          Seed for random number generation.
+
+# Examples
+```jldoctest
+julia> nvertices(rand_subpolytope(cube(3), 5))
+5
+
+```
+"""
+function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
+  if !bounded(P)
+    throw(ArgumentError("rand_subpolytope: Polyhedron unbounded"))
+  end
+  nv = nvertices(P)
+  if n>nv
+    throw(ArgumentError("rand_subpolytope: number of vertices requested too high"))
+  end
+  opts = Dict{Symbol,Any}()
+  if seed != nothing
+    opts[:seed] = convert(Int64, seed)
+  end
+  pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
+  pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
+  return Polyhedron{T}(pm_obj)
+end
