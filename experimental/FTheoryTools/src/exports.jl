@@ -2,8 +2,8 @@ export AbstractFTheoryModel
 export ClosedSubschemeModel
 export CompleteIntersectionModel
 export GlobalTateModel
-export GlobalWeierstrassModel
 export HypersurfaceModel
+export WeierstrassModel
 export _blowup_global
 export _blowup_global_sequence
 export _is_nontrivial
@@ -23,10 +23,6 @@ export global_tate_model
 export global_tate_model_over_del_pezzo_surface
 export global_tate_model_over_hirzebruch_surface
 export global_tate_model_over_projective_space
-export global_weierstrass_model
-export global_weierstrass_model_over_del_pezzo_surface
-export global_weierstrass_model_over_hirzebruch_surface
-export global_weierstrass_model_over_projective_space
 export hypersurface_equation
 export hypersurface_model_over_del_pezzo_surface
 export hypersurface_model_over_hirzebruch_surface
@@ -56,6 +52,10 @@ export tate_section_a3
 export tate_section_a4
 export tate_section_a6
 export version
+export weierstrass_model
+export weierstrass_model_over_del_pezzo_surface
+export weierstrass_model_over_hirzebruch_surface
+export weierstrass_model_over_projective_space
 export weierstrass_polynomial
 export weierstrass_section_f
 export weierstrass_section_g
