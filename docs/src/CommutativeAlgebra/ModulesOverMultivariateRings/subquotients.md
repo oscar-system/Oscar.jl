@@ -387,6 +387,26 @@ matrix(a::SubQuoHom)
 The domain and codomain of a homomorphism `a`  of type `SubQuoHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
+The functions below test whether a homomorphism of type
+`SubQuoHom` is graded and homogeneous, respectively.
+
+```@docs
+is_graded(a:: SubQuoHom)
+```
+
+```@docs
+is_homogeneous(a:: SubQuoHom)
+```
+
+In the graded case, we additionally have:
+
+```@docs
+degree(a:: SubQuoHom)
+```
+
+```@docs
+grading_group(a:: SubQuoHom)
+```
 
 
 
