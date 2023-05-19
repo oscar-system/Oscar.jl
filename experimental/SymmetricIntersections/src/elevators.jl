@@ -1,13 +1,3 @@
-import Base: length, IteratorSize, eltype
-
-export associated_bounds
-export associated_function
-export degree_of_elevations
-export elevator
-export number_of_elevations
-export underlying_iterator
-export underlying_list
-
 ###############################################################################
 #
 # Accessors
@@ -454,17 +444,4 @@ Base.length(EC::ElevCtx) = number_of_elevations(EC)
 Base.IteratorSize(::Type{T}) where T <: ElevCtx = Base.HasLength()
 
 Base.eltype(::Type{T}) where T <: ElevCtx= Vector{Int}
-
-
-#############################################################################
-#
-#  I/O printing
-#
-#############################################################################
-
-function Base.show(io::IO, ::MIME"text/plain", EC::ElevCtx{T, U}) where {T, U}
-  d = degree_of_elevations(EC)
-  println(io, "$d-elevator of a list with objects of type")
-  print(io, T)
-end
 

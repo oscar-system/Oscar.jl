@@ -13,8 +13,7 @@ const oldexppkgs = [
   "ModStd",
   "MPolyRingSparse",
   "Rings",
-  "Schemes",
-  "SymmetricIntersections",
+  "Schemes"
 ]
 # DEVELOPER OPTION:
 # The following lines ensure that ToricSchemes is loaded before FTheoryTools.
@@ -52,7 +51,6 @@ include("ModStd.jl")
 include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
-include("SymmetricIntersections.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
