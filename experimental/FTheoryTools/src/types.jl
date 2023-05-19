@@ -45,14 +45,14 @@ end
 end
 
 
-@attributes mutable struct GlobalWeierstrassModel
+@attributes mutable struct WeierstrassModel
   weierstrass_f::MPolyRingElem
   weierstrass_g::MPolyRingElem
   weierstrass_polynomial::MPolyRingElem
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
   fiber_ambient_space::AbsCoveredScheme
-  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem,
+  function WeierstrassModel(weierstrass_f::MPolyRingElem,
                             weierstrass_g::MPolyRingElem,
                             weierstrass_polynomial::MPolyRingElem,
                             base_space::AbsCoveredScheme,
@@ -101,6 +101,6 @@ end
   # do something
 end
 
-@attr HypersurfaceModel function conceptual_parent(gwm::GlobalWeierstrassModel)
+@attr HypersurfaceModel function conceptual_parent(gwm::WeierstrassModel)
   # do something
 end

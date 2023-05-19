@@ -17,17 +17,17 @@ global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_s
 
 
 @doc raw"""
-    global_weierstrass_model_over_projective_space(d::Int)
+    weierstrass_model_over_projective_space(d::Int)
 
-This method constructs a global Weierstrass model over the projective space.
+This method constructs a Weierstrass model over the projective space.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_projective_space(3)
-Global Weierstrass model over a concrete base
+julia> weierstrass_model_over_projective_space(3)
+Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_projective_space(d::Int) = global_weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
+weierstrass_model_over_projective_space(d::Int) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
 
 
 @doc raw"""
@@ -63,17 +63,17 @@ global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch
 
 
 @doc raw"""
-    global_weierstrass_model_over_hirzebruch_surface(r::Int)
+    weierstrass_model_over_hirzebruch_surface(r::Int)
 
-This method constructs a global Weierstrass model over a Hirzebruch surface.
+This method constructs a Weierstrass model over a Hirzebruch surface.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_hirzebruch_surface(1)
-Global Weierstrass model over a concrete base
+julia> weierstrass_model_over_hirzebruch_surface(1)
+Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_hirzebruch_surface(r::Int) = global_weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
+weierstrass_model_over_hirzebruch_surface(r::Int) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
 
 
 @doc raw"""
@@ -109,17 +109,17 @@ global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_s
 
 
 @doc raw"""
-    global_weierstrass_model_over_del_pezzo_surface(b::Int)
+    weierstrass_model_over_del_pezzo_surface(b::Int)
 
-This method constructs a global Weierstrass model over a del-Pezzo surface.
+This method constructs a Weierstrass model over a del-Pezzo surface.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_del_pezzo_surface(3)
-Global Weierstrass model over a concrete base
+julia> weierstrass_model_over_del_pezzo_surface(3)
+Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_del_pezzo_surface(b::Int) = global_weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
+weierstrass_model_over_del_pezzo_surface(b::Int) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
 @doc raw"""
@@ -195,7 +195,7 @@ e.g. [Wei18](@cite) and references therein.
 
 ```jldoctest
 julia> tm = su5_weierstrass_model_over_arbitrary_3d_base()
-Global Weierstrass model over a not fully specified base
+Weierstrass model over a not fully specified base
 ```
 """
-su5_weierstrass_model_over_arbitrary_3d_base() = global_weierstrass_model(su5_tate_model_over_arbitrary_3d_base())
+su5_weierstrass_model_over_arbitrary_3d_base() = weierstrass_model(su5_tate_model_over_arbitrary_3d_base())
