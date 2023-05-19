@@ -189,6 +189,10 @@ corresponding property is satisfied, and `false` otherwise. In addition, we have
 ```
 
 ```@docs
+is_isomorphic(F::FreeMod, G::FreeMod)
+```
+
+```@docs
 is_zero(F::AbstractFreeMod)
 ```
 
@@ -202,6 +206,10 @@ of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the c
 
 ```@docs
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
+```
+
+```@docs
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
 ```
 
 Given a homomorphism of type `FreeModuleHom`, a matrix representing it

@@ -41,6 +41,12 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 	matrices. Here, by convention, vectors are row vectors, and matrices operate by
 	multiplication on the right.
 
+!!! note
+    Over a graded ring $R$, we work with graded free modules $R^s$, $R^p$, $R^t$ and graded
+    homomorphisms $a$, $b$. As a consequence, every module involved in the construction of
+	the subquotient defined by $a$ and $b$ carries an induced grading. In particular, the
+	subquotient itself carries an induced grading.
+
 ## Types
 
 All OSCAR types for the finitely presented modules considered here belong to the
@@ -136,7 +142,16 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
+```
 
+In the graded case, we also have:
+
+```@docs
+ grading_group(M::SubquoModule)
+```
+
+```@docs
+degrees_of_generators(M::SubquoModule)
 ```
 
 ## Elements of Subqotients
@@ -298,11 +313,21 @@ Whether a given element of a subquotient is zero can be tested as follows:
 is_zero(m::SubquoModuleElem)
 ```
 
+In the graded case, we additionally have:
+
+```@docs
+is_homogeneous(m::SubquoModuleElem)
+```
+
+```@docs
+degree(m::SubquoModuleElem)
+```
+
 ## Tests on Subqotients
 
 The functions [`is_graded`](@ref), [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
 and [`is_zm_graded`](@ref) carry over analogously to subquotients. They return `true` if the
-corresponding property is satisfied, and `false` otherwise. In addition, we have:
+respective property is satisfied, and `false` otherwise. In addition, we have:
 
 ```@docs
 ==(M::SubquoModule{T}, N::SubquoModule{T}) where T
