@@ -120,7 +120,7 @@ function all_cohomologies(l::ToricLineBundle)
         # -> Hooray! We found the line bundle cohomologies in question.
         
         # obtain the command string
-        class = vec([ZZRingElem(x) for x in divisor_class(l).coeff])
+        class = vec([ZZRingElem(x) for x in divisor_class(toric_divisor_class(l)).coeff])
         command = command_string(v, class)
         
         # execute cohomCalg

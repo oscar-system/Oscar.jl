@@ -11,10 +11,12 @@ CurrentModule = Oscar
 ### Generic constructors
 
 ```@docs
-toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
-toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
+toric_line_bundle(v::AbstractNormalToricVariety, picard_class::GrpAbFinGenElem)
+toric_line_bundle(v::AbstractNormalToricVariety, picard_class::Vector{T}) where {T <: IntegerUnion}
 toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
 toric_line_bundle(d::ToricDivisor)
+toric_line_bundle(v::AbstractNormalToricVariety, dc::ToricDivisorClass)
+toric_line_bundle(dc::ToricDivisorClass)
 ```
 
 ### Tensor products
@@ -49,8 +51,9 @@ is_very_ample(l::ToricLineBundle)
 
 ```@docs
 degree(l::ToricLineBundle)
-divisor_class(l::ToricLineBundle)
+picard_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
+toric_divisor_class(l::ToricLineBundle)
 toric_variety(l::ToricLineBundle)
 ```
 
