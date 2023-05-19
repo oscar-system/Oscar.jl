@@ -989,6 +989,26 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
 
     Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
 
+    #Try to reduce the matrix one last time using the ideal and the inequations
+    m, n = size(Xnew)
+    for i in 1:m
+        for j in 1:n
+            Xnew[i,j] = reduce(Xnew[i,j], gens(Inew))
+        end
+    end
+
+    for j in 1:n
+        g = gcd(Xnew[:,j]...)
+        factors = poly_2_factors(g)
+        for f in factors
+            if f in normal_Sgens
+                for i in 1:m
+                    Xnew[i,j] = Xnew[i,j]/f
+                end
+            end
+        end
+    end
+
     MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
 
     return MRS_new
