@@ -83,7 +83,12 @@ end
   Base.cumulative_compile_timing(true);
 end
 
-if haskey(ENV, "NUMPROCS")
+if !isempty(ARGS)
+  jargs = [arg for arg in ARGS if startswith(arg, "-j")]
+  if !isempty(jargs)
+    numprocs = parse(Int,split(jargs[end], "-j")[end])
+  end
+elseif haskey(ENV, "NUMPROCS")
   numprocs = parse(Int,ENV["NUMPROCS"])
 else
   numprocs = 1
@@ -152,7 +157,7 @@ push!(testlist, "StraightLinePrograms/runtests.jl")
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-@time pmap(x -> include(x), testlist)
+  @time pmap(x -> include(x), testlist)
 
 @static if compiletimes
   Base.cumulative_compile_timing(false);
