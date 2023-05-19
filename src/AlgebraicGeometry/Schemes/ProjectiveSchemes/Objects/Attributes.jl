@@ -265,10 +265,7 @@ julia> affine_cone(P)
 (Spec of Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2), Map with following data
 Domain:
 =======
-Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+S
 Codomain:
 =========
 Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2))
