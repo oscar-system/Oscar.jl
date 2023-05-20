@@ -755,6 +755,56 @@ function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod_dec, T2 <: F
 end
 # for decorations: add SubquoModule_dec for codomain once it exists
 
+@doc raw"""
+    degree(a::FreeModuleHom)
+
+If `a` is graded, return the degree of `a`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G = graded_free_module(R, 2)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> degree(a)
+graded by [1]
+```
+"""
 function degree(f::FreeModuleHom)
   if isdefined(f, :d)
     return f.d
@@ -775,7 +825,7 @@ function degree(f::FreeModuleHom)
     if df === nothing
       df = current_df
     elseif df != current_df
-      error("The homomorphism is not homogeneous.")
+      error("The homomorphism is not graded")
     end
   end
   if df === nothing
@@ -786,14 +836,170 @@ function degree(f::FreeModuleHom)
   return df
 end
 
+@doc raw"""
+    is_graded(a::FreeModuleHom)
+
+Return `true` if `a` is graded, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G = graded_free_module(R, 2)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> is_graded(a)
+true
+```
+"""
 function is_graded(f::FreeModuleHom)
   return isdefined(f, :d)
 end
 
+@doc raw"""
+    grading_group(a::FreeModuleHom)
+
+If `a` is graded, return the grading group of `a`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G = graded_free_module(R, 2)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> is_graded(a)
+true
+
+julia> grading_group(a)
+GrpAb: Z
+```
+"""
 function grading_group(f::FreeModuleHom)
   return grading_group(base_ring(domain(f)))
 end
 
+@doc raw"""
+    is_homogeneous(a::FreeModuleHom)
+
+Return `true` if `a` is homogeneous, `false` otherwise
+
+Here, if `G` is the grading group of `a`, `a` is homogeneous if `a`
+is graded of degree `zero(G)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> G = graded_free_module(R, 2)
+Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^2([0])
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> is_homogeneous(a)
+false
+```
+"""
 function is_homogeneous(f::FreeModuleHom)
   A = grading_group(f)
   return isdefined(f, :d) && degree(f)==A[0]
@@ -1029,6 +1235,67 @@ function set_grading(f::SubQuoHom)
   return f
 end
 
+@doc raw"""
+    degree(a::SubQuoHom)
+
+If `a` is graded, return the degree of `a`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> degree(a)
+Element of
+GrpAb: Z
+with components [2]
+```
+"""
 function degree(f::SubQuoHom)
   if isdefined(f, :d)
     return f.d
@@ -1065,14 +1332,194 @@ function degree(f::SubQuoHom)
   return df
 end
 
+@doc raw"""
+    is_graded(a::SubQuoHom)
+
+Return `true` if `a` is graded, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_graded(a)
+true
+```
+"""
 function is_graded(f::SubQuoHom)
   return isdefined(f, :d)
 end
 
+@doc raw"""
+    grading_group(a::SubQuoHom)
+
+If `a` is graded, return the grading group of `a`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> grading_group(a)
+GrpAb: Z
+```
+"""
 function grading_group(f::SubQuoHom)
   return grading_group(base_ring(domain(f)))
 end
 
+@doc raw"""
+    is_homogeneous(a::SubQuoHom)
+
+Return `true` if `a` is homogeneous, `false` otherwise
+
+Here, if `G` is the grading group of `a`, `a` is homogeneous if `a`
+is graded of degree `zero(G)`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]^1([0]) generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_homogeneous(a)
+false
+```
+"""
 function is_homogeneous(f::SubQuoHom)
   A = grading_group(f)
   return isdefined(f, :d) && degree(f)==A[0]
