@@ -27,6 +27,10 @@ export global_weierstrass_model
 export global_weierstrass_model_over_del_pezzo_surface
 export global_weierstrass_model_over_hirzebruch_surface
 export global_weierstrass_model_over_projective_space
+export hypersurface_equation
+export hypersurface_model_over_del_pezzo_surface
+export hypersurface_model_over_hirzebruch_surface
+export hypersurface_model_over_projective_space
 export sample_toric_scheme
 export sample_toric_variety
 export has_arxiv_id
@@ -35,6 +39,8 @@ export has_doi
 export has_equation_number
 export has_link
 export has_version
+export hypersurface_model
+export set_hypersurface_equation
 export singular_loci
 export link
 export literature_tate_model

@@ -39,8 +39,9 @@ end
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
+  fiber_ambient_space::AbsCoveredScheme
   hypersurface_equation::MPolyRingElem
-  HypersurfaceModel(base_space::AbsCoveredScheme, ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, hypersurface_equation)
+  HypersurfaceModel(base_space::AbsCoveredScheme, ambient_space::AbsCoveredScheme, fiber_ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, fiber_ambient_space, hypersurface_equation)
 end
 
 
