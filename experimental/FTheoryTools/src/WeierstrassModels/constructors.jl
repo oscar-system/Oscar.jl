@@ -52,7 +52,7 @@ function global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::Abst
     @req is_complete(base) "Base space must be complete"
   end
   
-  ambient_space = _ambient_space_from_base(base)
+  ambient_space = _weierstrass_ambient_space_from_base(base)
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
   model = GlobalWeierstrassModel(f, g, pw, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
@@ -147,7 +147,7 @@ function global_weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::M
   g = ring_map(weierstrass_g)
   
   # construct auxiliary ambient space
-  auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
+  auxiliary_ambient_space = _weierstrass_ambient_space_from_base(auxiliary_base_space)
   
   # compute model
   pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))

@@ -55,7 +55,7 @@ function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; com
     @req is_complete(base) "Base space must be complete"
   end
   
-  ambient_space = _ambient_space_from_base(base)
+  ambient_space = _tate_ambient_space_from_base(base)
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
@@ -167,7 +167,7 @@ function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::In
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   
   # construct model
-  auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
+  auxiliary_ambient_space = _tate_ambient_space_from_base(auxiliary_base_space)
   pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
   model = GlobalTateModel(a1, a2, a3, a4, a6, pt, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
   set_attribute!(model, :base_fully_specified, false)

@@ -96,7 +96,8 @@ function __init__()
 
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:GlobalWeierstrassModel)
-
+    add_verbose_scope(:HypersurfaceModel)
+    
     add_verbosity_scope(:LinearQuotients)
 end
 
