@@ -1432,7 +1432,7 @@ function small_generating_set(I::MPolyIdeal)
   # generating set.
 
   R = base_ring(I)
-  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
   singular_assure(I)
