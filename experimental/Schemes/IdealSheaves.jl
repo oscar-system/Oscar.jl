@@ -794,7 +794,7 @@ end
 end
 
 function small_generating_set(II::IdealSheaf)
-    X = scheme(II)
+  X = scheme(II)
   # If there is a simplified covering, do the calculations there.
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   ID = IdDict{AbsSpec, Ideal}()
