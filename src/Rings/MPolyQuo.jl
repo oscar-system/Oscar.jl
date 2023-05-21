@@ -1641,7 +1641,7 @@ function small_generating_set(I::MPolyQuoIdeal)
 end
 
 # in the graded case, reusing a cached gb makes sense, so use minimal_generating set there
-small_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})=minimal_generating_set(I)
+small_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}) = minimal_generating_set(I)
 
 ################################################################################
 #
