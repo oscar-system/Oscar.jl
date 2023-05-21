@@ -799,7 +799,7 @@ function small_generating_set(II::IdealSheaf)
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   ID = IdDict{AbsSpec, Ideal}()
   for U in patches(covering)
-    ID[U] = ideal(base_ring(II(U)),Oscar.small_generating_set(saturated_ideal(II(U))))
+    ID[U] = ideal(base_ring(II(U)),small_generating_set(saturated_ideal(II(U))))
   end
   return(IdealSheaf(X, ID, check = false))
 end
