@@ -1597,6 +1597,10 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
 end
 
+function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
+end
+
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
