@@ -234,7 +234,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyRingEl
   return false, k
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     primary_invariants(IR::InvRing;
       ensure_minimality::Int = 0, degree_bound::Int = 1,
       primary_degrees::Vector{Int} = Int[])

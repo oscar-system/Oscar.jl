@@ -80,7 +80,7 @@ end
 ########################################################################
 # Closures of SpecOpens                                                #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     closure(U::SpecOpen)
 
 Compute the Zariski closure of an open set ``U ⊂ X`` 
@@ -106,7 +106,7 @@ function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuo
   return subscheme(X, I)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     closure(U::SpecOpen, Y::AbsSpec)
 
 Compute the closure of ``U ⊂ Y``.

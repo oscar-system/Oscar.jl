@@ -2,7 +2,7 @@
 ########################################################################
 # Abstract glueings for affine schemes                                 #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     AbsGlueing
 
 A glueing of two affine schemes ``X`` and ``Y`` (the `patches`) along 
@@ -20,7 +20,7 @@ abstract type AbsGlueing{LeftSpecType<:AbsSpec,
 ########################################################################
 # Concrete type for general glueings                                   #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     Glueing
 
 Concrete instance of an `AbsGlueing` for glueings of affine schemes 
@@ -79,7 +79,7 @@ end
 # simplification of underlying algorithms in the background.
 # Hence, the special type.
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     SimpleGlueing
 
 Concrete instance of an `AbsGlueing` for glueings of affine schemes 

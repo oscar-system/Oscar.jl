@@ -111,12 +111,12 @@ julia> small_group_identification(alternating_group(5))
 (60, 5)
 
 julia> small_group_identification(symmetric_group(20))
-ERROR: identification is not available for groups of order 2432902008176640000
+ERROR: ArgumentError: identification is not available for groups of order 2432902008176640000
 ```
 """
 function small_group_identification(G::GAPGroup)
-   isfinite(G) || error("group is not finite")
-   has_small_group_identification(order(G)) || error("identification is not available for groups of order $(order(G))")
+   @req is_finite(G) "group is not finite"
+   @req has_small_group_identification(order(G)) "identification is not available for groups of order $(order(G))"
    res = GAP.Globals.IdGroup(G.X)
    return Tuple{ZZRingElem,ZZRingElem}(res)
 end
@@ -133,14 +133,14 @@ julia> number_small_groups(8)
 5
 
 julia> number_small_groups(4096)
-ERROR: the number of groups of order 4096 is not available
+ERROR: ArgumentError: the number of groups of order 4096 is not available
 
 julia> number_small_groups(next_prime(ZZRingElem(2)^64))
 1
 ```
 """
 function number_small_groups(n::IntegerUnion)
-  has_number_small_groups(n) || error("the number of groups of order $n is not available")
+  @req has_number_small_groups(n) "the number of groups of order $n is not available"
   return ZZRingElem(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
 end
 

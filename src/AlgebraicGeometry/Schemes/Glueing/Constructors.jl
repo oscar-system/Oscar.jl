@@ -2,7 +2,7 @@
 ########################################################################
 # Dummy constructor for documentation only                             #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     Glueing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
 
 Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms 
@@ -126,7 +126,7 @@ end
 ########################################################################
 # Identification of glueings under isomorphisms of patches             #
 ########################################################################
-@doc Markdown.doc"""
+@doc raw"""
     restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
 Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 

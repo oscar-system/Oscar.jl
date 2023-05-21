@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
@@ -27,6 +27,40 @@ const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
                         "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
+
+# We read experimental and filter out all packages that follow our desired
+# scheme. Remember those packages to avoid doing this all over again for docs
+# and test.
+# We don't want to interfere with existing stuff in experimental though.
+const expdir = joinpath(@__DIR__, "../experimental")
+const oldexppkgs = [
+  "ExteriorAlgebra",
+  "GaloisGrp",
+  "GITFans",
+  "GModule",
+  "JuLie",
+  "Matrix",
+  "ModStd",
+  "MPolyRingSparse",
+  "Rings",
+  "Schemes",
+  "SymmetricIntersections",
+]
+const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs), readdir(expdir))
+
+# Error if something is incomplete in experimental
+for pkg in exppkgs
+  if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+  end
+  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+  end
+end
+
+# force trigger recompile when folder changes
+include_dependency("../experimental")
+
 
 # When a specific branch is loaded via `]add Package#branch` julia will only
 # create a checkout and keep a bare git repo in a separate directory.
@@ -84,7 +118,7 @@ function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString
    end
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit=false, full=false)
 
 Print the versions of all Oscar-related dependencies.
@@ -134,14 +168,14 @@ end
 # precompilation
 const rng_seed = Ref{UInt32}(rand(UInt32))
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seed()
 
 Return the current random seed that is used for calls to `Oscar.get_seeded_rng`.
 """
 get_seed() = return rng_seed[]
 
-@doc Markdown.doc"""
+@doc raw"""
     set_seed!(s::Integer)
 
 Set a new global seed for all subsequent calls to `Oscar.get_seeded_rng`.
@@ -150,7 +184,7 @@ function set_seed!(s::Integer)
   rng_seed[] = convert(UInt32, s)
 end
 
-@doc Markdown.doc"""
+@doc raw"""
     get_seeded_rng()
 
 Return a new random number generator object of type MersenneTwister which is
@@ -214,6 +248,11 @@ function __init__()
 
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
+
+    add_verbose_scope(:GlobalTateModel)
+    add_verbose_scope(:GlobalWeierstrassModel)
+
+    add_verbosity_scope(:LinearQuotients)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -277,7 +316,7 @@ function open_doc()
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     build_doc(; doctest=false, strict=false, open_browser=true)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
@@ -365,41 +404,56 @@ function build()
 end
 
 
-@doc Markdown.doc"""
-    test_module(x, new::Bool = true)
+@doc raw"""
+    test_module(file::AbstractString; new::Bool = true)
 
-Run the Oscar tests in the file `x.jl` where `x` is a string.
+Run the Oscar tests in the file `test/<file>.jl` where `file` may be a path.
 
-If `x == "all"` run the entire testsuite.
+The optional parameter `new` takes the values `false` and `true` (default). If
+`true`, then the tests are run in a new session, otherwise the currently active
+session is used.
+
+For experimental modules, use [`test_experimental_module`](@ref) instead.
+"""
+function test_module(file::AbstractString; new::Bool=true)
+  julia_exe = Base.julia_cmd()
+  rel_test_file = normpath("test", "$file.jl")
+  test_file = joinpath(oscardir, rel_test_file)
+
+  if new
+    cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
+    @info("spawning ", `$julia_exe -e \"$cmd\"`)
+    run(`$julia_exe -e $cmd`)
+  else
+    @info("Running tests for $rel_test_file in same session")
+    try
+      include(test_file)
+    catch e
+      if isa(e, LoadError)
+        println("You need to do \"using Test\"")
+      else
+        rethrow(e)
+      end
+    end
+  end
+end
+
+@doc raw"""
+    test_experimental_module(project::AbstractString; file::AbstractString="runtests", new::Bool = true)
+
+Run the Oscar tests in the file `experimental/<project>/test/<file>.jl`
+where `file` may be a path.
+The default is to run the entire test suite of the module `project`.
 
 The optional parameter `new` takes the values `false` and `true` (default). If
 `true`, then the tests are run in a new session, otherwise the currently active
 session is used.
 """
-function test_module(x::AbstractString, new::Bool = true)
-   julia_exe = Base.julia_cmd()
-   if x == "all"
-     test_file = joinpath(oscardir, "test/runtests.jl")
-   else
-     test_file = joinpath(oscardir, "test/$x.jl")
-   end
-
-   if new
-     cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
-     @info("spawning ", `$julia_exe -e \"$cmd\"`)
-     run(`$julia_exe -e $cmd`)
-   else
-     @info("Running tests for $x in same session")
-     try
-       include(test_file)
-     catch e
-       if isa(e, LoadError)
-         println("You need to do \"using Test\"")
-       else
-         rethrow(e)
-       end
-     end
-   end
+function test_experimental_module(
+  project::AbstractString; file::AbstractString="runtests", new::Bool=true
+)
+  test_file = "../experimental/$project/test/$file"
+  test_module(test_file; new)
 end
 
 include("Exports.jl")
@@ -534,7 +588,7 @@ include("Deprecations.jl")
 const global OSCAR = Oscar
 const global oscar = Oscar
 
-@doc Markdown.doc"""
+@doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   ?Nemo
   ?Hecke
@@ -542,7 +596,6 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   for more information
 """
 module ANTIC
-using Markdown
 end
 
 end # module

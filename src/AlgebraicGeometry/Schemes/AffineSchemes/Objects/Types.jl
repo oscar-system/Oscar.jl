@@ -16,7 +16,7 @@
 # (1) Abstract affine schemes
 ###########################################
 
-@doc Markdown.doc"""
+@doc raw"""
     AbsSpec{BaseRingType, RingType<:Ring}
 
 An affine scheme ``X = Spec(R)`` with ``R`` of type `RingType` over
@@ -30,7 +30,7 @@ abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
 # (2) Basic concrete type for affine schemes
 ############################################
 
-@doc Markdown.doc"""
+@doc raw"""
     Spec{BaseRingType, RingType}
 
 An affine scheme ``X = Spec(R)`` with ``R`` a Noetherian ring of type `RingType`

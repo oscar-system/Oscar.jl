@@ -16,7 +16,7 @@ end
 ####################################################
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
@@ -45,7 +45,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vect
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
@@ -74,7 +74,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matr
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism with given domain and associated to the lattice morphism given by the `mapping_matrix`.
@@ -105,7 +105,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMa
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
 
 Construct the toric morphism from the `domain` to the `codomain` with map given by the `grid_morphism`.
@@ -170,7 +170,7 @@ end
 # 3: Special constructors
 ####################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_identity_morphism(variety::AbstractNormalToricVariety)
 
 Construct the toric identity morphism from `variety` to `variety`.

@@ -2,7 +2,7 @@
 # 1: Special attributes of toric varieties
 ########################
 
-@doc Markdown.doc"""
+@doc raw"""
     trivial_divisor(v::AbstractNormalToricVariety)
 
 Construct the trivial divisor of a normal toric variety.
@@ -19,7 +19,7 @@ Torus-invariant, non-prime divisor on a normal toric variety
 @attr ToricDivisor trivial_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, zeros(ZZRingElem, nrays(v)))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     anticanonical_divisor(v::AbstractNormalToricVariety)
 
 Construct the anticanonical divisor of a normal toric variety.
@@ -36,7 +36,7 @@ Torus-invariant, non-prime divisor on a normal toric variety
 @attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, fill(ZZRingElem(1), nrays(v)))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     canonical_divisor(v::AbstractNormalToricVariety)
 
 Construct the canonical divisor of a normal toric variety.

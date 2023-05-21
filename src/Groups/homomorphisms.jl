@@ -116,7 +116,7 @@ function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool 
   else
     mp = GAP.Globals.GroupHomomorphismByImagesNC(G.X, H.X, vgens, vimgs)
   end
-  if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
+  @req mp !== GAP.Globals.fail "Invalid input"
   return GAPGroupHomomorphism(G, H, mp)
 end
 
@@ -441,7 +441,7 @@ to
 """
 function isomorphism(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
-  mp === GAP.Globals.fail && throw(ArgumentError("the groups are not isomorphic"))
+  @req mp !== GAP.Globals.fail "the groups are not isomorphic"
   return GAPGroupHomomorphism(G, H, mp)
 end
 
@@ -449,7 +449,7 @@ function isomorphism(G::GAPGroup, H::GrpGen)
   HtoP = isomorphism(PermGroup, H)
   P = codomain(HtoP)
   fl, GtoP = is_isomorphic_with_map(G, P)
-  !fl && throw(ArgumentError("the groups are not isomorphic"))
+  @req fl "the groups are not isomorphic"
   return GtoP * inv(HtoP)
 end
 
@@ -457,7 +457,7 @@ function isomorphism(G::GrpGen, H::GAPGroup)
   GtoP = isomorphism(PermGroup, G)
   P = codomain(GtoP)
   fl, PtoH = is_isomorphic_with_map(P, H)
-  !fl && throw(ArgumentError("the groups are not isomorphic"))
+  @req fl "the groups are not isomorphic"
   return GtoP * PtoH
 end
 
@@ -507,7 +507,7 @@ function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, 
    return get!(isos, T) do
      fun = _get_iso_function(T)
      f = fun(G.X)::GapObj
-     f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
+     @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
      H = T(GAP.Globals.ImagesSource(f)::GapObj)
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), T}
@@ -525,7 +525,7 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
      @req is_abelian(G) "the group is not abelian"
-     @req isfinite(G) "the group is not finite"
+     @req is_finite(G) "the group is not finite"
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
@@ -646,6 +646,20 @@ is_bijective(f::GroupIsomorphismFromFunc) = true
 
 kernel(f::GroupIsomorphismFromFunc) = trivial_subgroup(domain(f))
 
+function images(f::GroupIsomorphismFromFunc{R, T}, G::R) where R where T
+  D = domain(f)
+  C = codomain(f)
+  imgs = eltype(typeof(C))[]
+  for x in gens(G)
+    if parent(x) === D
+      push!(imgs, f(x))
+    else
+      push!(imgs, f(D(x)))
+    end
+  end
+  return sub(codomain(f), imgs)
+end
+
 ####
 
 # compute the kernel of a composition of maps, with domain a `GAPGroup`,
@@ -660,15 +674,15 @@ function kernel(comp::AbstractAlgebra.Generic.CompositeMap{T, GrpAbFinGen}) wher
   else
     ker2 = kernel(map2)
   end
-  ker2gens = [ker2[2](x) for x in gens(ker2[1])]
-  preimages = [preimage(map1, x) for x in ker2gens]
+  ker2gens = elem_type(domain(map2))[ker2[2](x) for x in gens(ker2[1])]
+  preimages = elem_type(domain(map1))[preimage(map1, x) for x in ker2gens]
   ker1 = kernel(map1)
 
   # Compute generators of the kernel of `map2`,
   # take their preimages under `map1`,
   # form the closure with the kernel of `map1`
   G = domain(comp)
-  K = sub(G, vcat([ker1[2](x) for x in gens(ker1[1])], preimages))
+  K = sub(G, vcat(elem_type(domain(map1))[ker1[2](x) for x in gens(ker1[1])], preimages))
 end
 
 ####

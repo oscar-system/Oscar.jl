@@ -1,4 +1,4 @@
-@doc Markdown.doc"""
+@doc raw"""
     polyhedron(td::ToricDivisor)
 
 Construct the polyhedron $P_D$ of a torus invariant divisor $D:=td$ as in 4.3.2
@@ -40,7 +40,7 @@ false
 @attr Polyhedron polyhedron(td::ToricDivisor) = Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     coefficients(td::ToricDivisor)
 
 Identify the coefficients of a toric divisor in the group of torus invariant Weil divisors.
@@ -64,7 +64,7 @@ julia> coefficients(D)
 coefficients(td::ToricDivisor) = td.coeffs
 
 
-@doc Markdown.doc"""
+@doc raw"""
     toric_variety(td::ToricDivisor)
 
 Return the toric variety of a torus-invariant Weil divisor.

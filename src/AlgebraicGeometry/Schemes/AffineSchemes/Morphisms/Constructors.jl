@@ -5,7 +5,7 @@
 # (1) General constructors
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 
 This method constructs a morphism from the scheme ``X``
@@ -71,7 +71,7 @@ end
 # (2) Special constructors
 ########################################################################
 
-@doc Markdown.doc"""
+@doc raw"""
     identity_map(X::AbsSpec{<:Any, <:MPolyRing})
 
 This method constructs the identity morphism from an affine scheme to itself.
@@ -96,7 +96,7 @@ identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = SpecMor(X, X, hom(OO(X), OO(X)
 identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X))))
 
 
-@doc Markdown.doc"""
+@doc raw"""
     inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
 
 Return the inclusion map from ``X`` to ``Y``.
@@ -136,7 +136,7 @@ true
 inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
 
 
-@doc Markdown.doc"""
+@doc raw"""
     compose(f::AbsSpecMor, g::AbsSpecMor)
 
 This method computes the composition of two morphisms.
@@ -178,7 +178,7 @@ function compose(f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 end
 
 
-@doc Markdown.doc"""
+@doc raw"""
     restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
 
 This method restricts the domain of the morphism ``f``

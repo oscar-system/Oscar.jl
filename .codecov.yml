@@ -10,4 +10,6 @@ coverage:
       default:
         informational: true
 
-comment: false
+comment:
+  layout: "header, diff, changes, tree"
+  behavior: default
