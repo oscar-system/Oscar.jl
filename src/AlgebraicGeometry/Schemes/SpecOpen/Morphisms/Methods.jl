@@ -94,7 +94,7 @@ function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
 end
 
 
-function preimage(f::SpecOpenMor, V::SpecOpen)
+function preimage(f::SpecOpenMor, V::SpecOpen; check::Bool=true)
   U = domain(f)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
