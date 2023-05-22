@@ -47,7 +47,7 @@ function SpecMor(
       check::Bool=true
   )
   check && CHECK_ERROR && error("check was enabled")
-  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f)), check=check)
+  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
 function SpecMor(
@@ -81,7 +81,7 @@ Affine space of dimension 3
 julia> identity_map(X);
 ```
 """
-identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
 identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
 identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X), check=false), check=false))
 identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)

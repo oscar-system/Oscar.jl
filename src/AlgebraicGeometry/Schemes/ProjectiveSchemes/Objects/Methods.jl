@@ -96,7 +96,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), s)
+  phi = hom(S, OO(U), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -117,7 +117,7 @@ function dehomogenization_map(
   end
   p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), pullback(p[U]), s)
+  phi = hom(S, OO(U), pullback(p[U]), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -148,7 +148,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
     return cache[U]
   end
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), s)
+  phi = hom(S, OO(U), s, check=false)
   cache[U] = phi
   return phi
 end

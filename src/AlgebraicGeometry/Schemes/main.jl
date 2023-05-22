@@ -149,4 +149,4 @@ include("ProjectiveVariety/Objects/Attributes.jl")
 include("ProjectiveVariety/Objects/Methods.jl")
 
 # A global variable to throw an error whenever an enabled internal test was found
-CHECK_ERROR = false
+CHECK_ERROR = true

@@ -41,7 +41,7 @@ function ProjectiveSchemeMor(
   Q = homogeneous_coordinate_ring(X)
   all(x->parent(x)===Q, a) || return ProjectiveSchemeMor(X, Y, Q.(a))
   P = homogeneous_coordinate_ring(Y)
-  return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
+  return ProjectiveSchemeMor(X, Y, hom(P, Q, a, check=false))
 end
 
 function compose(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
@@ -57,7 +57,7 @@ function fiber_product(f::Hecke.Map{DomType, CodType}, P::AbsProjectiveScheme{Do
   S = ambient_coordinate_ring(P)
   Qambient = projective_space(Rnew, symbols(S))
   Snew = ambient_coordinate_ring(Qambient)
-  phi = hom(S, Snew, f, gens(Snew))
+  phi = hom(S, Snew, f, gens(Snew), check=false)
   Q = subscheme(Qambient, ideal(homogeneous_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
   return Q, ProjectiveSchemeMor(Q, P, hom(homogeneous_coordinate_ring(P), 
                                           homogeneous_coordinate_ring(Q), 

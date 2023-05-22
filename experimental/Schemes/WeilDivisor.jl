@@ -33,6 +33,7 @@ stored as a formal linear combination over some ring ``R`` of
       coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
+    check && CHECK_ERROR && error("check was enabled")
     if check
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
@@ -43,6 +44,7 @@ stored as a formal linear combination over some ring ``R`` of
   end
 
   function WeilDivisor(C::AlgebraicCycle; check::Bool=true)
+    check && CHECK_ERROR && error("check was enabled")
     X = scheme(C)
     if check
       for D in keys(coefficient_dict(C))
@@ -79,7 +81,7 @@ in `R`.
 """
 function WeilDivisor(X::AbsCoveredScheme, R::Ring)
   D = IdDict{IdealSheaf, elem_type(R)}()
-  return WeilDivisor(X, R, D)
+  return WeilDivisor(X, R, D, check=false)
 end
 
 function zero(W::WeilDivisor)
@@ -100,7 +102,8 @@ weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf, R::Ring)
+function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
+  check && CHECK_ERROR && error("check was enabled")
   D = WeilDivisor(space(I), R)
   D[I] = one(R)
   return D
@@ -114,7 +117,8 @@ weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf)
+function WeilDivisor(I::IdealSheaf; check::Bool=true)
+  check && CHECK_ERROR && error("check was enabled")
   D = WeilDivisor(space(I), ZZ)
   D[I] = one(ZZ)
   return D
@@ -128,7 +132,7 @@ function copy(D::WeilDivisor)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict)
+  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
 end
 
 function Base.show(io::IO, D::WeilDivisor)
