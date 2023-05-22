@@ -4,10 +4,10 @@
 
 @attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
-           toric_variety::AbstractNormalToricVariety
+           toric_variety::NormalToricVarietyType
            coeffs::Vector{ZZRingElem}
            ToricDivisor(polymake_divisor::Polymake.BigObject,
-                        toric_variety::AbstractNormalToricVariety,
+                        toric_variety::NormalToricVarietyType,
                         coeffs::Vector{T}) where {T <: IntegerUnion} = new(polymake_divisor, toric_variety, [ZZRingElem(c) for c in coeffs])
 end
 
@@ -19,7 +19,7 @@ pm_tdivisor(td::ToricDivisor) = td.polymake_divisor
 ######################
 
 @doc raw"""
-    toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+    toric_divisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear
  combination of the torus invariant prime divisors of `v`. The coefficients of this
@@ -31,7 +31,7 @@ julia> toric_divisor(projective_space(NormalToricVariety, 2), [1, 1, 2])
 Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-function toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+function toric_divisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
     # check input
     @req length(coeffs) == pm_object(v).N_RAYS "Number of coefficients needs to match number of prime divisors"
     
@@ -57,7 +57,7 @@ end
 ######################
 
 @doc raw"""
-    divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+    divisor_of_character(v::NormalToricVarietyType, character::Vector{T}) where {T <: IntegerUnion}
 
 Construct the torus invariant divisor associated to a character of the normal toric variety `v`.
 
@@ -67,7 +67,7 @@ julia> divisor_of_character(projective_space(NormalToricVariety, 2), [1, 2])
 Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-function divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+function divisor_of_character(v::NormalToricVarietyType, character::Vector{T}) where {T <: IntegerUnion}
     r = rank(character_lattice(v))
     @req length(character) == r "Character must consist of $r integers"
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)

@@ -3,9 +3,9 @@
 #############################
 
 @attributes mutable struct CohomologyClass
-    v::AbstractNormalToricVariety
+    v::NormalToricVarietyType
     p::MPolyQuoRingElem
-    function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+    function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem)
         @req parent(p) == cohomology_ring(v) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+    cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 
 Construct the toric cohomology class
 on the toric variety `v` corresponding
@@ -33,7 +33,7 @@ julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
 Cohomology class on a normal toric variety given by x1
 ```
 """
-cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = CohomologyClass(v, p)
+cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem) = CohomologyClass(v, p)
 
 
 @doc raw"""

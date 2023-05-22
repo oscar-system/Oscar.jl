@@ -3,7 +3,7 @@
 @registerSerializationType(AffineNormalToricVariety)
 @registerSerializationType(NormalToricVariety)
 
-function save_internal(s::SerializerState, ntv::AbstractNormalToricVariety)
+function save_internal(s::SerializerState, ntv::NormalToricVarietyType)
     return Dict(
         :polymakeNTV => save_type_dispatch(s, ntv.polymakeNTV)
     )

@@ -1,19 +1,8 @@
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
-abstract type AbstractNormalToricVariety end
 
-@attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
-           polymakeNTV::Polymake.BigObject
-           NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
-end
-
-@attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
-           polymakeNTV::Polymake.BigObject
-           AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
-end
-
-pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
+pm_object(v::NormalToricVarietyType) = v.polymakeNTV
 
 ######################
 # 2: Generic constructors
@@ -536,7 +525,7 @@ end
 ############################
 
 @doc raw"""
-  blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+  blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blowup the toric variety by subdividing the cone in the list
 of *all* cones of the fan of `v` which corresponds to the
@@ -573,7 +562,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
     @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
@@ -586,7 +575,7 @@ end
 
 
 @doc raw"""
-  blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+  blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blowup the toric variety by subdividing the n-th cone in the list
 of *all* cones of the fan of `v`. This cone need not be maximal.
@@ -629,7 +618,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
     new_fan = star_subdivision(fan(v), n)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
@@ -652,17 +641,17 @@ end
 ############################
 
 @doc raw"""
-    Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+    Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
 By default, we prepend an "x" to all homogeneous coordinate names of the first factor
 `v` and a "y" to all homogeneous coordinate names of the second factor `w`. This default
 can be overwritten by invoking `set_coordinate_names` after creating the variety
-(cf. [`set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})`](@ref)).
+(cf. [`set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})`](@ref)).
 
 *Important*: Recall that the coordinate names can only be changed as long as the toric
-variety in question is not finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
+variety in question is not finalized (cf. [`is_finalized(v::NormalToricVarietyType)`](@ref)).
 
 Crucially, the order of the homogeneous coordinates is not shuffled. To be more
 specific, assume that `v` has ``n_1`` and `w` has ``n_2`` homogeneous coordinates. Then
@@ -703,7 +692,7 @@ Multivariate polynomial ring in 6 variables over QQ graded by
   y3 -> [0 1]
 ```
 """
-function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
     product = normal_toric_variety(fan(v)*fan(w); set_attributes = set_attributes)
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product
@@ -838,7 +827,7 @@ normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Boo
 ############################
 ### 8: Display
 ############################
-function Base.show(io::IO, v::AbstractNormalToricVariety)
+function Base.show(io::IO, v::NormalToricVarietyType)
     # initiate properties string
     properties_string = ["Normal"]
     

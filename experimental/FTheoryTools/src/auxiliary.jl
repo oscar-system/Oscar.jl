@@ -16,7 +16,7 @@ end
 
 _ambient_space_from_base(base::ToricCoveredScheme) = _ambient_space_from_base(underlying_toric_variety(base))
 
-function _ambient_space_from_base(base::AbstractNormalToricVariety)
+function _ambient_space_from_base(base::NormalToricVarietyType)
   
   # Extract information about the toric base
   base_rays = matrix(ZZ, rays(base))
@@ -56,13 +56,13 @@ end
 # 3: Construct the Weierstrass polynomial
 ################################################################
 
-function _weierstrass_sections(base::AbstractNormalToricVariety)
+function _weierstrass_sections(base::NormalToricVarietyType)
   f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
   g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
   return [f, g]
 end
 
-function _weierstrass_polynomial(base::AbstractNormalToricVariety, S::MPolyRing)
+function _weierstrass_polynomial(base::NormalToricVarietyType, S::MPolyRing)
   (f, g) = _weierstrass_sections(base)
   return _weierstrass_polynomial(f, g, S)
 end
@@ -78,7 +78,7 @@ end
 # 4: Construct the Tate polynomial
 ################################################################
 
-function _tate_sections(base::AbstractNormalToricVariety)
+function _tate_sections(base::NormalToricVarietyType)
   a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base))])
   a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)])
   a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)])
@@ -87,7 +87,7 @@ function _tate_sections(base::AbstractNormalToricVariety)
   return [a1, a2, a3, a4, a6]
 end
 
-function _tate_polynomial(base::AbstractNormalToricVariety, S::MPolyRing)
+function _tate_polynomial(base::NormalToricVarietyType, S::MPolyRing)
   (a1, a2, a3, a4, a6) = _tate_sections(base)
   return _tate_polynomial([a1, a2, a3, a4, a6], S)
 end

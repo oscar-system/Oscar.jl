@@ -87,7 +87,7 @@ julia> rays(NF)
 0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
-rays_modulo_lineality(F::_FanLikeType) = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{get_scalar_type(F)}}, SubObjectIterator{RayVector{get_scalar_type(F)}}}}, F) 
+rays_modulo_lineality(PF::_FanLikeType) = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{get_scalar_type(PF)}}, SubObjectIterator{RayVector{get_scalar_type(PF)}}}}, PF) 
 function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
     return (
         rays_modulo_lineality = _rays(F),
@@ -120,7 +120,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{get_scalar_type(F)}}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{get_scalar_type(PF)}}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
 
 _ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
@@ -155,7 +155,7 @@ julia> cones(PF, 2)
 function cones(PF::_FanLikeType, cone_dim::Int)
     l = cone_dim - length(lineality_space(PF))
     l < 1 && return nothing
-    return SubObjectIterator{Cone{get_scalar_type(F)}}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
+    return SubObjectIterator{Cone{get_scalar_type(PF)}}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
 function _cone_of_dim(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
@@ -383,7 +383,7 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{get_scalar_type(F)}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{get_scalar_type(PF)}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
 
 _lineality_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.LINEALITY_SPACE, i, :))
 

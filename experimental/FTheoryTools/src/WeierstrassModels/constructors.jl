@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+    global_weierstrass_model(base::NormalToricVarietyType; completeness_check::Bool = true)
 
 This method constructs a global Weierstrass model over a given toric base
 3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
@@ -15,16 +15,16 @@ julia> w = global_weierstrass_model(sample_toric_variety(); completeness_check =
 Global Weierstrass model over a concrete base
 ```
 """
-function global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+function global_weierstrass_model(base::NormalToricVarietyType; completeness_check::Bool = true)
   (f, g) = _weierstrass_sections(base)
   return global_weierstrass_model(f, g, base; completeness_check = completeness_check)
 end
 
 
 @doc raw"""
-    global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+    global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::NormalToricVarietyType; completeness_check::Bool = true)
 
-This method operates analogously to `global_weierstrass_model(base::AbstractNormalToricVariety)`.
+This method operates analogously to `global_weierstrass_model(base::NormalToricVarietyType)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
 
 # Examples
@@ -40,7 +40,7 @@ julia> w = global_weierstrass_model(f, g, base; completeness_check = false)
 Global Weierstrass model over a concrete base
 ```
 """
-function global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+function global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::NormalToricVarietyType; completeness_check::Bool = true)
   @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
   
   gens_base_names = [string(g) for g in gens(cox_ring(base))]

@@ -5,23 +5,19 @@
 ###############################################################################
 
 
-# We introduce this abstract (hidden) type to allow for other objects to be
-# used like polyhedral fans without duplicating too much code, concretely we
-# want to be able to directly access rays, maximal_cones, etc for
-# NormalToricVariety's.
-# abstract type _FanLikeType{T} end
-abstract type AbstractNormalToricVariety end
-
 struct PolyhedralFan{T}
    pm_fan::Polymake.BigObject
    
    PolyhedralFan{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
-const _FanLikeType = Union{AbstractNormalToricVariety, PolyhedralFan}
-const _FanLikeTypeQQ = Union{AbstractNormalToricVariety, PolyhedralFan{QQFieldElem}}
-get_scalar_param(::PolyhedralFan{T}) where T<:scalar_types = T
-get_scalar_param(::AbstractNormalToricVariety) = QQFieldElem
+# We introduce this (hidden) type to allow for other objects to be used like
+# polyhedral fans without duplicating too much code, concretely we want to be
+# able to directly access rays, maximal_cones, etc for NormalToricVariety's.
+const _FanLikeType = Union{NormalToricVarietyType, PolyhedralFan}
+const _FanLikeTypeQQ = Union{NormalToricVarietyType, PolyhedralFan{QQFieldElem}}
+get_scalar_type(::PolyhedralFan{T}) where T<:scalar_types = T
+get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 
 
 # Automatic detection of corresponding OSCAR scalar type;
