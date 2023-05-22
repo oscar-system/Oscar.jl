@@ -2,6 +2,7 @@
   X::ProjectiveScheme{BaseRing,GradedRingType}
   function ProjectiveAlgebraicSet(X::ProjectiveScheme; check::Bool=true)
     if check
+      CHECK_ERROR && error("check was enabled")
       is_geometrically_reduced(X) || error("algebraic sets must be geometrically reduced")
     else
       # unlock the scheme methods for geometrically reduced schemes.

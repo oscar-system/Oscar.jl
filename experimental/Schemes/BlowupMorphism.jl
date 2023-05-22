@@ -339,7 +339,7 @@ function restrict(f::AbsCoveredSchemeMorphism,
     map_dict[U] = restrict(q_res, domain(q_res), pre_V, check=false)
   end
   psi = CoveringMorphism(domain(inc_dom_ref), domain(inc_cod_ref), map_dict, check=false)
-  return CoveredSchemeMorphism(domain(inc_dom), domain(inc_cod), psi)
+  return CoveredSchemeMorphism(domain(inc_dom), domain(inc_cod), psi, check=false)
 end
 
 function _register!(data::Tuple{<:Covering, <:CoveringMorphism, <:CoveringMorphism},

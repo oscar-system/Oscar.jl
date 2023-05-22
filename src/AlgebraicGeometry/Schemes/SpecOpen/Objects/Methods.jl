@@ -11,6 +11,7 @@ function intersect(
     U::SpecOpen;
     check::Bool=true
   )
+  check && CHECK_ERROR && error("check was enabled")
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   X === Y && return SpecOpen(Y, complement_equations(U), check=check)
@@ -125,6 +126,7 @@ end
 ########################################################################
 
 function preimage(f::AbsSpecMor, V::SpecOpen; check::Bool=true)
+  check && CHECK_ERROR && error("check was enabled")
   if check
     issubset(codomain(f), ambient_scheme(V)) || error("set is not guaranteed to be open in the codomain")
   end

@@ -11,6 +11,7 @@ If `check=false`, assumes that `X` is already reduced.
 """
 function affine_algebraic_set(X::Spec; check::Bool=true)
   if check
+    CHECK_ERROR && error("check was enabled")
     Xred,_ = reduced_scheme(X)
   else
     Xred = X
@@ -38,6 +39,7 @@ Vanishing locus
 """
 function vanishing_locus(I::MPolyIdeal{<:MPolyElem}; check::Bool=true)
   if check
+    CHECK_ERROR && error("check was enabled")
     Irad = radical(I)
   else
     Irad = I

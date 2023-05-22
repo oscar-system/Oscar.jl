@@ -68,6 +68,7 @@ over the same `base_ring`, with underlying ring homomorphism
       pullback::PullbackType;
       check::Bool=true
     ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Hecke.Map}
+    check && CHECK_ERROR && error("check was enabled")
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
     if check
@@ -92,6 +93,7 @@ one ``X``.
   Z::Spec
 
   function OpenInclusion(f::AbsSpecMor, I::Ideal; check::Bool=true)
+    check && CHECK_ERROR && error("check was enabled")
     U = domain(f)
     X = codomain(f)
     Z = subscheme(X, I)

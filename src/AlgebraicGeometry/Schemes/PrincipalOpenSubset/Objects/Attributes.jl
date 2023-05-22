@@ -24,9 +24,10 @@ gen(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
 function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
+  check && CHECK_ERROR && error("check was enabled")
   if !isdefined(U, :inc)
     X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check))
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check), check=check)
     U.inc = OpenInclusion(inc, ideal(OO(X), complement_equation(U)), check=check)
   end
   return U.inc

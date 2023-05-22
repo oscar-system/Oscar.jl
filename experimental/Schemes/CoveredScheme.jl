@@ -158,7 +158,7 @@ end
   if r == 0
     result = Covering(Y)
     pU[Y] = identity_map(Y)
-    covered_projection = CoveringMorphism(result, result, pU)
+    covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
     return result
   end
@@ -202,7 +202,7 @@ end
       add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
-  covered_projection = CoveringMorphism(result, Covering(Y), pU)
+  covered_projection = CoveringMorphism(result, Covering(Y), pU, check=false)
   set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
@@ -424,7 +424,8 @@ image_ideal(phi::CoveredClosedEmbedding) = phi.I
 ### user facing constructors
 function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf; 
         covering::Covering=default_covering(X), check::Bool=true)
-  space(I) == X || error("ideal sheaf is not defined on the correct scheme")
+  check && CHECK_ERROR && error("check was enabled")
+  space(I) === X || error("ideal sheaf is not defined on the correct scheme")
   mor_dict = IdDict{AbsSpec, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
   rev_dict = IdDict{AbsSpec, AbsSpec}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.
   patch_list = Vector{AbsSpec}()

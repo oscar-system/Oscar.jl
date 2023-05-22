@@ -29,6 +29,7 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
       name::String="",
       check::Bool=true
     ) where {SpecType<:AbsSpec, RET<:RingElem}
+    check && CHECK_ERROR && error("check was enabled")
     for a in f
       parent(a) == ambient_coordinate_ring(X) || error("element does not belong to the correct ring")
       if check

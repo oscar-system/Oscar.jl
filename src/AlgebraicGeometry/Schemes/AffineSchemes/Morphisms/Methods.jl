@@ -45,7 +45,7 @@ function product(X::AbsSpec, Y::AbsSpec;
   Xstd = standard_spec(X)
   Ystd = standard_spec(Y)
   XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
-  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)))), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd))))
+  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)), check=false)), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd)), check=false))
 end
 
 function product(X::StdSpec, Y::StdSpec;

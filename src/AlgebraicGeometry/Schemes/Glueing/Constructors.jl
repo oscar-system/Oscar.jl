@@ -101,6 +101,7 @@ function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
+    CHECK_ERROR && error("check was enabled")
     is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
@@ -113,6 +114,7 @@ function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
+    CHECK_ERROR && error("check was enabled")
     is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
@@ -133,6 +135,7 @@ Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and
 ``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
 """
 function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+  check && CHECK_ERROR && error("check was enabled")
   (X1, Y1) = patches(G)
   X1 === domain(f) || error("maps not compatible")
   X2 = codomain(f)
@@ -149,12 +152,10 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
   return Glueing(X2, Y2, 
                  compose(restrict(finv, U2, domain(h1), check=check), 
-                         compose(h1, restrict(g, domain(h2), V2, check=check), check=check),
-                         check=check
+                         compose(h1, restrict(g, domain(h2), V2, check=check))
                         ),
                  compose(restrict(ginv, V2, domain(h2), check=check), 
-                         compose(h2, restrict(f, domain(h1), U2, check=check), check=check), 
-                         check=check
+                         compose(h2, restrict(f, domain(h1), U2, check=check))
                         ),
                  check=check
                 )

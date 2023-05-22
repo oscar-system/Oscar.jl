@@ -38,6 +38,7 @@ ideal ``I ⊂ R``.
     X = codomain(f)
     base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
     if check
+      CHECK_ERROR && error("check was enabled")
       Y == subscheme(X, I)
       pullback(f).(gens(OO(X))) == gens(OO(Y))
     end

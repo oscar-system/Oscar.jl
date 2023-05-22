@@ -34,6 +34,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
       f::Vector{<:AbsSpecMor};
       check::Bool=true
     ) where {DomainType<:SpecOpen, CodomainType<:SpecOpen}
+    check && CHECK_ERROR && error("check was enabled")
     Y = ambient_scheme(V)
     n = length(f)
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")

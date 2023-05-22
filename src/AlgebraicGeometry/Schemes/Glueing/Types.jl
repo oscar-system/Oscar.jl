@@ -58,6 +58,7 @@ Concrete instance of an `AbsGlueing` for glueings of affine schemes
     (OO(domain(f)) === OO(codomain(g)) &&
     OO(domain(g)) ===  OO(codomain(f))) || error("domain/codomain mismatch: maps can not be mutually inverse")
     if check
+      CHECK_ERROR && error("check was enabled")
       compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
       compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
     end
@@ -111,6 +112,7 @@ Concrete instance of an `AbsGlueing` for glueings of affine schemes
     X === ambient_scheme(U) && Y === ambient_scheme(V) || error("schemes are not compatible")
     domain(f) === codomain(g) && domain(g) === codomain(f) || error("maps are not compatible")
     if check
+      CHECK_ERROR && error("check was enabled")
       is_identity_map(compose(f, g)) || error("maps are not inverse to each other")
       is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
     end

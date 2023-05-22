@@ -792,7 +792,7 @@ end
   end
 
   # TODO: Remove the internal checks in the constructors below
-  covering_map = CoveringMorphism(result_covering, C, projection_dict) 
+  covering_map = CoveringMorphism(result_covering, C, projection_dict, check=false) 
   set_attribute!(P, :covering_projection_to_base, covering_map)
   return result
 end
@@ -802,7 +802,7 @@ end
     covered_scheme(P)
   end
   covering_pr = get_attribute(P, :covering_projection_to_base)::CoveringMorphism
-  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr)
+  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr, check=false)
 end
 
 
