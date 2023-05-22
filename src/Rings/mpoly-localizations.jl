@@ -674,11 +674,8 @@ function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   return (issubset(T, U) && issubset(U, T))
 end
 
-function Base.hash(T::AbsMPolyMultSet, h::UInt)
-  b = 0x7ce51a28c47ec5e1 % UInt
-  h = hash(typeof(T), h)
-  h = hash(ambient_ring(T), h)
-  return xor(h, b)
+function Base.hash(T::AbsMPolyMultSet{BRT, BRET, RT, RET}, h::UInt) where {BRT,BRET,RT,RET}
+  error("not implemented")
 end
 
 function issubset(

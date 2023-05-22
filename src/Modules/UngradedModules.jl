@@ -3564,9 +3564,7 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
 end
 
 function Base.hash(a::SubquoModuleElem, h::UInt)
-  b = 0x0361a2f6467e4200 % UInt
-  h = hash(parent(a), h)
-  return xor(h, b)
+  error("not implemented")
 end
 
 function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
