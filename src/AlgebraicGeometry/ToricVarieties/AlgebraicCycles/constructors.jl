@@ -3,9 +3,9 @@
 ##############################################
 
 @attributes mutable struct RationalEquivalenceClass
-    v::AbstractNormalToricVariety
+    v::NormalToricVarietyType
     p::MPolyQuoRingElem
-    RationalEquivalenceClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = new(v, p)
+    RationalEquivalenceClass(v::NormalToricVarietyType, p::MPolyQuoRingElem) = new(v, p)
 end
 
 
@@ -14,7 +14,7 @@ end
 ####################################################
 
 @doc raw"""
-    rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+    rational_equivalence_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
 
@@ -38,7 +38,7 @@ julia> rational_equivalence_class(P2, x1)
 Rational equivalence classon a normal toric variety represented by V(x3)
 ```
 """
-function rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+function rational_equivalence_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
     @req (is_simplicial(v) && is_complete(v)) "Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"
     @req parent(p) == chow_ring(v) "The polynomial must reside in the Chow ring of the toric variety"
     return RationalEquivalenceClass(v, p)
@@ -46,7 +46,7 @@ end
 
 
 @doc raw"""
-    rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+    rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
 
 Construct the rational equivalence class of algebraic cycles corresponding to a linear combination of cones.
 
@@ -59,7 +59,7 @@ julia> rational_equivalence_class(P2, [6, 5, 4, 3, 2, 1])
 Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
 ```
 """
-function rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+function rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
     @req (is_simplicial(v) && is_complete(v)) "Currently, algebraic cycles are only supported for toric varieties that are simplicial and complete"
     @req length(coefficients) == n_cones(v) "The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"
     mons = gens_of_rational_equivalence_classes(v)

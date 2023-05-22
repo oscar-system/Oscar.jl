@@ -3,7 +3,7 @@
 ############################
 
 @doc raw"""
-    betti_number(v::AbstractNormalToricVariety, i::Int)
+    betti_number(v::NormalToricVarietyType, i::Int)
 
 Compute the `i`-th Betti number of the normal toric variety `v`. 
 Specifically, this method returns the dimension of the i-th 
@@ -24,7 +24,7 @@ julia> betti_number(P3, 1)
 0
 ```
 """
-function betti_number(v::AbstractNormalToricVariety, i::Int)
+function betti_number(v::NormalToricVarietyType, i::Int)
     @req is_complete(v) && is_simplicial(v) "Currently, the computation of Betti numbers is limited to complete and simplicial toric varieties"
     
     # check input

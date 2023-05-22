@@ -8,13 +8,13 @@
 @deprecate gap_perm(L::AbstractVector{<:IntegerUnion}) perm(L::AbstractVector{<:IntegerUnion})
 @deprecate elements(C::GroupCoset) collect(C)
 @deprecate elements(C::GroupDoubleCoset) collect(C)
-@deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
-@deprecate map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety) map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-@deprecate map_from_cartier_divisor_group_to_torusinvariant_divisor_group(v::AbstractNormalToricVariety) map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
-@deprecate map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety) map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
-@deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
-@deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
-@deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
+@deprecate map_from_character_to_principal_divisors(v::NormalToricVarietyType) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
+@deprecate map_from_weil_divisors_to_class_group(v::NormalToricVarietyType) map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+@deprecate map_from_cartier_divisor_group_to_torusinvariant_divisor_group(v::NormalToricVarietyType) map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
+@deprecate map_from_cartier_divisor_group_to_picard_group(v::NormalToricVarietyType) map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
+@deprecate cartier_divisor_group(v::NormalToricVarietyType) torusinvariant_cartier_divisor_group(v)
+@deprecate torusinvariant_divisor_group(v::NormalToricVarietyType) torusinvariant_weil_divisor_group(v)
+@deprecate StructureSheaf(v::NormalToricVarietyType) structure_sheaf
 @deprecate morphism_on_cartier_divisor_group(tm::ToricMorphism) morphism_on_torusinvariant_cartier_divisor_group(tm)
 @deprecate bounded(Obj::Polyhedron) is_bounded(Obj)
 @deprecate vf_group(P::Polyhedron) automorphism_group(P; action = :on_facets)
@@ -65,9 +65,9 @@ end
 @deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
 @deprecate NormalToricVarietyFromGLSM(charges::ZZMatrix; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)
 
-function RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
-    Base.depwarn("'RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}'"*
-    " is deprecated, use 'rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) "*
+function RationalEquivalenceClass(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'RationalEquivalenceClass(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}'"*
+    " is deprecated, use 'rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) "*
     "where {T <: IntegerUnion}' instead.", RationalEquivalenceClass)
     rational_equivalence_class(v, coefficients)
 end
@@ -126,26 +126,26 @@ function CyclicQuotientSingularity(n::T, q::T) where {T <: IntegerUnion}
     cyclic_quotient_singularity(n, q)
 end
 
-function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
-    Base.depwarn("ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, "*
+function ClosedSubvarietyOfToricVariety(toric_variety::NormalToricVarietyType, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
+    Base.depwarn("ClosedSubvarietyOfToricVariety(toric_variety::NormalToricVarietyType, "*
     "defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) is deprecated, use "*
-    "'closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, "*
+    "'closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, "*
     "defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})' instead.", :ClosedSubvarietyOfToricVariety)
     closed_subvariety_of_toric_variety(toric_variety, defining_polynomials)
 end
 
-function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
-    Base.depwarn("'ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}' "*
-    "is deprecated, use 'toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) "*
+function ToricDivisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'ToricDivisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}' "*
+    "is deprecated, use 'toric_divisor(v::NormalToricVarietyType, coeffs::Vector{T}) "*
     "where {T <: IntegerUnion}' instead.", :ToricDivisor)
     toric_divisor(v, coeffs)
 end
 
-@deprecate DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion} divisor_of_character(v, character)
+@deprecate DivisorOfCharacter(v::NormalToricVarietyType, character::Vector{T}) where {T <: IntegerUnion} divisor_of_character(v, character)
 
-function ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
-    Base.depwarn("'ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}' "*
-    "is deprecated, use 'toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) "*
+function ToricDivisorClass(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'ToricDivisorClass(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}' "*
+    "is deprecated, use 'toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) "*
     "where {T <: IntegerUnion}' instead.", :ToricDivisorClass)
     toric_divisor_class(v, coeffs)
 end
@@ -156,16 +156,16 @@ function ToricDivisorClass(td::ToricDivisor)
     toric_divisor_class(td)
 end
 
-function ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
-    Base.depwarn("'ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}'"*
-    " is deprecated, use 'toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}' "*
+function ToricLineBundle(v::NormalToricVarietyType, c::Vector{T}) where {T <: IntegerUnion}
+    Base.depwarn("'ToricLineBundle(v::NormalToricVarietyType, c::Vector{T}) where {T <: IntegerUnion}'"*
+    " is deprecated, use 'toric_line_bundle(v::NormalToricVarietyType, c::Vector{T}) where {T <: IntegerUnion}' "*
     "instead.", :ToricLineBundle)
     toric_line_bundle(v, c)
 end
 
-function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
-    Base.depwarn("'ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)'"*
-    " is deprecated, use 'toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)' "*
+function ToricLineBundle(v::NormalToricVarietyType, d::ToricDivisor)
+    Base.depwarn("'ToricLineBundle(v::NormalToricVarietyType, d::ToricDivisor)'"*
+    " is deprecated, use 'toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)' "*
     "instead.", :ToricLineBundle)
     toric_line_bundle(v, d)
 end
@@ -176,32 +176,32 @@ function ToricLineBundle(d::ToricDivisor)
     toric_line_bundle(d)
 end
 
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
-    Base.depwarn("'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) "*
-    "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}' is depcreated, use "*
-    "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) "*
-    "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}})' instead", :ToricMorphism)
+function ToricMorphism(domain::NormalToricVarietyType, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{NormalToricVarietyType, Nothing}}
+    Base.depwarn("'ToricMorphism(domain::NormalToricVarietyType, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) "*
+    "where {T <: IntegerUnion, T2 <: Union{NormalToricVarietyType, Nothing}}' is depcreated, use "*
+    "'toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) "*
+    "where {T <: IntegerUnion, T2 <: Union{NormalToricVarietyType, Nothing}})' instead", :ToricMorphism)
     toric_morphism(domain, mapping_matrix, codomain)
 end
 
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
-    Base.depwarn("'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) "*
-    "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}' is deprecated, use "*
-    "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) "*
-    "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
+function ToricMorphism(domain::NormalToricVarietyType, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{NormalToricVarietyType, Nothing}}
+    Base.depwarn("'ToricMorphism(domain::NormalToricVarietyType, mapping_matrix::Matrix{T}, codomain::T2=nothing) "*
+    "where {T <: IntegerUnion, T2 <: Union{NormalToricVarietyType, Nothing}}' is deprecated, use "*
+    "'toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Matrix{T}, codomain::T2=nothing) "*
+    "where {T <: IntegerUnion, T2 <: Union{NormalToricVarietyType, Nothing}}' instead", :ToricMorphism)
     toric_morphism(domain, mapping_matrix, codomain)
 end
 
-function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
-    Base.depwarn("'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
-    "where {T <: Union{AbstractNormalToricVariety, Nothing}}' is deprecated, use "*
-    "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
-    "where {T <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
+function ToricMorphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{NormalToricVarietyType, Nothing}}
+    Base.depwarn("'ToricMorphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
+    "where {T <: Union{NormalToricVarietyType, Nothing}}' is deprecated, use "*
+    "'toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
+    "where {T <: Union{NormalToricVarietyType, Nothing}}' instead", :ToricMorphism)
     toric_morphism(domain, mapping_matrix, codomain)
 end
 
 
-@deprecate ToricIdentityMorphism(v::AbstractNormalToricVariety) toric_identity_morphism(v)
+@deprecate ToricIdentityMorphism(v::NormalToricVarietyType) toric_identity_morphism(v)
 
 @deprecate induced_class_function induce
 @deprecate radical_subgroup solvable_radical
@@ -224,7 +224,7 @@ end
 # Deprecated after 0.12.0
 @deprecate contains(P::Polyhedron, v::AbstractVector) Base.in(v, P)
 @deprecate contains(C::Cone, v::AbstractVector) Base.in(v, C)
-@deprecate blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
+@deprecate blowup_on_ith_minimal_torus_orbit(v::NormalToricVarietyType, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
 @deprecate starsubdivision(PF::_FanLikeType, n::Int) star_subdivision(PF, n)
 
 # Deprecated after 0.12.1
@@ -365,7 +365,7 @@ end
 @deprecate group_class_function(G::GAPGroup, values::Vector{<:QQAbElem}) class_function(G, values)
 
 # Deprecated after 0.13.0
-@deprecate fan(v::AbstractNormalToricVariety) polyhedral_fan(v)
+@deprecate fan(v::NormalToricVarietyType) polyhedral_fan(v)
 
 # Polyhedral object wrappers now require a parent field
 function Cone{T}(obj::Polymake.BigObject) where T<:scalar_types

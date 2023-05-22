@@ -286,7 +286,7 @@ end
 ############################
 
 @doc raw"""
-    blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the cone in the list
 of *all* cones of the fan of `v` which corresponds to the
@@ -323,7 +323,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
     @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
@@ -335,7 +335,7 @@ end
 
 
 @doc raw"""
-    blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. Note that this ray must be a primitive element in the
@@ -366,14 +366,14 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
   return _blow_up(v, star_subdivision(v, new_ray); coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
 
 
 @doc raw"""
-    blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the n-th cone in the list
 of *all* cones of the fan of `v`. This cone need not be maximal.
@@ -403,13 +403,13 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
   return _blow_up(v, star_subdivision(v, n); coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
 
 
-function _blow_up(v::AbstractNormalToricVariety, new_fan::PolyhedralFan{QQFieldElem}; coordinate_name::String = "e", set_attributes::Bool = true)
+function _blow_up(v::NormalToricVarietyType, new_fan::PolyhedralFan{QQFieldElem}; coordinate_name::String = "e", set_attributes::Bool = true)
   new_variety = normal_toric_variety(new_fan)
   new_rays = rays(new_fan)
   old_rays = rays(v)
@@ -430,17 +430,17 @@ end
 
 
 @doc raw"""
-    Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+    Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
 By default, we prepend an "x" to all homogeneous coordinate names of the first factor
 `v` and a "y" to all homogeneous coordinate names of the second factor `w`. This default
 can be overwritten by invoking `set_coordinate_names` after creating the variety
-(cf. [`set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})`](@ref)).
+(cf. [`set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})`](@ref)).
 
 *Important*: Recall that the coordinate names can only be changed as long as the toric
-variety in question is not finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
+variety in question is not finalized (cf. [`is_finalized(v::NormalToricVarietyType)`](@ref)).
 
 Crucially, the order of the homogeneous coordinates is not shuffled. To be more
 specific, assume that `v` has ``n_1`` and `w` has ``n_2`` homogeneous coordinates. Then
@@ -482,7 +482,7 @@ Multivariate polynomial ring in 6 variables over QQ graded by
   y3 -> [0 1]
 ```
 """
-function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
     product = normal_toric_variety(polyhedral_fan(v)*polyhedral_fan(w))
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product

@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+    global_tate_model(base::NormalToricVarietyType; completeness_check::Bool = true)
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
@@ -14,13 +14,13 @@ julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check = completeness_check)
+global_tate_model(base::NormalToricVarietyType; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check = completeness_check)
 
 
 @doc raw"""
-    global_tate_model(base::AbstractNormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+    global_tate_model(base::NormalToricVarietyType, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
-This method operates analogously to `global_tate_model(base::AbstractNormalToricVariety)`.
+This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
 
 # Examples
@@ -42,7 +42,7 @@ julia> t = global_tate_model(base, [a1, a2, a3, a4, a6]; completeness_check = fa
 Global Tate model over a concrete base
 ```
 """
-function global_tate_model(base::AbstractNormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+function global_tate_model(base::NormalToricVarietyType, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
   @req length(ais) == 5 "We require exactly 5 Tate sections"
   @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
   

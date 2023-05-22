@@ -101,8 +101,8 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  `completeness_check = false` as last argument to the constructor. The following examples
  demonstrate this:
 ```@docs
-global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-global_tate_model(base::AbstractNormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+global_tate_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+global_tate_model(base::NormalToricVarietyType, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
 ### A toric scheme as base space

@@ -3,9 +3,9 @@
 ####################################################
 
 @attributes mutable struct ToricMorphism
-    domain::AbstractNormalToricVariety
+    domain::NormalToricVarietyType
     grid_morphism::GrpAbFinGenMap
-    codomain::AbstractNormalToricVariety
+    codomain::NormalToricVarietyType
     ToricMorphism(domain, grid_morphism, codomain) = new(domain, grid_morphism, codomain)
 end
 
@@ -17,7 +17,7 @@ end
 
 
 @doc raw"""
-    toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety; check=true)
+    toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
 
 Construct the toric morphism with given domain and associated to the lattice
 morphism given by the `mapping_matrix`.
@@ -43,26 +43,26 @@ julia> toric_morphism(domain, mapping_matrix, codomain)
 A toric morphism
 ```
 """
-function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety; check=true)
+function toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
   @req (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) "The mapping matrix must not be empty"
   return toric_morphism(domain, hom(character_lattice(domain), character_lattice(codomain), mapping_matrix), codomain; check=check)
 end
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::AbstractNormalToricVariety; check=true) where {T <: IntegerUnion} =
+toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Matrix{T}, codomain::NormalToricVarietyType; check=true) where {T <: IntegerUnion} =
   toric_morphism(domain, matrix(ZZ, mapping_matrix), codomain; check=check)
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::AbstractNormalToricVariety; check=true) where {T <: IntegerUnion} =
+toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Vector{Vector{T}}, codomain::NormalToricVarietyType; check=true) where {T <: IntegerUnion} =
   toric_morphism(domain, matrix(ZZ, mapping_matrix), codomain; check=check)
-function toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix) 
+function toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix) 
   @req (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) "The mapping matrix must not be empty"
   return toric_morphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), mapping_matrix))
 end
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}) where {T <: IntegerUnion} =
+toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Matrix{T}) where {T <: IntegerUnion} =
   toric_morphism(domain, matrix(ZZ, mapping_matrix))
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}) where {T <: IntegerUnion} =
+toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Vector{Vector{T}}) where {T <: IntegerUnion} =
   toric_morphism(domain, matrix(ZZ, mapping_matrix))
 
 
 @doc raw"""
-    toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety; check=true)
+    toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
 
 Construct the toric morphism from the `domain` to the `codomain` with map given
 by the `grid_morphism`.
@@ -97,7 +97,7 @@ julia> toric_morphism(domain, grid_morphism, codomain)
 A toric morphism
 ```
 """
-function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety; check=true)
+function toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
     # avoid empty mapping
     @req (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) "The mapping matrix must not be empty"
 
@@ -115,7 +115,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
     end
     return ToricMorphism(domain, grid_morphism, codomain)
 end
-function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap; check=true)
+function toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap; check=true)
   image = transform(domain, matrix(grid_morphism); check=check)
   return ToricMorphism(domain, grid_morphism, image)
 end
@@ -126,7 +126,7 @@ end
 ####################################################
 
 @doc raw"""
-    toric_identity_morphism(variety::AbstractNormalToricVariety)
+    toric_identity_morphism(variety::NormalToricVarietyType)
 
 Construct the toric identity morphism from `variety` to `variety`.
 
@@ -136,7 +136,7 @@ julia> toric_identity_morphism(hirzebruch_surface(NormalToricVariety, 2))
 A toric morphism
 ```
 """
-function toric_identity_morphism(variety::AbstractNormalToricVariety)
+function toric_identity_morphism(variety::NormalToricVarietyType)
     r = rank(character_lattice(variety))
     identity_matrix = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:r] for i in 1:r])
     grid_morphism = hom(character_lattice(variety), character_lattice(variety), identity_matrix)

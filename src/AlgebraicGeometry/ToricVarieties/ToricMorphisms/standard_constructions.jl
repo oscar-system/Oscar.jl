@@ -1,5 +1,5 @@
 @doc raw"""
-    morphism_from_cox_variety(variety::AbstractNormalToricVariety)
+    morphism_from_cox_variety(variety::NormalToricVarietyType)
 
 Return the quotient morphism from the Cox variety to the toric variety in question.
 
@@ -12,7 +12,7 @@ julia> morphism_from_cox_variety(F4)
 A toric morphism
 ```
 """
-@attr ToricMorphism function morphism_from_cox_variety(variety::AbstractNormalToricVariety)
+@attr ToricMorphism function morphism_from_cox_variety(variety::NormalToricVarietyType)
     mapping_matrix = matrix(ZZ, rays(variety))
     max_cones_for_cox_variety = ray_indices(maximal_cones(variety))
     rays_for_cox_variety = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:nrays(variety)] for i in 1:nrays(variety)])
@@ -22,7 +22,7 @@ end
 
 
 @doc raw"""
-    cox_variety(variety::AbstractNormalToricVariety)
+    cox_variety(variety::NormalToricVarietyType)
 
 Return the Cox variety of the toric variety in question.
 
@@ -35,6 +35,6 @@ julia> cox_variety(F4)
 Normal toric variety
 ```
 """
-@attr AbstractNormalToricVariety function cox_variety(variety::AbstractNormalToricVariety)
+@attr NormalToricVarietyType function cox_variety(variety::NormalToricVarietyType)
     return domain(morphism_from_cox_variety(variety))
 end

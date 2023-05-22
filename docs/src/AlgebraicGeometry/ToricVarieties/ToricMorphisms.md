@@ -25,14 +25,14 @@ morphisms are exactly the toric morphisms.
 ### Generic constructors with specified codomain
 
 ```@docs
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety; check=true)
-toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety; check=true)
+toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
+toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
 ```
 
 ### Special constructors
 
 ```@docs
-toric_identity_morphism(variety::AbstractNormalToricVariety)
+toric_identity_morphism(variety::NormalToricVarietyType)
 ```
 
 
@@ -63,6 +63,6 @@ of $\mathbb{R}^N$ and the maximal cones are one to one to the maximal cones of
 the fan of $v$.
 
 ```@docs
-morphism_from_cox_variety(variety::AbstractNormalToricVariety)
-cox_variety(variety::AbstractNormalToricVariety)
+morphism_from_cox_variety(variety::NormalToricVarietyType)
+cox_variety(variety::NormalToricVarietyType)
 ```
