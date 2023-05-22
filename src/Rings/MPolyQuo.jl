@@ -1538,8 +1538,8 @@ end
 @doc raw"""
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
-Given a homogeneous ideal `a` of a graded affine algebra over a field,
-return an array containing a minimal set of generators of `a`. If `I`
+Given a homogeneous ideal `I` of a graded affine algebra over a field,
+return an array containing a minimal set of generators of `I`. If `I`
 is the zero ideal an empty list is returned.
 
 # Examples
@@ -1585,6 +1585,63 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
     return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
+
+@doc raw"""
+    small_generating_set(I::MPolyIdeal)
+
+Given a ideal `I` of an affine algebra over a field, return an array
+containing set of generators of `I`, which is usually smaller than the
+original one. If `I` is the zero ideal an empty list is returned.
+
+!!! note
+   Minimal generating sets exist only in the local and the homogeneous case. Beyond these cases, the best one can hope for is some small set of generators.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A, p = quo(R, ideal(R, [x-y]));
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> a = ideal(A, V);
+
+julia> small_generating_set(a)
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ y
+ z^2
+
+```
+"""
+function small_generating_set(I::MPolyQuoIdeal)
+  # For non-homogeneous ideals, we do not have a notion of minimal generating
+  # set, but Singular.mstd still provides a good heuristic to find a small
+  # generating set.
+  Q = base_ring(I)
+
+  @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
+
+  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
+  singular_assure(I)
+  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  if !isdefined(I, :gb)
+    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
+    I.gb.gens.S.isGB = I.gb.isGB = true
+  end
+
+  # we do not have a notion of minimal generating set in this context!
+  # If we are unlucky, mstd can even produce a larger generating set
+  # than the original one!!!
+  return_value = filter(!iszero, (Q).(gens(sing_min)))
+  if length(return_value) <= ngens(I)
+    return return_value
+  else
+    return gens(I)
+  end
+end
+
+# in the graded case, reusing a cached gb makes sense, so use minimal_generating set there
+small_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}) = minimal_generating_set(I)
 
 ################################################################################
 #

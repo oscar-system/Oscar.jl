@@ -13,8 +13,7 @@ const oldexppkgs = [
   "ModStd",
   "MPolyRingSparse",
   "Rings",
-  "Schemes",
-  "SymmetricIntersections",
+  "Schemes"
 ]
 # DEVELOPER OPTION:
 # The following lines ensure that ToricSchemes is loaded before FTheoryTools.
@@ -30,10 +29,10 @@ append!(exppkgs, orderedpkgs)
 # Error if something is incomplete in experimental
 for pkg in exppkgs
   if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
-    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing.")
+    error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
   if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
-    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing.")
+    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
 end
 
@@ -52,7 +51,6 @@ include("ModStd.jl")
 include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
-include("SymmetricIntersections.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")

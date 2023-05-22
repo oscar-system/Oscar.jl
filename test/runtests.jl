@@ -114,7 +114,6 @@ include("Experimental/ModStdNF.jl")
 include("Experimental/MPolyRingSparse.jl")
 include("Experimental/MatrixGroups.jl")
 include("Experimental/JuLie.jl")
-include("Experimental/SymmetricIntersections.jl")
 include("Experimental/ExteriorAlgebra.jl")
 
 include("Rings/ReesAlgebra.jl")

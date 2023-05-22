@@ -561,6 +561,7 @@ export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
 export groebner_basis_with_transformation_matrix
+export groebner_fan
 export groebner_polyhedron
 export group
 export gset
@@ -597,6 +598,8 @@ export hom
 export hom_product
 export hom_tensor
 export hom_without_reversing_direction
+export homogeneity_space
+export homogeneity_vector
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
@@ -903,6 +906,7 @@ export maximal_blocks
 export maximal_cells
 export maximal_cones
 export maximal_extension
+export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra
 export maximal_subgroup_reps
