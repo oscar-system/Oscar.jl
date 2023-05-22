@@ -9,7 +9,7 @@
 # want to be able to directly access rays, maximal_cones, etc for
 # NormalToricVariety's.
 # abstract type _FanLikeType{T} end
-abstract type AbstractNormalToricVariety end
+# abstract type AbstractNormalToricVariety end
 
 struct PolyhedralFan{T}
     pm_fan::Polymake.BigObject
@@ -18,11 +18,11 @@ struct PolyhedralFan{T}
     PolyhedralFan{QQFieldElem}(pm::Polymake.BigObject) = new{QQFieldElem}(pm, QQ)
 end
 
-const _FanLikeType = Union{AbstractNormalToricVariety, PolyhedralFan}
-const _FanLikeTypeQQ = Union{AbstractNormalToricVariety, PolyhedralFan{QQFieldElem}}
+const _FanLikeType = Union{NormalToricVarietyType, PolyhedralFan}
+const _FanLikeTypeQQ = Union{NormalToricVarietyType, PolyhedralFan{QQFieldElem}}
 
 get_scalar_type(::PolyhedralFan{T}) where T<:scalar_types = T
-get_scalar_type(::AbstractNormalToricVariety) = QQFieldElem
+get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 coefficient_field(x::PolyhedralFan{T}) where T<:scalar_types = x.parent_field
 
 

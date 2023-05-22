@@ -1,21 +1,10 @@
 ######################
 # Julia type for ToricVarieties
 ######################
-abstract type AbstractNormalToricVariety end
 
-@attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
-           polymakeNTV::Polymake.BigObject
-           NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
-end
+pm_object(v::NormalToricVarietyType) = v.polymakeNTV
 
-@attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
-           polymakeNTV::Polymake.BigObject
-           AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
-end
-
-pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
-
-coefficient_field(::AbstractNormalToricVariety) = QQ
+coefficient_field(::NormalToricVarietyType) = QQ
 
 ######################
 # Constructors
@@ -216,7 +205,8 @@ end
 ######################
 # Display
 ######################
-function Base.show(io::IO, v::AbstractNormalToricVariety)
+
+function Base.show(io::IO, v::NormalToricVarietyType)
     # initiate properties string
     properties_string = ["Normal"]
     

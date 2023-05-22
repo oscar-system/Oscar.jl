@@ -86,8 +86,8 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  `completeness_check = false` as last argument to the constructor. The following examples
  demonstrate this:
 ```@docs
-weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
+weierstrass_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+weierstrass_model(base::NormalToricVarietyType, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
 ### A toric scheme as base space

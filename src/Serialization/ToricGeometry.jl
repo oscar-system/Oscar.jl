@@ -3,7 +3,7 @@
 @registerSerializationType(AffineNormalToricVariety, true)
 @registerSerializationType(NormalToricVariety, true)
 
-function save_object(s::SerializerState, ntv::AbstractNormalToricVariety)
+function save_object(s::SerializerState, ntv::NormalToricVarietyType)
   save_object(s, ntv.polymakeNTV)
 end
 
@@ -32,7 +32,7 @@ function save_object(s::SerializerState, td::ToricDivisor)
 end
 
 function load_object(s::DeserializerState, ::Type{ToricDivisor},
-                     entries::Vector, tv::AbstractNormalToricVariety)
+                     entries::Vector, tv::NormalToricVarietyType)
   coeffs = load_object(s, Vector, entries, ZZRingElem)
   all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
   index = 0

@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    hypersurface_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVarietyType; completeness_check::Bool = true)
 
 Construct a hypersurface model. This constructor takes $\mathbb{P}^{2,3,1}$ as fiber
 ambient space with coordinates $[x:y:z]$ and ensures that $x$ transforms as
@@ -18,7 +18,7 @@ julia> hypersurface_model(base; completeness_check = false)
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+function hypersurface_model(base::NormalToricVarietyType; completeness_check::Bool = true)
   fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = 2 * anticanonical_divisor_class(base)
@@ -28,7 +28,7 @@ end
 
 
 @doc raw"""
-    hypersurface_model(base::AbstractNormalToricVariety, fiber_ambient_space::AbstractNormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVarietyType, fiber_ambient_space::NormalToricVarietyType, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
 
 Construct a hypersurface model, for which the user can specify a fiber ambient space
 as well as divisor classes of the toric base space, in which the first two homogeneous
@@ -54,7 +54,7 @@ julia> hypersurface_model(base, fiber_ambient_space, D1, D2; completeness_check 
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(base::AbstractNormalToricVariety, fiber_ambient_space::AbstractNormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+function hypersurface_model(base::NormalToricVarietyType, fiber_ambient_space::NormalToricVarietyType, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
   
   # Consistency checks
   gens_base_names = [string(g) for g in gens(cox_ring(base))]

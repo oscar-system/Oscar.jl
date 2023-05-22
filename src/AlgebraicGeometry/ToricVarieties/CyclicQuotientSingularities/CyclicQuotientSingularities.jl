@@ -4,10 +4,6 @@
 ################################################################################
 ################################################################################
 
-@attributes mutable struct CyclicQuotientSingularity <: AbstractNormalToricVariety
-    polymakeNTV::Polymake.BigObject
-end
-
 function Base.show(io::IO, cqs::CyclicQuotientSingularity)
     n = pm_object(cqs).N
     q = pm_object(cqs).Q
