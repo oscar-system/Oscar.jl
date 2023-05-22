@@ -1,7 +1,7 @@
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
-abstract type AbstractNormalToricVariety <: _FanLikeType{QQFieldElem} end
+abstract type AbstractNormalToricVariety end
 
 @attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
