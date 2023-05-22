@@ -100,6 +100,7 @@ x^2 + 1
 ```
 """
 function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+  check && CHECK_ERROR && error("check was enabled")
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
@@ -112,6 +113,7 @@ function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = t
 end
 
 function hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
+  check && CHECK_ERROR && error("check was enabled")
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
