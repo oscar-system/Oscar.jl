@@ -148,5 +148,29 @@ include("ProjectiveVariety/Objects/Properties.jl")
 include("ProjectiveVariety/Objects/Attributes.jl")
 include("ProjectiveVariety/Objects/Methods.jl")
 
-# A global variable to throw an error whenever an enabled internal test was found
-CHECK_ERROR = true
+# A global variable to throw an error whenever an enabled internal test was found.
+#
+# Synopsis: Many methods in Oscar have an additional optional argument `check::Bool=true`
+# which is set to `true` by default and which forces several internal checks to be run 
+# to check for sane input. 
+#
+# An example is the map from a quotient ring f : A -> R to another ring R: For f to be 
+# well defined, one has to check that the lift F : P -> R of this map to the polynomial 
+# ring P with A = P/I takes all elements in I to zero. In the default case, the constructor 
+# for f will check that the given map is well defined, but one does not want this check 
+# to be run when calling the constructor internally on verified sane input. 
+#
+# To this end, one should do the function calls with `check=false` internally. However, 
+# it is very likely that one forgets to include this statement in all calls when programming. 
+# To this end, we introduce a global flag here which does the following. 
+#
+# Every function using the optional `check::Bool=true` argument should have the line 
+#
+#   check && CHECK_ERROR && error("internal checks were enabled")
+#
+# Then the developer can set the flag below to `true` and run their test code. This will 
+# throw the error whenever an unexpected internal check would have been triggered together 
+# with a subsequent stacktrace. Then the internal checks can be switched off. 
+
+CHECK_ERROR = false
+
