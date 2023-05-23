@@ -2,7 +2,6 @@
 using Pkg
 using Random
 using RandomExtensions
-using Test
 
 # our packages
 import AbstractAlgebra
