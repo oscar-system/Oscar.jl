@@ -1,34 +1,54 @@
 using Oscar
 using Test
 using Documenter
+using Distributed
 
 import Random
 
-if haskey(ENV, "JULIA_PKGEVAL") ||
-    get(ENV, "CI", "") == "true" ||
-    haskey(ENV, "OSCAR_RANDOM_SEED")
-  seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
-  @info string(@__FILE__)*" -- fixed SEED $seed"
-else
-  seed = rand(UInt32)
-  @info string(@__FILE__)*" -- SEED $seed"
-end
-Oscar.set_seed!(seed)
 
-import Oscar.Nemo.AbstractAlgebra
-include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+if !isempty(ARGS)
+  jargs = [arg for arg in ARGS if startswith(arg, "-j")]
+  if !isempty(jargs)
+    numprocs = parse(Int,split(jargs[end], "-j")[end])
+  end
+elseif haskey(ENV, "NUMPROCS")
+  numprocs = parse(Int,ENV["NUMPROCS"])
+else
+  numprocs = 1
+end
+
+if (numprocs >= 2)
+  println("Adding worker processes")
+  addprocs(numprocs)
+end
+
+if haskey(ENV, "JULIA_PKGEVAL") ||
+  get(ENV, "CI", "") == "true" ||
+  haskey(ENV, "OSCAR_RANDOM_SEED")
+seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
+@info string(@__FILE__)*" -- fixed SEED $seed"
+else
+seed = rand(UInt32)
+@info string(@__FILE__)*" -- SEED $seed"
+end
+
+@everywhere using Test
+@everywhere using Oscar
+@everywhere Oscar.set_seed!($seed)
+
+# hotfix, otherwise StraightLinePrograms returns something which then leads to an error
+module SLPTest
+end
 
 # some helpers
-import Printf
-import PrettyTables
-
-using Distributed
+@everywhere import Printf
+@everywhere import PrettyTables
 
 # the current code for extracting the compile times does not work on earlier
 # julia version
-const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
+@everywhere const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
 
-const stats_dict = Dict{String,NamedTuple}()
+@everywhere const stats_dict = Dict{String,NamedTuple}()
 
 function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=50)
   sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
@@ -47,9 +67,9 @@ end
 
 # we only want to print stats for files that run tests and not those that just
 # include other files
-const innermost = Ref(true)
+@everywhere const innermost = Ref(true)
 # redefine include to print and collect some extra stats
-function include(str::String)
+@everywhere function include(str::String)
   innermost[] = true
   # we pass the identity to avoid recursing into this function again
   @static if compiletimes
@@ -83,31 +103,6 @@ end
   Base.cumulative_compile_timing(true);
 end
 
-if !isempty(ARGS)
-  jargs = [arg for arg in ARGS if startswith(arg, "-j")]
-  if !isempty(jargs)
-    numprocs = parse(Int,split(jargs[end], "-j")[end])
-  end
-elseif haskey(ENV, "NUMPROCS")
-  numprocs = parse(Int,ENV["NUMPROCS"])
-else
-  numprocs = 1
-end
-
-if (numprocs >= 2)
-  println("Adding worker processes")
-  addprocs(numprocs)
-  @everywhere using Test
-  @everywhere using Oscar
-  @everywhere Oscar.set_seed!($seed)
-  # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
-  @everywhere const SLP = Oscar.StraightLinePrograms
-end
-
-# hotfix, otherwise StraightLinePrograms returns something which then leads to an error
-module SLPTest
-end
-
 println("Making test list")
 
 testlist = []
@@ -118,7 +113,7 @@ push!(testlist, "Combinatorics/runtests.jl")
 push!(testlist, "GAP/runtests.jl")
 push!(testlist, "Groups/runtests.jl")
 
-#push!(testlist, "Rings/runtests.jl") #This fails with many workers. TODO: fix and reenable
+push!(testlist, "Rings/runtests.jl")
 
 push!(testlist, "NumberTheory/nmbthy-test.jl")
 
@@ -178,10 +173,12 @@ end
 #currently, print_stats will fail when running tests with external workers
 #TODO: potentially rewrite include as well as print_stats 
 #      to comply with parallel decisions
-if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
-  open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
-    print_stats(io, fmt=PrettyTables.tf_markdown)
+if (numprocs == 1)
+  if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
+    open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
+      print_stats(io, fmt=PrettyTables.tf_markdown)
+    end
+  else
+    print_stats(stdout; max=10)
   end
-else
-  print_stats(stdout; max=10)
 end
