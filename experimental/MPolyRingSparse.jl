@@ -1,1 +1,0 @@
-include("MPolyRingSparse/MPolyRingSparse.jl")
