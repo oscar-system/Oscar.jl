@@ -366,14 +366,8 @@ julia> G = abelian_group([0, 2])
 
 julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
 2-element Vector{GrpAbFinGenElem}:
- Element of
-(General) abelian group with relation matrix
-[0 0; 0 2]
-with components [1 1]
- Element of
-(General) abelian group with relation matrix
-[0 0; 0 2]
-with components [1 0]
+ Element of G with components [1 1]
+ Element of G with components [1 0]
 
 julia> S, (x, y) = grade(R, W)
 (Multivariate polynomial ring in 2 variables over QQ graded by
@@ -500,9 +494,7 @@ julia> G = abelian_group([0])
 GrpAb: Z
 
 julia> g = gen(G, 1)
-Element of
-GrpAb: Z
-with components [1]
+Element of G with components [1]
 
 julia> S, (t, x, y) = grade(R, [-g, g, g])
 (Multivariate polynomial ring in 3 variables over QQ graded by
@@ -527,12 +519,8 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
+ Element of G with components [1 0]
+ Element of G with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -570,22 +558,10 @@ julia> G = abelian_group([0, 0, 2, 2])
 
 julia> g = gens(G)
 4-element Vector{GrpAbFinGenElem}:
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 0 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 1 0 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 0 1 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 0 0 1]
+ Element of G with components [1 0 0 0]
+ Element of G with components [0 1 0 0]
+ Element of G with components [0 0 1 0]
+ Element of G with components [0 0 0 1]
 
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
@@ -909,10 +885,7 @@ julia> f = x[2]^2+2*x[4]^2
 x[2]^2 + 2*x[4]^2
 
 julia> degree(f)
-Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 2 0 0]
+Element of G with components [0 2 0 0]
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
@@ -1320,18 +1293,7 @@ julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] of degree graded by [1 1]
- to Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] defined by a julia-function with inverse
+S_[1 1] of dim 6 to S defined by a julia-function with inverse
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
 x[2]*y[3]
@@ -1351,19 +1313,8 @@ julia> G = grading_group(T)
 GrpAb: Z
 
 julia> L = homogeneous_component(T, 2)
-(homogeneous component of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
-, Map from
-homogeneous component of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
- to Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] defined by a julia-function with inverse)
+(T_[2] of dim 6, Map from
+T_[2] of dim 6 to T defined by a julia-function with inverse)
 
 julia> FG = gens(L[1]);
 

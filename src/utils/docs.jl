@@ -13,14 +13,74 @@ function doc_init(;path=mktempdir())
     cp(joinpath(oscardir, "docs", "Project.toml"), joinpath(docsproject,"Project.toml"))
   end
   Pkg.activate(docsproject) do
-    # we dev all packages with the paths from where they are currently loaded
-    for dir in [aadir, nemodir, heckedir, oscardir]
-      Pkg.develop(path=dir)
+    # we dev all "our" packages with the paths from where they are currently
+    # loaded
+    for pkg in [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
+      Pkg.develop(path=Base.pkgdir(pkg))
     end
+    Pkg.develop(path=oscardir)
     Pkg.instantiate()
     Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
   end
 end
+
+"""
+    doctest_fix(f::Function; set_meta::Bool = false)
+
+Fixes all doctests for the given function `f`.
+"""
+function doctest_fix(f::Function; set_meta::Bool = false)
+  S = Symbol(f)
+  mod = Oscar
+  if !isdefined(Main, :Documenter)
+    error("you need to do `using Documenter` first (a dev version of Documenter for now)")
+  end
+
+  doc = Main.Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
+
+  if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
+    #ugly: needs to be in sync with the docs/make_docs.jl file
+    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
+  end
+
+  #essentially inspired by Documenter/src/DocTests.jl
+  bm = Main.Documenter.DocSystem.getmeta(mod)
+  md = bm[Base.Docs.Binding(Oscar, S)]
+  for s in md.order
+    Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
+  end
+end
+
+"""
+    doctest_fix(n::String; set_meta::Bool = false)
+
+Fixes all doctests for the file `n`, ie. all files in Oscar where
+  `n` occurs in the full pathname of.
+"""
+function doctest_fix(n::String; set_meta::Bool = false)
+  mod = Oscar
+  if !isdefined(Main, :Documenter)
+    error("you need to do `using Documenter` first (a dev version of Documenter for now)")
+  end
+
+  doc = Main.Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
+
+  if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
+    #ugly: needs to be in sync with the docs/make_docs.jl file
+    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
+  end
+
+  #essentially inspired by Documenter/src/DocTests.jl
+  bm = Main.Documenter.DocSystem.getmeta(mod)
+  for (k, md) = bm
+    for s in md.order
+      if occursin(n, md.docs[s].data[:path])
+        Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
+      end
+    end
+  end
+end
+
 
 #function doc_update_deps()
 #  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
@@ -99,4 +159,3 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
     @warn versionwarn
   end
 end
-

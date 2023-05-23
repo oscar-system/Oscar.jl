@@ -201,7 +201,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate polynomial ring in 3 variables over QQ to Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+Multivariate polynomial ring in 3 variables over QQ to A defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -231,7 +231,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate polynomial ring in 3 variables over QQ to Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+Multivariate polynomial ring in 3 variables over QQ to A defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -828,7 +828,7 @@ QQMPolyRingElem
 
 julia> p
 Map from
-Multivariate polynomial ring in 2 variables over QQ to Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
+Multivariate polynomial ring in 2 variables over QQ to A defined by a julia-function with inverse
 
 julia> p(x)
 x
@@ -844,13 +844,7 @@ julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
   x -> [1]
   y -> [1]
   z -> [1] by ideal(x^2*z - y^3, x - y), Map from
-Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] to Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
+S to B defined by a julia-function with inverse)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
@@ -1107,13 +1101,7 @@ julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
   x -> [1]
   y -> [1]
   z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
-Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] to Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3) defined by a julia-function with inverse)
+R to A defined by a julia-function with inverse)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
@@ -1317,16 +1305,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate polynomial ring in 4 variables over QQ graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
- to Multivariate polynomial ring in 4 variables over QQ graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] defined by a julia-function with inverse
+R_[2] of dim 10 to R defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1351,11 +1330,7 @@ julia> HC = gens(L[1]);
 julia> EMB = L[2]
 Map from
 Quotient space over:
-Rational field with 7 generators and no relations to Quotient of Multivariate polynomial ring in 4 variables over QQ graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2) defined by a julia-function with inverse
+Rational field with 7 generators and no relations to A defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1375,12 +1350,8 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
+ Element of G with components [1 0]
+ Element of G with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -1397,15 +1368,8 @@ homogeneous component of Multivariate polynomial ring in 5 variables over QQ gra
   x[2] -> [1 0]
   y[1] -> [0 1]
   y[2] -> [0 1]
-  y[3] -> [0 1] of degree Element of
-GrpAb: Z^2
-with components [2 1]
- to Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] defined by a julia-function with inverse
+  y[3] -> [0 1] of degree Element of G with components [2 1]
+ to S defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1429,12 +1393,7 @@ julia> HC = gens(L[1]);
 julia> EMB = L[2]
 Map from
 Quotient space over:
-Rational field with 7 generators and no relations to Quotient of Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]) defined by a julia-function with inverse
+Rational field with 7 generators and no relations to A defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
