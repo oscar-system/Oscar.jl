@@ -1,7 +1,7 @@
 @testset "elliptic fibrations" begin
   B = matrix(FlintQQ, 16, 16 ,[2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3//2, 1//2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1//2, 3//2, 3//2, 1//2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1//2, 3//2, 0, 1//2, 1//2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1//2, 1//2, 1//2, 0, 1//2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1//2, 1, 1//2, 0, 1//2, 0, 0, 1//2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1//2, 0, 1//2, 0, 3//5, 1//10]);
   G = matrix(FlintQQ, 16, 16 ,[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -170]);
-  NS = Zlattice(B, gram = G);
+  NS = integer_lattice(B, gram = G);
   V = ambient_space(NS)
   f =  QQFieldElem[2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   r, torsion, ade = Oscar.fibration_type(NS,f)
@@ -21,15 +21,15 @@ end
 
 
 @testset "walls of chamber" begin
-  S = Zlattice(gram=QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2])
+  S = integer_lattice(gram=QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2])
   # fix an embedding
   B = matrix(FlintQQ, 10, 10 ,[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1//3, 2//3, 1//3, 2//3, 2//3, 2//3, 1//3, 1//3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
   G = matrix(FlintQQ, 10, 10 ,[-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 1, -1, -1, -1, 0, 0, 0, 0, -1, -2, 1, -1, 0, -1, 0, 0, 0, 0, 1, 1, -2, 0, 0, 1, 0, 0, 0, 0, -1, -1, 0, -2, -1, -1, 0, 0, 0, 0, -1, 0, 0, -1, -2, -1, 0, 0, 0, 0, -1, -1, 1, -1, -1, -2]);
-  L = Zlattice(B, gram = G);
+  L = integer_lattice(B, gram = G);
 
   B = matrix(FlintQQ, 4, 10 ,[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]);
   G = matrix(FlintQQ, 10, 10 ,[-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 1, -1, -1, -1, 0, 0, 0, 0, -1, -2, 1, -1, 0, -1, 0, 0, 0, 0, 1, 1, -2, 0, 0, 1, 0, 0, 0, 0, -1, -1, 0, -2, -1, -1, 0, 0, 0, 0, -1, 0, 0, -1, -2, -1, 0, 0, 0, 0, -1, -1, 1, -1, -1, -2]);
-  S = Zlattice(B, gram = G);
+  S = integer_lattice(B, gram = G);
 
   weyl = QQ[31   61   52   71   5   -6   5   -2   -7   8]
   weylk3 = change_base_ring(ZZ,solve_left(basis_matrix(L), weyl))
@@ -45,7 +45,7 @@ end
 end
 
 @testset "K3 surface automorphism groups" begin
-  S = Zlattice(gram=QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2])
+  S = integer_lattice(gram=QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2])
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test order(matrix_group(k3aut))==2
   @test length(chambers) == 1
@@ -72,7 +72,7 @@ end
   @test length(rational_mod_aut) == 3
   =#
   # Another example with finite automorphism group
-  S,_ = direct_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
+  S,_ = direct_sum(integer_lattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test order(matrix_group(k3aut))==6
   @test length(chambers) == 1
@@ -88,7 +88,7 @@ end
   @test length(chambers) == 1
   @test length(rational_mod_aut) == 4
 
-  S,_ = direct_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
+  S,_ = direct_sum(integer_lattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=false)
   @test length(k3aut)==0
   @test length(chambers) == 6
@@ -100,7 +100,7 @@ end
   # we hardcode the embedding of the following lattice
   # because length(chambers) depends on the embedding
   #=
-  S, _ = direct_sum(Zlattice(gram=ZZ[0 1; 1 -2]),Zlattice(gram=ZZ[-50;]))
+  S, _ = direct_sum(integer_lattice(gram=ZZ[0 1; 1 -2]),integer_lattice(gram=ZZ[-50;]))
   k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test length(k3aut)==2
   @test length(chambers) == 74
@@ -126,7 +126,7 @@ end
   @test length(chambers) == 127
   @test length(rational_mod_aut) == 4
 
-  SS = Zlattice(gram=gram_matrix(S))
+  SS = integer_lattice(gram=gram_matrix(S))
   C = lattice(ambient_space(SS),Oscar._common_invariant(k3aut)[2])
   d = diagonal(rational_span(C))
   @test d[1] == 0 # a common invariant isotropic ray.

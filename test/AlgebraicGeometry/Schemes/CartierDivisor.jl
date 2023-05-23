@@ -17,7 +17,7 @@
     D[U] = dehomogenization_map(P, U)(H)
   end
 
-  C = oscar.EffectiveCartierDivisor(X, D)
+  C = Oscar.EffectiveCartierDivisor(X, D)
   D = pullback(g_cov)(C)
   for U in patches(trivializing_covering(D))
     @test length(D(U)) == 1
@@ -51,8 +51,8 @@ end
   X = covered_scheme(IPX)
   h = (x+y+z+w)^3
   u = (x-y+4*w)
-  C = oscar.cartier_divisor(IPX, h)
-  D = oscar.cartier_divisor(IPX, u)
+  C = Oscar.cartier_divisor(IPX, h)
+  D = Oscar.cartier_divisor(IPX, u)
   @test 2*C == C+C
   @test iszero(D-D)
   @test 3*(C + D) == 3*C + 3*D
@@ -63,8 +63,8 @@ end
   S = homogeneous_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, x^2*y^3*(x+y+z))
-  C = oscar.effective_cartier_divisor(IP2, gen(I, 1))
-  CW = oscar.weil_divisor(C)
+  C = Oscar.effective_cartier_divisor(IP2, gen(I, 1))
+  CW = Oscar.weil_divisor(C)
   @test length(components(CW)) == 3
   @test 1 in collect(values(CW.C.coefficients))
   @test 2 in collect(values(CW.C.coefficients))

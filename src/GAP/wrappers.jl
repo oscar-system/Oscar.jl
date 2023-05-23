@@ -105,6 +105,7 @@ GAP.@wrap IsFFE(x::Any)::Bool
 GAP.@wrap IsFFECollCollColl(x::Any)::Bool
 GAP.@wrap IsField(x::Any)::Bool
 GAP.@wrap IsFinite(x::Any)::Bool
+GAP.@wrap IsFiniteDimensional(x::Any)::Bool
 GAP.@wrap IsFinitelyGeneratedGroup(x::Any)::Bool
 GAP.@wrap IsFpGroup(x::Any)::Bool
 GAP.@wrap IsFreeGroup(x::Any)::Bool
@@ -118,6 +119,8 @@ GAP.@wrap IsIntegers(x::Any)::Bool
 GAP.@wrap IsIrreducibleCharacter(x::Any)::Bool
 GAP.@wrap IsLetterAssocWordRep(x::Any)::Bool
 GAP.@wrap IsLetterWordsFamily(x::Any)::Bool
+GAP.@wrap IsLieAlgebra(x::Any)::Bool
+GAP.@wrap IsLieObjectCollection(x::Any)::Bool
 GAP.@wrap IsList(x::Any)::Bool
 GAP.@wrap IsMatrix(x::GapObj)::Bool
 GAP.@wrap IsMatrixGroup(x::GapObj)::Bool
@@ -208,6 +211,7 @@ GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap Sqrt(x::Int64)::GAP.Obj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
+GAP.@wrap UnderlyingRingElement(x::GapObj)::GapObj
 GAP.@wrap UnivariatePolynomialByCoefficients(x::GapObj, y::GapObj, z::Int)::GapObj
 GAP.@wrap Value(x::GapObj, y::Any)::Any
 GAP.@wrap Value(x::GapObj, y::Any, z::Any)::Any

@@ -72,7 +72,7 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   for K in pbZ
     Y = subscheme(Y, gens(modulus(underlying_quotient(OO(K)))))
   end
-  return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
+  return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
 function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
   V = codomain(f) 
@@ -97,7 +97,7 @@ function preimage(f::SpecOpenMor, V::SpecOpen)
   R = ambient_coordinate_ring(X)
   I = ideal(R, one(R))
   for i in 1:npatches(U)
-    I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(gens(V))))))
+    I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(complement_equations(V))))))
   end
   return intersect(U, SpecOpen(X, I))
 end
@@ -116,9 +116,9 @@ function find_non_zero_divisor(U::SpecOpen)
   n == 0 && return zero(R)
   kk = base_ring(X)
   coeff = elem_type(kk)[rand(kk, 0:100) for i in 1:n]
-  d = sum([coeff[i]*gen(U, i) for i in 1:n])
+  d = sum([coeff[i]*complement_equations(U)[i] for i in 1:n])
   while !is_non_zero_divisor(d, U)
-    d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
+    d = dot([rand(kk, 0:100) for i in 1:n], complement_equations(U))
   end
   return d
 end

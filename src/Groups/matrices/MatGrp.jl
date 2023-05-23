@@ -170,7 +170,13 @@ function Base.show(io::IO, x::MatrixGroup)
       if x.descr==:GU || x.descr==:SU
          print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
       else
-         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+         if x.ring isa Field
+            print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+         else
+            print(io, string(x.descr), "(",x.deg,",")
+            print(IOContext(io, :supercompact => true), x.ring)
+            print(io ,")")
+         end
       end
    else
       print(io, "Matrix group of degree ", x.deg, " over ")
@@ -591,7 +597,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -625,7 +631,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -660,7 +666,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -697,7 +703,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -749,7 +755,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -802,7 +808,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)
@@ -858,8 +864,8 @@ julia> gens(H)
 ```
 """
 function unitary_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   fl, b, a = is_prime_power_with_data(q)
+   @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -884,8 +890,8 @@ julia> gens(H)
 ```
 """
 function special_unitary_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   fl, b, a = is_prime_power_with_data(q)
+   @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G

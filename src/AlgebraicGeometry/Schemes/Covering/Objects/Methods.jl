@@ -324,4 +324,29 @@ function is_refinement(D::Covering, C::Covering)
   return true, CoveringMorphism(D, C, map_dict, check=false)
 end
 
+########################################################################
+# Base change
+########################################################################
+function base_change(phi::Any, C::Covering)
+  U = patches(C)
+  patch_change = [base_change(phi, V) for V in U]
 
+  glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  for i in 1:length(U)
+    (A, map_A) = patch_change[i]
+    for j in 1:length(U)
+      (B, map_B) = patch_change[j]
+      G = C[U[i], U[j]] # the glueing
+      GG = base_change(phi, G, patch_change1=map_A, patch_change2=map_B)
+      glueing_dict[A, B] = GG
+    end
+  end
+  CC = Covering([V for (V, _) in patch_change], glueing_dict)
+
+  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for (V, phi) in patch_change
+    mor_dict[V] = phi
+  end
+
+  return CC, CoveringMorphism(CC, C, mor_dict, check=true) # TODO: Set to false after testing
+end

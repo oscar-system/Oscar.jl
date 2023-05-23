@@ -5,15 +5,15 @@ CurrentModule = Oscar
 # Global Weierstrass models
 
 A global Weierstrass model describes a particular form of an elliptic fibration.
-We focus on elliptic fibrations over base 3-folds ``B3``. Consider
+We focus on an elliptic fibration over a complete base ``B``. Consider
 the weighted projective space ``\mathbb{P}^{2,3,1}`` with coordinates
 ``x, y, z``. In addition, consider
-* ``f \in H^0( B_3, \overline{K}_{B_3}^{\otimes 4} )``,
-* ``g \in H^0( B_3, \overline{K}_{B_3}^{\otimes 6} )``,
-Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B3`` such that
-* ``x`` transforms as a section of ``2 \overline{K}_{B_3}``,
-* ``y`` transforms as a section of ``3 \overline{K}_{B_3}``,
-* ``z`` transforms as a section of ``0 \overline{K}_{B_3} = \mathcal{O}_{B_3}``.
+* ``f \in H^0( B, \overline{K}_{B}^{\otimes 4} )``,
+* ``g \in H^0( B, \overline{K}_{B}^{\otimes 6} )``,
+Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B`` such that
+* ``x`` transforms as a section of ``2 \overline{K}_{B}``,
+* ``y`` transforms as a section of ``3 \overline{K}_{B}``,
+* ``z`` transforms as a section of ``0 \overline{K}_{B} = \mathcal{O}_{B}``.
 In this 5-fold ambient space, a global Weierstrass model is the hypersurface defined
 by the vanishing of the Weierstrass polynomial ``P_W = x^3 - y^2 + f x z^4 + g z^6``.
 
@@ -46,33 +46,65 @@ This can be read-off from the Weierstrass table, which we have reproduced from
 | non-min. | ``\geq 4`` | ``\geq 6`` | ``\geq 12`` | non-can. | | | |
 
 
-## ... over concrete bases
+## Constructors
 
-To construct a Weierstrass model as a hypersurface in an ambient space,
-we first need to construct the ambient space in question. For a toric base,
-one way to achieve this is to first focus on the Cox ring of the toric
-ambient space. This ring must be graded such that the Weierstrass polynomial
-is homogeneous and cuts out a Calabi-Yau hypersurface. Given this grading,
-one can perform a triangulation. This triangulation will typically
-take a long time to complete and yield a large number of candidate ambient
-spaces. Typically, one wishes to focus on those spaces which contain the
-toric base space in a manifest way. But even this criterion usually
-allows for many ambient spaces to be used.
+We aim to provide support for global Weierstrass models over the following bases:
+* a toric variety,
+* a toric scheme,
+* a (covered) scheme.
+Often, one also wishes to obtain information about a global Weierstrass model without
+explicitly specifying the base space. Also for this application, we provide support.
+Finally, we provide support for some standard constructions.
 
-To circumvent this obstacle, all our constructors operate in the opposite direction.
-That is, they begins by extracting the rays and maximal cones of the chosen
-toric base space. Subsequently, those rays and cones are extended
-to form one of the many toric ambient spaces. Note that the so-constructed
-ambient space need not be smooth.
+Before we detail these constructors, we must comment on the constructors over toric base
+spaces. Namely, in order to construct a Weierstrass model as a hypersurface in an ambient
+space, we first wish to construct the ambient space in question. For a toric base, one way to
+achieve this is to first focus on the Cox ring of the toric ambient space. This ring must be
+graded such that the Weierstrass polynomial is homogeneous and cuts out a Calabi-Yau
+hypersurface. Given this grading, one can perform a triangulation task. Typically, this
+combinatorial task is very demanding, consumes a lot of computational power and takes a
+long time to complete. Even more, it will yield a large, often huge, number of candidate
+ambient spaces of which the typical user will only pick one. For instance, a common and
+often appropriate choice is a toric ambient space which contains the toric base space in a
+manifest way.
 
-We support the following constructors:
+To circumvent this very demanding computation, our toric constructors operate in the
+opposite direction. That is, they begin by extracting the rays and maximal cones of the chosen
+toric base space. Subsequently, those rays and cones are extended to form one of the many
+toric ambient spaces. This proves hugely superior in performance than going through the
+triangulation task of enumerating all possible toric ambient spaces. One downside of this strategy
+is that the so-constructed ambient space need not be smooth.
+
+### A toric variety as base space
+
+We require that the provided toric base space is complete. This is a technical limitation as of now.
+The functionality of OSCAR only allows us to compute a section basis (or a finite subset thereof)
+for complete toric varieties. In the future, this could be extended.
+
+However, completeness is an expensive check. Therefore, we provide an optional argument which
+ one can use to disable this check if desired. To this end, one passes the optional argument
+ `completeness_check = false` as last argument to the constructor. The following examples
+ demonstrate this:
 ```@docs
-global_weierstrass_model(base::AbstractNormalToricVariety)
-global_weierstrass_model_over_projective_space()
-global_weierstrass_model(f::MPolyRingElem{QQFieldElem}, g::MPolyRingElem{QQFieldElem}, base::AbstractNormalToricVariety)
+global_weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
+global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
 ```
 
-## ... over not fully specified bases
+### A toric scheme as base space
+
+For the same reasons as above, the toric base must be complete. Similar to toric varieties as
+bases, we can use the optional argument `completeness_check = false` to switch off the
+expensive completeness check. The following examples demonstrate this:
+```@docs
+global_weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
+global_weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true)
+```
+
+### A (covered) scheme as base space
+
+This functionality does not yet exist.
+
+### Base space not specified
 
 A global Weierstrass model can also be constructed over a base space that
 is not fully specified. Rather, it assumes that a base space exists such that
@@ -82,69 +114,88 @@ Weierstrass model in question is well-defined.
 For many practical applications, one wishes to assume a further specialize
 the Weierstrass sections ``f`` and ``g``. This has the advantage that one can
 engineer singularity loci or even the singularity type over a specific locus.
-To some extend, this is the backbone of many F-theory constructions.
+To some extend, this is the backbone of many F-theory constructions. It is
+useful to consider a polynomial ring whose variables are the sections
+used in the desired factorization of the Weierstrass sections ``f`` and ``g``.
+In theory, one can consider the indeterminates of this polynomial ring as local
+coordinate of an auxiliary base space. Indeed, for our computer implementation
+the polynomial ring with these indeterminates serve as the coordinate ring of
+an auxiliary *toric* base space. Despite this auxiliary base space being toric,
+the predictions from such an analysis are not limited to the world of toric varieties.
 
-Consequently, the construction of such models accepts a polynomial ring whose
-variables are the sections used in the desired factorization of the Weierstrass
-sections ``f`` and ``g``.
-
-In theory, one can consider the indeterminates of this auxiliary ring as a
-(possilby redundant) set of local coordinate of the base space. For the computer
-implementation, this ring will therefore serve as the coordinate ring of an auxiliary
-toric base space, namely an affine space with those coordinates.
-
-For such geometries, we support the following functionality.
+For constructions along these lines, we support the following constructor:
 ```@docs
-global_weierstrass_model(poly_f::MPolyRingElem{QQFieldElem}, poly_g::MPolyRingElem{QQFieldElem}, auxiliary_base_ring::MPolyRing, d::Int)
+global_weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
+```
+
+### Standard constructions
+
+We provide convenient constructions of global Weierstrass models
+over famous base spaces. Currently, we support the following:
+```@docs
+global_weierstrass_model_over_projective_space(d::Int)
+global_weierstrass_model_over_hirzebruch_surface(r::Int)
+global_weierstrass_model_over_del_pezzo_surface(b::Int)
+```
+
+
+### Literature models
+
+Certain Weierstrass models have been studied in the physics literature over and over again.
+Thereby, these constructions became famous and some were given special names. We aim
+to provide support for such standard constructions. Currently, we provide support for the following:
+```@docs
+su5_weierstrass_model_over_arbitrary_3d_base()
 ```
 
 
 ## Attributes
 
+### Basic attributes
+
+For all global Weierstrass models -- irrespective over whether the base is toric or not -- we support
+the following attributes:
 ```@docs
 weierstrass_section_f(w::GlobalWeierstrassModel)
 weierstrass_section_g(w::GlobalWeierstrassModel)
 weierstrass_polynomial(w::GlobalWeierstrassModel)
-calabi_yau_hypersurface(w::GlobalWeierstrassModel)
-discriminant(w::GlobalWeierstrassModel)
 ```
-In case the Weierstrass model is constructed over a not fully specified base,
-it is nonetheless possibly to construct an auxiliary base space as well as an
-auxiliary ambient space. The (auxiliary) base and ambient space can
+In case the global Weierstrass model is constructed over a not fully specified base,
+recall that we construct an auxiliary (toric) base space as well as an
+auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
 be accessed with the following functions:
 ```@docs
-toric_base_space(w::GlobalWeierstrassModel)
-toric_ambient_space(t::GlobalWeierstrassModel)
+base_space(w::GlobalWeierstrassModel)
+ambient_space(w::GlobalWeierstrassModel)
+fiber_ambient_space(w::GlobalWeierstrassModel)
 ```
-To tell if they are auxiliary or not, one can use `base_fully_specified(w)`,
-which returns `true` in case the Tate model is defined over a concrete base and
-`false` otherwise.
-
+The following method allows to tell if the base/ambient space is auxiliary or not:
+```@docs
+base_fully_specified(w::GlobalWeierstrassModel)
+```
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.
 To this end, one invokes `set_verbosity_level(:GlobalWeierstrassModel, 1)`.
 More background information is available
 [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
 
+### Advanced attributes
 
-## Properties
-
+The following attributes are currently only supported in a toric setting:
 ```@docs
-base_fully_specified(t::GlobalWeierstrassModel)
+calabi_yau_hypersurface(w::GlobalWeierstrassModel)
+```
+Note that for applications in F-theory, *singular* elliptic fibrations are key
+(cf. [Wei18](@cite) and references therein). Consequently the discriminant
+locus as well as the singular loci of the fibration in question are of ample
+importance:
+```@docs
+discriminant(w::GlobalWeierstrassModel)
+singular_loci(w::GlobalWeierstrassModel)
 ```
 
+## Methods
 
-## Singular loci
+### Towards resolution of singularities
 
-For applications in F-theory, singular elliptic fibrations are key
-(cf. [Wei18](@cite) and references therein). The general approach is
-to not work with the singular space directly. Rather, one resolves
-the singularities in order to obtain a smooth space instead.
-Subsequently, one performs computations on this smooth space.
-
-In this sense, knowledge of the singular loci is a first step to
-a successful analysis of such a geometry. For this, we provide
-the following functionality.
-```@docs
-singular_loci(t::GlobalWeierstrassModel)
-```
+To come.

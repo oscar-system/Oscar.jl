@@ -36,7 +36,7 @@ Return `true` if `f` belongs to `U`, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -91,7 +91,7 @@ If, say, Rloc = R[U⁻¹], return R.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -117,7 +117,7 @@ If, say, Rloc = R[U⁻¹], return U.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -149,7 +149,7 @@ Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
@@ -160,16 +160,16 @@ complement of ideal(x)
 julia> Rloc, iota = Localization(R, U);
 
 julia> Rloc
-localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+localization of Multivariate polynomial ring in 3 variables over QQ at the complement of ideal(x)
 
 julia> iota
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+localization of Multivariate polynomial ring in 3 variables over QQ at the complement of ideal(x)
 ```
 """
 function Localization(S::AbsMultSet)

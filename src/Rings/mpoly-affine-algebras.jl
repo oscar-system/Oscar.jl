@@ -344,7 +344,7 @@ Return the Hilbert series of the positively graded affine algebra `A`.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -421,7 +421,7 @@ function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA
       isoinv = hom(G, H, V)
       W = R.d
       W = [isoinv(W[i]) for i = 1:length(W)]
-      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
+      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
       change = hom(R, S, gens(S))
       I = change(A.I)
       R = S
@@ -473,7 +473,7 @@ end
 #      isoinv = hom(G, H, V)
 #      W = R.d
 #      W = [isoinv(W[i]) for i = 1:length(W)]
-#      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
+#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
 #      change = hom(R, S, gens(S))
 #      I = change(A.I)
 #      R = S
@@ -511,7 +511,7 @@ end
 #   else
 #      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
 #     if minMI<0
-#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
+#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), Matrix(transpose(MI)))
 #         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
 #      end
 #      p = _numerator_monomial_multi_hilbert_series(LI, S)
@@ -533,7 +533,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -647,7 +647,7 @@ of $A$, and return the value $H(A, g)$ as above.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -1121,16 +1121,16 @@ julia> size(LL)
 (3,)
 
 julia> LL[1][1]
-Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][3]
 (y, ideal(x, y))

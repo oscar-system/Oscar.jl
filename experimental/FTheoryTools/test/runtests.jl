@@ -7,7 +7,7 @@ using Oscar
 #############################################################
 
 # test base
-base = test_base()
+base = sample_toric_variety()
 
 # sections, used to test error messages
 sec_f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)])
@@ -60,22 +60,22 @@ t_nm = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6]
 # 1: Global Weierstrass models over concrete base space
 #############################################################
 
-w = global_weierstrass_model(test_base())
+w = global_weierstrass_model(sample_toric_variety(); completeness_check = false)
 Base.show(w)
 
 @testset "Attributes of global Weierstrass models over concrete base spaces" begin
-  @test parent(weierstrass_section_f(w)) == cox_ring(toric_base_space(w))
-  @test parent(weierstrass_section_g(w)) == cox_ring(toric_base_space(w))
-  @test parent(weierstrass_polynomial(w)) == cox_ring(toric_ambient_space(w))
-  @test parent(discriminant(w)) == cox_ring(toric_base_space(w))
-  @test dim(toric_base_space(w)) == 3
-  @test dim(toric_ambient_space(w)) == 5
-  @test is_smooth(toric_ambient_space(w)) == false
-  @test toric_variety(calabi_yau_hypersurface(w)) == toric_ambient_space(w)
+  @test parent(weierstrass_section_f(w)) == cox_ring(base_space(w))
+  @test parent(weierstrass_section_g(w)) == cox_ring(base_space(w))
+  @test parent(weierstrass_polynomial(w)) == cox_ring(ambient_space(w))
+  @test parent(discriminant(w)) == cox_ring(base_space(w))
+  @test dim(base_space(w)) == 3
+  @test dim(ambient_space(w)) == 5
+  @test is_smooth(ambient_space(w)) == false
+  @test toric_variety(calabi_yau_hypersurface(w)) == underlying_toric_variety(ambient_space(w))
 end
 
 @testset "Error messages in global Weierstrass models over concrete base spaces" begin
-  @test_throws ArgumentError global_weierstrass_model(sec_f, sec_g, base)
+  @test_throws ArgumentError global_weierstrass_model(sec_f, sec_g, base; completeness_check = false)
 end
 
 
@@ -83,18 +83,18 @@ end
 # 2: Global Weierstrass models over generic base space
 #############################################################
 
-auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"]
+auxiliary_base_ring, (f, g, u) = QQ["f", "g", "u"]
 w2 = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 
 @testset "Attributes of global Weierstrass models over generic base space" begin
-  @test parent(weierstrass_section_f(w2)) == cox_ring(toric_base_space(w2))
-  @test parent(weierstrass_section_g(w2)) == cox_ring(toric_base_space(w2))
-  @test parent(weierstrass_polynomial(w2)) == cox_ring(toric_ambient_space(w2))
-  @test parent(discriminant(w2)) == cox_ring(toric_base_space(w2))
-  @test dim(toric_base_space(w2)) == 3
-  @test dim(toric_ambient_space(w2)) == 5
-  @test is_smooth(toric_ambient_space(w2)) == false
-  @test toric_variety(calabi_yau_hypersurface(w2)) == toric_ambient_space(w2)
+  @test parent(weierstrass_section_f(w2)) == cox_ring(base_space(w2))
+  @test parent(weierstrass_section_g(w2)) == cox_ring(base_space(w2))
+  @test parent(weierstrass_polynomial(w2)) == cox_ring(ambient_space(w2))
+  @test parent(discriminant(w2)) == cox_ring(base_space(w2))
+  @test dim(base_space(w2)) == 3
+  @test dim(ambient_space(w2)) == 5
+  @test is_smooth(ambient_space(w2)) == false
+  @test toric_variety(calabi_yau_hypersurface(w2)) == underlying_toric_variety(ambient_space(w2))
   @test length(singular_loci(w2)) == 1
 end
 
@@ -109,28 +109,28 @@ end
 # 3: Global Tate models over concrete base space
 #############################################################
 
-t = global_tate_model(test_base())
+t = global_tate_model(sample_toric_variety(); completeness_check = false)
 Base.show(t)
 
 @testset "Attributes of global Tate models over concrete base space" begin
-  @test parent(tate_section_a1(t)) == cox_ring(toric_base_space(t))
-  @test parent(tate_section_a2(t)) == cox_ring(toric_base_space(t))
-  @test parent(tate_section_a3(t)) == cox_ring(toric_base_space(t))
-  @test parent(tate_section_a4(t)) == cox_ring(toric_base_space(t))
-  @test parent(tate_section_a6(t)) == cox_ring(toric_base_space(t))
-  @test parent(tate_polynomial(t)) == cox_ring(toric_ambient_space(t))
-  @test parent(discriminant(t)) == cox_ring(toric_base_space(t))
-  @test dim(toric_base_space(t)) == 3
-  @test dim(toric_ambient_space(t)) == 5
+  @test parent(tate_section_a1(t)) == cox_ring(base_space(t))
+  @test parent(tate_section_a2(t)) == cox_ring(base_space(t))
+  @test parent(tate_section_a3(t)) == cox_ring(base_space(t))
+  @test parent(tate_section_a4(t)) == cox_ring(base_space(t))
+  @test parent(tate_section_a6(t)) == cox_ring(base_space(t))
+  @test parent(tate_polynomial(t)) == cox_ring(underlying_toric_variety(ambient_space(t)))
+  @test parent(discriminant(t)) == cox_ring(base_space(t))
+  @test dim(base_space(t)) == 3
+  @test dim(ambient_space(t)) == 5
   @test base_fully_specified(t) == true
   @test base_fully_specified(t) == base_fully_specified(global_weierstrass_model(t))
-  @test is_smooth(toric_ambient_space(t)) == false
-  @test toric_variety(calabi_yau_hypersurface(t)) == toric_ambient_space(t)
+  @test is_smooth(ambient_space(t)) == false
+  @test toric_variety(calabi_yau_hypersurface(t)) == underlying_toric_variety(ambient_space(t))
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
-  @test_throws ArgumentError global_tate_model([sec_a2, sec_a3, sec_a4, sec_a6], base)
-  @test_throws ArgumentError global_tate_model([sec_a1, sec_a2, sec_a3, sec_a4, sec_a6], base)
+  @test_throws ArgumentError global_tate_model([sec_a2, sec_a3, sec_a4, sec_a6], base; completeness_check = false)
+  @test_throws ArgumentError global_tate_model([sec_a1, sec_a2, sec_a3, sec_a4, sec_a6], base; completeness_check = false)
 end
 
 
@@ -139,19 +139,19 @@ end
 #############################################################
 
 @testset "Attributes of global Tate models over generic base space" begin
-  @test parent(tate_section_a1(t_i5_s)) == cox_ring(toric_base_space(t_i5_s))
-  @test parent(tate_section_a2(t_i5_s)) == cox_ring(toric_base_space(t_i5_s))
-  @test parent(tate_section_a3(t_i5_s)) == cox_ring(toric_base_space(t_i5_s))
-  @test parent(tate_section_a4(t_i5_s)) == cox_ring(toric_base_space(t_i5_s))
-  @test parent(tate_section_a6(t_i5_s)) == cox_ring(toric_base_space(t_i5_s))
-  @test parent(tate_polynomial(t_i5_s)) == cox_ring(toric_ambient_space(t_i5_s))
-  @test parent(discriminant(t_i5_s)) == cox_ring(toric_base_space(t_i5_s))
-  @test dim(toric_base_space(t_i5_s)) == 3
-  @test dim(toric_ambient_space(t_i5_s)) == 5
+  @test parent(tate_section_a1(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test parent(tate_section_a2(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test parent(tate_section_a3(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test parent(tate_section_a4(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test parent(tate_section_a6(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test parent(tate_polynomial(t_i5_s)) == cox_ring(ambient_space(t_i5_s))
+  @test parent(discriminant(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test dim(base_space(t_i5_s)) == 3
+  @test dim(ambient_space(t_i5_s)) == 5
   @test base_fully_specified(t_i5_s) == false
   @test base_fully_specified(t_i5_s) == base_fully_specified(global_weierstrass_model(t_i5_s))
-  @test is_smooth(toric_ambient_space(t_i5_s)) == false
-  @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == toric_ambient_space(t_i5_s)
+  @test is_smooth(ambient_space(t_i5_s)) == false
+  @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == underlying_toric_variety(ambient_space(t_i5_s))
 end
 
 @testset "Error messages in global Tate models over generic base space" begin
@@ -232,7 +232,7 @@ end
 
 @testset "Blowups" begin
   id_i5_s = ideal([tate_polynomial(t_i5_s)]);
-  tas = t_i5_s.toric_ambient_space;
+  tas = ambient_space(t_i5_s);
   irr_i5_s = irrelevant_ideal(tas);
   sri_i5_s = stanley_reisner_ideal(tas);
   lin_i5_s = ideal_of_linear_relations(tas);

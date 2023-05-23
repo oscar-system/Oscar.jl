@@ -23,7 +23,7 @@ to minimize the objective function. Furthermore one can optionally specify
 given as a set of integers, their respective indices.
 
 ```@docs
-MixedIntegerLinearProgram
+mixed_integer_linear_program
 ```
 
 ## Functions

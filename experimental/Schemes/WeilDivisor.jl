@@ -6,7 +6,6 @@ export coefficient_ring_type
 export coefficient_type
 export components
 export divisor
-export ideal_sheaf_type
 export in_linear_system
 export linear_system
 export scheme

@@ -927,7 +927,7 @@ julia> fractional_cut_polytope(G)
 Polyhedron in ambient dimension 6
 ```
 """
-fractional_cut_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
+fractional_cut_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
 
 
 @doc raw"""
@@ -944,4 +944,4 @@ julia> fractional_matching_polytope(G)
 Polyhedron in ambient dimension 6
 ```
 """
-fractional_matching_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))
+fractional_matching_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))

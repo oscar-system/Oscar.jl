@@ -23,7 +23,7 @@
             end
         end
         Polymake.setname!(p, "matching($n)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -35,7 +35,7 @@
             end
         end
         Polymake.setname!(p, "rand_box($d,$n,5)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -55,7 +55,7 @@
             end
         end
         Polymake.setname!(p, "knapsack($d,$b)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -68,7 +68,7 @@
         #end
         p = Polymake.polytope.Polytope(POINTS=points, BOUNDED=true, POINTED=true)
         Polymake.setname!(p, "knapsack_pts($d,$b)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -87,7 +87,7 @@
         Polymake.give(c,"N_RAYS | N_INPUT_RAYS")
         Polymake.give(c,"POINTED")
         Polymake.setname!(c,"non-sym-cutpoly($n)")
-        return Polyhedron(c);
+        return polyhedron(c);
     end
 
 
@@ -97,7 +97,7 @@
         p = Polymake.polytope.VoronoiPolyhedron(SITES=r.POINTS);
         Polymake.give(p,"FACETS")
         Polymake.setname!(p, "rand-voronoi($d,$n)");
-        return Polyhedron(p);
+        return polyhedron(p);
     end
     
 

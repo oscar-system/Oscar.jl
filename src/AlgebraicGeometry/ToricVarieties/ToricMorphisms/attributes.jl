@@ -5,7 +5,7 @@ Return the domain of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> domain(toric_identity_morphism(F4))
@@ -22,7 +22,7 @@ Return the codomain of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> codomain(toric_identity_morphism(F4))
@@ -39,7 +39,7 @@ Return the image of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> image(toric_identity_morphism(F4))
@@ -56,7 +56,7 @@ Return the underlying grid morphism of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> grid_morphism(toric_identity_morphism(F4))
@@ -80,7 +80,7 @@ map of the torusinvariant Weil divisors.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
@@ -117,7 +117,7 @@ map of the Cartier divisors.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
@@ -148,7 +148,7 @@ map of the Class groups.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
@@ -179,7 +179,7 @@ map of the Picard groups.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))

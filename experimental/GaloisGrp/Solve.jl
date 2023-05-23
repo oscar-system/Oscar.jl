@@ -285,8 +285,7 @@ julia> d = derived_series(G)
  Group(())
 
 julia> fixed_field(C, d)
-(Relative number field with defining polynomial x^3 - 3*x + 17
- over Number field over Rational Field with defining polynomial x^2 + 7695, a2)
+(Relative number field of degree 3 over number field, a2)
 ```
 """
 function Oscar.fixed_field(C::GaloisCtx, s::Vector{PermGroup})
@@ -472,7 +471,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   end
   S = slpoly_ring(ZZ, degree(G))[1]
   @vprint :SolveRadical 1 "computing tower...\n"
-  @vtime :SolveRadical 1 All = _fixed_field(C, s, invar = gen(S, pp), max_prec = max_prec)
+  @vtime :SolveRadical 1 All = _fixed_field(C, s, invar = gens(S)[pp], max_prec = max_prec)
                     #here one could actually specify the invariant
                           #at least for the cyclos
 
@@ -496,7 +495,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
     fld_arr[i+1].fld.S = Symbol("z_$(lp[i])")
   end
   @vprint :SolveRadical 1 "find roots...\n"
-  @vtime :SolveRadical 1 R = recognise(C, All, gen(S, rt))
+  @vtime :SolveRadical 1 R = recognise(C, All, gens(S)[rt])
   R = R .// scale
   #now, rewrite as radicals..
   #the cyclos are fine:

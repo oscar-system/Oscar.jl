@@ -217,3 +217,20 @@ end
       @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
   end
 end
+
+@testset "base change" begin
+  kk, pr = quo(ZZ, 5)
+  IP1 = covered_scheme(projective_space(ZZ, 1))
+  IP1_red, red_map = base_change(pr, IP1)
+  
+  IP2 = projective_space(ZZ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  I = ideal(S, x^2 + y^2 + z^2)
+  IP2_cov = covered_scheme(IP2)
+  II = IdealSheaf(IP2, I)
+
+  inc_X = oscar.CoveredClosedEmbedding(IP2_cov, II)
+  (a, b, c) = base_change(pr, inc_X)
+  @test compose(a, inc_X) == compose(b, c)
+end

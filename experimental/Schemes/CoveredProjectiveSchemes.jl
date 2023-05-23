@@ -1,8 +1,5 @@
 export CoveredProjectiveScheme
 export ProjectiveGlueing
-export _non_degeneration_cover
-export as_smooth_lci_of_cod
-export as_smooth_local_complete_intersection
 export base_covering
 export base_glueing
 export base_scheme
@@ -11,10 +8,8 @@ export controlled_transform
 export covered_scheme
 export empty_covered_projective_scheme
 export glueing_type
-export prepare_smooth_center
 export projective_patches
 export strict_transform
-export total_transform
 export weak_transform
 
 abstract type AbsProjectiveGlueing{

@@ -1,1 +1,0 @@
-include("SymmetricIntersections/SymmetricIntersections.jl")

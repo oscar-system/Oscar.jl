@@ -1,11 +1,11 @@
 @doc raw"""
-    sigma_sharp(L::ZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
+    sigma_sharp(L::ZZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
 
 Return generators for $\Sigma^\#(L\otimes \ZZ_p)$ of a lattice `L`.
 
 - a list of tuples `(det_p, spin_p)` with `det = +- 1`.
 """
-function sigma_sharp(L::ZLat, p)
+function sigma_sharp(L::ZZLat, p)
   T = primary_part(discriminant_group(L), p)[1]
   q = Hecke.gram_matrix_quadratic(normal_form(T)[1])
   res = _sigma_sharp(rank(L), det(L), q, p)
@@ -314,11 +314,11 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
 end
 
 @doc raw"""
-    det_spin_homomorphism(L::ZLat) -> GAPGroupHomomorphism
+    det_spin_homomorphism(L::ZZLat) -> GAPGroupHomomorphism
 
 Return the det spin homomorphism.
 """
-function det_spin_homomorphism(L::ZLat; signed=false)
+function det_spin_homomorphism(L::ZZLat; signed=false)
   T = discriminant_group(L)
   Oq = orthogonal_group(T)
   S = prime_divisors(2 * order(domain(Oq)))
@@ -434,7 +434,7 @@ end
 
 
 @doc raw"""
-    image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
+    image_in_Oq(L::ZZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
 
 Return the image of $O(L) \to O(L^\vee / L)$.
 
@@ -458,7 +458,7 @@ julia> gram = ZZ[0 2 0; 2 0 0; 0 0 4]
 [2   0   0]
 [0   0   4]
 
-julia> L = Zlattice(gram=gram)
+julia> L = integer_lattice(gram=gram)
 Quadratic lattice of rank 3 and degree 3 over the rationals
 
 julia> Oq, inj = image_in_Oq(L);
@@ -468,7 +468,7 @@ julia> order(Oq)
 
 ```
 """
-@attr function image_in_Oq(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr function image_in_Oq(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   if rank(L) > 2 && !is_definite(L)
     # use strong approximation
@@ -481,7 +481,7 @@ julia> order(Oq)
   return sub(Oq, [Oq(g, check=false) for g in gens(G)])
 end
 
-@attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
   # use strong approximation

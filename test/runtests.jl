@@ -1,10 +1,10 @@
 using Oscar
 using Test
+using Aqua
 using Documenter
 using Distributed
 
 import Random
-
 
 if !isempty(ARGS)
   jargs = [arg for arg in ARGS if startswith(arg, "-j")]
@@ -100,13 +100,16 @@ end
 end
 
 @static if compiletimes
-  Base.cumulative_compile_timing(true);
+  Base.cumulative_compile_timing(true)
 end
 
 println("Making test list")
 
 testlist = []
+push!(testlist, "Aqua.jl")
+
 push!(testlist, "printing.jl")
+
 push!(testlist, "PolyhedralGeometry/runtests.jl")
 push!(testlist, "Combinatorics/runtests.jl")
 
@@ -115,25 +118,24 @@ push!(testlist, "Groups/runtests.jl")
 
 push!(testlist, "Rings/runtests.jl")
 
-push!(testlist, "NumberTheory/nmbthy-test.jl")
+push!(testlist, "NumberTheory/nmbthy.jl")
 
 if Oscar.is_dev
-  push!(testlist, "Experimental/GITFans-test.jl")
+  push!(testlist, "Experimental/GITFans.jl")
 end
 
 # Will automatically include all experimental packages following our
 # guidelines.
 push!(testlist, "../experimental/runtests.jl")
 
-push!(testlist, "Experimental/galois-test.jl")
-push!(testlist, "Experimental/gmodule-test.jl")
-push!(testlist, "Experimental/ModStdQt-test.jl")
-push!(testlist, "Experimental/ModStdNF-test.jl")
-push!(testlist, "Experimental/MPolyRingSparse-test.jl")
-push!(testlist, "Experimental/MatrixGroups-test.jl")
-push!(testlist, "Experimental/JuLie-test.jl")
-push!(testlist, "Experimental/SymmetricIntersections-test.jl")
-push!(testlist, "Experimental/ExteriorAlgebra-test.jl")
+push!(testlist, "Experimental/galois.jl")
+push!(testlist, "Experimental/gmodule.jl")
+push!(testlist, "Experimental/ModStdQt.jl")
+push!(testlist, "Experimental/ModStdNF.jl")
+push!(testlist, "Experimental/MPolyRingSparse.jl")
+push!(testlist, "Experimental/MatrixGroups.jl")
+push!(testlist, "Experimental/JuLie.jl")
+push!(testlist, "Experimental/ExteriorAlgebra.jl")
 
 push!(testlist, "Rings/ReesAlgebra.jl")
 
@@ -159,7 +161,6 @@ push!(testlist, "StraightLinePrograms/runtests.jl")
 end
 
 # Doctests
-
 
 #currently, print_stats will fail when running tests with external workers
 #TODO: potentially rewrite include as well as print_stats 

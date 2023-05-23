@@ -1,10 +1,6 @@
 export IdealSheaf
-export covered_patches
-export covering
 export extend!
-export ideal_dict
 export ideal_sheaf
-export ideal_sheaf_type
 export order_on_divisor
 export scheme
 export subscheme
@@ -791,6 +787,17 @@ end
     ID[U] = radical(II(U))
   end
   return IdealSheaf(X, ID, check=false)
+end
+
+function small_generating_set(II::IdealSheaf)
+  X = scheme(II)
+  # If there is a simplified covering, do the calculations there.
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in patches(covering)
+    ID[U] = ideal(base_ring(II(U)),small_generating_set(saturated_ideal(II(U))))
+  end
+  return(IdealSheaf(X, ID, check = false))
 end
 
 ###########################################################################

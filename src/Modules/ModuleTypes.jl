@@ -92,7 +92,7 @@ option is set in suitable functions.
 end
 
 @doc raw"""
-    FreeModElem{T}
+    FreeModElem{T} <: AbstractFreeModElem{T}
 
 The type of free module elements. An element of a free module $F$ is given by a sparse row (`SRow`)
 which specifies its coordinates with respect to the basis of standard unit vectors of $F$.
@@ -100,10 +100,10 @@ which specifies its coordinates with respect to the basis of standard unit vecto
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
@@ -211,7 +211,7 @@ end
 
 
 @doc raw"""
-    SubquoModule{T} <: ModuleFP{T}
+    SubquoModule{T} <: AbstractSubQuo{T}
 
 The type of subquotient modules.
 A subquotient module $M$ is a module where $M = A + B / B$ where $A$ and $B$ are 
@@ -250,7 +250,7 @@ end
 
 
 @doc raw"""
-    SubquoModuleElem{T}
+    SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
 is given by a sparse row (`SRow`) which specifies the coefficients of an $R$-linear 
@@ -259,7 +259,7 @@ combination of the generators of $M$ which defines $f$.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -331,6 +331,7 @@ mutable struct SubQuoHom{
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -343,6 +344,7 @@ mutable struct SubQuoHom{
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -355,6 +357,7 @@ mutable struct SubQuoHom{
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -373,6 +376,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -391,6 +395,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -409,6 +414,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -509,6 +515,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
     ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
+    ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
@@ -531,6 +538,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType
     ) where {T2, ModuleElemType<:ModuleFPElem, RingMapType}
+    ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     @assert h(one(base_ring(F))) == one(base_ring(G))

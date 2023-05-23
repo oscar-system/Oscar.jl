@@ -382,6 +382,14 @@ GAP: x_1^2+x_1-1
 julia> preimage(f, y) == pol
 true
 ```
+
+!!! warning
+    The functions `Oscar.iso_oscar_gap` and [`Oscar.iso_gap_oscar`](@ref)
+    are not injective.
+    Due to caching, it may happen that `S` stores an attribute value
+    of `Oscar.iso_gap_oscar(S)`,
+    but that the codomain of this map is not identical with
+    or even not equal to the given `R`.
 """
 @attr Map function iso_oscar_gap(F)
    return _iso_oscar_gap(F)
@@ -411,7 +419,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::PolyRing{T}, RG::GAP.GapOb
    return (f, finv)
 end
 
-function _iso_oscar_gap(RO::PolyRing{T}) where T
+function _iso_oscar_gap(RO::PolyRing)
    coeffs_iso = iso_oscar_gap(base_ring(RO))
    RG = GAPWrap.PolynomialRing(codomain(coeffs_iso))
 
