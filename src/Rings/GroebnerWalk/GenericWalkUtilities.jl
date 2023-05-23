@@ -5,7 +5,7 @@
 
 # returns the initials of the polynomials w.r.t. the vector v.
 function facet_initials(
-    G::Vector{T},
+    G::Oscar.IdealGens,
     lm::Vector{T},
     v::Vector{Int},
 ) where {T<:MPolyRingElem}
@@ -30,13 +30,14 @@ end
 
 # returns the differences of the exponent vectors of the leading terms and the polynomials of the generators of I.
 function difference_lead_tail(
-    G::Vector{T},
-    Lm::Vector{T},
-) where {T<:MPolyRingElem}
+    G::Oscar.IdealGens,
+    Lm::Vector{L},
+    T::Matrix{Int}
+) where {L<:MPolyRingElem}
     v = Vector{Int}[]
     for i = 1:length(G)
-        ltu = Singular.leading_exponent_vector(Lm[i])
-        for e in Singular.exponent_vectors(G[i])
+        ltu = collect(exponent_vectors(leading_term(Lm[i],ordering= matrix_ordering(base_ring(G), T))))[1]
+        for e in exponent_vectors(G[i])
             if ltu != e
                 push!(v, ltu .- e)
             end
@@ -77,14 +78,15 @@ end
 function lift_generic(
     G::Vector{T},
     Lm::Vector{T},
-    H::Oscar.IdealGens,
+    H::Vector{T},
+    ord::MonomialOrdering
 ) where {T<:MPolyRingElem}
-    Rn = parent(first(G))
-    Newlm = Array{Singular.elem_type(Rn),1}(undef, 0)
-    liftPolys = Array{Singular.elem_type(Rn),1}(undef, 0)
-    for g in Singular.gens(H)
-        push!(Newlm, Singular.leading_term(g))
-        push!(liftPolys, g - reduce_walk(g, G, Lm))
+    R = parent(first(G))
+    Newlm = Array{elem_type(R),1}(undef, 0)
+    liftPolys = Array{elem_type(R),1}(undef, 0)
+    for g in H
+        push!(Newlm, leading_term(g, ordering=ord))
+        push!(liftPolys, g - reduce_walk(g, G, Lm,ord))
     end
     return liftPolys, Newlm
 end
@@ -118,13 +120,13 @@ end
 
 # computes the next vector in the generic walk.
 function next_gamma(
-    G::Vector{L},
+    G::Oscar.IdealGens,
     Lm::Vector{L},
     w::Vector{Int},
     S::Matrix{Int},
     T::Matrix{Int},
 ) where {L<:MPolyRingElem}
-    V = filter_by_ordering(S, T, difference_lead_tail(G, Lm))
+    V = filter_by_ordering(S, T, difference_lead_tail(G, Lm, T))
     if (w != [0])
         V = filter_lf(w, S, T, V)
     end
@@ -196,14 +198,14 @@ function divides_walk(
     S::MPolyRing,
 )
     div = false
-    newpoly = Singular.MPolyBuildCtx(S)
-    for term in Singular.terms(p)
-        (b, c) = Singular.divides(term, lm)
+    newpoly = MPolyBuildCtx(S)
+    for term in terms(p)
+        (b, c) = divides(term, lm)
         if b
             push_term!(
                 newpoly,
-                first(Singular.coefficients(c)),
-                first(Singular.exponent_vectors(c)),
+                first(coefficients(c)),
+                first(exponent_vectors(c)),
             )
             div = true
         end
@@ -216,11 +218,12 @@ function reduce_walk(
     p::MPolyRingElem,
     G::Vector{T},
     Lm::Vector{T},
+    ord::MonomialOrdering
 ) where {T<:MPolyRingElem}
     for i = 1:length(G)
         (q, b) = divides_walk(p, Lm[i], parent(p))
         if b
-            return reduce_walk(p - (q * G[i]), G, Lm)
+            return reduce_walk(p - (q * G[i]), G, Lm, ord)
             #return reduce_walk(submult(p,q,G[i],nvars(parent(p))),G,Lm)
         end
     end
@@ -231,10 +234,10 @@ end
 function interreduce(
     G::Vector{T},
     Lm::Vector{T},
+    ord::MonomialOrdering
 ) where {T<:MPolyRingElem}
-    Rn = parent(first(G))
     for i = 1:Singular.length(G)
-        G[i] = reduce_walk(G[i], G[1:end.!=i], Lm[1:end.!=i])
+        G[i] = reduce_walk(G[i], G[1:end.!=i], Lm[1:end.!=i], ord)
     end
     return G
 end

@@ -7,17 +7,18 @@
 function lift_fractal_walk(
     G::Oscar.IdealGens,
     H::Oscar.IdealGens,
-    Rn::MPolyRing,
+    orderingNew::MonomialOrdering
 )
     R = base_ring(G)
     G.isGB = true
-    G = Singular.Ideal(
-        Rn,
+    G = Oscar.IdealGens(
+        R,
         [
-            change_ring(gen, Rn) -
-            change_ring(Singular.reduce(change_ring(gen, R), G), Rn) for
-            gen in Singular.gens(H)
+            gen -
+            Oscar.IdealGens([reduce(gen, gens(G), ordering=G.ord)], H.ord)[1] for
+            gen in gens(H)
         ],
+        orderingNew
     )
     G.isGB = true
     return G
@@ -109,20 +110,20 @@ function inCone(
     if p == 1
         return true
     end
-    R = change_order(G.base_ring, T)
+    ord = matrix_ordering(base_ring(G), T)
     cvzip = zip(
-        Singular.gens(G),
-        initials(R, Singular.gens(G), pvecs[p-1]),
-        initials(R, Singular.gens(G), pvecs[p]),
+        gens(G),
+        initials(G, pvecs[p-1]),
+        initials(G, pvecs[p]),
     )
     for (g, in, in2) in cvzip
         if !isequal(
-            Singular.leading_exponent_vector(change_ring(g, R)),
-            Singular.leading_exponent_vector(in),
+            leading_term(g, ordering=ord),
+            leading_term(in, ordering=ord),
         ) ||
            !isequal(
-            Singular.leading_exponent_vector(change_ring(g, R)),
-            Singular.leading_exponent_vector(in2),
+            leading_term(g, ordering=ord),
+            leading_term(in2, ordering=ord),
         )
             return false
         end
