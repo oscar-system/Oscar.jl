@@ -595,6 +595,29 @@ _a
 julia> minpoly(a)
 x^2 + 1
 ```
+
+
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+(Multivariate polynomial ring in 2 variables over QQ graded by 
+  x -> [1]
+  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+
+julia> I = ideal(R, [x^2+y^2])
+ideal(x^2 + y^2)
+
+julia> AL = absolute_primary_decomposition(I)
+1-element Vector{Tuple{MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, MPolyIdeal{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}, Int64}}:
+ (ideal(x^2 + y^2), ideal(x^2 + y^2), ideal(x + _a*y), 2)
+
+julia> AP = AL[1][3]
+ideal(x + _a*y)
+
+julia> RAP = base_ring(AP)
+Multivariate polynomial ring in 2 variables over number field graded by 
+  x -> [1]
+  y -> [1]
+```
 """
 @attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
@@ -625,6 +648,9 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   end
   R, a = number_field(minpoly)
   Rx, _ = polynomial_ring(R, symbols(Qx))
+  if is_graded(Qx)
+     Rx, _ = grade(Rx, [degree(x) for x = gens(Qx)])
+  end
   return _map_last_var(Rx, I, 2, a)
 end
 
