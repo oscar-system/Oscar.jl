@@ -134,6 +134,8 @@ function has_basic_encoding(obj::T) where T <: RingElem
 end
 
 has_elem_basic_encoding(obj::T) where T = false
+has_elem_basic_encoding(obj::ArbField) = true
+has_elem_basic_encoding(obj::AcbField) = true
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 has_elem_basic_encoding(obj::Nemo.FpField) = true
@@ -300,7 +302,7 @@ function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) wher
 end
 
 ################################################################################
-# utility functions for parent tree
+# Utility functions for parent tree
 
 # loads parent tree
 function load_parents(s::DeserializerState, parents::Vector)
@@ -322,27 +324,13 @@ end
 
 # builds parent tree
 function get_parents(parent_ring::Ring)
-    parents = Any[parent_ring]
     base = base_ring(parent_ring)
-    
-    while (!has_elem_basic_encoding(base))
-        if base isa Field && !(typeof(base) <: Union{FracField, AbstractAlgebra.Generic.RationalFunctionField})
-            if absolute_degree(base) == 1
-                break
-            end
-            if typeof(base) <: Union{NfAbsNS, NfRelNS}
-                pushfirst!(parents, base)
-                ngens = length(gens(base))
-                base = polynomial_ring(base_field(base), ngens)[1]
-            else
-                pushfirst!(parents, base)
-                base = parent(defining_polynomial(base))
-            end
-            continue
-        end
-        pushfirst!(parents, base)
-        base = base_ring(base)
+    if has_elem_basic_encoding(base)
+        return Any[parent_ring]
     end
+
+    parents = get_parents(base)
+    push!(parents, parent_ring)
     return parents
 end
 

@@ -1,4 +1,37 @@
 ################################################################################
+# Utility functions for parent tree
+function get_parents(parent_ring::Field)
+    if absolute_degree(parent_ring) == 1
+        return Any[]
+    end
+    base = parent(defining_polynomial(parent_ring))
+    parents = get_parents(base)
+    push!(parents, parent_ring)
+    return parents
+end
+
+function get_parents(parent_ring::T) where T <: Union{NfAbsNS, NfRelNS}
+    ngens = length(gens(parent_ring))
+    base = polynomial_ring(base_field(parent_ring), ngens)[1]
+    parents = get_parents(base)
+    push!(parents, parent_ring)
+    return parents
+end
+
+function get_parents(parent_ring::T) where T <: Union{FracField,
+                                                      AbstractAlgebra.Generic.RationalFunctionField,
+                                                      AbstractAlgebra.Generic.LaurentSeriesField}
+    if has_elem_basic_encoding(parent_ring)
+        return Any[]
+    end
+    
+    base = base_ring(parent_ring)
+    parents = get_parents(base)
+    push!(parents, parent_ring)
+    return parents
+end
+
+################################################################################
 # field of rationals (singleton type)
 @registerSerializationType(QQField)
 
@@ -432,7 +465,7 @@ end
 
 ################################################################################
 # ArbField
-@registerSerializationType(ArbField, true)
+@registerSerializationType(ArbField)
 @registerSerializationType(arb)
 
 function save_internal(s::SerializerState, RR::Nemo.ArbField)
@@ -454,32 +487,16 @@ function save_internal(s::SerializerState, r::arb)
     # free memory
     ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :arb_unsafe_str => save_type_dispatch(s, arb_unsafe_str)
-    )    
-end
-
-
-function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
-    parent = load_type_dispatch(s, Nemo.ArbField, dict[:parent])
-    arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
-    r = Nemo.arb()
-    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
-          Int32, (Ref{arb}, Ptr{UInt8}), r, arb_unsafe_str)
-    r.parent = parent
-    
-    return r
+    return arb_unsafe_str
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{arb},
-                                   dict::Dict,
+                                   str::String,
                                    parent::Nemo.ArbField)
-    arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
     r = Nemo.arb()
     ccall((:arb_load_str, Nemo.Arb_jll.libarb),
-          Int32, (Ref{arb}, Ptr{UInt8}), r, arb_unsafe_str)
+          Int32, (Ref{arb}, Ptr{UInt8}), r, str)
     r.parent = parent
     
     return r
@@ -488,7 +505,7 @@ end
 ################################################################################
 # AcbField
 
-@registerSerializationType(AcbField, true)
+@registerSerializationType(AcbField)
 @registerSerializationType(acb)
 
 function save_internal(s::SerializerState, CC::AcbField)
@@ -504,27 +521,18 @@ end
 
 function save_internal(s::SerializerState, c::acb)
     return Dict(
-        :parent => save_type_dispatch(s, parent(c)),
-        :real => save_type_dispatch(s, real(c)),
-        :imag => save_type_dispatch(s, imag(c))
+        :vector => save_internal(s, [real(c), imag(c)])[:vector],
+        :parent => save_type_dispatch(s, parent(c))
     )
-end
-
-function load_internal(s::DeserializerState, ::Type{acb}, dict::Dict)
-    CC = load_type_dispatch(s, AcbField, dict[:parent])
-    real_part = load_type_dispatch(s, arb, dict[:real])
-    imag_part = load_type_dispatch(s, arb, dict[:imag])
-
-    return CC(real_part, imag_part)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{acb},
-                                   dict::Dict,
+                                   vec::Vector{Any},
                                    parent::AcbField)
-    real_part = load_type_dispatch(s, arb, dict[:real])
-    imag_part = load_type_dispatch(s, arb, dict[:imag])
-
+    real_part = load_type_dispatch(s, arb, vec[1], parent=ArbField(precision(parent)))
+    imag_part = load_type_dispatch(s, arb, vec[2], parent=ArbField(precision(parent)))
+    
     return parent(real_part, imag_part)
 end
 
@@ -546,7 +554,8 @@ end
 
 function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
     K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
-    gen_ball = load_type_dispatch(s, acb, dict[:gen_ball])
+    parent = load_type_dispatch(s, AcbField, dict[:gen_ball][:parent])
+    gen_ball = load_internal_with_parent(s, acb, dict[:gen_ball][:vector], parent)
 
     return complex_embedding(K, gen_ball)
 end

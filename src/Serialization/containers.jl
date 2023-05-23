@@ -14,11 +14,15 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
     if !(T <: RingElem)
         return d
     end
-
     entry_parent = parent(vec[1])
     if has_elem_basic_encoding(entry_parent)
-        d[:vector] = [v for v in d[:vector]]
         d[:parent] = save_type_dispatch(s, entry_parent)
+
+        # handled vector or vectors, this should be updated
+        # to handle any depth
+        if d[:vector][1] isa Dict && haskey(d[:vector][1], :vector)
+            d[:vector] = [v[:vector] for v in d[:vector]]
+        end
     else
         d[:parents] = d[:vector][1][:data][:parents]
         d[:vector] = [v[:data][:terms] for v in d[:vector]]
