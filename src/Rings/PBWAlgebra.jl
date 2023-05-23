@@ -1,4 +1,5 @@
-mutable struct PBWAlgRing{T, S} <: NCRing
+# Use attribute :is_weyl_algebra to permit better printing (see expressify, below)
+@attributes mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations::Singular.smatrix{Singular.spoly{S}}
   coeff_ring
@@ -91,6 +92,14 @@ end
 function expressify(a::PBWAlgRing; context = nothing)
   x = symbols(a)
   n = length(x)
+  # Next if stmt handles special printing for Weyl algebras
+  if get_attribute(a, :is_weyl_algebra) === :true
+      return Expr(:sequence, Expr(:text, "Weyl-algebra over "),
+                             expressify(coefficient_ring(a); context=context),
+                             Expr(:text, " in variables ("),
+                             Expr(:series, first(x,div(n,2))...),
+                             Expr(:text, ")"))
+  end
   rel = [Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j]))
          for i in 1:n-1 for j in i+1:n]
   return Expr(:sequence, Expr(:text, "PBW-algebra over "),
@@ -393,7 +402,7 @@ end
 
 
 @doc raw"""
-    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
+    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
 
 Given a multivariate polynomial ring `R` over a field, say ``R=K[x_1, \dots, x_n]``, given
 a strictly upper triangular matrix `rel` with entries in `R` of type ``c_{ij} \cdot x_ix_j+d_{ij}``,
@@ -426,7 +435,7 @@ julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, z])
 ```
 """
-function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
+function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
   n = nvars(r)
   nrows(rel) == n && ncols(rel) == n || error("oops")
   scr = singular_coeff_ring(coefficient_ring(r))
@@ -441,7 +450,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   return R, [PBWAlgElem(R, x) for x in gs]
 end
 
-function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyRingElem{T}}
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check::Bool = true) where {T, U <: MPolyRingElem{T}}
   n = nvars(r)
   gs = gens(r)
   relm = strictly_upper_triangular_matrix([gs[i]*gs[j] for i in 1:n-1 for j in i+1:n])
@@ -452,7 +461,7 @@ function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::Mono
   return pbw_algebra(r, relm, ord)
 end
 
-function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyRingElem{T}}
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check::Bool = true) where {T, U <: MPolyRingElem{T}}
   rel2 = Tuple{Int, Int, U}[(var_index(i[1]), var_index(i[2]), i[3]) for i in rel]
   return pbw_algebra(r, rel2, ord)
 end
@@ -476,20 +485,21 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   n == length(dxs) || error("number of differentials should match number of variables")
   r, v = polynomial_ring(K, vcat(xs, dxs))
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
-  return pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
+  R,vars = pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
+  set_attribute!(R, :is_weyl_algebra, :true)  # to activate special printing for Weyl algebras
+  return (R,vars)
 end
 
 function weyl_algebra(
   K::Ring,
-  xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}},
-  dxs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
+  xs::AbstractVector{<:VarName},
+  dxs::AbstractVector{<:VarName}
 )
   return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol(i) for i in dxs])
 end
 
 @doc raw"""
-    weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+    weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
 
 Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th Weyl algebra over `K`.
 
@@ -498,7 +508,7 @@ The generators of the returned algebra print according to the entries of `xs`. S
 # Examples
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+(Weyl-algebra over Rational Field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> dx*x
 x*dx + 1
@@ -506,7 +516,7 @@ x*dx + 1
 """
 function weyl_algebra(
   K::Ring,
-  xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
+  xs::AbstractVector{<:VarName}
 )
   return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol("d", i) for i in xs])
 end
@@ -547,7 +557,7 @@ Return the opposite algebra of `A`.
 # Examples
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+(Weyl-algebra over Rational Field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> Dop, opp = opposite_algebra(D);
 
@@ -555,7 +565,7 @@ julia> Dop
 PBW-algebra over Rational Field in dy, dx, y, x with relations dx*dy = dy*dx, y*dy = dy*y + 1, x*dy = dy*x, y*dx = dx*y, x*dx = dx*x + 1, x*y = y*x
 
 julia> opp
-Map to opposite of PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy
+Map to opposite of Weyl-algebra over Rational Field in variables (x, y)
 
 julia> opp(dx*x)
 dx*x + 1
@@ -742,7 +752,7 @@ Return `true` if `I` is the zero ideal, `false` otherwise.
 # Examples
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+(Weyl-algebra over Rational Field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> I = left_ideal(D, [x, dx])
 left_ideal(x, dx)
@@ -772,7 +782,7 @@ Return `true` if `I` is generated by `1`, `false` otherwise.
 # Examples
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(PBW-algebra over Rational Field in x, y, dx, dy with relations y*x = x*y, dx*x = x*dx + 1, dy*x = x*dy, dx*y = y*dx, dy*y = y*dy + 1, dy*dx = dx*dy, PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+(Weyl-algebra over Rational Field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> I = left_ideal(D, [x, dx])
 left_ideal(x, dx)
@@ -917,6 +927,7 @@ end
 
 @doc raw"""
     intersect(I::PBWAlgIdeal{D, T, S}, Js::PBWAlgIdeal{D, T, S}...) where {D, T, S}
+    intersect(V::Vector{PBWAlgIdeal{D, T, S}}) where {D, T, S}
 
 Return the intersection of two or more ideals.
 
@@ -936,26 +947,30 @@ function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) whe
   end
   if D < 0
     res = a.sdata
-    for bi in b
-      res = Singular.intersection(res, bi.sdata)
-    end
+    res = Singular.intersection(res, [bi.sdata for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   elseif D > 0
     _sopdata_assure!(a)
     res = a.sopdata
     for bi in b
       _sopdata_assure!(bi)
-      res = Singular.intersection(res, bi.sopdata)
     end
+    res = Singular.intersection(res, [bi.sopdata for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, _opmap(R, res, _opposite(R)), res)
   else
     res = _as_left_ideal(a)
-    for bi in b
-      res = Singular.intersection(res, _as_left_ideal(bi))
-    end
+    res = Singular.intersection(res, [_as_left_ideal(bi) for bi in b]...)
     return PBWAlgIdeal{D, T, S}(R, res)
   end
 end
+
+function Base.intersect(V::Vector{PBWAlgIdeal{D, T, S}}) where {D, T, S}
+  @assert length(V) != 0
+  length(V) == 1 && return V[1]
+
+  return Base.intersect(V[1], V[2:end]...)
+end
+
 
 @doc raw"""
     ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D, T, S}

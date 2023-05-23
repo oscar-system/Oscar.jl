@@ -109,6 +109,7 @@
         @test faces(square, 1) == convex_hull.(T, [[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]])
         @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
+        @test facet_indices(vertices(square)) == IncidenceMatrix([[1, 3],[2, 3],[1, 4],[2, 4]])
         @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(Pos, 1)) == 3
         if T == QQFieldElem
@@ -147,6 +148,8 @@
             end
             @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
         end
+        @test facet_indices(vertices(Pos)) == IncidenceMatrix([[1,2,3]])
+        @test  facet_indices(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
         if T == nf_elem
             @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
         else
@@ -300,10 +303,13 @@
                     @test halfspace_matrix_pair(facets(S, D)).A == vcat(A...) && halfspace_matrix_pair(facets(S, D)).b == b
                     @test ray_indices(facets(S, D)) == IncidenceMatrix(12, 0)
                     @test vertex_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
+                    
                 end
                 
             end
             
+            @test facet_indices(rays(D))==IncidenceMatrix(0,12)
+            @test facet_indices(vertices(D))==IncidenceMatrix([[1, 2, 3],[2, 3, 6],[1, 2, 7],[2, 6, 8],[1, 3, 5],[2, 7, 8],[3, 6, 10],[3, 5, 10],[1, 7, 11],[1, 5, 11],[4, 6, 8],[4, 6, 10],[7, 8, 9],[7, 9, 11],[5, 10, 12],[4, 8, 9],[5, 11, 12],[4, 10, 12],[9, 11, 12],[4, 9, 12]])
             @test is_feasible(D)
             @test is_bounded(D)
             @test is_fulldimensional(D)

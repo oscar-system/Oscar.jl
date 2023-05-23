@@ -130,13 +130,13 @@ function reflection(gram::MatElem, v::MatElem)
 end
 
 @doc raw"""
-    spin(gram_diag::MatElem, isometry::MatElem, check=true) -> QQFieldElem
+    spin(gram_diag::MatElem, isometry::MatElem, check::Bool=true) -> QQFieldElem
 
 Compute the spinor norm of `f`.
 
 `gram_diag` must be a diagonal matrix.
 """
-function spin(gram_diag::MatElem, isometry::MatElem, check=true)
+function spin(gram_diag::MatElem, isometry::MatElem, check::Bool=true)
   G = gram_diag
   f = isometry
   @assert ncols(G) == nrows(G) == ncols(f) == nrows(f) "G and f must be square matrices"

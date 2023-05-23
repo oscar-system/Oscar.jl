@@ -674,7 +674,7 @@ end
      T = elem_type(R)
      mat = matrix(R, [1 0; 0 1])
      G = matrix_group([mat])
-     h = gens(G)[1]
+     h = gen(G, 1)
      v = [R(x) for x in [1, 1]]
      @test v * h isa Vector{T}
      @test v * h == v * mat

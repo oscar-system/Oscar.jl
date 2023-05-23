@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["subdivisions_of_points.md"]
-```
-
 # Subdivisions of Points
 
 ## Introduction

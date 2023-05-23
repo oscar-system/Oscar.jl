@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["AffineToricSchemes.md"]
-```
-
 # Affine Toric Schemes
 
 ## Constructors

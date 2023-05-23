@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["CohomologyClasses.md"]
-```
-
 
 # Cohomology Classes
 

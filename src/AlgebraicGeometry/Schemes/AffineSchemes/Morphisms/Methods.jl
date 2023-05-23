@@ -34,7 +34,7 @@ end
 @doc raw"""
     product(X::AbsSpec, Y::AbsSpec)
     
-Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over 
+Return a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over
 the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 ``p₂ : X×Y → Y``.
 """
@@ -60,8 +60,8 @@ function product(X::StdSpec, Y::StdSpec;
   k = base_ring(R)
   k == base_ring(S) || error("varieties are not defined over the same field")
 
-  m = length(gens(R))
-  n = length(gens(S))
+  m = ngens(R)
+  n = ngens(S)
   new_symb = Symbol[]
   if length(change_var_names_to[1]) == 0
     new_symb = symbols(R)

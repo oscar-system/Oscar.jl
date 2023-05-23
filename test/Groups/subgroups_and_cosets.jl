@@ -13,8 +13,12 @@
    @test [f(x) for x in gens(H)]==gens(H)
    @test (H,f)==(K,g)
    @test is_subset(K, G)
-   @test g == is_subgroup(K, G)[2]
+   flag, emb = is_subgroup(K, G)
+   @test flag
+   @test g == emb
    @test g == embedding(K, G)
+   @test K === domain(emb)
+   @test G === codomain(emb)
    @test is_normal_subgroup(H, G)
    H,f=sub(G,[x,z])
    @test H==G

@@ -68,7 +68,7 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
         cmd = Symbol(codeline[1])
 
         if cmd == :inp
-            ngens != 0 && throw(ArgumentError("\"inp\" line not at the beginning"))
+            @req ngens == 0 "\"inp\" line not at the beginning"
             n = tryparse(Int, codeline[2])
             n === nothing && error_invalid_line(codeline)
             if length(codeline) == 2
@@ -83,13 +83,11 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
         end
 
         if cmd == :oup
-            SLP <: AtlasSLProgram ||
-                throw(ArgumentError("\"oup\" line only allowed in AtlasSLProgram"))
+            @req SLP <: AtlasSLProgram "\"oup\" line only allowed in AtlasSLProgram"
             n = tryparse(Int, codeline[2])
             n === nothing && error_invalid_line(codeline)
             if length(codeline) == 2
-                isempty(outputs) ||
-                    throw(ArgumentError("oup must not omit the names"))
+                @req isempty(outputs) "oup must not omit the names"
                 append!(outputs, getidx!.(string.(1:n)))
             else
                 length(codeline) == 2+n || error_invalid_line(codeline)
@@ -98,7 +96,7 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
             continue
         end
 
-        !isempty(outputs) && throw(ArgumentError("\"oup\" line not at the end"))
+        @req isempty(outputs) "\"oup\" line not at the end"
 
         line =
             if cmd == :cjr
@@ -203,7 +201,7 @@ function evaluate!(res::Vector{S}, p::AbstractAtlasSL, xs::Vector{S}) where S
         # first copy the outputs at the end of res before moving them
         # at the beginning of the array, to avoid overwriting values
         # which are still needed
-        # TODO: this algo can be slightly optimized
+        # TODO: this algorithm can be slightly optimized
         for i in p.outputs
             push!(res, res[i])
         end

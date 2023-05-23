@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["auxiliary.md"]
-```
-
 # Auxiliary functions
 
 ## Geometric data

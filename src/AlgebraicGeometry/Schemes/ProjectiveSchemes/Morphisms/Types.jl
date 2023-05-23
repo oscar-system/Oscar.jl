@@ -5,20 +5,20 @@
     ProjectiveSchemeMor
 
 A morphism of projective schemes
-
-    ℙˢ(B)     ℙʳ(A)
-      ∪         ∪
-      P    →    Q
-      ↓         ↓
-   Spec(B) → Spec(A)
-
+```
+     ℙˢ(B)     ℙʳ(A)
+       ∪         ∪
+       P    →    Q
+       ↓         ↓
+    Spec(B) → Spec(A)
+```
 given by means of a commutative diagram of homomorphisms of
 graded rings
-
-  A[v₀,…,vᵣ] → B[u₀,…,uₛ]
-      ↑            ↑
-      A      →     B
-
+```
+    A[v₀,…,vᵣ] → B[u₀,…,uₛ]
+        ↑            ↑
+        A      →     B
+```
 If no morphism `A → B` of the base rings is specified, then
 both ``P`` and ``Q`` are assumed to be defined in relative projective
 space over the same ring with the identity on the base.

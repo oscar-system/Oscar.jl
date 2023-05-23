@@ -64,8 +64,8 @@
 	check = true
 	for n in 0:20
 		# go through all algorithms
-		for a in [ "ks", "m" ]
-			P = ascending_partitions(n,alg=a)
+		for a in [ :ks, :m ]
+			P = ascending_partitions(n,algorithm=a)
 			# check that number of partitions is correct
 			if length(P) != num_partitions(n)
 				check = false

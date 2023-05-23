@@ -222,7 +222,7 @@ end
 @doc raw"""
     cohomology_class(ac::RationalEquivalenceClass)
 
-Returns the cohomology class of a rational
+Return the cohomology class of a rational
 equilvalence class of algebraic cycles.
 
 # Examples

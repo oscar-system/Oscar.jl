@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["graphs.md"]
-```
-
 # Graphs
 
 ## Introduction

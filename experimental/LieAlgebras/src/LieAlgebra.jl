@@ -46,11 +46,19 @@ function zero(L::LieAlgebra{C}) where {C<:RingElement}
 end
 
 function iszero(x::LieAlgebraElem{C}) where {C<:RingElement}
-  return iszero(Generic._matrix(x))
+  return iszero(coefficients(x))
 end
 
 @inline function Generic._matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
   return (x.mat)::dense_matrix_type(C)
+end
+
+function coefficients(x::LieAlgebraElem{C}) where {C<:RingElement}
+  return collect(Generic._matrix(x))[1, :]
+end
+
+function coeff(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
+  return Generic._matrix(x)[1, i]
 end
 
 @doc raw"""
@@ -59,7 +67,7 @@ end
 Return the $i$-th coefficient of the module element $x$.
 """
 function getindex(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
-  return Generic._matrix(x)[1, i]
+  return coeff(x, i)
 end
 
 function Base.deepcopy_internal(x::LieAlgebraElem{C}, dict::IdDict) where {C<:RingElement}
@@ -80,7 +88,7 @@ function expressify(
   v::LieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(Generic._matrix(v))
+  for (i, c) in enumerate(coefficients(v))
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -177,12 +185,12 @@ end
 
 function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return Generic._matrix(x1) == Generic._matrix(x2)
+  return coefficients(x1) == coefficients(x2)
 end
 
 function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
   b = 0x6724cbedbd860982 % UInt
-  return xor(hash(Generic._matrix(x), hash(parent(x), h)), b)
+  return xor(hash(coefficients(x), hash(parent(x), h)), b)
 end
 
 ###############################################################################

@@ -2,36 +2,28 @@
 # (1) Display
 ########################################################
 
-function Base.show(io::IO, X::AffineAlgebraicSet)
-  d = dim(ambient_space(X))
-  println(io, "Affine algebraic set in $(ambient_space(X))")
+function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
+  println(io, "Vanishing locus")  # at least one new line is needed
+  println(io, "  in $(ambient_space(X))")
+  print(io, "  of $(vanishing_ideal(X))")
+  # the last print statement must not add a new line
 end
 
-########################################################
-# (2) Irreducible Components
-########################################################
+function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "Affine algebraic set")
+  else
+    # nested printing allowed, preferably supercompact
+    print(io, "Vanishing locus of $(vanishing_ideal(X))")
+  end
+end
 
-@doc raw"""
-    irreducible_components(X::AffineAlgebraicSet) -> Vector{AffineVariety}
-
-Return the irreducible components of `X` defined over the same base field.
-
-Note that this is not the same as the geometric irreducible components.
-"""
-function irreducible_components(X::AffineAlgebraicSet)
-  throw(NotImplementedError())
+# special case for Zariski opens
+function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet)
+  println(io, "Affine algebraic set")  # at least one new line is needed
+  print(io, "  with coordinate ring $(OO(X))")
+  # the last print statement must not add a new line
 end
 
 
-@doc raw"""
-    geometric_irreducible_components(X::AffineAlgebraicSet) -> Vector{AffineVariety}
-
-Return the geometric irreducible components of `X`.
-
-They are the irreducible components of `X` seen over an algebraically closed field.
-
-This is expensive and involves taking field extensions.
-"""
-function geometric_irreducible_components(X::AffineAlgebraicSet)
-  throw(NotImplementedError())
-end

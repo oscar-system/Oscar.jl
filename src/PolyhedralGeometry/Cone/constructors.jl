@@ -63,9 +63,9 @@ function positive_hull(::Type{T}, R::AbstractCollection[RayVector], L::Union{Abs
     end
 
     if non_redundant
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = unhomogenized_matrix(L),))
     else
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = unhomogenized_matrix(L),))
     end
 end
 # Redirect everything to the above constructor, use QQFieldElem as default for the

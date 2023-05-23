@@ -691,7 +691,7 @@ Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
 function is_pm1_on_discr(S::ZLat, g::ZZMatrix)
   D = discriminant_group(S)
   imgs = [D(vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
-  return all(imgs[i] == gens(D)[i] for i in 1:length(gens(D))) || all(imgs[i] == -gens(D)[i] for i in 1:length(gens(D)))
+  return all(imgs[i] == gen(D, i) for i in 1:ngens(D)) || all(imgs[i] == -gen(D, i) for i in 1:ngens(D))
   # OD = orthogonal_group(D)
   # g1 = hom(D,D,[D(lift(d)*g) for d in gens(D)])
   # gg = OD(g1)
@@ -1143,10 +1143,10 @@ Return the walls of the L|S chamber induced by `weyl_vector`.
 
 Corresponds Algorithm 5.11 in [Shi15](@cite) and calls Polymake.
 """
-function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, alg=:short)
-  if alg==:short
+function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:short)
+  if algorithm==:short
     walls1 = _alg58_short_vector(data, weyl_vector)
-  elseif alg==:close
+  elseif algorithm==:close
     walls1 = _alg58_close_vector(data, weyl_vector)
   end
   if length(walls1)==rank(data.S)

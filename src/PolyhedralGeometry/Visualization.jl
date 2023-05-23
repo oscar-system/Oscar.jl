@@ -20,7 +20,7 @@ function visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
     pmo = pm_object(P)
     Polymake.visual(pmo)
   else
-    d == 4 && b && throw(ArgumentError(string("Can only visualize full-dimensional ", typeof(P), " of ambient dimension ", d, ".")))
-    throw(ArgumentError(string("Can not visualize ", typeof(P), " of ambient dimension ", d, ". Supported range: 1 <= d <= ", 3 + b)))
+    d == 4 && b && throw(ArgumentError("Can only visualize full-dimensional $(typeof(P)) of ambient dimension $d"))
+    throw(ArgumentError("Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= $(3 + b)"))
   end
 end

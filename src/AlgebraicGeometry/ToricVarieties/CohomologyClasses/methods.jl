@@ -43,9 +43,7 @@ julia> integrate(c)
 """
 function integrate(c::CohomologyClass)::QQFieldElem
     # can only integrate if the variety is simplicial, complete
-    if !is_simplicial(toric_variety(c)) || !is_complete(toric_variety(c))
-        throw(ArgumentError("Integration only supported over complete and simplicial toric varieties"))
-    end
+    @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
     
     # if the intersection form is known, we can use it
     if has_attribute(toric_variety(c), :_intersection_form_via_exponents)

@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["divisors.md"]
-```
-
 # Elliptic Curves
 
 An elliptic plane curve is a projective plane curve of degree 3 together with a point of the curve, called the base point. An operation of addition of points can be defined on elliptic curves.

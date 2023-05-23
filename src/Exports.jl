@@ -1,6 +1,7 @@
 export *
 export @pbw_relations
 export @perm
+export @permutation_group
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet
@@ -34,6 +35,7 @@ export affine_algebraic_set
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BorcherdsCtx
+export BettiTable
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
@@ -264,14 +266,15 @@ export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
 export bell
+export betti
 export betti_number
 export betti_numbers
+export betti_table
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
 export birkhoff_polytope
 export blocks
-export blowup_on_ith_minimal_torus_orbit
 export bond_matroid
 export borcherds_method
 export boundary_lattice_points
@@ -295,6 +298,7 @@ export cellular_primary_decomposition
 export center, has_center, set_center
 export centralizer
 export chain_complex
+export chain_range
 export chamber
 export character_field
 export character_lattice
@@ -395,6 +399,7 @@ export cube
 export cycle_matroid
 export cycle_structure
 export cyclic_flats
+export cyclic_generator
 export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
@@ -407,6 +412,7 @@ export default_ordering
 export defines_automorphism
 export deglex
 export degree
+export degrees_of_generators
 export degrevlex
 export dehomogenization
 export dehomogenization_map
@@ -424,6 +430,7 @@ export describe
 export desimulate_valuation
 export det
 export diameter
+export as_dictionary
 export dihedral_group
 export dim
 export dim_of_torusfactor
@@ -447,6 +454,7 @@ export domain_covering
 export domain_type
 export double_coset
 export double_cosets
+export double_dual
 export dst
 export dual_cone
 export dual_continued_fraction_hirzebruch_jung
@@ -480,6 +488,7 @@ export exterior_power
 export f_vector
 export face_fan
 export faces
+export facet_indices
 export facet_points
 export facets
 export factor_of_direct_product
@@ -543,6 +552,10 @@ export glueing_graph
 export glueing_morphisms
 export glueings
 export grade
+export graded_cokernel
+export graded_free_module
+export graded_image
+export graded_map
 export graded_polynomial_ring
 export grading
 export grading_group
@@ -593,7 +606,9 @@ export homogeneity_space
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
+export homogeneous_coordinates_on_affine_cone
 export homogenization
+export homogenization_map
 export homogenize
 export homology
 export homomorphism_of_semidirect_product
@@ -625,6 +640,7 @@ export induced_automorphism
 export induce
 export induced_cyclic
 export induced_ring_ordering
+export induce_shift
 export initial
 export inneighbors
 export inner_automorphism
@@ -694,6 +710,7 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
+export is_faithful
 export is_fano
 export is_feasible
 export is_finalized
@@ -746,6 +763,7 @@ export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
 export is_normalized_by
+export is_one
 export is_open_embedding
 export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
@@ -800,6 +818,7 @@ export is_vertical_k_separation
 export is_very_ample
 export is_weakly_connected
 export is_welldefined
+export is_zero
 export is_z_graded
 export is_zm_graded
 export isfinite
@@ -868,6 +887,7 @@ export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divi
 export map_from_torusinvariant_weil_divisor_group_to_class_group
 export map_gens_of_chow_ring_to_cox_ring
 export map_on_affine_cones
+export map_range
 export map_word
 export maps_on_patches
 export mat_elem_type
@@ -914,6 +934,7 @@ export monomial_ordering
 export monomials
 export mori_cone
 export morphism_from_cox_variety
+export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
@@ -1000,6 +1021,7 @@ export nvertices
 export objective_function
 export omega_group
 export on_indeterminates
+export on_lines
 export on_sets
 export on_sets_sets
 export on_tuples
@@ -1033,6 +1055,7 @@ export perfect_group
 export perfect_group_identification, has_perfect_group_identification
 export perm
 export permutation
+export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
@@ -1075,10 +1098,18 @@ export proj_space
 export project_full
 export projection
 export projection_to_base
+export projective_general_linear_group
 export projective_geometry
+export projective_orthogonal_group
+export projective_omega_group
 export projective_plane
 export projective_scheme
 export projective_space
+export projective_special_linear_group
+export projective_special_orthogonal_group
+export projective_special_unitary_group
+export projective_symplectic_group
+export projective_unitary_group
 export projective_variety
 export projective_algebraic_set
 export pullback
@@ -1132,8 +1163,10 @@ export representative_action
 export represents_element
 export restrict
 export restrict_automorphism
+export restrict_automorphism_group
 export restrict_codomain
 export restrict_domain
+export restrict_endomorphism
 export restrict_homomorphism
 export restricted_map
 export restricted_map_type
@@ -1141,6 +1174,7 @@ export restriction
 export restriction_map
 export restrictions
 export reverse
+export reverse_direction!
 export revlex
 export revlex_basis_encoding
 export reynolds_operator
@@ -1176,6 +1210,8 @@ export set_commutator!
 export set_conjugate!
 export set_coordinate_names
 export set_coordinate_names_of_torus
+export set_degrees
+export set_grading
 export set_name!
 export set_power!
 export set_relative_order!
@@ -1227,8 +1263,8 @@ export standard_spec
 export stanley_reisner_ideal
 export stanley_reisner_ring
 export star_subcomplex
+export star_subdivision
 export star_triangulations
-export starsubdivision
 export strongly_connected_components
 export structure_sheaf
 export structure_tropical_jacobian

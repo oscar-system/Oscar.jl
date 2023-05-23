@@ -111,9 +111,7 @@ julia> graph(tc)
 ```
 """
 function graph(tc::TropicalCurve)
-    if !has_attribute(tc, :graph)
-        throw(ArgumentError("No graph attached"))
-    end
+    @req has_attribute(tc, :graph) "No graph attached"
     return get_attribute(tc, :graph)
 end
 
@@ -176,12 +174,9 @@ DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 function DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB}
     if EMB
         error("Not implemented yet")
-    else
-        if n_nodes(tc) != length(coeffs)
-            throw(ArgumentError("Wrong number coefficients"))
-        end
-        return DivisorOnTropicalCurve{M, EMB}(tc, coeffs)
     end
+    @req n_nodes(tc) == length(coeffs) "Wrong number coefficients"
+    return DivisorOnTropicalCurve{M, EMB}(tc, coeffs)
 end
 
 base_curve(dtc::DivisorOnTropicalCurve) = dtc.base_curve

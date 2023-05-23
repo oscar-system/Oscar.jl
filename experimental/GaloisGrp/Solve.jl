@@ -472,7 +472,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   end
   S = slpoly_ring(ZZ, degree(G))[1]
   @vprint :SolveRadical 1 "computing tower...\n"
-  @vtime :SolveRadical 1 All = _fixed_field(C, s, invar = gens(S)[pp], max_prec = max_prec)
+  @vtime :SolveRadical 1 All = _fixed_field(C, s, invar = gen(S, pp), max_prec = max_prec)
                     #here one could actually specify the invariant
                           #at least for the cyclos
 
@@ -496,7 +496,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
     fld_arr[i+1].fld.S = Symbol("z_$(lp[i])")
   end
   @vprint :SolveRadical 1 "find roots...\n"
-  @vtime :SolveRadical 1 R = recognise(C, All, gens(S)[rt])
+  @vtime :SolveRadical 1 R = recognise(C, All, gen(S, rt))
   R = R .// scale
   #now, rewrite as radicals..
   #the cyclos are fine:

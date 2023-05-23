@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["integer.md"]
-```
-
 # Integers
 
 An important design decision in Oscar.jl is to use Julia as the user language

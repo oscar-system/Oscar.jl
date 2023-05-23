@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 The fields part of OSCAR provides functionality for handling

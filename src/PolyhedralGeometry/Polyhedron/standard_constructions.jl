@@ -43,7 +43,6 @@ outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
 the affine span of `P` coincides with the vertex barycenter of `P`. The scalar `z`
 is the distance between the vertex barycenter and `v`.
 
-
 # Examples
 ```jldoctest
 julia> c = cube(2)
@@ -129,9 +128,7 @@ julia> rays(nc)
 ```
 """
 function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
-    if(i<1 || i>nvertices(P))
-       throw(ArgumentError("Vertex index out of range"))
-    end
+    @req 1 <= i <= nvertices(P) "Vertex index out of range"
     bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
     return Cone{T}(bigobject)
 end
@@ -165,9 +162,7 @@ julia> vertices(P)
 """
 function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
    Vhom = stack(homogenized_matrix(V, 1), nothing)
-   if size(Vhom, 2) != degree(G) + 1
-      throw(ArgumentError("Dimension of points and group degree need to be the same."))
-   end
+   @req size(Vhom, 2) == degree(G) + 1 "Dimension of points and group degree need to be the same"
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
@@ -344,8 +339,6 @@ end
 
 
 
-
-
 @doc raw"""
     product(P::Polyhedron, Q::Polyhedron)
 
@@ -518,11 +511,8 @@ julia> vertices(S)
 ```
 """
 function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
-    if ambient_dim(P) != length(v)
-        throw(ArgumentError("Translation vector not correct dimension"))
-    else
-        return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{scalar_type_to_polymake[T]}(v)))
-    end
+    @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
+    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{scalar_type_to_polymake[T]}(v)))
 end
 
 
@@ -555,7 +545,6 @@ julia> vertices(S)
 +(v::AbstractVector,P::Polyhedron{T}) where T<:scalar_types = P+v
 
 @doc raw"""
-
     simplex([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
@@ -600,7 +589,6 @@ simplex(d::Int) = simplex(QQFieldElem, d)
 
 
 @doc raw"""
-
     cross_polytope([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
@@ -645,7 +633,6 @@ cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polyma
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc raw"""
-
     platonic_solid(s)
 
 Construct a Platonic solid with the name given by String `s` from the list
@@ -677,7 +664,6 @@ julia> nfacets(T)
 platonic_solid(s::String) = Polyhedron(Polymake.polytope.platonic_solid(s))
 
 @doc raw"""
-
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
@@ -739,7 +725,6 @@ julia> nfacets(T)
 archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
 
 @doc raw"""
-
     catalan_solid(s::String)
 
 Construct a Catalan solid with the name `s` from the list
@@ -800,7 +785,6 @@ catalan_solid(s::String) = Polyhedron(Polymake.polytope.catalan_solid(s))
 
 
 @doc raw"""
-
     upper_bound_f_vector(d::Int, n::Int)
 
 Return the maximal f-vector of a `d`-polytope with `n` vertices;
@@ -809,7 +793,6 @@ this is given by McMullen's Upper-Bound-Theorem.
 upper_bound_f_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).F_VECTOR)
 
 @doc raw"""
-
     upper_bound_g_vector(d::Int, n::Int)
 
 Return the maximal g-vector of a `d`-polytope with `n` vertices;
@@ -818,7 +801,6 @@ this is given by McMullen's Upper-Bound-Theorem.
 upper_bound_g_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).G_VECTOR)
 
 @doc raw"""
-
     upper_bound_h_vector(d::Int, n::Int)
 
 Return the maximal h-vector of a `d`-polytope with `n` vertices;
@@ -855,12 +837,12 @@ end
 
 
 @doc raw"""
-
     project_full(P::Polyhedron)
 
 Project the polyhedron down such that it becomes full dimensional in the new
 ambient space.
 
+# Examples
 ```jldoctest
 julia> P = convex_hull([1 0 0; 0 0 0])
 Polyhedron in ambient dimension 3
@@ -878,11 +860,11 @@ true
 project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)))
 
 @doc raw"""
-
     gelfand_tsetlin_polytope(lambda::AbstractVector)
 
 Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
+# Examples
 ```jldoctest
 julia> P = gelfand_tsetlin_polytope([5,3,2])
 Polyhedron in ambient dimension 6
@@ -908,6 +890,7 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polym
 Construct a lattice simplex such that the origin is the unique interior lattice point.
 The normal toric variety associated with its face fan is smooth.
 
+# Examples
 ```jldoctest
 julia> S = fano_simplex(3)
 Polyhedron in ambient dimension 3
@@ -927,6 +910,7 @@ fano_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.fano_simplex(d)
 Produce the d-dimensional del Pezzo polytope, which is the convex hull of
 the cross polytope together with the all-ones and minus all-ones vector.
 
+# Examples
 ```jldoctest
 julia> DP = del_pezzo_polytope(4)
 Polyhedron in ambient dimension 4
@@ -941,14 +925,11 @@ julia> f_vector(DP)
 """
 del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.delpezzo(d))
 
-
-
 @doc raw"""
     cyclic_polytope(d::Int, n::Int)
 
 Construct the cyclic polytope that is the convex hull of $n$ points on the
 moment curve in dimension $d$.
-
 
 # Examples
 ```jldoctest

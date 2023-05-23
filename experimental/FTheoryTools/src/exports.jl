@@ -5,7 +5,7 @@ export _blowup_global_sequence
 export _is_nontrivial
 export analyze_fibers
 export base_fully_specified
-export cy_hypersurface
+export calabi_yau_hypersurface
 export discriminant
 export global_tate_model
 export global_tate_model_over_projective_space

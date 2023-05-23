@@ -56,12 +56,12 @@ end
   @test p == leading_coefficient(p)*leading_monomial(p) + tail(p)
 
   s = build_ctx(R)
-  for (c, e) in zip(coefficients(p), exponent_vectors(p))
+  for (c, e) in zip(coefficients(p), exponents(p))
     push_term!(s, c, e)
   end
   @test p == finish(s)
 
-  @test p == R(collect(coefficients(p)), collect(exponent_vectors(p)))
+  @test p == R(collect(coefficients(p)), collect(exponents(p)))
 end
 
 @testset "PBWAlgebra.weyl_algebra" begin
@@ -115,6 +115,7 @@ end
   I = intersect(left_ideal(R, [dy]), left_ideal(R, [dx]))
   @test x*dy*dx in I
   @test !(dy*dx*x in I)
+  @test intersect(left_ideal(R, [dy]), left_ideal(R, [dx])) == intersect([left_ideal(R, [dy]), left_ideal(R, [dx])])
 
   I = intersect(right_ideal(R, [dy]), right_ideal(R, [dx]))
   @test dy*dx*x in I

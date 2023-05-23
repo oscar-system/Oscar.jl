@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["rings.md"]
-```
-
 # Creating Multivariate Rings
 
 In this section, for the convenience of the reader, we recall from the chapters on rings and fields
@@ -33,7 +25,7 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached = true)
+polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached::Bool = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
@@ -41,7 +33,7 @@ The input `ordering=:lex` refers to the lexicograpical monomial ordering which s
 order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 !!! note
-    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ in the variables x, y, z with `ordering=:lex`.
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z, and  with `ordering=:lex`.
 
 ###### Examples
 
@@ -55,12 +47,14 @@ ZZMPolyRing
 julia> typeof(x)
 ZZMPolyRingElem
 
-julia> S, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+julia> S, (a, b, c) = polynomial_ring(ZZ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
 
-julia> R === S
-true
+julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
 
+julia> R === S === T
+true
 ```
 
 ```jldoctest
@@ -243,17 +237,16 @@ multivariate ring, and  `T` is the element type of its coefficient ring as above
     also meant to eventually model multivariate rings with filtrations
 	and their elements.
 
-
-The following function allows one to distinguish between graded and filtered rings:
+The following function allows one, in particular, to distinguish between graded and filtered rings.
 
 ```@docs
-is_graded(R::MPolyDecRing)
+is_graded(R::MPolyRing)
 ```
 
 ### Constructors for Graded Rings
 
 There are two basic ways of creating multivariate rings with gradings:
-While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
+While the `grade` function allows one to create a graded ring by assigning a grading to a polynomial ring already constructed,
 the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
@@ -272,6 +265,7 @@ graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
 
 ## Tests on Graded Rings
+
 
 ```@docs
 is_standard_graded(R::MPolyDecRing)
@@ -429,6 +423,12 @@ Relevant test calls on an element `f` of `R` are  `iszero(f)` and `isone(f)`.
 Given an element `f` of a multivariate polynomial ring `R` or a graded version of such a ring, 
 - `parent(f)` refers to `R`, and
 - `total_degree(f)` to the total degree of `f`.
+
+!!! note
+    Given a set of variables $x = \{x_1, \ldots, x_n\}$, the *total degree* of a monomial $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)$
+    is the sum of the $\alpha_i$. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials. In particular,
+	the notion of total degree ignores the weights given to the variables in the graded case.
+
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
 subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
 

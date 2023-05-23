@@ -18,22 +18,14 @@ Note that expensive checks can be turned off by setting `check=false`.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> Y = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> SpecMor(X, Y, gens(OO(X)));
 ```
@@ -79,13 +71,9 @@ This method constructs the identity morphism from an affine scheme to itself.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> identity_map(X);
 ```
@@ -104,13 +92,9 @@ Return the inclusion map from ``X`` to ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -144,13 +128,9 @@ This method computes the composition of two morphisms.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -187,13 +167,9 @@ to ``U`` and its codomain to ``V``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over Rational Field
 
 julia> R = OO(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
