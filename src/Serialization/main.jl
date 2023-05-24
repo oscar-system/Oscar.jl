@@ -207,6 +207,7 @@ include("Rings.jl")
 include("polymake.jl")
 include("TropicalGeometry.jl")
 include("QuadForm.jl")
+include("Groups.jl")
 
 ################################################################################
 # Include upgrade scripts
