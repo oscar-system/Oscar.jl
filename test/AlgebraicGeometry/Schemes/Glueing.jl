@@ -122,3 +122,13 @@ end
   @test glueing_domains(G1) == glueing_domains(DG)
   @test inverse(DG) == DG
 end
+
+@testset "base change" begin
+  kk, pr = quo(ZZ, 5)
+  IP1 = covered_scheme(projective_space(ZZ, 1))
+  C = default_covering(IP1)
+  G = first(values(glueings(C)))
+  GG = base_change(pr, G)
+  @test underlying_glueing(GG) isa SimpleGlueing
+end
+

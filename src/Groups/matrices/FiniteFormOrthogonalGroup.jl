@@ -758,7 +758,7 @@ function _compute_gens(T::TorQuadModule)
   # normal form gens for the different primes
   blocks = []
   gensT_orders = [order(t) for t in gens(T)]
-  n = length(gens(T))
+  n = ngens(T)
   P = prime_divisors(exponent(T))
   for p in P
     indices = Int[]

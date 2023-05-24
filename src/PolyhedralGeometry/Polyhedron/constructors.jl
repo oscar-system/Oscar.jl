@@ -20,14 +20,15 @@ struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
 end
 
 # default scalar type: `QQFieldElem`
-Polyhedron(x...) = Polyhedron{QQFieldElem}(x...)
+polyhedron(A, b) = polyhedron(QQFieldElem, A, b)
+polyhedron(A) = polyhedron(QQFieldElem, A)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
-Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
+polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
 
 @doc raw"""
-    Polyhedron{T}(A::AnyVecOrMat, b) where T<:scalar_types
+    polyhedron(::Type{T}, A::AnyVecOrMat, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
 
@@ -42,24 +43,24 @@ julia> A = [1 0; 0 1; -1 0 ; 0 -1];
 
 julia> b = [1, 1, 0, 0];
 
-julia> Polyhedron(A,b)
+julia> polyhedron(A,b)
 Polyhedron in ambient dimension 2
 ```
 """
-Polyhedron{T}(A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = Polyhedron{T}((A, b))
+polyhedron(::Type{T}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = polyhedron(T, (A, b))
 
-Polyhedron{T}(A::AbstractVector, b::Any) where T<:scalar_types = Polyhedron{T}(([A], [b]))
+polyhedron(::Type{T}, A::AbstractVector, b::Any) where T<:scalar_types = polyhedron(T, ([A], [b]))
 
-Polyhedron{T}(A::AbstractVector, b::AbstractVector) where T<:scalar_types = Polyhedron{T}(([A], b))
+polyhedron(::Type{T}, A::AbstractVector, b::AbstractVector) where T<:scalar_types = polyhedron(T, ([A], b))
 
-Polyhedron{T}(A::AbstractVector{<:AbstractVector}, b::Any) where T<:scalar_types = Polyhedron{T}((A, [b]))
+polyhedron(::Type{T}, A::AbstractVector{<:AbstractVector}, b::Any) where T<:scalar_types = polyhedron(T, (A, [b]))
 
-Polyhedron{T}(A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:scalar_types = Polyhedron{T}((A, b))
+polyhedron(::Type{T}, A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:scalar_types = polyhedron(T, (A, b))
 
-Polyhedron{T}(A::AnyVecOrMat, b::Any) where T<:scalar_types = Polyhedron{T}(A, [b])
+polyhedron(::Type{T}, A::AnyVecOrMat, b::Any) where T<:scalar_types = polyhedron(T, A, [b])
 
 @doc raw"""
-    Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+    polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
 
 The (convex) polyhedron obtained intersecting the halfspaces `I` (inequalities)
 and the hyperplanes `E` (equations).
@@ -71,14 +72,14 @@ julia> A = [1 0; 0 1; -1 0 ; 0 -1];
 
 julia> b = [1, 1, 0, 0];
 
-julia> Polyhedron((A,b))
+julia> polyhedron((A,b))
 Polyhedron in ambient dimension 2
 ```
 
 As an example for a polyhedron constructed from both inequalities and
 equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
 ```jldoctest
-julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
+julia> P = polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 Polyhedron in ambient dimension 2
 
 julia> is_feasible(P)
@@ -93,7 +94,7 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-function Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+function polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
         IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))

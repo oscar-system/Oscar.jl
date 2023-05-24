@@ -124,7 +124,7 @@ function fundamental_invariants_via_primary_and_secondary(IR::InvRing)
 
     invars_cache.invars = primary_invariants(IR)
     invars_cache.S = graded_polynomial_ring(K, [ "y$i" for i = 1:length(invars_cache.invars) ], [ total_degree(forget_grading(f)) for f in invars_cache.invars ])[1]
-    invars_cache.toS = Dict{elem_type(R), elem_type(invars_cache.S)}(invars_cache.invars[i] => gens(invars_cache.S)[i] for i = 1:length(invars_cache.invars))
+    invars_cache.toS = Dict{elem_type(R), elem_type(invars_cache.S)}(invars_cache.invars[i] => gen(invars_cache.S, i) for i = 1:length(invars_cache.invars))
 
     return invars_cache
   end
@@ -199,11 +199,11 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 

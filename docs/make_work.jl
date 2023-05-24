@@ -6,7 +6,6 @@ module BuildDoc
 
 using Documenter, DocumenterCitations
 
-
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
 #   Hecke.Order - Method
@@ -31,7 +30,6 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 # https://github.com/JuliaDocs/Documenter.jl/pull/552
 # https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
 Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
-
 
 # When we read a `doc.main` from an experimental package, we need to equip all
 # its entries with a prefix to fit with our docs. The doc.main of an
@@ -71,14 +69,15 @@ Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
 # Since the entries of a `doc.main` vary in type, we have split this up into
 # three functions.
 add_prefix_to_experimental_docs(Oscar::Module, docs::String, prefix::String) = joinpath(prefix, docs)
-add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs[1], add_prefix_to_experimental_docs(Oscar, docs[2], prefix))
+add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String,String}, prefix::String) = Pair{String,String}(docs.first, add_prefix_to_experimental_docs(Oscar, docs.second, prefix))
+add_prefix_to_experimental_docs(Oscar::Module, docs::Pair{String, Vector{T}}, prefix::String) where T = Pair{String, Vector{T}}(docs.first, add_prefix_to_experimental_docs(Oscar, docs.second, prefix))
 add_prefix_to_experimental_docs(Oscar::Module, docs::Vector{T}, prefix::String) where T = T[add_prefix_to_experimental_docs(Oscar, entry, prefix) for entry in docs]
 
 
 function setup_experimental_package(Oscar::Module, package_name::String)
   doc_main_path = joinpath(Oscar.oscardir, "experimental", package_name, "docs/doc.main")
   if !isfile(doc_main_path)
-    return[]
+    return []
   end
 
   # Set symlink inside docs/src/experimental
@@ -92,9 +91,9 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   if !ispath(symlink_link)
     symlink(symlink_target, symlink_link)
   elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
-      error("$symlink_link already exists, but is not a symlink to $symlink_target
-Please investigate the contents of $symlink_link,
-optionally move them somewhere else and delete the directory once you are done.")
+    error("""$symlink_link already exists, but is not a symlink to $symlink_target
+    Please investigate the contents of $symlink_link,
+    optionally move them somewhere else and delete the directory once you are done.""")
   end
 
   # Read doc.main of package
@@ -107,7 +106,12 @@ optionally move them somewhere else and delete the directory once you are done."
   return result
 end
 
-function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
+function doit(
+  Oscar::Module;
+  strict::Bool=true,
+  local_build::Bool=false,
+  doctest::Union{Bool,Symbol}=true,
+)
 
   # Remove symbolic links from earlier runs
   expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
@@ -128,66 +132,67 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
   push!(doc, ("Experimental" => collected))
 
   # Load the bibliography
-  bib = CitationBibliography(joinpath(Oscar.oscardir, "docs", "oscar_references.bib"), sorting = :nyt)
+  bib = CitationBibliography(
+    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); sorting=:nyt
+  )
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra
   other_packages = [
-    (Oscar.Hecke,Oscar.heckedir),
+    (Oscar.Hecke, Oscar.heckedir),
     (Oscar.Nemo, Oscar.nemodir),
     (Oscar.AbstractAlgebra, Oscar.aadir),
-    ]
+  ]
   for (pkg, pkgdir) in other_packages
-      srcbase = normpath(pkgdir, "docs", "src")
-      dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
+    srcbase = normpath(pkgdir, "docs", "src")
+    dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
 
-      # clear the destination directory first
-      rm(dstbase, recursive=true, force=true)
+    # clear the destination directory first
+    rm(dstbase; recursive=true, force=true)
 
-      for (root, dirs, files) in walkdir(srcbase)
-          for dir in dirs
-              d = normpath(joinpath(dstbase, relpath(root, srcbase), dir))
-              mkpath(d)
-          end
-          for file in files
-              # HACK: delete Hecke's bibliography, to avoid warnings of the
-              # form "Warning: 'Eis95' is not unique" which actually turn into
-              # errors down the road
-              if file == "references.md"
-                continue
-              end
-              src = normpath(joinpath(root, file))
-              dst = normpath(joinpath(dstbase, relpath(root, srcbase), file))
-              cp(src, dst; force = true)
-              chmod(dst, 0o644)
-          end
+    for (root, dirs, files) in walkdir(srcbase)
+      for dir in dirs
+        d = normpath(dstbase, relpath(root, srcbase), dir)
+        mkpath(d)
       end
+      for file in files
+        # HACK: delete Hecke's bibliography, to avoid warnings of the
+        # form "Warning: 'Eis95' is not unique" which actually turn into
+        # errors down the road
+        if file == "references.md"
+          continue
+        end
+        src = normpath(root, file)
+        dst = normpath(dstbase, relpath(root, srcbase), file)
+        cp(src, dst; force=true)
+        chmod(dst, 0o644)
+      end
+    end
   end
 
   cd(joinpath(Oscar.oscardir, "docs")) do
+    DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive=true)
+    DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke; import AbstractAlgebra; AbstractAlgebra.set_current_module(@__MODULE__)); recursive=true)
+    DocMeta.setdocmeta!(Oscar.AbstractAlgebra, :DocTestSetup, :(using AbstractAlgebra; AbstractAlgebra.set_current_module(@__MODULE__)); recursive=true)
+    DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo; import AbstractAlgebra; AbstractAlgebra.set_current_module(@__MODULE__)); recursive=true)
 
-    DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
-    DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive = true)
-    DocMeta.setdocmeta!(Oscar.AbstractAlgebra, :DocTestSetup, :(using AbstractAlgebra); recursive = true)
-    DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive = true)
-
-
-    makedocs(bib,
-           format   = Documenter.HTML(prettyurls = !local_build, collapselevel = 1),
-           sitename = "Oscar.jl",
-           modules = [Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
-           clean = true,
-           doctest = doctest,
-           strict = strict,
-           checkdocs = :none,
-           pages    = doc)
+    makedocs(
+      bib;
+      format=Documenter.HTML(; prettyurls=!local_build, collapselevel=1),
+      sitename="Oscar.jl",
+      modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
+      clean=true,
+      doctest=doctest,
+      strict=strict,
+      checkdocs=:none,
+      pages=doc,
+    )
   end
 
   # remove the copied documentation again
   for (pkg, pkgdir) in other_packages
-      dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
-      rm(dstbase, recursive=true, force=true)
+    dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
+    rm(dstbase; recursive=true, force=true)
   end
-
 end
 
 end # module BuildDoc

@@ -183,7 +183,7 @@ julia> Oscar.GITFans.action_on_target(Q, G)
 Group homomorphism from
 Group([ (2,3)(5,6)(9,10), (1,5,9,10,3)(2,7,8,4,6) ])
 to
-Matrix group of degree 5 over Rational Field
+Matrix group of degree 5 over Rational field
 
 ```
 

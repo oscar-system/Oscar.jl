@@ -2358,7 +2358,7 @@ julia> G, C = galois_group(x^3-2);
 
 julia> galois_quotient(C, 6)
 1-element Vector{Any}:
- Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
+ Number field of degree 6 over QQ
 
 julia> galois_group(ans[1])
 (Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)

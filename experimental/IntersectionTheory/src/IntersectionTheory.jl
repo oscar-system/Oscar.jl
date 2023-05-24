@@ -12,11 +12,9 @@ export abstract_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_projective_bundle
-export abstract_projective_variety
-export abstract_variety
+export abstract_projective_space
 export abstract_variety
 export betti
-export bundle
 export bundles
 export canonical_bundle
 export canonical_class
@@ -34,7 +32,6 @@ export graph
 export intersection_matrix
 export l_genus
 export line_bundle
-export pontryagin
 export pontryagin_class
 export schubert_class
 export schubert_classes

@@ -17,8 +17,8 @@ from other objects in OSCAR.
 ### Intersecting halfspaces: $H$-representation
 
 ```@docs
-Polyhedron{T}(A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types
-Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+polyhedron(::Type{T}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types
+polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
 ```
 
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)
@@ -136,6 +136,7 @@ regular_600_cell
 ## Other polytope constructions
 
 ```@docs
+billera_lee_polytope
 birkhoff_polytope
 cyclic_polytope
 del_pezzo_polytope
@@ -146,6 +147,7 @@ gelfand_tsetlin_polytope
 newton_polytope
 orbit_polytope
 rand_spherical_polytope
+rand_subpolytope
 ```
 
 ## Operations on polyhedra

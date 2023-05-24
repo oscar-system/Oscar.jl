@@ -51,7 +51,7 @@ Here are some illustrating examples:
 
 ```jldoctest
 julia> S, (w, x) = polynomial_ring(QQ, ["w", "x"])
-(Multivariate Polynomial Ring in w, x over Rational Field, QQMPolyRingElem[w, x])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[w, x])
 
 julia> o = lex([w, x])
 lex([w, x])
@@ -61,7 +61,7 @@ julia> canonical_matrix(o)
 [0   1]
 
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
 degrevlex([w, x])
@@ -307,7 +307,7 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o = degrevlex([w, x])*degrevlex([y, z])
 degrevlex([w, x])*degrevlex([y, z])
@@ -400,7 +400,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
 julia> o1 = degrevlex(R)*revlex(gens(F))
 degrevlex([w, x, y, z])*revlex([gen(1), gen(2), gen(3)])

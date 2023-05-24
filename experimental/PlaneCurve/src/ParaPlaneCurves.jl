@@ -19,14 +19,14 @@ end
 
 function _fromsingular_ring(R::Singular.PolyRing)
     Kx = base_ring(R)
-    if typeof(Kx) == Singular.N_AlgExtField
+    if Kx isa Singular.N_AlgExtField
         FF, t = RationalFunctionField(QQ, "t")
         f = numerator(FF(Kx.minpoly))
         K, _ = number_field(f, "a")
     else
         K = QQ
     end
-    newring, _ = polynomial_ring(K, [string(x) for x in gens(R)])
+    newring, _ = polynomial_ring(K, symbols(R))
     return newring
 end
 
@@ -108,10 +108,12 @@ julia> P = rational_point_conic(D)
  0
 
 julia> S = parent(P[1])
-Multivariate Polynomial Ring in x, y, z over Number field over Rational Field with defining polynomial t^2 - 2
+Multivariate polynomial ring in 3 variables x, y, z
+  over number field of degree 2 over QQ
 
 julia> NF = base_ring(S)
-Number field over Rational Field with defining polynomial t^2 - 2
+Number field with defining polynomial t^2 - 2
+  over rational field
 
 julia> a = gen(NF)
 a
@@ -184,7 +186,7 @@ where R is the basering.
 # Examples
 ```jldoctest
 julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, ["v", "w", "x", "y", "z"])
-(Multivariate Polynomial Ring in v, w, x, y, z over Rational Field graded by 
+(Multivariate polynomial ring in 5 variables over QQ graded by
   v -> [1]
   w -> [1]
   x -> [1]

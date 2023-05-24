@@ -31,7 +31,7 @@ Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
@@ -65,7 +65,7 @@ Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
@@ -104,7 +104,7 @@ Return the affine plane curve consisting of the common component of `C` and `D`,
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y)*(x^2 + x + 1))
 Affine plane curve defined by x^4 + x^3*y + x^3 + x^2*y + x^2 + x*y
@@ -140,7 +140,7 @@ Return a list whose first element is the affine plane curve defined by the gcd o
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
@@ -233,7 +233,7 @@ Return the reduced singular locus of `C` as a list whose first element is the af
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
@@ -319,7 +319,7 @@ Return the multiplicity of `C` at `P`.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
@@ -355,7 +355,7 @@ Return the tangent lines at `P` to `C` with their multiplicity.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
@@ -420,7 +420,7 @@ Return the intersection multiplicity of `C` and `D` at `P`.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
 Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
@@ -456,7 +456,7 @@ Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwis
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
@@ -492,7 +492,7 @@ Return `true` if `C` has no singular point, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
@@ -537,7 +537,7 @@ Return the geometric genus of the projective closure of `C`.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(GF(7), ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, fpMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over GF(7), fpMPolyRingElem[x, y])
 
 julia> C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
 Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9

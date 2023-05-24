@@ -239,6 +239,7 @@
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
+    "DeveloperDocumentation/gap_integration.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

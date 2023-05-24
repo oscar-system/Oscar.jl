@@ -9,7 +9,7 @@ Return the normal toric variety of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -32,7 +32,7 @@ Return the coefficients of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -58,7 +58,7 @@ Return the exponents of the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -90,7 +90,7 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -114,7 +114,7 @@ to the cohomology class `c`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
@@ -124,7 +124,7 @@ julia> cc = cohomology_class(d)
 Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> R, _ = polynomial_ring(QQ, 5)
-(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, QQMPolyRingElem[x1, x2, x3, x4, x5])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x1, x2, x3, x4, x5])
 
 julia> (x1, x2, x3, x4, x5) = gens(R)
 5-element Vector{QQMPolyRingElem}:
@@ -138,7 +138,7 @@ julia> sr_and_linear_relation_ideal = ideal([x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, 
 ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
 julia> R_quo = quo(R, sr_and_linear_relation_ideal)[1]
-Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
+Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
 julia> polynomial(R_quo, cc)
 6*x3 + x4 + 7*x5

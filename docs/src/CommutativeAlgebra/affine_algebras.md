@@ -38,8 +38,8 @@ discuss functionality for handling such algebras in OSCAR.
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
     (recall that OSCAR ideals of graded polynomial rings are required to be homogeneous).
     Functionality for dealing with such gradings and our notation for describing this functionality descend accordingly.
-	This applies, in particular, to the functions `ìs_graded`, `ìs_standard_graded`, `ìs_z_graded`, `ìs_zm_graded`,
-	and `ìs_positively_graded` which will not be discussed again here. 
+	This applies, in particular, to the functions [`is_graded`](@ref),  [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
+	[`is_zm_graded`](@ref), and [`is_positively_graded`](@ref) which will not be discussed again here. 
 
 ## Types
 
@@ -72,7 +72,8 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
 julia> base_ring(A)
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables x, y, z
+  over rational field
 
 julia> modulus(A)
 ideal(-x^2 + y, -x^3 + z)
@@ -218,7 +219,7 @@ julia> a = ideal(A, [x-y, z^4])
 ideal(x - y, z^4)
 
 julia> base_ring(a)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(a)
 2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
@@ -349,14 +350,14 @@ julia> para = hom(D1, C1, V1)
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+Multivariate polynomial ring in 4 variables over QQ graded by
   w -> [1]
   x -> [1]
   y -> [1]
   z -> [1]
 Codomain:
 =========
-Multivariate Polynomial Ring in s, t over Rational Field graded by
+Multivariate polynomial ring in 2 variables over QQ graded by
   s -> [1]
   t -> [1]
 
@@ -373,13 +374,13 @@ julia> proj = hom(D2, C2, V2)
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in a, b, c over Rational Field graded by
+Multivariate polynomial ring in 3 variables over QQ graded by
   a -> [1]
   b -> [1]
   c -> [1]
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+Quotient of Multivariate polynomial ring in 4 variables over QQ graded by
   w -> [1]
   x -> [1]
   y -> [1]
@@ -401,10 +402,10 @@ julia> F3 = hom(D3, C3, V3)
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in y[1], y[2], y[3] over Rational Field
+Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field
+Multivariate polynomial ring in 3 variables over QQ
 
 julia> sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
 ideal(x[1]^3 + x[2]^3 + x[3]^3 - 1)
@@ -439,10 +440,10 @@ julia> F = hom(D, C, V)
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-b^3 + c)
 
 julia> is_surjective(F)
 true
@@ -467,10 +468,10 @@ julia> paraWhitneyUmbrella = hom(R, C, V)
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Multivariate Polynomial Ring in s, t over Rational Field
+Multivariate polynomial ring in 2 variables over QQ
 
 julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
@@ -522,19 +523,19 @@ julia> L[2]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x*y, x*z)
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
 
 julia> L[3]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x*y, x*z)
 
 ```
 ## Normalization

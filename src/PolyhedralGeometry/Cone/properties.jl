@@ -162,6 +162,10 @@ end
 
 _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
+_incidencematrix(::Val{_face_cone}) = _ray_indices
+
+_incidencematrix(::Val{_face_cone_facet}) = _ray_indices
+
 ###############################################################################
 ###############################################################################
 ### Access properties
@@ -215,7 +219,7 @@ Return the dimension of `C`.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> dim(C)
 2
@@ -231,7 +235,7 @@ Return the ambient dimension of `C`.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> ambient_dim(C)
 3
@@ -247,7 +251,7 @@ Return the codimension of `C`.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> codim(C)
 1
@@ -307,7 +311,7 @@ true
 julia> lineality_dim(C)
 0
 
-julia> C1 = Cone([1 0],[0 1; 0 -1])
+julia> C1 = positive_hull([1 0],[0 1; 0 -1])
 Polyhedral cone in ambient dimension 2
 
 julia> is_pointed(C1)
@@ -380,12 +384,12 @@ Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
 # Examples
 A cone with lineality is not pointed, but a cone only consisting of a single ray is.
 ```jldoctest
-julia> C = Cone([1 0], [0 1]);
+julia> C = positive_hull([1 0], [0 1]);
 
 julia> is_pointed(C)
 false
 
-julia> C = Cone([1 0]);
+julia> C = positive_hull([1 0]);
 
 julia> is_pointed(C)
 true
@@ -401,7 +405,7 @@ Determine whether `C` is full-dimensional.
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
 ```jldoctest
-julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
+julia> C = positive_hull([1 0 0; 1 1 0; 0 1 0]);
 
 julia> is_fulldimensional(C)
 false
@@ -437,7 +441,9 @@ julia> f = facets(Halfspace, c)
 """
 facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
-_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-view(C.FACETS, [i], :), 0)
+_facet_cone(::Type{Polyhedron{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = polyhedron(T, -view(C.FACETS, [i], :), 0)
+
+_facet_cone(::Type{AffineHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = AffineHalfspace{T}(-view(C.FACETS, [i], :), 0)
 
 _facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
 
@@ -448,6 +454,8 @@ _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
 _ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
+
+_incidencematrix(::Val{_facet_cone}) = _ray_indices
 
 facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
@@ -462,7 +470,7 @@ Return a basis of the lineality space of `C`.
 Three rays are used here to construct the upper half-plane. Actually, two of these rays point in opposite directions.
 This gives us a 1-dimensional lineality.
 ```jldoctest
-julia> UH = Cone([1 0; 0 1; -1 0]);
+julia> UH = positive_hull([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
 1-element SubObjectIterator{RayVector{QQFieldElem}}:
@@ -486,7 +494,7 @@ Return the (linear) hyperplanes generating the linear span of `C`.
 This 2-dimensional cone in $\mathbb{R}^3$ lives in exactly one hyperplane $H$, with
 $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 ```jldoctest
-julia> c = Cone([1 0 0; 0 1 0]);
+julia> c = positive_hull([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
 1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the Hyperplanes of R^3 described by:
@@ -509,7 +517,7 @@ Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 # Examples
 This (non-smooth) cone in the plane has a hilbert basis with three elements.
 ```jldoctest; filter = r".*"
-julia> C = Cone([1 0; 1 2])
+julia> C = positive_hull([1 0; 1 2])
 A polyhedral cone in ambient dimension 2
 
 julia> matrix(ZZ, hilbert_basis(C))

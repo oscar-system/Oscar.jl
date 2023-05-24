@@ -9,15 +9,15 @@ using Test
     
     v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]]; set_attributes)
     
-    dP1 = del_pezzo_surface(1; set_attributes)
+    dP1 = del_pezzo_surface(NormalToricVariety, 1; set_attributes)
     c0 = cohomology_class(dP1, gens(cohomology_ring(dP1))[1])
     
-    dP3 = del_pezzo_surface(3; set_attributes)
+    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
     c1 = cohomology_class(dP3, x1)
     c2 = cohomology_class(dP3, e1)
     
-    product_space = hirzebruch_surface(5; set_attributes) * projective_space(NormalToricVariety, 2; set_attributes)
+    product_space = hirzebruch_surface(NormalToricVariety, 5; set_attributes) * projective_space(NormalToricVariety, 2; set_attributes)
     
     @testset "Should fail" begin
         R,_ = polynomial_ring(QQ, 3)

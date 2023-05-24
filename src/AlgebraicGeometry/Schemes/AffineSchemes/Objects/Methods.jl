@@ -55,7 +55,7 @@ in the coordinate ring of an affine scheme.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:
@@ -199,6 +199,67 @@ function components(X::AbsSpec)
   return result
 end
 
+########################################################################
+# Base change and reduction modulo p
+########################################################################
 
+@doc raw"""
+    base_change(phi::Any, X::AbsSpec)
 
+For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism 
+``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair 
+`(Y, psi)` where `psi` is the canonical map ``Y → X``.
+"""
+function base_change(phi::Any, X::AbsSpec)
+  kk = base_ring(X)
+  kk_red = parent(phi(zero(kk)))
+  R = OO(X)
+  R_red, Phi = _change_base_ring(phi, R)
+  Y = Spec(R_red)
+  return Y, SpecMor(Y, X, Phi)
+end
 
+### Some helper functions
+function _change_base_ring(phi::Any, R::MPolyRing)
+  K = coefficient_ring(R)
+  kk = parent(phi(zero(K)))
+  P, _ = polynomial_ring(kk, symbols(R))
+  Phi = hom(R, P, phi, gens(P))
+  return P, Phi
+end
+
+function _change_base_ring(phi::Any, A::MPolyQuoRing)
+  R = base_ring(A)
+  I = modulus(A)
+  P, Phi = _change_base_ring(phi, R)
+  I_red = ideal(P, Phi.(gens(I)))
+  Q, pr = quo(P, I_red)
+  Phi_bar = hom(A, Q, phi, gens(Q), check=false)
+  return Q, Phi_bar
+end
+
+function _change_base_ring(phi::Any, 
+    W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+                    <:MPolyPowersOfElement}
+  )
+  R = base_ring(W)
+  P, Phi = _change_base_ring(phi, R)
+  U = inverted_set(W)
+  U_red = MPolyPowersOfElement(P, Phi.(denominators(U)))
+  W_red, loc_map = localization(P, U_red)
+  return W_red, hom(W, W_red, compose(Phi, loc_map), check=false)
+end
+
+function _change_base_ring(phi::Any, 
+    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+                       <:MPolyPowersOfElement}
+  )
+  R = base_ring(L)
+  W = localized_ring(L)
+  W_red, Phi_W = _change_base_ring(phi, W)
+  I = modulus(L)
+  I_red = ideal(W_red, Phi_W.(gens(I)))
+  L_red, pr = quo(W_red, I_red)
+  res = compose(restricted_map(Phi_W), pr)
+  return L_red, hom(L, L_red, res, check=false)
+end

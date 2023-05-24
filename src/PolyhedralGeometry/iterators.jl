@@ -254,7 +254,7 @@ Base.size(iter::SubObjectIterator) = (iter.n,)
 # Incidence matrices
 for (sym, name) in (("facet_indices", "Incidence matrix resp. facets"), ("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
     M = Symbol(sym)
-    _M = Symbol(string("_", sym))
+    _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
@@ -264,7 +264,7 @@ end
 # Matrices with rational or integer elements
 for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector Matrix"), ("generator_matrix", "Generator Matrix"))
     M = Symbol(sym)
-    _M = Symbol(string("_", sym))
+    _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
@@ -278,6 +278,14 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
         return _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; homogenized=homogenized, iter.options...)
     else
         throw(ArgumentError("Matrix for Polymake not defined in this context."))
+    end
+end
+
+function IncidenceMatrix(iter::SubObjectIterator)
+    if hasmethod(_incidencematrix, Tuple{Val{iter.Acc}})
+        return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+    else
+        throw(ArgumentError("IncidenceMatrix not defined in this context."))
     end
 end
 

@@ -5,83 +5,360 @@
 ###############################################################################
 
 @doc raw"""
-    graded_free_module(R::Ring, n::Int, name::VarName = :e; cached::Bool = false)
+    graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 
-Create the graded free module $R^n$ equipped with its basis of standard unit vectors
-and standard degrees, that is the standard unit vectors have degree 0.
+Given a graded ring `R` with grading group `G`, say,
+and given a vector `W` with `p` elements of `G`, create the free module $R^p$ 
+equipped with its basis of standard unit vectors, and assign weights to these 
+vectors according to the entries of `W`. Return the resulting graded free module.
+
+    graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e")
+
+As above, with `p = length(W)`.
+
+!!! note
+    The function applies to graded multivariate polynomial rings and their quotients.
 
 The string `name` specifies how the basis vectors are printed. 
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
-(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
+(Multivariate polynomial ring in 2 variables over QQ graded by
   x -> [1]
   y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> graded_free_module(R,3)
-Graded free module Multivariate Polynomial Ring in x, y over Rational Field graded by
-  x -> [1]
-  y -> [1]^3([0]) of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by
-  x -> [1]
-  y -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
+julia> G = grading_group(R)
+GrpAb: Z
+
+julia> graded_free_module(R, [G[1], 2*G[1]])
+Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::Ring, p::Int, name::VarName=:e, d::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p])
+function graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+  @assert length(W) == p
   @assert is_graded(R)
+  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
   M = FreeMod(R, p, name)
-  M.d = d
+  M.d = W
   return M
 end
 
-function graded_free_module(R::Ring, d::Vector{GrpAbFinGenElem}, name::VarName=:e)
-  p = length(d)
-  return graded_free_module(R, p, name, d)
+function graded_free_module(R::Ring, p::Int, W::Vector{Any}, name::String="e")
+  @assert length(W) == p
+  @assert is_graded(R)
+  p == 0 || error("W should be either an empty array or a Vector{GrpAbFinGenElem}")
+  W = GrpAbFinGenElem[]
+  return graded_free_module(R, p, W, name)
 end
 
-function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::VarName=:e)
+function graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e")
+  p = length(W)
+  return graded_free_module(R, p, W, name)
+end
+
+function graded_free_module(R::Ring, W::Vector{Any}, name::String="e")
+  p = length(W)
+  @assert is_graded(R)
+  p == 0 || error("W should be either an empty array or a Vector{GrpAbFinGenElem}")
+  W = GrpAbFinGenElem[]
+  return graded_free_module(R, p, W, name)
+end
+
+@doc raw"""
+    graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
+
+Given a graded ring `R` with grading group $G = \mathbb Z^m$, 
+and given a vector `W` of integer vectors of the same size `p`, say, create the free 
+module $R^p$ equipped with its basis of standard unit vectors, and assign weights to these 
+vectors according to the entries of `W`, converted to elements of `G`. Return the 
+resulting graded free module.
+
+    graded_free_module(R::Ring, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
+
+As above, converting the columns of `W`.
+
+    graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
+
+Given a graded ring `R` with grading group $G = \mathbb Z$, 
+and given a vector `W` of integers, set `p = length(W)`, create the free module $R^p$ 
+equipped with its basis of standard unit vectors, and assign weights to these 
+vectors according to the entries of `W`, converted to elements of `G`. Return 
+the resulting graded free module.
+
+The string `name` specifies how the basis vectors are printed. 
+
+!!! note
+    The function applies to graded multivariate polynomial rings and their quotients.
+
+# Examples
+```jldoctest
+julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> F = graded_free_module(R, [1, 2])
+Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
+```
+
+```jldoctest
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1 0 1; 0 1 1]);
+
+julia> FF = graded_free_module(S, [[1, 2], [-1, 3]])
+Graded free module S^1([-1 -2]) + S^1([1 -3]) of rank 2 over S
+
+julia> FFF = graded_free_module(S, [1 -1; 2 3])
+Graded free module S^1([-1 -2]) + S^1([1 -3]) of rank 2 over S
+
+julia> FF == FFF
+true
+```
+"""
+function graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
+  @assert is_zm_graded(R)
+  n = length(W[1])
+  @assert all(x->length(x) == n, W)
+  A = grading_group(R)
+  d = [A(w) for w = W]
+  return graded_free_module(R, length(W), d, name)
+end
+
+function graded_free_module(R::Ring, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
+  @assert is_zm_graded(R)
+  A = grading_group(R)
+  d = [A(W[:, i]) for i = 1:size(W, 2)]
+  return graded_free_module(R, size(W, 2), d, name)
+end
+
+function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
   @assert is_graded(R)
   A = grading_group(R)
   d = [W[i] * A[1] for i in 1:length(W)]
-  return graded_free_module(R, length(W), name, d)
+  return graded_free_module(R, length(W), d, name)
 end
 
-function grade(M::FreeMod, d::Vector{GrpAbFinGenElem})
-  @assert length(d) == ngens(M)
-  @assert is_graded(base_ring(M))
-  R = base_ring(M)
-  N = free_module(R, length(d))
-  N.d = d
-  N.S = M.S
+@doc raw"""
+    grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+
+Given a free module `F` over a graded ring with grading group `G`, say, and given
+a vector `W` of `ngens(F)` elements of `G`, create a `G`-graded free module
+by assigning the entries of `W` as weights to the generators of `F`. Return
+the new module. 
+
+    grade(F::FreeMod)
+
+As above, with all weights set to `zero(G)`.
+
+!!! note
+    The function applies to free modules over both graded multivariate polynomial rings and their quotients.
+
+# Examples
+```jldoctest
+julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
+
+julia> G = abelian_group([0, 0])
+GrpAb: Z^2
+
+julia> g = gens(G)
+2-element Vector{GrpAbFinGenElem}:
+ Element of G with components [1 0]
+ Element of G with components [0 1]
+
+julia> W = [g[1], g[1], g[2], g[2], g[2]];
+
+julia> S, _ = grade(R, W)
+(Multivariate polynomial ring in 5 variables over QQ graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+
+julia> F = free_module(S, 3)
+Free module of rank 3 over S
+
+julia> FF = grade(F)
+Graded free module S^3([0 0]) of rank 3 over S
+
+julia> F
+Free module of rank 3 over S
+```
+"""
+function grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+  @assert length(W) == ngens(F)
+  @assert is_graded(base_ring(F))
+  R = base_ring(F)
+  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  N = free_module(R, length(W))
+  N.d = W
+  N.S = F.S
   return N
 end
 
+function grade(F::FreeMod)
+  @assert is_graded(base_ring(F))
+  R = base_ring(F)
+  G = grading_group(R)
+  W = [zero(G) for i = 1: ngens(F)]
+  return grade(F, W)
+end
+
+@doc raw"""
+    grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
+
+Given a free module `F` over a graded ring with grading group $G = \mathbb Z^m$, and given
+a vector `W` of `ngens(F)` integer vectors of the same size `m`, say, define a $G$-grading on `F` 
+by converting the vectors in `W` to elements of $G$, and assigning these elements as weights to 
+the variables. Return the new module.
+
+    grade(F::FreeMod, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
+
+As above, converting the columns of `W`.
+
+    grade(F::FreeMod, W::Vector{<:IntegerUnion})
+
+Given a free module `F` over a graded ring with grading group $G = \mathbb Z$, and given
+a vector `W` of `ngens(F)` integers, define a $G$-grading on `F` converting the entries 
+of `W` to elements of `G`, and assigning these elements as weights to the variables. 
+Return the new module.
+
+!!! note
+    The function applies to free modules over both graded multivariate polynomial 
+    rings and their quotients.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"],  [1 0 1; 0 1 1])
+(Multivariate polynomial ring in 3 variables over QQ graded by
+  x -> [1 0]
+  y -> [0 1]
+  z -> [1 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over R
+
+julia> FF = grade(F,  [[1, 0], [0, 1]])
+Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
+
+julia> FFF = grade(F,  [1 0; 0 1])
+Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
+```
+
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+(Multivariate polynomial ring in 2 variables over QQ graded by
+  x -> [1]
+  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+
+julia> S, _ = quo(R, [x*y])
+(Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
+  x -> [1]
+  y -> [1] by ideal(x*y), Map from
+R to S defined by a julia-function with inverse)
+
+julia> F = free_module(S, 2)
+Free module of rank 2 over S
+
+julia> FF = grade(F, [1, 2])
+Graded free module S^1([-1]) + S^1([-2]) of rank 2 over S
+```
+"""
+function grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
+  @assert length(W) == ngens(F)
+  R = base_ring(F)
+  @assert is_zm_graded(R)
+  n = length(W[1])
+  @assert all(x->length(x) == n, W)
+  A = grading_group(R)
+  return grade(F, [A(w) for w = W])
+end
+
+function grade(F::FreeMod, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
+  @assert size(W, 2) == ngens(F)
+  R = base_ring(F)
+  @assert is_zm_graded(R)
+  A = grading_group(R)
+  return grade(F, [A(W[:, i]) for i = 1:size(W, 2)])
+end
+
+function grade(F::FreeMod, W::Vector{<:IntegerUnion})
+  @assert length(W) == ngens(F)
+  R = base_ring(F)
+  @assert is_z_graded(R)
+  A = grading_group(R)
+  N = free_module(R, length(W))
+  N.d = [W[i] * A[1] for i in 1:length(W)]
+  N.S = F.S
+  return N
+end
+
+@doc raw"""
+    grading_group(F::FreeMod)
+
+Return the grading group of `base_ring(F)`.
+
+# Examples
+```jldoctest
+julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module R^3([0]) of rank 3 over R
+
+julia> grading_group(F)
+GrpAb: Z
+```
+"""
 function grading_group(M::FreeMod)
   return grading_group(base_ring(M))
 end
 
-function grade(M::FreeMod, W::Vector{<:IntegerUnion})
+
+# Dangereous: Only for internal use with care!!!
+@doc raw"""
+    set_grading!(F::FreeMod, W::Vector{GrpAbFinGenElem})
+
+    set_grading!(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
+
+    set_grading!(F::FreeMod, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}) 
+
+    set_grading!(F::FreeMod, W::Vector{<:IntegerUnion})
+
+Assign weights to the generators of `F` according to the entries of `W`.
+
+See the `grade` and `graded_free_module` functions.
+```
+"""
+function set_grading!(M::FreeMod, W::Vector{GrpAbFinGenElem})
   @assert length(W) == ngens(M)
-  R = base_ring(M)
-  @assert is_graded(R)
-  A = grading_group(R)
-  N = free_module(R, length(W))
-  N.d = [W[i] * A[1] for i in 1:length(W)]
-  N.S = M.S
-  return N
+  @assert is_graded(base_ring(M))
+  R = base_ring(F)
+  all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
+  M.d = W
 end
 
-function set_grading!(M::FreeMod, d::Vector{GrpAbFinGenElem})
-  @assert length(d) == ngens(M)
-  @assert is_graded(base_ring(M))
-  M.d = d
+function set_grading!(M::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
+  @assert length(W) == ngens(M)
+  R = base_ring(M)
+  @assert is_zm_graded(R)
+  n = length(W[1])
+  @assert all(x->length(x) == n, W)
+  A = grading_group(R)
+  M.d = [A(w) for w = W]
+end
+
+function set_grading!(M::FreeMod, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
+  @assert size(W, 2) == ngens(M)
+  R = base_ring(M)
+  @assert is_zm_graded(R)
+  A = grading_group(R)
+  M.d = [A(W[:, i]) for i = 1:size(W, 2)]
 end
 
 function set_grading!(M::FreeMod, W::Vector{<:IntegerUnion})
   @assert length(W) == ngens(M)
   R = base_ring(M)
-  @assert is_graded(R)
+  @assert is_z_graded(R)
   A = grading_group(R)
   M.d = [W[i] * A[1] for i in 1:length(W)]
 end
@@ -91,13 +368,26 @@ function degrees(M::FreeMod)
   return M.d
 end
 
-function degrees_of_generators(M::FreeMod)
-  return degrees(M)
-end
+@doc raw"""
+    degrees_of_generators(F::FreeMod)
 
+Return the degrees of the generators of `F`.
 
-function is_graded(M::FreeMod)
-  return isa(M.d, Vector{GrpAbFinGenElem})
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 2)
+Graded free module R^2([0]) of rank 2 over R
+
+julia> degrees_of_generators(F)
+2-element Vector{GrpAbFinGenElem}:
+ graded by [0]
+ graded by [0]
+```
+"""
+function degrees_of_generators(F::FreeMod)
+  return degrees(F)
 end
 
 ###############################################################################
@@ -170,20 +460,86 @@ end
 # Graded Free Module elements functions
 ###############################################################################
 
-function degree(el::FreeModElem)
-  !is_graded(parent(el)) && error("The parent module is not graded.")
-  A = grading_group(base_ring(parent(el)))
-  iszero(el) && return A[0]
-  el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
-  isa(el.d, GrpAbFinGenElem) || error("The element is not homogeneous.")
-  return el.d
-end
+@doc raw"""
+    is_homogeneous(f::FreeModElem)
 
+Given an element `f` of a graded free module, return `true` if `f` is homogeneous, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over R
+
+julia> FF = grade(F, [1,4])
+Graded free module R^1([-1]) + R^1([-4]) of rank 2 over R
+
+julia> f = y^2*2*FF[1]-x*FF[2]
+2*y^2*e[1] - x*e[2]
+
+julia> is_homogeneous(f)
+true
+```
+"""
 function is_homogeneous(el::FreeModElem)
   !is_graded(parent(el)) && error("The parent module is not graded.")
   iszero(el) && return true
   el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
   return isa(el.d, GrpAbFinGenElem)
+end
+
+@doc raw"""
+    degree(f::FreeModElem)
+
+Given a homogeneous element `f` of a graded free module, return the degree of `f`.
+
+    degree(::Type{Vector{Int}}, f::FreeModElem)
+
+Given a homogeneous element `f` of a $\mathbb Z^m$-graded free module, return the degree of `f`, converted to a vector of integer numbers.
+
+    degree(::Type{Int}, f::FreeModElem)
+
+Given a homogeneous element `f` of a $\mathbb Z$-graded free module, return the degree of `f`, converted to an integer number.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> f = y^2*z − x^2*w
+-w*x^2 + y^2*z
+
+julia> degree(f)
+graded by [3]
+
+julia> typeof(degree(f))
+GrpAbFinGenElem
+
+julia> degree(Int, f)
+3
+
+julia> typeof(degree(Int, f))
+Int64
+```
+"""
+function degree(f::FreeModElem)
+  !is_graded(parent(f)) && error("The parent module is not graded.")
+  A = grading_group(base_ring(parent(f)))
+  iszero(f) && return A[0]
+  f.d = isa(f.d, GrpAbFinGenElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
+  isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
+  return f.d
+end
+
+function degree(::Type{Vector{Int}}, f::FreeModElem)
+  @assert is_zm_graded(parent(f))
+  d = degree(f)isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
+  return Int[d[i] for i=1:ngens(parent(d))]
+end
+
+function degree(::Type{Int}, f::FreeModElem)
+  @assert is_z_graded(parent(f))
+  return Int(degree(f)[1])
 end
 
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpAbFinGenElem})
@@ -286,6 +642,38 @@ function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod_dec, T2 <: F
 end
 # for decorations: add SubquoModule_dec for codomain once it exists
 
+@doc raw"""
+    degree(a::FreeModuleHom)
+
+If `a` is graded, return the degree of `a`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module R^3([0]) of rank 3 over R
+
+julia> G = graded_free_module(R, 2)
+Graded free module R^2([0]) of rank 2 over R
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+F -> G
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> degree(a)
+graded by [1]
+```
+"""
 function degree(f::FreeModuleHom)
   if isdefined(f, :d)
     return f.d
@@ -306,7 +694,7 @@ function degree(f::FreeModuleHom)
     if df === nothing
       df = current_df
     elseif df != current_df
-      error("The homomorphism is not homogeneous.")
+      error("The homomorphism is not graded")
     end
   end
   if df === nothing
@@ -317,14 +705,116 @@ function degree(f::FreeModuleHom)
   return df
 end
 
+@doc raw"""
+    is_graded(a::FreeModuleHom)
+
+Return `true` if `a` is graded, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module R^3([0]) of rank 3 over R
+
+julia> G = graded_free_module(R, 2)
+Graded free module R^2([0]) of rank 2 over R
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+F -> G
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> is_graded(a)
+true
+```
+"""
 function is_graded(f::FreeModuleHom)
   return isdefined(f, :d)
 end
 
+@doc raw"""
+    grading_group(a::FreeModuleHom)
+
+If `a` is graded, return the grading group of `a`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module R^3([0]) of rank 3 over R
+
+julia> G = graded_free_module(R, 2)
+Graded free module R^2([0]) of rank 2 over R
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+F -> G
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> is_graded(a)
+true
+
+julia> grading_group(a)
+GrpAb: Z
+```
+"""
 function grading_group(f::FreeModuleHom)
   return grading_group(base_ring(domain(f)))
 end
 
+@doc raw"""
+    is_homogeneous(a::FreeModuleHom)
+
+Return `true` if `a` is homogeneous, `false` otherwise
+
+Here, if `G` is the grading group of `a`, `a` is homogeneous if `a`
+is graded of degree `zero(G)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 3)
+Graded free module R^3([0]) of rank 3 over R
+
+julia> G = graded_free_module(R, 2)
+Graded free module R^2([0]) of rank 2 over R
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+F -> G
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> is_homogeneous(a)
+false
+```
+"""
 function is_homogeneous(f::FreeModuleHom)
   A = grading_group(f)
   return isdefined(f, :d) && degree(f)==A[0]
@@ -337,6 +827,7 @@ end
 function is_graded(M::SubModuleOfFreeModule)
   is_graded(M.F) && all(is_homogeneous, M.gens)
 end
+
 
 function degrees_of_generators(M::SubModuleOfFreeModule{T}) where T
   return map(gen -> degree(gen), gens(M))
@@ -370,34 +861,176 @@ end
 # Graded subquotients
 ###############################################################################
 
-function is_graded(M::SubquoModule)
-  if isdefined(M, :quo) 
-    return is_graded(M.sub) && is_graded(M.quo) && is_graded(M.sum)
-  else
-    return is_graded(M.sub)
-  end
+@doc raw"""
+    grading_group(M::SubquoModule)
+
+Return the grading group of `base_ring(M)`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> grading_group(M)
+GrpAb: Z
+```
+"""
+function grading_group(M::SubquoModule)
+  return grading_group(base_ring(M))
 end
 
+@doc raw"""
+    degrees_of_generators(M::SubquoModule)
+
+Return the degrees of the generators of `M`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> degrees_of_generators(M)
+3-element Vector{GrpAbFinGenElem}:
+ Element of Z with components [2]
+ Element of Z with components [2]
+ Element of Z with components [2]
+
+julia> gens(M)
+3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+```
+"""
 function degrees_of_generators(M::SubquoModule{T}) where T
-  return map(gen -> degree(repres(gen)), gens(M))
+  isempty(gens(M)) ? GrpAbFinGenElem[] : map(gen -> degree(repres(gen)), gens(M))
 end
 
 ###############################################################################
 # Graded subquotient elements
 ###############################################################################
 
+ @doc raw"""
+    is_homogeneous(m::SubquoModuleElem)
+
+Return  `true` if `m` is homogeneous, `false` otherwise.
+"""
+function is_homogeneous(el::SubquoModuleElem)
+  error("Not implemented yet.")
+end
+###Will be fixed by Janko
 
 # function degree(el::SubquoModuleElem)
 #   return degree(repres(el))
 # end
 
+@doc raw"""
+    degree(m::SubquoModuleElem)
+
+Given a homogeneous element `m` of a graded subquotient, return the degree of `m`.
+
+    degree(::Type{Vector{Int}}, m::SubquoModuleElem)
+
+Given a homogeneous element `m` of a $\mathbb Z^m$-graded subquotient, return the degree of `m`, converted to a vector of integer numbers.
+
+    degree(::Type{Int}, m::SubquoModuleElem)
+
+Given a homogeneous element `m` of a $\mathbb Z$-graded subquotient, return the degree of `m`, converted to an integer number.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> m = x*y*z*M[1]
+x*y^2*z*e[1]
+
+julia> degree(m)
+Element of
+GrpAb: Z
+with components [5]
+
+julia> degree(Int, m)
+5
+```
+"""
 function degree(el::SubquoModuleElem)
+  ###isa(degree(ambient_representative(el)), GrpAbFinGenElem) || error("The specified element is not homogeneous.")
   if !iszero(el.coeffs)
       return determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
   else
       return degree(repres(el))
   end
 end
+
+function degree(::Type{Vector{Int}}, el::SubquoModuleElem)
+  @assert is_zm_graded(parent(el))
+  d = degree(el)
+  return Int[d[i] for i=1:ngens(parent(d))]
+end
+
+function degree(::Type{Int}, el::SubquoModuleElem)
+  @assert is_z_graded(parent(el))
+  return Int(degree(el)[1])
+end
+
 
 ###############################################################################
 # Graded subquotient homomorphisms functions
@@ -411,6 +1044,43 @@ function set_grading(f::SubQuoHom)
   return f
 end
 
+@doc raw"""
+    degree(a::SubQuoHom)
+
+If `a` is graded, return the degree of `a`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> degree(a)
+Element of
+GrpAb: Z
+with components [2]
+```
+"""
 function degree(f::SubQuoHom)
   if isdefined(f, :d)
     return f.d
@@ -447,14 +1117,122 @@ function degree(f::SubQuoHom)
   return df
 end
 
+@doc raw"""
+    is_graded(a::SubQuoHom)
+
+Return `true` if `a` is graded, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_graded(a)
+true
+```
+"""
 function is_graded(f::SubQuoHom)
   return isdefined(f, :d)
 end
 
+@doc raw"""
+    grading_group(a::SubQuoHom)
+
+If `a` is graded, return the grading group of `a`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> grading_group(a)
+GrpAb: Z
+```
+"""
 function grading_group(f::SubQuoHom)
   return grading_group(base_ring(domain(f)))
 end
 
+@doc raw"""
+    is_homogeneous(a::SubQuoHom)
+
+Return `true` if `a` is homogeneous, `false` otherwise
+
+Here, if `G` is the grading group of `a`, `a` is homogeneous if `a`
+is graded of degree `zero(G)`.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_homogeneous(a)
+false
+```
+"""
 function is_homogeneous(f::SubQuoHom)
   A = grading_group(f)
   return isdefined(f, :d) && degree(f)==A[0]
@@ -607,13 +1385,53 @@ end
 
 
 
+##################################
+### Tests on graded modules
+##################################
+
+function is_graded(M::FreeMod)
+  return isa(M.d, Vector{GrpAbFinGenElem})
+end
+
+function is_graded(M::SubquoModule)
+  if isdefined(M, :quo)
+    return is_graded(M.sub) && is_graded(M.quo) && is_graded(M.sum)
+  else
+    return is_graded(M.sub)
+  end
+end
+
+function is_standard_graded(M::FreeMod)
+  return is_graded(M) && is_standard_graded(base_ring(M))
+end
+
+function is_standard_graded(M::SubquoModule)
+  return  is_graded(M) && is_standard_graded(base_ring(M))
+end
+
+function is_z_graded(M::FreeMod)
+  return  is_graded(M) && is_z_graded(base_ring(M))
+end
+
+function is_z_graded(M::SubquoModule)
+  return  is_graded(M) && is_z_graded(base_ring(M))
+end
+
+function is_zm_graded(M::FreeMod)
+  return  is_graded(M) && is_zm_graded(base_ring(M))
+end
+
+function is_zm_graded(M::SubquoModule)
+  return  is_graded(M) && is_zm_graded(base_ring(M))
+end
+
 
 ###############################################################################
 # FreeMod_dec constructors
 ###############################################################################
 
 @doc raw"""
-    FreeMod_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false)
+    FreeMod_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false) 
 
 Construct a decorated (graded or filtered) free module over the ring `R` with rank `n`
 with the standard degrees, that is the standard unit vectors have degree 0.
@@ -636,16 +1454,12 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
-(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+(Multivariate polynomial ring in 2 variables over QQ graded by
   x -> [1]
   y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
-Decorated free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by 
-  x -> [1]
-  y -> [1]Multivariate Polynomial Ring in x, y over Rational Field graded by 
-  x -> [1]
-  y -> [1]^3([0])
+Decorated free module of rank 3 over RR^3([0])
 
 ```
 """
@@ -653,7 +1467,7 @@ free_module_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false) 
 
 
 @doc raw"""
-    FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
+    FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) 
 
 Construct a decorated (graded or filtered) free module over the ring `R` 
 with rank `n` where `n` is the length of `d`. `d` is the vector of degrees for the 
@@ -829,16 +1643,6 @@ Return the zero element of `F`.
 """
 function (F::FreeMod_dec)()
   return FreeModElem_dec(sparse_row(base_ring(F)), F)
-end
-
-@doc raw"""
-    FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
-
-Return the element of `F` whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
-function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
-  return FreeModElem_dec{T}(coords, parent)
 end
 
 @doc raw"""

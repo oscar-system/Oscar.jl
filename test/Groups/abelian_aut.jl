@@ -1,18 +1,18 @@
 @testset "conversion" begin
   A = abelian_group([n for n in 1:6])
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=FPGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=FPGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=PermGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=PermGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
@@ -25,26 +25,26 @@
   @test all(defines_automorphism(domain(autA),matrix(f)) for f in gens(autA))
 
   A,_ = sub(A,[A[1],A[3],A[3]+A[2],A[2]-A[3]], false)
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=FPGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=FPGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
-  Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A;T=PermGroup)
+  Agap,to_gap,to_oscar = Oscar._isomorphic_gap_group(A;T=PermGroup)
   @test all(to_oscar(to_gap(a))==a for a in A)
   @test all(to_gap(to_oscar(a))==a for a in Agap)
   @test all(to_oscar(a*b)==to_oscar(a)+to_oscar(b) for a in gens(Agap) for b in gens(Agap))
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
   autA = automorphism_group(A)
-  @test autA[1](A[1]) ==  oscar.apply_automorphism(autA[1],A[1]) ==  A[1]^autA[1]
+  @test autA[1](A[1]) ==  Oscar.apply_automorphism(autA[1],A[1]) ==  A[1]^autA[1]
   @test all(autA(hom(f)) == f for f in gens(autA))
   @test all(autA(matrix(f)) == f for f in gens(autA))
   @test all(defines_automorphism(domain(autA),matrix(f)) for f in gens(autA))
@@ -53,21 +53,21 @@ end
 
 @testset "Orthogonal groups of torsion quadratic modules" begin
 
-  L = Zlattice(gram=3*ZZ[2 1; 1 2])
+  L = integer_lattice(gram=3*ZZ[2 1; 1 2])
   D = discriminant_group(L)
   G = orthogonal_group(D)
-  d = gens(D)[1]
-  f = gens(G)[1]
+  d = D[1]
+  f = gen(G, 1)
   f(d)
   @test G(matrix(f)) == f
   @test hom(f)(d) == f(d)
   @test G(hom(f)) == f
 
 
-  L = Zlattice(gram=3*ZZ[2 1 0; 1 2 0; 0 0 1])
+  L = integer_lattice(gram=3*ZZ[2 1 0; 1 2 0; 0 0 1])
   @test order(orthogonal_group(discriminant_group(L))) == 72
 
-  L = Zlattice(gram=ZZ[0 1; 1 2])
+  L = integer_lattice(gram=ZZ[0 1; 1 2])
   # the trivial group
   D = discriminant_group(L)
   G = orthogonal_group(D)
@@ -84,13 +84,13 @@ end
   T = discriminant_group(root_lattice(:D, 13))
   Tsub, _ = sub(T, 4*gens(T))
   @test order(orthogonal_group(Tsub)) == 1
-  L = Zlattice(gram=ZZ[1 0 0; 0 0 2; 0 2 0])
+  L = integer_lattice(gram=ZZ[1 0 0; 0 0 2; 0 2 0])
   @test order(orthogonal_group(discriminant_group(L)))==6
   # a test for odd lattices
 end
 
 @testset "Orthogonal groups of non-semiregular torquadmod" begin
-  L = Zlattice(gram=matrix(ZZ, [[2, -1, 0, 0, 0, 0],[-1, 2, -1, -1, 0, 0],[0, -1, 2, 0, 0, 0],[0, -1, 0, 2, 0, 0],[0, 0, 0, 0, 6, 3],[0, 0, 0, 0, 3, 6]]))
+  L = integer_lattice(gram=matrix(ZZ, [[2, -1, 0, 0, 0, 0],[-1, 2, -1, -1, 0, 0],[0, -1, 2, 0, 0, 0],[0, -1, 0, 2, 0, 0],[0, 0, 0, 0, 6, 3],[0, 0, 0, 0, 3, 6]]))
   T = discriminant_group(L)
   Tsub, _ = sub(T, [2*T[1], 3*T[2]])
   TT = direct_sum(Tsub, Tsub)[1]
@@ -120,7 +120,7 @@ end
 end
 
 @testset "Embedding of orthogonal groups" begin
-  L = Zlattice(gram=matrix(ZZ, 6, 6, [ 2 -1  0  0  0  0;
+  L = integer_lattice(gram=matrix(ZZ, 6, 6, [ 2 -1  0  0  0  0;
                                       -1  2 -1 -1  0  0;
                                        0 -1  2  0  0  0;
                                        0 -1  0  2  0  0;

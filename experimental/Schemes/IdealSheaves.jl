@@ -1,10 +1,6 @@
 export IdealSheaf
-export covered_patches
-export covering
 export extend!
-export ideal_dict
 export ideal_sheaf
-export ideal_sheaf_type
 export order_on_divisor
 export scheme
 export subscheme
@@ -741,120 +737,6 @@ function match_on_intersections(
   return matches
 end
 
-## TODO: this should go away, once associated_points is finished
-function primary_decomposition(I::IdealSheaf)
-  X = scheme(I)
-  OOX = OO(X)
-
-  # Compute the primary decompositions in the charts.
-  decomp_dict = IdDict{AbsSpec, Vector{Tuple{Ideal, Ideal}}}()
-  for U in affine_charts(X)
-    decomp_dict[U] = primary_decomposition(I(U))
-  end
-
-  clean_charts = Vector{AbsSpec}()
-  dirty_charts = copy(affine_charts(X))
-
-  prime_parts = Vector{IdDict{AbsSpec, Ideal}}()
-  primary_parts = Vector{IdDict{AbsSpec, Ideal}}()
-
-  while !iszero(length(dirty_charts))
-    #@show "new chart: ##############################################################"
-    U = pop!(dirty_charts)
-    new_prime_parts = Vector{IdDict{AbsSpec, Ideal}}()
-    new_primary_parts = Vector{IdDict{AbsSpec, Ideal}}()
-    #@show U
-    #@show "starting new patch"
-    new_components = decomp_dict[U]
-    for (Q, P) in new_components
-      is_one(P) && continue
-      #@show "looking at component"
-      #@show gens(Q)
-      #@show gens(P)
-      possible_matches = Int[]
-      for i in 1:length(prime_parts)
-        #@show i
-        is_possible_match = true
-        all_intersections_trivial = true
-        for V in clean_charts
-          #@show V
-          if !haskey(glueings(default_covering(X)), (V, U))
-            #@show "patches are not glued"
-            continue
-          end
-          G = default_covering(X)[V, U]
-          VU, UV = glueing_domains(G)
-          QU_res = OOX(U, UV)(Q)
-          QV_res = OOX(V, UV)(primary_parts[i][V])
-          #@show gens(QU_res)
-          #@show gens(QV_res)
-          if QU_res == QV_res
-            #@show "possible match"
-            if !is_one(QV_res)
-              all_intersections_trivial = false
-            end
-          else 
-            #@show "ideals do not coincide on overlap"
-            is_possible_match = false
-            break
-          end
-        end
-        if is_possible_match
-          #@show "found a possible match in $i"
-          if !all_intersections_trivial
-            push!(possible_matches, i)
-          end
-        end
-      end
-      if iszero(length(possible_matches))
-      #@show "adding new component"
-        new_prime_part = IdDict{AbsSpec, Ideal}()
-        new_primary_part = IdDict{AbsSpec, Ideal}()
-        for V in clean_charts
-          J = ideal(OOX(V), one(OOX(V)))
-          new_prime_part[V] = J
-          new_primary_part[V] = J
-        end
-        new_prime_part[U] = P
-        new_primary_part[U] = Q
-        push!(new_prime_parts, new_prime_part)
-        push!(new_primary_parts, new_primary_part)
-      elseif isone(length(possible_matches))
-        #@show "unique match found; extending component"
-        k = first(possible_matches)
-        prime_parts[k][U] = P
-        primary_parts[k][U] = Q
-      else
-        error("no unique match found; case not implemented")
-      end
-    end
-    push!(clean_charts, U)
-    prime_parts = vcat(prime_parts, new_prime_parts)
-    primary_parts = vcat(primary_parts, new_primary_parts)
-    for P in prime_parts
-      if !haskey(P, U) 
-        P[U] = ideal(OOX(U), one(OOX(U)))
-      end
-    end
-    for Q in primary_parts
-      if !haskey(Q, U) 
-        Q[U] = ideal(OOX(U), one(OOX(U)))
-      end
-    end
-    #@show length(prime_parts)
-  end
-
-  prime_components = [IdealSheaf(X, P, check= false) for P in prime_parts] # TODO: Set to false!
-  primary_components = [IdealSheaf(X, Q, check= false) for Q in primary_parts]
-
-  return collect(zip(primary_components, prime_components))
-end
-
-# further required functionality
-#function isone(I::Ideal)
-#  return one(base_ring(I)) in I
-#end
-
 function (phi::Hecke.Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
   R = domain(phi)
@@ -905,6 +787,17 @@ end
     ID[U] = radical(II(U))
   end
   return IdealSheaf(X, ID, check=false)
+end
+
+function small_generating_set(II::IdealSheaf)
+  X = scheme(II)
+  # If there is a simplified covering, do the calculations there.
+  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+  ID = IdDict{AbsSpec, Ideal}()
+  for U in patches(covering)
+    ID[U] = ideal(base_ring(II(U)),small_generating_set(saturated_ideal(II(U))))
+  end
+  return(IdealSheaf(X, ID, check = false))
 end
 
 ###########################################################################

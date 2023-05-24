@@ -25,11 +25,11 @@ viewed over the algebraic closure. This is an expensive check that can be disabl
 
 ```jldoctest
 julia> R, (x,y) = QQ[:x,:y]
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> affine_variety(ideal([x,y]))
 Affine variety
- in Affine 2-space over Rational Field
+ in Affine 2-space over QQ
 defined by ideal(x, y)
 
 ```
@@ -41,7 +41,7 @@ julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> affine_variety(x^3+y+1,check=false)
 Affine variety
- in Affine 2-space over Galois field with characteristic 2
+ in Affine 2-space over GF(2)
 defined by ideal(x^3 + y + 1)
 
 ```
@@ -64,7 +64,7 @@ julia> Q,_ = quo(R,ideal([x,y]));
 
 julia> affine_variety(Q)
 Affine variety
- in Affine 2-space over Rational Field
+ in Affine 2-space over QQ
 defined by ideal(x, y)
 
 ```
@@ -85,7 +85,7 @@ julia> (x,y) = coordinates(A2);
 
 julia> affine_variety(y^2-x^3-1)
 Affine variety
- in Affine 2-space over Rational Field
+ in Affine 2-space over QQ
 defined by ideal(-x^3 + y^2 - 1)
 
 ```

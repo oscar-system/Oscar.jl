@@ -85,7 +85,7 @@ As optional argument, the codomain of the morphism can be specified.
 julia> domain = projective_space(NormalToricVariety, 1)
 Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
-julia> codomain = hirzebruch_surface(2)
+julia> codomain = hirzebruch_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = matrix(ZZ, [0 1])
@@ -116,7 +116,7 @@ As optional argument, the codomain of the morphism can be specified.
 julia> domain = projective_space(NormalToricVariety, 1)
 Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
-julia> codomain = hirzebruch_surface(2)
+julia> codomain = hirzebruch_surface(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = matrix(ZZ, [[0, 1]])
@@ -145,7 +145,7 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
     # compute the image
     image_rays = matrix(ZZ, rays(domain)) * matrix(grid_morphism)
     image_rays = hcat([[Int(image_rays[i, j]) for i in 1:nrows(image_rays)] for j in 1:ncols(image_rays)]...)
-    image = normal_toric_variety(PolyhedralFan(image_rays, ray_indices(maximal_cones(domain))))
+    image = normal_toric_variety(polyhedral_fan(image_rays, ray_indices(maximal_cones(domain))))
 
     # compute the morphism
     if codomain === nothing
@@ -173,7 +173,7 @@ Construct the toric identity morphism from `variety` to `variety`.
 
 # Examples
 ```jldoctest
-julia> toric_identity_morphism(hirzebruch_surface(2))
+julia> toric_identity_morphism(hirzebruch_surface(NormalToricVariety, 2))
 A toric morphism
 ```
 """

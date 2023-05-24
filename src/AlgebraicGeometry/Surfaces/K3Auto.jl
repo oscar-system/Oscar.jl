@@ -9,16 +9,16 @@ Contains all the data necessary to run Borcherds' method.
 
 The assumptions are as follows:
 
-- `L::ZLat`: even, hyperbolic, unimodular `Z`-lattice of rank n = 10, 18 or 26
+- `L::ZZLat`: even, hyperbolic, unimodular `Z`-lattice of rank n = 10, 18 or 26
   with basis given by the n x n standard basis
 
-- `S::ZLat`: primitive sublattice
+- `S::ZZLat`: primitive sublattice
 
 - `weyl_vector::ZZMatrix`: given in the basis of `L`
 
-- `R::ZLat`: the orthogonal complement of `S` in `L`
+- `R::ZZLat`: the orthogonal complement of `S` in `L`
   We assume that the basis of R consists of the last rank R standard basis vectors.
-- `SS::ZLat`: lattice with standard basis and same gram matrix as `S`.
+- `SS::ZZLat`: lattice with standard basis and same gram matrix as `S`.
 
 - `deltaR::Vector{ZZMatrix}`:
 
@@ -33,16 +33,16 @@ The assumptions are as follows:
   basis of `L` and the basis of `S`
 """
 mutable struct BorcherdsCtx
-  L::ZLat
-  S::ZLat
+  L::ZZLat
+  S::ZZLat
   weyl_vector::ZZMatrix # given in the basis of L
-  SS::ZLat
-  R::ZLat
+  SS::ZZLat
+  R::ZZLat
   deltaR::Vector{ZZMatrix}
   dualDeltaR::Vector{ZZMatrix}
   prRdelta::Vector{Tuple{QQMatrix,QQFieldElem}}
   membership_test
-  gramL::ZZMatrix  # avoid a few conversions because gram_matrix(::ZLat) -> QQMatrix
+  gramL::ZZMatrix  # avoid a few conversions because gram_matrix(::ZZLat) -> QQMatrix
   gramS::ZZMatrix
   prS::QQMatrix
   compute_OR::Bool
@@ -57,19 +57,19 @@ end
 
 
 @doc raw"""
-    BorcherdsCtx(L::ZLat, S::ZLat, compute_OR::Bool=true) -> BorcherdsCtx
+    BorcherdsCtx(L::ZZLat, S::ZZLat, compute_OR::Bool=true) -> BorcherdsCtx
 
 Return the context for Borcherds' method.
 
 # Arguments
-- `L::ZLat`: an even, hyperbolic, unimodular `Z`-lattice of rank 10, 18, or 26
-- `S::ZLat`: a primitive sublattice of `L` in the same ambient space
+- `L::ZZLat`: an even, hyperbolic, unimodular `Z`-lattice of rank 10, 18, or 26
+- `S::ZZLat`: a primitive sublattice of `L` in the same ambient space
 - if `compute_OR` is `false`, then `G` is the subgroup of the orthogonal group
   of `S` acting as $\pm 1$ on the discriminant group.
   If `compute_OR` is `true`, then `G` consists the subgroup consisting of
   isometries of `S` that can be extended to isometries of `L`.
 """
-function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
+function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl, compute_OR::Bool=true)
   r = rank(L)
   lw = (weyl*gram_matrix(L)*transpose(weyl))[1,1]
   if  r == 26
@@ -101,14 +101,14 @@ function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
   basisRL1 = solve_left(basis_matrix(L1), basis_matrix(R))
 
   # Assure that L has the standard basis.
-  L = Zlattice(gram=gram_matrix(L1))
+  L = integer_lattice(gram=gram_matrix(L1))
   V = ambient_space(L)
   # carry S along
   S = lattice(V, basisSL1)
   R = lattice(V, basisRL1)
   @req is_S_nondegenerate(L, S, change_base_ring(QQ,weyl)) "Weyl vector is S degenerate"
 
-  SS = Zlattice(gram=gram_matrix(S))
+  SS = integer_lattice(gram=gram_matrix(S))
 
   # precomputations
 
@@ -524,7 +524,7 @@ function enumerate_quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=fal
 end
 
 @doc raw"""
-    short_vectors_affine(S::ZLat, v::MatrixElem, alpha, d)
+    short_vectors_affine(S::ZZLat, v::MatrixElem, alpha, d)
     short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha, d)
 
 Return the vectors of squared length `d` in the given affine hyperplane.
@@ -542,7 +542,7 @@ The output is given in the ambient representation.
 
 The implementation is based on Algorithm 2.2 in [Shi15](@cite)
 """
-function short_vectors_affine(S::ZLat, v::MatrixElem, alpha, d)
+function short_vectors_affine(S::ZZLat, v::MatrixElem, alpha, d)
   alpha = QQ(alpha)
   gram = gram_matrix(S)
   tmp = v*gram_matrix(ambient_space(S))*transpose(basis_matrix(S))
@@ -585,7 +585,7 @@ end
 
 
 @doc raw"""
-    separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
+    separating_hyperplanes(S::ZZLat, v::QQMatrix, h::QQMatrix, d)
 
 Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
 
@@ -594,7 +594,7 @@ Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
 - `d`: a negative integer
 - `v`,`h`: vectors of positive square
 """
-function separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
+function separating_hyperplanes(S::ZZLat, v::QQMatrix, h::QQMatrix, d)
   V = ambient_space(S)
   @hassert :K3Auto 1 inner_product(V,v,v)[1,1]>0
   @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
@@ -606,7 +606,7 @@ function separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
 end
 
 function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
-  L = Zlattice(gram=gram)
+  L = integer_lattice(gram=gram)
   n = ncols(gram)
   ch = QQ((h*gram*transpose(h))[1,1])
   cv = QQ((h*gram*transpose(v))[1,1])
@@ -620,7 +620,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   Q = gramW + transpose(s)*s*ch*cv^-2
 
   @vprint :K3Auto 5 Q
-  LQ = Zlattice(gram=-Q*denominator(Q))
+  LQ = integer_lattice(gram=-Q*denominator(Q))
 
   S = QQMatrix[]
   h = change_base_ring(QQ, h)
@@ -684,14 +684,14 @@ end
 _find_basis(row_matrices::Vector) = _find_basis(row_matrices, ncols(row_matrices[1]))
 
 @doc raw"""
-    is_pm1_on_discr(S::ZLat, g::ZZMatrix) -> Bool
+    is_pm1_on_discr(S::ZZLat, g::ZZMatrix) -> Bool
 
 Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
 """
-function is_pm1_on_discr(S::ZLat, g::ZZMatrix)
+function is_pm1_on_discr(S::ZZLat, g::ZZMatrix)
   D = discriminant_group(S)
   imgs = [D(vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
-  return all(imgs[i] == gens(D)[i] for i in 1:length(gens(D))) || all(imgs[i] == -gens(D)[i] for i in 1:length(gens(D)))
+  return all(imgs[i] == gen(D, i) for i in 1:ngens(D)) || all(imgs[i] == -gen(D, i) for i in 1:ngens(D))
   # OD = orthogonal_group(D)
   # g1 = hom(D,D,[D(lift(d)*g) for d in gens(D)])
   # gg = OD(g1)
@@ -852,7 +852,7 @@ end
 
 
 @doc raw"""
-    _alg58(L::ZLat, S::ZLat, R::ZLat, prRdelta, w)
+    _alg58(L::ZZLat, S::ZZLat, R::ZZLat, prRdelta, w)
 
 Compute Delta_w
 
@@ -863,7 +863,7 @@ Corresponds to Algorithm 5.8 in [Shi15](@cite)
 but this implementation is different.
 """
 # legacy function needed for precomputations
-function _alg58(L::ZLat, S::ZLat, R::ZLat, prRdelta, w)
+function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, prRdelta, w)
   V = ambient_space(L)
   d = exponent(discriminant_group(S))
   @hassert :K3Auto 1 V == ambient_space(S)
@@ -899,7 +899,7 @@ function _alg58(L::ZLat, S::ZLat, R::ZLat, prRdelta, w)
   return delta_w
 end
 
-function _alg58(L::ZLat, S::ZLat, R::ZLat, w::MatrixElem)
+function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, w::MatrixElem)
   Rdual = dual(R)
   sv = short_vectors(rescale(Rdual, -1), 2, ZZRingElem)
   # not storing the following for efficiency
@@ -1084,7 +1084,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   KG = K*gram
   Q = -KG * transpose(K)
   Qi = inv(Q)
-  N = Zlattice(gram=Q,check=false)
+  N = integer_lattice(gram=Q,check=false)
   V = ambient_space(N)
 
   #@show sum(length.(values(cvp_inputs)))
@@ -1183,14 +1183,14 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
 end
 
 @doc raw"""
-    is_S_nondegenerate(L::ZLat, S::ZLat, w::QQMatrix)
+    is_S_nondegenerate(L::ZZLat, S::ZZLat, w::QQMatrix)
 
 Return whether the ``L|S`` chamber defined by `w` is `S`-nondegenerate.
 
 This is the case if and only if $C = C(w) \cap S \otimes \RR$ has the
 expected dimension `dim(S)`.
 """
-function is_S_nondegenerate(L::ZLat, S::ZLat, w::QQMatrix)
+function is_S_nondegenerate(L::ZZLat, S::ZZLat, w::QQMatrix)
   R = Hecke.orthogonal_submodule(L, S)
   Delta_w = _alg58(L, S, R, w)
   V = ambient_space(L)
@@ -1204,7 +1204,7 @@ function is_S_nondegenerate(L::ZLat, S::ZLat, w::QQMatrix)
   return ispointed(P)
 end
 
-function inner_point(L::ZLat, S::ZLat, w::QQMatrix)
+function inner_point(L::ZZLat, S::ZZLat, w::QQMatrix)
   R = Hecke.orthogonal_submodule(L, S)
   Delta_w = _alg58(L, S, R, w)
   V = ambient_space(L)
@@ -1241,7 +1241,7 @@ function inner_point(L::ZLat, S::ZLat, w::QQMatrix)
 end
 
 @doc raw"""
-    inner_point(L::ZLat, S::ZLat, w::QQMatrix)
+    inner_point(L::ZZLat, S::ZZLat, w::QQMatrix)
     inner_point(C::K3Chamber)
 
 Return a reasonably small integer inner point of the given L|S chamber.
@@ -1364,7 +1364,7 @@ end
 
 
 @doc raw"""
-    K3_surface_automorphism_group(S::ZLat [, ample_class]) -> generators, rational curves, chambers
+    K3_surface_automorphism_group(S::ZZLat [, ample_class]) -> generators, rational curves, chambers
 
 Compute the automorphism group of a very-general $S$-polarized K3 surface.
 
@@ -1394,28 +1394,28 @@ use `set_verbose_level(:K3Auto, 2)` or higher.
 - `ample`: a row matrix or a vector given with respect to the ambient space of S.
 
 """
-function K3_surface_automorphism_group(S::ZLat)
+function K3_surface_automorphism_group(S::ZZLat)
   return borcherds_method(S, 26, compute_OR=false)[2:end]
 end
 
-function K3_surface_automorphism_group(S::ZLat, ample_class::QQMatrix)
+function K3_surface_automorphism_group(S::ZZLat, ample_class::QQMatrix)
   ample_classS = solve_left(basis_matrix(S), ample_class)
   L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_class)
   return borcherds_method(L, S, weyl, compute_OR=false)[2:end]
 end
 
-K3_surface_automorphism_group(S::ZLat, ample_class::Vector{QQFieldElem}) = K3_surface_automorphism_group(S, matrix(QQ, 1, degree(S), ample_class))
+K3_surface_automorphism_group(S::ZZLat, ample_class::Vector{QQFieldElem}) = K3_surface_automorphism_group(S, matrix(QQ, 1, degree(S), ample_class))
 
 
-function borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(S::ZZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
   @req n in [10,18,26] "n(=$(n)) must be one of 10,18 or 26"
   L, S, weyl = borcherds_method_preprocessing(S, n)
   return borcherds_method(L, S, weyl; compute_OR=compute_OR, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
 end
 
 @doc raw"""
-    borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
-    borcherds_method(L::ZLat, S::ZLat, w::QQMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+    borcherds_method(S::ZZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+    borcherds_method(L::ZZLat, S::ZZLat, w::QQMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
 
 Compute the symmetry group of a Weyl chamber up to finite index.
 
@@ -1427,7 +1427,7 @@ Compute the symmetry group of a Weyl chamber up to finite index.
 - `max_nchambers`: break the computation after `max_nchambers` are found;
 - `entropy_abort` abort if an automorphism of positive entropy is found.
 """
-function borcherds_method(L::ZLat, S::ZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(L::ZZLat, S::ZZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
   data = BorcherdsCtx(L, S, w, compute_OR)
   return borcherds_method(data, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
 end
@@ -1602,7 +1602,7 @@ function span_in_S(L, S, weyl)
 end
 
 @doc raw"""
-    weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::QQMatrix, weyl::QQMatrix, ample0::QQMatrix, perturbation_factor=1000)
+    weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMatrix, ample0::QQMatrix, perturbation_factor=1000)
 
 Return an `S`-nondegenerate Weyl vector of `L`.
 
@@ -1610,7 +1610,7 @@ Return an `S`-nondegenerate Weyl vector of `L`.
 - ample0: an ample class... the Weyl vector and u0 are moved to the same chamber first
 - perturbation_factor: used to get a random point close to the ample vector. If it is (too) big, computations become harder.
 """
-function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::QQMatrix, weyl::QQMatrix,
+function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMatrix,
                                     ample0::QQMatrix, perturbation_factor=1000)
   V = ambient_space(L)
   ample = ample0
@@ -1668,7 +1668,7 @@ end
 
 
 @doc raw"""
-    weyl_vector(L::ZLat, U0::ZLat) -> weyl, u0
+    weyl_vector(L::ZZLat, U0::ZZLat) -> weyl, u0
 
 Return a Weyl vector of ``L`` as well as an interior point of the corresponding chamber.
 
@@ -1679,7 +1679,7 @@ For ``L`` of signature (1, 25) it uses the 23 holy constructions of the Leech la
 `U0`: - a sublattice of `L` with gram matrix `[0 1; 1 -2]`
 """
 # we can do the 24 constructions of the leech lattice
-function weyl_vector(L::ZLat, U0::ZLat)
+function weyl_vector(L::ZZLat, U0::ZZLat)
   @vprint :K3Auto 1 "computing an initial Weyl vector \n"
   @assert gram_matrix(U0) == QQ[0 1; 1 -2] "$(gram_matrix(U0))"
   V = ambient_space(L)
@@ -1795,18 +1795,18 @@ end
 
 
 @doc raw"""
-    borcherds_method_preprocessing(S::ZLat, n::Integer; ample=nothing) -> ZLat, ZLat, ZZMatrix
+    borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing) -> ZZLat, ZZLat, ZZMatrix
 
 Return an embedding of `S` into an even unimodular, hyperbolic lattice `L` of
 rank `n=10, 18, 26` as well as an `S`-nondegenerate Weyl-vector.
 
 The Weyl vector is represented with respect to the basis of `L`.
 """
-function borcherds_method_preprocessing(S::ZLat, n::Integer; ample=nothing)
+function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
   @req n in [10,18,26] "n must be one of 10, 18 or 26"
   # another example
-  S = Zlattice(gram=gram_matrix(S))
-  L,S,iS = embed_in_unimodular(S::ZLat, 1, n-1,primitive=true,even=true)
+  S = integer_lattice(gram=gram_matrix(S))
+  L,S,iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
   V = ambient_space(L)
   if gram_matrix(S)[1:2,1:2] == QQ[0 1; 1 -2]
     U = lattice(V,basis_matrix(S)[1:2,:])
@@ -1866,7 +1866,7 @@ end
 ################################################################################
 
 @doc raw"""
-    ample_class(S::ZLat)
+    ample_class(S::ZZLat)
 
 Return an interior point of a Weyl chamber of the hyperbolic lattice `S`.
 
@@ -1874,7 +1874,7 @@ This means that its orthogonal complement $s^\perp$ does not contain any
 ``(-2)``-vectors. If `S` is the Picard lattice of a K3 surface, then the ample
 cone is the (interior of) some Weyl chamber.
 """
-function ample_class(S::ZLat)
+function ample_class(S::ZZLat)
   @req signature_tuple(S)[1] == 1 "lattice must be hyperbolic"
   V = ambient_space(S)
   u = basis_matrix(S)[1:2,:]
@@ -1966,7 +1966,7 @@ end
 ################################################################################
 
 @doc raw"""
-    fibration_type(NS::ZLat, f) -> rank, torsion, ADE_fibers
+    fibration_type(NS::ZZLat, f) -> rank, torsion, ADE_fibers
 
 Return the Mordell-Weil rank, torsion subgroup and reducible singular fibers
 of the Jacobian genus one fibration induced by the isotropic class `f`
@@ -1979,7 +1979,7 @@ the fibration. Let $\overline{R}$ be the primitive closure of $R$ in $NS$.
 Then $\overline{R}/R$ is the torsion part of the Mordell-Weil group and finally
 the Mordell-Weil rank is given by rank F - rank R.
 """
-function fibration_type(NS::ZLat, f::QQMatrix)
+function fibration_type(NS::ZZLat, f::QQMatrix)
   p,z,n = signature_tuple(NS)
   @req p==1 && z==0 "lattice not hyperbolic"
   if rank(NS) == 2
@@ -2005,14 +2005,14 @@ end
 
 
 @doc raw"""
-    find_section(L::ZLat, f) ->
+    find_section(L::ZZLat, f) ->
 
 Given an isotropic ``f \in L`` return a vector ``x \in L`` with ``x^2 = -2``
 and ``x.f=1`` if it exists.
 
 We try to be clever and return a small ``x`` by solving a closest vector problem.
 """
-function find_section(L::ZLat, f::QQMatrix)
+function find_section(L::ZZLat, f::QQMatrix)
   V = ambient_space(L)
   @req inner_product(V, f, f)==0 "f must be isotropic"
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
@@ -2026,7 +2026,7 @@ function find_section(L::ZLat, f::QQMatrix)
     ss = solve_left(A,identity_matrix(ZZ,1))
     s = ss*basis_matrix(L)
     k, K = left_kernel(A)
-    Kl = Zlattice(gram=K*transpose(K))
+    Kl = integer_lattice(gram=K*transpose(K))
     # project ss to K
     sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)))
     a = QQ(1)
@@ -2059,9 +2059,9 @@ function find_section(L::ZLat, f::QQMatrix)
   return s
 end
 
-find_section(L::ZLat, f::Vector{QQFieldElem}) = vec(collect(find_section(L, matrix(QQ, 1, degree(L), f))))
+find_section(L::ZZLat, f::Vector{QQFieldElem}) = vec(collect(find_section(L, matrix(QQ, 1, degree(L), f))))
 
-fibration_type(NS::ZLat, f) = fibration_type(NS, matrix(QQ, 1, degree(NS), f))
+fibration_type(NS::ZZLat, f) = fibration_type(NS, matrix(QQ, 1, degree(NS), f))
 
 ################################################################################
 # entropy
@@ -2072,7 +2072,7 @@ function _common_invariant(Gamma)
 end
 
 @doc raw"""
-    has_zero_entropy(S::ZLat; rank_unimod=26) ->
+    has_zero_entropy(S::ZZLat; rank_unimod=26) ->
 
 Compute if the symmetry group of a Weyl chamber is elliptic, parabolic or hyperbolic.
 
@@ -2084,7 +2084,7 @@ Compute if the symmetry group of a Weyl chamber is elliptic, parabolic or hyperb
 This calls `borcherds_method` and breaks the computation as soon
 as a symmetry of a Weyl chamber with positive entrop is found.
 """
-function has_zero_entropy(S::ZLat; rank_unimod=26)
+function has_zero_entropy(S::ZZLat; rank_unimod=26)
   L, S, weyl = borcherds_method_preprocessing(S, rank_unimod)
   @vprint :K3Auto 1 "Weyl vector: $(weyl)\n"
   data, K3Autgrp, chambers, rational_curves, _ = borcherds_method(L, S, weyl, entropy_abort=true)

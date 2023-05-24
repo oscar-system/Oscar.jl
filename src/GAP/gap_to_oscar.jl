@@ -48,7 +48,8 @@ function (F::FinField)(x::GAP.FFE)
         return F(val)
     end
 
-    # HACK: use `iso_oscar_gap` for now, until `iso_gap_oscar` becomes available
+    # Use `iso_oscar_gap` not `iso_gap_oscar` in order to make sure
+    # that the result is in `F`, and in order to cache the isomorphism in `F`.
     iso = iso_oscar_gap(F)
     return preimage(iso, x)
 end

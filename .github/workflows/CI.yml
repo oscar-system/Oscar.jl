@@ -120,7 +120,7 @@ jobs:
           julia --project=docs --color=yes -e '
             using Documenter
             using Oscar
-            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
+            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
             doctest(Oscar)'
       - name: "Process code coverage"
         if: matrix.julia-version == '1.8'

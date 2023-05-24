@@ -60,8 +60,8 @@ function product(X::StdSpec, Y::StdSpec;
   k = base_ring(R)
   k == base_ring(S) || error("varieties are not defined over the same field")
 
-  m = length(gens(R))
-  n = length(gens(S))
+  m = ngens(R)
+  n = ngens(S)
   new_symb = Symbol[]
   if length(change_var_names_to[1]) == 0
     new_symb = symbols(R)
@@ -117,5 +117,55 @@ function Base.show(io::IO, f::AbsSpecMor)
     print(io, "$(pullback(f)(x[i])), ")
   end
   print(io, "$(pullback(f)(last(x)))")
+end
+
+########################################################################
+# (6) Base change
+########################################################################
+
+@doc raw"""
+    base_change(phi::Any, f::AbsSpecMor)
+        domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
+        codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
+      )
+
+For a morphism ``f : X → Y`` between two schemes over a `base_ring` ``𝕜`` 
+and a ring homomorphism ``φ : 𝕜 → 𝕂`` this returns a triple 
+`(b₁, F, b₂)` consisting of the maps in the commutative diagram 
+```
+             f
+    X        →    Y
+    ↑ b₁          ↑ b₂
+  X×ₖSpec(𝕂) → Y×ₖSpec(𝕂)
+             F
+
+The optional arguments `domain_map` and `codomain_map` can be used 
+to specify the morphisms `b₁` and `b₂`, respectively. 
+```
+"""
+function base_change(phi::Any, f::AbsSpecMor; 
+    domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
+  )
+  X = domain(f)
+  Y = codomain(f)
+  XX = domain(domain_map)
+  YY = domain(codomain_map)
+  pbf = pullback(f)
+  pb1 = pullback(domain_map)
+  pb2 = pullback(codomain_map)
+
+  R = OO(Y)
+  S = OO(X)
+  RR = OO(YY)
+  SS = OO(XX)
+
+  img_gens = [pb1(pbf(x)) for x in gens(R)]
+  # For the pullback of F no explicit coeff_map is necessary anymore 
+  # since both rings in domain and codomain have the same (extended/reduced)
+  # coefficient ring by now.
+  pbF = hom(RR, SS, img_gens, check=true) # TODO: Set to false after testing
+
+  return domain_map, SpecMor(XX, YY, pbF, check=true), codomain_map # TODO: Set to false after testing
 end
 

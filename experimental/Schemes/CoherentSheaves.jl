@@ -1,6 +1,4 @@
-export CoherentSheaf
 export DirectSumSheaf
-export LineBundle
 export PullbackSheaf
 export PushforwardSheaf
 export cotangent_sheaf

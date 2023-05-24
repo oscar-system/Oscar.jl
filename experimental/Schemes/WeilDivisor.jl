@@ -6,7 +6,6 @@ export coefficient_ring_type
 export coefficient_type
 export components
 export divisor
-export ideal_sheaf_type
 export in_linear_system
 export linear_system
 export scheme
@@ -257,6 +256,8 @@ function weil_divisor(L::LinearSystem)
 end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
+gen(L::LinearSystem,i::Int) = L.f[i]
+
 @doc raw"""
     variety(L::LinearSystem)
 
@@ -322,7 +323,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   r, K = left_kernel(A)
-  new_gens = [sum([K[i,j]*gens(L)[j] for j in 1:ncols(K)]) for i in 1:nrows(K)]
+  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:nrows(K)]
   return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P)), K
 end
 

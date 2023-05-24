@@ -18,7 +18,7 @@ julia> V = [0 0; 1 0; 1 1; 0 1]
  1  1
  0  1
 
-julia> PC = PolyhedralComplex(IM, V)
+julia> PC = polyhedral_complex(IM, V)
 Polyhedral complex in ambient dimension 2
 
 julia> ambient_dim(PC)
@@ -46,7 +46,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 
 julia> V = [0 0; 1 0; 1 1; 0 1];
 
-julia> PC = PolyhedralComplex(IM, V)
+julia> PC = polyhedral_complex(IM, V)
 Polyhedral complex in ambient dimension 2
 
 julia> vertices(PC)
@@ -121,7 +121,7 @@ julia> far_vertices = [2,3,4];
 
 julia> L = [0 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
 Polyhedral complex in ambient dimension 3
 
 julia> RML = rays_modulo_lineality(PC)
@@ -168,7 +168,7 @@ julia> far_vertices = [2,3,4];
 
 julia> L = [0 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
 Polyhedral complex in ambient dimension 3
 
 julia> MFPC = minimal_faces(PC)
@@ -204,7 +204,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR, [2])
+julia> PC = polyhedral_complex(IM, VR, [2])
 Polyhedral complex in ambient dimension 2
 
 julia> rays(PC)
@@ -232,6 +232,8 @@ _vertex_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL
 
 _ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES[:, _ray_indices_polyhedral_complex(PC)]
 
+_incidencematrix(::Val{_maximal_polyhedron}) = _vertex_and_ray_indices
+
 _vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES
 
 
@@ -255,7 +257,7 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
  1  1
  0  1
 
-julia> PC = PolyhedralComplex(IM, VR, [2])
+julia> PC = polyhedral_complex(IM, VR, [2])
 Polyhedral complex in ambient dimension 2
 
 julia> maximal_polyhedra(PC)
@@ -287,7 +289,7 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
  1  1
  0  1
 
-julia> PC = PolyhedralComplex(IM, VR, [2])
+julia> PC = polyhedral_complex(IM, VR, [2])
 Polyhedral complex in ambient dimension 2
 
 julia> n_maximal_polyhedra(PC)
@@ -308,7 +310,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR)
+julia> PC = polyhedral_complex(IM, VR)
 Polyhedral complex in ambient dimension 2
 
 julia> is_simplicial(PC)
@@ -329,7 +331,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR)
+julia> PC = polyhedral_complex(IM, VR)
 Polyhedral complex in ambient dimension 2
 
 julia> is_pure(PC)
@@ -350,7 +352,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR)
+julia> PC = polyhedral_complex(IM, VR)
 Polyhedral complex in ambient dimension 2
 
 julia> dim(PC)
@@ -370,7 +372,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR);
+julia> PC = polyhedral_complex(IM, VR);
 
 julia> P1s = polyhedra_of_dim(PC,1)
 5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
@@ -433,7 +435,7 @@ julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
 julia> f_vector(PC)
 3-element Vector{Int64}:
@@ -462,7 +464,7 @@ julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
 julia> nrays(PC)
 3
@@ -485,7 +487,7 @@ julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
 julia> nvertices(PC)
 1
@@ -508,7 +510,7 @@ julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
 julia> npolyhedra(PC)
 6
@@ -529,7 +531,7 @@ julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
 julia> far_vertices = [2,3,4];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices)
+julia> PC = polyhedral_complex(IM, VR, far_vertices)
 A polyhedral complex in ambient dimension 2
 
 julia> codim(PC)
@@ -551,7 +553,7 @@ julia> VR = [0 0; 1 0; -1 0; 0 1];
 
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
-julia> PC = PolyhedralComplex(IM, VR)
+julia> PC = polyhedral_complex(IM, VR)
 Polyhedral complex in ambient dimension 2
 
 julia> is_embedded(PC)

@@ -157,7 +157,7 @@ julia> a = ideal(Q, [x, y])
 ideal(x, y)
 
 julia> base_ring(a)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z)
 ```
 """
 function base_ring(a::MPolyQuoIdeal)
@@ -197,11 +197,11 @@ Return the generators of `a`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+(Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate polynomial ring in 3 variables over QQ to A defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -216,7 +216,7 @@ function gens(a::MPolyQuoIdeal)
   return map(a.gens.Ox, a.gens.O)
 end
 
-gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
 getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""
@@ -227,11 +227,11 @@ Return the number of generators of `a`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+(Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate polynomial ring in 3 variables over QQ to A defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -241,7 +241,8 @@ julia> ngens(a)
 ```
 """
 function ngens(a::MPolyQuoIdeal)
-  return length(gens(a))
+  oscar_assure(a)
+  return length(a.gens.O)
 end
 
 
@@ -817,7 +818,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> A
-Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y)
+Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^2 - y^3, x - y)
 
 julia> typeof(A)
 MPolyQuoRing{QQMPolyRingElem}
@@ -827,7 +828,7 @@ QQMPolyRingElem
 
 julia> p
 Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
+Multivariate polynomial ring in 2 variables over QQ to A defined by a julia-function with inverse
 
 julia> p(x)
 x
@@ -839,17 +840,11 @@ MPolyQuoRingElem{QQMPolyRingElem}
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1] by ideal(x^2*z - y^3, x - y), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
+S to B defined by a julia-function with inverse)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
@@ -1102,17 +1097,11 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+(Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3) defined by a julia-function with inverse)
+R to A defined by a julia-function with inverse)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
@@ -1304,7 +1293,7 @@ Additionally, return the embedding of the component into `A`.
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+(Multivariate polynomial ring in 4 variables over QQ graded by
   w -> [1]
   x -> [1]
   y -> [1]
@@ -1316,16 +1305,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
- to Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] defined by a julia-function with inverse
+R_[2] of dim 10 to R defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1350,11 +1330,7 @@ julia> HC = gens(L[1]);
 julia> EMB = L[2]
 Map from
 Quotient space over:
-Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2) defined by a julia-function with inverse
+Rational field with 7 generators and no relations to A defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1374,12 +1350,8 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
+ Element of G with components [1 0]
+ Element of G with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -1391,20 +1363,13 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+homogeneous component of Multivariate polynomial ring in 5 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   y[1] -> [0 1]
   y[2] -> [0 1]
-  y[3] -> [0 1] of degree Element of
-GrpAb: Z^2
-with components [2 1]
- to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] defined by a julia-function with inverse
+  y[3] -> [0 1] of degree Element of G with components [2 1]
+ to S defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1428,12 +1393,7 @@ julia> HC = gens(L[1]);
 julia> EMB = L[2]
 Map from
 Quotient space over:
-Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]) defined by a julia-function with inverse
+Rational field with 7 generators and no relations to A defined by a julia-function with inverse
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1537,8 +1497,8 @@ end
 @doc raw"""
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
-Given a homogeneous ideal `a` of a graded affine algebra over a field,
-return an array containing a minimal set of generators of `a`. If `I`
+Given a homogeneous ideal `I` of a graded affine algebra over a field,
+return an array containing a minimal set of generators of `I`. If `I`
 is the zero ideal an empty list is returned.
 
 # Examples
@@ -1584,6 +1544,63 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
     return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
+
+@doc raw"""
+    small_generating_set(I::MPolyIdeal)
+
+Given a ideal `I` of an affine algebra over a field, return an array
+containing set of generators of `I`, which is usually smaller than the
+original one. If `I` is the zero ideal an empty list is returned.
+
+!!! note
+   Minimal generating sets exist only in the local and the homogeneous case. Beyond these cases, the best one can hope for is some small set of generators.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A, p = quo(R, ideal(R, [x-y]));
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> a = ideal(A, V);
+
+julia> small_generating_set(a)
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ y
+ z^2
+
+```
+"""
+function small_generating_set(I::MPolyQuoIdeal)
+  # For non-homogeneous ideals, we do not have a notion of minimal generating
+  # set, but Singular.mstd still provides a good heuristic to find a small
+  # generating set.
+  Q = base_ring(I)
+
+  @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
+
+  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
+  singular_assure(I)
+  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  if !isdefined(I, :gb)
+    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
+    I.gb.gens.S.isGB = I.gb.isGB = true
+  end
+
+  # we do not have a notion of minimal generating set in this context!
+  # If we are unlucky, mstd can even produce a larger generating set
+  # than the original one!!!
+  return_value = filter(!iszero, (Q).(gens(sing_min)))
+  if length(return_value) <= ngens(I)
+    return return_value
+  else
+    return gens(I)
+  end
+end
+
+# in the graded case, reusing a cached gb makes sense, so use minimal_generating set there
+small_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}) = minimal_generating_set(I)
 
 ################################################################################
 #
