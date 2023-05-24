@@ -4,10 +4,22 @@
     # to avoid unnecessary failures we skip the timing tests
     haskey(ENV, "JULIA_PKGEVAL") && return
 
-    # this test fails with many workers
-    # TODO: deal with this
-
-    using Oscar
+    # If running multiple workers, and many OMP threads, CPU oversubscription may occur
+    # which fails the timing tests. In this situation, skip instead.
+    try
+        if (length(workers())>1)
+            if haskey(ENV, "OMP_NUM_THREADS")
+                if (ENV["OMP_NUM_THREADS"] != "1")
+                    return
+                end
+            else
+                return
+            end
+        end
+    catch
+        # `using Distributed` wasn't executed, and therefore `workers()` is undefined
+        # ignore and proceed
+    end
 
     # macos on github actions is very slow
     factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 5.0 : 1.0
