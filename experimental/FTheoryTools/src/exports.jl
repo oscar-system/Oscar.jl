@@ -93,6 +93,8 @@ export singular_loci
 export literature_model
 export resolve
 export set_description
+export set_global_tate_model
+export set_weierstrass_model
 export su5_tate_model_over_arbitrary_3d_base
 export su5_weierstrass_model_over_arbitrary_3d_base
 export tate_polynomial
