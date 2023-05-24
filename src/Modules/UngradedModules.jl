@@ -3295,6 +3295,13 @@ function repres(v::SubquoModuleElem)
 end
 
 #######################################################
+
+function simplify(el::SubquoModuleElem)
+  reduced = reduce(repres(el), parent(el).quo)
+  return SubquoModuleElem(reduced, parent(el))
+end
+
+#######################################################
 @doc raw"""
     ambient_representative(m::SubquoModuleElem)
 
