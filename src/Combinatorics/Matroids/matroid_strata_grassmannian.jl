@@ -868,10 +868,10 @@ end
 
 
 function matrix_clear_den_in_col(X::Oscar.MatElem, c::Int)
-
     Xc = [denominator(f) for f in X[:, c]]
     t = lcm(Xc)
-    return multiply_column!(X, t, c)
+    result = multiply_column!(X, t, c)
+    return result
 
 end
 
@@ -959,8 +959,24 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
         
     xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
     
+    
+    
     if length(xnew_str) == 0
         phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
+        ambR = codomain(phi);
+        if length(Igens) == 0
+            Inew = ideal(ambR, ambR(0))
+        else
+            Inew = ideal(ambR, phi.(Igens)); 
+        end
+        
+        if length(Sgens) == 0
+            normal_Sgens = Vector{RingElem}[]
+        else             
+            normal_Sgens = phi.(Sgens)
+        end        
+        
+        
     else
         Rnew, xnew = polynomial_ring(coefficient_ring(R), length(xnew_str)) 
     
@@ -976,17 +992,23 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
         end
         
         phi = hom(R, Rnew, a->a, zero_elim_var)
+        ambR = codomain(phi);
+        if length(Igens) == 0
+            Inew = ideal(ambR, ambR(0))
+        else
+            Inew = ideal(ambR, phi.(Igens)); 
+        end
+        
+        if length(Sgens) == 0
+            normal_Sgens = Vector{RingElem}[]
+        else             
+            Sgens_new = phi.(Sgens)
+            normal_Sgens = gens_2_factors([normal_form(g, Inew) for g in Sgens_new])
+            unique!(normal_Sgens)
+        end
     
     end
     
-    ambR = codomain(phi)
-    Inew = ideal(ambR, phi.(Igens))
-    Sgens_new = phi.(Sgens)
-    
-    normal_Sgens = gens_2_factors([normal_form(g, Inew) for g in Sgens_new])
-    unique!(normal_Sgens)
-
-
     Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
 
     MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
