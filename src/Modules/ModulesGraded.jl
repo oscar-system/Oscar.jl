@@ -314,7 +314,7 @@ function grading_group(M::FreeMod)
 end
 
 
-# Dangereous: Only for internal use with care!!!
+# Dangerous: Only for internal use with care!!!
 @doc raw"""
     set_grading!(F::FreeMod, W::Vector{GrpAbFinGenElem})
 

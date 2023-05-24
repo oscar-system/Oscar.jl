@@ -539,7 +539,7 @@ Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal
 ```
 """
 function Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
-  error("method not implemted for arguments of type $(typeof(X)) and $(typeof(Y))")
+  error("method not implemented for arguments of type $(typeof(X)) and $(typeof(Y))")
 end
 
 function Base.intersect(

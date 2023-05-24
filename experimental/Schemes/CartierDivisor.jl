@@ -174,7 +174,7 @@ function cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPo
   return one(ZZ)*effective_cartier_divisor(IP, f)
 end
 
-### Decompostion of an effective Cartier Divisor into irreducible components
+### Decomposition of an effective Cartier Divisor into irreducible components
 ### (specialized variant of associated_points, using pure codimension 1
 ###  and taking multiplicities into account)
 @doc raw"""
