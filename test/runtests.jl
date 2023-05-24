@@ -1,7 +1,5 @@
 using Oscar
 using Test
-using Aqua
-using Documenter
 
 import Random
 
