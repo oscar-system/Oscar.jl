@@ -19,7 +19,6 @@ global const THROW_ERROR_FOR_INTERNAL_CHECKS = false
 
 macro check()
   quote
-    @show $(esc(:(check)))
     if $(esc(:(check)))
       THROW_ERROR_FOR_INTERNAL_CHECKS && error("internal checks are enabled")
     end
@@ -28,8 +27,6 @@ end
 
 macro check(cond)
   quote
-    @show $(esc(:(check)))
-    @show $(esc(cond))
     if $(esc(:(check)))
       THROW_ERROR_FOR_INTERNAL_CHECKS && error("internal checks are enabled")
       @assert $(esc(cond))
@@ -39,9 +36,6 @@ end
 
 macro check(cond, msg)
   quote
-    @show $(esc(:(check)))
-    @show $(esc(cond))
-    @show $(esc(msg))
     if $(esc(:(check)))
       THROW_ERROR_FOR_INTERNAL_CHECKS && error("internal checks are enabled")
       $(esc(cond)) || error($(esc(msg)))
