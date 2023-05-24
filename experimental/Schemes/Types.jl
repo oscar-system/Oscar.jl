@@ -146,10 +146,7 @@ end
     domain(g) === Y || error("map is not compatible")
     codomain(g) === X || error("map is not compatible")
 
-    if check
-      CHECK_ERROR && error("check was enabled")
-      is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
-    end
+    @check is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) "maps are not inverse to each other"
 
     result = new{typeof(base_ring(X)), typeof(OO(X))}(X, Y)
     # We need to rewrap the identification maps so that the (co-)domains match

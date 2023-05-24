@@ -424,7 +424,7 @@ image_ideal(phi::CoveredClosedEmbedding) = phi.I
 ### user facing constructors
 function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf; 
         covering::Covering=default_covering(X), check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   space(I) === X || error("ideal sheaf is not defined on the correct scheme")
   mor_dict = IdDict{AbsSpec, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
   rev_dict = IdDict{AbsSpec, AbsSpec}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.

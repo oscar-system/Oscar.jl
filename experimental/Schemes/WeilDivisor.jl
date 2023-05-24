@@ -33,7 +33,7 @@ stored as a formal linear combination over some ring ``R`` of
       coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     if check
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
@@ -44,7 +44,7 @@ stored as a formal linear combination over some ring ``R`` of
   end
 
   function WeilDivisor(C::AlgebraicCycle; check::Bool=true)
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     X = scheme(C)
     if check
       for D in keys(coefficient_dict(C))
@@ -103,7 +103,7 @@ Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
 in ``R`` for a sheaf of prime ideals ``I``.
 """
 function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   D = WeilDivisor(space(I), R)
   D[I] = one(R)
   return D
@@ -118,7 +118,7 @@ Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
 """
 function WeilDivisor(I::IdealSheaf; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   D = WeilDivisor(space(I), ZZ)
   D[I] = one(ZZ)
   return D
