@@ -123,8 +123,9 @@ include("InvariantTheory/runtests.jl")
 
 include("AlgebraicGeometry/Schemes/runtests.jl")
 include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+
+include("TropicalGeometry/runtests.jl")
 
 include("Serialization/runtests.jl")
 
