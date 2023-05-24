@@ -18,7 +18,7 @@ function restrict(
     V::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   check && isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V === affine_patches(domain(f))[i]
@@ -39,7 +39,7 @@ function restrict(
     V::AbsSpec{<:Ring, <:MPolyLocRing};
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   check && isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V === affine_patches(domain(f))[i]
@@ -60,7 +60,7 @@ function restrict(
     V::SpecOpen; 
     check::Bool=true # Only for compatibility of the call signature
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   V === domain(parent(f)) && return f
   fres = [restrict(f, V[i]) for i in 1:ngens(V)]
   return SpecOpenRingElem(OO(V), fres, check=false)
@@ -203,7 +203,7 @@ function restriction_map(
     h::MPolyRingElem; 
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   Y = ambient_scheme(U)
 
   # handle the shortcut 
@@ -303,7 +303,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("`ambient_coordinate_ring`s of the schemes not compatible")
@@ -328,7 +328,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
@@ -377,11 +377,8 @@ function pull_from_denominator(f::MPolyLocRingElem, d::MPolyRingElem)
 end
 
 function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
   Y = ambient_scheme(U)
-  if check
-    all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
-  end
+  @check all(V->issubset(V, X), affine_patches(U)) "$U is not a subset of $X"
   function mymap(f::MPolyQuoLocRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
   end
@@ -389,10 +386,7 @@ function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
 end
 
 function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
-  if check
-    issubset(V, U) || error("$V is not a subset of $U")
-  end
+  @check issubset(V, U) "$V is not a subset of $U"
 
   if U === V
     function mymap(f::SpecOpenRingElem)
@@ -426,7 +420,7 @@ function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpe
 end
 
 function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   X = scheme(S)
   Y = scheme(T)
   R = ambient_coordinate_ring(X)

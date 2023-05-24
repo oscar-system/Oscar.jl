@@ -151,7 +151,7 @@ function preimage(
                                                <:MPolyPowersOfElement}};
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check true
   X = domain(phi)
   Y = codomain(phi)
   check && (issubset(Z, Y) || (Z = intersect(Y, Z)))
@@ -165,7 +165,7 @@ function preimage(
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check true
   OO(Z) == ambient_coordinate_ring(codomain(f)) || error("schemes can not be compared")
   return subscheme(domain(f), ideal(OO(domain(f)), [zero(OO(domain(f)))]))
 end
@@ -174,12 +174,12 @@ function preimage(f::AbsSpecMor,
     Z::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                                             <:MPolyPowersOfElement}};
     check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check true
   return hypersurface_complement(domain(f), pullback(f).(denominators(inverted_set(OO(Z)))))
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check true
   pbf = pullback(f)
   R = OO(codomain(f))
   S = OO(domain(f))

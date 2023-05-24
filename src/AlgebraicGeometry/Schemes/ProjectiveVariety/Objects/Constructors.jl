@@ -9,7 +9,7 @@ Convert ``X`` to a projective variety.
 If `check` is set, compute the reduced scheme of `X` first.
 """
 function projective_variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   check  ||  return ProjectiveVariety(X, check=check)
   Xred = reduced_scheme(X)
   return ProjectiveVariety(Xred, check=check)
@@ -17,7 +17,7 @@ end
 
 # documented above
 function projective_variety(X::AbsProjectiveAlgebraicSet{<:Field}; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   check  ||  return ProjectiveVariety(X, check=check)
   Xred = X # already geometrically reduced
   return ProjectiveVariety(Xred, check=check)
@@ -88,7 +88,7 @@ Return the projective variety defined by the homogeneous polynomial `f`.
 This checks that `f` is absolutely irreducible.
 """
 function projective_variety(f::MPolyDecRingElem; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   if check
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(forget_decoration(f))[2]

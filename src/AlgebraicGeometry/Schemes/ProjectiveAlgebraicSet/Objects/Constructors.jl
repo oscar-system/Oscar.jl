@@ -25,8 +25,8 @@ Vanishing locus
 ```
 """
 function projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
+  @check
   if check
-    CHECK_ERROR && error("check was enabled")
     Xred = reduced_scheme(X)
   else
     Xred = X
@@ -54,8 +54,8 @@ Vanishing locus
 ```
 """
 function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
+  @check
   if check
-    CHECK_ERROR && error("check was enabled")
     Irad = radical(I)
     # additional checks in the constructor
     # note that Irad knows that it is a radical ideal

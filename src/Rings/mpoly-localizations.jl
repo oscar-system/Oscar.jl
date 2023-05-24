@@ -2395,7 +2395,7 @@ mutable struct MPolyLocalizedRingHom{
       res::RestrictedMapType;
       check::Bool=true
     ) where {DomainType<:MPolyLocRing, CodomainType<:Ring, RestrictedMapType<:Map}
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     R = base_ring(W)
     U = inverted_set(W)
     domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")

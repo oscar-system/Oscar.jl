@@ -21,10 +21,7 @@ mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
       U::OpenType;
       check::Bool=true
     ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
-    check && CHECK_ERROR && error("check was enabled")
-    if check
-      issubset(U, X) || error("open set does not lay in the scheme")
-    end
+    @check issubset(U, X) "open set does not lay in the scheme"
     return new{SpecType, OpenType}(X, U)
   end
 end
@@ -54,7 +51,7 @@ mutable struct SpecOpenRingElem{
     ) where {
         SpecOpenRingType<:SpecOpenRing
     }
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     n = length(f)
     U = domain(R)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")

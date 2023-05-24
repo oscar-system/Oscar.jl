@@ -66,7 +66,7 @@ function map_on_affine_cones(
                             };
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   if !isdefined(phi, :map_on_affine_cones)
     pb_phi = pullback(phi)
     C_dom, flat_dom = affine_cone(domain(phi))
@@ -90,7 +90,7 @@ function map_on_affine_cones(
                             };
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   if !isdefined(phi, :map_on_affine_cones)
     # The diagram is 
     #   P  →  Q
@@ -127,7 +127,7 @@ function map_on_affine_cones(
                             <:Hecke.Map, Nothing};
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   if !isdefined(phi, :map_on_affine_cones)
     pb_phi = pullback(phi)
     C_dom, flat_dom = affine_cone(domain(phi))

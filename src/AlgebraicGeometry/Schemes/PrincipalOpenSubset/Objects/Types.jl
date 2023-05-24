@@ -25,15 +25,14 @@
   function PrincipalOpenSubset(X::AbsSpec, R::Ring, f::RingElem;
       check::Bool=true
     )
-    check && CHECK_ERROR && error("check was enabled")
     U = Spec(R)
-    check && (U == hypersurface_complement(X, f) || error("scheme is not isomorphic to the anticipated open subset"))
+    @check U == hypersurface_complement(X, f) "scheme is not isomorphic to the anticipated open subset"
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end
   function PrincipalOpenSubset(X::AbsSpec, R::Ring, f::Vector{T};
       check::Bool=true
     ) where {T<:RingElem}
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     d = prod(length(f) > 0 ? f : one(OO(X)))
     return PrincipalOpenSubset(X, R, d, check=check)
   end

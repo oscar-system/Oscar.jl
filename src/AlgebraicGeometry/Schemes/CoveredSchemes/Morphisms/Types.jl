@@ -37,7 +37,7 @@ end
              CodomainType<:CoveredScheme,
              BaseMorType
             }
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     domain(f) in coverings(X) || error("covering not found in domain")
     codomain(f) in coverings(Y) || error("covering not found in codomain")
     return new{DomainType, CodomainType, BaseMorType}(X, Y, f)

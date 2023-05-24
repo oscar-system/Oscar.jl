@@ -76,7 +76,7 @@ Multivariate polynomial ring in 2 variables over QQ
 ```
 """
 function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
@@ -90,7 +90,7 @@ function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool 
 end
 
 function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible

@@ -2,8 +2,8 @@
   X::Spec
 
   function AffineVariety(X::Spec{S, T}; check::Bool) where {S, T}
+    @check
     if check
-      CHECK_ERROR && error("check was enabled")
       S <:QQField || error("varieties must be geometrically integral, but we test this only over QQ at the moment, disable this check if you know the variety is geometrically integral or proceed at your own risk")
       is_geometrically_integral(X) || error("varieties must be geometrically integral")
     else

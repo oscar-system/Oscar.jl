@@ -36,7 +36,7 @@ function SpecMor(
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
@@ -46,7 +46,7 @@ function SpecMor(
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
@@ -56,7 +56,7 @@ function SpecMor(
       f::Vector;
       check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   return SpecMor(X, Y, OO(X).(f), check=check)
 end
 
@@ -194,11 +194,8 @@ true
 ```
 """
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
-  if check
-    issubset(U, domain(f)) || error("second argument does not lie in the domain of the map")
-    issubset(V, codomain(f)) || error("third argument does not lie in the codomain of the map")
-    issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
-  end
+  @check issubset(U, domain(f)) "second argument does not lie in the domain of the map"
+  @check issubset(V, codomain(f)) "third argument does not lie in the codomain of the map"
+  @check issubset(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
   return SpecMor(U, V, OO(U).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end

@@ -55,8 +55,7 @@ function complement(X::AbsSpec,
     Z::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
-  check && CHECK_ERROR && error("check was enabled")
-  check && (is_closed_embedding(Z, X) || error("not a closed embedding"))
+  @check is_closed_embedding(Z, X) "not a closed embedding"
   return SpecOpen(Y, modulus(underlying_quotient(OO(Z))))
 end
 

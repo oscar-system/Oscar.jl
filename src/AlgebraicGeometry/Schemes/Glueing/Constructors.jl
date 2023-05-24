@@ -100,11 +100,8 @@ end
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
-  if check
-    CHECK_ERROR && error("check was enabled")
-    is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
-    is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
-  end
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   Ures = intersect(X, U, check=false)
   Vres = intersect(Y, V, check=false)
   return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
@@ -113,11 +110,8 @@ end
 function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
-  if check
-    CHECK_ERROR && error("check was enabled")
-    is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
-    is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
-  end
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   UX = PrincipalOpenSubset(X, OO(X)(lifted_numerator(complement_equation(U))))
   VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
   f_res = restrict(f, UX, VY, check=check)
@@ -135,7 +129,7 @@ Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and
 ``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
 """
 function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   (X1, Y1) = patches(G)
   X1 === domain(f) || error("maps not compatible")
   X2 = codomain(f)

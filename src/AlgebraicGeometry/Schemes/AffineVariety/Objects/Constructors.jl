@@ -9,7 +9,7 @@ Convert ``X`` to an affine variety.
 If check is set, then compute the reduced scheme of `X` first.
 """
 function affine_variety(X::Spec{<:Field}; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   check  ||  AffineVariety(X, check=check)
   Xred,_ = reduced_scheme(X)
   return AffineVariety(Xred, check=check)
@@ -92,8 +92,8 @@ defined by ideal(-x^3 + y^2 - 1)
 ```
 """
 function affine_variety(f::MPolyRingElem{<:FieldElem}; check::Bool=true)
+  @check
   if check
-    CHECK_ERROR && error("check was enabled")
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(f)[2]
     # deal with weird type instability in factor_absolute

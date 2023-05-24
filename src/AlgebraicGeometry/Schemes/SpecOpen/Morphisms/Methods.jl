@@ -13,10 +13,7 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
-  if check
-    CHECK_ERROR && error("check was enabled")
-    issubset(Cf, V) || error("maps are not compatible")
-  end
+  @check issubset(Cf, V) "maps are not compatible"
   W = codomain(g)
   X = ambient_scheme(U)
   Y = ambient_scheme(V)
@@ -64,10 +61,7 @@ end
 function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   U = domain(f) 
   X = ambient_scheme(U)
-  if check
-    CHECK_ERROR && error("check was enabled")
-    is_closed_embedding(Z, ambient_scheme(codomain(f))) || error("second argument must be closed in the codomain")
-  end
+  @check is_closed_embedding(Z, ambient_scheme(codomain(f))) "second argument must be closed in the codomain"
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
   Y = X 
@@ -77,7 +71,7 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
 function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   V = codomain(f) 
   Y = ambient_scheme(V)
   Y === ambient_scheme(W) || error("second argument must be open in the ambient scheme of the domain of the morphism")

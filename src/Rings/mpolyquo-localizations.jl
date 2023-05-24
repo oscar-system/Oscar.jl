@@ -950,7 +950,7 @@ constructor takes as input the triple
       res::RestrictedMapType;
       check::Bool=true
     ) where {DomainType<:MPolyQuoLocRing, CodomainType<:Ring, RestrictedMapType<:Map}
-    check && CHECK_ERROR && error("check was enabled")
+    @check
     R = base_ring(L)
     R === domain(res) || error("restriction map is not compatible")
     U = inverted_set(L)

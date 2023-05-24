@@ -4,14 +4,14 @@
 ### Construct a morphisms by the restriction of coordinate functions 
 # to every affine patch
 function SpecOpenMor(U::SpecOpen, V::SpecOpen, f::Vector{<:RingElem}; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   Y = ambient_scheme(V)
   maps = [SpecMor(W, Y, f, check=check) for W in affine_patches(U)]
   return SpecOpenMor(U, V, [SpecMor(W, Y, f, check=check) for W in affine_patches(U)], check=check) 
 end
 
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
   return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
@@ -21,7 +21,7 @@ end
 # Constructors for canonical maps                                      #
 ########################################################################
 function inclusion_morphism(U::SpecOpen, V::SpecOpen; check::Bool=true)
-  check && CHECK_ERROR && error("check was enabled")
+  @check
   X = ambient_scheme(U)
   if check 
     issubset(U, V) || error("method not implemented")
@@ -52,8 +52,8 @@ function restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
 end
 
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+  @check
   if check
-    CHECK_ERROR && error("check was enabled")
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(V, codomain(f)) || error("$V is not contained in the codomain of $f")
     all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
@@ -67,8 +67,8 @@ function restrict(
     V::SpecOpen;
     check::Bool=true
   )
+  @check
   if check
-    CHECK_ERROR && error("check was enabled")
     issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
     issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
     issubset(preimage(f,V), U) || error("f(U) is not contained in V")
@@ -81,8 +81,8 @@ function restrict(
 end
 
 function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
+  @check
   if check
-    CHECK_ERROR && error("check was enabled")
     issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end
