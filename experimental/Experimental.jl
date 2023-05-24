@@ -11,7 +11,6 @@ const oldexppkgs = [
   "JuLie",
   "Matrix",
   "ModStd",
-  "MPolyRingSparse",
   "Rings",
   "Schemes"
 ]
@@ -50,7 +49,6 @@ include("Rings.jl")
 include("ModStd.jl")
 include("GITFans.jl")
 include("GModule.jl")
-include("MPolyRingSparse.jl")
 
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
