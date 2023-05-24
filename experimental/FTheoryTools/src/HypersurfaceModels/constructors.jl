@@ -220,33 +220,10 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   
-  # Find candidate base spaces and perform consistency checks
-  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
-  @req length(candidates) > 0 "Could not find a full regular star triangulation"
-  f = fan(candidates[1])
-  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
-  
-  # Construct base space of desired dimension
-  fan_rays = matrix(ZZ, rays(f))
-  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
-  fan_max_cone_matrix = matrix(ZZ, cones(f))
-  new_max_cones = Vector{Int}[]
-  for k in 1:nrows(fan_max_cone_matrix)
-    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
-    if length(indices) == d
-      push!(new_max_cones, indices)
-    end
-  end
-  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
-  set_coordinate_names(auxiliary_base_space, auxiliary_base_vars)
-  G1 = free_abelian_group(ncols(auxiliary_base_grading))
-  G2 = free_abelian_group(nrows(auxiliary_base_grading))
-  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
-  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
-  set_attribute!(auxiliary_base_space, :class_group, G2)
-  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
-  
-  # Construct ambient space
+  # Construct auxiliary base space
+  auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)
+
+  # Construct auxiliary ambient space
   D1_class = ToricDivisorClass(auxiliary_base_space, D1)
   D2_class = ToricDivisorClass(auxiliary_base_space, D2)
   auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1_class, D2_class)

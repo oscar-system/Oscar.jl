@@ -172,33 +172,8 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
-  # Find candidate base spaces and perform consistency checks
-  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
-  @req length(candidates) > 0 "Could not find a full regular star triangulation"
-  f = fan(candidates[1])
-  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
-  
-  # Construct base space of desired dimension
-  fan_rays = matrix(ZZ, rays(f))
-  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
-  fan_max_cone_matrix = matrix(ZZ, cones(f))
-  new_max_cones = Vector{Int}[]
-  for k in 1:nrows(fan_max_cone_matrix)
-    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
-    if length(indices) == d
-      push!(new_max_cones, indices)
-    end
-  end
-  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
-  set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
-  G1 = free_abelian_group(ncols(auxiliary_base_grading))
-  G2 = free_abelian_group(nrows(auxiliary_base_grading))
-  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
-  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
-  set_attribute!(auxiliary_base_space, :class_group, G2)
-  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
-  
   # convert Tate sections into polynomials of the auxiliary base
+  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], auxiliary_base_grading, d)
   S = cox_ring(auxiliary_base_space)
   ring_map = hom(auxiliary_base_ring, S, gens(S))
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
