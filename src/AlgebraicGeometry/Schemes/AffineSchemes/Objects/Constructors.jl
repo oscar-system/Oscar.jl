@@ -712,11 +712,12 @@ end
 
 function closure(
     X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    Y::Spec{BRT, RT};
+    check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
                                           <:MPolyPowersOfElement}}
-  issubset(X, Y) || error("the first argument is not a subset of the second")
-  is_closed_embedding(X, Y) && return X
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  #is_closed_embedding(X, Y) && return X
   W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)

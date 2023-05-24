@@ -1808,7 +1808,7 @@ end
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     strategy::Symbol=:iterative_saturation,
-    with_generator_transition::Bool=true
+    with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
