@@ -466,9 +466,7 @@ function order_on_divisor(
     I::IdealSheaf;
     check::Bool=true
   )
-  if check
-    is_prime(I) || error("ideal sheaf must be a sheaf of prime ideals")
-  end
+  @check is_prime(I) "ideal sheaf must be a sheaf of prime ideals"
   X = space(I)::AbsCoveredScheme
   X == variety(parent(f)) || error("schemes not compatible")
   
@@ -722,6 +720,7 @@ function match_on_intersections(
     end
 
 ## make sure we are working on consistent data
+    @check
     if check
       if match_found && match_contradicted
         error("contradictory matching result!!")                     ## this should not be reached for ass. points
