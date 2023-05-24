@@ -452,7 +452,7 @@ function new_realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlg
     n = length(M)
 
     # we start by computing the number of variables:
-    numVars = sum([length(intersect(c,B))-1 for c in circs])-(rk-1)
+    numVars = sum([length(intersect(c,B))-1 for c in circs])-(rk-1)+(length(connected_components(M))-1)
     
     R, x = polynomial_ring(F, numVars)
 
@@ -496,14 +496,12 @@ end
 # Given a matroid M with a basis B, this functions computes for a i in groundset(M)\B a circuit in B \cup i.
 # This is a function used in the construction of the matrix underlying the representation space computation. 
 function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
-
     remaining_elts = setdiff(matroid_groundset(M),B)
-    all_circs = circuits(M)
     fund_circs = Vector{Vector{Int}}()
     for i in remaining_elts
-         push!(fund_circs,all_circs[findfirst(c->issubset(c,union(B,i)),all_circs)])
+         push!(fund_circs,fundamental_circuit(M,B,i))
      end
-     return fund_circs
+    return fund_circs
  end
 
  function new_realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
@@ -543,7 +541,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     if !isnothing(B) 
         goodB = sort!(Int.([M.gs2num[j] for j in B]))
     else
-        goodB = find_good_basis_heuristically(M)
+        goodB = find_good_basis_heuristically(goodM)
     end
 
     polyR, x, mat = new_realization_space_matrix(goodM, goodB, F)
@@ -610,15 +608,28 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     return MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, representable, F, char, q)
 end
 
+
 # A heuristic function that tries to find a sensible basis for the moduli space computation for which the defining ideal is not too complicated
 function find_good_basis_heuristically(M::Matroid)
-    # as a first step we compare the number of variables for differnet choices of bases
-    num_vars = ([sum([length(intersect(c,b)) for c in fundamental_circuits_of_basis(M,b)]) for b in bases(M)])
-    min_num_vars = minimum(num_vars)
-    remaining_bases = [bases(M)[k] for k in 1:length(bases(M)) if num_vars[k]==min_num_vars]
-    # among the bases which the minimal number of variables we choose one for which the number of disjoint nonbases is minimal 
-    ind_min_number_worst_nonbases = argmin([count(n -> isdisjoint(n,b), nonbases(M)) for b in remaining_bases])
-    return remaining_bases[ind_min_number_worst_nonbases]
+    bs = bases(M)
+    cs = circuits(M)
+    min_num_vars = length(cs)*rank(M)
+    min_basis = bs[1]
+    for bi in 1:length(bs)
+        current_num_vars = 0
+        for c in cs
+            for e in c
+                @inbounds if e in bs[bi]
+                    current_num_vars += 1
+                end
+            end
+        end
+        if current_num_vars < min_num_vars
+            min_num_vars = current_num_vars
+            min_basis = bs[bi]
+        end
+    end
+    return min_basis
 end
 
 
@@ -1010,6 +1021,26 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
     end
     
     Xnew = matrix(ambR, [phi(X[i,j]) for i in 1:nr, j in 1:nc])
+
+    #Try to reduce the matrix one last time using the ideal and the inequations
+    m, n = size(Xnew)
+    for i in 1:m
+        for j in 1:n
+            Xnew[i,j] = reduce(Xnew[i,j], gens(Inew))
+        end
+    end
+
+    for j in 1:n
+        g = gcd(Xnew[:,j]...)
+        factors = poly_2_factors(g)
+        for f in factors
+            if f in normal_Sgens
+                for i in 1:m
+                    Xnew[i,j] = Xnew[i,j]/f
+                end
+            end
+        end
+    end
 
     MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.representable, MRS.F, MRS.char, MRS.q)
 
