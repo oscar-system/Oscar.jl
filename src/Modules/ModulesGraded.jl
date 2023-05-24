@@ -1058,9 +1058,7 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of
-GrpAb: Z
-with components [5]
+Element of Z with components [5]
 
 julia> degree(Int, m)
 5
@@ -1069,9 +1067,7 @@ julia> m3 = x*M[1]+M[2]+x*M[3]
 (x*y + x + y)*e[1] + (x*z + y)*e[2]
 
 julia> degree(m3)
-Element of
-GrpAb: Z
-with components [2]
+Element of Z with components [2]
 ```
 """
 function degree(el::SubquoModuleElem)
