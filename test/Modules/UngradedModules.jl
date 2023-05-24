@@ -58,9 +58,9 @@ end
 
 @testset "Modules: Simplify elements of subquotients" begin
 	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-	F1 = free_module(Rg, 3)
-    F2 = free_module(Rg, 1)
-    G = free_module(Rg, 2)
+	F1 = free_module(R, 3)
+    F2 = free_module(R, 1)
+    G = free_module(R, 2)
     V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
     V2 = [z*G[2]+y*G[1]]
     a1 = hom(F1, G, V1)
