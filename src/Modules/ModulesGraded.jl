@@ -1058,7 +1058,9 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of Z with components [5]
+Element of
+GrpAb: Z
+with components [5]
 
 julia> degree(Int, m)
 5
