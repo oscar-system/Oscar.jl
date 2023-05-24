@@ -1024,9 +1024,16 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
 
     #Try to reduce the matrix one last time using the ideal and the inequations
     m, n = size(Xnew)
-    for i in 1:m
-        for j in 1:n
-            Xnew[i,j] = reduce(Xnew[i,j], gens(Inew))
+    A = base_ring(R)
+    if Inew!=ideal(A,A(0)) && length(gens(Inew)) > 0
+        for i in 1:m
+            for j in 1:n
+                if A == ZZ
+                    Xnew[i,j] = mod(Xnew[i,j], gens(Inew)[1])
+                else
+                    Xnew[i,j] = reduce(Xnew[i,j], gens(Inew))
+                end
+            end
         end
     end
 
