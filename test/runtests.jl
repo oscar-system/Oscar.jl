@@ -1,6 +1,5 @@
 using Oscar
 using Test
-using Aqua
 using Documenter
 using Distributed
 
@@ -25,11 +24,11 @@ end
 if haskey(ENV, "JULIA_PKGEVAL") ||
   get(ENV, "CI", "") == "true" ||
   haskey(ENV, "OSCAR_RANDOM_SEED")
-seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
-@info string(@__FILE__)*" -- fixed SEED $seed"
+  seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
+  @info string(@__FILE__)*" -- fixed SEED $seed"
 else
-seed = rand(UInt32)
-@info string(@__FILE__)*" -- SEED $seed"
+  seed = rand(UInt32)
+  @info string(@__FILE__)*" -- SEED $seed"
 end
 
 @everywhere using Test
