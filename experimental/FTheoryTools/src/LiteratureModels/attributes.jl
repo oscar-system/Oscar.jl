@@ -150,15 +150,6 @@ the given model. These are either other presentations (Weierstrass, Tate, ...)
 of the given model, or other version of the same model from a different paper
 in the literature. If no `associated_literature_models` are known,
 an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1507.05954", equation = "A.1")
-Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
-
-julia> associated_literature_models(m)
-1-element Vector{String}:
- "1507_05954-1"
-```
 """
 function associated_literature_models(m::AbstractFTheoryModel)
   @req has_associated_literature_models(m) "No associated models known for this model"
@@ -310,17 +301,6 @@ end
 
 Return the `journal_report_numbers` of the published paper in which the given model was introduced.
 If no `journal_report_numbers` is known, an error is raised.
-
-```jldoctest
-julia> m = literature_model(arxiv_id = "1507.05954", equation = "A.1")
-Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
-
-julia> journal_report_numbers(m)
-3-element Vector{String}:
- "UPR-1274-T"
- "CERN-PH-TH-2015-157"
- "MIT-CTP-4678"
-```
 """
 function journal_report_numbers(m::AbstractFTheoryModel)
   @req has_journal_report_numbers(m) "No journal pages known for this model"

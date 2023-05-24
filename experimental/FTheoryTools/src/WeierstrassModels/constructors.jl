@@ -117,39 +117,77 @@ weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; 
 ################################################
 
 @doc raw"""
-    weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
+    weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
 This method constructs a Weierstrass model over a base space that is not
 fully specified. The following example illustrates this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (f, g, u) = QQ["f", "g", "u"];
+julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ["f", "g", "Kbar", "u"]
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
-julia> w = weierstrass_model(f, g, auxiliary_base_ring, 3)
+julia> auxiliary_base_grading = [4 6 1 0]
+1×4 Matrix{Int64}:
+ 4  6  1  0
+
+julia> w = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
 Weierstrass model over a not fully specified base
 ```
 """
-function weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
+function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
-  @req (ngens(auxiliary_base_ring) >= d) "We expect at least as many base variables as the desired base dimension"
+  @req (ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d) "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
   gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
+  # Find candidate base spaces and perform consistency checks
+  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
+  @req length(candidates) > 0 "Could not find a full regular star triangulation"
+  f = fan(candidates[1])
+  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
+  
+  # Construct base space of desired dimension
+  fan_rays = matrix(ZZ, rays(f))
+  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
+  fan_max_cone_matrix = matrix(ZZ, cones(f))
+  new_max_cones = Vector{Int}[]
+  for k in 1:nrows(fan_max_cone_matrix)
+    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
+    if length(indices) == d
+      push!(new_max_cones, indices)
+    end
+  end
+  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
+  set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
+  G1 = free_abelian_group(ncols(auxiliary_base_grading))
+  G2 = free_abelian_group(nrows(auxiliary_base_grading))
+  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
+  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+  set_attribute!(auxiliary_base_space, :class_group, G2)
+  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
+  
   # convert Weierstrass sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space(gens_base_names, d)
   S = cox_ring(auxiliary_base_space)
   ring_map = hom(auxiliary_base_ring, S, gens(S))
   f = ring_map(weierstrass_f)
   g = ring_map(weierstrass_g)
   
-  # construct auxiliary ambient space
-  auxiliary_ambient_space = _weierstrass_ambient_space_from_base(auxiliary_base_space)
+  # construct ambient space
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  D1 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
+  D1[1] = 2
+  D1 = toric_divisor_class(auxiliary_base_space, D1)
+  D2 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
+  D2[1] = 3
+  D2 = toric_divisor_class(auxiliary_base_space, D2)
+  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1, D2)
   
-  # compute model
+  # construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))
   model = WeierstrassModel(f, g, pw, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
   set_attribute!(model, :base_fully_specified, false)

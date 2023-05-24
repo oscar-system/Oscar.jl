@@ -229,12 +229,17 @@ end
 
 # Constructs Weierstrass model from given Weierstrass literature model
 function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
+  @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = PolynomialRing(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-
+  
   base_dim = get(model_dict["model_data"], "base_dim", 3)
-
+  
   f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
   g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
-
-  return weierstrass_model(f, g, auxiliary_base_ring, base_dim)
+  
+  @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat(model_dict["model_data"]["auxiliary_base_grading"]...)))
+  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
+  
+  return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
 end

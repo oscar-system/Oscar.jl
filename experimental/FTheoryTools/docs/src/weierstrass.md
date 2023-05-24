@@ -125,7 +125,7 @@ the predictions from such an analysis are not limited to the world of toric vari
 
 For constructions along these lines, we support the following constructor:
 ```@docs
-weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
+weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 ```
 
 ### Standard constructions

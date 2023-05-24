@@ -85,8 +85,9 @@ end
 # 2: Global Weierstrass models over generic base space
 #############################################################
 
-auxiliary_base_ring, (f, g, u) = QQ["f", "g", "u"]
-w2 = weierstrass_model(f, g, auxiliary_base_ring, 3)
+auxiliary_base_ring, (f, g, Kbar, u) = QQ["f", "g", "Kbar", "u"]
+auxiliary_base_grading = [4 6 1 0]
+w2 = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
 
 @testset "Attributes of global Weierstrass models over generic base space" begin
   @test parent(weierstrass_section_f(w2)) == cox_ring(base_space(w2))
@@ -101,9 +102,9 @@ w2 = weierstrass_model(f, g, auxiliary_base_ring, 3)
 end
 
 @testset "Error messages in global Weierstrass models over generic base space" begin
-  @test_throws ArgumentError weierstrass_model(f, sec_f, auxiliary_base_ring, 3)
-  @test_throws ArgumentError weierstrass_model(f, g, auxiliary_base_ring, 0)
-  @test_throws ArgumentError weierstrass_model(f, g, auxiliary_base_ring, 4)
+  @test_throws ArgumentError weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, sec_f)
+  @test_throws ArgumentError weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 0, f, g)
+  @test_throws ArgumentError weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 5, f, g)
 end
 
 
