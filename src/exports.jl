@@ -1055,6 +1055,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export picard_class
 export picard_group
 export platonic_solid
 export point_coordinates
