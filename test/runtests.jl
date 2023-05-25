@@ -96,21 +96,16 @@ include("Groups/runtests.jl")
 include("Rings/runtests.jl")
 
 include("NumberTheory/nmbthy.jl")
-
-if Oscar.is_dev
-  include("Experimental/GITFans.jl")
-end
+include("NumberTheory/galthy.jl")
 
 # Will automatically include all experimental packages following our
 # guidelines.
 include("../experimental/runtests.jl")
 
-include("Experimental/galois.jl")
 include("Experimental/gmodule.jl")
 include("Experimental/ModStdQt.jl")
 include("Experimental/ModStdNF.jl")
 include("Experimental/MatrixGroups.jl")
-include("Experimental/JuLie.jl")
 include("Experimental/ExteriorAlgebra.jl")
 
 include("Rings/ReesAlgebra.jl")
