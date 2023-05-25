@@ -102,9 +102,10 @@ weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf, R::Ring)
+function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
-  D[I] = one(R)
+  @check isprime(I) "ideal sheaf must be prime"
+  coefficient_dict(D)[I] = one(R)
   return D
 end
 
