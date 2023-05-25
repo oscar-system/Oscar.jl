@@ -147,7 +147,7 @@ end
 
 @doc raw"""
     shifted_module(
-        M::SubQuo{T}
+        M::SubquoModule{T}
       ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                    <:MPolyComplementOfKPointIdeal}}
 
@@ -157,7 +157,7 @@ of a rational point and a `pre_saturated_module` ``N`` over ``R``, this returns 
 the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
 """
 @attr function shifted_module(
-    M::SubQuo{T}
+    M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
 
