@@ -6,14 +6,9 @@
 
     # If running multiple workers, and many OMP threads, CPU oversubscription may occur
     # which fails the timing tests. In this situation, skip instead.
-    try
-        if (length(workers()) > 1)
+    if (isdefined(Main, :Distributed) && (length(workers()) > 1))
             haskey(ENV, "OMP_NUM_THREADS") || return
             ENV["OMP_NUM_THREADS"] == "1" || return
-        end
-    catch
-        # `using Distributed` wasn't executed, and therefore `workers()` is undefined
-        # ignore and proceed
     end
 
     # macos on github actions is very slow
