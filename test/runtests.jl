@@ -152,13 +152,11 @@ push!(testlist, "StraightLinePrograms/runtests.jl")
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-  @time pmap(x -> include(x), testlist)
+@time pmap(x -> include(x), testlist)
 
 @static if compiletimes
   Base.cumulative_compile_timing(false);
 end
-
-# Doctests
 
 #currently, print_stats will fail when running tests with external workers
 #TODO: potentially rewrite include as well as print_stats 
