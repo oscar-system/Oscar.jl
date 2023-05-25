@@ -29,7 +29,7 @@ macro check(cond)
   quote
     if $(esc(:(check)))
       THROW_ERROR_FOR_INTERNAL_CHECKS && error("internal checks are enabled")
-      @assert $(esc(cond))
+      $(esc(cond)) != false || error("internal tests failed")
     end
   end
 end
@@ -38,7 +38,7 @@ macro check(cond, msg)
   quote
     if $(esc(:(check)))
       THROW_ERROR_FOR_INTERNAL_CHECKS && error("internal checks are enabled")
-      $(esc(cond)) || error($(esc(msg)))
+      $(esc(cond)) != false || error($(esc(msg)))
     end
   end
 end

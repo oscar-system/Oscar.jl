@@ -38,7 +38,6 @@ stored as a formal linear combination over some ring ``R`` of
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
-      true # Return true here for the check macro as all internal checks have passed.
     end
     return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(AlgebraicCycle(X, R, coefficients, check=check))
   end
@@ -50,7 +49,6 @@ stored as a formal linear combination over some ring ``R`` of
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
-      true # Return true here for the check macro as all internal checks have passed.
     end
     return new{typeof(X), coefficient_ring_type(C), coefficient_ring_elem_type(C)}(C)
   end

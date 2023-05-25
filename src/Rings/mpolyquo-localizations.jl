@@ -960,7 +960,6 @@ constructor takes as input the triple
       for g in gens(modulus(underlying_quotient(L)))
         iszero(S(res(g))) || error("map is not well defined")
       end
-      true
     end
     return new{DomainType, CodomainType, RestrictedMapType}(L, S, res)
   end
