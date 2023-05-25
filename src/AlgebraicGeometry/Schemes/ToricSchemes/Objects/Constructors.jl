@@ -116,7 +116,7 @@ julia> hirzebruch_surface(ToricCoveredScheme, 5)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, 5], [0, -1]]
 ```
 """
-hirzebruch_surface(::Type{ToricCoveredScheme}, r::Int; set_attributes::Bool = true) = ToricCoveredScheme(hirzebruch_surface(r; set_attributes = set_attributes))
+hirzebruch_surface(::Type{ToricCoveredScheme}, r::Int; set_attributes::Bool = true) = ToricCoveredScheme(hirzebruch_surface(NormalToricVariety, r; set_attributes = set_attributes))
 
 
 @doc raw"""
@@ -130,4 +130,4 @@ julia> del_pezzo_surface(ToricCoveredScheme, 3)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1], [1, 1], [0, -1], [-1, 0]]
 ```
 """
-del_pezzo_surface(::Type{ToricCoveredScheme}, b::Int; set_attributes::Bool = true) = ToricCoveredScheme(del_pezzo_surface(b; set_attributes = set_attributes))
+del_pezzo_surface(::Type{ToricCoveredScheme}, b::Int; set_attributes::Bool = true) = ToricCoveredScheme(del_pezzo_surface(NormalToricVariety, b; set_attributes = set_attributes))

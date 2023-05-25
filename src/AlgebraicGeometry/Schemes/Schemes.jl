@@ -147,3 +147,12 @@ include("ProjectiveVariety/Objects/Constructors.jl")
 include("ProjectiveVariety/Objects/Properties.jl")
 include("ProjectiveVariety/Objects/Attributes.jl")
 include("ProjectiveVariety/Objects/Methods.jl")
+
+########################################################################
+# Toric schemes
+#
+# This inclusion is disabled here because of the dependency on the 
+# Toric varieties. It is moved to an extra statement in the file 
+#   src/AlgebraicGeometry/AlgebraicGeometry.jl.
+########################################################################
+# include("ToricSchemes/ToricSchemes.jl")

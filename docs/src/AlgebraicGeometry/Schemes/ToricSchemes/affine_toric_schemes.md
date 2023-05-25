@@ -17,11 +17,11 @@ toric_spec(antv::AffineNormalToricVariety)
 An affine toric scheme has all attributes of a normal toric scheme.
 In addition, there are the following special attributes, that we
 overload from the corresponding affine toric variety:
-* ``cone(X::ToricSpec)``,
-* ``dual_cone(X::ToricSpec)``,
-* ``hilbert_basis(X::ToricSpec)``,
-* ``toric_ideal(R::MPolyRing, X::ToricSpec)``,
-* ``toric_ideal(X::ToricSpec)``.
+* `cone(X::ToricSpec)`,
+* `dual_cone(X::ToricSpec)`,
+* `hilbert_basis(X::ToricSpec)`,
+* `toric_ideal(R::MPolyRing, X::ToricSpec)`,
+* `toric_ideal(X::ToricSpec)`.
 
 
 ## Properties
