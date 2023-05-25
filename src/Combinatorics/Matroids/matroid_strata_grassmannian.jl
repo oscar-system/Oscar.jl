@@ -23,8 +23,24 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
 end
 
 function is_representable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
-    RS = new_realization_space(M, char=char, q=q)
+    RS = realization_space(M, char=char, q=q)
     return RS.representable
+end
+
+function defining_ideal(RS::MatroidRealizationSpace)
+    return RS.defining_ideal
+end
+
+function inequations(RS::MatroidRealizationSpace)
+    return RS.inequations
+end
+
+function ambient_ring(RS::MatroidRealizationSpace)
+    return RS.ambient_ring
+end
+
+function representation_matrix(RS::MatroidRealizationSpace)
+    return RS.representation_matrix
 end
 
 #=
@@ -440,7 +456,7 @@ end
 
 
 
-function new_realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring)
+function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring)
     # prepare the combinatorial data
     
     circs = fundamental_circuits_of_basis(M,B)
@@ -504,7 +520,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     return fund_circs
  end
 
- function new_realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
+ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
     F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, 
     char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::MatroidRealizationSpace
 
@@ -544,7 +560,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
         goodB = find_good_basis_heuristically(goodM)
     end
 
-    polyR, x, mat = new_realization_space_matrix(goodM, goodB, F)
+    polyR, x, mat = realization_space_matrix(goodM, goodB, F)
     
     eqs = Vector{RingElem}()
     ineqs = Vector{RingElem}()
@@ -938,7 +954,7 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
 end
 
 
-function reduce_ideal_full(MRS::MatroidRealizationSpace,
+function reduce_realization_space(MRS::MatroidRealizationSpace,
                                elim::Vector{RingElem} = Vector{RingElem}(), 
                                fullyReduced::Bool = false) 
     
@@ -947,7 +963,7 @@ function reduce_ideal_full(MRS::MatroidRealizationSpace,
     output isa String && return "Not Realizable 0 in Semigroup"
     (MRS, elim, fullyReduced) = output    
     
-    !fullyReduced && return reduce_ideal_full(MRS, elim, fullyReduced)
+    !fullyReduced && return reduce_realization_space(MRS, elim, fullyReduced)
     
     
     R = MRS.ambient_ring
