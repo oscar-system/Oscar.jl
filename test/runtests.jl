@@ -1,6 +1,5 @@
 using Oscar
 using Test
-using Documenter
 using Distributed
 
 import Random
@@ -143,8 +142,9 @@ push!(testlist, "InvariantTheory/runtests.jl")
 
 push!(testlist, "AlgebraicGeometry/Schemes/runtests.jl")
 push!(testlist, "AlgebraicGeometry/ToricVarieties/runtests.jl")
-push!(testlist, "AlgebraicGeometry/TropicalGeometry/runtests.jl")
 push!(testlist, "AlgebraicGeometry/Surfaces/K3Auto.jl")
+
+push!(testlist, "TropicalGeometry/runtests.jl")
 
 push!(testlist, "Serialization/runtests.jl")
 
