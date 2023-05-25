@@ -22,8 +22,8 @@
   S = domain(inc_S)
 
   I_sing = Oscar.ideal_sheaf_of_singular_locus(S)
-  I_sing_X = radical(pushforward(inc_S)(I_sing))
-
+  I_sing_X = small_generating_set(pushforward(inc_S)(I_sing))
+             # happens to be radical in this example -- no radical needed here
   @test scheme(I_sing) === S
   @test scheme(I_sing_X) === X
 
@@ -32,8 +32,10 @@
   X1 = domain(prX)
   Y1, inc_Y1, pr_Y1 = strict_transform(prX, inc_S)
 
+
   I_sing_Y1 = Oscar.ideal_sheaf_of_singular_locus(Y1)
-  I_sing_X1 = radical(pushforward(inc_Y1)(I_sing_Y1))
+  I_sing_X1 = small_generating_set(pushforward(inc_Y1)(I_sing_Y1))
+             # happens to be radical in this example -- no radical needed here
   prX2 = blow_up(I_sing_X1, covering=Oscar.simplified_covering(X1),
                 var_name="t")
   E2 = exceptional_divisor(prX2)
@@ -42,7 +44,8 @@
   simplify!(Y2)
   # @show has_attribute(Y2, :simplified_covering)
   I_sing_Y2 = Oscar.ideal_sheaf_of_singular_locus(Y2)
-  I_sing_X2 = radical(pushforward(inc_Y2)(I_sing_Y2))
+  I_sing_X2 = small_generating_set(pushforward(inc_Y2)(I_sing_Y2))
+             # happens to be radical in this example -- no radical needed here
   prX3 = blow_up(I_sing_X2, covering=Oscar.simplified_covering(X2),
                 var_name="u")
   E3 = exceptional_divisor(prX3)
@@ -51,14 +54,14 @@
   simplify!(Y3)
   # @show has_attribute(Y3, :simplified_covering)
   I_sing_Y3 = Oscar.ideal_sheaf_of_singular_locus(Y3)
-  I_sing_X3 = radical(pushforward(inc_Y3)(I_sing_Y3))
+  I_sing_X3 = pushforward(inc_Y3)(I_sing_Y3)
 
   # Now the singular locus consists of two points. 
   # We blow them up successively rather than at once. 
   #println("starting primary decomposition of singular locus")
   decomp = Oscar.maximal_associated_points(I_sing_X3)
   #println("finished primary decomposition of singular locus")
-  l = radical.([a for a in decomp])
+  l = small_generating_set.([a for a in decomp])
 
   #@show "blowing up first center"
   #@show gens.(l[1].(patches(Oscar.simplified_covering(X3))))
@@ -69,7 +72,8 @@
   E41 = exceptional_divisor(prX41)
   Y41, inc_Y41, pr_Y41 = strict_transform(prX41, inc_Y3)
 
-  l2 = radical(strict_transform(prX41, l[2]))
+  l2 = small_generating_set(strict_transform(prX41, l[2]))
+          ## was radical before transformation, stays radical afterwards
   simplify!(X41)
   #@show scheme(l2) === X41
   #@show "blowing up second center"
@@ -81,8 +85,7 @@
   X42 = domain(prX42)
   Y42, inc_Y42, pr_Y42 = strict_transform(prX42, inc_Y41)
   I_sing_Y42 = Oscar.ideal_sheaf_of_singular_locus(Y42)
-  I_sing_X42 = radical(pushforward(inc_Y42)(I_sing_Y42))
-
+  I_sing_X42 = pushforward(inc_Y42)(I_sing_Y42)
 
   # Now the singular locus consists of three points. 
   # We blow them up successively rather than at once. 
@@ -90,7 +93,7 @@
   centers = Oscar.maximal_associated_points(I_sing_X42)
   #println("finished primary decomposition of singular locus")
 
-  prX51 = blow_up(radical(first(centers)))
+  prX51 = blow_up(small_generating_set(first(centers)))
 
   E51 = exceptional_divisor(prX51)
 
@@ -98,14 +101,14 @@
   Y51, inc_Y51, prY51 = strict_transform(prX51, inc_Y42)
   centers = (x->strict_transform(prX51, x)).(centers[2:3])
 
-  prX52 = blow_up(radical(first(centers)))
+  prX52 = blow_up(small_generating_set(first(centers)))
   E52 = exceptional_divisor(prX52)
 
   #@show E52
   Y52, inc_Y52, prY52 = strict_transform(prX52, inc_Y51)
   centers = (x->strict_transform(prX52, x)).(centers[2:2])
 
-  prX53 = blow_up(radical(first(centers)))
+  prX53 = blow_up(small_generating_set(first(centers)))
   E53 = exceptional_divisor(prX53)
 
   #@show E53

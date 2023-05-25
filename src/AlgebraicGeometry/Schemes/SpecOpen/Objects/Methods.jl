@@ -144,3 +144,16 @@ function Base.show(io::IO, U::SpecOpen)
   print(io, "complement of zero locus of $(complement_equations(U)) in $(ambient_scheme(U))")
 end
 
+########################################################################
+# Base change
+########################################################################
+function base_change(phi::Any, U::SpecOpen;
+    ambient_map::AbsSpecMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+  )
+  Y = domain(ambient_map)
+  pbf = pullback(ambient_map)
+  h = pbf.(complement_equations(U))
+  UU = SpecOpen(Y, h)
+  return UU, restrict(ambient_map, UU, U, check=true) # TODO: Set to false after testing
+end
+

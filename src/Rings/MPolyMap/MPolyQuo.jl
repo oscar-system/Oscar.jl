@@ -69,7 +69,7 @@ julia> F = hom(A, S, [s, s^2, s^3])
 Map with following data
 Domain:
 =======
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z)
+A
 Codomain:
 =========
 Multivariate polynomial ring in 2 variables over QQ

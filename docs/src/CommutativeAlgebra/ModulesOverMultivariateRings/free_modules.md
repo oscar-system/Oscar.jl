@@ -189,6 +189,10 @@ corresponding property is satisfied, and `false` otherwise. In addition, we have
 ```
 
 ```@docs
+is_isomorphic(F::FreeMod, G::FreeMod)
+```
+
+```@docs
 is_zero(F::AbstractFreeMod)
 ```
 
@@ -204,6 +208,10 @@ of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the c
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
 ```
 
+```@docs
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+```
+
 Given a homomorphism of type `FreeModuleHom`, a matrix representing it
 is recovered by the following function:
 
@@ -214,5 +222,25 @@ matrix(a::FreeModuleHom)
 The domain and codomain of a homomorphism `a`  of type `FreeModuleHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
+The functions below test whether a homomorphism of type
+`FreeModuleHom` is graded and homogeneous, respectively.
+
+```@docs
+is_graded(a::FreeModuleHom)
+```
+
+```@docs
+is_homogeneous(a::FreeModuleHom)
+```
+
+In the graded case, we additionally have:
+
+```@docs
+degree(a::FreeModuleHom)
+```
+
+```@docs
+grading_group(a::FreeModuleHom)
+```
 
 

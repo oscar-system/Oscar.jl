@@ -1,10 +1,3 @@
-export is_invariant_ideal
-export is_semi_invariant_polynomial
-export projective_group_action
-export pullback
-export symmetric_intersections
-export underlying_moduli_space_of_modules
-
 ### Action on homogeneous ideals/polynomials
 
 @doc raw"""
@@ -61,7 +54,7 @@ function linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem
     @req ok && is_constant(k) "Polynomial is not semi-invariant"
     push!(coll, matrix(base_ring(R),1,1,[collect(coefficients(k))[1]])::eltype(matrix_representation(rep)))
   end
-  return Oscar.SymInt._linear_representation(representation_ring(rep), coll)
+  return Oscar._linear_representation(representation_ring(rep), coll)
 end
 
 @doc raw"""
@@ -77,7 +70,7 @@ function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDec
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficient of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
-  gene = minimal_generating_set(I)
+  gene = gens(I)
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
   for f in gene for m in matrix_representation(repd)
@@ -102,7 +95,7 @@ function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPoly
   R = base_ring(I)
   @req base_ring(R) === base_field(representation_ring(rep)) "The coefficients of f are in the wrong field"
   @req ngens(R) == dimension_representation(rep) "There is no induced action on the polynomial ring of I"
-  gene = minimal_generating_set(I)
+  gene = gens(I)
   d = Int(degree(gene[1]).coeff[1])
   @req all(f -> degree(f) == degree(gene[1]), gene) "All generators of I should have same total degree"
   @req is_invariant_ideal(rep, I) "I is not invariant"
@@ -118,14 +111,14 @@ end
 ### Parametrising certain symmetric intersections
 
 @doc raw"""
-    underlying_moduli_space_of_modules(symci::SymInter{S, T, U, V})
+    underlying_space_of_modules(symci::SymInter{S, T, U, V})
                                         where {S, T, U, V} -> CharGrass{S, T, U}
 
 Given a parametrizing space `symci` for ideals defining symmetric intersections,
 return the underlying symmetric Grassmannian parametrizing submodule of the corresponding
 homogeneous part of a polynomial algebra generating the ideals in `symci`.
 """
-underlying_moduli_space_of_modules(symci::SymInter) = symci.para
+underlying_space_of_modules(symci::SymInter) = symci.para
 
 @doc raw"""
     projective_group_action(symci::SymInter{S, T, U, V})
@@ -206,15 +199,15 @@ function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j = nothing, che
   RR = representation_ring_linear_lift(prep)
   F = base_field(RR)
   if j === nothing
-    S, _ = grade(polynomial_ring(F, "x" => 0:dimension_linear_lift(prep)-1)[1])
+    S, _ = grade(polynomial_ring(F, "x" => 0:dimension_representation(prep)-1)[1])
     _, j = homogeneous_component(S, d)
   elseif check
     V = domain(j)
     @req base_ring(V) === F "Incompatible map j"
-    @req dim(V) == binomial(dimension_linear_lift(prep)+d-1, d) "Incompatible map j"
+    @req dim(V) == binomial(dimension_representation(prep)+d-1, d) "Incompatible map j"
     S = codomain(j)
     @req base_ring(S) === F "Incompatible map j"
-    @req ngens(S) === dimension_linear_lift(prep) "Incompatible map j"
+    @req ngens(S) === dimension_representation(prep) "Incompatible map j"
   end
   rd = homogeneous_polynomial_representation(prep, d)
   M = invariant_grassmannian(rd, t)
@@ -233,38 +226,12 @@ end
                                                                 -> SymInter
 
 Low-level constructor for objects of type `SymInter`, parametrizing ideal in
-in the codomain of `j` with generators in the domain of `j`, where `M` is the moduli space
-parametrizing the underlying modules of the corresponding ideals, invariant under the
-given action `prep` on the projective space of coordinates.
+in the codomain of `j` with generators in the domain of `j`, where `M` is the
+space parametrizing the underlying modules of the corresponding ideals,
+invariant under the given action `prep` on the projective space of coordinates.
 """
 function symmetric_intersections(prep::ProjRep, M::CharGrass, j::MapFromFunc)
   return SymInter(prep, M, j)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", symci::SymInter)
-  M = symci.para
-  j = symci.j
-  RR = representation_ring_linear_lift(symci.prep)
-  F = base_field(RR)
-  G = underlying_group(symci.prep)
-  n = ngens(codomain(j))
-  t = submodule_dimension(M)
-  d = total_degree(j(gens(domain(j))[1]))
-  ty = "($d, "
-  for i in 2:t-1
-    ty *= "$d, "
-  end
-  ty *= "$d)"
-  println(io, "Parameter space for intersections of type")
-  println(io, ty)
-  println(io, "in the $(n-1)-dimensional projective space over")
-  println(io, F)
-  println(io, "and invariant under the action of")
-  print(io, G)
-end
-
-function Base.show(io::IO, symci::SymInter)
-  print(io, "Parameter space for symmetric intersections")
 end
 
 @doc raw"""

@@ -285,7 +285,7 @@ Localization of Quotient of Multivariate polynomial ring in 2 variables over num
 
 julia> iota
 Map from
-Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
+RQ to Localization of Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
 ```
 """ localization(A::MPolyQuoRing, U::AbsMPolyMultSet)
 
@@ -1006,7 +1006,7 @@ function MPolyQuoLocalizedRingHom(
   return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
-hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, a, check=check)
+hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, res, check=check)
 
 function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
   R = base_ring(L)
@@ -1595,6 +1595,10 @@ end
 
 function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
+end
+
+function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
 end
 
 ### Conversion of ideals in the original ring to localized ideals

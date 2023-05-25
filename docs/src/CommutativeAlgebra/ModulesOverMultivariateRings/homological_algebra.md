@@ -18,6 +18,12 @@ supporting computations in homological algebra.
 presentation(M::ModuleFP)
 ```
 
+## Representation as Cokernel
+
+```@docs
+present_as_cokernel(M::SubquoModule, task::Symbol = :none)
+```
+
 ## Syzygies and Free Resolutions
 
 ```@docs

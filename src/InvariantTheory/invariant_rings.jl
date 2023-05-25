@@ -49,7 +49,7 @@ julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
@@ -164,11 +164,11 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
@@ -365,11 +365,11 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 

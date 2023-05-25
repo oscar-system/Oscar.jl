@@ -265,10 +265,7 @@ julia> affine_cone(P)
 (Spec of Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2), Map with following data
 Domain:
 =======
-Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+S
 Codomain:
 =========
 Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2))
@@ -291,7 +288,7 @@ end
 
 @attr function affine_cone(
     P::AbsProjectiveScheme{RT, <:MPolyQuoRing}
-  ) where {RT<:Field}
+  ) where {RT<:Union{Field, ZZRing}}
   S = homogeneous_coordinate_ring(P)
   PS = base_ring(S)
   PP = forget_grading(PS) # the ungraded polynomial ring
@@ -305,7 +302,7 @@ end
 
 @attr function affine_cone(
     P::AbsProjectiveScheme{RT, <:MPolyDecRing}
-  ) where {RT<:Field}
+  ) where {RT<:Union{Field, ZZRing}}
   S = homogeneous_coordinate_ring(P)
   PP = forget_grading(S) # the ungraded polynomial ring
   phi = hom(S, PP, gens(PP))

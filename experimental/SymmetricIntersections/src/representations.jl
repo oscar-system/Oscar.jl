@@ -1,51 +1,5 @@
 const GG = GAP.Globals
 
-import Oscar: is_irreducible, base_field, is_submodule, is_equivalent, is_projective, is_faithful
-
-export action_on_submodule
-export affording_representation
-export all_characters
-export all_irreducible_representations
-export associated_schur_cover
-export basis_exterior_power
-export basis_isotypical_component
-export character_decomposition
-export character_linear_lift
-export character_representation
-export character_table_underlying_group
-export complement_submodule
-export constituents
-export dimension_linear_lift
-export dimension_representation
-export direct_sum_representation
-export dual_representation
-export exterior_power_representation
-export faithful_projective_representations
-export generators_underlying_group
-export homogeneous_polynomial_representation
-export irreducible_characters_underlying_group
-export irreducible_affording_representation
-export is_character
-export is_constituent
-export is_isotypical
-export is_isotypical_component
-export is_similar
-export is_subrepresentation
-export isotypical_components
-export linear_lift
-export linear_representation
-export matrix_representation
-export matrix_representation_linear_lift
-export projective_representation
-export quotient_representation
-export representation_mapping
-export representation_mapping_linear_lift
-export representation_ring
-export representation_ring_linear_lift
-export symmetric_power_representation
-export to_equivalent_block_representation
-export underlying_group
-
 """
 Here are some tools for representation theory and projective representations.
 We use representation rings as parent object and we represent projective
@@ -199,11 +153,11 @@ Return the character of the linear lift of `PR` which is cached.
 character_linear_lift(PR::ProjRep) = character_representation(PR.LR)
 
 @doc raw"""
-    dimension_linear_lift(PR::ProjRep) -> Int
+    dimension_representation(PR::ProjRep) -> Int
 
 Return the dimension of any linear lift of `PR`.
 """
-dimension_linear_lift(PR::ProjRep) = dimension_representation(PR.LR)
+dimension_representation(PR::ProjRep) = dimension_representation(PR.LR)
 
 ###############################################################################
 #
@@ -355,51 +309,6 @@ function all_characters(RR::RepRing, t::Int)
   return Oscar.GAPGroupClassFunction[sum(chis[l]) for l in el]
 end
 
-###########################################################################
-#
-# I/O printing
-#
-###########################################################################
-
-## RR
-
-function Base.show(io::IO, ::MIME"text/plain", RR::RepRing)
-  println(io, "Representation ring of")
-  println(io, "$(underlying_group(RR))")
-  println(io, "over")
-  print(io, "$(base_field(RR))")
-end
-
-function Base.show(io::IO, RR::RepRing)
-  print(io, "Representation ring of finite group over a field of characteristic 0")
-end
-
-## LR
-
-function Base.show(io::IO, ::MIME"text/plain", LR::LinRep)
-  println(io, "Linear $(dimension_representation(LR))-dimensional representation of")
-  println(io, "$(underlying_group(LR))")
-  println(io, "over")
-  print(io, "$(base_field(representation_ring(LR)))")
-end 
-
-function Base.show(io::IO, LR::LinRep)
-  print(io, "Linear representation of finite group of dimension $(dimension_representation(LR))")
-end
-
-## PR
-
-function Base.show(io::IO, ::MIME"text/plain", PR::ProjRep)
-  println(io, "Linear lift of a $(dimension_linear_lift(PR))-dimensional projective representation of")
-  println(io, "$(underlying_group(PR))")
-  println(io, "over")
-  print(io, "$(base_field(representation_ring_linear_lift(PR)))")
-end
-
-function Base.show(io::IO, PR::ProjRep)
-    print(io, "Linear lift of a projective representation of finite group of dimension $(dimension_linear_lift(PR))")
-end
-
 ##############################################################################
 #
 # Constructors
@@ -513,7 +422,7 @@ function projective_representation(rep::LinRep{S, T, U}, p::V; check::Bool = tru
   RR = representation_ring(rep)
   if check
     @req underlying_group(RR) === domain(p) "Incompatible representation ring and cover"
-    @req is_projective(lr, p) "rep is not p-projective"
+    @req is_projective(rep, p) "rep is not p-projective"
   end
   return ProjRep{S, T, U, V}(rep, p)
 end
@@ -685,13 +594,13 @@ function matrix_representation(LR::LinRep{S, T, U}) where {S, T, U}
 end
 
 @doc raw"""
-    matrix_representation_linear_lift(PR::ProjRep{S, T, U, V})
+    matrix_representation(PR::ProjRep{S, T, U, V})
                                        where {S, T, U, V} -> Vector{MatElem{U}}
 
 Return representatives (modulo scalars) for the matrix representation of the
 underlying actions encoded by `PR`.
 """
-matrix_representation_linear_lift(PR::ProjRep{S, T, U, V}) where {S, T, U, V} = matrix_representation(linear_lift(PR))
+matrix_representation(PR::ProjRep{S, T, U, V}) where {S, T, U, V} = matrix_representation(linear_lift(PR))
 
 ###############################################################################
 
@@ -1128,7 +1037,7 @@ function exterior_power_representation(rep::LinRep{S, T, U}, t::Int) where {S, T
 end
 
 function exterior_power_representation(prep::ProjRep{S, T, U, V}, t::Int) where {S, T, U, V}
-  @req 1 <= t <= dimension_linear_lift(prep) "t must be an integer between 1 and the dimension of the linear lift"
+  @req 1 <= t <= dimension_representation(prep) "t must be an integer between 1 and the dimension of the linear lift"
   lin = exterior_power_representation(linear_lift(prep), t)
   return ProjRep{S, T, U, V}(lin, associated_schur_cover(prep))
 end
