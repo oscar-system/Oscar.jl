@@ -280,7 +280,7 @@ julia> M = matroid_from_matrix_columns(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
+function matroid_from_matrix_columns(A::MatrixElem; check::Bool=false)
     rk = rank(A)
     nr = nrows(A)
     bases = Vector{Vector{Int64}}()
@@ -316,7 +316,7 @@ julia> M = matroid_from_matrix_rows(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
+matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=false) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc raw"""
     cycle_matroid(g::Graph)
