@@ -319,16 +319,28 @@ function extend!(
   while length(dirty_patches) > 0
     U = pop!(dirty_patches)
     N = neighbor_patches(C, U)
-    Z = subscheme(U, D[U])
+    # The following line potentially triggers a groebner basis
+    # computation, because the quo command for polynomial rings 
+    # requires it. 
+    #Z = subscheme(U, D[U])
     for V in N
       # check whether this node already knows about D
       haskey(D, V)  && continue
 
-      # if not, extend D to this patch
       f, _ = glueing_morphisms(C[V, U])
-      pZ = preimage(f, Z, check=false)
-      ZV = closure(pZ, V, check=false)
-      D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
+      if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && underlying_glueing(C[V, U]) isa SimpleGlueing)
+        # if not, extend D to this patch
+        f, _ = glueing_morphisms(C[V, U])
+        pbI_gens = pullback(f).(OO(codomain(f)).(gens(D[U])))
+        J = ideal(OO(V), lifted_numerator.(pbI_gens))
+        J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
+        D[V] = J_sat
+      else 
+        Z = subscheme(U, D[U])
+        pZ = preimage(f, Z, check=false)
+        ZV = closure(pZ, V, check=false)
+        D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
+      end
       V in dirty_patches || push!(dirty_patches, V)
     end
   end
