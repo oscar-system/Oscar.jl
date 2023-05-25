@@ -34,6 +34,46 @@ macro check(cond)
   end
 end
 
+@doc raw"""
+    @check(cond, msg)
+
+This macro can be used to run expensive internal checks for sanity of 
+the input to a function. It needs a variable `check` in the local scope 
+and in case `check==true` the condition `cond` gets evaluated. 
+Whenever `cond` evaluates to anything else but `false` the test is 
+accepted; otherwise an error with the message `msg` is thrown. 
+
+Usually such checks are disabled for internal calls to functions with 
+verified input by setting an optional argument `check::Bool=true` to 
+`false`. However, this is often forgotten when programming new stuff. 
+To snoop for such leaks, one can set the global variable 
+
+    THROW_ERROR_FOR_INTERNAL_CHECKS
+
+in `src/assertions.jl` to `true` and run tests which are not supposed 
+to trigger any checks by the `@check` macro. If any such unexpected 
+test is nevertheless run, an error is thrown and one can disable the 
+faulty internal test following the subsequent stacktrace. 
+
+# Examples
+```jldoctest
+julia> function my_fun(a::Int; check::Bool=true)
+         @check a==5 "input is invalid"
+         return a
+       end;
+
+julia> function my_fun2(s::String; check::Bool=true)
+         b = my_fun(length(s)) # Forgotten check=check here
+         return b
+       end;
+
+julia> my_fun2("hi!"); # Will throw an error message
+
+julia> my_fun(4, check=false); # Will not throw an error message
+
+julia> my_fun2("hello", check=false); # Will process fine in general; but throws an error when THROW_ERROR_FOR_INTERNAL_CHECKS == true
+```
+"""
 macro check(cond, msg)
   quote
     if $(esc(:(check)))

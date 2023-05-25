@@ -1,4 +1,5 @@
 export *
+export @check
 export @pbw_relations
 export @perm
 export @permutation_group
