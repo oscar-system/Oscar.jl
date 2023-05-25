@@ -641,6 +641,8 @@ function convert(
   (result, coefficient) = divides(Q(a), Q(b))
   # check whether f is already a unit
   result && return L(coefficient)
+  # If we have localized at the trivial set, then this is the end.
+  isone(d) && error("element can not be converted to the localization")
   push!(powers_of_d, d)
   abort = false
   # find some power which works
