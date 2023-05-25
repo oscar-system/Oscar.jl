@@ -68,11 +68,11 @@ over the same `base_ring`, with underlying ring homomorphism
       pullback::PullbackType;
       check::Bool=true
     ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Hecke.Map}
-    @check true
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
-    if check
+    @check begin
       # do some more expensive tests
+      true
     end
     return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end

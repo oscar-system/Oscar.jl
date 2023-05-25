@@ -11,7 +11,6 @@ function intersect(
     U::SpecOpen;
     check::Bool=true
   )
-  @check
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   X === Y && return SpecOpen(Y, complement_equations(U), check=check)

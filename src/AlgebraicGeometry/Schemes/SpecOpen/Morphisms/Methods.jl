@@ -71,7 +71,6 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
 function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
-  @check
   V = codomain(f) 
   Y = ambient_scheme(V)
   Y === ambient_scheme(W) || error("second argument must be open in the ambient scheme of the domain of the morphism")

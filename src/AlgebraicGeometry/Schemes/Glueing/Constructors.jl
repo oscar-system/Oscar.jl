@@ -129,7 +129,6 @@ Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and
 ``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
 """
 function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
-  @check
   (X1, Y1) = patches(G)
   X1 === domain(f) || error("maps not compatible")
   X2 = codomain(f)

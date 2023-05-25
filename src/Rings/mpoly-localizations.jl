@@ -2395,12 +2395,14 @@ mutable struct MPolyLocalizedRingHom{
       res::RestrictedMapType;
       check::Bool=true
     ) where {DomainType<:MPolyLocRing, CodomainType<:Ring, RestrictedMapType<:Map}
-    @check
     R = base_ring(W)
     U = inverted_set(W)
     domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
-    for f in U
-      is_unit(S(res(f))) || error("image of $f is not a unit in the codomain")
+    @check begin
+      for f in U
+        is_unit(S(res(f))) || error("image of $f is not a unit in the codomain")
+      end
+      true
     end
     return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end

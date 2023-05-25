@@ -100,27 +100,27 @@ x^2 + 1
 ```
 """
 function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
-  @check
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs(S, imgs)
     _check_homo(S, imgs) # defined in MPolyAnyMap.jl
+    true
   end
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
 end
 
 function hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
-  @check
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs(S, imgs)
     _check_homo(S, imgs) # defined in MPolyAnyMap.jl
+    true
   end
   return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
 end

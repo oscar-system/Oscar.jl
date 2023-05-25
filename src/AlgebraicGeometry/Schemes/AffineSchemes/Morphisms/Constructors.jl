@@ -36,7 +36,6 @@ function SpecMor(
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  @check
   return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
@@ -46,7 +45,6 @@ function SpecMor(
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  @check
   return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
@@ -56,7 +54,6 @@ function SpecMor(
       f::Vector;
       check::Bool=true
   )
-  @check
   return SpecMor(X, Y, OO(X).(f), check=check)
 end
 

@@ -18,7 +18,6 @@ function restrict(
     V::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
-  @check
   check && isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V === affine_patches(domain(f))[i]
@@ -39,7 +38,6 @@ function restrict(
     V::AbsSpec{<:Ring, <:MPolyLocRing};
     check::Bool=true
   )
-  @check
   check && isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V === affine_patches(domain(f))[i]
@@ -60,7 +58,6 @@ function restrict(
     V::SpecOpen; 
     check::Bool=true # Only for compatibility of the call signature
   )
-  @check
   V === domain(parent(f)) && return f
   fres = [restrict(f, V[i]) for i in 1:ngens(V)]
   return SpecOpenRingElem(OO(V), fres, check=false)
@@ -203,7 +200,6 @@ function restriction_map(
     h::MPolyRingElem; 
     check::Bool=true
   )
-  @check
   Y = ambient_scheme(U)
 
   # handle the shortcut 
@@ -216,9 +212,10 @@ function restriction_map(
   end
 
   # do the checks
-  if check
+  @check begin
     X == hypersurface_complement(Y, h) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
 
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
@@ -303,13 +300,13 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
     check::Bool=true
   )
-  @check
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("`ambient_coordinate_ring`s of the schemes not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
   L = localized_ring(OO(X))
   D = denominators(inverted_set(L))
@@ -328,13 +325,13 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
-  @check
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
   h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
@@ -347,9 +344,10 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
   h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
@@ -420,13 +418,13 @@ function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpe
 end
 
 function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
-  @check
   X = scheme(S)
   Y = scheme(T)
   R = ambient_coordinate_ring(X)
   R == ambient_coordinate_ring(Y) || error("rings can not be canonically compared")
-  if check
+  @check begin
     (domain(S) == domain(T)) || error("open domains are not isomorphic")
+    true
   end
 
   pb_to_Vs = [restriction_map(domain(S), V) for V in affine_patches(domain(T))]

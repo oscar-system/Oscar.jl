@@ -34,11 +34,10 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
       f::Vector{<:AbsSpecMor};
       check::Bool=true
     ) where {DomainType<:SpecOpen, CodomainType<:SpecOpen}
-    @check
     Y = ambient_scheme(V)
     n = length(f)
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
-    if check
+    @check begin
       for i in 1:n
         domain(f[i]) === affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
         codomain(f[i]) === Y || error("codomain is not compatible")
@@ -52,6 +51,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
       for g in f
         is_empty(subscheme(domain(g), pullback(g).(complement_equations(V)))) || error("image is not contained in the codomain")
       end
+      true
     end
     return new{DomainType, CodomainType}(U, V, f)
   end

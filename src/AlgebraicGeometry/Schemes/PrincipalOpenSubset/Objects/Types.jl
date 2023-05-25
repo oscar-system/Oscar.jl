@@ -32,7 +32,6 @@
   function PrincipalOpenSubset(X::AbsSpec, R::Ring, f::Vector{T};
       check::Bool=true
     ) where {T<:RingElem}
-    @check
     d = prod(length(f) > 0 ? f : one(OO(X)))
     return PrincipalOpenSubset(X, R, d, check=check)
   end

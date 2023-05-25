@@ -7,7 +7,6 @@
 # Preimages of PrincipalOpenSubsets                                    #
 ########################################################################
 function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true) 
-  @check
   if ambient_scheme(U) != codomain(f) 
     Z = preimage(f, ambient_scheme(U), check=check)
     return PrincipalOpenSubset(Z, OO(Z)(pullback(f)(lifted_numerator(complement_equation(U))), check=false))

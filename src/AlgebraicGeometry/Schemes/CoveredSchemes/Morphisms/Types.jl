@@ -30,14 +30,12 @@ end
   function CoveredSchemeMorphism(
       X::DomainType,
       Y::CodomainType,
-      f::CoveringMorphism{<:Any, <:Any, BaseMorType};
-      check::Bool=true
+      f::CoveringMorphism{<:Any, <:Any, BaseMorType}
     ) where {
              DomainType<:CoveredScheme,
              CodomainType<:CoveredScheme,
              BaseMorType
             }
-    @check
     domain(f) in coverings(X) || error("covering not found in domain")
     codomain(f) in coverings(Y) || error("covering not found in codomain")
     return new{DomainType, CodomainType, BaseMorType}(X, Y, f)

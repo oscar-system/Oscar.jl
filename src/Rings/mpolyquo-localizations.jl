@@ -950,17 +950,17 @@ constructor takes as input the triple
       res::RestrictedMapType;
       check::Bool=true
     ) where {DomainType<:MPolyQuoLocRing, CodomainType<:Ring, RestrictedMapType<:Map}
-    @check
     R = base_ring(L)
     R === domain(res) || error("restriction map is not compatible")
     U = inverted_set(L)
-    if check
+    @check begin
       for f in U
         is_unit(S(res(f))) || error("map is not well defined")
       end
       for g in gens(modulus(underlying_quotient(L)))
         iszero(S(res(g))) || error("map is not well defined")
       end
+      true
     end
     return new{DomainType, CodomainType, RestrictedMapType}(L, S, res)
   end

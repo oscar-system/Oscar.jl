@@ -51,12 +51,11 @@ mutable struct SpecOpenRingElem{
     ) where {
         SpecOpenRingType<:SpecOpenRing
     }
-    @check
     n = length(f)
     U = domain(R)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
     g = [OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
-    if check
+    @check begin
       for i in 1:n-1
         for j in i+1:n
           W = U[i,j]

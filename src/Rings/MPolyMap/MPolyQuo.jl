@@ -76,26 +76,25 @@ Multivariate polynomial ring in 2 variables over QQ
 ```
 """
 function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
-  @check
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
+    true
   end
 
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
 end
 
 function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
-  @check
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs)
     _check_homo(S, imgs)
   end
