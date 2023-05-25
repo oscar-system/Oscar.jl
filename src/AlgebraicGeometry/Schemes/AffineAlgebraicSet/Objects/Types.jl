@@ -1,7 +1,6 @@
 @attributes mutable struct AffineAlgebraicSet{BaseRing<:Field, RingType<:MPolyAnyRing} <: AbsAffineAlgebraicSet{BaseRing, RingType}
   X::Spec
   function AffineAlgebraicSet(X::Spec; check::Bool=true)
-    @check
     if check
       is_geometrically_reduced(X) || error("algebraic sets must be geometrically reduced")
     else

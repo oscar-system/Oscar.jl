@@ -10,7 +10,6 @@ Convert `X` to an `AffineAlgebraicSet` by taking the underlying reduced scheme.
 If `check=false`, assumes that `X` is already reduced.
 """
 function affine_algebraic_set(X::Spec; check::Bool=true)
-  @check
   if check
     Xred,_ = reduced_scheme(X)
   else
@@ -38,7 +37,6 @@ Vanishing locus
 ```
 """
 function vanishing_locus(I::MPolyIdeal{<:MPolyElem}; check::Bool=true)
-  @check
   if check
     Irad = radical(I)
   else
