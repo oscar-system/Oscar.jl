@@ -103,6 +103,7 @@ in ``R`` for a sheaf of prime ideals ``I``.
 function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
   @check isprime(I) "ideal sheaf must be prime"
+  @check dim(X) - dim(D) == 1 "components of a divisor must be of codimension one"
   coefficient_dict(D)[I] = one(R)
   return D
 end
