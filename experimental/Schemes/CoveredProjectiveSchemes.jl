@@ -802,7 +802,7 @@ end
     covered_scheme(P)
   end
   covering_pr = get_attribute(P, :covering_projection_to_base)::CoveringMorphism
-  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr, check=false)
+  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr)
 end
 
 

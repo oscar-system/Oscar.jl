@@ -198,7 +198,7 @@ end
     C = standard_covering(X)
   end
   covering_projection = get_attribute(X, :covering_projection_to_base)::CoveringMorphism
-  projection = CoveredSchemeMorphism(covered_scheme(X), CoveredScheme(codomain(covering_projection)), covering_projection, check=false)
+  projection = CoveredSchemeMorphism(covered_scheme(X), CoveredScheme(codomain(covering_projection)), covering_projection)
 end
 
 

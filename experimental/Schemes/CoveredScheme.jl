@@ -409,7 +409,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
              MorphismType<:ClosedEmbedding,
              BaseMorType
             }
-    ff = CoveredSchemeMorphism(X, Y, f, check=check)
+    ff = CoveredSchemeMorphism(X, Y, f)
     #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
     return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
   end
