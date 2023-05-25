@@ -533,8 +533,7 @@ identifications given by the glueings in the `default_covering`.
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
     I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
-    @check
-    if check
+    @check begin
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
       # affine patch, the ideal sheaf can be inferred from what is
@@ -552,6 +551,7 @@ identifications given by the glueings in the `default_covering`.
           end
         end
       end
+      true
     end
     return I
   end
