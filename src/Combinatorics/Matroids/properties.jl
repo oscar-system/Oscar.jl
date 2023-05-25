@@ -970,19 +970,37 @@ end
 @doc raw"""
     revlex_basis_encoding(M::Matroid)
 
-Computes the revlex basis encoding and the minimal revlex basis encoding among isomorphic matroids 
+Computes the revlex basis encoding of the matroid M.
 
 # Examples
-To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
+To get the revlex basis encoding of the fano matroid and to produce a matrod form the encoding write:
 ```jldoctest
-julia> string1, string2 = revlex_basis_encoding(fano_matroid())
-("0******0******0***0******0*0**0****", "0******0******0***0******0*0**0****")
+julia> string = revlex_basis_encoding(fano_matroid())
+"0******0******0***0******0*0**0****"
 
-julia> matroid_from_revlex_basis_encoding(string2, 3, 7)
+julia> matroid_from_revlex_basis_encoding(string, 3, 7)
 Matroid of rank 3 on 7 elements
+
 ```
 """
 function revlex_basis_encoding(M::Matroid)
+    return String(M.pm_matroid.REVLEX_BASIS_ENCODING)
+end
+
+@doc raw"""
+    min_revlex_basis_encoding(M::Matroid)
+
+Computes the minimal revlex basis encoding among isomorphic matroids.
+
+# Examples
+To get the minimal revlex basis encoding of the fano matroid write:
+```jldoctest
+julia> string = min_revlex_basis_encoding(fano_matroid())
+"0******0******0***0******0*0**0****"
+
+```
+"""
+function min_revlex_basis_encoding(M::Matroid)
     rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
     indices = findall(x->x=='*', rvlx)
     v = zeros(Int,length(rvlx))
@@ -997,7 +1015,7 @@ function revlex_basis_encoding(M::Matroid)
     poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
     Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
     Polymake.shell_execute(raw"""$min_v = $pair->first;""")
-    return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+    return  String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
 end
 
 @doc raw"""
