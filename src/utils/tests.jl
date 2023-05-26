@@ -11,7 +11,7 @@ For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
 function test_module(file::AbstractString; new::Bool=true)
   julia_exe = Base.julia_cmd()
-  project_path = split(pathof(Oscar), "/src")[1]
+  project_path = Base.active_project()
   rel_test_file = normpath("test", "$file.jl")
   test_file = joinpath(oscardir, rel_test_file)
 
