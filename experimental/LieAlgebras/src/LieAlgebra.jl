@@ -267,7 +267,9 @@ end
 
 function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
   b = 0x6724cbedbd860982 % UInt
-  return xor(hash(coefficients(x), hash(parent(x), h)), b)
+  h = hash(parent(x), h)
+  h = hash(coefficients(x), h)
+  return xor(h, b)
 end
 
 ###############################################################################

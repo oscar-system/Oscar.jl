@@ -314,7 +314,11 @@ end
 
 function Base.hash(V::LieAlgebraModule{C}, h::UInt) where {C<:RingElement}
   b = 0x28b0c111e3ff8526 % UInt
-  return xor(hash(V.L, hash(V.dim, hash(V.transformation_matrices, hash(V.s, h)))), b)
+  h = hash(V.dim, h)
+  h = hash(V.s, h)
+  h = hash(V.L, h)
+  h = hash(V.transformation_matrices, h)
+  return xor(h, b)
 end
 
 function Base.:(==)(
@@ -326,7 +330,9 @@ end
 
 function Base.hash(v::LieAlgebraModuleElem{C}, h::UInt) where {C<:RingElement}
   b = 0x723913014484513a % UInt
-  return xor(hash(coefficients(v), hash(parent(v), h)), b)
+  h = hash(parent(v), h)
+  h = hash(coefficients(v), h)
+  return xor(h, b)
 end
 
 ###############################################################################
