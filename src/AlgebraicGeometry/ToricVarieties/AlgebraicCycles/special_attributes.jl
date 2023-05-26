@@ -36,13 +36,17 @@ false
 julia> set_coordinate_names(v, ["x_{1}", "x_{2}", "x_{3}"])
 
 julia> chow_ring(v)
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x_{1} - x_{3}, x_{2} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ
+  by ideal(x_{1} - x_{3}, x_{2} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
 
 julia> M = cycle_matroid(complete_graph(3))
 Matroid of rank 2 on 3 elements
 
 julia> chow_ring(M)
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x_{1} - x_{2}, x_{1} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ
+  by ideal(x_{1} - x_{2}, x_{1} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
 ```
 """
 @attr MPolyQuoRing function chow_ring(v::AbstractNormalToricVariety)

@@ -61,7 +61,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_subset(X, Y)
 false
@@ -312,13 +312,13 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_open_embedding(Y, X)
 false
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of localization of Multivariate polynomial ring in 3 variables over QQ at the powers of QQMPolyRingElem[x1]
+Spec of Localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
 
 julia> is_open_embedding(Z, X)
 true
@@ -380,13 +380,13 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_closed_embedding(Y, X)
 true
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of localization of Multivariate polynomial ring in 3 variables over QQ at the powers of QQMPolyRingElem[x1]
+Spec of Localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
 
 julia> is_closed_embedding(Z, X)
 false
@@ -527,10 +527,10 @@ julia> J = ideal(R,[x-1,y-2])
 ideal(x - 1, y - 2)
 
 julia> X = Spec(R,I)
-Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x - y)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> Y = Spec(R,I*J)
-Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> is_equidimensional(X)
 true
@@ -619,22 +619,24 @@ julia> J = ideal(R,[x^2-y^2])
 ideal(x^2 - y^2)
 
 julia> X = Spec(R, I)
-Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x - y^2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_smooth(X)
 true
 
 julia> Y = Spec(R, J)
-Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^2 - y^2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_smooth(Y)
 false
 
 julia> U = MPolyComplementOfKPointIdeal(R,[1,1])
-complement of maximal ideal corresponding to point with coordinates QQFieldElem[1, 1]
+Complement
+  of maximal ideal corresponding to rational point with coordinates (1, 1)
+  in multivariate polynomial ring in 2 variables over QQ
 
 julia> Z = Spec(R, J, U)
-Spec of Localization of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^2 - y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[1, 1]
+Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 julia> is_smooth(Z)
 true
