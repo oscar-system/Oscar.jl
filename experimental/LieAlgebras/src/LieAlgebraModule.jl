@@ -345,9 +345,7 @@ function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Rin
   return action(x, v)
 end
 
-function action(
-  x::LieAlgebraElem{C}, v::ElemT
-) where {ElemT<:LieAlgebraModuleElem{C}} where {C<:RingElement}
+function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   @req parent(x) == base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
   cx = coefficients(x)
@@ -358,7 +356,7 @@ function action(
       i in 1:dim(parent(x)) if !iszero(cx[i]);
       init=zero_matrix(base_ring(parent(v)), 1, dim(parent(v)))::dense_matrix_type(C),
     ), # equivalent to (x * v^T)^T, since we work with row vectors
-  )::ElemT
+  )
 end
 
 function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:RingElement}
@@ -483,24 +481,23 @@ function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   return pow_V
 end
 
-⊕(V::LieAlgebraModule{C}...) where {C<:RingElement} = direct_sum(V...)
+function direct_sum(
+  V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
+) where {C<:RingElement}
+  L = base_lie_algebra(V)
+  @req all(x -> base_lie_algebra(x) == L, Vs) "All modules must have the same base Lie algebra."
 
-function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
-  @req length(V) >= 1 "At least one module must be given."
-  L = base_lie_algebra(V[1])
-  @req all(x -> base_lie_algebra(x) == L, V) "All modules must have the same base Lie algebra."
-
-  dim_direct_sum_V = sum(dim, V)
+  dim_direct_sum_V = dim(V) + sum(dim, Vs; init=0)
   transformation_matrices = map(1:dim(L)) do i
-    block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in V])
+    block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in [V, Vs...]])
   end
   parentheses = x -> "($x)"
 
-  if length(V) == 1
-    s = symbols(V[1])
+  if length(Vs) == 0
+    s = symbols(V)
   else
     s = [
-      Symbol("$s^($j)") for (j, Vj) in enumerate(V) for
+      Symbol("$s^($j)") for (j, Vj) in enumerate([V, Vs...]) for
       s in (is_standard_module(Vj) ? symbols(Vj) : parentheses.(symbols(Vj)))
     ]
   end
@@ -511,32 +508,33 @@ function direct_sum(V::LieAlgebraModule{C}...) where {C<:RingElement}
   set_attribute!(
     direct_sum_V,
     :type => :direct_sum,
-    :base_modules => collect(V),
+    :base_modules => collect([V, Vs...]),
     :show => show_direct_sum,
   )
   return direct_sum_V
 end
 
-⊗(V::LieAlgebraModule{C}...) where {C<:RingElement} = tensor_product(V...)
+⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
+  direct_sum(V, Vs...)
 
-function tensor_product(V::LieAlgebraModule{C}...) where {C<:RingElement}
-  @req length(V) >= 1 "At least one module must be given."
-  L = base_lie_algebra(V[1])
-  @req all(x -> base_lie_algebra(x) == L, V) "All modules must have the same base Lie algebra."
+function tensor_product(
+  V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
+) where {C<:RingElement}
+  L = base_lie_algebra(V)
+  @req all(x -> base_lie_algebra(x) == L, Vs) "All modules must have the same base Lie algebra."
 
-  dim_tensor_product_V = prod(dim, V)
-  ind_map = collect(reverse.(ProductIterator([1:dim(Vi) for Vi in reverse(V)])))
+  dim_tensor_product_V = dim(V) * prod(dim, Vs; init=1)
+  ind_map = collect(reverse.(ProductIterator([1:dim(Vi) for Vi in reverse([V, Vs...])])))
 
   transformation_matrices = map(1:dim(L)) do i
-    ys = [transformation_matrix(Vj, i) for Vj in V]
+    ys = [transformation_matrix(Vj, i) for Vj in [V, Vs...]]
     sum(
-      reduce(kronecker_product, (j == i ? ys[j] : one(ys[j]) for j in 1:length(V))) for
-      i in 1:length(V)
+      reduce(kronecker_product, (j == i ? ys[j] : one(ys[j]) for j in 1:(1 + length(Vs)))) for i in 1:(1 + length(Vs))
     )
   end
 
-  if length(V) == 1
-    s = symbols(V[1])
+  if length(Vs) == 0
+    s = symbols(V)
   else
     parentheses = x -> "($x)"
     s = [
@@ -544,7 +542,7 @@ function tensor_product(V::LieAlgebraModule{C}...) where {C<:RingElement}
       reverse.(
         ProductIterator([
           is_standard_module(Vi) ? symbols(Vi) : parentheses.(symbols(Vi)) for
-          Vi in reverse(V)
+          Vi in reverse([V, Vs...])
         ])
       )
     ]
@@ -556,12 +554,15 @@ function tensor_product(V::LieAlgebraModule{C}...) where {C<:RingElement}
   set_attribute!(
     tensor_product_V,
     :type => :tensor_product,
-    :base_modules => collect(V),
+    :base_modules => collect([V, Vs...]),
     :ind_map => ind_map,
     :show => show_tensor_product,
   )
   return tensor_product_V
 end
+
+⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
+  tensor_product(V, Vs...)
 
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
