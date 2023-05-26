@@ -232,7 +232,7 @@ For literature models, we provide the following attributes:
 doi(t::GlobalTateModel)
 arxiv_id(t::GlobalTateModel)
 version(t::GlobalTateModel)
-equ_nr(t::GlobalTateModel)
+equation_number(t::GlobalTateModel)
 description(t::GlobalTateModel)
 link(t::GlobalTateModel)
 ```
@@ -247,7 +247,7 @@ set of information. This is achieved with the following methods:
 * `has_doi(t::GlobalTateModel)`,
 * `has_arxiv_id(t::GlobalTateModel)`,
 * `has_version(t::GlobalTateModel)`,
-* `has_equ_nr(t::GlobalTateModel)`,
+* `has_equation_number(t::GlobalTateModel)`,
 * `has_description(t::GlobalTateModel)`,
 * `has_link(t::GlobalTateModel)`.
 
@@ -277,11 +277,10 @@ The user can list all the resolutions in our database as follows:
 ```@docs
 resolutions(t::GlobalTateModel)
 ```
-In addition, some user might want to add a resolution. Or one might
-want to add a description for a particular model. This can be achieved with
-the following methods:
+In addition, some user might want to add a resolution. This can be achieved with
+the following method:
 ```@docs
-add_resolution(t::GlobalTateModel, resolution::Vector{Vector{String}})
+add_resolution(t::GlobalTateModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
 ```
 Provided that a resolution for a model is known, we can (attempt to) resolve the model.
 ```@docs
