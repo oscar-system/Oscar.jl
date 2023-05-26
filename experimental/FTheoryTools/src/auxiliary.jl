@@ -21,7 +21,7 @@ _ambient_space_from_base(base::ToricCoveredScheme, fiber_ambient_space::ToricCov
 function _ambient_space_from_base(base::AbstractNormalToricVariety)
   fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
   D1 = 2 * anticanonical_divisor_class(base)
-  D2 = 2 * anticanonical_divisor_class(base)
+  D2 = 3 * anticanonical_divisor_class(base)
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   return _ambient_space(base, fiber_ambient_space, D1, D2)
 end
