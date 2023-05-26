@@ -136,8 +136,10 @@ end
 @doc raw"""
     lie_algebra(R::Ring, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with basis `basis` and basis element names given by `s`. The basis elements must be square matrices of size `n`.
-We require `basis` to be linearly independent, and to contain the Lie bracket of any two basis elements in its span.
+Construct the Lie algebra over the ring `R` with basis `basis` and basis element names
+given by `s`. The basis elements must be square matrices of size `n`.
+We require `basis` to be linearly independent, and to contain the Lie bracket of any
+two basis elements in its span.
 
 If `cached` is `true`, the constructed Lie algebra is cached.
 """

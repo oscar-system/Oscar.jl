@@ -35,10 +35,9 @@ gen(L::LieAlgebra{C}, i::Int) where {C<:RingElement} = basis(L, i)
 @doc raw"""
     dim(L::LieAlgebra{C}) -> Int
 
-Return the dimension the Lie algebra `L`.
+Return the dimension of the Lie algebra `L`.
 """
-dim(_::LieAlgebra{C}) where {C<:RingElement} =
-  error("Unreachable. Should be implemented by subtypes.")
+dim(_::LieAlgebra{C}) where {C<:RingElement} = error("Should be implemented by subtypes.")
 
 @doc raw"""
     basis(L::LieAlgebra{C}) -> Vector{LieAlgebraElem{C}}
@@ -122,6 +121,14 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    symbols(L::LieAlgebra{C}) -> Vector{Symbol}
+
+Return the symbols used for printing basis elements of the Lie algebra `L`.
+"""
+symbols(_::LieAlgebra{C}) where {C<:RingElement} =
+  error("Should be implemented by subtypes.")
+
 function expressify(
   v::LieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
@@ -181,6 +188,11 @@ function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
   return elem_type(L)(L, mat)
 end
 
+@doc raw"""
+    (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
+
+Return the Lie algebra element with coefficent vector `v`.
+"""
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
   mat = dense_row(v, dim(L))
   return elem_type(L)(L, mat)
@@ -264,6 +276,16 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    lie_algebra(gapL::GAP.GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
+
+Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
+or by `x_i` by default.
+We require `gapL` to be a finite-dimensional GAP Lie algebra. The return type is dependent on
+properties of `gapL`, in particular, whether GAP knows about a matrix representation.
+
+If `cached` is `true`, the constructed Lie algebra is cached.
+"""
 function lie_algebra(
   gapL::GAP.GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];

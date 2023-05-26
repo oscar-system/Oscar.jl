@@ -9,25 +9,26 @@ namely `LinearLieAlgebra` and `AbstractLieAlgebra`, depending on whether a matri
 Both types are subtypes of `LieAlgebra`. Similar to other types in OSCAR, each Lie algebra type has a corresponding element type.
 
 ```@docs
-zero(::LieAlgebra{C}) where {C <: RingElement}
-iszero(::LieAlgebraElem{C}) where {C <: RingElement}
-dim(::LieAlgebra{C}) where {C <: RingElement}
-basis(::LieAlgebra{C}) where {C <: RingElement}
-basis(::LieAlgebra{C}, ::Int) where {C <: RingElement}
-coefficients(::LieAlgebraElem{C}) where {C <: RingElement}
-coeff(::LieAlgebraElem{C}, ::Int) where {C <: RingElement}
-getindex(::LieAlgebraElem{C}, ::Int) where {C <: RingElement}
+zero(::LieAlgebra{C}) where {C<:RingElement}
+iszero(::LieAlgebraElem{C}) where {C<:RingElement}
+dim(::LieAlgebra{C}) where {C<:RingElement}
+basis(::LieAlgebra{C}) where {C<:RingElement}
+basis(::LieAlgebra{C}, ::Int) where {C<:RingElement}
+coefficients(::LieAlgebraElem{C}) where {C<:RingElement}
+coeff(::LieAlgebraElem{C}, ::Int) where {C<:RingElement}
+getindex(::LieAlgebraElem{C}, ::Int) where {C<:RingElement}
+symbols(_::LieAlgebra{C}) where {C<:RingElement}
 ```
 
 ## Special functions for `LinearLieAlgebra`s
 
 ```@docs
-matrix_repr_basis(::LinearLieAlgebra{C}) where {C <: RingElement}
-matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C <: RingElement}
-matrix_repr(::LinearLieAlgebraElem{C}) where {C <: RingElement}
+matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:RingElement}
+matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:RingElement}
+matrix_repr(::LinearLieAlgebraElem{C}) where {C<:RingElement}
 ```
 ```
-(::LinearLieAlgebra{C})(::MatElem{C}) where {C <: RingElement}
+(::LinearLieAlgebra{C})(::MatElem{C}) where {C<:RingElement}
 
 ```
 
@@ -38,6 +39,7 @@ matrix_repr(::LinearLieAlgebraElem{C}) where {C <: RingElement}
 (::LieAlgebra{C})(::Vector{C}) where {C<:RingElement}
 (::LieAlgebra{C})(::Vector{Int}) where {C<:RingElement}
 (::LieAlgebra{C})(::MatElem{C}) where {C<:RingElement}
+(::LieAlgebra{C})(::SRow{C}) where {C<:RingElement}
 (::LieAlgebra{C})(::LieAlgebraElem{C}) where {C<:RingElement}
 ```
 
@@ -60,3 +62,8 @@ general_linear_lie_algebra(R::Ring, n::Int)
 special_linear_lie_algebra(R::Ring, n::Int)
 special_orthogonal_lie_algebra(R::Ring, n::Int)
 ```
+
+## Relation to GAP Lie algebras
+
+Using `Oscar.iso_oscar_gap(L)`, one can get an isomorphism from the OSCAR Lie algebra `L`
+to some isomorphic GAP Lie algebra. For more details, please refer to [`iso_oscar_gap`](@ref).

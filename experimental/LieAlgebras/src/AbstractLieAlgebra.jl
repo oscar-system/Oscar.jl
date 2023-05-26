@@ -161,13 +161,23 @@ julia> struct_consts[3, 1, 1] = QQ(2);
 julia> struct_consts[1, 3, 1] = QQ(-2);
 julia> struct_consts[3, 2, 2] = QQ(-2);
 julia> struct_consts[2, 3, 2] = QQ(2);
-julia> L = lie_algebra(QQ, struct_consts, ["e", "f", "h"])
+julia> sl2 = lie_algebra(QQ, struct_consts, ["e", "f", "h"])
 AbstractLieAlgebra over Rational Field
-julia> basis(L)
+
+julia> e, f, h = basis(sl2)
 3-element Vector{AbstractLieAlgebraElem{QQFieldElem}}:
  e
  f
  h
+
+julia> e * f
+h
+
+julia> h * e
+2*e
+
+julia> h * f
+-2*f
 ```
 """
 function lie_algebra(
