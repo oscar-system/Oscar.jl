@@ -4,6 +4,17 @@ using Distributed
 
 import Random
 
+numprocs_str = get(ENV, "NUMPROCS", "1")
+
+if !isempty(ARGS)
+  jargs = [arg for arg in ARGS if startswith(arg, "-j")]
+  if !isempty(jargs)
+    numprocs_str = split(jargs[end], "-j")[end]
+  end
+end
+
+const numprocs = parse(Int, numprocs_str)
+
 if !isempty(ARGS)
   jargs = [arg for arg in ARGS if startswith(arg, "-j")]
   if !isempty(jargs)
@@ -15,7 +26,7 @@ else
   numprocs = 1
 end
 
-if (numprocs >= 2)
+if numprocs >= 2
   println("Adding worker processes")
   addprocs(numprocs)
 end
@@ -103,56 +114,54 @@ end
 
 println("Making test list")
 
-testlist = []
-push!(testlist, "Aqua.jl")
+const testlist = [
+  "Aqua.jl",
 
-push!(testlist, "printing.jl")
+  "printing.jl",
 
-push!(testlist, "PolyhedralGeometry/runtests.jl")
-push!(testlist, "Combinatorics/runtests.jl")
+  "PolyhedralGeometry/runtests.jl",
+  "Combinatorics/runtests.jl",
 
-push!(testlist, "GAP/runtests.jl")
-push!(testlist, "Groups/runtests.jl")
+  "GAP/runtests.jl",
+  "Groups/runtests.jl",
 
-push!(testlist, "Rings/runtests.jl")
+  "Rings/runtests.jl",
 
-push!(testlist, "NumberTheory/nmbthy.jl")
-
-if Oscar.is_dev
-  push!(testlist, "Experimental/GITFans.jl")
-end
+  "NumberTheory/nmbthy.jl",
 
 # Will automatically include all experimental packages following our
 # guidelines.
-push!(testlist, "../experimental/runtests.jl")
 
-push!(testlist, "Experimental/galois.jl")
-push!(testlist, "Experimental/gmodule.jl")
-push!(testlist, "Experimental/ModStdQt.jl")
-push!(testlist, "Experimental/ModStdNF.jl")
-push!(testlist, "Experimental/MatrixGroups.jl")
-push!(testlist, "Experimental/JuLie.jl")
-push!(testlist, "Experimental/ExteriorAlgebra.jl")
+  "../experimental/runtests.jl",
 
-push!(testlist, "Rings/ReesAlgebra.jl")
+  "Experimental/galois.jl",
+  "Experimental/gmodule.jl",
+  "Experimental/ModStdQt.jl",
+  "Experimental/ModStdNF.jl",
+  "Experimental/MatrixGroups.jl",
+  "Experimental/JuLie.jl",
+  "Experimental/ExteriorAlgebra.jl",
+  
+  "Rings/ReesAlgebra.jl",
 
-push!(testlist, "Modules/runtests.jl")
+  "Modules/runtests.jl",
 
-push!(testlist, "InvariantTheory/runtests.jl")
+  "InvariantTheory/runtests.jl",
 
-push!(testlist, "AlgebraicGeometry/Schemes/runtests.jl")
-push!(testlist, "AlgebraicGeometry/ToricVarieties/runtests.jl")
-push!(testlist, "AlgebraicGeometry/Surfaces/K3Auto.jl")
+  "AlgebraicGeometry/Schemes/runtests.jl",
+  "AlgebraicGeometry/ToricVarieties/runtests.jl",
+  "AlgebraicGeometry/Surfaces/K3Auto.jl",
 
-push!(testlist, "TropicalGeometry/runtests.jl")
+  "TropicalGeometry/runtests.jl",
 
-push!(testlist, "Serialization/runtests.jl")
+  "Serialization/runtests.jl",
 
-push!(testlist, "StraightLinePrograms/runtests.jl")
+  "StraightLinePrograms/runtests.jl"
+]
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-@time pmap(x -> include(x), testlist)
+pmap(include, testlist)
 
 @static if compiletimes
   Base.cumulative_compile_timing(false);
@@ -161,7 +170,7 @@ end
 #currently, print_stats will fail when running tests with external workers
 #TODO: potentially rewrite include as well as print_stats 
 #      to comply with parallel decisions
-if (numprocs == 1)
+if numprocs == 1
   if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
     open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
       print_stats(io, fmt=PrettyTables.tf_markdown)
