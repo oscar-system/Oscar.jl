@@ -172,8 +172,7 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
         if length(parents) == 1
             @assert has_elem_basic_encoding(base)
             coeff_type = elem_type(base)
-            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
-                                                            parent=base)
+            loaded_terms[exponent] = load_internal_with_parent(s, coeff_type, coeff, base)
         else
             loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
         end

@@ -16,7 +16,7 @@
   "id": "df056bd5-5b03-4ac6-b57a-8cd7b486dbd0",
   "type": "fqPolyRepPolyRingElem",
   "data": {
-    "parent": {
+     "parent": {
       "id": "ff9977d2-c3da-4640-aa91-dfad32db1d51",
       "type": "fqPolyRepPolyRing",
       "data": {

@@ -50,6 +50,7 @@ end
 
 include("0.11.3.jl")
 include("0.12.0.jl")
+include("0.12.2.jl")
 
 sort!(upgrade_scripts; by=version)
 
@@ -73,5 +74,6 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
     end
 
     upgraded_dict[:_ns] = oscarSerializationVersion
+    
     return upgraded_dict
 end

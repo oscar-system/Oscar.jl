@@ -62,9 +62,16 @@ end
 
 function load_internal_with_parent(s::DeserializerState,
                                    z::Type{fpFieldElem},
+                                   int::Int,
+                                   parent::Nemo.fpField)
+    return parent(UInt64(int))
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   z::Type{fpFieldElem},
                                    str::String,
                                    parent::Nemo.fpField)
-    return parent(parse(UInt64, str))
+    return parent(parse(UInt64,str))
 end
 
 
@@ -206,7 +213,12 @@ function save_internal(s::SerializerState, k::FqFieldElem)
     if absolute_degree(K) == 1
         return string(lift(ZZ, k))
     end
-    polynomial = parent(defining_polynomial(K))(lift(ZZ["x"][1], k))
+    poly_parent = parent(defining_polynomial(K))
+    parent_base_ring = base_ring(poly_parent)
+
+    # currently this lift won't work for the given types
+    # but is necessary for serialization
+    polynomial = lift(parent_base_ring["x"][1], k)
     encoded_polynomial = save_internal(s, polynomial)
     parents = encoded_polynomial[:parents]
     push!(parents, save_as_ref(s, K))
