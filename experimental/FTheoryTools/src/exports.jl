@@ -17,7 +17,7 @@ export calabi_yau_hypersurface
 export description
 export discriminant
 export doi
-export equ_nr
+export equation_number
 export fiber_ambient_space
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
@@ -32,7 +32,7 @@ export sample_toric_variety
 export has_arxiv_id
 export has_description
 export has_doi
-export has_equ_nr
+export has_equation_number
 export has_link
 export has_version
 export singular_loci
